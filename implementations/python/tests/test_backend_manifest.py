@@ -273,11 +273,19 @@ def test_backend_manifest_v2_declares_observation_capability_dimensions():
     payload = backend_manifest_payload(create_stub_manifest())
     observation = payload["capabilities"]["observation"]
 
-    assert observation["supported_capture_kinds"] == ["artifact", "log", "observation", "telemetry", "trace"]
+    assert observation["supported_capture_kinds"] == [
+        "artifact",
+        "log",
+        "observation",
+        "packet-capture",
+        "telemetry",
+        "trace",
+    ]
     assert observation["supported_channel_kinds"] == [
         "backend-log",
         "evaluation-history",
         "file-artifact",
+        "packet-capture",
         "participant-observation",
         "runtime-snapshot",
         "workflow-history",
@@ -298,6 +306,7 @@ def test_backend_manifest_v2_declares_observation_capability_dimensions():
         "artifact",
         "log",
         "observation",
+        "packet-capture",
         "telemetry",
         "trace",
     ]

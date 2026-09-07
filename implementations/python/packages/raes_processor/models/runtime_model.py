@@ -14,6 +14,7 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
 
+from ..capture_admission import CaptureDemand
 from .behavior_resources import (
     EventRuntime,
     ObjectiveWindowReferenceRuntime,
@@ -117,6 +118,7 @@ class RuntimeModel:
     # consumed by planner capability checks and never enters backend resource
     # payloads.
     capability_constraints: tuple[CompiledCapabilityConstraint, ...] = ()
+    capture_demands: tuple[CaptureDemand, ...] = ()
     networks: dict[str, NetworkRuntime] = field(default_factory=dict)
     node_deployments: dict[str, NodeRuntime] = field(default_factory=dict)
     feature_bindings: dict[str, FeatureBinding] = field(default_factory=dict)

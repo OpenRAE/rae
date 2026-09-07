@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from raes import canonical_instantiated_sdl_digest, select_scenario_family
 from raes.canonical import canonical_sdl_digest
@@ -26,6 +26,7 @@ from raes_contracts.contracts import (
     AdmittedTrialPlanModel,
     BackendManifestV2Model,
     EvaluationPlanModel,
+    ExperimentCaptureSpecModel,
     ExperimentReferenceModel,
     ExperimentSpecModel,
     ExperimentTaskModel,
@@ -42,6 +43,7 @@ from raes_contracts.plan_projection import (
 )
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
+from .capture_admission import compile_capture_spec_demands
 from .compiler import compile_scenario_runtime_model
 from .models import ExecutionPlan
 from .planner import plan as build_execution_plan
@@ -76,6 +78,7 @@ class TrialRealizationInputs:
     family: ExpandedScenario
     experiment: ExperimentSpecModel
     task: ExperimentTaskModel
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel]
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest]
     realization_envelope: BackendRealizationEnvelopeModel
     backend_key: ApparatusManifestKey
@@ -159,6 +162,51 @@ def _validate_experiment_and_task(
         raise ValueError("task identity does not match the admitted plan")
 
 
+def _validate_capture_specs(
+    plan: AdmittedTrialPlanModel,
+    experiment: ExperimentSpecModel,
+    task: ExperimentTaskModel,
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel],
+) -> None:
+    expected_keys = {(reference.ref_id, reference.ref_version) for reference in experiment.capture_spec_refs}
+    supplied_keys = {
+        (capture_spec.capture_spec_id, capture_spec.spec_version) for capture_spec in capture_specs.values()
+    }
+    if (
+        expected_keys != supplied_keys
+        or len(supplied_keys) != len(capture_specs)
+        or any(key != capture_spec.capture_spec_id for key, capture_spec in capture_specs.items())
+    ):
+        raise ValueError("capture specification identities do not match the admitted plan")
+    expected_pins = {
+        (
+            capture_spec.capture_spec_id,
+            capture_spec.spec_version,
+            canonical_json_digest(capture_spec.model_dump(mode="json")),
+        )
+        for capture_spec in capture_specs.values()
+    }
+    admitted_pins = {
+        (reference.ref_id, reference.ref_version, reference.ref_digest)
+        for reference in plan.input_refs.capture_spec_refs
+    }
+    if expected_pins != admitted_pins:
+        raise ValueError("capture specification digests do not match the admitted plan")
+    requirement_ids = {
+        requirement.requirement_id
+        for capture_spec in capture_specs.values()
+        for requirement in capture_spec.capture_requirements.values()
+    }
+    task_requirement_ids = {reference.ref_id for reference in task.evaluation_protocol.observation_requirements}
+    task_requirement_ids.update(
+        reference.ref_id
+        for metric in task.evaluation_protocol.metric_definitions.values()
+        for reference in metric.evidence_requirements
+    )
+    if not task_requirement_ids.issubset(requirement_ids):
+        raise ValueError("task evidence requirements do not resolve to admitted capture requirements")
+
+
 def _runtime_backend(
     selected: Mapping[ApparatusManifestKey, ApparatusManifest],
     backend_key: ApparatusManifestKey,
@@ -211,6 +259,12 @@ def realize_admitted_trial_entry(
     if entry is None:
         raise ValueError("plan_entry_id does not resolve inside the admitted plan")
     _validate_experiment_and_task(admitted_plan, inputs.experiment, inputs.task)
+    _validate_capture_specs(
+        admitted_plan,
+        inputs.experiment,
+        inputs.task,
+        inputs.capture_specs,
+    )
     try:
         selected = validate_admitted_apparatus(
             entry.apparatus,
@@ -227,6 +281,13 @@ def realize_admitted_trial_entry(
         family=inputs.family,
     )
     runtime_model = compile_scenario_runtime_model(instantiated)
+    runtime_model = replace(
+        runtime_model,
+        capture_demands=(
+            *runtime_model.capture_demands,
+            *compile_capture_spec_demands(tuple(inputs.capture_specs.values())),
+        ),
+    )
     execution_plan = build_execution_plan(
         runtime_model,
         runtime_backend,

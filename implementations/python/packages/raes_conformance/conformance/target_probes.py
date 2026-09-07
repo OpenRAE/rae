@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from textwrap import dedent
 from types import SimpleNamespace
 from typing import Any
 
-from raes_backend_protocols.manifest import backend_manifest_payload
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
 from raes_contracts.participant_episode import (
@@ -16,7 +14,8 @@ from raes_contracts.participant_episode import (
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, RuntimeSnapshotEnvelope
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_processor.reference import ScenarioInput, run_reference_processor
+from raes_processor.models import ExecutionPlan
+from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
 
@@ -36,67 +35,12 @@ from raes_conformance.conformance.profiles import (
 )
 from raes_conformance.conformance.report import ConformanceCaseResult
 from raes_conformance.conformance.semantics import _semantic_diagnostics
-from raes_conformance.conformance.validators import _validate_payload
-
-# Default reference scenario the target-conformance adapter probe drives when the
-# caller supplies none. Backend-neutral: a single generic compute node with no
-# authored OS identity — an authored ``os`` becomes an exact SEM-218
-# realization requirement demanding corroboration no hermetic in-process
-# backend declares, which is what regressed this probe when authored OS
-# identity started carrying through realization. Leaving it unset keeps the
-# probe admissible on every declared envelope, mirroring
-# ``examples/scenarios/cross-backend-minimal.sdl.yaml``.
-#
-# Issue #663 makes this a *default*, not a universal assumption. A fixed-topology
-# emulation or bounded simulation backend that cannot realize this generic
-# scenario supplies one it can realize via
-# ``run_target_conformance(reference_scenario=...)``; the target probe then holds
-# it to adapter-level accounting for *that* scenario. This runner-parameter
-# bridge — superseded by the realizability-envelope design (#667) and the
-# scenario/envelope subsumption relation (#668), which will let the probe
-# negotiate an in-envelope witness instead of carrying a default at all.
-_DEFAULT_CONFORMANCE_SCENARIO = dedent(
-    """
-    name: conformance
-    nodes:
-      vm:
-        type: compute
-        resources: {ram: 1 gib, cpu: 1}
-        conditions: {health: ops}
-        roles: {ops: operator}
-    conditions:
-      health: {proposition: health-state, command: /bin/true, interval: 15}
-    entities:
-      blue: {role: blue}
-    propositions:
-      health-state:
-        description: The conformance VM is declared in the admitted scenario.
-        subjects: [nodes.vm]
-        basis: declared_state
-        predicate:
-          kind: presence
-          property: node
-          semantic_ref: urn:raes:declared-property:node
-          operator: exists
-    assertions:
-      health:
-        proposition: health-state
-        role: postcondition
-    objectives:
-      validate:
-        entity: blue
-        success: {assertions: [health]}
-    workflows:
-      response:
-        start: run
-        steps:
-          run:
-            type: objective
-            objective: validate
-            on_success: finish
-          finish: {type: end}
-    """
+from raes_conformance.conformance.target_manifest_probe import target_manifest_case
+from raes_conformance.conformance.target_planning import (
+    DEFAULT_TARGET_CONFORMANCE_SCENARIO,
+    target_probe_execution_plan,
 )
+from raes_conformance.conformance.validators import _validate_payload
 
 
 class _UnavailableConformanceCrossingPolicyResolver:
@@ -450,33 +394,57 @@ def _target_adapter_cases(
     realize one hard-coded scenario.
     """
 
-    cases: list[ConformanceCaseResult] = []
-    manifest_payload = backend_manifest_payload(target.manifest)
-    manifest_diags = _validate_payload("backend-manifest-v2", manifest_payload)
-    cases.append(
-        ConformanceCaseResult(
-            name="target-manifest",
-            contract_name="backend-manifest-v2",
-            valid=True,
-            passed=not manifest_diags,
-            diagnostics=tuple(manifest_diags),
-        )
-    )
-
+    cases = [target_manifest_case(target)]
     known = _to_known_profile(profile)
-    if known is None:
+    if not cases[0].valid or known is None:
         return tuple(cases)
 
-    scenario = _DEFAULT_CONFORMANCE_SCENARIO if reference_scenario is None else reference_scenario
-    execution_plan = run_reference_processor(scenario, target.manifest).execution_plan
-    # Legacy API-423-only conformance resolver: opt out of the SEM-233
-    # final-sink permit that this probe's resolver does not produce.
+    scenario = DEFAULT_TARGET_CONFORMANCE_SCENARIO if reference_scenario is None else reference_scenario
+    execution_plan = target_probe_execution_plan(
+        scenario,
+        target,
+        provisioning_only=known == BackendCapabilityProfile.PROVISIONING_ONLY,
+    )
+    planning_errors = tuple(diagnostic for diagnostic in execution_plan.diagnostics if diagnostic.is_error)
+    if planning_errors:
+        cases.append(
+            ConformanceCaseResult(
+                name="target-provisioning",
+                contract_name="provisioning-plan-v1",
+                valid=False,
+                passed=False,
+                diagnostics=(
+                    _diagnostic(
+                        "conformance.provisioning-failed",
+                        "runtime.control-plane.provisioning",
+                        "Composite planning rejected the target probe before backend execution: "
+                        + "; ".join(diagnostic.code for diagnostic in planning_errors),
+                    ),
+                ),
+            )
+        )
+    else:
+        cases.extend(_target_runtime_cases(target, known, execution_plan))
+    return tuple(cases)
+
+
+def _target_runtime_cases(
+    target: RuntimeTarget,
+    known: BackendCapabilityProfile,
+    execution_plan: ExecutionPlan,
+) -> tuple[ConformanceCaseResult, ...]:
+    """Drive the runtime surfaces that are valid for one known backend profile."""
+
+    cases: list[ConformanceCaseResult] = []
+    # Legacy API-423-only conformance resolver: opt out of the SEM-233 final-sink
+    # permit that this probe's resolver does not produce.
     control_plane = RuntimeControlPlane(
         target,
         initial_snapshot=_participant_execution_probe_snapshot(target),
         crossing_policy_resolver=_conformance_crossing_policy_resolver(target),
         enforce_final_sink_flow_control=False,
     )
+    control_plane.register_planner_produced_plan(execution_plan)
     cases.append(_provisioning_probe_case(control_plane, execution_plan.provisioning))
     if known != BackendCapabilityProfile.PROVISIONING_ONLY:
         if target.orchestrator is not None:

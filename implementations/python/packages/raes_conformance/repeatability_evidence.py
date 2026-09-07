@@ -26,6 +26,7 @@ from typing import Protocol
 
 from raes_contracts.contracts import (
     ExperimentEvidenceRecordModel,
+    ExperimentRunEvidenceInputs,
     ExperimentRunModel,
     ExperimentTaskModel,
     validate_experiment_run_against_task,
@@ -125,6 +126,7 @@ class RepeatabilityRunInput:
     repetition_id: str
     task: ExperimentTaskModel
     run: ExperimentRunModel
+    evidence: ExperimentRunEvidenceInputs | None = None
 
 
 @dataclass(frozen=True)
@@ -199,9 +201,15 @@ def _snapshot_ref(run: ExperimentRunModel) -> str:
     return f"scenario-snapshot:{snapshot.ref_id}@{snapshot.ref_version}"
 
 
-def _validate_side(role: str, rep: RepetitionRef, task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
+def _validate_side(
+    role: str,
+    rep: RepetitionRef,
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    evidence: ExperimentRunEvidenceInputs | None,
+) -> None:
     try:
-        validate_experiment_run_against_task(task, run)
+        validate_experiment_run_against_task(task, run, evidence=evidence)
     except ValueError as exc:
         raise ValueError(f"{role} task/run validation failed") from exc
     snapshot = run.scenario_snapshot_ref
@@ -314,8 +322,8 @@ def assemble_repeatability_consistency_evidence(
         or runs.repetition.repetition_id != case.repetition.repetition_id
     ):
         raise ValueError("run pair repetition ids must match the admitted case baseline and repetition")
-    _validate_side("baseline", case.baseline, runs.baseline.task, runs.baseline.run)
-    _validate_side("repetition", case.repetition, runs.repetition.task, runs.repetition.run)
+    _validate_side("baseline", case.baseline, runs.baseline.task, runs.baseline.run, runs.baseline.evidence)
+    _validate_side("repetition", case.repetition, runs.repetition.task, runs.repetition.run, runs.repetition.evidence)
 
     binding = getattr(validator, "binding", None)
     if not isinstance(binding, VerificationBinding) or binding != case.verification_authority:

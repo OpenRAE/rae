@@ -9,6 +9,7 @@ from typing import Protocol
 
 from raes_contracts.contracts import (
     ExperimentEvidenceRecordModel,
+    ExperimentRunEvidenceInputs,
     ExperimentRunModel,
     ExperimentTaskModel,
     PropositionTruthResultModel,
@@ -125,6 +126,8 @@ class NecessityRunPair:
     baseline_run: ExperimentRunModel
     counterfactual_task: ExperimentTaskModel
     counterfactual_run: ExperimentRunModel
+    baseline_evidence: ExperimentRunEvidenceInputs | None = None
+    counterfactual_evidence: ExperimentRunEvidenceInputs | None = None
 
 
 @dataclass(frozen=True)
@@ -196,9 +199,10 @@ def _validate_world(
     role: str,
     task: ExperimentTaskModel,
     run: ExperimentRunModel,
+    evidence: ExperimentRunEvidenceInputs | None,
 ) -> None:
     try:
-        validate_experiment_run_against_task(task, run)
+        validate_experiment_run_against_task(task, run, evidence=evidence)
     except ValueError as exc:
         raise ValueError(f"{role} task/run validation failed") from exc
     world = case.baseline_world if role == "baseline" else case.counterfactual_world
@@ -324,8 +328,14 @@ def assemble_bounded_but_for_evidence(
 ) -> BoundedButForEvidence:
     """Invoke the admitted adapter and assemble evidence after every join passes."""
 
-    _validate_world(case, "baseline", runs.baseline_task, runs.baseline_run)
-    _validate_world(case, "counterfactual", runs.counterfactual_task, runs.counterfactual_run)
+    _validate_world(case, "baseline", runs.baseline_task, runs.baseline_run, runs.baseline_evidence)
+    _validate_world(
+        case,
+        "counterfactual",
+        runs.counterfactual_task,
+        runs.counterfactual_run,
+        runs.counterfactual_evidence,
+    )
     binding = getattr(validator, "binding", None)
     if not isinstance(binding, VerificationBinding) or binding != case.verification_authority:
         raise ValueError("validator binding does not match the authority admitted by the case")

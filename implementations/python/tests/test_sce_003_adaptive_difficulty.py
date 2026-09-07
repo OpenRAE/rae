@@ -37,7 +37,7 @@ from raes_contracts.contracts import (
     resolve_difficulty_policy,
     schema_bundle,
     validate_experiment_difficulty_against_spec,
-    validate_experiment_study_against_tasks_and_runs,
+    validate_experiment_study_structure_against_tasks_and_runs,
 )
 
 _DIGEST_A = "sha256:" + "1" * 64
@@ -989,13 +989,13 @@ def test_study_allocation_distinguishes_fixed_and_adaptive_treatments() -> None:
     from raes_contracts.contracts import ExperimentTaskModel
 
     task = ExperimentTaskModel.model_validate(task_payload)
-    validate_experiment_study_against_tasks_and_runs(study, [task], [run])
+    validate_experiment_study_structure_against_tasks_and_runs(study, [task], [run])
 
     fixed_study = study.model_copy(deep=True)
     fixed_study.run_allocation.condition_assignments["baseline"].__dict__["difficulty_condition"] = "fixed"
     fixed_study.run_allocation.condition_assignments["baseline"].__dict__["difficulty_policy_id"] = None
     with pytest.raises(ValueError, match="must satisfy their condition assignments"):
-        validate_experiment_study_against_tasks_and_runs(fixed_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(fixed_study, [task], [run])
 
 
 def test_nonfixed_collection_requires_analysis_and_validity_treatment() -> None:

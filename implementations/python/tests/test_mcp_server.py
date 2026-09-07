@@ -806,9 +806,10 @@ class TestOperationTools:
 
     def test_plan_dry_run_reports_reference_manifest_and_operations(self, server):
         payload = _json_call(server, "sdl_plan", {"sdl_content": FULL_SDL})
-        assert payload["status"] == "planned"
+        assert payload["status"] == "planned_with_errors"
         assert payload["manifest"]["backend"] == "stub"
-        assert payload["plan"]["is_valid"] is True
+        assert payload["plan"]["is_valid"] is False
+        assert any(diagnostic["code"] == "capture.offer-missing" for diagnostic in payload["diagnostics"])
         assert payload["plan"]["operations"]["provisioning"]["create"] > 0
         assert "dry run" in payload["claim_boundary"]
 
@@ -816,7 +817,9 @@ class TestOperationTools:
         payload = _json_call(server, "sdl_design_assessment", {"sdl_content": FULL_SDL})
         messages = [note["message"] for note in payload["design_notes"]]
         assert any("action names without action contracts" in message for message in messages)
-        assert payload["plan"]["is_valid"] is True
+        assert payload["status"] == "needs_attention"
+        assert payload["plan"]["is_valid"] is False
+        assert any(diagnostic["code"] == "capture.offer-missing" for diagnostic in payload["diagnostics"])
 
     def test_claims_assessment_limits_participant_skill_claims(self, server):
         payload = _json_call(server, "sdl_claims_assessment", {"sdl_content": FULL_SDL})

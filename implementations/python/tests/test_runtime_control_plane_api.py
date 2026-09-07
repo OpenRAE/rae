@@ -25,8 +25,8 @@ from raes_contracts.contracts import (
     ParticipantHistoryViewModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.plan_projection import evaluation_plan_model, provisioning_plan_model
-from raes_contracts.planning import ProvisioningPlan
+from raes_contracts.plan_projection import evaluation_plan_model, orchestration_plan_model, provisioning_plan_model
+from raes_contracts.planning import ChangeAction, OrchestrationOp, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import (
     ExplicitnessClass,
     ExplicitnessProvenance,
@@ -73,6 +73,7 @@ def _provisioning_payload(plan_value: object) -> dict[str, object]:
 
 
 def _admit_workflow_prerequisites(control_plane: RuntimeControlPlane, execution_plan: object) -> None:
+    control_plane.register_planner_produced_plan(execution_plan)
     provisioning = control_plane.submit_provisioning(execution_plan.provisioning)
     evaluation = control_plane.submit_evaluation(execution_plan.evaluation)
     assert provisioning.accepted, provisioning.diagnostics
@@ -284,6 +285,22 @@ nodes:
 def test_control_plane_api_audits_denied_operation_receipt_as_denied() -> None:
     target = create_stub_target()
     control_plane = RuntimeControlPlane(target)
+    submitted_plan = OrchestrationPlan(
+        operations=[
+            OrchestrationOp(
+                action=ChangeAction.CREATE,
+                address="orchestration.workflow.test",
+                resource_type="workflow",
+                payload={},
+                ordering_dependencies=("orchestration.workflow.missing",),
+            )
+        ],
+        startup_order=["orchestration.workflow.test"],
+    )
+    authorization_plan = plan(compile_runtime_model(_scenario("name: admission-authorization")), target.manifest)
+    # Planner validity is intentionally out of scope; this test targets the
+    # operation-admission rejection and its audit record after authorization.
+    control_plane.register_planner_produced_plan(replace(authorization_plan, orchestration=submitted_plan))
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
     headers = {
         "x-raes-client-verified": "true",
@@ -293,20 +310,7 @@ def test_control_plane_api_audits_denied_operation_receipt_as_denied() -> None:
     with TestClient(app) as client:
         response = client.post(
             "/operations/orchestration",
-            json={
-                "operations": [
-                    {
-                        "action": "create",
-                        "address": "orchestration.workflow.test",
-                        "resource_type": "workflow",
-                        "payload": {},
-                        "ordering_dependencies": ["orchestration.workflow.missing"],
-                        "refresh_dependencies": [],
-                    }
-                ],
-                "startup_order": ["orchestration.workflow.test"],
-                "diagnostics": [],
-            },
+            json=orchestration_plan_model(submitted_plan).model_dump(mode="json", exclude_none=True),
             headers=headers,
         )
 
@@ -316,6 +320,66 @@ def test_control_plane_api_audits_denied_operation_receipt_as_denied() -> None:
     assert len(audits) == 1
     assert audits[0].action == "orchestration_admission"
     assert all(event.identity == "backend-service" and event.allowed is False for event in audits)
+
+
+@pytest.mark.parametrize("domain", ["orchestration", "evaluation"])
+def test_control_plane_api_rejects_unregistered_nonempty_phase_plan(domain: str) -> None:
+    scenario = _scenario("""
+name: authorization-gate
+nodes:
+  vm:
+    type: compute
+    resources: {ram: 1 gib, cpu: 1}
+    conditions: {health: ops}
+    roles: {ops: operator}
+conditions:
+  health: {command: /bin/true, interval: 15}
+propositions:
+  health:
+    description: The governed VM has declared runtime state.
+    subjects: [nodes.vm]
+    basis: declared_state
+    predicate: {kind: presence, property: runtime, semantic_ref: urn:raes:declared-property:runtime, operator: exists}
+assertions:
+  health: {proposition: health, role: postcondition, polarity: positive}
+entities:
+  blue: {role: blue}
+objectives:
+  validate:
+    entity: blue
+    success: {assertions: [health]}
+workflows:
+  response:
+    start: run
+    steps:
+      run:
+        type: objective
+        objective: validate
+        on_success: finish
+      finish: {type: end}
+""")
+    target = create_stub_target()
+    execution_plan = plan(compile_runtime_model(scenario), target.manifest)
+    submitted_plan = getattr(execution_plan, domain)
+    assert submitted_plan.operations
+    projector = orchestration_plan_model if domain == "orchestration" else evaluation_plan_model
+    payload = projector(submitted_plan).model_dump(mode="json", exclude_none=True)
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    with TestClient(app) as client:
+        response = client.post(
+            f"/operations/{domain}",
+            json=payload,
+            headers={
+                "x-raes-client-verified": "true",
+                "x-raes-client-identity": "backend-service",
+            },
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": f"{domain} plan is not planner-authorized"}
+    assert control_plane.audit_log()[-1].reason == "planner-authorization-mismatch"
 
 
 def test_control_plane_api_redacts_unexpected_route_errors(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -797,7 +861,7 @@ nodes:
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     store = LocalControlPlaneStore(tmp_path / "cp-store")
     control_plane = RuntimeControlPlane(target, store=store)
-    control_plane.register_planner_produced_provisioning_plan(execution_plan.provisioning)
+    control_plane.register_planner_produced_provisioning_plan(execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -834,7 +898,7 @@ nodes:
     target = create_stub_target()
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
-    control_plane.register_planner_produced_provisioning_plan(execution_plan.provisioning)
+    control_plane.register_planner_produced_provisioning_plan(execution_plan)
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
     payload = _provisioning_payload(execution_plan.provisioning)
     closed_entry = next(

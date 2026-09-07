@@ -461,6 +461,7 @@
         "artifact",
         "log",
         "observation",
+        "packet-capture",
         "telemetry",
         "trace"
       ],
@@ -468,6 +469,7 @@
         "backend-log",
         "evaluation-history",
         "file-artifact",
+        "packet-capture",
         "participant-observation",
         "runtime-snapshot",
         "workflow-history"
@@ -489,6 +491,7 @@
       "supports_redaction": true,
       "supports_loss_disclosure": true,
       "supports_chain_of_custody": false,
+      "capture_offers": [],
       "constraints": {}
     },
     "cleanup": {

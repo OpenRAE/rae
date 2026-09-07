@@ -45,6 +45,10 @@
       "required_artifact_roles": [
         "observation"
       ],
+      "output_contract": "participant-behavior-history-event-stream-v1",
+      "field_selectors": [
+        "/0/action_contract_address"
+      ],
       "sensitivity": "internal",
       "integrity_requirements": [
         "sha256-digest"

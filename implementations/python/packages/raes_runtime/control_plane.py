@@ -12,8 +12,9 @@ from collections.abc import Mapping
 from threading import RLock
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
-from raes_contracts.plan_projection import provisioning_plan_digest
+from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -28,7 +29,7 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshotEnvelope,
 )
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_processor.models import ParticipantBehaviorSpecificationRuntime
+from raes_processor.models import ExecutionPlan, ParticipantBehaviorSpecificationRuntime
 
 from .backend_calls import _call_backend_diagnostics
 from .control_plane_admission import RuntimeAdmissionMixin
@@ -147,8 +148,8 @@ class RuntimeControlPlane(
             self._operation_lock = RLock()
             self._ephemeral_idempotency_fingerprints: dict[str, str] = {}
             self._participant_control_lock = self._operation_lock
-            self._trusted_provisioning_plan_lock = RLock()
-            self._trusted_provisioning_plan_digests: set[str] = set()
+            self._trusted_runtime_plan_lock = RLock()
+            self._trusted_runtime_plan_digests: set[str] = set()
             require_participant_information_state_snapshot(
                 self._snapshot,
                 information_state_context_resolver,
@@ -194,28 +195,66 @@ class RuntimeControlPlane(
         )
 
     @runtime_owned
-    def register_planner_produced_provisioning_plan(self, plan: ProvisioningPlan) -> str:
-        """Trust one exact planner artifact for later HTTP relay submission.
+    def register_planner_produced_plan(self, plan: ExecutionPlan) -> str:
+        """Trust the phases of one valid composite planner result.
 
         This method is an in-process authority boundary and is deliberately not
         exposed by the HTTP control plane. Relay principals can submit a
         registered artifact, but cannot mint or widen its realization policy.
+        Registration never accepts an isolated phase because phase diagnostics
+        do not contain composite capture-admission failures.
         """
 
         self._assert_runtime_owner()
-        digest = provisioning_plan_digest(plan)
-        with self._trusted_provisioning_plan_lock:
-            self._trusted_provisioning_plan_digests.add(digest)
-        return digest
+        if not isinstance(plan, ExecutionPlan):
+            raise TypeError("planner authorization requires a composite ExecutionPlan")
+        if not plan.is_valid:
+            raise ValueError("invalid composite execution plans cannot be authorized")
+        digests = tuple(
+            runtime_plan_digest(phase) for phase in (plan.provisioning, plan.orchestration, plan.evaluation)
+        )
+        with self._trusted_runtime_plan_lock:
+            self._trusted_runtime_plan_digests.update(digests)
+        return digests[0]
 
     @runtime_owned
-    def is_planner_authorized_provisioning_plan(self, plan: ProvisioningPlan) -> bool:
+    def is_planner_authorized_plan(
+        self,
+        plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    ) -> bool:
         """Return whether the exact published plan was registered in-process."""
 
         self._assert_runtime_owner()
-        digest = provisioning_plan_digest(plan)
-        with self._trusted_provisioning_plan_lock:
-            return digest in self._trusted_provisioning_plan_digests
+        digest = runtime_plan_digest(plan)
+        with self._trusted_runtime_plan_lock:
+            return digest in self._trusted_runtime_plan_digests
+
+    @runtime_owned
+    def register_planner_produced_provisioning_plan(self, plan: ExecutionPlan) -> str:
+        """Backward-compatible provisioning-specific registration facade."""
+
+        return self.register_planner_produced_plan(plan)
+
+    @runtime_owned
+    def is_planner_authorized_provisioning_plan(self, plan: ProvisioningPlan) -> bool:
+        """Backward-compatible provisioning-specific authorization facade."""
+
+        return self.is_planner_authorized_plan(plan)
+
+    def _plan_authorization_diagnostics(
+        self,
+        plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    ) -> list[Diagnostic]:
+        if not plan.operations or self.is_planner_authorized_plan(plan):
+            return []
+        return [
+            Diagnostic(
+                code="runtime.plan-authorization-mismatch",
+                domain="runtime",
+                address="runtime.control-plane.plan",
+                message="Effect-capable plan is not an exact planner-authorized artifact.",
+            )
+        ]
 
     @runtime_owned
     def submit_provisioning(
@@ -250,6 +289,8 @@ class RuntimeControlPlane(
             self._snapshot,
             self._target.manifest,
         )
+        if not diagnostics:
+            diagnostics.extend(self._plan_authorization_diagnostics(plan))
         if diagnostics:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.PROVISIONING,
@@ -314,6 +355,8 @@ class RuntimeControlPlane(
                 context=context,
             )
         diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.ORCHESTRATION, self._snapshot)
+        if not diagnostics:
+            diagnostics.extend(self._plan_authorization_diagnostics(plan))
         if diagnostics:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.ORCHESTRATION,
@@ -373,6 +416,8 @@ class RuntimeControlPlane(
                 context=context,
             )
         diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.EVALUATION, self._snapshot)
+        if not diagnostics:
+            diagnostics.extend(self._plan_authorization_diagnostics(plan))
         if diagnostics:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.EVALUATION,
