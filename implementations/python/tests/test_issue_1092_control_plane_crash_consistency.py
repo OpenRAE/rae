@@ -531,12 +531,13 @@ def test_terminal_commit_rejects_nonterminal_and_immutable_identity_changes(
     store = _atomic_store(store_kind, tmp_path)
     running = _running_record("immutable")
     empty_snapshot = RuntimeSnapshot()
+    empty_revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="requires a terminal status"):
         store.commit_terminal_operation(
             empty_snapshot,
             running,
-            expected_revision=store.load_snapshot_state().revision,
+            expected_revision=empty_revision,
         )
     terminal_record = _terminal_record(running)
     terminal_status = terminal_record.status
@@ -553,11 +554,12 @@ def test_terminal_commit_rejects_nonterminal_and_immutable_identity_changes(
     with pytest.raises(ValueError, match="denied operation receipts cannot be persisted"):
         replace(terminal_record, receipt=denied_receipt)
     changed_fingerprint = replace(terminal_record, request_fingerprint="changed")
+    claimed_revision = store.load_snapshot_state().revision
     with pytest.raises(ValueError, match="operation identity is immutable"):
         store.commit_terminal_operation(
             empty_snapshot,
             changed_fingerprint,
-            expected_revision=store.load_snapshot_state().revision,
+            expected_revision=claimed_revision,
         )
 
 
@@ -657,6 +659,7 @@ def test_in_memory_participant_transition_rolls_back_immutable_claim_rewrite() -
     store.save_record(competing_running)
     rollback_snapshot = RuntimeSnapshot(metadata={"must": "rollback"})
     event = _audit_event("participant-transition")
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="operation identity is immutable"):
         store.commit_participant_transition(
@@ -664,7 +667,7 @@ def test_in_memory_participant_transition_rolls_back_immutable_claim_rewrite() -
             snapshot=rollback_snapshot,
             record=competing,
             audit_event=event,
-            expected_revision=store.load_snapshot_state().revision,
+            expected_revision=revision,
         )
 
     assert store.load_snapshot() == RuntimeSnapshot()
@@ -774,11 +777,12 @@ def test_terminal_transaction_rolls_back_at_each_internal_write_boundary(
 
     monkeypatch.setattr(store, method_name, interrupt_after_write)
     terminal = _terminal_record(running)
+    revision = store.load_snapshot_state().revision
     with pytest.raises(KeyboardInterrupt, match=f"after {write_boundary} write"):
         store.commit_terminal_operation(
             next_snapshot,
             terminal,
-            expected_revision=store.load_snapshot_state().revision,
+            expected_revision=revision,
         )
 
     assert store.load_snapshot() == RuntimeSnapshot()
@@ -1021,11 +1025,12 @@ def test_local_store_rejects_empty_idempotency_lookup_and_tampered_operation_ide
         store.load_records()
     terminal = _terminal_record(_running_record(tampered_key))
     empty_snapshot = RuntimeSnapshot()
+    revision = store.load_snapshot_state().revision
     with pytest.raises(ValueError, match="identity does not match its durable key"):
         store.commit_terminal_operation(
             empty_snapshot,
             terminal,
-            expected_revision=store.load_snapshot_state().revision,
+            expected_revision=revision,
         )
 
 

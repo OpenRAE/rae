@@ -40,9 +40,8 @@ from .participant_crossing_records import _expected_history_heads
 from .participant_crossing_state_cut import canonical_crossing_digest as _digest
 from .participant_flow_sink import (
     apply_flow_sink_details,
-    commit_flow_sink_denial,
     early_crossing_receipt,
-    resolve_participant_flow_sink_decision,
+    resolve_flow_sink_denial,
 )
 
 _CONTROL_INTERACTIONS = {
@@ -131,18 +130,14 @@ class ParticipantCrossingControlIngressMixin:
             if early is not None:
                 return early
 
-            sink_decision = resolve_participant_flow_sink_decision(
+            sink_decision, sink_receipt = resolve_flow_sink_denial(
                 self,
                 crossing,
                 sink_kind=ParticipantFlowSinkKind.PARTICIPANT_CROSSING,
+                action="record_participant_control",
             )
-            if sink_decision is not None and not sink_decision.permitted:
-                return commit_flow_sink_denial(
-                    self,
-                    crossing,
-                    sink_decision,
-                    action="record_participant_control",
-                )
+            if sink_receipt is not None:
+                return sink_receipt
 
             governed_intent = _governed_control_intent(self, crossing, intent)
             governed_bound = bind_participant_control_request(
@@ -236,18 +231,14 @@ def execute_action_ingress_crossing(
         if early is not None:
             return early
 
-        sink_decision = resolve_participant_flow_sink_decision(
+        sink_decision, sink_receipt = resolve_flow_sink_denial(
             control_plane,
             crossing,
             sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
+            action="record_participant_crossing",
         )
-        if sink_decision is not None and not sink_decision.permitted:
-            return commit_flow_sink_denial(
-                control_plane,
-                crossing,
-                sink_decision,
-                action="record_participant_crossing",
-            )
+        if sink_receipt is not None:
+            return sink_receipt
 
         governed_request = _governed_action_request(control_plane, crossing, request)
         _require_action_binding(participant_behavior, governed_request)

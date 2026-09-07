@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, replace
-from typing import Any, TypeVar, cast
+from typing import TypeVar, cast
 from uuid import uuid4
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
@@ -428,18 +428,31 @@ def _view_subject(
 
 
 def _stable_projection_subject(
-    payload: dict[str, Any],
+    payload: dict[str, object],
     runtime_owned_revision_paths: tuple[_RevisionPath, ...],
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Normalize only runtime-owned provider revision evidence paths."""
 
     paths = ((("source_snapshot_ref",), False), *((path, True) for path in runtime_owned_revision_paths))
     for path, required in paths:
-        cursor: Any = payload
+        cursor: dict[str, object] | list[object] = payload
         for segment in path[:-1]:
-            cursor = cursor[segment]
+            if isinstance(cursor, dict) and isinstance(segment, str):  # noqa: SIM114 - narrows both types
+                nested = cursor[segment]
+            elif isinstance(cursor, list) and isinstance(segment, int):
+                nested = cursor[segment]
+            else:
+                raise RuntimeError("runtime-owned projection revision path is invalid")
+            if not isinstance(nested, (dict, list)):
+                raise RuntimeError("runtime-owned projection revision path is invalid")
+            cursor = nested
         leaf = path[-1]
-        value = cursor[leaf]
+        if isinstance(cursor, dict) and isinstance(leaf, str):  # noqa: SIM114 - narrows both types
+            value = cursor[leaf]
+        elif isinstance(cursor, list) and isinstance(leaf, int):
+            value = cursor[leaf]
+        else:
+            raise RuntimeError("runtime-owned projection revision path is invalid")
         if not isinstance(value, str) or not value.startswith(_SNAPSHOT_REVISION_REF_PREFIX):
             if required:
                 raise RuntimeError("runtime-owned projection revision path is invalid")
@@ -449,7 +462,10 @@ def _stable_projection_subject(
             if required:
                 raise RuntimeError("runtime-owned projection revision path is invalid")
             continue
-        cursor[leaf] = f"{_SNAPSHOT_REVISION_REF_PREFIX}observed"
+        if isinstance(cursor, dict) and isinstance(leaf, str):  # noqa: SIM114 - narrows both types
+            cursor[leaf] = f"{_SNAPSHOT_REVISION_REF_PREFIX}observed"
+        elif isinstance(cursor, list) and isinstance(leaf, int):
+            cursor[leaf] = f"{_SNAPSHOT_REVISION_REF_PREFIX}observed"
     return payload
 
 

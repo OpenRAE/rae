@@ -283,6 +283,22 @@ def commit_flow_sink_denial(
     return record.receipt
 
 
+def resolve_flow_sink_denial(
+    control_plane: object,
+    crossing: PreparedParticipantCrossing,
+    *,
+    sink_kind: ParticipantFlowSinkKind,
+    action: str,
+) -> tuple[ParticipantFlowSinkDecision | None, OperationReceipt | None]:
+    """Resolve a final-sink decision and atomically commit a denial when needed."""
+
+    decision = resolve_participant_flow_sink_decision(control_plane, crossing, sink_kind=sink_kind)
+    receipt = None
+    if decision is not None and not decision.permitted:
+        receipt = commit_flow_sink_denial(control_plane, crossing, decision, action=action)
+    return decision, receipt
+
+
 def early_crossing_receipt(
     control_plane: object,
     crossing: PreparedParticipantCrossing,
@@ -311,4 +327,5 @@ __all__ = (
     "flow_sink_denied_record",
     "flow_sink_history_head_refs",
     "resolve_participant_flow_sink_decision",
+    "resolve_flow_sink_denial",
 )

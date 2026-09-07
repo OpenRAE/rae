@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Annotated, TypeVar
+from dataclasses import dataclass
+from typing import Annotated, Generic, TypeVar
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from raes_contracts.contracts import (
@@ -33,16 +34,40 @@ def _read_identity_dependency(request: Request) -> ControlPlaneIdentity:
 _ReadIdentity = Annotated[ControlPlaneIdentity, Depends(_read_identity_dependency)]
 
 
+@dataclass(frozen=True)
+class _GovernedViewResolution(Generic[_ViewT]):
+    action: str
+    not_found_detail: str
+    resolve: Callable[[ParticipantAudienceSubjectBinding | None, str], _ViewT | None]
+
+
+@dataclass(frozen=True)
+class _ParticipantContextQuery:
+    view_ref: str
+    episode_id: str | None
+    derivation_basis_ref: str | None
+    payload_ref: str | None
+
+
+def _participant_context_query(
+    view_ref: str,
+    episode_id: str | None = None,
+    derivation_basis_ref: str | None = None,
+    payload_ref: str | None = None,
+) -> _ParticipantContextQuery:
+    return _ParticipantContextQuery(view_ref, episode_id, derivation_basis_ref, payload_ref)
+
+
+_ContextQuery = Annotated[_ParticipantContextQuery, Depends(_participant_context_query)]
+
+
 async def _resolved_governed_view(
     control_plane: RuntimeControlPlane,
     request: Request,
     response: Response,
     identity: ControlPlaneIdentity,
     participant_address: str,
-    *,
-    action: str,
-    not_found_detail: str,
-    resolve: Callable[[ParticipantAudienceSubjectBinding | None, str], _ViewT | None],
+    resolution: _GovernedViewResolution[_ViewT],
 ) -> _ViewT:
     """Resolve one governed participant view with the shared audit and error flow."""
 
@@ -51,15 +76,15 @@ async def _resolved_governed_view(
     projection = await calls.mutate(
         _governed_view,
         lambda: control_plane._project_snapshot_read(
-            lambda: resolve(audience_binding, request.headers.get("idempotency-key", ""))
+            lambda: resolution.resolve(audience_binding, request.headers.get("idempotency-key", ""))
         ),
     )
     view, revision = projection
     if view is None:
-        raise HTTPException(status_code=404, detail=not_found_detail)
+        raise HTTPException(status_code=404, detail=resolution.not_found_detail)
     await calls.run(
         control_plane.record_audit,
-        action=action,
+        action=resolution.action,
         identity=identity.identity,
         allowed=True,
         target=str(request.url.path),
@@ -88,13 +113,15 @@ def register_participant_retrieval_routes(
             response,
             identity,
             participant_address,
-            action="get_participant_status_view",
-            not_found_detail=f"Unknown participant: {participant_address}",
-            resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_status_view(
-                participant_address,
-                identity=identity,
-                audience_binding=audience_binding,
-                idempotency_key=idempotency_key,
+            _GovernedViewResolution(
+                action="get_participant_status_view",
+                not_found_detail=f"Unknown participant: {participant_address}",
+                resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_status_view(
+                    participant_address,
+                    identity=identity,
+                    audience_binding=audience_binding,
+                    idempotency_key=idempotency_key,
+                ),
             ),
         )
 
@@ -115,14 +142,16 @@ def register_participant_retrieval_routes(
             response,
             identity,
             participant_address,
-            action="get_participant_history_view",
-            not_found_detail=f"Unknown participant episode: {participant_address}/{episode_id}",
-            resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_history_view(
-                participant_address,
-                episode_id,
-                identity=identity,
-                audience_binding=audience_binding,
-                idempotency_key=idempotency_key,
+            _GovernedViewResolution(
+                action="get_participant_history_view",
+                not_found_detail=f"Unknown participant episode: {participant_address}/{episode_id}",
+                resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_history_view(
+                    participant_address,
+                    episode_id,
+                    identity=identity,
+                    audience_binding=audience_binding,
+                    idempotency_key=idempotency_key,
+                ),
             ),
         )
 
@@ -132,13 +161,10 @@ def register_participant_retrieval_routes(
     )
     async def get_participant_context_view(
         participant_address: str,
-        view_ref: str,
         request: Request,
         response: Response,
         identity: _ReadIdentity,
-        episode_id: str | None = None,
-        derivation_basis_ref: str | None = None,
-        payload_ref: str | None = None,
+        query: _ContextQuery,
     ) -> ParticipantContextViewModel:
         return await _resolved_governed_view(
             control_plane,
@@ -146,17 +172,19 @@ def register_participant_retrieval_routes(
             response,
             identity,
             participant_address,
-            action="get_participant_context_view",
-            not_found_detail=f"Unknown participant: {participant_address}",
-            resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_context_view(
-                participant_address,
-                view_ref=view_ref,
-                episode_id=episode_id,
-                derivation_basis_ref=derivation_basis_ref,
-                payload_ref=payload_ref,
-                identity=identity,
-                audience_binding=audience_binding,
-                idempotency_key=idempotency_key,
+            _GovernedViewResolution(
+                action="get_participant_context_view",
+                not_found_detail=f"Unknown participant: {participant_address}",
+                resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_context_view(
+                    participant_address,
+                    view_ref=query.view_ref,
+                    episode_id=query.episode_id,
+                    derivation_basis_ref=query.derivation_basis_ref,
+                    payload_ref=query.payload_ref,
+                    identity=identity,
+                    audience_binding=audience_binding,
+                    idempotency_key=idempotency_key,
+                ),
             ),
         )
 

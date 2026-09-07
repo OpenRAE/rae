@@ -317,11 +317,12 @@ def test_store_enforces_context_immutability_and_exact_retry(store_kind: str) ->
         rewritten_context = _context(**{field: value})
         rewritten = _record(OperationState.SUCCEEDED, context=rewritten_context)
         snapshot = store.load_snapshot()
+        revision = store.load_snapshot_state().revision
         with pytest.raises(ValueError, match="immutable"):
             store.commit_terminal_operation(
                 snapshot,
                 rewritten,
-                expected_revision=store.load_snapshot_state().revision,
+                expected_revision=revision,
             )
 
     invalid_transition = replace(

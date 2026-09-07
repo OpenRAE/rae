@@ -1231,9 +1231,10 @@ def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
 
     monkeypatch.setattr(store, "_upsert_snapshot", fail_upsert)
     snapshot = RuntimeSnapshot()
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(OSError, match="commit failed"):
-        store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
+        store.save_snapshot(snapshot, expected_revision=revision)
 
     assert store.load_snapshot() == RuntimeSnapshot()
 

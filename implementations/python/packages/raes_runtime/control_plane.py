@@ -367,36 +367,39 @@ class RuntimeControlPlane(
             return existing
         self._require_observed_base_snapshot(base_snapshot)
         if self._target.orchestrator is None:
-            return self._reject_submission(
+            receipt = self._reject_submission(
                 domain=RuntimeDomain.ORCHESTRATION,
                 message="Target does not provide an orchestrator.",
                 request_fingerprint=context.request_commitment,
                 context=context,
             )
-        diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.ORCHESTRATION, self._snapshot)
-        if diagnostics:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.ORCHESTRATION,
-                diagnostics=diagnostics,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        return execute_operation(
-            self,
-            OperationExecutionRequest(
-                domain=RuntimeDomain.ORCHESTRATION,
-                method=self._target.orchestrator.start,
-                plan=plan,
-                address="runtime.control-plane.orchestration",
-                diagnostics=[],
-                base_snapshot=base_snapshot,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-                exact_retry_fingerprint=exact_retry_fingerprint,
-            ),
-        )
+        else:
+            diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.ORCHESTRATION, self._snapshot)
+            if diagnostics:
+                receipt = self._reject_diagnostics(
+                    domain=RuntimeDomain.ORCHESTRATION,
+                    diagnostics=diagnostics,
+                    idempotency_key=idempotency_key,
+                    request_fingerprint=context.request_commitment,
+                    context=context,
+                )
+            else:
+                receipt = execute_operation(
+                    self,
+                    OperationExecutionRequest(
+                        domain=RuntimeDomain.ORCHESTRATION,
+                        method=self._target.orchestrator.start,
+                        plan=plan,
+                        address="runtime.control-plane.orchestration",
+                        diagnostics=[],
+                        base_snapshot=base_snapshot,
+                        idempotency_key=idempotency_key,
+                        request_fingerprint=context.request_commitment,
+                        context=context,
+                        exact_retry_fingerprint=exact_retry_fingerprint,
+                    ),
+                )
+        return receipt
 
     @runtime_owned
     @store_authoritative_state
@@ -436,36 +439,39 @@ class RuntimeControlPlane(
             return existing
         self._require_observed_base_snapshot(base_snapshot)
         if self._target.evaluator is None:
-            return self._reject_submission(
+            receipt = self._reject_submission(
                 domain=RuntimeDomain.EVALUATION,
                 message="Target does not provide an evaluator.",
                 request_fingerprint=context.request_commitment,
                 context=context,
             )
-        diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.EVALUATION, self._snapshot)
-        if diagnostics:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.EVALUATION,
-                diagnostics=diagnostics,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        return execute_operation(
-            self,
-            OperationExecutionRequest(
-                domain=RuntimeDomain.EVALUATION,
-                method=self._target.evaluator.start,
-                plan=plan,
-                address="runtime.control-plane.evaluation",
-                diagnostics=[],
-                base_snapshot=base_snapshot,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-                exact_retry_fingerprint=exact_retry_fingerprint,
-            ),
-        )
+        else:
+            diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.EVALUATION, self._snapshot)
+            if diagnostics:
+                receipt = self._reject_diagnostics(
+                    domain=RuntimeDomain.EVALUATION,
+                    diagnostics=diagnostics,
+                    idempotency_key=idempotency_key,
+                    request_fingerprint=context.request_commitment,
+                    context=context,
+                )
+            else:
+                receipt = execute_operation(
+                    self,
+                    OperationExecutionRequest(
+                        domain=RuntimeDomain.EVALUATION,
+                        method=self._target.evaluator.start,
+                        plan=plan,
+                        address="runtime.control-plane.evaluation",
+                        diagnostics=[],
+                        base_snapshot=base_snapshot,
+                        idempotency_key=idempotency_key,
+                        request_fingerprint=context.request_commitment,
+                        context=context,
+                        exact_retry_fingerprint=exact_retry_fingerprint,
+                    ),
+                )
+        return receipt
 
     @runtime_owned
     def get_operation(self, operation_id: str) -> OperationStatus | None:

@@ -113,9 +113,10 @@ def test_direct_snapshot_save_uses_compare_and_swap(
     assert committed.revision == 1
 
     before = revisioned_store.load_snapshot_state()
+    stale_snapshot = RuntimeSnapshot(metadata={"writer": "stale"})
     with pytest.raises(SnapshotRevisionConflict, match="^snapshot revision conflict$"):
         revisioned_store.save_snapshot(
-            RuntimeSnapshot(metadata={"writer": "stale"}),
+            stale_snapshot,
             expected_revision=observed.revision,
         )
 
@@ -153,10 +154,11 @@ def test_terminal_commit_consumes_revision_once_and_exact_retry_is_a_noop(
         revisioned_store.load_records(),
         revisioned_store.read_audit(),
     )
+    stale_snapshot = RuntimeSnapshot(metadata={"writer": "stale"})
 
     with pytest.raises(SnapshotRevisionConflict, match="^snapshot revision conflict$"):
         revisioned_store.commit_terminal_operation(
-            RuntimeSnapshot(metadata={"writer": "stale"}),
+            stale_snapshot,
             stale,
             expected_revision=observed.revision,
         )
@@ -210,7 +212,8 @@ def test_participant_snapshot_commits_reject_stale_revision_without_side_effects
         "audit_event": _audit_event(f"{transition}-stale"),
         "expected_revision": observed.revision,
     }
-    with pytest.raises(SnapshotRevisionConflict, match="^snapshot revision conflict$"):
+
+    def commit_stale_transition() -> None:
         if transition == "control":
             revisioned_store.commit_control_transition(
                 participant_address="participant.demo",
@@ -222,6 +225,9 @@ def test_participant_snapshot_commits_reject_stale_revision_without_side_effects
                 expected_history_heads={},
                 **stale_common,
             )
+
+    with pytest.raises(SnapshotRevisionConflict, match="^snapshot revision conflict$"):
+        commit_stale_transition()
 
     assert revisioned_store.load_snapshot_state() == before[0]
     assert revisioned_store.load_records() == before[1]
@@ -280,11 +286,13 @@ def test_explicit_base_snapshot_must_equal_the_authoritative_observed_content(
     store = InMemoryControlPlaneStore(RuntimeSnapshot(metadata={"cut": "authoritative"}))
     control_plane = RuntimeControlPlane(create_stub_target(), store=store)
     before = store.load_snapshot_state()
+    method = getattr(control_plane, method_name)
+    caller_snapshot = RuntimeSnapshot(metadata={"cut": "caller"})
 
     with pytest.raises(ValueError, match="explicit base snapshot does not match"):
-        getattr(control_plane, method_name)(
+        method(
             plan,
-            base_snapshot=RuntimeSnapshot(metadata={"cut": "caller"}),
+            base_snapshot=caller_snapshot,
         )
 
     assert store.load_snapshot_state() == before
@@ -293,12 +301,14 @@ def test_explicit_base_snapshot_must_equal_the_authoritative_observed_content(
 
 def test_runtime_rejects_initial_snapshot_that_would_shadow_explicit_store() -> None:
     store = InMemoryControlPlaneStore(RuntimeSnapshot(metadata={"authority": "store"}))
+    target = create_stub_target()
+    initial_snapshot = RuntimeSnapshot(metadata={"authority": "caller"})
 
     with pytest.raises(ValueError, match="initial_snapshot cannot be combined with an explicit store"):
         RuntimeControlPlane(
-            create_stub_target(),
+            target,
             store=store,
-            initial_snapshot=RuntimeSnapshot(metadata={"authority": "caller"}),
+            initial_snapshot=initial_snapshot,
         )
 
 
@@ -312,8 +322,10 @@ def test_runtime_rejects_custom_store_without_revision_authority() -> None:
                 raise AttributeError(name)
             return getattr(self.delegate, name)
 
+    target = create_stub_target()
+    store = NonRevisionedStore()
     with pytest.raises(TypeError, match="load_snapshot_state"):
-        RuntimeControlPlane(create_stub_target(), store=NonRevisionedStore())  # type: ignore[arg-type]
+        RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
 
 
 class _CompetingWriterProvisioner:
@@ -342,10 +354,11 @@ def test_runtime_stale_terminal_conflict_discards_candidate_without_recovery_or_
     provisioner = _CompetingWriterProvisioner(store)
     target = replace(create_stub_target(), provisioner=provisioner)
     control_plane = RuntimeControlPlane(target, store=store)
+    plan = ProvisioningPlan()
 
     with pytest.raises(SnapshotRevisionConflict, match="^snapshot revision conflict$"):
         control_plane.submit_provisioning(
-            ProvisioningPlan(),
+            plan,
             idempotency_key="stale-terminal",
         )
 

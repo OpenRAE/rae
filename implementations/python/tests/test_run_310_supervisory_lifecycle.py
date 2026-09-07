@@ -380,6 +380,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
     )
     conflicting_record = replace(record, idempotency_key="scope-key-2")
     conflicting_audit = replace(audit, operation_id="operation-2")
+    revision = restarted.load_snapshot_state().revision
     with pytest.raises(ValueError, match="expected control history head"):
         restarted.commit_control_transition(
             participant_address="participant.behavior.red-agent",
@@ -387,7 +388,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
             snapshot=conflicting,
             record=conflicting_record,
             audit_event=conflicting_audit,
-            expected_revision=restarted.load_snapshot_state().revision,
+            expected_revision=revision,
         )
 
     assert restarted.load_snapshot().participant_control_history == snapshot.participant_control_history

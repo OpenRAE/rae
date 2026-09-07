@@ -191,11 +191,13 @@ def test_control_plane_stores_revalidate_mutated_autonomous_state(tmp_path: Path
     snapshot.participant_autonomous_execution_states[STATE_ADDRESS] = _state(attempted_actions=2)
     memory_store = InMemoryControlPlaneStore()
     local_store = LocalControlPlaneStore(tmp_path / "control-plane")
+    memory_revision = memory_store.load_snapshot_state().revision
+    local_revision = local_store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="attempted_actions must equal"):
-        memory_store.save_snapshot(snapshot, expected_revision=memory_store.load_snapshot_state().revision)
+        memory_store.save_snapshot(snapshot, expected_revision=memory_revision)
     with pytest.raises(ValueError, match="attempted_actions must equal"):
-        local_store.save_snapshot(snapshot, expected_revision=local_store.load_snapshot_state().revision)
+        local_store.save_snapshot(snapshot, expected_revision=local_revision)
 
 
 def test_local_control_plane_store_rejects_invalid_durable_state(tmp_path: Path) -> None:
@@ -281,15 +283,17 @@ def test_durable_snapshot_rejects_clock_segment_mismatch() -> None:
     snapshot = _snapshot()
     snapshot.time_model_state = _time_state(segment=1)
     store = InMemoryControlPlaneStore()
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="must match the bound shared clock segment"):
-        store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
+        store.save_snapshot(snapshot, expected_revision=revision)
 
 
 def test_durable_snapshot_rejects_episode_mismatch() -> None:
     snapshot = _snapshot()
     snapshot.participant_episode_results[PARTICIPANT_ADDRESS]["episode_id"] = "wrong-episode"
     store = InMemoryControlPlaneStore()
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="must match the live participant episode"):
-        store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
+        store.save_snapshot(snapshot, expected_revision=revision)
