@@ -48,12 +48,24 @@ def _provisioning_plan(target: RuntimeTarget) -> ProvisioningPlan:
     return execution_plan.provisioning
 
 
+def _register_provisioning_plan(
+    control_plane: RuntimeControlPlane,
+    target: RuntimeTarget,
+    provisioning_plan: ProvisioningPlan,
+) -> None:
+    """Forge component authorization where planner validity is explicitly out of scope."""
+
+    execution_plan = RuntimeManager(target).plan(parse_sdl(textwrap.dedent(_SCENARIO)))
+    control_plane.register_planner_produced_plan(replace(execution_plan, provisioning=provisioning_plan))
+
+
 def test_apply_via_control_plane_records_entries_and_drives_driver():
     driver = InProcessDriver()
     target = _target_with_driver(driver)
     plan = _provisioning_plan(target)
 
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, plan)
     receipt = control_plane.submit_provisioning(plan)
     status = control_plane.get_operation(receipt.operation_id)
 
@@ -72,6 +84,7 @@ def test_apply_handles_delete_and_unchanged():
     target = _target_with_driver(driver)
     plan = _provisioning_plan(target)
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, plan)
     control_plane.submit_provisioning(plan)
     assert control_plane.snapshot.realization_observations
 
@@ -86,6 +99,7 @@ def test_apply_handles_delete_and_unchanged():
             )
         ]
     )
+    _register_provisioning_plan(control_plane, target, delete_plan)
     receipt = control_plane.submit_provisioning(delete_plan)
     status = control_plane.get_operation(receipt.operation_id)
 
@@ -101,6 +115,7 @@ def test_unchanged_op_keeps_entry_without_driver_realize():
     target = _target_with_driver(driver)
     planned = _provisioning_plan(target)
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, planned)
     control_plane.submit_provisioning(planned)
     realizes_before = tuple(op for op in driver.recorded_ops if op.verb == "realize")
     unchanged_plan = replace(
@@ -111,6 +126,7 @@ def test_unchanged_op_keeps_entry_without_driver_realize():
             if operation.address == "provision.node.web"
         ],
     )
+    _register_provisioning_plan(control_plane, target, unchanged_plan)
     control_plane.submit_provisioning(unchanged_plan)
 
     entry = control_plane.snapshot.entries["provision.node.web"]
@@ -124,6 +140,7 @@ def test_unchanged_compute_bootstraps_missing_substrate_evidence_with_readback()
     scenario = parse_sdl(textwrap.dedent(_SCENARIO))
     create_plan = RuntimeManager(target).plan(scenario).provisioning
     first = RuntimeControlPlane(target)
+    _register_provisioning_plan(first, target, create_plan)
     first.submit_provisioning(create_plan)
     legacy_snapshot = replace(first.snapshot, realization_observations=())
     realizes_before = tuple(op for op in driver.recorded_ops if op.verb == "realize")
@@ -131,6 +148,7 @@ def test_unchanged_compute_bootstraps_missing_substrate_evidence_with_readback()
     assert all(operation.action is ChangeAction.UNCHANGED for operation in unchanged_plan.operations)
 
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
+    _register_provisioning_plan(upgraded, target, unchanged_plan)
     receipt = upgraded.submit_provisioning(unchanged_plan)
 
     assert upgraded.get_operation(receipt.operation_id).state.value == "succeeded"
@@ -143,6 +161,7 @@ def test_snapshot_payload_carries_only_portable_facts():
     target = _target_with_driver(driver)
     plan = _provisioning_plan(target)
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, plan)
     control_plane.submit_provisioning(plan)
 
     snapshot = control_plane.snapshot

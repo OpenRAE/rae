@@ -276,6 +276,19 @@ def _participant_operation_record(operation_id: str, participant_address: str) -
     )
 
 
+def _submit_registered(control_plane: RuntimeControlPlane, domain: str, submitted_plan):
+    """Forge component authorization where planner validity is explicitly out of scope."""
+
+    authorization_plan = plan(
+        compile_runtime_model(_scenario("name: phase-authorization")),
+        control_plane._target.manifest,
+        target_name=control_plane.target_name,
+    )
+    authorization_plan = replace(authorization_plan, **{domain: submitted_plan})
+    control_plane.register_planner_produced_plan(authorization_plan)
+    return getattr(control_plane, f"submit_{domain}")(submitted_plan)
+
+
 def test_control_plane_submits_provisioning_and_updates_snapshot():
     scenario = _scenario("""
 name: provision
@@ -287,7 +300,7 @@ nodes:
     execution_plan = plan(compile_runtime_model(scenario), create_stub_target().manifest)
     control_plane = RuntimeControlPlane(create_stub_target())
 
-    receipt = control_plane.submit_provisioning(execution_plan.provisioning)
+    receipt = _submit_registered(control_plane, "provisioning", execution_plan.provisioning)
     status = control_plane.get_operation(receipt.operation_id)
     snapshot = control_plane.get_snapshot()
 
@@ -312,7 +325,7 @@ def test_control_plane_rejects_dependency_outside_plan_and_snapshot() -> None:
     )
     control_plane = RuntimeControlPlane(create_stub_target())
 
-    receipt = control_plane.submit_provisioning(plan)
+    receipt = _submit_registered(control_plane, "provisioning", plan)
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["runtime.plan-dependency-unresolved"]
@@ -342,7 +355,7 @@ def test_control_plane_rejects_snapshot_resource_identity_disagreement() -> None
     )
     control_plane = RuntimeControlPlane(create_stub_target(), initial_snapshot=snapshot)
 
-    receipt = control_plane.submit_provisioning(plan)
+    receipt = _submit_registered(control_plane, "provisioning", plan)
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["runtime.plan-resource-incoherent"]
@@ -470,7 +483,8 @@ def test_control_plane_rejects_stateful_kind_before_backend_calls(
     )
     target, provisioner = _target_with_manifest(unsupported)
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(_stateful_plan(resource_type))
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(control_plane, "provisioning", _stateful_plan(resource_type))
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == [expected_code]
@@ -486,7 +500,8 @@ def test_control_plane_rejects_stateful_plan_without_exact_realization_support()
     )
     target, provisioner = _target_with_manifest(replace(manifest, realization_support=(support,)))
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(_stateful_plan())
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(control_plane, "provisioning", _stateful_plan())
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["realization.unsupported-exact-requirement"]
@@ -497,7 +512,12 @@ def test_control_plane_rejects_stateful_plan_without_exact_realization_support()
 def test_control_plane_rejects_malformed_generated_artifact_before_backend_calls() -> None:
     target, provisioner = _target_with_manifest(create_stub_manifest())
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(_stateful_plan(spec={"provenance": "config.yml"}))
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(
+        control_plane,
+        "provisioning",
+        _stateful_plan(spec={"provenance": "config.yml"}),
+    )
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["provisioner.generated-artifact-invalid"]
@@ -510,7 +530,8 @@ def test_control_plane_rejects_explicitly_empty_generated_artifact_selection() -
     spec = _generated_artifact_spec()
     spec["consumers"][0]["selected_outputs"] = []
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(_stateful_plan(spec=spec))
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(control_plane, "provisioning", _stateful_plan(spec=spec))
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["provisioner.generated-artifact-invalid"]
@@ -523,7 +544,8 @@ def test_control_plane_rejects_mismatched_generated_artifact_consumer_target() -
     spec = _generated_artifact_spec()
     spec["consumers"][0]["target_address"] = "provision.node.somewhere-else"
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(_stateful_plan(spec=spec))
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(control_plane, "provisioning", _stateful_plan(spec=spec))
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["provisioner.generated-artifact-invalid"]
@@ -545,8 +567,11 @@ def test_control_plane_rejects_unclaimed_generated_artifact_kind_before_backend_
     )
     target, provisioner = _target_with_manifest(unsupported)
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(
-        _stateful_plan(spec=_generated_artifact_spec("ssh_key_bundle"))
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(
+        control_plane,
+        "provisioning",
+        _stateful_plan(spec=_generated_artifact_spec("ssh_key_bundle")),
     )
 
     assert receipt.accepted is False
@@ -562,7 +587,8 @@ def test_control_plane_rejects_exact_support_from_another_domain() -> None:
     support = replace(manifest.realization_support[0], domain="orchestration")
     target, provisioner = _target_with_manifest(replace(manifest, realization_support=(support,)))
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(_stateful_plan())
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(control_plane, "provisioning", _stateful_plan())
 
     assert receipt.accepted is False
     assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["realization.unsupported-exact-requirement"]
@@ -573,7 +599,8 @@ def test_control_plane_rejects_exact_support_from_another_domain() -> None:
 def test_control_plane_dispatches_stateful_plan_after_both_admission_gates() -> None:
     target, provisioner = _target_with_manifest(create_stub_manifest())
 
-    receipt = RuntimeControlPlane(target).submit_provisioning(_stateful_plan())
+    control_plane = RuntimeControlPlane(target)
+    receipt = _submit_registered(control_plane, "provisioning", _stateful_plan())
 
     assert receipt.accepted is True
     assert provisioner.validate_calls == 1
@@ -619,11 +646,11 @@ workflows:
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
 
-    provisioning_receipt = control_plane.submit_provisioning(execution_plan.provisioning)
+    provisioning_receipt = _submit_registered(control_plane, "provisioning", execution_plan.provisioning)
     assert provisioning_receipt.accepted is True
-    evaluation_receipt = control_plane.submit_evaluation(execution_plan.evaluation)
+    evaluation_receipt = _submit_registered(control_plane, "evaluation", execution_plan.evaluation)
     assert evaluation_receipt.accepted is True
-    receipt = control_plane.submit_orchestration(execution_plan.orchestration)
+    receipt = _submit_registered(control_plane, "orchestration", execution_plan.orchestration)
     status = control_plane.get_operation(receipt.operation_id)
     snapshot = control_plane.get_snapshot()
 

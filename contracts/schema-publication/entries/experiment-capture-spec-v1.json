@@ -2,9 +2,9 @@
   "contract_id": "experiment-capture-spec-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-capture-spec-v1.json",
   "stability": "draft",
-  "content_hash": "fdf889faeb85d071c22d9fd4c42b26df3457dac60f7f205e22274c51117df3ff",
+  "content_hash": "8c424f575cc71764b3b979297317cb02214ffaf724a36d9b9806c8752d5c31f0",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "fdf889faeb85d071c22d9fd4c42b26df3457dac60f7f205e22274c51117df3ff"
+    "summary": "Required output-contract identities, field selectors, unique windows, and governed redaction policy for capture demands in issue #1112.",
+    "content_hash": "8c424f575cc71764b3b979297317cb02214ffaf724a36d9b9806c8752d5c31f0"
   }
 }

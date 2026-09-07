@@ -89,7 +89,12 @@ def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Pat
         migration_policy=_migration_policy_for_case(repo_root, case, path),
     )
     instantiated = instantiate_scenario(scenario, parameters={})
-    return _digest(dataclasses.asdict(compile_runtime_model(instantiated)))
+    compiled = dataclasses.asdict(compile_runtime_model(instantiated))
+    # Additive empty runtime dimensions do not alter the historical semantic
+    # replay projection. A non-empty capture demand remains digest-bearing.
+    if not compiled.get("capture_demands"):
+        compiled.pop("capture_demands", None)
+    return _digest(compiled)
 
 
 def _replay_compile_distinguish(

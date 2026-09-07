@@ -156,6 +156,7 @@ def _apply_plan(target: object, scenario_path: Path, driver: TechVaultNativeLibv
         scenario = parse_sdl_file(scenario_path)
         execution_plan = RuntimeManager(target).plan(scenario)
         control_plane = RuntimeControlPlane(target, initial_snapshot=execution_plan.base_snapshot)
+        control_plane.register_planner_produced_plan(execution_plan)
         receipt = control_plane.submit_provisioning(execution_plan.provisioning)
         status = control_plane.get_operation(receipt.operation_id)
     except Exception:

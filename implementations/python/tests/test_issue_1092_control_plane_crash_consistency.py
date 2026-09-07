@@ -318,6 +318,18 @@ nodes:
     return target, provisioning_plan, provisioner
 
 
+def _authorize_provisioning_plan(
+    control_plane: RuntimeControlPlane,
+    target: object,
+    provisioning_plan: ProvisioningPlan,
+) -> None:
+    """Forge component authorization where planner validity is explicitly out of scope."""
+
+    scenario = parse_sdl("name: crash-consistency-authorization")
+    execution_plan = plan(compile_runtime_model(scenario), target.manifest)
+    control_plane.register_planner_produced_plan(replace(execution_plan, provisioning=provisioning_plan))
+
+
 def test_durability_fixture_declares_guest_observed_os_presence_corroboration() -> None:
     target, _, _ = _target_and_plan()
 
@@ -711,6 +723,7 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     if crash_boundary == "before-terminal-transaction":
 
         def interrupt_commit(
@@ -742,6 +755,7 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     control_plane.close()
 
     restarted = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
+    _authorize_provisioning_plan(restarted, target, provisioning_plan)
     recovered = restarted.get_operation(operation_id)
     assert recovered is not None
     assert recovered.state == OperationState.INDETERMINATE
@@ -797,6 +811,7 @@ def test_runtime_resynchronizes_after_error_reported_after_durable_terminal_comm
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     real_commit = store.commit_terminal_operation
 
     def commit_then_error(
@@ -832,6 +847,7 @@ def test_runtime_resynchronizes_after_error_reported_after_durable_terminal_comm
     control_plane.close()
 
     restarted = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
+    _authorize_provisioning_plan(restarted, target, provisioning_plan)
     assert restarted.get_operation(durable_record.receipt.operation_id) == durable_record.status
     restarted_retry = restarted.submit_provisioning(
         provisioning_plan,
@@ -849,6 +865,7 @@ def test_runtime_seals_reloaded_non_terminal_operations_after_uncertain_terminal
     target, provisioning_plan, provisioner = _target_and_plan()
     store = InMemoryControlPlaneStore()
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
 
     def fail_terminal_commit(
         _snapshot: RuntimeSnapshot,
@@ -918,6 +935,7 @@ def test_runtime_poisoned_when_store_error_cannot_be_reconciled(monkeypatch: pyt
     target, provisioning_plan, _ = _target_and_plan()
     store = InMemoryControlPlaneStore()
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     real_load_snapshot_state = store.load_snapshot_state
     load_count = 0
 
@@ -2108,6 +2126,7 @@ def test_close_waits_for_backend_and_keeps_lease_until_terminal_commit(tmp_path:
     target = replace(target, provisioner=provisioner)
     store_path = tmp_path / "control-plane"
     control_plane = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     submission_errors: list[BaseException] = []
     close_errors: list[BaseException] = []
     close_completed = [Event(), Event()]
@@ -2536,6 +2555,7 @@ def test_runtime_preserves_ordered_legacy_store_commits_with_deprecation(
 
     with pytest.warns(LegacyControlPlaneStoreWarning, match="before version 4"):
         control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     receipt = control_plane.submit_provisioning(
         provisioning_plan,
         idempotency_key="legacy-compatible",
@@ -2612,6 +2632,7 @@ def test_runtime_legacy_store_preserves_snapshot_first_failure_window() -> None:
     store = _LegacyControlPlaneStore()
     with pytest.warns(LegacyControlPlaneStoreWarning):
         control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     store.fail_terminal_record = True
 
     with pytest.raises(RuntimeError, match="legacy terminal-record failure"):
@@ -2630,6 +2651,7 @@ def test_runtime_legacy_store_resynchronizes_after_snapshot_write_failure() -> N
     store = _LegacyControlPlaneStore()
     with pytest.warns(LegacyControlPlaneStoreWarning):
         control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     store.fail_snapshot = True
 
     with pytest.raises(RuntimeError, match="legacy snapshot failure"):

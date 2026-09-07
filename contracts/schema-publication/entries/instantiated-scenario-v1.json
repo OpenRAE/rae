@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft",
-  "content_hash": "ad443145c32851ee2dadba948a552c8bf99f2dfc6a72545aea4b2b7577a972f9",
+  "content_hash": "8fed20fd42e42c1875a94f85359512cc0124a068271373115f01ac5b705f5583",
   "last_change": {
-    "summary": "Added the closed, SHA-256-pinned APT runtime package repository profile for issue #847.",
-    "content_hash": "ad443145c32851ee2dadba948a552c8bf99f2dfc6a72545aea4b2b7577a972f9"
+    "summary": "Added explicit evidence output-contract and field demand terms for issue #1112.",
+    "content_hash": "8fed20fd42e42c1875a94f85359512cc0124a068271373115f01ac5b705f5583"
   }
 }

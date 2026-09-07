@@ -332,14 +332,18 @@ def test_stub_noop_bootstraps_missing_substrate_disclosure() -> None:
           endpoint: {type: compute, resources: {ram: 1 gib, cpu: 1}}
         """
     )
-    first_plan = RuntimeManager(target).plan(scenario).provisioning
+    first_execution_plan = RuntimeManager(target).plan(scenario)
+    first_plan = first_execution_plan.provisioning
     first = RuntimeControlPlane(target)
+    first.register_planner_produced_plan(first_execution_plan)
     first.submit_provisioning(first_plan)
     legacy_snapshot = replace(first.snapshot, realization_observations=())
-    unchanged_plan = RuntimeManager(target).plan(scenario, legacy_snapshot).provisioning
+    unchanged_execution_plan = RuntimeManager(target).plan(scenario, legacy_snapshot)
+    unchanged_plan = unchanged_execution_plan.provisioning
     assert all(operation.action.value == "unchanged" for operation in unchanged_plan.operations)
 
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
+    upgraded.register_planner_produced_plan(unchanged_execution_plan)
     receipt = upgraded.submit_provisioning(unchanged_plan)
 
     assert upgraded.get_operation(receipt.operation_id).state.value == "succeeded"

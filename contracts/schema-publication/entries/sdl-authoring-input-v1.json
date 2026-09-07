@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "2a6f907c65d3b40051f3a38604607f0d57d0b6f277ea38c167eae6c2c7b750ac",
+  "content_hash": "009a4c46ec9abd744fc4e52d4d8504a322feedc38511d06d7cfc288c078e5a18",
   "last_change": {
-    "summary": "Added the closed, SHA-256-pinned APT runtime package repository profile for issue #847.",
-    "content_hash": "2a6f907c65d3b40051f3a38604607f0d57d0b6f277ea38c167eae6c2c7b750ac"
+    "summary": "Added explicit evidence output-contract and field demand terms for issue #1112.",
+    "content_hash": "009a4c46ec9abd744fc4e52d4d8504a322feedc38511d06d7cfc288c078e5a18"
   }
 }

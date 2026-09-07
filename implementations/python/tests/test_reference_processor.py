@@ -219,6 +219,7 @@ class TestReferenceProcessorEndToEndEvidence:
         # Drive the plan through the reference runtime; the runtime emits the
         # operation receipt/status and snapshot contracts.
         control_plane = RuntimeControlPlane(target)
+        control_plane.register_planner_produced_plan(result.execution_plan)
         for sub_plan, submit in (
             (result.execution_plan.provisioning, control_plane.submit_provisioning),
             (result.execution_plan.evaluation, control_plane.submit_evaluation),

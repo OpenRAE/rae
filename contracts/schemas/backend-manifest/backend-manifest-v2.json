@@ -639,6 +639,14 @@
       "additionalProperties": false,
       "description": "EXP-715 backend observation and evidence-collection capability declaration.",
       "properties": {
+        "capture_offers": {
+          "items": {
+            "$ref": "#/$defs/ObservationCaptureOfferModel"
+          },
+          "title": "Capture Offers",
+          "type": "array",
+          "uniqueItems": true
+        },
         "constraints": {
           "additionalProperties": {
             "type": "string"
@@ -726,6 +734,268 @@
         "supported_sealing_modes"
       ],
       "title": "ObservationCapabilitiesModel",
+      "type": "object"
+    },
+    "ObservationCaptureOfferModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "disclosure": {
+                "const": "full"
+              }
+            },
+            "required": [
+              "disclosure"
+            ]
+          },
+          "then": {
+            "properties": {
+              "redaction_policy": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disclosure": {
+                "enum": [
+                  "redacted",
+                  "withheld"
+                ]
+              }
+            },
+            "required": [
+              "disclosure"
+            ]
+          },
+          "then": {
+            "properties": {
+              "redaction_policy": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "redaction_policy"
+            ]
+          }
+        }
+      ],
+      "description": "One coherent, admission-bearing backend capture promise.",
+      "properties": {
+        "artifact_roles": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Artifact Roles",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "availability": {
+          "enum": [
+            "available",
+            "unsupported",
+            "unavailable"
+          ],
+          "title": "Availability",
+          "type": "string"
+        },
+        "capture_kind": {
+          "minLength": 1,
+          "title": "Capture Kind",
+          "type": "string"
+        },
+        "channel_kinds": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Channel Kinds",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "channel_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Channel Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "disclosure": {
+          "enum": [
+            "full",
+            "redacted",
+            "withheld"
+          ],
+          "title": "Disclosure",
+          "type": "string"
+        },
+        "export_policy": {
+          "enum": [
+            "not-required",
+            "available",
+            "unavailable",
+            "withheld",
+            "prohibited"
+          ],
+          "title": "Export Policy",
+          "type": "string"
+        },
+        "fidelity": {
+          "enum": [
+            "complete",
+            "lossy"
+          ],
+          "title": "Fidelity",
+          "type": "string"
+        },
+        "field_selectors": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Field Selectors",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "integrity_modes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Integrity Modes",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "media_types": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Media Types",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "offer_id": {
+          "minLength": 1,
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "offer_version": {
+          "minLength": 1,
+          "title": "Offer Version",
+          "type": "string"
+        },
+        "output_contract": {
+          "minLength": 1,
+          "title": "Output Contract",
+          "type": "string"
+        },
+        "redaction_policy": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction Policy"
+        },
+        "retention_policy_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Retention Policy Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "scope_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Scope Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "scopes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Scopes",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "sensitivity": {
+          "minLength": 1,
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "source_classes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Classes",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "source_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "window_kinds": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Window Kinds",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "offer_id",
+        "offer_version",
+        "output_contract",
+        "field_selectors",
+        "artifact_roles",
+        "media_types",
+        "capture_kind",
+        "source_classes",
+        "scopes",
+        "window_kinds",
+        "integrity_modes",
+        "sensitivity",
+        "availability",
+        "fidelity",
+        "disclosure",
+        "export_policy"
+      ],
+      "title": "ObservationCaptureOfferModel",
       "type": "object"
     },
     "ObservationStrength": {

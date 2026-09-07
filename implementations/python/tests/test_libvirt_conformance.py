@@ -51,9 +51,11 @@ _PROVISIONING_SCENARIO = dedent(
 )
 
 
-def _provisioning_plan(target):
+def _execution_plan(target, snapshot=None):
     scenario = parse_sdl(_PROVISIONING_SCENARIO)
-    return run_reference_processor(scenario, target.manifest).execution_plan.provisioning
+    if snapshot is None:
+        return run_reference_processor(scenario, target.manifest).execution_plan
+    return RuntimeManager(target, initial_snapshot=snapshot).plan(scenario)
 
 
 def _bounded_report_payload(report) -> dict:
@@ -134,8 +136,11 @@ def test_libvirt_provisioning_mutates_snapshot():
     driver = RecordingLibvirtDriver()
     target = create_libvirt_target(driver=driver)
     control_plane = RuntimeControlPlane(target)
+    execution_plan = _execution_plan(target)
+    provisioning_plan = execution_plan.provisioning
+    control_plane.register_planner_produced_plan(execution_plan)
 
-    receipt = control_plane.submit_provisioning(_provisioning_plan(target))
+    receipt = control_plane.submit_provisioning(provisioning_plan)
     status = control_plane.get_operation(receipt.operation_id)
 
     assert status is not None and status.state.value == "succeeded", status
@@ -157,12 +162,17 @@ def test_libvirt_conformance_driver_bootstraps_missing_noop_substrate_evidence()
     target = create_libvirt_target(driver=driver)
     scenario = parse_sdl(_PROVISIONING_SCENARIO)
     first = RuntimeControlPlane(target)
-    first.submit_provisioning(_provisioning_plan(target))
+    initial_execution_plan = _execution_plan(target)
+    initial_plan = initial_execution_plan.provisioning
+    first.register_planner_produced_plan(initial_execution_plan)
+    first.submit_provisioning(initial_plan)
     legacy_snapshot = replace(first.snapshot, realization_observations=())
-    unchanged = RuntimeManager(target, initial_snapshot=legacy_snapshot).plan(scenario).provisioning
+    unchanged_execution_plan = _execution_plan(target, legacy_snapshot)
+    unchanged = unchanged_execution_plan.provisioning
     assert all(operation.action.value == "unchanged" for operation in unchanged.operations)
 
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
+    upgraded.register_planner_produced_plan(unchanged_execution_plan)
     receipt = upgraded.submit_provisioning(unchanged)
 
     assert upgraded.get_operation(receipt.operation_id).state.value == "succeeded"
@@ -179,7 +189,10 @@ def test_provisioning_only_conformance_requires_confirmed_realization():
 
     target = create_libvirt_target(driver=NullLibvirtDriver())
     control_plane = RuntimeControlPlane(target)
-    receipt = control_plane.submit_provisioning(_provisioning_plan(target))
+    execution_plan = _execution_plan(target)
+    provisioning_plan = execution_plan.provisioning
+    control_plane.register_planner_produced_plan(execution_plan)
+    receipt = control_plane.submit_provisioning(provisioning_plan)
     status = control_plane.get_operation(receipt.operation_id)
 
     assert status is not None and status.state.value == "failed"

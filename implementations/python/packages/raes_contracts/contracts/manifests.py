@@ -29,6 +29,7 @@ from .capabilities import (
 )
 from .experiment_bindings import ConfigurationTargetRegistryModel
 from .feature_support import ParticipantFeatureSupportModel
+from .observation_capture import ObservationCaptureOfferModel
 from .participant_execution import ParticipantExecutionBindingModel
 from .participant_resource_budgets import ParticipantResourceBudgetCapabilitiesModel
 from .time_manifest_capabilities import TimeCapabilitiesModel
@@ -340,6 +341,10 @@ class ObservationCapabilitiesModel(ContractModel):
     supports_redaction: bool = False
     supports_loss_disclosure: bool = False
     supports_chain_of_custody: bool = False
+    capture_offers: list[ObservationCaptureOfferModel] = Field(
+        default_factory=list,
+        json_schema_extra={"uniqueItems": True},
+    )
     constraints: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -349,6 +354,7 @@ class ObservationCapabilitiesModel(ContractModel):
         _validate_unique_string_values("supported_evidence_contracts", self.supported_evidence_contracts)
         _validate_unique_string_values("supported_media_types", self.supported_media_types)
         _validate_unique_string_values("supported_sealing_modes", self.supported_sealing_modes)
+        _validate_unique_string_values("capture offer ids", [offer.offer_id for offer in self.capture_offers])
         _validate_controlled_vocabulary_terms(
             "capabilities.observation.supported_capture_kinds",
             self.supported_capture_kinds,
@@ -365,6 +371,13 @@ class ObservationCapabilitiesModel(ContractModel):
         for contract_id in self.supported_evidence_contracts:
             if not contract_id.startswith("experiment-"):
                 raise ValueError("observation supported_evidence_contracts must be experiment contract ids")
+        for offer in self.capture_offers:
+            if offer.capture_kind not in self.supported_capture_kinds:
+                raise ValueError("capture offer capture_kind must appear in supported_capture_kinds")
+            if not set(offer.channel_kinds).issubset(self.supported_channel_kinds):
+                raise ValueError("capture offer channel_kinds must appear in supported_channel_kinds")
+            if not set(offer.media_types).issubset(self.supported_media_types):
+                raise ValueError("capture offer media_types must appear in supported_media_types")
         return self
 
 

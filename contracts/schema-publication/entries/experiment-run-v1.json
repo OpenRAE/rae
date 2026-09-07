@@ -2,9 +2,9 @@
   "contract_id": "experiment-run-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft",
-  "content_hash": "deee219541c5fe2d9e8031e2285bf7971891f7c180178a6c56d7ec5a4b4eee2f",
+  "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "deee219541c5fe2d9e8031e2285bf7971891f7c180178a6c56d7ec5a4b4eee2f"
+    "summary": "Separated structural task/run validation from authoritative content-backed evidence satisfaction for issue #1112.",
+    "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75"
   }
 }

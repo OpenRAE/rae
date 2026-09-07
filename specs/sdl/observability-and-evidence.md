@@ -67,6 +67,11 @@ An authored evidence requirement MUST declare:
 - integrity or chain-of-custody expectation when applicable; and
 - loss-disclosure expectation.
 
+Requirements intended for executable admission also declare an exact
+`output_contract` and one or more RFC 6901 `field_selectors`. These terms are
+capture demand: they say which structured evidence fields must be emitted, not
+merely which artifact type or channel may exist.
+
 Authored evidence requirements:
 
 - MAY reference a scenario-native observability system as a source;
@@ -119,6 +124,38 @@ Derived analysis MUST cite source evidence before it supports a claim. Hidden
 truth, hidden answer keys, evaluator state, private traces, prompts, secrets,
 and adjudication assets MUST NOT become participant-visible or public analysis
 content without an explicit marking, redaction, and authorization boundary.
+
+## Required-Capture Admission
+
+Every explicit SDL or experiment capture demand is conjunctive. Before any
+effect, the selected backend must provide one coherent versioned capture offer
+that covers the demand's output contract and fields together with its artifact,
+media, capture, source, scope, exact authored scope refs, channel, window,
+integrity, sensitivity, loss/redaction, the exact redaction-policy identity,
+retention, and export terms. Scope-ref offers name concrete targets; wildcard
+scope refs are not admission authority. Support must not be synthesized by
+combining legacy capability lists or independent offers.
+
+An absent offer, or an offer marked unsupported, unavailable, lossy, redacted,
+or withheld where the demand requires available complete full capture, fails
+admission. Precise images, files, packages, and other installation detail do
+not create capture demand by themselves.
+
+An SDL requirement that names `capture_spec_ref` and
+`capture_requirement_ref` must name both. It fails closed until the exact
+capture-spec payload is available for resolution; a matching backend offer
+cannot substitute for the referenced governed requirement.
+
+After a run, a satisfaction claim is valid only when the task requirement
+resolves through the admitted capture specification and evidence record to one
+emitted artifact whose supplied bytes, digest, media/role, integrity mode, and
+required fields validate through both the published schema and the owning
+semantic model. Evidence-based study conditions consume only those validated
+bindings, never run reference metadata. The record timestamp must also fall
+inside the resolved capture window (and the run bounds for run/task windows). A redacted
+record must bind the exact governed policy and fails closed unless a content
+verifier for that policy is available. Artifact `satisfies_refs`, URIs, summaries, and
+backend assertions are not content proof.
 
 ## Augmentation
 

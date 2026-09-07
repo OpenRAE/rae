@@ -18,7 +18,6 @@ from raes_contracts.contracts import (
     CleanupCapabilitiesModel,
     ConceptBindingEntryModel,
     EvaluatorCapabilitiesModel,
-    ObservationCapabilitiesModel,
     OrchestratorCapabilitiesModel,
     ParticipantFeatureSupportModel,
     ParticipantRuntimeCapabilitiesModel,
@@ -35,12 +34,12 @@ from .capabilities import (
     BackendManifest,
     CleanupCapabilities,
     EvaluatorCapabilities,
-    ObservationCapabilities,
     OrchestratorCapabilities,
     ParticipantFeatureSupport,
     ParticipantRuntimeCapabilities,
     TimeCapabilities,
 )
+from .observation_manifest import observation_capability_payload, observation_from_model
 from .participant_execution_manifest import (
     participant_execution_capability_kwargs,
     participant_execution_capability_payload,
@@ -200,22 +199,7 @@ def backend_manifest_v2_model(manifest: BackendManifest) -> BackendManifestV2Mod
                 if manifest.participant_runtime is not None
                 else None
             ),
-            "observation": (
-                ObservationCapabilitiesModel(
-                    name=manifest.observation.name,
-                    supported_capture_kinds=sorted(manifest.observation.supported_capture_kinds),
-                    supported_channel_kinds=sorted(manifest.observation.supported_channel_kinds),
-                    supported_evidence_contracts=sorted(manifest.observation.supported_evidence_contracts),
-                    supported_media_types=sorted(manifest.observation.supported_media_types),
-                    supported_sealing_modes=sorted(manifest.observation.supported_sealing_modes),
-                    supports_redaction=manifest.observation.supports_redaction,
-                    supports_loss_disclosure=manifest.observation.supports_loss_disclosure,
-                    supports_chain_of_custody=manifest.observation.supports_chain_of_custody,
-                    constraints=dict(manifest.observation.constraints),
-                ).model_dump(mode="json")
-                if manifest.observation is not None
-                else None
-            ),
+            "observation": observation_capability_payload(manifest.observation),
             "cleanup": (
                 CleanupCapabilitiesModel(
                     name=manifest.cleanup.name,
@@ -362,23 +346,6 @@ def _participant_runtime_from_model(
     )
 
 
-def _observation_from_model(model: ObservationCapabilitiesModel | None) -> ObservationCapabilities | None:
-    if model is None:
-        return None
-    return ObservationCapabilities(
-        name=model.name,
-        supported_capture_kinds=frozenset(model.supported_capture_kinds),
-        supported_channel_kinds=frozenset(model.supported_channel_kinds),
-        supported_evidence_contracts=frozenset(model.supported_evidence_contracts),
-        supported_media_types=frozenset(model.supported_media_types),
-        supported_sealing_modes=frozenset(model.supported_sealing_modes),
-        supports_redaction=model.supports_redaction,
-        supports_loss_disclosure=model.supports_loss_disclosure,
-        supports_chain_of_custody=model.supports_chain_of_custody,
-        constraints=dict(model.constraints),
-    )
-
-
 def _cleanup_from_model(model: CleanupCapabilitiesModel | None) -> CleanupCapabilities | None:
     if model is None:
         return None
@@ -424,7 +391,7 @@ def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapa
         orchestrator=_orchestrator_from_model(model.orchestrator),
         evaluator=_evaluator_from_model(model.evaluator),
         participant_runtime=_participant_runtime_from_model(model.participant_runtime),
-        observation=_observation_from_model(model.observation),
+        observation=observation_from_model(model.observation),
         cleanup=_cleanup_from_model(model.cleanup),
         time=_time_from_model(model.time),
     )

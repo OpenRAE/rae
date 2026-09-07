@@ -2,9 +2,9 @@
   "contract_id": "experiment-evidence-record-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json",
   "stability": "draft",
-  "content_hash": "2ae162f2751889b1e8a031b2fa962e87836dd0fa68d09a4206eb3bee1f84d610",
+  "content_hash": "2b52c1c7fa28fa939aa3b1baeee830522ffc0467eda945e0857b504c5a7df43c",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "2ae162f2751889b1e8a031b2fa962e87836dd0fa68d09a4206eb3bee1f84d610"
+    "summary": "Bound emitted evidence records to their required output contract and exact redaction policy for issue #1112.",
+    "content_hash": "2b52c1c7fa28fa939aa3b1baeee830522ffc0467eda945e0857b504c5a7df43c"
   }
 }

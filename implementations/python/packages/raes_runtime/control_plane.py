@@ -14,7 +14,6 @@ from typing import TypeVar
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
-from raes_contracts.plan_projection import provisioning_plan_digest
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -44,6 +43,7 @@ from .control_plane_operation_context import (
     operation_idempotency_fingerprint,
     operation_requires_ephemeral_retry_proof,
 )
+from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
 from .control_plane_recovery import reconcile_interrupted_operations
 from .control_plane_store import (
     AuditEvent,
@@ -112,6 +112,7 @@ def _require_final_sink_flow_control_configuration(
 
 class RuntimeControlPlane(
     RuntimeLifecycleMixin,
+    RuntimePlanAuthorizationMixin,
     RuntimeDurabilityMixin,
     RuntimeAdmissionMixin,
     WorkflowControlMixin,
@@ -154,8 +155,8 @@ class RuntimeControlPlane(
             self._information_state_context_resolver = information_state_context_resolver
             self._ephemeral_idempotency_fingerprints: dict[str, str] = {}
             self._participant_control_lock = self._operation_lock
-            self._trusted_provisioning_plan_lock = RLock()
-            self._trusted_provisioning_plan_digests: set[str] = set()
+            self._trusted_runtime_plan_lock = RLock()
+            self._trusted_runtime_plan_digests: set[str] = set()
             require_participant_information_state_snapshot(
                 self._snapshot,
                 information_state_context_resolver,
@@ -234,30 +235,6 @@ class RuntimeControlPlane(
         )
 
     @runtime_owned
-    def register_planner_produced_provisioning_plan(self, plan: ProvisioningPlan) -> str:
-        """Trust one exact planner artifact for later HTTP relay submission.
-
-        This method is an in-process authority boundary and is deliberately not
-        exposed by the HTTP control plane. Relay principals can submit a
-        registered artifact, but cannot mint or widen its realization policy.
-        """
-
-        self._assert_runtime_owner()
-        digest = provisioning_plan_digest(plan)
-        with self._trusted_provisioning_plan_lock:
-            self._trusted_provisioning_plan_digests.add(digest)
-        return digest
-
-    @runtime_owned
-    def is_planner_authorized_provisioning_plan(self, plan: ProvisioningPlan) -> bool:
-        """Return whether the exact published plan was registered in-process."""
-
-        self._assert_runtime_owner()
-        digest = provisioning_plan_digest(plan)
-        with self._trusted_provisioning_plan_lock:
-            return digest in self._trusted_provisioning_plan_digests
-
-    @runtime_owned
     @store_authoritative_state
     def submit_provisioning(
         self,
@@ -300,6 +277,8 @@ class RuntimeControlPlane(
             self._snapshot,
             self._target.manifest,
         )
+        if not diagnostics:
+            diagnostics.extend(self._plan_authorization_diagnostics(plan))
         if diagnostics:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.PROVISIONING,
@@ -375,6 +354,8 @@ class RuntimeControlPlane(
             )
         else:
             diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.ORCHESTRATION, self._snapshot)
+            if not diagnostics:
+                diagnostics.extend(self._plan_authorization_diagnostics(plan))
             if diagnostics:
                 receipt = self._reject_diagnostics(
                     domain=RuntimeDomain.ORCHESTRATION,
@@ -447,6 +428,8 @@ class RuntimeControlPlane(
             )
         else:
             diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.EVALUATION, self._snapshot)
+            if not diagnostics:
+                diagnostics.extend(self._plan_authorization_diagnostics(plan))
             if diagnostics:
                 receipt = self._reject_diagnostics(
                     domain=RuntimeDomain.EVALUATION,

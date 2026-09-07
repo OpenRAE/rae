@@ -133,11 +133,8 @@ from .execution_state import (
     WorkflowStepStateModel,
 )
 from .experiment_analysis import (
-    validate_experiment_apparatus_context_archival_datetimes,
-    validate_experiment_run_archival_datetimes,
     validate_experiment_study_against_tasks_and_runs,
-    validate_experiment_study_archival_datetimes,
-    validate_experiment_task_archival_datetimes,
+    validate_experiment_study_structure_against_tasks_and_runs,
 )
 from .experiment_apparatus import (
     ExperimentApparatusComponentModel,
@@ -146,6 +143,12 @@ from .experiment_apparatus import (
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
     validate_experiment_apparatus_context_against_manifests,
+)
+from .experiment_archival import (
+    validate_experiment_apparatus_context_archival_datetimes,
+    validate_experiment_run_archival_datetimes,
+    validate_experiment_study_archival_datetimes,
+    validate_experiment_task_archival_datetimes,
 )
 from .experiment_artifacts import (
     ExperimentApparatusCompatibilityReferenceModel,
@@ -185,8 +188,10 @@ from .experiment_references import (
 from .experiment_run import (
     ExperimentInvalidationModel,
     ExperimentResultSummaryModel,
+    ExperimentRunEvidenceInputs,
     ExperimentRunModel,
     validate_experiment_run_against_task,
+    validate_experiment_run_structure_against_task,
     validate_experiment_run_time_model,
 )
 from .experiment_selection import *
@@ -237,6 +242,7 @@ from .manifests import (
     TimeCapabilitiesModel,
 )
 from .manifests import CleanupCapabilitiesModel as CleanupCapabilitiesModel
+from .observation_capture import ObservationCaptureOfferModel
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
 from .participant_decision_surface import (

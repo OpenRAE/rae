@@ -6,6 +6,7 @@ import json
 from dataclasses import replace
 
 import pytest
+import raes_processor.trial_realization as trial_realization_module
 from paths import REPO_ROOT
 from pydantic import ValidationError
 from raes import canonical_instantiated_sdl_digest
@@ -103,6 +104,7 @@ def _realization_inputs(
         family=request.family,
         experiment=request.experiment,
         task=task,
+        capture_specs=request.capture_specs,
         apparatus_manifests=request.apparatus_manifests if apparatus_manifests is None else apparatus_manifests,
         realization_envelope=request.realization_envelope,
         backend_key=_BACKEND_KEY,
@@ -246,6 +248,53 @@ def test_trial_realization_rejects_task_or_manifest_substitution() -> None:
         )
 
 
+def test_trial_realization_rejects_capture_spec_identity_mismatch() -> None:
+    request, plan, _ = _plan_and_entry()
+    task = ExperimentTaskModel.model_validate_json(_TASK_FIXTURE.read_text(encoding="utf-8"))
+
+    with pytest.raises(ValueError, match="capture specification identities"):
+        trial_realization_module._validate_capture_specs(plan, request.experiment, task, {})
+
+
+def test_trial_realization_rejects_capture_spec_digest_mismatch() -> None:
+    request, plan, _ = _plan_and_entry()
+    task = ExperimentTaskModel.model_validate_json(_TASK_FIXTURE.read_text(encoding="utf-8"))
+    capture_spec = next(iter(request.capture_specs.values()))
+    changed_spec = capture_spec.model_copy(update={"title": "Substituted capture specification"})
+
+    with pytest.raises(ValueError, match="capture specification digests"):
+        trial_realization_module._validate_capture_specs(
+            plan,
+            request.experiment,
+            task,
+            {changed_spec.capture_spec_id: changed_spec},
+        )
+
+
+def test_trial_realization_rejects_unresolved_task_evidence_requirement() -> None:
+    request, plan, _ = _plan_and_entry()
+    task = ExperimentTaskModel.model_validate_json(_TASK_FIXTURE.read_text(encoding="utf-8"))
+    capture_spec = next(iter(request.capture_specs.values()))
+    requirement = next(iter(capture_spec.capture_requirements.values())).model_copy(
+        update={"requirement_id": "other-evidence"}
+    )
+    changed_spec = capture_spec.model_copy(update={"capture_requirements": {requirement.requirement_id: requirement}})
+    changed_ref = plan.input_refs.capture_spec_refs[0].model_copy(
+        update={"ref_digest": canonical_json_digest(changed_spec.model_dump(mode="json"))}
+    )
+    changed_plan = plan.model_copy(
+        update={"input_refs": plan.input_refs.model_copy(update={"capture_spec_refs": [changed_ref]})}
+    )
+
+    with pytest.raises(ValueError, match="task evidence requirements"):
+        trial_realization_module._validate_capture_specs(
+            changed_plan,
+            request.experiment,
+            task,
+            {changed_spec.capture_spec_id: changed_spec},
+        )
+
+
 def _archival_run_and_receipt():
     request, plan, entry = _plan_and_entry()
     task = ExperimentTaskModel.model_validate_json(_TASK_FIXTURE.read_text(encoding="utf-8"))
@@ -383,9 +432,6 @@ def test_study_reconciliation_requires_admitted_run_membership() -> None:
         validate_admitted_trial_study(plan, study, [task], [run])
 
     payload["membership"]["run-001"]["target_ref"]["ref_id"] = run.run_id
-    validate_admitted_trial_study(
-        plan,
-        ExperimentStudyModel.model_validate(payload),
-        [task],
-        [run],
-    )
+    admitted_study = ExperimentStudyModel.model_validate(payload)
+    with pytest.raises(ValueError, match="content-backed evidence inputs"):
+        validate_admitted_trial_study(plan, admitted_study, [task], [run])
