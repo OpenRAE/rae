@@ -30,6 +30,7 @@ from .participant_crossing_mediation import (
     PreparedParticipantCrossing,
     prepare_participant_crossing,
 )
+from .participant_crossing_projection import RuntimeRevisionPath, stable_projection_subject
 from .participant_crossing_records import _expected_history_heads
 from .participant_flow_sink import (
     ParticipantFlowSinkDecision,
@@ -40,8 +41,6 @@ from .participant_flow_sink import (
 _ViewT = TypeVar("_ViewT", bound=ContractModel)
 
 _PROJECTION_NOT_PERMITTED = "participant projection was not permitted"
-_SNAPSHOT_REVISION_REF_PREFIX = "runtime.snapshot.revision."
-_RevisionPath = tuple[str | int, ...]
 
 
 @dataclass(frozen=True)
@@ -56,7 +55,7 @@ class ParticipantViewSerialization:
     identity: object
     crossing_evidence: ParticipantCrossingEvidence | None
     idempotency_key: str
-    runtime_owned_revision_paths: tuple[_RevisionPath, ...] = ()
+    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = ()
 
     def with_crossing_evidence(
         self,
@@ -405,7 +404,7 @@ def _view_subject(
     participant_address: str,
     episode_id: str,
     subject_kind: ParticipantCrossingSubjectKind,
-    runtime_owned_revision_paths: tuple[_RevisionPath, ...] = (),
+    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = (),
 ) -> ParticipantCrossingSubjectReferenceModel:
     payload = view.model_dump(mode="json")
     payload.pop("generated_at", None)
@@ -413,7 +412,7 @@ def _view_subject(
     if not isinstance(view_ref, str) or not view_ref:
         raise ValueError("participant projection requires an exact view identity")
     encoded = json.dumps(
-        _stable_projection_subject(payload, runtime_owned_revision_paths),
+        stable_projection_subject(payload, runtime_owned_revision_paths),
         sort_keys=True,
         separators=(",", ":"),
     ).encode()
@@ -425,48 +424,6 @@ def _view_subject(
         participant_address=participant_address,
         episode_id=episode_id,
     )
-
-
-def _stable_projection_subject(
-    payload: dict[str, object],
-    runtime_owned_revision_paths: tuple[_RevisionPath, ...],
-) -> dict[str, object]:
-    """Normalize only runtime-owned provider revision evidence paths."""
-
-    paths = ((("source_snapshot_ref",), False), *((path, True) for path in runtime_owned_revision_paths))
-    for path, required in paths:
-        cursor: dict[str, object] | list[object] = payload
-        for segment in path[:-1]:
-            if isinstance(cursor, dict) and isinstance(segment, str):  # noqa: SIM114 - narrows both types
-                nested = cursor[segment]
-            elif isinstance(cursor, list) and isinstance(segment, int):
-                nested = cursor[segment]
-            else:
-                raise RuntimeError("runtime-owned projection revision path is invalid")
-            if not isinstance(nested, (dict, list)):
-                raise RuntimeError("runtime-owned projection revision path is invalid")
-            cursor = nested
-        leaf = path[-1]
-        if isinstance(cursor, dict) and isinstance(leaf, str):  # noqa: SIM114 - narrows both types
-            value = cursor[leaf]
-        elif isinstance(cursor, list) and isinstance(leaf, int):
-            value = cursor[leaf]
-        else:
-            raise RuntimeError("runtime-owned projection revision path is invalid")
-        if not isinstance(value, str) or not value.startswith(_SNAPSHOT_REVISION_REF_PREFIX):
-            if required:
-                raise RuntimeError("runtime-owned projection revision path is invalid")
-            continue
-        suffix = value.removeprefix(_SNAPSHOT_REVISION_REF_PREFIX)
-        if not suffix.isdigit():
-            if required:
-                raise RuntimeError("runtime-owned projection revision path is invalid")
-            continue
-        if isinstance(cursor, dict) and isinstance(leaf, str):  # noqa: SIM114 - narrows both types
-            cursor[leaf] = f"{_SNAPSHOT_REVISION_REF_PREFIX}observed"
-        elif isinstance(cursor, list) and isinstance(leaf, int):
-            cursor[leaf] = f"{_SNAPSHOT_REVISION_REF_PREFIX}observed"
-    return payload
 
 
 def _next_effective_order(control_plane: object, participant_address: str) -> int:
