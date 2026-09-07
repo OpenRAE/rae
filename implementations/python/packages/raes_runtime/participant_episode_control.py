@@ -17,7 +17,7 @@ from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationReceipt
 
 from .control_plane_execution import execute_participant_action
-from .control_plane_lifecycle import runtime_owned
+from .control_plane_lifecycle import runtime_owned, store_authoritative_state
 from .participant_control_diagnostics import _NO_PARTICIPANT_RUNTIME_MESSAGE
 from .participant_execution_control_boundary import backend_execution_control_method
 
@@ -63,6 +63,7 @@ class ParticipantEpisodeControlMixin:
         )
 
     @runtime_owned
+    @store_authoritative_state
     def participant_execution_state(
         self,
         execution_scope_ref: str,

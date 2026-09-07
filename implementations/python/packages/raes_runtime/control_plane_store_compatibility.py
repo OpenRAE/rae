@@ -7,10 +7,16 @@ from typing import cast
 
 from raes_contracts.runtime_state import RuntimeSnapshot
 
-from .control_plane_store import AtomicControlPlaneStore, ControlPlaneOperationRecord, ControlPlaneStore
+from .control_plane_store import (
+    AtomicControlPlaneStore,
+    ControlPlaneOperationRecord,
+    ControlPlaneStore,
+    SnapshotState,
+)
 
 _LEGACY_STORE_METHODS = (
     "load_snapshot",
+    "load_snapshot_state",
     "save_snapshot",
     "load_records",
     "save_record",
@@ -42,12 +48,18 @@ class ControlPlaneStoreCommitAdapter:
         self,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
-    ) -> None:
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
         if self.crash_atomic:
-            cast(AtomicControlPlaneStore, self._store).commit_terminal_operation(snapshot, record)
-            return
-        self._store.save_snapshot(snapshot)
+            return cast(AtomicControlPlaneStore, self._store).commit_terminal_operation(
+                snapshot,
+                record,
+                expected_revision=expected_revision,
+            )
+        committed = self._store.save_snapshot(snapshot, expected_revision=expected_revision)
         self._store.save_record(record)
+        return committed
 
     def claim_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
         if self.crash_atomic:

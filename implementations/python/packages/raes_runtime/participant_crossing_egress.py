@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, replace
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 from uuid import uuid4
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
@@ -40,6 +40,8 @@ from .participant_flow_sink import (
 _ViewT = TypeVar("_ViewT", bound=ContractModel)
 
 _PROJECTION_NOT_PERMITTED = "participant projection was not permitted"
+_SNAPSHOT_REVISION_REF_PREFIX = "runtime.snapshot.revision."
+_RevisionPath = tuple[str | int, ...]
 
 
 @dataclass(frozen=True)
@@ -54,6 +56,7 @@ class ParticipantViewSerialization:
     identity: object
     crossing_evidence: ParticipantCrossingEvidence | None
     idempotency_key: str
+    runtime_owned_revision_paths: tuple[_RevisionPath, ...] = ()
 
     def with_crossing_evidence(
         self,
@@ -70,6 +73,7 @@ class ParticipantViewSerialization:
             identity=self.identity,
             crossing_evidence=crossing_evidence,
             idempotency_key=self.idempotency_key,
+            runtime_owned_revision_paths=self.runtime_owned_revision_paths,
         )
 
 
@@ -83,11 +87,13 @@ def serialize_participant_view(
     if serialization.crossing_evidence is None:
         raise ValueError("configured participant egress requires crossing evidence")
     with control_plane._participant_control_lock:
+        control_plane._reload_derived_state_if_unpinned()
         subject = _view_subject(
             view,
             participant_address=serialization.participant_address,
             episode_id=serialization.episode_id,
             subject_kind=serialization.subject_kind,
+            runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
         )
         canonical = ParticipantCrossingIntent.model_validate(
             {
@@ -173,6 +179,7 @@ def _governed_egress_view(
         participant_address=serialization.participant_address,
         episode_id=serialization.episode_id,
         subject_kind=prepared.governed_subject.subject_kind,
+        runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
     )
     if actual != prepared.governed_subject:
         raise ValueError("trusted egress transformation does not match its governed identity")
@@ -398,13 +405,18 @@ def _view_subject(
     participant_address: str,
     episode_id: str,
     subject_kind: ParticipantCrossingSubjectKind,
+    runtime_owned_revision_paths: tuple[_RevisionPath, ...] = (),
 ) -> ParticipantCrossingSubjectReferenceModel:
     payload = view.model_dump(mode="json")
     payload.pop("generated_at", None)
     view_ref = payload.get("view_id")
     if not isinstance(view_ref, str) or not view_ref:
         raise ValueError("participant projection requires an exact view identity")
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    encoded = json.dumps(
+        _stable_projection_subject(payload, runtime_owned_revision_paths),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
     return ParticipantCrossingSubjectReferenceModel(
         subject_kind=subject_kind,
         contract_id=f"{subject_kind.value}-v1",
@@ -413,6 +425,32 @@ def _view_subject(
         participant_address=participant_address,
         episode_id=episode_id,
     )
+
+
+def _stable_projection_subject(
+    payload: dict[str, Any],
+    runtime_owned_revision_paths: tuple[_RevisionPath, ...],
+) -> dict[str, Any]:
+    """Normalize only runtime-owned provider revision evidence paths."""
+
+    paths = ((("source_snapshot_ref",), False), *((path, True) for path in runtime_owned_revision_paths))
+    for path, required in paths:
+        cursor: Any = payload
+        for segment in path[:-1]:
+            cursor = cursor[segment]
+        leaf = path[-1]
+        value = cursor[leaf]
+        if not isinstance(value, str) or not value.startswith(_SNAPSHOT_REVISION_REF_PREFIX):
+            if required:
+                raise RuntimeError("runtime-owned projection revision path is invalid")
+            continue
+        suffix = value.removeprefix(_SNAPSHOT_REVISION_REF_PREFIX)
+        if not suffix.isdigit():
+            if required:
+                raise RuntimeError("runtime-owned projection revision path is invalid")
+            continue
+        cursor[leaf] = f"{_SNAPSHOT_REVISION_REF_PREFIX}observed"
+    return payload
 
 
 def _next_effective_order(control_plane: object, participant_address: str) -> int:

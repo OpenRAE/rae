@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import asdict, replace
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
@@ -39,6 +37,7 @@ from .participant_crossing_mediation import (
     prepare_participant_crossing,
 )
 from .participant_crossing_records import _expected_history_heads
+from .participant_crossing_state_cut import canonical_crossing_digest as _digest
 from .participant_flow_sink import (
     apply_flow_sink_details,
     commit_flow_sink_denial,
@@ -105,6 +104,7 @@ class ParticipantCrossingControlIngressMixin:
         if not isinstance(identity, ControlPlaneIdentity):
             raise PermissionError("participant control requires an authenticated identity")
         with self._participant_control_lock:
+            self._reload_derived_state()
             bound = bind_participant_control_request(
                 self,
                 participant_address,
@@ -217,6 +217,7 @@ def execute_action_ingress_crossing(
     if not isinstance(execution.identity, ControlPlaneIdentity):
         raise PermissionError("participant crossing requires an authenticated identity")
     with control_plane._participant_control_lock:
+        control_plane._reload_derived_state()
         canonical = _action_crossing_intent(
             control_plane,
             participant_behavior,
@@ -432,11 +433,6 @@ def _next_effective_order(control_plane: object, participant_address: str) -> in
         control_plane._snapshot.participant_crossing_history,
     )
     return sum(len(history.get(participant_address, ())) for history in histories) + 1
-
-
-def _digest(payload: object) -> str:
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
-    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
 
 
 def _governed_control_intent(

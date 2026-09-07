@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Annotated, TypeVar
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from raes_contracts.contracts import (
     ParticipantContextViewModel,
     ParticipantHistoryViewModel,
@@ -14,6 +14,7 @@ from raes_contracts.contracts import (
 
 from .control_plane import RuntimeControlPlane
 from .control_plane_api._offload import _control_plane_calls
+from .control_plane_api._responses import _set_snapshot_revision_header
 from .control_plane_security import ControlPlaneIdentity, ParticipantAudienceSubjectBinding
 
 _NOT_FOUND_RESPONSES = {404: {"description": "Not found"}}
@@ -35,6 +36,7 @@ _ReadIdentity = Annotated[ControlPlaneIdentity, Depends(_read_identity_dependenc
 async def _resolved_governed_view(
     control_plane: RuntimeControlPlane,
     request: Request,
+    response: Response,
     identity: ControlPlaneIdentity,
     participant_address: str,
     *,
@@ -46,10 +48,13 @@ async def _resolved_governed_view(
 
     audience_binding = _require_governed_audience_candidate(control_plane, identity, participant_address)
     calls = _control_plane_calls(request)
-    view = await calls.mutate(
+    projection = await calls.mutate(
         _governed_view,
-        lambda: resolve(audience_binding, request.headers.get("idempotency-key", "")),
+        lambda: control_plane._project_snapshot_read(
+            lambda: resolve(audience_binding, request.headers.get("idempotency-key", ""))
+        ),
     )
+    view, revision = projection
     if view is None:
         raise HTTPException(status_code=404, detail=not_found_detail)
     await calls.run(
@@ -59,6 +64,7 @@ async def _resolved_governed_view(
         allowed=True,
         target=str(request.url.path),
     )
+    _set_snapshot_revision_header(response, revision)
     return view
 
 
@@ -73,11 +79,13 @@ def register_participant_retrieval_routes(
     async def get_participant_status_view(
         participant_address: str,
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> ParticipantStatusViewModel:
         return await _resolved_governed_view(
             control_plane,
             request,
+            response,
             identity,
             participant_address,
             action="get_participant_status_view",
@@ -98,11 +106,13 @@ def register_participant_retrieval_routes(
         participant_address: str,
         episode_id: str,
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> ParticipantHistoryViewModel:
         return await _resolved_governed_view(
             control_plane,
             request,
+            response,
             identity,
             participant_address,
             action="get_participant_history_view",
@@ -124,6 +134,7 @@ def register_participant_retrieval_routes(
         participant_address: str,
         view_ref: str,
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
         episode_id: str | None = None,
         derivation_basis_ref: str | None = None,
@@ -132,6 +143,7 @@ def register_participant_retrieval_routes(
         return await _resolved_governed_view(
             control_plane,
             request,
+            response,
             identity,
             participant_address,
             action="get_participant_context_view",

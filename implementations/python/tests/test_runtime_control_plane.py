@@ -977,7 +977,7 @@ class TestParticipantEpisodeControlPlane:
         assert isinstance(view, ParticipantStatusViewModel)
         assert view.participant_address == "participant.alice"
         assert view.episode_id == "participant.alice-episode-1"
-        assert view.source_snapshot_ref == "runtime.snapshot.current"
+        assert view.source_snapshot_ref == "runtime.snapshot.revision.1"
         assert view.episode_state is not None
         assert view.episode_state.status == "running"
         episode_state = view.episode_state.model_dump(mode="json")
@@ -992,10 +992,8 @@ class TestParticipantEpisodeControlPlane:
             }
         )
         control_plane = RuntimeControlPlane(create_stub_target(), initial_snapshot=snapshot)
-        control_plane._operations = {
-            "op-alice": _participant_operation_record("op-alice", "participant.alice"),
-            "op-bob": _participant_operation_record("op-bob", "participant.bob"),
-        }
+        control_plane._store.save_record(_participant_operation_record("op-alice", "participant.alice"))
+        control_plane._store.save_record(_participant_operation_record("op-bob", "participant.bob"))
 
         view = control_plane.get_participant_status_view("participant.alice")
 
@@ -1054,7 +1052,7 @@ class TestParticipantEpisodeControlPlane:
         assert view.participant_address == "participant.alice"
         assert view.episode_id == "participant.alice-episode-1"
         assert view.view_ref == "views.context.network-posture.v1"
-        assert view.derived_from_refs == ["runtime.snapshot.current"]
+        assert view.derived_from_refs == ["runtime.snapshot.revision.1"]
         assert view.meaning_ref == "views.context.network-posture.v1"
         assert view.participant_scope == "participant_local"
         assert view.audience_scope == "participant_visible"

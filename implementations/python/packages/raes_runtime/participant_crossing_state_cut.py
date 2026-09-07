@@ -8,6 +8,13 @@ import json
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 
+def canonical_crossing_digest(payload: object) -> str:
+    """Return the stable digest used for crossing subjects and history heads."""
+
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
+    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+
+
 def expected_participant_history_heads(
     snapshot: RuntimeSnapshot,
     participant_address: str,
@@ -21,8 +28,7 @@ def expected_participant_history_heads(
         value = events[-1].get("event_id")
         if isinstance(value, str) and value:
             return value
-        encoded = json.dumps(events[-1], sort_keys=True, separators=(",", ":"), default=str).encode()
-        return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+        return canonical_crossing_digest(events[-1])
 
     return {
         f"participant_episode_history:{participant_address}": head(snapshot.participant_episode_history),
@@ -32,4 +38,4 @@ def expected_participant_history_heads(
     }
 
 
-__all__ = ["expected_participant_history_heads"]
+__all__ = ["canonical_crossing_digest", "expected_participant_history_heads"]

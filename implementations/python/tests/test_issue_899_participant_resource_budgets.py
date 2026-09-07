@@ -727,7 +727,10 @@ def test_runtime_reserve_commit_throttle_and_idempotency_are_generation_fenced(
     assert state.evidence_refs == ("evidence.resource-meter.action-1",)
 
     store = LocalControlPlaneStore(tmp_path / "control-plane")
-    store.save_snapshot(committed.snapshot)
+    store.save_snapshot(
+        committed.snapshot,
+        expected_revision=store.load_snapshot_state().revision,
+    )
     restored = store.load_snapshot()
     assert restored.participant_resource_budget_states == (committed.snapshot.participant_resource_budget_states)
     assert restored.participant_resource_budget_events == (committed.snapshot.participant_resource_budget_events)
