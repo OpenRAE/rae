@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from raes_backend_libvirt.techvault_native import TechVaultNativeLibvirtDriver
+from raes_contracts.runtime_state import OperationStatus
 from raes_runtime.control_plane import RuntimeControlPlane
 
 from raes_operations._evidence_run_types import EvidenceCheck, ExecutionPlan, LibvirtEvidenceRunConfig
@@ -250,7 +251,7 @@ def _realize_planned_native_substrate(
 def _native_realization_result(
     execution_plan: ExecutionPlan,
     native_driver: TechVaultNativeLibvirtDriver,
-    status: Any,
+    status: OperationStatus | None,
     operation_id: str,
 ) -> tuple[Mapping[str, Any] | None, EvidenceCheck, tuple[str, ...], str]:
     unrealized = _dedupe(
