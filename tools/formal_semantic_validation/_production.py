@@ -15,7 +15,6 @@ from tools.formal_semantic_validation._shape import (
 from tools.formal_semantic_validation._types import (
     _CURRENT_SATISFIABILITY_PROFILE,
     _MAX_FILE_BYTES,
-    _MIGRATED_PRODUCTION_EVIDENCE_DIGESTS,
 )
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
 
@@ -66,6 +65,8 @@ def _validate_production_evidence_observation(
     command: object,
     failures: list[PolicyFailure],
     path: str,
+    *,
+    replay_current: bool = True,
 ) -> None:
     case_id = case.get("case_id")
     fixture_value = case.get("fixture_path")
@@ -101,6 +102,7 @@ def _validate_production_evidence_observation(
             fixture,
             evidence_value,
             expected_argv,
+            replay_current=replay_current,
         )
     except (
         OSError,
@@ -133,6 +135,8 @@ def _replay_production_evidence(
     fixture: Path,
     evidence_value: object,
     expected_argv: list[object],
+    *,
+    replay_current: bool = True,
 ) -> _ProductionEvidenceReplay:
     replay_mode = case.get("replay_mode")
     if replay_mode == "exploit-path":
@@ -147,33 +151,48 @@ def _replay_production_evidence(
         from raes_processor.satisfiability import analyze_scenario_file, replay_satisfiability_evidence
 
         stored = ScenarioSatisfiabilityEvidenceModel.model_validate(stored_payload)
-        direct = analyze_scenario_file(fixture, profile=_CURRENT_SATISFIABILITY_PROFILE)
-        configuration_digest = direct.solver_configuration_digest
     else:
         from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
         from raes_processor.exploit_path import analyze_exploit_path_file, replay_exploit_path_evidence
 
         stored = ExploitPathAnalysisEvidenceModel.model_validate(stored_payload)
-        direct = analyze_exploit_path_file(fixture, profile="raes-exploit-path-analysis-v1")
-        configuration_digest = direct.search_configuration_digest
     from raes_contracts.canonical import canonical_json_digest
     from raes_contracts.satisfiability import canonical_contract_digest
 
     stored_artifact_matches = canonical_json_digest(stored_payload) == observation.get("evidence_digest")
+    if not replay_current:
+        # Validate the original payload's own joins, not a current replay claim.
+        return _ProductionEvidenceReplay(
+            evidence_digest_matches=stored_artifact_matches,
+            direct_digest=canonical_json_digest(stored_payload),
+            outcome=stored.outcome.value,
+            profile=stored.profile,
+            analysis_profile=stored.analysis_profile,
+            configuration_digest=(
+                stored.solver_configuration_digest
+                if replay_mode == "satisfiability"
+                else stored.search_configuration_digest
+            ),
+            source_digest=stored.source.byte_digest,
+        )
+    if replay_mode == "satisfiability":
+        direct = analyze_scenario_file(fixture, profile=_CURRENT_SATISFIABILITY_PROFILE)
+        replay_satisfiability_evidence(fixture, stored)
+        configuration_digest = direct.solver_configuration_digest
+    else:
+        direct = analyze_exploit_path_file(fixture, profile="raes-exploit-path-analysis-v1")
+        replay_exploit_path_evidence(fixture, stored)
+        configuration_digest = direct.search_configuration_digest
     direct_digest = canonical_contract_digest(direct)
     stored_digest = canonical_contract_digest(stored)
     cli_payload = _run_production_evidence_cli(repo_root, expected_argv)
     cli = type(stored).model_validate(cli_payload)
     cli_digest = canonical_contract_digest(cli)
-    migration_pair = _MIGRATED_PRODUCTION_EVIDENCE_DIGESTS.get(str(case.get("case_id")))
-    evidence_digest_matches = stored_artifact_matches and stored_digest == direct_digest == cli_digest
-    if stored_artifact_matches and migration_pair == (observation.get("evidence_digest"), direct_digest):
-        evidence_digest_matches = cli_digest == direct_digest
-    elif evidence_digest_matches:
-        if replay_mode == "satisfiability":
-            replay_satisfiability_evidence(fixture, stored)
-        else:
-            replay_exploit_path_evidence(fixture, stored)
+    evidence_digest_matches = (
+        stored_artifact_matches
+        and stored_digest == direct_digest == cli_digest
+        and canonical_json_digest(cli_payload) == cli_digest
+    )
     return _ProductionEvidenceReplay(
         evidence_digest_matches=evidence_digest_matches,
         direct_digest=direct_digest,
@@ -200,9 +219,7 @@ def _production_evidence_joins_match(
         observation.get("configuration_digest") == replay.configuration_digest,
         observation.get("source_digest") == replay.source_digest,
     )
-    digest_join = evidence_digest == replay.direct_digest or _MIGRATED_PRODUCTION_EVIDENCE_DIGESTS.get(
-        str(case.get("case_id"))
-    ) == (evidence_digest, replay.direct_digest)
+    digest_join = evidence_digest == replay.direct_digest
     return replay.evidence_digest_matches and digest_join and all(joins)
 
 

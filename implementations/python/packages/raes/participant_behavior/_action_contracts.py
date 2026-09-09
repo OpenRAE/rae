@@ -13,6 +13,7 @@ from pydantic import Field, field_validator, model_validator
 from typing_extensions import TypeAliasType
 
 from .._base import SDLModel
+from .._classification_guard import LegacyClassificationGuard
 from .._identifiers import PortableIdentifier
 from ..participant_action_semantics import (
     ParticipantActionEffect,
@@ -297,7 +298,7 @@ class ParticipantInteractionClass(str, Enum):
 
 
 class ExternalMappingLoss(SDLModel):
-    """Loss-labeled mapping from an external vocabulary to RAES semantics."""
+    """Historical mapping syntax, retained solely for explicit migration."""
 
     system: str
     identifier: str
@@ -370,8 +371,10 @@ class ParticipantInteractionDeclaration(SDLModel):
         return self
 
 
-class ParticipantActionContract(SDLModel):
+class ParticipantActionContract(LegacyClassificationGuard):
     """Governed semantic contract for one participant action name."""
+
+    legacy_classification_fields = ("external_mappings",)
 
     semantic_version: str
     lifecycle_state: ParticipantActionLifecycle = ParticipantActionLifecycle.ACTIVE
@@ -388,7 +391,6 @@ class ParticipantActionContract(SDLModel):
     failure_classes: list[ParticipantFailureClass] = Field(default_factory=list)
     backend_failure_mappings: list[ParticipantBackendFailureMapping] = Field(default_factory=list)
     interactions: list[ParticipantInteractionDeclaration] = Field(default_factory=list)
-    external_mappings: list[ExternalMappingLoss] = Field(default_factory=list)
     temporal_contracts: list[ParticipantTemporalContract] = Field(default_factory=list)
     backend_timing_disclosures: list[ParticipantBackendTimingDisclosure] = Field(default_factory=list)
 

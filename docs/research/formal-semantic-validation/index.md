@@ -1,6 +1,6 @@
 # Formal Semantic Validation And Reachability Evidence
 
-This directory is the falsification/evidence gate for issues #168 and #828 and
+This directory is the falsification/evidence gate for issues #168, #828, and #989 and
 requirement ASR-530. It records exactly what the pinned RAES parser, semantic
 validator, compiler, participant contracts, finite-domain satisfiability
 analyzer, typed exploit-path analyzer, and existing regression fixtures
@@ -43,11 +43,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   observations, complete production evidence joins, participant outcomes,
   digests, and limitations. It also pins the original issue-168 release as its
   comparison baseline and records an exact accepted disposition for each
-  changed outcome, diagnostic, or result digest. The five current deviations
-  are representation-only digest changes from the project identity cutover to
-  RAES; their governed outcomes and diagnostics are unchanged.
+  changed outcome, diagnostic, or result digest. This is now historical
+  release 3.0.0, preserved byte-for-byte rather than compared to current code.
 - [`analysis-v2.json`](analysis-v2.json) derives the ADR-021 status of each
   claim from the v2 observations and protocol ceilings.
+- [`bundles/retest-v3.json`](bundles/retest-v3.json) is current release 4.0.0.
+  It reuses the preregistered v2 protocol and corpus, selects new v3 evidence
+  envelopes, and binds [`execution-snapshot-v3.json`](execution-snapshot-v3.json)
+  and [`analysis-v3.json`](analysis-v3.json) atomically. Nine exact deviations
+  from release 3.0.0 are recorded. They include changed source/model/graph
+  identities and a populated realization-designation record in the satisfiable
+  witness; they are not asserted to be representation-only changes.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -91,6 +97,21 @@ evaluation, credential lookup, or environment-selected artifact loading.
 Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
+
+Current validation requires explicit release 4.0.0, rejects unsupported future
+or duplicate revisions, and never accepts an old/new output-digest pair as a
+substitute for replay. Historical releases (including the issue-826 supplement)
+undergo pin, shape, control, and internal-join checks without executing current
+code. Only the current release supports a current-code claim.
+
+The current capture's `source_state` records a base Git commit, the modified
+checkout state, and a deterministic digest of all reference-package Python
+sources plus `pyproject.toml` and `uv.lock`. The base commit is not represented
+as the exact clean capture revision. Validation recomputes the implementation
+digest. A changed implementation requires a new explicitly supported release,
+not rewriting history or extending a digest allowlist. Classification migration
+is not a claim class in the retained preregistration and is not promoted to
+`demonstrated` by these controls.
 
 ## Bounded conclusions
 

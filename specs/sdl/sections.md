@@ -45,7 +45,6 @@ machinery is not retained as an empty compatibility field. "References" is
 | `conditions` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [proposition semantics](../../specs/formal/objectives/proposition-and-assertion-semantics.md) |
 | `propositions` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [proposition semantics](../../specs/formal/objectives/proposition-and-assertion-semantics.md) |
 | `assertions` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [proposition semantics](../../specs/formal/objectives/proposition-and-assertion-semantics.md) |
-| `vulnerabilities` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [document model](document-model.md) |
 | `entities` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
 | `injects` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [reference catalog](references.md) |
 | `events` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [reference catalog](references.md) |
@@ -78,7 +77,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `variables` | section | map | normalized, expanded | optional; default empty map | `map_key` | none | [variables and instantiation](variables-and-instantiation.md) |
 | `variation_points` | section | map | normalized, expanded | optional; default empty map | `map_key` | catalogued | [scenario-family variation points](variation-points.md) |
 
-<!-- sdl-catalog-summary top-level=44 metadata-composition=6 sections=38 maps=37 lists=1 -->
+<!-- sdl-catalog-summary top-level=43 metadata-composition=6 sections=37 maps=36 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose

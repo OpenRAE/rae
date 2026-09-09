@@ -29,6 +29,7 @@ from tools.formal_semantic_validation._types import (
     EvidenceRelease,
 )
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
+from tools.research_evidence import source_state_failures
 
 
 def _stale_pin(repo_root: Path, path_value: object, digest_value: object) -> bool:
@@ -147,6 +148,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
+                replay_current=manifest.get("revision") == "4.0.0",
             )
         )
     else:
@@ -197,7 +199,11 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                     str(sat_analysis_pin.get("path")),
                     max_bytes=_MAX_FILE_BYTES,
                 )
-                failures.extend(validate_satisfiability_analysis(repo_root, legacy_manifest, snapshot, analysis))
+                failures.extend(
+                    validate_satisfiability_analysis(
+                        repo_root, legacy_manifest, snapshot, analysis, replay_current=False
+                    )
+                )
     return failures
 
 
@@ -208,6 +214,8 @@ def validate_retest_bundle(
     corpus: dict[str, object],
     snapshot: dict[str, object],
     analysis: dict[str, object],
+    *,
+    replay_current: bool = True,
 ) -> list[PolicyFailure]:
     """Validate the integrated issue-828 evidence release."""
 
@@ -216,11 +224,20 @@ def validate_retest_bundle(
     corpus_path = str(release.manifest.get("corpus_path"))
     snapshot_path = str(release.manifest.get("snapshot_path"))
     analysis_path = str(release.manifest.get("analysis_path"))
-    if release.manifest.get("revision") != "3.0.0":
+    release_revision = release.manifest.get("revision")
+    if not replay_current and release_revision != "3.0.0":
+        return [
+            _failure(
+                "formal-validation-current-replay-required",
+                "only release 3.0.0 can use integrated historical validation",
+                snapshot_path,
+            )
+        ]
+    if release_revision not in {"3.0.0", "4.0.0"}:
         failures.append(
             _failure(
                 "formal-validation-retest-release",
-                "the integrated issue-828 retest must be release 3.0.0",
+                "integrated retest requires an explicitly supported release revision",
                 release.manifest_path,
             )
         )
@@ -233,6 +250,23 @@ def validate_retest_bundle(
             )
         )
 
+    if release_revision == "4.0.0":
+        failures.extend(
+            source_state_failures(repo_root, snapshot.get("source_state"), snapshot_path, current=replay_current)
+        )
+        state = snapshot.get("source_state")
+        if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
+            failures.append(
+                _failure("research-evidence-source-state", "base revision must join source identity", snapshot_path)
+            )
+        if not isinstance(snapshot.get("baseline"), Mapping) or snapshot["baseline"].get("release_revision") != "3.0.0":
+            failures.append(
+                _failure(
+                    "formal-validation-baseline-selection",
+                    "release 4.0.0 must retain the 3.0.0 baseline",
+                    snapshot_path,
+                )
+            )
     _validate_protocol(repo_root, protocol, failures, protocol_path)
     cases_by_id = _validate_corpus(repo_root, protocol, corpus, failures, corpus_path)
     try:
@@ -282,6 +316,7 @@ def validate_retest_bundle(
             corpus=corpus,
             snapshot=snapshot,
             cases_by_id=cases_by_id,
+            replay_current=replay_current,
         ),
         failures,
         snapshot_path,
@@ -289,7 +324,7 @@ def validate_retest_bundle(
     _validate_baseline_drift(
         repo_root,
         snapshot,
-        historical_cases,
+        cases_by_id if release_revision == "4.0.0" else historical_cases,
         failures,
         snapshot_path,
     )

@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-snapshot-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "f422afb4d7282b817fdc3cfe17fd99d72f708f08b42bcc56615b9fa834c44a2b",
+  "content_hash": "e9b67ccf45c4ccb091cddfa9c24dffe97cfe37178c8abb3f8ff08d5f90157eeb",
   "last_change": {
-    "summary": "Added the closed, SHA-256-pinned APT runtime package repository profile for issue #847.",
-    "content_hash": "f422afb4d7282b817fdc3cfe17fd99d72f708f08b42bcc56615b9fa834c44a2b"
+    "summary": "Removed domain-shaped SDL classifications in favor of standalone external concept bindings; explicit legacy migration is required (issue #989).",
+    "content_hash": "e9b67ccf45c4ccb091cddfa9c24dffe97cfe37178c8abb3f8ff08d5f90157eeb"
   }
 }

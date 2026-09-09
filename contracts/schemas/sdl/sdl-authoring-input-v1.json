@@ -1249,7 +1249,6 @@
         "nodes.features",
         "nodes.conditions",
         "nodes.injects",
-        "nodes.vulnerabilities",
         "events.assertions",
         "events.injects",
         "stories.scripts",
@@ -3110,13 +3109,6 @@
       "additionalProperties": false,
       "description": "An organizational unit, team, or person in the exercise.\n\nEntities can nest recursively. Flattened names use dot-notation:\n``blue-team.bob`` refers to the ``bob`` entity nested inside\n``blue-team``.",
       "properties": {
-        "categories": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Categories",
-          "type": "array"
-        },
         "description": {
           "default": "",
           "title": "Description",
@@ -3176,13 +3168,6 @@
           ],
           "default": null,
           "title": "Role"
-        },
-        "vulnerabilities": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Vulnerabilities",
-          "type": "array"
         }
       },
       "title": "Entity",
@@ -3608,36 +3593,6 @@
       "title": "ExplicitnessClass",
       "type": "string"
     },
-    "ExternalMappingLoss": {
-      "additionalProperties": false,
-      "description": "Loss-labeled mapping from an external vocabulary to RAES semantics.",
-      "properties": {
-        "identifier": {
-          "title": "Identifier",
-          "type": "string"
-        },
-        "loss_label": {
-          "title": "Loss Label",
-          "type": "string"
-        },
-        "rationale": {
-          "title": "Rationale",
-          "type": "string"
-        },
-        "system": {
-          "title": "System",
-          "type": "string"
-        }
-      },
-      "required": [
-        "system",
-        "identifier",
-        "loss_label",
-        "rationale"
-      ],
-      "title": "ExternalMappingLoss",
-      "type": "object"
-    },
     "Feature": {
       "additionalProperties": false,
       "description": "A software artifact, service, or configuration deployed to a compute node.",
@@ -3684,13 +3639,6 @@
         },
         "type": {
           "$ref": "#/$defs/FeatureType"
-        },
-        "vulnerabilities": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Vulnerabilities",
-          "type": "array"
         }
       },
       "required": [
@@ -5364,13 +5312,6 @@
         },
         "type": {
           "$ref": "#/$defs/NodeType"
-        },
-        "vulnerabilities": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Vulnerabilities",
-          "type": "array"
         }
       },
       "required": [
@@ -6396,13 +6337,6 @@
           "title": "Evidence Expectations",
           "type": "array"
         },
-        "external_mappings": {
-          "items": {
-            "$ref": "#/$defs/ExternalMappingLoss"
-          },
-          "title": "External Mappings",
-          "type": "array"
-        },
         "failure_classes": {
           "items": {
             "$ref": "#/$defs/ParticipantFailureClass"
@@ -7130,13 +7064,6 @@
           "title": "Action Contract Refs",
           "type": "array"
         },
-        "ai_offensive_behavior_refs": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Ai Offensive Behavior Refs",
-          "type": "array"
-        },
         "authority_scope_refs": {
           "items": {
             "type": "string"
@@ -7181,13 +7108,6 @@
           "default": null,
           "title": "Behavior Mode"
         },
-        "defensive_behavior_refs": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Defensive Behavior Refs",
-          "type": "array"
-        },
         "evidence_contract_refs": {
           "items": {
             "type": "string"
@@ -7227,13 +7147,6 @@
             "type": "string"
           },
           "title": "Observation Boundary Refs",
-          "type": "array"
-        },
-        "offensive_behavior_refs": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Offensive Behavior Refs",
           "type": "array"
         },
         "outcome_interpretation_rule_refs": {
@@ -10704,13 +10617,6 @@
             }
           ],
           "default": null
-        },
-        "vulnerability_refs": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Vulnerability Refs",
-          "type": "array"
         }
       },
       "required": [
@@ -23042,43 +22948,6 @@
       "title": "VolumeLifecycle",
       "type": "string"
     },
-    "Vulnerability": {
-      "additionalProperties": false,
-      "description": "A named vulnerability with CWE classification.",
-      "properties": {
-        "class": {
-          "title": "Class",
-          "type": "string"
-        },
-        "description": {
-          "title": "Description",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "technical": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "string"
-            }
-          ],
-          "default": false,
-          "title": "Technical"
-        }
-      },
-      "required": [
-        "name",
-        "description",
-        "class"
-      ],
-      "title": "Vulnerability",
-      "type": "object"
-    },
     "Workflow": {
       "additionalProperties": false,
       "description": "A declarative experiment control graph over objectives.",
@@ -24186,22 +24055,6 @@
       "default": "*",
       "title": "Version",
       "type": "string"
-    },
-    "vulnerabilities": {
-      "additionalProperties": {
-        "$ref": "#/$defs/Vulnerability"
-      },
-      "propertyNames": {
-        "maxLength": 64,
-        "minLength": 1,
-        "not": {
-          "pattern": "[^a-z0-9_-]"
-        },
-        "pattern": "^[a-z0-9]",
-        "type": "string"
-      },
-      "title": "Vulnerabilities",
-      "type": "object"
     },
     "workflows": {
       "additionalProperties": {

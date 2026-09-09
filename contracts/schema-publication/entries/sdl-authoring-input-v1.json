@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "2a6f907c65d3b40051f3a38604607f0d57d0b6f277ea38c167eae6c2c7b750ac",
+  "content_hash": "29aae3626f81417c641635cf60ca8c984205347f70b98778dcb9eebe1f8685bb",
   "last_change": {
-    "summary": "Added the closed, SHA-256-pinned APT runtime package repository profile for issue #847.",
-    "content_hash": "2a6f907c65d3b40051f3a38604607f0d57d0b6f277ea38c167eae6c2c7b750ac"
+    "summary": "Removed domain-shaped SDL classifications in favor of standalone external concept bindings; explicit legacy migration is required (issue #989).",
+    "content_hash": "29aae3626f81417c641635cf60ca8c984205347f70b98778dcb9eebe1f8685bb"
   }
 }

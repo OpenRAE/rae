@@ -14,7 +14,6 @@ _SECTION_FIELDS = [
     "infrastructure",
     "features",
     "conditions",
-    "vulnerabilities",
     "entities",
     "injects",
     "events",

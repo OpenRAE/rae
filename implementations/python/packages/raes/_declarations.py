@@ -270,7 +270,6 @@ _REFERENCEABLE_SECTIONS = frozenset(
         "conditions",
         "propositions",
         "assertions",
-        "vulnerabilities",
         "injects",
         "events",
         "scripts",

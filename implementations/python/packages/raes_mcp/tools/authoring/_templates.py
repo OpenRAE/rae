@@ -117,13 +117,6 @@ evidence_requirements:
     retention: run_lifetime
     loss_disclosure: required
 
-vulnerabilities:
-  sqli:
-    name: SQL Injection
-    description: SQL injection in login form
-    technical: true
-    class: CWE-89
-
 entities:
   blue-team:
     name: Blue Team
@@ -187,7 +180,6 @@ nodes:
     resources: {ram: 4 GiB, cpu: 2}
     features: {web-app: web-admin}
     conditions: {web-healthy: web-admin}
-    vulnerabilities: [sqli]
     services:
       - {port: 443, name: https}
     roles:
@@ -263,14 +255,6 @@ evidence_requirements:
     retention: run_lifetime
     loss_disclosure: required
 
-vulnerabilities:
-  sqli:
-    name: SQL Injection
-    description: SQL injection in application
-    technical: true
-    class: CWE-89
-
-# --- Teams ---
 entities:
   blue-team:
     name: Blue Team

@@ -396,7 +396,6 @@ nodes:
         node = scenario.nodes["shuffle-backend"]
 
         assert node.services == []
-        assert scenario.vulnerabilities == {}
         assert node.runtime is not None
         assert node.runtime.mounts[0].target == "/shuffle-database"
         assert node.runtime.mounts[0].source_sensitivity == "plain"

@@ -53,9 +53,6 @@ def _rewrite_node_named_mappings(
         payload[section] = {
             _maybe_rename(name, symbols[section]): role for name, role in payload.get(section, {}).items()
         }
-    payload["vulnerabilities"] = [
-        _maybe_rename(name, symbols["vulnerabilities"]) for name in payload.get("vulnerabilities", [])
-    ]
 
 
 def _rewrite_node_role_entities(
@@ -122,15 +119,9 @@ def _rewrite_infrastructure(payload: dict[str, Any], symbols: dict[str, dict[str
 
 def _rewrite_feature(payload: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
     payload["dependencies"] = [_maybe_rename(name, symbols["features"]) for name in payload.get("dependencies", [])]
-    payload["vulnerabilities"] = [
-        _maybe_rename(name, symbols["vulnerabilities"]) for name in payload.get("vulnerabilities", [])
-    ]
 
 
 def _rewrite_entity(payload: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
-    payload["vulnerabilities"] = [
-        _maybe_rename(name, symbols["vulnerabilities"]) for name in payload.get("vulnerabilities", [])
-    ]
     payload["events"] = [_maybe_rename(name, symbols["events"]) for name in payload.get("events", [])]
     for child in payload.get("entities", {}).values():
         if isinstance(child, dict):

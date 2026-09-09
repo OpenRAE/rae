@@ -22,7 +22,6 @@ from raes_contracts.contracts import (  # noqa: E402
 )
 
 VOCABULARY_ID = "participant-offensive-behavior-activities"
-GOVERNED_SCOPE = "behavior_specifications.offensive_behavior_refs"
 CATALOG_RELATIVE_PATH = "contracts/concept-authority/controlled-vocabularies-v1.json"
 SOURCE_RELATIVE_PATH = "contracts/concept-authority/attack-enterprise-tactics-source-v1.json"
 SOURCE_AUTHORITY = "MITRE ATT&CK"
@@ -161,13 +160,13 @@ def _check_catalog(
         if LICENSE_URL not in vocabulary.source.citation_urls:
             failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.source.citation_urls omits terms URL")
 
-    if vocabulary.governed_scopes != [GOVERNED_SCOPE]:
+    if vocabulary.governed_scopes != []:
         failures.append(
             f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.governed_scopes is "
-            f"{vocabulary.governed_scopes!r}; expected {[GOVERNED_SCOPE]!r}"
+            f"{vocabulary.governed_scopes!r}; expected {[]!r}"
         )
-    if vocabulary.extension_policy != "governed-extension":
-        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must keep governed-extension policy")
+    if vocabulary.extension_policy != "closed":
+        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must remain a closed optional source catalog")
 
     source_terms = _source_tactics(source)
     expected_shortnames = [term["shortname"] for term in source_terms]

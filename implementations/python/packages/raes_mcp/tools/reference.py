@@ -69,7 +69,6 @@ _SECTION_NAMES: dict[str, str] = {
     "conditions": "Conditions",
     "propositions": "Propositions",
     "assertions": "Assertions",
-    "vulnerabilities": "Vulnerabilities",
     "entities": "Entities",
     "injects": "Orchestration: Injects, Events, Scripts, Stories",
     "events": "Orchestration: Injects, Events, Scripts, Stories",
@@ -131,7 +130,7 @@ def register(mcp: FastMCP) -> None:
             "Get detailed documentation for a specific SDL section including "
             "its schema, fields, YAML examples, shorthands, and validation "
             "rules.  Valid section names: nodes, infrastructure, features, "
-            "conditions, vulnerabilities, entities, orchestration "
+            "conditions, entities, orchestration "
             "(injects+events+scripts+stories), content, accounts, "
             "relationships, forwarding_agents, agents, action_contracts, "
             "observation_boundaries, outcome_interpretation_rules, "
@@ -236,7 +235,6 @@ nodes:
     features: [flask-app]                 # list shorthand for feature bindings
     services:
       - {port: 8080, name: http}          # exposed network service
-    vulnerabilities: [sqli]
 
   database:
     type: compute
@@ -265,13 +263,7 @@ features:
   flask-app: {type: Service, source: vulnerable-flask-app}
   postgres: {type: Service, source: postgresql-16}
 
-# --- Security weaknesses ---
-vulnerabilities:
-  sqli:
-    name: SQL Injection
-    description: SQLi in login form allows auth bypass
-    technical: true
-    class: CWE-89                          # must be CWE-\\d+ format
+# External weakness assertions use standalone concept bindings.
 
 # --- Typed edges between elements ---
 relationships:
@@ -365,7 +357,6 @@ composition fields, and optional authoring sections organized by concern.
 | `infrastructure` | Deployment: counts, links, dependencies, IPs, CIDRs, ACLs |
 | `features` | Software (Service/Configuration/Artifact) deployed to compute nodes |
 | `conditions` | Health checks (command+interval or library source) |
-| `vulnerabilities` | CWE-classified weaknesses |
 
 Per ADR-073 the OCR scoring pipeline (`metrics` / `evaluations` / `tlos` / \
 `goals`) and `agents.reward_calculator` were removed from the SDL. Objective \
@@ -461,9 +452,6 @@ infrastructure:
 features:
   app:      {type: Service, source: flask-app}
   postgres: {type: Service, source: postgresql-16}
-
-vulnerabilities:
-  sqli: {name: SQL Injection, technical: true, class: CWE-89}
 
 relationships:
   app-to-db: {type: connects_to, source: app, target: postgres}

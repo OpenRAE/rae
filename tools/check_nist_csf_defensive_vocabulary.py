@@ -27,7 +27,6 @@ from raes_contracts.contracts import (  # noqa: E402
 )
 
 VOCABULARY_ID = "participant-defensive-behavior-activities"
-GOVERNED_SCOPE = "behavior_specifications.defensive_behavior_refs"
 CATALOG_RELATIVE_PATH = "contracts/concept-authority/controlled-vocabularies-v1.json"
 SOURCE_RELATIVE_PATH = "contracts/concept-authority/nist-csf-defensive-categories-source-v1.json"
 SOURCE_AUTHORITY = "NIST Cybersecurity Framework"
@@ -165,13 +164,13 @@ def _check_catalog(
                     f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.source.{field} is "
                     f"{actual_source[field]!r}; expected {expected_value!r}"
                 )
-    if vocabulary.governed_scopes != [GOVERNED_SCOPE]:
+    if vocabulary.governed_scopes != []:
         failures.append(
             f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.governed_scopes is "
-            f"{vocabulary.governed_scopes!r}; expected {[GOVERNED_SCOPE]!r}"
+            f"{vocabulary.governed_scopes!r}; expected {[]!r}"
         )
-    if vocabulary.extension_policy != "governed-extension":
-        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must keep governed-extension policy")
+    if vocabulary.extension_policy != "closed":
+        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must remain a closed optional source catalog")
 
     expected_term_ids = [category.term_id for category in source.categories]
     if list(vocabulary.terms) != expected_term_ids:

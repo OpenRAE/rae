@@ -90,7 +90,6 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
         feature_templates,
         condition_templates,
         inject_templates,
-        vulnerability_templates,
     ) = _compile_templates(scenario)
     entity_specs, agent_specs, relationship_specs = _metadata_specs(scenario)
     time_model = compile_time_model(scenario)
@@ -136,7 +135,6 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
         feature_templates=feature_templates,
         condition_templates=condition_templates,
         inject_templates=inject_templates,
-        vulnerability_templates=vulnerability_templates,
         entity_specs=entity_specs,
         agent_specs=agent_specs,
         relationship_specs=relationship_specs,

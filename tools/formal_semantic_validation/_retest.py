@@ -27,6 +27,7 @@ from tools.formal_semantic_validation._types import (
     _COMMIT_RE,
     _OBSERVATION_V2_KEYS,
     _PARTICIPANT_OBSERVATION_KEYS,
+    _SHA256_RE,
     _SNAPSHOT_V2_KEYS,
     _VERSION_KEYS,
     PRODUCTION_EVIDENCE_REPLAY_MODES,
@@ -45,6 +46,7 @@ class _RetestScope:
     corpus: dict[str, object]
     snapshot: dict[str, object]
     cases_by_id: dict[str, Mapping[str, object]]
+    replay_current: bool = True
 
 
 def _validate_retest_snapshot(
@@ -59,7 +61,7 @@ def _validate_retest_snapshot(
     cases_by_id = scope.cases_by_id
     if not _closed_object(
         snapshot,
-        _SNAPSHOT_V2_KEYS,
+        _SNAPSHOT_V2_KEYS | ({"source_state"} if release.manifest.get("revision") == "4.0.0" else set()),
         rule_id="formal-validation-snapshot-shape",
         label="retest snapshot",
         failures=failures,
@@ -76,6 +78,13 @@ def _validate_retest_snapshot(
     expected_release_paths = _retest_observation_failures(
         scope, (release_artifacts_by_path, commands_by_id), failures, path
     )
+    if release.manifest.get("revision") == "4.0.0":
+        expected_release_paths.update(
+            value
+            for case in cases_by_id.values()
+            for value in (case.get("fixture_path"), case.get("comparison_fixture_path"))
+            if isinstance(value, str)
+        )
     if (
         command_ids.issuperset(
             {
@@ -140,6 +149,7 @@ def _retest_observation_failures(
                 observation,
                 failures,
                 path,
+                replay_current=scope.replay_current,
             )
         )
     if observation_ids != set(cases_by_id) or len(observation_ids) != len(cases_by_id):
@@ -277,6 +287,8 @@ def _validate_retest_observation(
     observation: object,
     failures: list[PolicyFailure],
     path: str,
+    *,
+    replay_current: bool = True,
 ) -> set[str]:
     expected_paths: set[str] = set()
     if not _closed_object(
@@ -310,6 +322,7 @@ def _validate_retest_observation(
                 commands_by_id.get(case_id),
                 failures,
                 path,
+                replay_current=replay_current,
             )
             expected_paths.update(
                 value
@@ -317,7 +330,9 @@ def _validate_retest_observation(
                 if isinstance(value, str)
             )
         else:
-            _validate_retained_retest_observation(repo_root, case, observation, failures, path)
+            _validate_retained_retest_observation(
+                repo_root, case, observation, failures, path, replay_current=replay_current
+            )
     return expected_paths
 
 
@@ -364,6 +379,8 @@ def _validate_retained_retest_observation(
     observation: Mapping[str, object],
     failures: list[PolicyFailure],
     path: str,
+    *,
+    replay_current: bool = True,
 ) -> None:
     case_id = observation.get("case_id")
     evidence_fields = (
@@ -385,6 +402,20 @@ def _validate_retained_retest_observation(
         )
     if case.get("replay_mode") == "unsupported":
         _validate_unsupported_retest_observation(observation, failures, path)
+        return
+    if not replay_current:
+        digest = observation.get("result_digest")
+        if (
+            observation.get("actual_outcome") != case.get("expected_outcome")
+            or (digest is not None and (not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest)))
+            or (
+                observation.get("diagnostic_kind") is not None
+                and not isinstance(observation.get("diagnostic_kind"), str)
+            )
+        ):
+            failures.append(
+                _failure("formal-validation-replay-drift", "historical outcome differs from its control", path)
+            )
         return
     try:
         replayed = replay_case(repo_root, case)

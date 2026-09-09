@@ -144,16 +144,7 @@ class _SectionsMixin:
         return set(self._named_ref_index(targetable=True).keys())
 
     def _verify_features(self) -> None:
-        self._verify_feature_vulnerability_refs()
         self._verify_feature_dependency_cycles()
-
-    def _verify_feature_vulnerability_refs(self) -> None:
-        for name, feat in self._s.features.items():
-            for vuln_name in feat.vulnerabilities:
-                if self._is_unresolved_var(vuln_name):
-                    continue
-                if vuln_name not in self._s.vulnerabilities:
-                    self._err(f"Feature '{name}' references undefined vulnerability '{vuln_name}'")
 
     def _verify_feature_dependency_cycles(self) -> None:
         dep_graph: dict[str, list[str]] = {}
@@ -174,20 +165,11 @@ class _SectionsMixin:
         # This pass checks for consistency with the broader scenario.
         pass
 
-    def _verify_vulnerabilities(self) -> None:
-        # CWE format validation is handled by the Pydantic field_validator.
-        pass
-
     def _verify_entities(self) -> None:
         for name, entity in flatten_entities(self._s.entities).items():
             self._verify_entity_refs(name, entity)
 
     def _verify_entity_refs(self, name: str, entity: object) -> None:
-        self._verify_membership_refs(
-            entity.vulnerabilities,
-            self._s.vulnerabilities,
-            lambda ref: f"Entity '{name}' references undefined vulnerability '{ref}'",
-        )
         self._verify_membership_refs(
             entity.events, self._s.events, lambda ref: f"Entity '{name}' references undefined event '{ref}'"
         )

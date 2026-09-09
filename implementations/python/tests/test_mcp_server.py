@@ -122,9 +122,6 @@ assertions:
     role: postcondition
     polarity: positive
 
-vulnerabilities:
-  sqli: {name: SQL Injection, description: "SQLi in login", technical: true, class: CWE-89}
-
 entities:
   blue-team:
     name: Blue
@@ -273,6 +270,17 @@ class TestReferenceTools:
 
 
 class TestAuthoringTools:
+    @pytest.mark.parametrize("legacy", ["{}", "{weakness: {class: CWE-79}}"])
+    def test_validate_surfaces_classification_migration(self, server, legacy):
+        source = MINIMAL_SDL + "vulnerabilities: " + legacy + "\n"
+        text = _call(server, "sdl_validate", {"sdl_content": source})
+        assert "PARSE ERROR" in text
+        assert "classification migration" in text
+        payload = _json_call(server, "sdl_diagnostics", {"sdl_content": source})
+        assert payload["status"] == "invalid"
+        assert payload["diagnostics"][0]["code"] == "sdl.classification-migration-required"
+        assert "classification migration" in payload["diagnostics"][0]["message"]
+
     def test_validate_valid_sdl(self, server):
         text = _call(server, "sdl_validate", {"sdl_content": MINIMAL_SDL})
         assert text.startswith("VALID")
@@ -597,9 +605,9 @@ class TestInspectionTools:
         text = _call(
             server,
             "sdl_get_element",
-            {"sdl_content": FULL_SDL, "element_name": "sqli"},
+            {"sdl_content": FULL_SDL, "element_name": "app"},
         )
-        assert "SQL Injection" in text
+        assert "my-app" in text
 
     def test_get_element_ambiguous(self, server):
         text = _call(

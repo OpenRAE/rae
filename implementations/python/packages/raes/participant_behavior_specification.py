@@ -10,6 +10,7 @@ from pydantic import Field, StrictInt, field_validator, model_validator
 from typing_extensions import TypeAliasType
 
 from ._base import SDLModel
+from ._classification_guard import LegacyClassificationGuard
 from ._identifiers import PortableIdentifier
 from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_inject_delivery import ParticipantInjectDelivery
@@ -313,8 +314,10 @@ class MixedControlParticipantOperation(SDLModel):
                 raise ValueError(f"mixed-control transition '{transition_id}' must follow its proposal")
 
 
-class ParticipantBehaviorSpecification(SDLModel):
+class ParticipantBehaviorSpecification(LegacyClassificationGuard):
     """First-class authored aggregate over participant behavior surfaces."""
+
+    legacy_classification_fields = ("ai_offensive_behavior_refs", "defensive_behavior_refs", "offensive_behavior_refs")
 
     semantic_version: str
     lifecycle_state: ParticipantBehaviorSpecificationLifecycle = ParticipantBehaviorSpecificationLifecycle.ACTIVE
@@ -327,9 +330,6 @@ class ParticipantBehaviorSpecification(SDLModel):
     behavior_mode: str | None = None
     autonomous_execution: ParticipantAutonomousExecutionPolicy | None = None
     mixed_control: MixedControlParticipantOperation | None = None
-    ai_offensive_behavior_refs: list[str] = Field(default_factory=list)
-    defensive_behavior_refs: list[str] = Field(default_factory=list)
-    offensive_behavior_refs: list[str] = Field(default_factory=list)
     realization_profile_ref: str | None = None
     backend_feature_support_refs: list[str] = Field(default_factory=list)
     evidence_contract_refs: list[str] = Field(default_factory=list)
@@ -365,9 +365,6 @@ class ParticipantBehaviorSpecification(SDLModel):
         "observation_boundary_refs",
         "outcome_interpretation_rule_refs",
         "authority_scope_refs",
-        "ai_offensive_behavior_refs",
-        "defensive_behavior_refs",
-        "offensive_behavior_refs",
         "backend_feature_support_refs",
         "evidence_contract_refs",
     )
@@ -411,9 +408,6 @@ class ParticipantBehaviorSpecification(SDLModel):
                 self.behavior_mode,
                 self.autonomous_execution,
                 self.mixed_control,
-                self.ai_offensive_behavior_refs,
-                self.defensive_behavior_refs,
-                self.offensive_behavior_refs,
                 self.realization_profile_ref,
                 self.backend_feature_support_refs,
                 self.evidence_contract_refs,

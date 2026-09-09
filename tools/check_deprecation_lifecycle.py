@@ -96,6 +96,7 @@ CANONICAL_DEPRECATION_RECORD_IDS: frozenset[str] = frozenset(
     {
         "legacy-python-distribution",
         "sdl-import-path-field",
+        "sdl-domain-classification-fields",
     }
 )
 

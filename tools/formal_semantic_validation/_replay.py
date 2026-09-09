@@ -17,7 +17,6 @@ from tools.formal_semantic_validation._shape import (
 )
 from tools.formal_semantic_validation._types import (
     _HISTORICAL_VM_REPLAY_INPUTS,
-    _RENAMED_FORMAL_REPLAY_DIGESTS,
 )
 from tools.policy.common import safe_repo_path
 
@@ -115,14 +114,10 @@ def _replay_observation_matches(
     observation: Mapping[str, object],
     replayed: Mapping[str, object],
 ) -> bool:
-    digest_pair = (observation.get("result_digest"), replayed.get("result_digest"))
     return (
         observation.get("actual_outcome") == replayed.get("actual_outcome")
         and observation.get("diagnostic_kind") == replayed.get("diagnostic_kind")
-        and (
-            observation.get("result_digest") == replayed.get("result_digest")
-            or _RENAMED_FORMAL_REPLAY_DIGESTS.get(str(case_id)) == digest_pair
-        )
+        and observation.get("result_digest") == replayed.get("result_digest")
     )
 
 

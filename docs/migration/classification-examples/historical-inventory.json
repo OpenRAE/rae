@@ -1,0 +1,186 @@
+{
+  "purpose": "Historical author classifications retained during issue #989 example migration; not native facts or authoritative external catalog content.",
+  "sources": [
+    {
+      "path": "examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml",
+      "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml",
+      "source_bytes_digest": "sha256:2376c3623f8bc4b9019553bf43c58e2b0299bd553ae4cd11edbafc8e492b30e5",
+      "legacy_projection_digest": "sha256:7b801a9c831f7af0cf62fd56e98082e2adf3955ccbee23e37edf1c7f97e51c57",
+      "declarations": {
+        "macro-lure": {
+          "name": "Phishing macro lure",
+          "description": "Macro-enabled attachment delivers initial access to the vendor support path",
+          "technical": false,
+          "class": "CWE-451"
+        },
+        "vpn-portal-bypass": {
+          "name": "VPN portal bypass",
+          "description": "Vendor VPN policy allows credential reuse from unmanaged endpoints",
+          "technical": true,
+          "class": "CWE-287"
+        },
+        "kerberoastable-service": {
+          "name": "Kerberoastable service credential",
+          "description": "Weak service account password permits offline cracking",
+          "technical": true,
+          "class": "CWE-521"
+        },
+        "backup-share-exposure": {
+          "name": "Backup share exposure",
+          "description": "Restore staging area is writable from the clinical tier",
+          "technical": true,
+          "class": "CWE-732"
+        }
+      },
+      "associations": [],
+      "unreferenced_declaration_disposition": "Retained here as historical author assertions, not widened to any native subject or asserted as native truth."
+    },
+    {
+      "path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+      "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/port-authority-surge-response.sdl.yaml",
+      "source_bytes_digest": "sha256:a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec",
+      "legacy_projection_digest": "sha256:246cc10353cca343c7001614adb94bfdd9053137c3130fcce97081b918fe7b10",
+      "declarations": {
+        "stale-customs-token": {
+          "name": "Stale customs federation token",
+          "description": "Customs bridge accepts tokens beyond intended lifetime during surge conditions",
+          "technical": true,
+          "class": "CWE-613"
+        },
+        "vendor-vpn-cred-reuse": {
+          "name": "Vendor credential reuse",
+          "description": "Shared maintenance credentials allow reuse from the jump host",
+          "technical": true,
+          "class": "CWE-521"
+        },
+        "flat-yard-trust": {
+          "name": "Flat yard trust",
+          "description": "Yard HMI can directly manage crane PLC without an approval gate",
+          "technical": true,
+          "class": "CWE-306"
+        }
+      },
+      "associations": [],
+      "unreferenced_declaration_disposition": "Retained here as historical author assertions, not widened to any native subject or asserted as native truth."
+    },
+    {
+      "path": "examples/scenarios/satcom-release-poisoning.sdl.yaml",
+      "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/satcom-release-poisoning.sdl.yaml",
+      "source_bytes_digest": "sha256:86ce6491b6547d20b09685b1417aa41706f0b5c04b51ff744b4a40ad6d457068",
+      "legacy_projection_digest": "sha256:a5b6c59be7335d2fb6e1aff78c01318d28a86c4dac8672f7b2d43f2704172fbf",
+      "declarations": {
+        "runner-token-reuse": {
+          "name": "Runner token reuse",
+          "description": "Long-lived CI token can be replayed from a compromised build workspace",
+          "technical": true,
+          "class": "CWE-798"
+        },
+        "overbroad-registry-cred": {
+          "name": "Overbroad registry credential",
+          "description": "Registry service credential can both publish and promote artifacts",
+          "technical": true,
+          "class": "CWE-266"
+        },
+        "bastion-sudo-gap": {
+          "name": "Bastion sudo gap",
+          "description": "Support bastion grants overly broad sudo access during incidents",
+          "technical": true,
+          "class": "CWE-250"
+        },
+        "oidc-trust-drift": {
+          "name": "OIDC trust drift",
+          "description": "Customer portal accepts stale trust metadata from partner IdPs",
+          "technical": true,
+          "class": "CWE-345"
+        }
+      },
+      "associations": [],
+      "unreferenced_declaration_disposition": "Retained here as historical author assertions, not widened to any native subject or asserted as native truth."
+    },
+    {
+      "path": "examples/scenarios/techvault-enterprise-web.sdl.yaml",
+      "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/techvault-enterprise-web.sdl.yaml",
+      "source_bytes_digest": "sha256:0d23df573c6525e31112150e25c6eee80c4427b18eaaa4df7092e97130d3cc2e",
+      "legacy_projection_digest": "sha256:2a5a716ac9b18424d0d3eb4996b13053c2e4f17d5fd32aa7666eb04c6cf3cd12",
+      "declarations": {
+        "webapp-sqli-login": {
+          "name": "SQL injection in login",
+          "description": "Login form accepts intentionally vulnerable SQL input.",
+          "technical": true,
+          "class": "CWE-89"
+        }
+      },
+      "associations": [],
+      "unreferenced_declaration_disposition": "Retained here as historical author assertions, not widened to any native subject or asserted as native truth."
+    },
+    {
+      "path": "examples/scenarios/techvault-operational.sdl.yaml",
+      "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/techvault-operational.sdl.yaml",
+      "source_bytes_digest": "sha256:4415a5f36592dd4ebdec5b2bd75bfd5f3611ab88b589adcc98f415840361243c",
+      "legacy_projection_digest": "sha256:f94a18b7c6604d11e87891448f4729a20777031d4ae94e247fac4a97c9f69e75",
+      "declarations": {
+        "webapp-sqli-login": {
+          "name": "SQL injection in login",
+          "description": "Login form accepts intentionally vulnerable SQL input.",
+          "technical": true,
+          "class": "CWE-89"
+        }
+      },
+      "associations": [],
+      "unreferenced_declaration_disposition": "Retained here as historical author assertions, not widened to any native subject or asserted as native truth."
+    },
+    {
+      "path": "examples/scenarios/techvault.sdl.yaml",
+      "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/techvault.sdl.yaml",
+      "source_bytes_digest": "sha256:af5a7499bf6b467c9f639f953030a07f0242fcb712212f368f43016835b95476",
+      "legacy_projection_digest": "sha256:68d886e1df851942bcfb136d34d0fe6a46b9b0b5fcb58555a2c5bd99cdefbd29",
+      "declarations": {
+        "unrestricted-upload": {
+          "name": "Unrestricted file upload",
+          "description": "The file upload route accepts arbitrary file types and does not constrain the storage path, allowing a participant to place executable content.",
+          "technical": true,
+          "class": "CWE-434"
+        },
+        "verbose-error-disclosure": {
+          "name": "Verbose error and diagnostic disclosure",
+          "description": "The diagnostic route and unhandled-exception handler expose internal package versions, host paths, and Python tracebacks to any caller.",
+          "technical": false,
+          "class": "CWE-209"
+        }
+      },
+      "associations": [
+        {
+          "pointer": "/nodes/techvault-webapp/runtime/applications/0/routes/2/vulnerability_refs/0",
+          "subject_ref": "nodes.techvault-webapp.runtime.applications.techvault-webapp.routes.file-upload",
+          "identifier": "CWE-434",
+          "declaration_ref": "vulnerabilities.unrestricted-upload"
+        },
+        {
+          "pointer": "/nodes/techvault-webapp/runtime/applications/0/routes/4/vulnerability_refs/0",
+          "subject_ref": "nodes.techvault-webapp.runtime.applications.techvault-webapp.routes.diagnostics",
+          "identifier": "CWE-209",
+          "declaration_ref": "vulnerabilities.verbose-error-disclosure"
+        },
+        {
+          "pointer": "/nodes/techvault-webapp/vulnerabilities/0",
+          "subject_ref": "nodes.techvault-webapp",
+          "identifier": "CWE-434",
+          "declaration_ref": "vulnerabilities.unrestricted-upload"
+        },
+        {
+          "pointer": "/nodes/techvault-webapp/vulnerabilities/1",
+          "subject_ref": "nodes.techvault-webapp",
+          "identifier": "CWE-209",
+          "declaration_ref": "vulnerabilities.verbose-error-disclosure"
+        }
+      ],
+      "unreferenced_declaration_disposition": "Retained here as historical author assertions, not widened to any native subject or asserted as native truth."
+    }
+  ]
+}

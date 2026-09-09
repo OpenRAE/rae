@@ -120,13 +120,6 @@ features:
       version: local
     description: TechVault vulnerable customer portal service.
 
-vulnerabilities:
-  webapp-sqli-login:
-    name: SQL injection in login
-    description: Login form accepts intentionally vulnerable SQL input.
-    technical: true
-    class: CWE-89
-
 conditions:
   wazuh-manager-health:
     command: /usr/local/bin/check-wazuh-manager

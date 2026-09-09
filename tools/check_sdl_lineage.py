@@ -76,6 +76,23 @@ def project_historical_ledger_to_current_contract(payload: object) -> object:
         else:
             current_value = project_historical_ledger_to_current_contract(value)
         projected[current_key] = current_value
+    # Preserve the pre-cutover ledger bytes; project the explicitly retired
+    # subject through its current removal authority (issue #989).
+    if (
+        projected.get("subject_id") == "sdl-field:vulnerabilities"
+        and projected.get("disposition") == "current"
+        and projected.get("authority")
+        == {
+            "artifact": AUTHORING_SCHEMA_PATH,
+            "pointer": "#/properties/vulnerabilities",
+            "contract_id": "sdl-authoring-input-v1",
+        }
+    ):
+        projected["disposition"] = "removed"
+        projected["authority"] = {
+            "artifact": "specs/concept-authority/classification-migration.md",
+            "pointer": "#inventory-and-disposition",
+        }
     return projected
 
 

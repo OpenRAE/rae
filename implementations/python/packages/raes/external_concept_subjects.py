@@ -10,6 +10,7 @@ from raes_contracts.contracts.external_concept_bindings import (
     ExternalConceptSubjectModel,
 )
 
+from ._base import contains_variable_token
 from ._declarations import build_declaration_index
 from .canonical import canonical_instantiated_sdl_digest, canonical_sdl_digest
 from .scenario import ExpandedScenario, InstantiatedScenario, Scenario, ScenarioContent
@@ -65,7 +66,7 @@ def external_concept_subjects(scenario: ScenarioContent) -> tuple[ExternalConcep
         raise TypeError("unsupported SDL lifecycle phase for external concept subject resolution")
     artifact_digest = rule.digest(scenario)
     index = build_declaration_index(scenario)
-    return tuple(
+    declarations = tuple(
         ExternalConceptSubjectModel(
             subject_kind=declaration.kind,
             owning_contract_id=rule.owning_contract_id,
@@ -75,6 +76,24 @@ def external_concept_subjects(scenario: ScenarioContent) -> tuple[ExternalConcep
         )
         for declaration in index.declarations
     )
+    # Route identities are assertion subjects only, not new native reference
+    # aliases, objective targets or capability-bearing declarations. Preserve
+    # candidate multiplicity so admission rejects any coordinate collision.
+    routes = tuple(
+        ExternalConceptSubjectModel(
+            subject_kind="runtime-application-route",
+            owning_contract_id=rule.owning_contract_id,
+            lifecycle_phase=rule.lifecycle_phase,
+            canonical_ref=f"nodes.{name}.runtime.applications.{application.application_id}.routes.{route.route_id}",
+            artifact_digest=artifact_digest,
+        )
+        for name, node in scenario.nodes.items()
+        if node.runtime is not None
+        for application in node.runtime.applications
+        for route in application.routes
+        if not contains_variable_token(application.application_id) and not contains_variable_token(route.route_id)
+    )
+    return (*declarations, *routes)
 
 
 __all__ = ["external_concept_subjects"]

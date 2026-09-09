@@ -61,7 +61,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 3,
-      "content_sha256": "239502ff2db9b2711551e6b171eb2a35010ce5d871b4a45cf8e14d9b0bac56ca"
+      "content_sha256": "5d48629b8d1f8cdc9350777f30a2f99f742dcf80a39b75738f08a490032c7e73"
     },
     {
       "path": "docs/decisions/adrs/adr-004-sdl-runtime-layer.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "c18f33d998fd21bf5ad14e163a4b2157ad29c93bf80b57e1d9b709b1f207ac38"
+      "content_sha256": "2ffc1ff18d774a48fd0371907d1e39da14a81f9d3b528d64ee64f852b1b7428b"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
@@ -1758,13 +1758,6 @@
       "content_sha256": "da1e41eed08512909328a267607577526787f1956d800ba9fcfff707f2bec62b"
     },
     {
-      "path": "docs/research/specification-coverage/index.md",
-      "record_class": "research-record",
-      "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "d66d381d589ab3230d164d8e9a6b8b455fe56fb54ce605eb158360e27ec04264"
-    },
-    {
       "path": "docs/research/specification-coverage/protocol-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
@@ -1790,7 +1783,7 @@
       "record_class": "lifecycle-record",
       "rationale": "Preserves the exact retired distribution identifier in its governed deprecation and removal record.",
       "occurrences": 2,
-      "content_sha256": "eff30897103368c6583701e886078f810188bcc47f4d9183853faeb1739fbdcb"
+      "content_sha256": "bdd60f63dc5e79eda516e7d37ab8a5d81dde50498d11c48a914f0710e5ebf42c"
     }
   ]
 }

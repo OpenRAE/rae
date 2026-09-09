@@ -10,6 +10,7 @@ from tools.formal_semantic_validation._shape import (
     _failure,
     _is_sequence,
     _nonempty_string,
+    _sha256_file,
     _stable_ids,
     _string_list,
 )
@@ -20,13 +21,12 @@ from tools.formal_semantic_validation._types import (
     _HISTORICAL_SATISFIABILITY_ANALYSIS_PROFILE,
     _HISTORICAL_SATISFIABILITY_EXECUTION_PROFILE,
     _HISTORICAL_SATISFIABILITY_PROFILE,
-    _RENAMED_SATISFIABILITY_MODEL_DIGESTS,
-    _RENAMED_SOLVER_CONFIGURATION_DIGEST,
     _SATISFIABILITY_ANALYSIS_KEYS,
     _SATISFIABILITY_CASE_KEYS,
     _SATISFIABILITY_CONTROL_OUTCOMES,
     _SATISFIABILITY_OBSERVATION_KEYS,
     _SATISFIABILITY_SNAPSHOT_KEYS,
+    _SHA256_RE,
     MANIFEST_PATH,
     _JsonObject,
 )
@@ -38,6 +38,8 @@ def validate_satisfiability_analysis(
     manifest: _JsonObject,
     snapshot: _JsonObject,
     analysis: _JsonObject,
+    *,
+    replay_current: bool = True,
 ) -> list[PolicyFailure]:
     """Recompute the finite-profile control matrix and replay every envelope."""
 
@@ -71,7 +73,16 @@ def validate_satisfiability_analysis(
         cases_by_id = _cases_by_id(cases)
         _satisfiability_command_failures(snapshot, cases_by_id, analysis, failures, snapshot_path)
         observations_by_case = _satisfiability_observations(snapshot, cases_by_id, failures, snapshot_path)
-        _satisfiability_case_failures(repo_root, cases, snapshot, observations_by_case, failures, path, snapshot_path)
+        _satisfiability_case_failures(
+            repo_root,
+            cases,
+            snapshot,
+            observations_by_case,
+            failures,
+            path,
+            snapshot_path,
+            replay_current=replay_current,
+        )
     return failures
 
 
@@ -279,12 +290,7 @@ def _satisfiability_observations(
 
 
 def _normalized_case_digest_matches(evidence: object, item: Mapping[str, object], case_id: object) -> bool:
-    if evidence.normalized_model_digest == item.get("expected_normalized_model_digest"):
-        return True
-    return _RENAMED_SATISFIABILITY_MODEL_DIGESTS.get(str(case_id)) == (
-        item.get("expected_normalized_model_digest"),
-        evidence.normalized_model_digest,
-    )
+    return evidence.normalized_model_digest == item.get("expected_normalized_model_digest")
 
 
 def _observation_drifted(
@@ -295,20 +301,10 @@ def _observation_drifted(
 ) -> bool:
     if observation is None:
         return True
-    observation_normalized_digest_matches = observation.get(
-        "normalized_model_digest"
-    ) == evidence.normalized_model_digest or _RENAMED_SATISFIABILITY_MODEL_DIGESTS.get(str(case_id)) == (
-        observation.get("normalized_model_digest"),
-        evidence.normalized_model_digest,
+    observation_normalized_digest_matches = (
+        observation.get("normalized_model_digest") == evidence.normalized_model_digest
     )
-    solver_digest_matches = (
-        snapshot.get("solver_configuration_digest") == evidence.solver_configuration_digest
-        or (
-            snapshot.get("solver_configuration_digest"),
-            evidence.solver_configuration_digest,
-        )
-        == _RENAMED_SOLVER_CONFIGURATION_DIGEST
-    )
+    solver_digest_matches = snapshot.get("solver_configuration_digest") == evidence.solver_configuration_digest
     return (
         observation.get("actual_outcome") != evidence.outcome.value
         or observation.get("source_byte_digest") != evidence.source.byte_digest
@@ -357,6 +353,8 @@ def _satisfiability_case_entry_failures(
     failures: list[PolicyFailure],
     path: str,
     snapshot_path: str,
+    *,
+    replay_current: bool = True,
 ) -> None:
     from raes_processor.satisfiability import (
         analyze_scenario_file,
@@ -393,6 +391,25 @@ def _satisfiability_case_entry_failures(
                 path,
             )
         )
+    if not replay_current:
+        observation = observations_by_case.get(case_id, {})
+        digest = item.get("expected_normalized_model_digest")
+        if (
+            not isinstance(digest, str)
+            or not digest.startswith("sha256:")
+            or not _SHA256_RE.fullmatch(digest[7:])
+            or observation.get("normalized_model_digest") != digest
+            or observation.get("actual_outcome") != expected_for_control
+            or observation.get("source_byte_digest") != "sha256:" + _sha256_file(fixture)
+        ):
+            failures.append(
+                _failure(
+                    "formal-satisfiability-snapshot-drift",
+                    "historical control or source digest join is invalid",
+                    snapshot_path,
+                )
+            )
+        return
     try:
         evidence = analyze_scenario_file(fixture, profile=_CURRENT_SATISFIABILITY_PROFILE)
         replay_satisfiability_evidence(fixture, evidence)
@@ -434,6 +451,8 @@ def _satisfiability_case_failures(
     failures: list[PolicyFailure],
     path: str,
     snapshot_path: str,
+    *,
+    replay_current: bool = True,
 ) -> None:
     for item in cases:
         if not _closed_object(
@@ -446,5 +465,12 @@ def _satisfiability_case_failures(
         ):
             continue
         _satisfiability_case_entry_failures(
-            repo_root, item, snapshot, observations_by_case, failures, path, snapshot_path
+            repo_root,
+            item,
+            snapshot,
+            observations_by_case,
+            failures,
+            path,
+            snapshot_path,
+            replay_current=replay_current,
         )

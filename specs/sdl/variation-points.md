@@ -93,7 +93,6 @@ required owner kind and candidate kind; authors cannot widen either with data.
 | `nodes.features` | `nodes` | `features` |
 | `nodes.conditions` | `nodes` | `conditions` |
 | `nodes.injects` | `nodes` | `injects` |
-| `nodes.vulnerabilities` | `nodes` | `vulnerabilities` |
 | `events.assertions` | `events` | precondition `assertions` |
 | `events.injects` | `events` | `injects` |
 | `stories.scripts` | `stories` | `scripts` |
