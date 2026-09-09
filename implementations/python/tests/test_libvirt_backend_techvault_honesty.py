@@ -352,7 +352,7 @@ def test_failed_techvault_admission_preserves_persisted_runtime_snapshot(tmp_pat
         realization_envelope=envelope,
     )
     store = LocalControlPlaneStore(tmp_path / "control-plane")
-    store.save_snapshot(baseline)
+    store.save_snapshot(baseline, expected_revision=store.load_snapshot_state().revision)
     control_plane = RuntimeControlPlane(create_libvirt_target(driver=driver), store=store)
     invalid = _node_resource(services=[{"name": "api", "port": 8443, "protocol": "tcp"}])
 

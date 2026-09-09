@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import os
 import sqlite3
 from collections.abc import Iterator
@@ -11,7 +9,6 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import RuntimeSnapshot
@@ -19,6 +16,7 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
+    SnapshotState,
     _require_expected_control_head,
     _require_expected_history_heads,
     _require_interrupted_operation_transition,
@@ -27,6 +25,16 @@ from .control_plane_store import (
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
 from .control_plane_store_legacy import _read_legacy_state
+from .control_plane_store_local_codec import (
+    decode_payload as _decode_payload,
+)
+from .control_plane_store_local_codec import (
+    encode_payload as _encode_payload,
+)
+from .control_plane_store_local_codec import (
+    transaction as _transaction,
+)
+from .control_plane_store_local_snapshot import LocalSnapshotRevisionStoreMixin
 from .control_plane_store_paths import (
     _copy_regular_file_durably,
     _fsync_directory,
@@ -47,7 +55,6 @@ from .control_plane_store_records import (
 from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
 
 _DATABASE_NAME = "control-plane.sqlite3"
-_SNAPSHOT_KEY = "runtime-snapshot"
 _SCHEMA_VERSION = LOCAL_OPERATION_SCHEMA_VERSION
 _BUSY_TIMEOUT_MILLISECONDS = 10_000
 _RUNTIME_OWNER_LOCK_NAME = "runtime-owner.lock"
@@ -61,7 +68,7 @@ def _participant_transition_count(snapshot: RuntimeSnapshot) -> int:
     return _count_participant_transitions(snapshot)
 
 
-class LocalControlPlaneStore:
+class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
     """Transactional single-host control-plane durability.
 
     SQLite WAL transactions serialize writers across processes, keep operation
@@ -100,15 +107,6 @@ class LocalControlPlaneStore:
         self._active_runtime_lease = lease
         return lease
 
-    def load_snapshot(self) -> RuntimeSnapshot:
-        with self._connection() as connection:
-            return self._load_snapshot(connection)
-
-    def save_snapshot(self, snapshot: RuntimeSnapshot) -> None:
-        require_participant_autonomous_runtime_snapshot(snapshot)
-        with self._connection() as connection, _transaction(connection):
-            self._upsert_snapshot(connection, snapshot)
-
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
         with self._connection() as connection:
             rows = connection.execute(
@@ -146,7 +144,9 @@ class LocalControlPlaneStore:
         self,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
-    ) -> None:
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
         """Atomically publish a snapshot with its terminal operation record."""
 
         require_participant_autonomous_runtime_snapshot(snapshot)
@@ -155,11 +155,13 @@ class LocalControlPlaneStore:
             changed = _require_terminal_operation_transition(existing, record)
             if not changed:
                 canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
-                if self._load_snapshot(connection) != canonical_snapshot:
+                current = self._load_snapshot_state(connection)
+                if current.snapshot != canonical_snapshot:
                     raise ValueError("terminal operation retry does not match the durable snapshot")
-                return
-            self._upsert_snapshot(connection, snapshot)
+                return current
+            committed = self._commit_snapshot(connection, snapshot, expected_revision=expected_revision)
             self._upsert_record(connection, record)
+            return committed
 
     def reconcile_interrupted_records(
         self,
@@ -199,45 +201,49 @@ class LocalControlPlaneStore:
         *,
         participant_address: str,
         expected_head: str | None,
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None:
+    ) -> SnapshotState:
         require_participant_autonomous_runtime_snapshot(snapshot)
         with self._connection() as connection, _transaction(connection):
-            current_snapshot = self._load_snapshot(connection)
+            current_snapshot = self._require_expected_revision(connection, expected_revision).snapshot
             _require_expected_control_head(current_snapshot, participant_address, expected_head)
             existing = self._load_record(connection, record.receipt.operation_id)
             _require_operation_record_transition(existing, record)
-            self._upsert_snapshot(connection, snapshot)
+            committed = self._commit_snapshot(connection, snapshot, expected_revision=expected_revision)
             self._upsert_record(connection, record)
             payload, digest = _encode_payload(asdict(audit_event))
             connection.execute(
                 _INSERT_AUDIT_EVENT,
                 (payload, digest),
             )
+            return committed
 
     def commit_participant_transition(
         self,
         *,
         expected_history_heads: dict[str, str | None],
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None:
+    ) -> SnapshotState:
         require_participant_autonomous_runtime_snapshot(snapshot)
         with self._connection() as connection, _transaction(connection):
-            current_snapshot = self._load_snapshot(connection)
+            current_snapshot = self._require_expected_revision(connection, expected_revision).snapshot
             _require_expected_history_heads(current_snapshot, expected_history_heads)
             existing = self._load_record(connection, record.receipt.operation_id)
             _require_operation_record_transition(existing, record)
-            self._upsert_snapshot(connection, snapshot)
+            committed = self._commit_snapshot(connection, snapshot, expected_revision=expected_revision)
             self._upsert_record(connection, record)
             payload, digest = _encode_payload(asdict(audit_event))
             connection.execute(
                 _INSERT_AUDIT_EVENT,
                 (payload, digest),
             )
+            return committed
 
     def _connect(self, *, allow_create: bool = False) -> tuple[sqlite3.Connection, os.stat_result]:
         before = _secure_database_file(self._database_path, allow_missing=allow_create)
@@ -301,7 +307,8 @@ class LocalControlPlaneStore:
                 CREATE TABLE IF NOT EXISTS state (
                     key TEXT PRIMARY KEY,
                     payload TEXT NOT NULL,
-                    digest TEXT NOT NULL
+                    digest TEXT NOT NULL,
+                    revision INTEGER NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS operations (
                     operation_id TEXT PRIMARY KEY,
@@ -389,16 +396,6 @@ class LocalControlPlaneStore:
         return backup_dir
 
     @staticmethod
-    def _load_snapshot(connection: sqlite3.Connection) -> RuntimeSnapshot:
-        row = connection.execute(
-            "SELECT payload, digest FROM state WHERE key=?",
-            (_SNAPSHOT_KEY,),
-        ).fetchone()
-        if row is None:
-            return RuntimeSnapshot()
-        return _snapshot_from_payload(_decode_payload(row[0], row[1], kind="runtime snapshot"))
-
-    @staticmethod
     def _load_record(
         connection: sqlite3.Connection,
         operation_id: str,
@@ -413,17 +410,6 @@ class LocalControlPlaneStore:
         if record.receipt.operation_id != operation_id:
             raise ValueError("operation record identity does not match its durable key")
         return record
-
-    @staticmethod
-    def _upsert_snapshot(connection: sqlite3.Connection, snapshot: RuntimeSnapshot) -> None:
-        payload, digest = _encode_payload(_snapshot_payload(snapshot))
-        connection.execute(
-            """
-            INSERT INTO state(key, payload, digest) VALUES (?, ?, ?)
-            ON CONFLICT(key) DO UPDATE SET payload=excluded.payload, digest=excluded.digest
-            """,
-            (_SNAPSHOT_KEY, payload, digest),
-        )
 
     @staticmethod
     def _upsert_record(connection: sqlite3.Connection, record: ControlPlaneOperationRecord) -> None:
@@ -467,33 +453,6 @@ class LocalControlPlaneStore:
         if row is None:
             return None
         return _record_from_payload(_decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
-
-
-@contextmanager
-def _transaction(connection: sqlite3.Connection) -> Iterator[None]:
-    connection.execute("BEGIN IMMEDIATE")
-    try:
-        yield
-    except BaseException:
-        connection.rollback()
-        raise
-    else:
-        connection.commit()
-
-
-def _encode_payload(payload: dict[str, Any]) -> tuple[str, str]:
-    content = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-    return content, hashlib.sha256(content.encode("utf-8")).hexdigest()
-
-
-def _decode_payload(content: str, expected_digest: str, *, kind: str) -> dict[str, Any]:
-    actual_digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
-    if actual_digest != expected_digest:
-        raise ValueError(f"{kind} failed its durable integrity check")
-    payload = json.loads(content)
-    if not isinstance(payload, dict):
-        raise ValueError(f"{kind} payload must be an object")
-    return payload
 
 
 __all__ = ("LocalControlPlaneStore",)

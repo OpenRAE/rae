@@ -1307,7 +1307,7 @@ def test_local_control_plane_store_preserves_participant_behavior_history(tmp_pa
     )
     store = LocalControlPlaneStore(tmp_path / "control-plane")
 
-    store.save_snapshot(snapshot)
+    store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
     loaded = store.load_snapshot()
 
     assert loaded.participant_behavior_history == snapshot.participant_behavior_history

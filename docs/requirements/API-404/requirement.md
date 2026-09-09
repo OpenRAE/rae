@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-06T04:13:29.000000Z
+updated_at: 2026-09-07T05:07:58.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -30,7 +30,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → GITHUB_ISSUE `1182` (CP-1: Operation lifecycle contract)
 - DOCUMENTS → GITHUB_ISSUE `1181` (CP-2: Atomic terminal commit)
 - DOCUMENTS → GITHUB_ISSUE `1179` (CP-3: Startup reconciliation)
-- DOCUMENTS → GITHUB_ISSUE `1180` (CP-4: Snapshot revision compare-and-swap)
+- IMPLEMENTS → GITHUB_ISSUE `1180` (CP-4: Snapshot revision compare-and-swap)
 - DOCUMENTS → GITHUB_ISSUE `1183` (CP-5: Store lease admission)
 - DOCUMENTS → GITHUB_ISSUE `1092` (CP-6: Transactional local store)
 - DOCUMENTS → GITHUB_ISSUE `1184` (CP-7: Atomic idempotency claims and cache demotion)
@@ -69,5 +69,16 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_legacy.py` (Complexity-bounded legacy JSON import readers)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_paths.py` (Descriptor-verified private directories, fail-closed durability synchronization, and metadata-only SQLite path validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_compatibility.py` (Deprecated 3.x custom-store fallback and optional atomic capability adapter)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_revision.py` (Provider-neutral logical revision state, validation, and conflict signal)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_history.py` (Participant-history concurrency guards for snapshot-bearing commits)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_codec.py` (SQLite transaction and durable payload integrity primitives)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_snapshot.py` (SQLite paired snapshot reads and transactional compare-and-swap writes)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py` (Authoritative revision-bound snapshot reads, submission admission, and cache rebuild coordination)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_operation_routes.py` (Revision-identifying snapshot and operational-summary reads)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_participant_retrieval.py` (Revision-identifying participant view reads)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_retrieval_context.py` (Runtime-owned participant context revision-path policy)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_projection.py` (Stable participant projection subjects across provider revisions)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1092-local-control-plane-durability-preflight.md` (Crash recovery and supported process topology)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1180-snapshot-revision-cas-preflight.md` (Snapshot CAS architecture guardrails and compatibility boundaries)
 - TESTS → TEST `implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py` (Atomic and legacy terminal commit, WAL admission, backup file/directory synchronization, interrupted-operation recovery, descriptor-free SQLite paths, URI no-recreation, multiprocess stress, retry, and runtime-owner tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1180_snapshot_revision_cas.py` (Interleaved stale writers, cache rebuild, provider metadata isolation, and SQLite revision migration)

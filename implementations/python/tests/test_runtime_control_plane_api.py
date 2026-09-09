@@ -47,7 +47,11 @@ from raes_runtime.control_plane_security import (
     ControlPlaneRole,
     ControlPlaneSecurityConfig,
 )
-from raes_runtime.control_plane_store import ControlPlaneOperationRecord, LocalControlPlaneStore
+from raes_runtime.control_plane_store import (
+    ControlPlaneOperationRecord,
+    LocalControlPlaneStore,
+    SnapshotRevisionConflict,
+)
 from starlette.requests import Request
 from starlette.testclient import TestClient
 
@@ -322,6 +326,31 @@ def test_control_plane_api_audits_denied_operation_receipt_as_denied() -> None:
     assert all(event.identity == "backend-service" and event.allowed is False for event in audits)
 
 
+def test_control_plane_api_reports_snapshot_revision_conflict_without_revision_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    def stale_submission(*_args: object, **_kwargs: object) -> None:
+        raise SnapshotRevisionConflict()
+
+    monkeypatch.setattr(control_plane, "submit_orchestration", stale_submission)
+    with TestClient(app) as client:
+        response = client.post(
+            "/operations/orchestration",
+            json={"operations": [], "startup_order": [], "diagnostics": []},
+            headers={
+                "x-raes-client-verified": "true",
+                "x-raes-client-identity": "backend-service",
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "snapshot revision conflict"}
+
+
 @pytest.mark.parametrize("domain", ["orchestration", "evaluation"])
 def test_control_plane_api_rejects_unregistered_nonempty_phase_plan(domain: str) -> None:
     scenario = _scenario("""
@@ -482,6 +511,9 @@ workflows:
         snapshot_response = client.get("/snapshot", headers=headers)
         assert snapshot_response.status_code == 200
         snapshot = snapshot_response.json()
+        assert snapshot_response.headers["x-raes-snapshot-revision"].isdigit()
+        assert "snapshot_revision" not in snapshot
+        assert "revision" not in snapshot["metadata"]
         assert snapshot["orchestration_results"]
         assert snapshot["orchestration_results"]["orchestration.workflow.response"]["workflow_status"] == "running"
 
@@ -558,6 +590,7 @@ workflows:
         response = client.get("/apparatus/operational-summary", headers=auditor_headers)
 
     assert response.status_code == 200
+    assert response.headers["x-raes-snapshot-revision"].isdigit()
     summary = response.json()
     assert summary["target"] == target.name
     assert summary["resources"]["total"] >= 1
@@ -617,7 +650,8 @@ def test_operational_apparatus_summary_snapshots_operations_safely_during_mutati
             super().__setitem__(key, value)
             mutation_completed.set()
 
-    control_plane._operations = PausingOperationRecords(control_plane._operations)
+    pausing_records = PausingOperationRecords(control_plane._operations)
+    control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         summary = executor.submit(control_plane.operational_apparatus_summary)
@@ -937,8 +971,9 @@ def test_authenticated_snapshot_preserves_realization_governing_scope_from_store
                     provenance=ExplicitnessProvenance.BACKEND_REALIZED,
                     governing_scope="#/",
                 ),
-            )
-        )
+            ),
+        ),
+        expected_revision=store.load_snapshot_state().revision,
     )
     restarted = RuntimeControlPlane(target, store=store)
     app = create_control_plane_app(
@@ -1230,7 +1265,7 @@ def test_request_size_guard_stops_reading_an_oversized_chunked_body():
 def test_local_control_plane_store_commits_snapshot_to_wal_database(tmp_path: Path):
     store_path = tmp_path / "cp-store"
     store = LocalControlPlaneStore(store_path)
-    store.save_snapshot(RuntimeSnapshot())
+    store.save_snapshot(RuntimeSnapshot(), expected_revision=store.load_snapshot_state().revision)
 
     with closing(sqlite3.connect(store_path / "control-plane.sqlite3")) as connection, connection:
         journal_mode = connection.execute("PRAGMA journal_mode").fetchone()
@@ -1249,15 +1284,21 @@ def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
     store = LocalControlPlaneStore(tmp_path / "cp-store")
     real_upsert = store._upsert_snapshot
 
-    def fail_upsert(connection: sqlite3.Connection, snapshot: RuntimeSnapshot) -> None:
-        real_upsert(connection, snapshot)
+    def fail_upsert(
+        connection: sqlite3.Connection,
+        snapshot: RuntimeSnapshot,
+        *,
+        revision: int = 0,
+    ) -> None:
+        real_upsert(connection, snapshot, revision=revision)
         raise OSError("commit failed")
 
     monkeypatch.setattr(store, "_upsert_snapshot", fail_upsert)
     snapshot = RuntimeSnapshot()
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(OSError, match="commit failed"):
-        store.save_snapshot(snapshot)
+        store.save_snapshot(snapshot, expected_revision=revision)
 
     assert store.load_snapshot() == RuntimeSnapshot()
 
@@ -1497,12 +1538,16 @@ workflows:
         seeded = dict(control_plane._snapshot.orchestration_results[workflow_address])
         seeded["started_at"] = "2000-01-01T00:00:00Z"
         seeded["updated_at"] = "2000-01-01T00:00:01Z"
-        control_plane._snapshot = control_plane._snapshot.with_entries(
+        seeded_snapshot = control_plane._snapshot.with_entries(
             dict(control_plane._snapshot.entries),
             orchestration_results={
                 **control_plane._snapshot.orchestration_results,
                 workflow_address: seeded,
             },
+        )
+        control_plane._store.save_snapshot(
+            seeded_snapshot,
+            expected_revision=control_plane._store.load_snapshot_state().revision,
         )
         reconcile = client.post(
             "/workflows/reconcile-timeouts",
@@ -1599,7 +1644,7 @@ workflows:
             **seeded["steps"],
             "run": {"lifecycle": "completed", "outcome": "succeeded", "attempts": 1},
         }
-        control_plane._snapshot = control_plane._snapshot.with_entries(
+        seeded_snapshot = control_plane._snapshot.with_entries(
             dict(control_plane._snapshot.entries),
             orchestration_results={
                 **control_plane._snapshot.orchestration_results,
@@ -1620,6 +1665,10 @@ workflows:
                     },
                 ],
             },
+        )
+        control_plane._store.save_snapshot(
+            seeded_snapshot,
+            expected_revision=control_plane._store.load_snapshot_state().revision,
         )
         cancel = client.post(
             "/workflows/orchestration.workflow.response/cancel",
@@ -1727,7 +1776,7 @@ workflows:
             **seeded["steps"],
             "run": {"lifecycle": "completed", "outcome": "succeeded", "attempts": 1},
         }
-        control_plane._snapshot = control_plane._snapshot.with_entries(
+        seeded_snapshot = control_plane._snapshot.with_entries(
             dict(control_plane._snapshot.entries),
             orchestration_results={
                 **control_plane._snapshot.orchestration_results,
@@ -1748,6 +1797,10 @@ workflows:
                     },
                 ],
             },
+        )
+        control_plane._store.save_snapshot(
+            seeded_snapshot,
+            expected_revision=control_plane._store.load_snapshot_state().revision,
         )
         client.post("/workflows/reconcile-timeouts", headers=headers)
         snapshot = client.get("/snapshot", headers=headers).json()
@@ -1944,6 +1997,8 @@ class TestParticipantEpisodeHttpRoutes:
 
         assert response.status_code == 200
         view = ParticipantStatusViewModel.model_validate(response.json())
+        revision = response.headers["x-raes-snapshot-revision"]
+        assert view.source_snapshot_ref == f"runtime.snapshot.revision.{revision}"
         assert view.participant_address == "participant.alice"
         assert view.episode_id == "participant.alice-episode-1"
         assert view.episode_state is not None
@@ -1954,10 +2009,8 @@ class TestParticipantEpisodeHttpRoutes:
         control_plane = RuntimeControlPlane(target)
         control_plane.initialize_participant_episode("participant.alice")
         control_plane.initialize_participant_episode("participant.bob")
-        control_plane._operations = {
-            "op-alice": _participant_operation_record("op-alice", "participant.alice"),
-            "op-bob": _participant_operation_record("op-bob", "participant.bob"),
-        }
+        control_plane._store.save_record(_participant_operation_record("op-alice", "participant.alice"))
+        control_plane._store.save_record(_participant_operation_record("op-bob", "participant.bob"))
         client = TestClient(
             create_control_plane_app(
                 control_plane,
@@ -1989,6 +2042,8 @@ class TestParticipantEpisodeHttpRoutes:
 
         assert response.status_code == 200
         view = ParticipantHistoryViewModel.model_validate(response.json())
+        revision = response.headers["x-raes-snapshot-revision"]
+        assert view.source_snapshot_ref == f"runtime.snapshot.revision.{revision}"
         assert view.participant_address == "participant.alice"
         assert view.episode_id == "participant.alice-episode-1"
         assert [event.event_type for event in view.episode_history] == [
@@ -2022,15 +2077,18 @@ class TestParticipantEpisodeHttpRoutes:
 
         assert response.status_code == 200
         view = ParticipantContextViewModel.model_validate(response.json())
+        revision = response.headers["x-raes-snapshot-revision"]
+        snapshot_ref = f"runtime.snapshot.revision.{revision}"
         assert view.participant_address == "participant.alice"
         assert view.view_ref == "views.context.network-posture.v1"
-        assert view.derived_from_refs == ["runtime.snapshot.current"]
+        assert view.source_snapshot_ref == snapshot_ref
+        assert view.derived_from_refs == [snapshot_ref]
         assert view.meaning_ref == "views.context.network-posture.v1"
         assert view.participant_scope == "participant_local"
         assert view.audience_scope == "participant_visible"
         assert view.observation_point == "participant.alice-episode-1"
         assert view.source_layers[0].source_layer == "source_snapshot"
-        assert view.source_layers[0].evidence_refs == ["runtime.snapshot.current"]
+        assert view.source_layers[0].evidence_refs == [snapshot_ref]
         assert view.transformation.transformation_rule_ref == "views.context.network-posture.v1"
         assert view.comparability.comparability_class == "portable_equivalent"
         assert view.comparability.backend_disclosure_refs == []

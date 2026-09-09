@@ -307,7 +307,7 @@ def test_control_history_round_trips_through_control_plane_store(
         participant_control_history={"participant.behavior.red-agent": [_control_event("control-event-1")]}
     )
 
-    store.save_snapshot(snapshot)
+    store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
 
     assert store.load_snapshot().participant_control_history == snapshot.participant_control_history
 
@@ -361,6 +361,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
         snapshot=snapshot,
         record=record,
         audit_event=audit,
+        expected_revision=store.load_snapshot_state().revision,
     )
 
     restarted = store if store_kind == "memory" else LocalControlPlaneStore(tmp_path / "control-plane")
@@ -379,6 +380,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
     )
     conflicting_record = replace(record, idempotency_key="scope-key-2")
     conflicting_audit = replace(audit, operation_id="operation-2")
+    revision = restarted.load_snapshot_state().revision
     with pytest.raises(ValueError, match="expected control history head"):
         restarted.commit_control_transition(
             participant_address="participant.behavior.red-agent",
@@ -386,6 +388,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
             snapshot=conflicting,
             record=conflicting_record,
             audit_event=conflicting_audit,
+            expected_revision=revision,
         )
 
     assert restarted.load_snapshot().participant_control_history == snapshot.participant_control_history

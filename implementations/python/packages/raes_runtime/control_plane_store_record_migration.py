@@ -19,7 +19,7 @@ from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .control_plane_store_records import _record_from_payload, _record_payload
 
 _MIGRATION_ID = "local-operation-record/v1-to-v2"
-LOCAL_OPERATION_SCHEMA_VERSION = "2"
+LOCAL_OPERATION_SCHEMA_VERSION = "3"
 _OPERATION_KINDS = {
     RuntimeDomain.PROVISIONING: OperationKind.PROVISIONING,
     RuntimeDomain.ORCHESTRATION: OperationKind.ORCHESTRATION,
@@ -121,6 +121,14 @@ def migrate_sqlite_schema(
             decode_payload=decode_payload,
             encode_payload=encode_payload,
         )
+        _add_snapshot_revision_column(connection)
+        connection.execute(
+            "UPDATE metadata SET value=? WHERE key='schema-version'",
+            (LOCAL_OPERATION_SCHEMA_VERSION,),
+        )
+        return
+    if row is not None and row[0] == "2":
+        _add_snapshot_revision_column(connection)
         connection.execute(
             "UPDATE metadata SET value=? WHERE key='schema-version'",
             (LOCAL_OPERATION_SCHEMA_VERSION,),
@@ -128,6 +136,12 @@ def migrate_sqlite_schema(
         return
     if row is None or row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
         raise ValueError("unsupported local control-plane database schema")
+
+
+def _add_snapshot_revision_column(connection: sqlite3.Connection) -> None:
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(state)").fetchall()}
+    if "revision" not in columns:
+        connection.execute("ALTER TABLE state ADD COLUMN revision INTEGER NOT NULL DEFAULT 0")
 
 
 def _required_mapping(payload: dict[str, Any], field: str) -> dict[str, Any]:
