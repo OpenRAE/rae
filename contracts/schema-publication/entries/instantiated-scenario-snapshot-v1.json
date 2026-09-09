@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-snapshot-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "e9b67ccf45c4ccb091cddfa9c24dffe97cfe37178c8abb3f8ff08d5f90157eeb",
+  "content_hash": "1130dedbaef3651237a9e07b8d3ed7f8c61d8da46bb94fa0dceee29842ec74f8",
   "last_change": {
-    "summary": "Removed domain-shaped SDL classifications in favor of standalone external concept bindings; explicit legacy migration is required (issue #989).",
-    "content_hash": "e9b67ccf45c4ccb091cddfa9c24dffe97cfe37178c8abb3f8ff08d5f90157eeb"
+    "summary": "Removed native classification fields in favor of external concept bindings (issue #989), retaining explicit evidence output-contract and field demand terms (issue #1112).",
+    "content_hash": "1130dedbaef3651237a9e07b8d3ed7f8c61d8da46bb94fa0dceee29842ec74f8"
   }
 }

@@ -25,3 +25,6 @@ Requirement inventory expansion. Experiment data capture requirements are distin
 - DOCUMENTS → SPEC `specs/formal/experiment-core/README.md` (Experiment Core Formal Specification)
 - TESTS → TEST `implementations/python/tests/test_runtime_contracts.py` (Experiment capture spec conformance and rejection tests)
 - IMPLEMENTS → GITHUB_ISSUE `88` (Experiment evidence & measures (EXP-707, EXP-708, EXP-709, EXP-715))
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_capture.py` (Field- and output-contract-qualified capture requirements)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/inputs.py` (Digest-bound capture specification admission)
+- TESTS → TEST `implementations/python/tests/test_sce_002_trial_compiler.py` (Capture specification identity and backend admission tests)

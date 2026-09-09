@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from raes_contracts.contracts import OperationReceiptModel
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
@@ -27,6 +27,7 @@ from ._responses import (
     _NOT_FOUND_RESPONSES,
     _receipt_response,
     _record_operation_receipt_audit,
+    _set_snapshot_revision_header,
 )
 
 
@@ -77,11 +78,15 @@ def _register_participant_execution_routes(
     async def get_participant_execution_state(
         execution_scope_ref: str,
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> ParticipantExecutionServiceStateModel:
         calls = _control_plane_calls(request)
         try:
-            state = await calls.run(control_plane.participant_execution_state, execution_scope_ref)
+            state, revision = await calls.run(
+                control_plane._project_snapshot_read,
+                lambda: control_plane.participant_execution_state(execution_scope_ref),
+            )
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         await calls.run(
@@ -91,6 +96,7 @@ def _register_participant_execution_routes(
             allowed=True,
             target=str(request.url.path),
         )
+        _set_snapshot_revision_header(response, revision)
         return state
 
 

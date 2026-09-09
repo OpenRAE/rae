@@ -27,6 +27,7 @@ from raes_contracts.contracts import (
     CleanupObligationModel,
     CleanupResourceBoundaryModel,
     ExperimentBackendReferenceModel,
+    ExperimentCaptureSpecModel,
     ExperimentManifestReferenceModel,
     ExperimentReferenceModel,
     ExperimentScenarioFamilyReferenceModel,
@@ -41,6 +42,7 @@ from raes_contracts.contracts import (
 from raes_contracts.random_stream_engine import BoundedIntegerBatchResult, BoundedIntegerDraw
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_contracts.realization_envelope_carrier import realization_envelope_digest
+from raes_processor.capture_admission import compile_capture_spec_demands
 from raes_processor.trial_compiler import TrialCompilationRequest, compile_admitted_trial_plan
 from raes_processor.trial_compiler.domains import canonical_domain_outcomes
 from raes_processor.trial_compiler.models import CompilationFailure
@@ -61,6 +63,9 @@ _EXPERIMENT_FIXTURE = (
 )
 _TASK_FIXTURE = (
     REPO_ROOT / "contracts" / "fixtures" / "experiment-core" / "experiment-task-v1" / "valid" / "reference.json"
+)
+_CAPTURE_SPEC_FIXTURE = (
+    REPO_ROOT / "contracts" / "fixtures" / "experiment-core" / "experiment-capture-spec-v1" / "valid" / "reference.json"
 )
 _ENVELOPE_FIXTURE = (
     REPO_ROOT / "contracts" / "fixtures" / "realization-envelope" / "realization-envelope-v1" / "valid" / "generic.json"
@@ -335,6 +340,15 @@ def _request(*, run_count: int = 2, sample: bool = False) -> TrialCompilationReq
     family_digest = canonical_sdl_digest(family).value
     experiment = _spec(run_count=run_count, sample=sample)
     task = ExperimentTaskModel.model_validate_json(_TASK_FIXTURE.read_text(encoding="utf-8"))
+    capture_payload = json.loads(_CAPTURE_SPEC_FIXTURE.read_text(encoding="utf-8"))
+    capture_requirement = next(iter(capture_payload["capture_requirements"].values()))
+    capture_payload["capture_requirements"] = {
+        "auth-log-evidence": {
+            **capture_requirement,
+            "requirement_id": "auth-log-evidence",
+        }
+    }
+    capture_spec = ExperimentCaptureSpecModel.model_validate(capture_payload)
     authoring_digest = canonical_json_digest(experiment.model_dump(mode="json"))
     envelope = BackendRealizationEnvelopeModel.model_validate_json(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
     manifest_payload = json.loads(_BACKEND_MANIFEST_FIXTURE.read_text(encoding="utf-8"))
@@ -343,6 +357,30 @@ def _request(*, run_count: int = 2, sample: bool = False) -> TrialCompilationReq
     manifest_payload["realization_envelope"] = envelope.identity.model_dump(mode="json")
     manifest_payload["capabilities"]["provisioner"]["operating_systems"] = [
         {"family": "linux", "distribution": "ubuntu", "versions": ["22.04"]}
+    ]
+    manifest_payload["capabilities"]["observation"]["capture_offers"] = [
+        {
+            "offer_id": "compiler-fixture-auth-log-evidence",
+            "offer_version": "1.0.0",
+            "output_contract": capture_requirement["output_contract"],
+            "field_selectors": capture_requirement["field_selectors"],
+            "artifact_roles": capture_requirement["required_artifact_roles"],
+            "media_types": capture_requirement["expected_media_types"],
+            "capture_kind": capture_requirement["capture_kind"],
+            "source_classes": ["experiment-capture-spec"],
+            "source_refs": [],
+            "scopes": [capture_requirement["capture_scope"]],
+            "channel_kinds": [],
+            "channel_refs": [capture_requirement["channel_ref"]["ref_id"]],
+            "window_kinds": ["run"],
+            "integrity_modes": capture_requirement["integrity_requirements"],
+            "sensitivity": capture_requirement["sensitivity"],
+            "availability": "available",
+            "fidelity": "complete",
+            "disclosure": "full",
+            "retention_policy_refs": [capture_requirement["retention_policy"]],
+            "export_policy": "not-required",
+        }
     ]
     manifest_payload["realization_support"][0]["observation_capabilities"]["operating-system"] = {
         "verification_scope": "presence",
@@ -378,6 +416,14 @@ def _request(*, run_count: int = 2, sample: bool = False) -> TrialCompilationReq
             ref_version="expanded-scenario-family/v1",
             ref_digest=family_digest,
         ),
+        capture_spec_refs=[
+            ExperimentReferenceModel(
+                ref_kind="capture-spec",
+                ref_id=capture_spec.capture_spec_id,
+                ref_version=capture_spec.spec_version,
+                ref_digest=canonical_json_digest(capture_spec.model_dump(mode="json")),
+            )
+        ],
     )
     return TrialCompilationRequest(
         family=family,
@@ -390,6 +436,7 @@ def _request(*, run_count: int = 2, sample: bool = False) -> TrialCompilationReq
         apparatus_manifests={
             ("backend", "backend-a", "1", "backend-manifest/v2"): manifest,
         },
+        capture_specs={capture_spec.capture_spec_id: capture_spec},
     )
 
 
@@ -453,6 +500,204 @@ def _compile_bytes(request: TrialCompilationRequest) -> bytes:
     assert result.diagnostics == ()
     assert result.plan is not None
     return canonical_json_bytes(result.plan.model_dump(mode="json"))
+
+
+def test_capture_specs_are_required_digest_bound_trial_inputs() -> None:
+    request = _request()
+    demands = compile_capture_spec_demands(tuple(request.capture_specs.values()))
+    assert [(demand.demand_id, demand.output_contract) for demand in demands] == [
+        ("auth-log-evidence", "participant-behavior-history-event-stream-v1")
+    ]
+
+    missing = compile_admitted_trial_plan(replace(request, capture_specs={}))
+    assert missing.plan is None
+    assert [diagnostic.code for diagnostic in missing.diagnostics] == ["trial-compiler.capture-spec-payload-mismatch"]
+
+    capture_spec = next(iter(request.capture_specs.values()))
+    changed_requirement = next(iter(capture_spec.capture_requirements.values())).model_copy(
+        update={"output_contract": "unsupported-evidence-contract-v1"}
+    )
+    changed_spec = capture_spec.model_copy(
+        update={"capture_requirements": {changed_requirement.requirement_id: changed_requirement}}
+    )
+    changed_ref = request.input_refs.capture_spec_refs[0].model_copy(
+        update={"ref_digest": canonical_json_digest(changed_spec.model_dump(mode="json"))}
+    )
+    changed_request = replace(
+        request,
+        capture_specs={changed_spec.capture_spec_id: changed_spec},
+        input_refs=request.input_refs.model_copy(update={"capture_spec_refs": [changed_ref]}),
+    )
+
+    unsupported = compile_admitted_trial_plan(changed_request)
+    assert unsupported.plan is None
+    assert any(diagnostic.code == "capture.output-contract-mismatch" for diagnostic in unsupported.diagnostics)
+
+
+def test_capture_spec_digest_pin_must_match_the_supplied_payload() -> None:
+    request = _request()
+    changed_ref = request.input_refs.capture_spec_refs[0].model_copy(update={"ref_digest": "sha256:" + "0" * 64})
+
+    result = compile_admitted_trial_plan(
+        replace(
+            request,
+            input_refs=request.input_refs.model_copy(update={"capture_spec_refs": [changed_ref]}),
+        )
+    )
+
+    assert result.plan is None
+    assert [diagnostic.code for diagnostic in result.diagnostics] == ["trial-compiler.capture-spec-ref-mismatch"]
+
+
+def test_capture_requirement_identities_must_be_unique_across_specs() -> None:
+    request = _request()
+    capture_spec = next(iter(request.capture_specs.values()))
+    copied_spec = capture_spec.model_copy(update={"capture_spec_id": "capture-spec-copy"})
+    copied_experiment_ref = request.experiment.capture_spec_refs[0].model_copy(
+        update={"ref_id": copied_spec.capture_spec_id}
+    )
+    changed_experiment = request.experiment.model_copy(
+        update={
+            "capture_spec_refs": [
+                request.experiment.capture_spec_refs[0],
+                copied_experiment_ref,
+            ]
+        }
+    )
+    copied_input_ref = request.input_refs.capture_spec_refs[0].model_copy(
+        update={
+            "ref_id": copied_spec.capture_spec_id,
+            "ref_digest": canonical_json_digest(copied_spec.model_dump(mode="json")),
+        }
+    )
+    changed_authoring_ref = request.input_refs.authoring_input_ref.model_copy(
+        update={"ref_digest": canonical_json_digest(changed_experiment.model_dump(mode="json"))}
+    )
+
+    result = compile_admitted_trial_plan(
+        replace(
+            request,
+            experiment=changed_experiment,
+            input_refs=request.input_refs.model_copy(
+                update={
+                    "authoring_input_ref": changed_authoring_ref,
+                    "capture_spec_refs": [
+                        request.input_refs.capture_spec_refs[0],
+                        copied_input_ref,
+                    ],
+                }
+            ),
+            capture_specs={
+                capture_spec.capture_spec_id: capture_spec,
+                copied_spec.capture_spec_id: copied_spec,
+            },
+        )
+    )
+
+    assert result.plan is None
+    assert [diagnostic.code for diagnostic in result.diagnostics] == ["trial-compiler.capture-requirement-ambiguous"]
+
+
+def test_task_evidence_requirements_must_resolve_to_capture_requirements() -> None:
+    request = _request()
+    capture_spec = next(iter(request.capture_specs.values()))
+    requirement = next(iter(capture_spec.capture_requirements.values())).model_copy(
+        update={"requirement_id": "other-evidence"}
+    )
+    changed_spec = capture_spec.model_copy(update={"capture_requirements": {requirement.requirement_id: requirement}})
+    changed_ref = request.input_refs.capture_spec_refs[0].model_copy(
+        update={"ref_digest": canonical_json_digest(changed_spec.model_dump(mode="json"))}
+    )
+
+    result = compile_admitted_trial_plan(
+        replace(
+            request,
+            input_refs=request.input_refs.model_copy(update={"capture_spec_refs": [changed_ref]}),
+            capture_specs={changed_spec.capture_spec_id: changed_spec},
+        )
+    )
+
+    assert result.plan is None
+    assert [diagnostic.code for diagnostic in result.diagnostics] == ["trial-compiler.task-capture-requirement-missing"]
+
+
+def test_capture_admission_uses_each_selected_scenario_value() -> None:
+    request = _request()
+    family_payload = request.family.model_dump(
+        mode="python",
+        by_alias=True,
+        exclude_unset=True,
+        exclude={"expansion_provenance"},
+    )
+    family_payload["variables"]["capture_channel"] = {
+        "type": "string",
+        "default": "log",
+        "allowed_values": ["log"],
+    }
+    family_payload["evidence_requirements"] = {
+        "selected-action-log": {
+            "description": "Capture the selected participant action log.",
+            "source_class": "participant_action",
+            "scope": "run",
+            "window": "task",
+            "channel": "${capture_channel}",
+            "artifact_role": "observation",
+            "media_types": ["application/json"],
+            "sensitivity": "plain",
+            "redaction": "none",
+            "integrity": "checksum",
+            "retention": "study_lifetime",
+            "loss_disclosure": "required",
+            "output_contract": "participant-behavior-history-event-stream-v1",
+            "field_selectors": ["/0/action_contract_address"],
+        }
+    }
+    family = ExpandedScenario.model_validate(family_payload)
+    SemanticValidator(family).validate()
+    family._set_semantic_validated(True)
+
+    key = ("backend", "backend-a", "1", "backend-manifest/v2")
+    manifest_payload = request.apparatus_manifests[key].model_dump(mode="json")
+    manifest_payload["capabilities"]["observation"]["capture_offers"].append(
+        {
+            "offer_id": "selected-action-log",
+            "offer_version": "1.0.0",
+            "output_contract": "participant-behavior-history-event-stream-v1",
+            "field_selectors": ["/0/action_contract_address"],
+            "artifact_roles": ["observation"],
+            "media_types": ["application/json"],
+            "capture_kind": "log",
+            "source_classes": ["participant_action"],
+            "source_refs": [],
+            "scopes": ["run"],
+            "scope_refs": [],
+            "channel_kinds": ["backend-log"],
+            "channel_refs": [],
+            "window_kinds": ["task"],
+            "integrity_modes": ["checksum"],
+            "sensitivity": "plain",
+            "availability": "available",
+            "fidelity": "complete",
+            "disclosure": "full",
+            "retention_policy_refs": ["study_lifetime"],
+            "export_policy": "not-required",
+            "redaction_policy": None,
+        }
+    )
+    manifest = BackendManifestV2Model.model_validate(manifest_payload)
+    manifest_ref = request.apparatus.manifest_refs[0].model_copy(
+        update={"ref_digest": canonical_json_digest(manifest.model_dump(mode="json"))},
+    )
+    selected_request = replace(
+        request.with_family(family),
+        apparatus=request.apparatus.model_copy(update={"manifest_refs": [manifest_ref]}),
+        apparatus_manifests={key: manifest},
+    )
+
+    result = compile_admitted_trial_plan(selected_request)
+
+    assert result.diagnostics == ()
+    assert result.plan is not None
 
 
 def _product_request() -> TrialCompilationRequest:
@@ -550,7 +795,7 @@ def test_partition_order_drives_coordinate_admission(monkeypatch) -> None:
 
     def record_visit(request, row, coordinate):
         visited.append(coordinate.replicate_id)
-        validate_selected_scenario(request, row, coordinate)
+        return validate_selected_scenario(request, row, coordinate)
 
     monkeypatch.setattr(trial_compiler_module, "_validate_selected_scenario", record_visit)
 

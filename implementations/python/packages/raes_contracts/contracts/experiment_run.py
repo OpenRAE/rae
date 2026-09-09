@@ -2,20 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import BinaryIO, Literal
 
 from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from ..versions import EXPERIMENT_RUN_SCHEMA_VERSION
-from .base import (
-    ContractModel,
-    NonEmptyString,
-    Rfc3339DateTimeString,
-    _canonical_digest,
-    _parse_rfc3339_datetime,
-)
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
 from .difficulty_provenance import DifficultyRunProvenanceModel
 from .experiment_apparatus import (
     ExperimentApparatusComponentModel,
@@ -29,12 +25,16 @@ from .experiment_artifacts import (
     ExperimentArtifactRefModel,
     _experiment_reference_key,
     _format_reference,
-    _reference_identity_satisfies_requirement,
     _reference_satisfies_requirement,
 )
 from .experiment_bindings import RealizedBindingProvenanceModel, _validate_realized_bindings
+from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_disclosure import ExperimentAugmentationDisclosureModel
-from .experiment_evidence import ExperimentRealizedFormDisclosureModel, ExperimentRunTraceabilityModel
+from .experiment_evidence import (
+    ExperimentEvidenceRecordModel,
+    ExperimentRealizedFormDisclosureModel,
+    ExperimentRunTraceabilityModel,
+)
 from .experiment_manifest_references import (
     ExperimentEvidenceReferenceModel,
     ExperimentRunEvidenceArtifactReferenceModel,
@@ -245,7 +245,7 @@ class ExperimentRunModel(ContractModel):
             "Every stochastic_draws control_id must resolve to a stochastic_controls control_id with an "
             "executable_binding on the same run, and each draw's address.namespace and transform_id/"
             "transform_version must match that binding's namespace and admitted profile transforms.",
-            validator="raes_contracts.contracts.validate_experiment_run_against_task",
+            validator="raes_contracts.contracts.validate_experiment_run_structure_against_task",
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/stochastic_draws"}],
         )
         _add_raes_invariant(
@@ -258,9 +258,9 @@ class ExperimentRunModel(ContractModel):
         _add_raes_invariant(
             json_schema,
             "task-run-protocol-binding-valid",
-            "Run apparatus, result metric ids, and concrete evidence artifacts must satisfy the "
-            "referenced task protocol.",
-            validator="raes_contracts.contracts.validate_experiment_run_against_task",
+            "Run apparatus and result metric ids must satisfy the referenced task protocol. "
+            "Content-backed evidence is additionally required by authoritative task/run validation.",
+            validator="raes_contracts.contracts.validate_experiment_run_structure_against_task",
             inputs=[
                 {"contract_id": "experiment-task-v1", "instance_path": "#"},
                 {"contract_id": "experiment-run-v1", "instance_path": "#"},
@@ -370,24 +370,6 @@ def _validate_run_augmentation_disclosures(run: ExperimentRunModel) -> None:
         )
 
 
-def _artifact_satisfies_evidence_reference(
-    artifact: ExperimentArtifactRefModel,
-    evidence_reference: ExperimentEvidenceReferenceModel,
-) -> bool:
-    direct_artifact_match = artifact.artifact_id == evidence_reference.ref_id and evidence_reference.ref_version is None
-    semantic_evidence_match = any(
-        _reference_identity_satisfies_requirement(satisfied_ref, evidence_reference)
-        for satisfied_ref in artifact.satisfies_refs
-    )
-    if not direct_artifact_match and not semantic_evidence_match:
-        return False
-    if evidence_reference.ref_digest is not None:
-        artifact_digest = f"{artifact.checksum.algorithm}:{artifact.checksum.value}"
-        if _canonical_digest(artifact_digest) != _canonical_digest(evidence_reference.ref_digest):
-            return False
-    return evidence_reference.ref_path is None or artifact.uri == evidence_reference.ref_path
-
-
 def _validate_run_task_ref(task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
     if run.task_ref.ref_id != task.task_id or run.task_ref.ref_version != task.task_version:
         raise ValueError("run task_ref must match task task_id and task_version")
@@ -416,63 +398,57 @@ def _validate_run_metric_ids_declared(task: ExperimentTaskModel, run: Experiment
         raise ValueError(f"run result metric_id values must be declared by the task evaluation protocol: {joined}")
 
 
-def _validate_run_observation_requirements(task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
-    missing_observation_requirements = sorted(
-        requirement.ref_id
-        for requirement in task.evaluation_protocol.observation_requirements
-        if not any(_artifact_satisfies_evidence_reference(artifact, requirement) for artifact in run.evidence_artifacts)
-    )
-    if missing_observation_requirements:
-        joined = ", ".join(missing_observation_requirements)
-        raise ValueError(f"run evidence_artifacts must satisfy task observation requirements: {joined}")
+@dataclass(frozen=True)
+class ExperimentRunEvidenceInputs:
+    """Immutable-reader inputs needed to prove one run's evidence claims."""
+
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel]
+    evidence_records: Mapping[str, ExperimentEvidenceRecordModel]
+    artifact_readers: Mapping[str, BinaryIO]
 
 
-def _result_missing_metric_evidence(
-    task: ExperimentTaskModel,
-    result_id: str,
-    result: ExperimentResultSummaryModel,
-    evidence_artifacts_by_id: dict[str, ExperimentArtifactRefModel],
-) -> list[str]:
-    result_artifacts = [
-        evidence_artifacts_by_id[evidence_ref.ref_id]
-        for evidence_ref in result.evidence_refs
-        if evidence_ref.ref_id in evidence_artifacts_by_id
-    ]
-    metric_definition = task.evaluation_protocol.metric_definitions[result.metric_id]
-    return [
-        f"{result_id}:{requirement.ref_id}"
-        for requirement in metric_definition.evidence_requirements
-        if not any(_artifact_satisfies_evidence_reference(artifact, requirement) for artifact in result_artifacts)
-    ]
+def validate_experiment_run_structure_against_task(task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
+    """Validate structural task/run invariants without claiming evidence satisfaction.
 
-
-def _collect_missing_metric_evidence(task: ExperimentTaskModel, run: ExperimentRunModel) -> list[str]:
-    evidence_artifacts_by_id = {artifact.artifact_id: artifact for artifact in run.evidence_artifacts}
-    missing_metric_evidence: list[str] = []
-    for result_id, result in run.result_summaries.items():
-        missing_metric_evidence.extend(
-            _result_missing_metric_evidence(task, result_id, result, evidence_artifacts_by_id)
-        )
-    return missing_metric_evidence
-
-
-def _validate_run_metric_evidence(task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
-    missing_metric_evidence = _collect_missing_metric_evidence(task, run)
-    if missing_metric_evidence:
-        joined = ", ".join(sorted(missing_metric_evidence))
-        raise ValueError(f"run result evidence_refs must satisfy task metric evidence requirements: {joined}")
-
-
-def validate_experiment_run_against_task(task: ExperimentTaskModel, run: ExperimentRunModel) -> None:
-    """Validate cross-artifact task/run semantic invariants."""
+    This explicitly named helper is for structural/schema composition only.
+    Authoritative admission uses ``validate_experiment_run_against_task``.
+    """
 
     _validate_run_task_ref(task, run)
     _validate_run_scenario_ref(task, run)
     _validate_run_apparatus_constraints(task, run)
     _validate_run_metric_ids_declared(task, run)
-    _validate_run_observation_requirements(task, run)
-    _validate_run_metric_evidence(task, run)
     _validate_run_stochastic_draw_control_refs(run)
+
+
+def _task_claims_required_evidence(task: ExperimentTaskModel) -> bool:
+    return bool(task.evaluation_protocol.observation_requirements) or any(
+        metric.evidence_requirements for metric in task.evaluation_protocol.metric_definitions.values()
+    )
+
+
+def validate_experiment_run_against_task(
+    task: ExperimentTaskModel,
+    run: ExperimentRunModel,
+    *,
+    evidence: ExperimentRunEvidenceInputs | None = None,
+) -> tuple[ExperimentEvidenceReferenceModel, ...]:
+    """Validate a task/run pair, including content-backed evidence when claimed."""
+
+    validate_experiment_run_structure_against_task(task, run)
+    if not _task_claims_required_evidence(task):
+        return ()
+    if evidence is None:
+        raise ValueError("task/run validation requires content-backed evidence inputs")
+    from ..evidence_satisfaction import validate_experiment_run_evidence
+
+    return validate_experiment_run_evidence(
+        task,
+        run,
+        capture_specs=evidence.capture_specs,
+        evidence_records=evidence.evidence_records,
+        artifact_readers=evidence.artifact_readers,
+    )
 
 
 def validate_experiment_run_time_model(

@@ -80,6 +80,7 @@ class ExperimentConditionAssignmentReferenceModel(ExperimentReferenceModel):
         "profile",
         "capability",
         "measurement-channel",
+        "evidence",
     ]
 
     @model_validator(mode="after")

@@ -754,7 +754,8 @@
             "manifest",
             "profile",
             "capability",
-            "measurement-channel"
+            "measurement-channel",
+            "evidence"
           ],
           "title": "Ref Kind",
           "type": "string"
@@ -2273,7 +2274,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_study_against_tasks_and_runs"
+      "validator": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
     },
     {
       "description": "Study analysis_plan metrics must have result_summaries, including explicit missing/withheld statuses, in included evaluation runs.",
@@ -2293,7 +2294,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_study_against_tasks_and_runs"
+      "validator": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
     },
     {
       "description": "Study analysis_plan evaluation-run members must resolve unambiguously and exclude invalidated, superseded, and not-evaluated runs.",
@@ -2309,7 +2310,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_study_against_tasks_and_runs"
+      "validator": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
     },
     {
       "description": "Study run_allocation compared_conditions must be represented by eligible included evaluation-run membership groupings that meet target_runs_per_condition, use operational blocking factors, and satisfy exactly one distinct factor-level combination and auditable condition assignment.",
@@ -2329,7 +2330,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_study_against_tasks_and_runs"
+      "validator": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
     },
     {
       "description": "Any adaptive or scaffolded allocation condition requires an analysis plan and explicit validity notes.",
@@ -2369,7 +2370,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_study_against_tasks_and_runs"
+      "validator": "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
     },
     {
       "description": "Every study behavioral claim must resolve against the canonical taxonomy revision, include a required observation projection, and keep bounded evidence out of universal quantifiers.",

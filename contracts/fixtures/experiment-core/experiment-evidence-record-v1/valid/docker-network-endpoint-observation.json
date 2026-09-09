@@ -8,6 +8,7 @@
     "ref_version": "1.0.0"
   },
   "capture_requirement_ref": "docker-network-endpoint-observation",
+  "output_contract": "participant-behavior-history-event-stream-v1",
   "run_ref": {
     "ref_kind": "run",
     "ref_id": "run-runtime-inventory-001",

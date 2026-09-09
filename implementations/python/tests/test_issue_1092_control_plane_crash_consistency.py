@@ -69,6 +69,7 @@ from raes_runtime.control_plane_store import (
     ControlPlaneOperationRecord,
     ControlPlaneStore,
     InMemoryControlPlaneStore,
+    SnapshotState,
 )
 from raes_runtime.control_plane_store_compatibility import (
     LegacyControlPlaneStoreWarning,
@@ -181,11 +182,14 @@ class _LegacyControlPlaneStore:
     def load_snapshot(self) -> RuntimeSnapshot:
         return self.delegate.load_snapshot()
 
-    def save_snapshot(self, snapshot: RuntimeSnapshot) -> None:
+    def load_snapshot_state(self) -> SnapshotState:
+        return self.delegate.load_snapshot_state()
+
+    def save_snapshot(self, snapshot: RuntimeSnapshot, *, expected_revision: int) -> SnapshotState:
         self.write_calls.append("save_snapshot")
         if self.fail_snapshot:
             raise RuntimeError("injected legacy snapshot failure")
-        self.delegate.save_snapshot(snapshot)
+        return self.delegate.save_snapshot(snapshot, expected_revision=expected_revision)
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
         return self.delegate.load_records()
@@ -213,13 +217,15 @@ class _LegacyControlPlaneStore:
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None:
-        self.delegate.commit_control_transition(
+        expected_revision: int,
+    ) -> SnapshotState:
+        return self.delegate.commit_control_transition(
             participant_address=participant_address,
             expected_head=expected_head,
             snapshot=snapshot,
             record=record,
             audit_event=audit_event,
+            expected_revision=expected_revision,
         )
 
     def commit_participant_transition(
@@ -229,12 +235,14 @@ class _LegacyControlPlaneStore:
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None:
-        self.delegate.commit_participant_transition(
+        expected_revision: int,
+    ) -> SnapshotState:
+        return self.delegate.commit_participant_transition(
             expected_history_heads=expected_history_heads,
             snapshot=snapshot,
             record=record,
             audit_event=audit_event,
+            expected_revision=expected_revision,
         )
 
 
@@ -243,7 +251,10 @@ class _PartiallyAtomicControlPlaneStore(_LegacyControlPlaneStore):
         self,
         _snapshot: RuntimeSnapshot,
         _record: ControlPlaneOperationRecord,
-    ) -> None:
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
+        del expected_revision
         raise AssertionError("a partial atomic capability must not create hybrid semantics")
 
 
@@ -305,6 +316,18 @@ nodes:
     )
     provisioning_plan = plan(compile_runtime_model(scenario), target.manifest).provisioning
     return target, provisioning_plan, provisioner
+
+
+def _authorize_provisioning_plan(
+    control_plane: RuntimeControlPlane,
+    target: object,
+    provisioning_plan: ProvisioningPlan,
+) -> None:
+    """Forge component authorization where planner validity is explicitly out of scope."""
+
+    scenario = parse_sdl("name: crash-consistency-authorization")
+    execution_plan = plan(compile_runtime_model(scenario), target.manifest)
+    control_plane.register_planner_produced_plan(replace(execution_plan, provisioning=provisioning_plan))
 
 
 def test_durability_fixture_declares_guest_observed_os_presence_corroboration() -> None:
@@ -500,15 +523,16 @@ def test_terminal_commit_is_idempotent_but_rejects_snapshot_or_record_rewrite(
     snapshot = RuntimeSnapshot(metadata={"generation": 1})
 
     store.claim_record(_running_record("terminal-idempotency"))
-    store.commit_terminal_operation(snapshot, terminal)
-    store.commit_terminal_operation(snapshot, terminal)
+    observed_revision = store.load_snapshot_state().revision
+    store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
+    store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
 
     different_snapshot = RuntimeSnapshot(metadata={"generation": 2})
     with pytest.raises(ValueError, match="does not match the durable snapshot"):
-        store.commit_terminal_operation(different_snapshot, terminal)
+        store.commit_terminal_operation(different_snapshot, terminal, expected_revision=observed_revision)
     rewritten = replace(terminal, status=replace(terminal.status, updated_at="2026-08-11T12:00:03Z"))
     with pytest.raises(ValueError, match="cannot be rewritten"):
-        store.commit_terminal_operation(snapshot, rewritten)
+        store.commit_terminal_operation(snapshot, rewritten, expected_revision=observed_revision)
 
 
 @pytest.mark.parametrize("store_kind", ["memory", "local"])
@@ -519,9 +543,14 @@ def test_terminal_commit_rejects_nonterminal_and_immutable_identity_changes(
     store = _atomic_store(store_kind, tmp_path)
     running = _running_record("immutable")
     empty_snapshot = RuntimeSnapshot()
+    empty_revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="requires a terminal status"):
-        store.commit_terminal_operation(empty_snapshot, running)
+        store.commit_terminal_operation(
+            empty_snapshot,
+            running,
+            expected_revision=empty_revision,
+        )
     terminal_record = _terminal_record(running)
     terminal_status = terminal_record.status
     for status, message in (
@@ -537,8 +566,13 @@ def test_terminal_commit_rejects_nonterminal_and_immutable_identity_changes(
     with pytest.raises(ValueError, match="denied operation receipts cannot be persisted"):
         replace(terminal_record, receipt=denied_receipt)
     changed_fingerprint = replace(terminal_record, request_fingerprint="changed")
+    claimed_revision = store.load_snapshot_state().revision
     with pytest.raises(ValueError, match="operation identity is immutable"):
-        store.commit_terminal_operation(empty_snapshot, changed_fingerprint)
+        store.commit_terminal_operation(
+            empty_snapshot,
+            changed_fingerprint,
+            expected_revision=claimed_revision,
+        )
 
 
 @pytest.mark.parametrize("store_kind", ["memory", "local"])
@@ -637,6 +671,7 @@ def test_in_memory_participant_transition_rolls_back_immutable_claim_rewrite() -
     store.save_record(competing_running)
     rollback_snapshot = RuntimeSnapshot(metadata={"must": "rollback"})
     event = _audit_event("participant-transition")
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="operation identity is immutable"):
         store.commit_participant_transition(
@@ -644,6 +679,7 @@ def test_in_memory_participant_transition_rolls_back_immutable_claim_rewrite() -
             snapshot=rollback_snapshot,
             record=competing,
             audit_event=event,
+            expected_revision=revision,
         )
 
     assert store.load_snapshot() == RuntimeSnapshot()
@@ -667,6 +703,7 @@ def test_in_memory_participant_transition_accepts_record_without_idempotency_key
         snapshot=snapshot,
         record=record,
         audit_event=event,
+        expected_revision=store.load_snapshot_state().revision,
     )
 
     assert store.load_snapshot() == snapshot
@@ -686,9 +723,16 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     if crash_boundary == "before-terminal-transaction":
 
-        def interrupt_commit(_snapshot: RuntimeSnapshot, _record: ControlPlaneOperationRecord) -> None:
+        def interrupt_commit(
+            _snapshot: RuntimeSnapshot,
+            _record: ControlPlaneOperationRecord,
+            *,
+            expected_revision: int,
+        ) -> SnapshotState:
+            del expected_revision
             raise KeyboardInterrupt("injected crash before terminal transaction")
 
         monkeypatch.setattr(store, "commit_terminal_operation", interrupt_commit)
@@ -711,6 +755,7 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     control_plane.close()
 
     restarted = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
+    _authorize_provisioning_plan(restarted, target, provisioning_plan)
     recovered = restarted.get_operation(operation_id)
     assert recovered is not None
     assert recovered.state == OperationState.INDETERMINATE
@@ -740,14 +785,19 @@ def test_terminal_transaction_rolls_back_at_each_internal_write_boundary(
     method_name = f"_upsert_{write_boundary}"
     real_upsert = getattr(store, method_name)
 
-    def interrupt_after_write(connection: object, value: object) -> None:
-        real_upsert(connection, value)
+    def interrupt_after_write(connection: object, value: object, **kwargs: object) -> None:
+        real_upsert(connection, value, **kwargs)
         raise KeyboardInterrupt(f"injected crash after {write_boundary} write")
 
     monkeypatch.setattr(store, method_name, interrupt_after_write)
     terminal = _terminal_record(running)
+    revision = store.load_snapshot_state().revision
     with pytest.raises(KeyboardInterrupt, match=f"after {write_boundary} write"):
-        store.commit_terminal_operation(next_snapshot, terminal)
+        store.commit_terminal_operation(
+            next_snapshot,
+            terminal,
+            expected_revision=revision,
+        )
 
     assert store.load_snapshot() == RuntimeSnapshot()
     assert store.load_records()[running.receipt.operation_id] == running
@@ -761,10 +811,16 @@ def test_runtime_resynchronizes_after_error_reported_after_durable_terminal_comm
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     real_commit = store.commit_terminal_operation
 
-    def commit_then_error(snapshot: RuntimeSnapshot, record: ControlPlaneOperationRecord) -> None:
-        real_commit(snapshot, record)
+    def commit_then_error(
+        snapshot: RuntimeSnapshot,
+        record: ControlPlaneOperationRecord,
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
+        real_commit(snapshot, record, expected_revision=expected_revision)
         raise RuntimeError("injected error after terminal commit")
 
     monkeypatch.setattr(store, "commit_terminal_operation", commit_then_error)
@@ -791,6 +847,7 @@ def test_runtime_resynchronizes_after_error_reported_after_durable_terminal_comm
     control_plane.close()
 
     restarted = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
+    _authorize_provisioning_plan(restarted, target, provisioning_plan)
     assert restarted.get_operation(durable_record.receipt.operation_id) == durable_record.status
     restarted_retry = restarted.submit_provisioning(
         provisioning_plan,
@@ -808,8 +865,15 @@ def test_runtime_seals_reloaded_non_terminal_operations_after_uncertain_terminal
     target, provisioning_plan, provisioner = _target_and_plan()
     store = InMemoryControlPlaneStore()
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
 
-    def fail_terminal_commit(_snapshot: RuntimeSnapshot, _record: ControlPlaneOperationRecord) -> None:
+    def fail_terminal_commit(
+        _snapshot: RuntimeSnapshot,
+        _record: ControlPlaneOperationRecord,
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
+        del expected_revision
         raise RuntimeError("injected terminal commit failure")
 
     monkeypatch.setattr(store, "commit_terminal_operation", fail_terminal_commit)
@@ -847,7 +911,13 @@ def test_runtime_error_reconciliation_does_not_seal_a_concurrent_operation(
     control_plane._claim_record(failing)
     store.save_record(concurrent)
 
-    def fail_terminal_commit(_snapshot: RuntimeSnapshot, _record: ControlPlaneOperationRecord) -> None:
+    def fail_terminal_commit(
+        _snapshot: RuntimeSnapshot,
+        _record: ControlPlaneOperationRecord,
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
+        del expected_revision
         raise RuntimeError("injected terminal commit failure")
 
     monkeypatch.setattr(store, "commit_terminal_operation", fail_terminal_commit)
@@ -865,15 +935,28 @@ def test_runtime_poisoned_when_store_error_cannot_be_reconciled(monkeypatch: pyt
     target, provisioning_plan, _ = _target_and_plan()
     store = InMemoryControlPlaneStore()
     control_plane = RuntimeControlPlane(target, store=store)
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
+    real_load_snapshot_state = store.load_snapshot_state
+    load_count = 0
 
-    def fail_commit(_snapshot: RuntimeSnapshot, _record: ControlPlaneOperationRecord) -> None:
+    def fail_commit(
+        _snapshot: RuntimeSnapshot,
+        _record: ControlPlaneOperationRecord,
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
+        del expected_revision
         raise RuntimeError("terminal commit failed")
 
-    def fail_reload() -> RuntimeSnapshot:
+    def fail_reload() -> SnapshotState:
+        nonlocal load_count
+        load_count += 1
+        if load_count <= 2:
+            return real_load_snapshot_state()
         raise OSError("durable reload failed")
 
     monkeypatch.setattr(store, "commit_terminal_operation", fail_commit)
-    monkeypatch.setattr(store, "load_snapshot", fail_reload)
+    monkeypatch.setattr(store, "load_snapshot_state", fail_reload)
 
     with pytest.raises(RuntimeError, match="terminal commit failed") as caught:
         control_plane.submit_provisioning(provisioning_plan)
@@ -960,8 +1043,13 @@ def test_local_store_rejects_empty_idempotency_lookup_and_tampered_operation_ide
         store.load_records()
     terminal = _terminal_record(_running_record(tampered_key))
     empty_snapshot = RuntimeSnapshot()
+    revision = store.load_snapshot_state().revision
     with pytest.raises(ValueError, match="identity does not match its durable key"):
-        store.commit_terminal_operation(empty_snapshot, terminal)
+        store.commit_terminal_operation(
+            empty_snapshot,
+            terminal,
+            expected_revision=revision,
+        )
 
 
 def test_local_store_rejects_unsupported_schema_and_failed_quick_check(
@@ -1043,7 +1131,7 @@ def test_local_store_migrates_v1_sqlite_operations_and_disposes_denials(tmp_path
     assert denial_audit.allowed is False
     assert denial_audit.reason == "legacy-denied-operation-disposed"
     with migrated._connection() as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("2",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("3",)
 
 
 def test_local_store_rejects_non_wal_before_schema_or_legacy_migration(
@@ -1093,7 +1181,10 @@ def test_local_store_rejects_non_wal_before_schema_or_legacy_migration(
 
 def test_local_store_rejects_non_object_durable_payload(tmp_path: Path) -> None:
     store = LocalControlPlaneStore(tmp_path / "control-plane")
-    store.save_snapshot(RuntimeSnapshot(metadata={"stored": True}))
+    store.save_snapshot(
+        RuntimeSnapshot(metadata={"stored": True}),
+        expected_revision=store.load_snapshot_state().revision,
+    )
     content = "[]"
     digest = sha256(content.encode("utf-8")).hexdigest()
     with store._connection() as connection, local_store_module._transaction(connection):
@@ -1308,8 +1399,9 @@ def test_terminal_commit_retry_compares_canonical_value_free_snapshot(tmp_path: 
     terminal = _terminal_record(running)
     store.claim_record(running)
 
-    store.commit_terminal_operation(snapshot, terminal)
-    store.commit_terminal_operation(snapshot, terminal)
+    observed_revision = store.load_snapshot_state().revision
+    store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
+    store.commit_terminal_operation(snapshot, terminal, expected_revision=observed_revision)
 
     assert store.load_records()[running.receipt.operation_id] == terminal
     assert store.load_snapshot() == _snapshot_from_payload(_snapshot_payload(snapshot))
@@ -1510,9 +1602,15 @@ def test_local_store_rejects_database_replacement_between_connections(tmp_path: 
     original_path = tmp_path / "original"
     replacement_path = tmp_path / "replacement"
     store = LocalControlPlaneStore(original_path)
-    store.save_snapshot(RuntimeSnapshot(metadata={"database": "original"}))
+    store.save_snapshot(
+        RuntimeSnapshot(metadata={"database": "original"}),
+        expected_revision=store.load_snapshot_state().revision,
+    )
     replacement = LocalControlPlaneStore(replacement_path)
-    replacement.save_snapshot(RuntimeSnapshot(metadata={"database": "replacement"}))
+    replacement.save_snapshot(
+        RuntimeSnapshot(metadata={"database": "replacement"}),
+        expected_revision=replacement.load_snapshot_state().revision,
+    )
     os.replace(replacement._database_path, store._database_path)
 
     with pytest.raises(RuntimeError, match="database file changed while the store was active"):
@@ -2028,6 +2126,7 @@ def test_close_waits_for_backend_and_keeps_lease_until_terminal_commit(tmp_path:
     target = replace(target, provisioner=provisioner)
     store_path = tmp_path / "control-plane"
     control_plane = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     submission_errors: list[BaseException] = []
     close_errors: list[BaseException] = []
     close_completed = [Event(), Event()]
@@ -2456,6 +2555,7 @@ def test_runtime_preserves_ordered_legacy_store_commits_with_deprecation(
 
     with pytest.warns(LegacyControlPlaneStoreWarning, match="before version 4"):
         control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     receipt = control_plane.submit_provisioning(
         provisioning_plan,
         idempotency_key="legacy-compatible",
@@ -2532,6 +2632,7 @@ def test_runtime_legacy_store_preserves_snapshot_first_failure_window() -> None:
     store = _LegacyControlPlaneStore()
     with pytest.warns(LegacyControlPlaneStoreWarning):
         control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     store.fail_terminal_record = True
 
     with pytest.raises(RuntimeError, match="legacy terminal-record failure"):
@@ -2550,6 +2651,7 @@ def test_runtime_legacy_store_resynchronizes_after_snapshot_write_failure() -> N
     store = _LegacyControlPlaneStore()
     with pytest.warns(LegacyControlPlaneStoreWarning):
         control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
     store.fail_snapshot = True
 
     with pytest.raises(RuntimeError, match="legacy snapshot failure"):
@@ -2587,6 +2689,10 @@ def test_execution_helpers_return_the_durable_winner_when_an_idempotency_claim_l
             self._snapshot = RuntimeSnapshot()
             self._operation_lock = RLock()
             self._target = create_stub_target()
+
+        @staticmethod
+        def _reload_derived_state() -> None:
+            return None
 
         @staticmethod
         def _idempotent_receipt(**_kwargs: object) -> None:

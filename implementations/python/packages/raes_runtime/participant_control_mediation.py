@@ -84,6 +84,7 @@ def record_participant_control(
         raise PermissionError("participant control identity is not authorized for this target")
     _require_participant_binding(identity, participant_address)
     with control_plane._participant_control_lock:
+        control_plane._reload_derived_state()
         bound = bind_participant_control_request(
             control_plane,
             participant_address,

@@ -84,6 +84,10 @@ class AdmittedTrialPlanInputRefsModel(ContractModel):
     task_ref: ExperimentTaskReferenceModel
     task_digest: PrefixedDigestString
     scenario_family_ref: ExperimentScenarioFamilyReferenceModel
+    capture_spec_refs: list[ExperimentReferenceModel] = Field(
+        default_factory=list,
+        json_schema_extra={"uniqueItems": True},
+    )
     binding_descriptor_set_ref: ExperimentReferenceModel | None = None
     study_ref: ExperimentReferenceModel | None = None
     associated_artifact_set_ref: ExperimentReferenceModel | None = None
@@ -91,6 +95,11 @@ class AdmittedTrialPlanInputRefsModel(ContractModel):
     @model_validator(mode="after")
     def _validate_input_refs(self) -> AdmittedTrialPlanInputRefsModel:
         _require_ref(self.authoring_input_ref, "authoring-input", digest=True, field="authoring_input_ref")
+        for reference in self.capture_spec_refs:
+            _require_ref(reference, "capture-spec", digest=True, field="capture_spec_refs")
+        capture_keys = {(reference.ref_id, reference.ref_version) for reference in self.capture_spec_refs}
+        if len(capture_keys) != len(self.capture_spec_refs):
+            raise ValueError("capture_spec_refs must identify unique capture specifications")
         if self.binding_descriptor_set_ref is not None:
             _require_ref(self.binding_descriptor_set_ref, "other", digest=True, field="binding_descriptor_set_ref")
         if self.study_ref is not None:

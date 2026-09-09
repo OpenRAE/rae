@@ -67,9 +67,22 @@ class BackendManifestV2Model(ContractModel):
         self._validate_realization_envelope_contract()
         self._validate_cleanup_contracts()
         self._validate_time_contracts()
+        self._validate_observation_capture_offers()
         self._validate_participant_policy_contracts()
         self._validate_concept_bindings()
         return self
+
+    def _validate_observation_capture_offers(self) -> None:
+        observation = self.capabilities.observation
+        if observation is None:
+            return
+        declared_contracts = set(self.supported_contract_versions)
+        missing = sorted({offer.output_contract for offer in observation.capture_offers} - declared_contracts)
+        if missing:
+            raise ValueError(
+                "observation capture offers require output contracts in supported_contract_versions: "
+                + ", ".join(missing)
+            )
 
     def _validate_participant_policy_contracts(self) -> None:
         participant_runtime = self.capabilities.participant_runtime

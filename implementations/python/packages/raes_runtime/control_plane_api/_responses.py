@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from fastapi import Response
 from raes_contracts.contracts import OperationReceiptModel
 from raes_contracts.diagnostics import portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt
@@ -18,6 +19,11 @@ _BAD_REQUEST_CONFLICT_RESPONSES = {
     400: {"description": "Bad request"},
     409: {"description": "Conflict"},
 }
+_SNAPSHOT_REVISION_HEADER = "X-RAES-Snapshot-Revision"
+
+
+def _set_snapshot_revision_header(response: Response, revision: int) -> None:
+    response.headers[_SNAPSHOT_REVISION_HEADER] = str(revision)
 
 
 def _receipt_response(receipt: OperationReceipt) -> OperationReceiptModel:

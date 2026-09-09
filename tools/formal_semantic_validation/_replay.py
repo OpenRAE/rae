@@ -88,7 +88,8 @@ def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Pat
         migration_policy=_migration_policy_for_case(repo_root, case, path),
     )
     instantiated = instantiate_scenario(scenario, parameters={})
-    return _digest(dataclasses.asdict(compile_runtime_model(instantiated)))
+    compiled = dataclasses.asdict(compile_runtime_model(instantiated))
+    return _digest(compiled)
 
 
 def _replay_compile_distinguish(

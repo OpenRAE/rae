@@ -2,9 +2,9 @@
   "contract_id": "scenario-satisfiability-evidence-v1",
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft",
-  "content_hash": "802873e028bfc5f0e932ff45883ef475682abb18768d095c82fb6df893f09417",
+  "content_hash": "ac676a4fd25db93a3c8b1ac936994824210a2a7356700b82130d2c8ff3adfc97",
   "last_change": {
-    "summary": "Removed domain-shaped SDL classifications in favor of standalone external concept bindings; explicit legacy migration is required (issue #989).",
-    "content_hash": "802873e028bfc5f0e932ff45883ef475682abb18768d095c82fb6df893f09417"
+    "summary": "Removed native classification fields in favor of external concept bindings (issue #989), retaining explicit evidence output-contract and field demand terms (issue #1112).",
+    "content_hash": "ac676a4fd25db93a3c8b1ac936994824210a2a7356700b82130d2c8ff3adfc97"
   }
 }

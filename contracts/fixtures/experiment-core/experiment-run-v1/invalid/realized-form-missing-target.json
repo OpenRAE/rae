@@ -300,7 +300,7 @@
   ],
   "evidence_artifacts": [
     {
-      "artifact_id": "evaluation-history",
+      "artifact_id": "auth-log-evidence",
       "role": "observation",
       "media_type": "application/json",
       "uri": "runs/run-techvault-001/evaluation-history.json",
@@ -328,7 +328,7 @@
       "evidence_refs": [
         {
           "ref_kind": "evidence",
-          "ref_id": "evaluation-history"
+          "ref_id": "auth-log-evidence"
         }
       ]
     }

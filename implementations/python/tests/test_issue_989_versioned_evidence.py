@@ -8,6 +8,24 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def test_current_compile_replay_hashes_complete_capture_dimension():
+    import dataclasses
+
+    from raes import instantiate_scenario, parse_sdl_file
+    from raes_processor.compiler import compile_runtime_model
+    from tools.formal_semantic_validation._loading import load_retest_bundle
+    from tools.formal_semantic_validation._replay import _compiled_case_digest, _migration_policy_for_case
+    from tools.formal_semantic_validation._shape import _digest
+
+    _, _, corpus, _, _ = load_retest_bundle(ROOT)
+    case = next(c for c in corpus["cases"] if c["case_id"] == "compile-repeatability-control")
+    path = ROOT / case["fixture_path"]
+    scenario = parse_sdl_file(path, migration_policy=_migration_policy_for_case(ROOT, case, path))
+    compiled = dataclasses.asdict(compile_runtime_model(instantiate_scenario(scenario, parameters={})))
+    assert "capture_demands" in compiled
+    assert _compiled_case_digest(ROOT, case, path) == _digest(compiled)
+
+
 def test_old_output_digest_pairs_do_not_substitute_for_replay():
     from tools.formal_semantic_validation._replay import _replay_observation_matches
 

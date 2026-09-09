@@ -91,6 +91,7 @@ def _execute_participant_action_locked(
     idempotency_key: str,
     identity: object | None,
 ) -> OperationReceipt:
+    control_plane._reload_derived_state()
     context = operation_admission_context(
         control_plane,
         kind=OperationKind.PARTICIPANT_ACTION,
@@ -251,6 +252,7 @@ def execute_operation(
     request: OperationExecutionRequest,
 ) -> OperationReceipt:
     with control_plane._operation_lock:
+        control_plane._reload_derived_state()
         return _execute_operation_locked(control_plane, request)
 
 
@@ -271,6 +273,8 @@ def _execute_operation_locked(
     )
     if existing is not None:
         return existing
+    if request.base_snapshot is not None and request.base_snapshot != control_plane._snapshot:
+        raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
     operation_id = str(uuid4())
     submitted_at = _utc_now()
     snapshot = request.base_snapshot if request.base_snapshot is not None else control_plane._snapshot

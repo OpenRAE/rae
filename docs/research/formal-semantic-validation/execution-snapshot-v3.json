@@ -5,7 +5,7 @@
     "release_revision": "3.0.0",
     "release_sha256": "fd30a0f450c47b57c6fe785c567ab3f3f211b2309d8b7bac9b0d3ccfa2208b05"
   },
-  "captured_at": "2026-09-09T01:51:38.784715+00:00",
+  "captured_at": "2026-09-09T23:22:24.993006+00:00",
   "commands": [
     {
       "argv": [
@@ -158,11 +158,11 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen.",
+      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. The merged capture-admission model is retained in full, including empty capture dimensions; no current output field is projected away.",
       "retest": {
         "actual_outcome": "stable",
         "diagnostic_kind": null,
-        "result_digest": "16cc92b2743538f193c9248dd5b5b8eca39787566a59d5ac3125923d41da6a38"
+        "result_digest": "7c1d550ffc73145e99f5a4848cfeb078ce3574533e9aa51cfe5ade791337d2ad"
       }
     },
     {
@@ -177,11 +177,11 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen.",
+      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. The merged capture-admission model is retained in full, including empty capture dimensions; no current output field is projected away.",
       "retest": {
         "actual_outcome": "distinguishable",
         "diagnostic_kind": null,
-        "result_digest": "c4dc90b8056de2a3f41012c181bb4a611045d5d042503c7ea71fcf86ea5e926b"
+        "result_digest": "91280788b23e32f00cb57755102055132f57c5d1eba527aa0f3171f494e718ec"
       }
     },
     {
@@ -196,7 +196,7 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. The satisfiable witness also has a newly populated realization-designation record and changed authored, normalized-model and snapshot digests. These semantic payload changes are retained in the new evidence, not projected away as empty classification defaults.",
+      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. The satisfiable witness also has a newly populated realization-designation record and changed authored, normalized-model and snapshot digests. These semantic payload changes are retained in the new evidence, not projected away as empty classification defaults. The merged capture-admission model is retained in full, including empty capture dimensions; no current output field is projected away.",
       "retest": {
         "actual_outcome": "satisfiable",
         "diagnostic_kind": "scenario-satisfiability-evidence/v1",
@@ -215,7 +215,7 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. Authored and normalized-model identities change while the unsatisfiable control and core remain bounded by the same profile.",
+      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. Authored and normalized-model identities change while the unsatisfiable control and core remain bounded by the same profile. The merged capture-admission model is retained in full, including empty capture dimensions; no current output field is projected away.",
       "retest": {
         "actual_outcome": "unsatisfiable",
         "diagnostic_kind": "scenario-satisfiability-evidence/v1",
@@ -234,7 +234,7 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. Snapshot and normalized-graph identities change; the complete typed graph and evidence remain subject to production replay.",
+      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. Snapshot and normalized-graph identities change; the complete typed graph and evidence remain subject to production replay. The merged capture-admission model is retained in full, including empty capture dimensions; no current output field is projected away.",
       "retest": {
         "actual_outcome": "valid-path",
         "diagnostic_kind": "exploit-path-analysis-evidence/v1",
@@ -253,7 +253,7 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. Snapshot and normalized-graph identities change; the complete typed graph and evidence remain subject to production replay.",
+      "rationale": "Explicit issue-989 current-code retest, not a representation-equivalence waiver. Retired classification fields leave the canonical model and compiled results. The complete new result is pinned and must reproduce exactly; the prior observation remains frozen. Snapshot and normalized-graph identities change; the complete typed graph and evidence remain subject to production replay. The merged capture-admission model is retained in full, including empty capture dimensions; no current output field is projected away.",
       "retest": {
         "actual_outcome": "invalid-path",
         "diagnostic_kind": "exploit-path-analysis-evidence/v1",
@@ -552,7 +552,7 @@
         "The witness ends at compiled output."
       ],
       "replayable": true,
-      "result_digest": "16cc92b2743538f193c9248dd5b5b8eca39787566a59d5ac3125923d41da6a38",
+      "result_digest": "7c1d550ffc73145e99f5a4848cfeb078ce3574533e9aa51cfe5ade791337d2ad",
       "source_digest": null
     },
     {
@@ -575,7 +575,7 @@
         "Distinct digests are a non-vacuity control, not semantic non-equivalence proof."
       ],
       "replayable": true,
-      "result_digest": "c4dc90b8056de2a3f41012c181bb4a611045d5d042503c7ea71fcf86ea5e926b",
+      "result_digest": "91280788b23e32f00cb57755102055132f57c5d1eba527aa0f3171f494e718ec",
       "source_digest": null
     },
     {
@@ -813,11 +813,11 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+  "raes_revision": "22b6d5da51a0a87f8a25d5aa889d9fdee04cbd10",
   "source_state": {
-    "base_revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+    "base_revision": "22b6d5da51a0a87f8a25d5aa889d9fdee04cbd10",
     "checkout_state": "modified",
-    "implementation_digest": "2d48c6328ad0d74c974cd624ac4e8a892c1d2b375109ae584a80ac021b16739d",
+    "implementation_digest": "e433c04cab1479b0a94fcb951dcfbbed324fec8951808377dfa44e5e96f088aa",
     "profile": "python-reference-source/v1"
   },
   "versions": {

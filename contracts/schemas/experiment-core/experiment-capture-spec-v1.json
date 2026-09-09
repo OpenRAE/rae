@@ -117,6 +117,31 @@
     },
     "ExperimentCaptureRequirementModel": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "sensitivity": {
+                "const": "redacted"
+              }
+            },
+            "required": [
+              "sensitivity"
+            ]
+          },
+          "then": {
+            "properties": {
+              "redaction_policy": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "redaction_policy"
+            ]
+          }
+        }
+      ],
       "description": "One evidence capture requirement inside a capture specification.",
       "properties": {
         "capture_kind": {
@@ -159,6 +184,16 @@
           "type": "array",
           "uniqueItems": true
         },
+        "field_selectors": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Field Selectors",
+          "type": "array",
+          "uniqueItems": true
+        },
         "integrity_requirements": {
           "items": {
             "minLength": 1,
@@ -180,6 +215,11 @@
           },
           "title": "Notes",
           "type": "array"
+        },
+        "output_contract": {
+          "minLength": 1,
+          "title": "Output Contract",
+          "type": "string"
         },
         "redaction_policy": {
           "anyOf": [
@@ -255,6 +295,8 @@
         "channel_ref",
         "window_refs",
         "expected_media_types",
+        "output_contract",
+        "field_selectors",
         "sensitivity",
         "integrity_requirements"
       ],
@@ -790,7 +832,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "Every capture_requirements object key must match the embedded requirement_id value, and window_refs must resolve to declared capture_windows.",
+      "description": "Every capture_requirements object key must match the embedded requirement_id value, capture window ids must be unique, and window_refs must resolve to declared capture_windows.",
       "id": "capture-requirement-key-matches-requirement-id",
       "inputs": [
         {

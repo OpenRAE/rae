@@ -33,6 +33,7 @@ from raes_backend_libvirt.techvault_native import (
     native_soc_readback,
 )
 from raes_backend_protocols.naming import provider_resource_name
+from raes_conformance.conformance.target_planning import target_probe_execution_plan
 from raes_operations import techvault_live
 from raes_operations.techvault_live import (
     TechVaultLiveConfig,
@@ -40,7 +41,6 @@ from raes_operations.techvault_live import (
     validate_techvault_live_manifest,
 )
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.manager import RuntimeManager
 
 
 class _NativeObject:
@@ -353,11 +353,15 @@ def _submit_native_scenario(path: Path, tmp_path: Path):
         initramfs_builder=_Builder(),
     )
     target = create_libvirt_target(driver=driver, name_prefix="native-test")
-    manager = RuntimeManager(target)
     content = re.sub(r"(?m)^\s+os(?:_distribution|_version)?:.*\n", "", path.read_text(encoding="utf-8"))
     scenario = parse_sdl(content)
-    execution_plan = manager.plan(scenario)
+    execution_plan = target_probe_execution_plan(scenario, target, provisioning_only=True)
+    # These tests exercise the native provisioning boundary itself. Planner
+    # capability diagnostics for the same unsupported concerns are out of scope.
+    execution_plan = replace(execution_plan, diagnostics=[])
     control_plane = RuntimeControlPlane(target)
+    assert execution_plan.is_valid, execution_plan.diagnostics
+    control_plane.register_planner_produced_plan(execution_plan)
     receipt = control_plane.submit_provisioning(execution_plan.provisioning)
     status = control_plane.get_operation(receipt.operation_id)
     return driver, connection, receipt, status, control_plane.snapshot

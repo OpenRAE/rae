@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "29aae3626f81417c641635cf60ca8c984205347f70b98778dcb9eebe1f8685bb",
+  "content_hash": "4f686fcb195f55507a88a30b876f33d3a7f41b4e1869c91049a95fc20b8e23e4",
   "last_change": {
-    "summary": "Removed domain-shaped SDL classifications in favor of standalone external concept bindings; explicit legacy migration is required (issue #989).",
-    "content_hash": "29aae3626f81417c641635cf60ca8c984205347f70b98778dcb9eebe1f8685bb"
+    "summary": "Removed native classification fields in favor of external concept bindings (issue #989), retaining explicit evidence output-contract and field demand terms (issue #1112).",
+    "content_hash": "4f686fcb195f55507a88a30b876f33d3a7f41b4e1869c91049a95fc20b8e23e4"
   }
 }

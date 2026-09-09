@@ -819,6 +819,7 @@ def test_control_plane_exposes_authenticated_generation_bound_execution_control(
     assert repeated.json()["operation_id"] == started.json()["operation_id"]
     assert status.json()["state"] == "succeeded"
     assert readback.status_code == 200
+    assert readback.headers["x-raes-snapshot-revision"].isdigit()
     assert readback.json()["observed_lifecycle"] == "running"
     assert readback.json()["observed_generation"] == 0
     assert readback.json()["health"] == "healthy"

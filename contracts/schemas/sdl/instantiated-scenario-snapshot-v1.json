@@ -4050,6 +4050,16 @@
           "title": "Description",
           "type": "string"
         },
+        "field_selectors": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Field Selectors",
+          "type": "array"
+        },
         "integrity": {
           "anyOf": [
             {
@@ -4097,6 +4107,14 @@
           },
           "title": "Notes",
           "type": "array"
+        },
+        "output_contract": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Output Contract",
+          "type": "string"
         },
         "redaction": {
           "anyOf": [
