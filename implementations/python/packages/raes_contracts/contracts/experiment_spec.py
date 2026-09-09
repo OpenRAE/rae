@@ -46,7 +46,9 @@ from .experiment_study import (
 from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, _add_raes_invariant
 from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
 
-_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR = "raes_contracts.contracts.validate_experiment_study_against_tasks_and_runs"
+_STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR = (
+    "raes_contracts.contracts.validate_experiment_study_structure_against_tasks_and_runs"
+)
 
 
 class ExperimentStudyModel(ContractModel):

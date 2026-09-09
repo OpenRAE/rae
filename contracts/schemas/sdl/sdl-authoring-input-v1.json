@@ -3362,6 +3362,13 @@
           "title": "Description",
           "type": "string"
         },
+        "field_selectors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Field Selectors",
+          "type": "array"
+        },
         "integrity": {
           "anyOf": [
             {
@@ -3397,6 +3404,11 @@
           },
           "title": "Notes",
           "type": "array"
+        },
+        "output_contract": {
+          "default": "",
+          "title": "Output Contract",
+          "type": "string"
         },
         "redaction": {
           "anyOf": [

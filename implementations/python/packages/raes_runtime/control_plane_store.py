@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import RLock
@@ -19,6 +17,22 @@ from raes_contracts.runtime_state import (
     operation_transition_diagnostic,
 )
 
+from .control_plane_store_history import (
+    require_expected_control_head as _require_expected_control_head,
+)
+from .control_plane_store_history import (
+    require_expected_history_heads as _require_expected_history_heads,
+)
+from .control_plane_store_revision import (
+    SnapshotRevisionConflict,
+    SnapshotState,
+)
+from .control_plane_store_revision import (
+    next_snapshot_revision as _next_snapshot_revision,
+)
+from .control_plane_store_revision import (
+    require_snapshot_revision as _require_snapshot_revision,
+)
 from .control_plane_store_snapshots import _snapshot_from_payload as _decode_snapshot_payload
 from .control_plane_store_snapshots import _snapshot_payload as _encode_snapshot_payload
 
@@ -211,7 +225,14 @@ class ControlPlaneStore(Protocol):
 
     def load_snapshot(self) -> RuntimeSnapshot: ...
 
-    def save_snapshot(self, snapshot: RuntimeSnapshot) -> None: ...
+    def load_snapshot_state(self) -> SnapshotState: ...
+
+    def save_snapshot(
+        self,
+        snapshot: RuntimeSnapshot,
+        *,
+        expected_revision: int,
+    ) -> SnapshotState: ...
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]: ...
 
@@ -231,19 +252,21 @@ class ControlPlaneStore(Protocol):
         *,
         participant_address: str,
         expected_head: str | None,
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None: ...
+    ) -> SnapshotState: ...
 
     def commit_participant_transition(
         self,
         *,
         expected_history_heads: dict[str, str | None],
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None: ...
+    ) -> SnapshotState: ...
 
 
 class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
@@ -255,7 +278,9 @@ class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
         self,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
-    ) -> None: ...
+        *,
+        expected_revision: int,
+    ) -> SnapshotState: ...
 
     def reconcile_interrupted_records(
         self,
@@ -263,72 +288,35 @@ class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
     ) -> None: ...
 
 
-def _control_history_head(snapshot: RuntimeSnapshot, participant_address: str) -> str | None:
-    events = snapshot.participant_control_history.get(participant_address, ())
-    if not events:
-        return None
-    event_id = events[-1].get("event_id")
-    return event_id if isinstance(event_id, str) and event_id else None
-
-
-def _require_expected_control_head(
-    snapshot: RuntimeSnapshot,
-    participant_address: str,
-    expected_head: str | None,
-) -> None:
-    if _control_history_head(snapshot, participant_address) != expected_head:
-        raise ValueError("expected control history head does not match durable state")
-
-
-def _participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str | None:
-    history_name, separator, participant_address = history_key.partition(":")
-    histories = {
-        "participant_episode_history": snapshot.participant_episode_history,
-        "participant_behavior_history": snapshot.participant_behavior_history,
-        "participant_control_history": snapshot.participant_control_history,
-        "participant_crossing_history": snapshot.participant_crossing_history,
-        "information_state_history": snapshot.information_state_history,
-    }
-    history = histories.get(history_name)
-    if not separator or not participant_address or history is None:
-        raise ValueError("participant transition history key is not supported")
-    events = history.get(participant_address, ())
-    if not events:
-        return None
-    event_id = events[-1].get("event_id")
-    if isinstance(event_id, str) and event_id:
-        return event_id
-    encoded = json.dumps(events[-1], sort_keys=True, separators=(",", ":"), default=str).encode()
-    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
-
-
-def _require_expected_history_heads(
-    snapshot: RuntimeSnapshot,
-    expected_history_heads: dict[str, str | None],
-) -> None:
-    for history_key, expected_head in expected_history_heads.items():
-        if _participant_history_head(snapshot, history_key) != expected_head:
-            raise ValueError("expected participant history head does not match durable state")
-
-
 class InMemoryControlPlaneStore:
     """Simple in-memory store."""
 
     def __init__(self, snapshot: RuntimeSnapshot | None = None) -> None:
         self._lock = RLock()
-        self._snapshot = snapshot if snapshot is not None else RuntimeSnapshot()
+        self._snapshot_state = SnapshotState(
+            snapshot=snapshot if snapshot is not None else RuntimeSnapshot(),
+            revision=0,
+        )
         self._records: dict[str, ControlPlaneOperationRecord] = {}
         self._idempotency: dict[str, str] = {}
         self._audit: list[AuditEvent] = []
 
     def load_snapshot(self) -> RuntimeSnapshot:
-        with self._lock:
-            return self._snapshot
+        return self.load_snapshot_state().snapshot
 
-    def save_snapshot(self, snapshot: RuntimeSnapshot) -> None:
+    def load_snapshot_state(self) -> SnapshotState:
+        with self._lock:
+            return self._snapshot_state
+
+    def save_snapshot(
+        self,
+        snapshot: RuntimeSnapshot,
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
         require_participant_autonomous_runtime_snapshot(snapshot)
         with self._lock:
-            self._snapshot = snapshot
+            return self._commit_snapshot(snapshot, expected_revision=expected_revision)
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
         with self._lock:
@@ -351,7 +339,9 @@ class InMemoryControlPlaneStore:
         self,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
-    ) -> None:
+        *,
+        expected_revision: int,
+    ) -> SnapshotState:
         """Atomically publish a snapshot with its terminal operation record."""
 
         require_participant_autonomous_runtime_snapshot(snapshot)
@@ -359,9 +349,10 @@ class InMemoryControlPlaneStore:
             existing = self._records.get(record.receipt.operation_id)
             changed = _require_terminal_operation_transition(existing, record)
             if not changed:
-                if self._snapshot != snapshot:
+                if self._snapshot_state.snapshot != snapshot:
                     raise ValueError("terminal operation retry does not match the durable snapshot")
-                return
+                return self._snapshot_state
+            self._require_expected_revision(expected_revision)
             records = {**self._records, record.receipt.operation_id: record}
             idempotency = dict(self._idempotency)
             if record.idempotency_key:
@@ -369,9 +360,11 @@ class InMemoryControlPlaneStore:
                 if existing_operation_id is not None and existing_operation_id != record.receipt.operation_id:
                     raise ValueError(_IDEMPOTENCY_KEY_CONFLICT)
                 idempotency[record.idempotency_key] = record.receipt.operation_id
-            self._snapshot = snapshot
+            committed = SnapshotState(snapshot=snapshot, revision=_next_snapshot_revision(expected_revision))
+            self._snapshot_state = committed
             self._records = records
             self._idempotency = idempotency
+            return committed
 
     def reconcile_interrupted_records(
         self,
@@ -410,16 +403,18 @@ class InMemoryControlPlaneStore:
         *,
         participant_address: str,
         expected_head: str | None,
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None:
+    ) -> SnapshotState:
         with self._lock:
-            _require_expected_control_head(self._snapshot, participant_address, expected_head)
-            self.commit_participant_transition(
+            _require_expected_control_head(self._snapshot_state.snapshot, participant_address, expected_head)
+            return self.commit_participant_transition(
                 expected_history_heads={
                     f"participant_control_history:{participant_address}": expected_head,
                 },
+                expected_revision=expected_revision,
                 snapshot=snapshot,
                 record=record,
                 audit_event=audit_event,
@@ -429,12 +424,14 @@ class InMemoryControlPlaneStore:
         self,
         *,
         expected_history_heads: dict[str, str | None],
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None:
+    ) -> SnapshotState:
         with self._lock:
-            _require_expected_history_heads(self._snapshot, expected_history_heads)
+            self._require_expected_revision(expected_revision)
+            _require_expected_history_heads(self._snapshot_state.snapshot, expected_history_heads)
             require_participant_autonomous_runtime_snapshot(snapshot)
             existing = self._records.get(record.receipt.operation_id)
             _require_operation_record_transition(existing, record)
@@ -445,10 +442,23 @@ class InMemoryControlPlaneStore:
                 if existing_operation_id is not None and existing_operation_id != record.receipt.operation_id:
                     raise ValueError(_IDEMPOTENCY_KEY_CONFLICT)
                 idempotency[record.idempotency_key] = record.receipt.operation_id
-            self._snapshot = snapshot
+            committed = SnapshotState(snapshot=snapshot, revision=_next_snapshot_revision(expected_revision))
+            self._snapshot_state = committed
             self._records = records
             self._idempotency = idempotency
             self._audit = [*self._audit, audit_event]
+            return committed
+
+    def _commit_snapshot(self, snapshot: RuntimeSnapshot, *, expected_revision: int) -> SnapshotState:
+        self._require_expected_revision(expected_revision)
+        committed = SnapshotState(snapshot=snapshot, revision=_next_snapshot_revision(expected_revision))
+        self._snapshot_state = committed
+        return committed
+
+    def _require_expected_revision(self, expected_revision: int) -> None:
+        _require_snapshot_revision(expected_revision)
+        if self._snapshot_state.revision != expected_revision:
+            raise SnapshotRevisionConflict()
 
     def _save_record(self, record: ControlPlaneOperationRecord) -> None:
         existing = self._records.get(record.receipt.operation_id)
@@ -481,5 +491,7 @@ __all__ = (
     "InMemoryControlPlaneStore",
     "LocalControlPlaneStore",
     "ParticipantCrossingHistoryPresence",
+    "SnapshotRevisionConflict",
+    "SnapshotState",
     "participant_crossing_history_presence",
 )

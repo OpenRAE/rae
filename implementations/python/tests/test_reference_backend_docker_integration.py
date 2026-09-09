@@ -120,6 +120,7 @@ def test_real_container_provision_inventory_and_teardown(container_runtime: str)
 
     control_plane = RuntimeControlPlane(target)
     try:
+        control_plane.register_planner_produced_plan(execution_plan)
         receipt = control_plane.submit_provisioning(execution_plan.provisioning)
         status = control_plane.get_operation(receipt.operation_id)
         assert status is not None and status.state.value == "succeeded"

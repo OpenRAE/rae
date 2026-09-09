@@ -1,5 +1,6 @@
 """Domain-specific runtime capability declarations."""
 
+from collections.abc import Collection
 from dataclasses import dataclass, field
 
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
@@ -9,6 +10,7 @@ from raes_contracts.vocabulary import WorkflowFeature, WorkflowStatePredicateFea
 from . import participant_capabilities as _participant_capabilities
 from . import provisioner_capabilities as _provisioner_capabilities
 from . import time_capabilities as _time_capabilities
+from .observation_capture import ObservationCaptureOffer
 
 PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE = _participant_capabilities.PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE
 PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS = (
@@ -135,7 +137,7 @@ class EvaluatorCapabilities:
             raise ValueError("Evaluator proposition support requires binding provenance")
 
 
-def _validate_unique_non_empty_strings(field_name: str, values: tuple[str, ...]) -> None:
+def _validate_unique_non_empty_strings(field_name: str, values: Collection[str]) -> None:
     if any(not value.strip() for value in values):
         raise ValueError(f"{field_name} must not contain empty strings")
     if len(set(values)) != len(values):
@@ -155,11 +157,16 @@ class ObservationCapabilities:
     supports_redaction: bool = False
     supports_loss_disclosure: bool = False
     supports_chain_of_custody: bool = False
+    capture_offers: tuple[ObservationCaptureOffer, ...] = ()
     constraints: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.name.strip():
             raise ValueError("ObservationCapabilities.name must be non-empty")
+        self._validate_observation_summaries()
+        self._validate_capture_offers()
+
+    def _validate_observation_summaries(self) -> None:
         _validate_unique_non_empty_strings(
             "ObservationCapabilities.supported_capture_kinds", self.supported_capture_kinds
         )
@@ -200,6 +207,17 @@ class ObservationCapabilities:
         for contract_id in self.supported_evidence_contracts:
             if not contract_id.startswith("experiment-"):
                 raise ValueError("ObservationCapabilities.supported_evidence_contracts must be experiment contracts")
+
+    def _validate_capture_offers(self) -> None:
+        offer_ids = tuple(offer.offer_id for offer in self.capture_offers)
+        _validate_unique_non_empty_strings("ObservationCapabilities.capture offer ids", offer_ids)
+        for offer in self.capture_offers:
+            if offer.capture_kind not in self.supported_capture_kinds:
+                raise ValueError("capture offer capture_kind must appear in supported_capture_kinds")
+            if not offer.channel_kinds.issubset(self.supported_channel_kinds):
+                raise ValueError("capture offer channel_kinds must appear in supported_channel_kinds")
+            if not offer.media_types.issubset(self.supported_media_types):
+                raise ValueError("capture offer media_types must appear in supported_media_types")
 
 
 @dataclass(frozen=True)

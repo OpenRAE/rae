@@ -26,6 +26,7 @@ from pydantic import ValidationError
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingGateDisposition,
+    ParticipantCrossingSubjectKind,
 )
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot, RuntimeSnapshotEnvelope
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
@@ -43,6 +44,7 @@ from raes_runtime.control_plane_store import (
 from raes_runtime.operational_apparatus import operational_apparatus_summary
 from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
 from raes_runtime.participant_crossing_boundary import _action_subject
+from raes_runtime.participant_crossing_egress import _view_subject
 from raes_runtime.participant_crossing_mediation import (
     ParticipantCrossingEvidence,
     ParticipantCrossingIntent,
@@ -52,6 +54,7 @@ from raes_runtime.participant_result_contracts import (
     participant_runtime_history_transition_diagnostics,
     participant_runtime_state_contract_diagnostics,
 )
+from raes_runtime.participant_retrieval import _context_revision_paths, _ContextViewOptions
 
 
 def test_crossing_history_is_first_class_serialized_and_operational_state() -> None:
@@ -356,6 +359,43 @@ def test_egress_transformation_returns_only_the_committed_governed_view() -> Non
     ]
 
 
+@pytest.mark.parametrize("field", ["payload_ref", "derivation_basis_ref"])
+def test_runtime_revision_normalization_preserves_caller_controlled_context_identity(field: str) -> None:
+    resolver = StaticCrossingResolver()
+    plane = action_plane(resolver)
+    plane._crossing_policy_resolver = None
+
+    first = plane.get_participant_context_view(
+        PARTICIPANT,
+        view_ref="context.network-posture",
+        **{field: "runtime.snapshot.revision.7"},
+    )
+    second = plane.get_participant_context_view(
+        PARTICIPANT,
+        view_ref="context.network-posture",
+        **{field: "runtime.snapshot.revision.8"},
+    )
+    assert first is not None
+    assert second is not None
+    revision_paths = _context_revision_paths(_ContextViewOptions())
+    first_subject = _view_subject(
+        first,
+        participant_address=PARTICIPANT,
+        episode_id="episode-1",
+        subject_kind=ParticipantCrossingSubjectKind.PARTICIPANT_CONTEXT_VIEW,
+        runtime_owned_revision_paths=revision_paths,
+    )
+    second_subject = _view_subject(
+        second,
+        participant_address=PARTICIPANT,
+        episode_id="episode-1",
+        subject_kind=ParticipantCrossingSubjectKind.PARTICIPANT_CONTEXT_VIEW,
+        runtime_owned_revision_paths=revision_paths,
+    )
+
+    assert first_subject.subject_digest != second_subject.subject_digest
+
+
 def test_missing_visibility_gate_fails_closed_without_serializing_output() -> None:
     resolver = StaticCrossingResolver(gate_overrides={"visibility": ParticipantCrossingGateDisposition.NOT_APPLICABLE})
     plane = action_plane(
@@ -565,9 +605,7 @@ def test_concurrent_operation_cannot_commit_against_a_stale_history_cut() -> Non
         thread.join(timeout=40)
 
     assert sum(not isinstance(result, Exception) for result in results) == 1, [repr(result) for result in results]
-    assert any(
-        "expected participant history head" in str(result) for result in results if isinstance(result, Exception)
-    )
+    assert any("snapshot revision conflict" in str(result) for result in results if isinstance(result, Exception))
     durable = store.load_snapshot()
     assert len(durable.participant_crossing_history[PARTICIPANT]) == 2
 

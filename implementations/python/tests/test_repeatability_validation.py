@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 import re
 from dataclasses import dataclass, field, fields, replace
@@ -37,7 +39,9 @@ from raes_conformance.repeatability_validation import (
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.contracts import (
     BehavioralClaimBindingModel,
+    ExperimentCaptureSpecModel,
     ExperimentEvidenceRecordModel,
+    ExperimentRunEvidenceInputs,
     ExperimentRunModel,
     ExperimentTaskModel,
 )
@@ -52,6 +56,10 @@ _SUBJECT_REF = "scenario-snapshot:scenario-techvault@1.0.0"
 _PROJECTION_REF = "repeatability.projection.canonical-artifact"
 _DIAGNOSTIC_ADDRESS = "/conformance/repeatability-comparison"
 _JSON_POINTER_RE = re.compile(r"^(?:/(?:[^~/]|~[01])*)*$")
+_EVIDENCE_BYTES = (
+    _REPO_ROOT
+    / "contracts/fixtures/control-plane/participant-behavior-history-event-stream-v1/valid/terminal-observation.json"
+).read_bytes()
 
 
 @cache
@@ -85,6 +93,9 @@ def _run_and_evidence(index: int) -> tuple[ExperimentRunModel, ExperimentEvidenc
         for reference in disclosure["evidence_refs"]:
             reference["ref_id"] = evidence_id
     run_version = run_payload["run_version"]
+    artifact = run_payload["evidence_artifacts"][0]
+    artifact["checksum"] = {"algorithm": "sha256", "value": hashlib.sha256(_EVIDENCE_BYTES).hexdigest()}
+    artifact["size_bytes"] = len(_EVIDENCE_BYTES)
 
     evidence_payload = json.loads(
         (
@@ -94,6 +105,11 @@ def _run_and_evidence(index: int) -> tuple[ExperimentRunModel, ExperimentEvidenc
     evidence_payload["evidence_record_id"] = evidence_id
     evidence_payload["run_ref"].update(ref_id=run_id, ref_version=run_version)
     evidence_payload["task_ref"].update(ref_id=task.task_id, ref_version=task.task_version)
+    evidence_payload["capture_requirement_ref"] = "auth-log-evidence"
+    evidence_payload["raw_content"] = {
+        "content_uri": run_payload["evidence_artifacts"][0]["uri"],
+        "content_checksum": run_payload["evidence_artifacts"][0]["checksum"],
+    }
     evidence = ExperimentEvidenceRecordModel.model_validate(evidence_payload)
 
     # The digest-verified run declares which evidence-record identities belong to it.
@@ -106,6 +122,21 @@ def _run_and_evidence(index: int) -> tuple[ExperimentRunModel, ExperimentEvidenc
     ]
     run = ExperimentRunModel.model_validate(run_payload)
     return run, evidence
+
+
+def _evidence_inputs(record: ExperimentEvidenceRecordModel) -> ExperimentRunEvidenceInputs:
+    payload = json.loads(
+        (_REPO_ROOT / "contracts/fixtures/experiment-core/experiment-capture-spec-v1/valid/reference.json").read_text()
+    )
+    requirement = next(iter(payload["capture_requirements"].values()))
+    requirement["requirement_id"] = "auth-log-evidence"
+    payload["capture_requirements"] = {"auth-log-evidence": requirement}
+    capture_spec = ExperimentCaptureSpecModel.model_validate(payload)
+    return ExperimentRunEvidenceInputs(
+        capture_specs={capture_spec.capture_spec_id: capture_spec},
+        evidence_records={record.evidence_record_id: record},
+        artifact_readers={"auth-log-evidence": io.BytesIO(_EVIDENCE_BYTES)},
+    )
 
 
 def _run_ref(run: ExperimentRunModel) -> str:
@@ -299,8 +330,18 @@ def _evidence(
     task_override = task_override or {}
     if runs is None:
         runs = RepeatabilityRunPair(
-            baseline=RepeatabilityRunInput(case.baseline.repetition_id, task_override.get(b_idx, _task()), b_run),
-            repetition=RepeatabilityRunInput(case.repetition.repetition_id, task_override.get(r_idx, _task()), r_run),
+            baseline=RepeatabilityRunInput(
+                case.baseline.repetition_id,
+                task_override.get(b_idx, _task()),
+                b_run,
+                _evidence_inputs(b_ev),
+            ),
+            repetition=RepeatabilityRunInput(
+                case.repetition.repetition_id,
+                task_override.get(r_idx, _task()),
+                r_run,
+                _evidence_inputs(r_ev),
+            ),
         )
     if evidence_records is None:
         evidence_records = (b_ev, r_ev)
@@ -759,8 +800,8 @@ def _assemble_with_validator(validator: object) -> RepeatabilityConsistencyEvide
     return assemble_repeatability_consistency_evidence(
         case,
         runs=RepeatabilityRunPair(
-            baseline=RepeatabilityRunInput(case.baseline.repetition_id, _task(), b_run),
-            repetition=RepeatabilityRunInput(case.repetition.repetition_id, _task(), r_run),
+            baseline=RepeatabilityRunInput(case.baseline.repetition_id, _task(), b_run, _evidence_inputs(b_ev)),
+            repetition=RepeatabilityRunInput(case.repetition.repetition_id, _task(), r_run, _evidence_inputs(r_ev)),
         ),
         evidence_records=(b_ev, r_ev),
         verification_records=_default_records(case, b_ev.evidence_record_id),

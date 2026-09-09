@@ -12,6 +12,7 @@ from raes_contracts.contracts import (
     AdmittedApparatusBindingModel,
     AdmittedTrialPlanInputRefsModel,
     AdmittedTrialPlanModel,
+    ExperimentCaptureSpecModel,
     ExperimentSpecModel,
     ExperimentTaskModel,
     ParticipantImplementationManifestModel,
@@ -39,6 +40,7 @@ class TrialCompilationRequest:
     realization_envelope: BackendRealizationEnvelopeModel
     execution_authority: TrialExecutionAuthorityModel
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest]
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel] = field(default_factory=dict)
     participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel] = field(
         default_factory=dict
     )
@@ -64,6 +66,7 @@ class TrialCompilationRequest:
             realization_envelope=self.realization_envelope,
             execution_authority=self.execution_authority,
             apparatus_manifests=self.apparatus_manifests,
+            capture_specs=self.capture_specs,
             participant_manifests=self.participant_manifests,
             limits=self.limits,
         )
@@ -87,6 +90,7 @@ class TrialCompilationRequest:
             realization_envelope=self.realization_envelope,
             execution_authority=self.execution_authority,
             apparatus_manifests=self.apparatus_manifests,
+            capture_specs=self.capture_specs,
             participant_manifests=self.participant_manifests,
             limits=self.limits,
         )

@@ -2,9 +2,9 @@
   "contract_id": "scenario-satisfiability-evidence-v1",
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft",
-  "content_hash": "d08e616869e52a2e533b49344827b161eb8d9d908f9c8c5ad61081f203bc4fe2",
+  "content_hash": "a0e9d5f96a76dfd5e100043d6ba5ffca812e47789958e6c956f655b446a95f31",
   "last_change": {
-    "summary": "Added the closed, SHA-256-pinned APT runtime package repository profile for issue #847.",
-    "content_hash": "d08e616869e52a2e533b49344827b161eb8d9d908f9c8c5ad61081f203bc4fe2"
+    "summary": "Added explicit evidence output-contract and field demand terms for issue #1112.",
+    "content_hash": "a0e9d5f96a76dfd5e100043d6ba5ffca812e47789958e6c956f655b446a95f31"
   }
 }

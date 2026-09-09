@@ -293,8 +293,17 @@ def test_store_enforces_context_immutability_and_exact_retry(store_kind: str) ->
 
     store.claim_record(accepted)
     store.save_record(running)
-    store.commit_terminal_operation(store.load_snapshot(), succeeded)
-    store.commit_terminal_operation(store.load_snapshot(), succeeded)
+    observed_revision = store.load_snapshot_state().revision
+    store.commit_terminal_operation(
+        store.load_snapshot(),
+        succeeded,
+        expected_revision=observed_revision,
+    )
+    store.commit_terminal_operation(
+        store.load_snapshot(),
+        succeeded,
+        expected_revision=observed_revision,
+    )
 
     for field, value in (
         ("actor_id", "other"),
@@ -308,8 +317,13 @@ def test_store_enforces_context_immutability_and_exact_retry(store_kind: str) ->
         rewritten_context = _context(**{field: value})
         rewritten = _record(OperationState.SUCCEEDED, context=rewritten_context)
         snapshot = store.load_snapshot()
+        revision = store.load_snapshot_state().revision
         with pytest.raises(ValueError, match="immutable"):
-            store.commit_terminal_operation(snapshot, rewritten)
+            store.commit_terminal_operation(
+                snapshot,
+                rewritten,
+                expected_revision=revision,
+            )
 
     invalid_transition = replace(
         succeeded,
@@ -423,8 +437,8 @@ def test_idempotency_binds_semantic_commitment_not_transport_fingerprint() -> No
     ],
 )
 def test_plan_idempotency_binds_explicit_base_snapshot(method_name: str, plan: object) -> None:
-    control_plane = RuntimeControlPlane(create_stub_target())
     first_snapshot = RuntimeSnapshot(metadata={"base": "first"})
+    control_plane = RuntimeControlPlane(create_stub_target(), initial_snapshot=first_snapshot)
     changed_snapshot = RuntimeSnapshot(metadata={"base": "changed"})
     submit = getattr(control_plane, method_name)
 

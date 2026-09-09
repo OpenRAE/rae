@@ -33,3 +33,5 @@ Scenario authors may need to require that particular data be captured from parti
 - IMPLEMENTS → SPEC `specs/formal/observability-evidence-plane.md` (Formal observability/evidence plane coverage for DSL-124)
 - TESTS → TEST `implementations/python/tests/test_dsl_124_authored_evidence_requirements.py` (DSL-124 authored evidence requirement tests)
 - IMPLEMENTS → GITHUB_ISSUE `337` (Issue 337: Authored Data And Evidence Requirements)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/capture_admission.py` (Compiled authored evidence demand and backend admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1112_capture_admission.py` (Authored evidence demand admission and non-demand boundaries)

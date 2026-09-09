@@ -100,6 +100,7 @@ def test_techvault_scenario_plans_and_applies_supported_surface_through_libvirt_
     )
 
     control_plane = RuntimeControlPlane(target)
+    control_plane.register_planner_produced_plan(execution_plan)
     receipt = control_plane.submit_provisioning(execution_plan.provisioning)
     status = control_plane.get_operation(receipt.operation_id)
 
@@ -163,6 +164,7 @@ def test_techvault_operational_scenario_drives_full_libvirt_surface():
     )
 
     control_plane = RuntimeControlPlane(target)
+    control_plane.register_planner_produced_plan(execution_plan)
     receipt = control_plane.submit_provisioning(execution_plan.provisioning)
     status = control_plane.get_operation(receipt.operation_id)
 

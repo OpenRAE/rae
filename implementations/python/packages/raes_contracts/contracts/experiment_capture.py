@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Literal
 
 from pydantic import Field, GetJsonSchemaHandler, model_validator
@@ -102,6 +103,8 @@ class ExperimentCaptureRequirementModel(ContractModel):
     window_refs: list[NonEmptyString] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
     expected_media_types: list[NonEmptyString] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
     required_artifact_roles: list[NonEmptyString] = Field(default_factory=list, json_schema_extra={"uniqueItems": True})
+    output_contract: NonEmptyString
+    field_selectors: list[NonEmptyString] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
     sensitivity: Literal["public", "internal", "restricted", "redacted"]
     redaction_policy: NonEmptyString | None = None
     integrity_requirements: list[NonEmptyString] = Field(min_length=1)
@@ -114,7 +117,31 @@ class ExperimentCaptureRequirementModel(ContractModel):
         _validate_unique_string_values("window_refs", self.window_refs)
         _validate_unique_string_values("expected_media_types", self.expected_media_types)
         _validate_unique_string_values("required_artifact_roles", self.required_artifact_roles)
+        _validate_unique_string_values("field_selectors", self.field_selectors)
+        if any(re.fullmatch(r"(?:/(?:[^~/]|~[01])*)*", selector) is None for selector in self.field_selectors):
+            raise ValueError("field_selectors must be canonical RFC 6901 JSON Pointers")
+        if self.sensitivity == "redacted" and self.redaction_policy is None:
+            raise ValueError("redacted capture requirements must declare redaction_policy")
         return self
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls,
+        core_schema: CoreSchema,
+        handler: GetJsonSchemaHandler,
+    ) -> JsonSchemaValue:
+        json_schema = handler(core_schema)
+        json_schema = handler.resolve_ref_schema(json_schema)
+        json_schema.setdefault("allOf", []).append(
+            {
+                "if": {"properties": {"sensitivity": {"const": "redacted"}}, "required": ["sensitivity"]},
+                "then": {
+                    "required": ["redaction_policy"],
+                    "properties": {"redaction_policy": {"type": "string", "minLength": 1}},
+                },
+            }
+        )
+        return json_schema
 
 
 class ExperimentCaptureSpecModel(ContractModel):
@@ -133,6 +160,10 @@ class ExperimentCaptureSpecModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_capture_spec(self) -> ExperimentCaptureSpecModel:
+        _validate_unique_string_values(
+            "capture window ids",
+            [window.window_id for window in self.capture_windows],
+        )
         mismatches = [
             requirement_key
             for requirement_key, requirement in self.capture_requirements.items()
@@ -166,8 +197,8 @@ class ExperimentCaptureSpecModel(ContractModel):
         _add_raes_invariant(
             json_schema,
             "capture-requirement-key-matches-requirement-id",
-            "Every capture_requirements object key must match the embedded requirement_id value, and window_refs "
-            "must resolve to declared capture_windows.",
+            "Every capture_requirements object key must match the embedded requirement_id value, capture window ids "
+            "must be unique, and window_refs must resolve to declared capture_windows.",
             validator="raes_contracts.contracts.ExperimentCaptureSpecModel._validate_capture_spec",
             inputs=[{"contract_id": "experiment-capture-spec-v1", "instance_path": "#"}],
         )

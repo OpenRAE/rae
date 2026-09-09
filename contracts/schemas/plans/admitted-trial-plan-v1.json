@@ -399,6 +399,14 @@
           ],
           "default": null
         },
+        "capture_spec_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentReferenceModel"
+          },
+          "title": "Capture Spec Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
         "scenario_family_ref": {
           "$ref": "#/$defs/ExperimentScenarioFamilyReferenceModel"
         },

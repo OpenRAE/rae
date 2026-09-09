@@ -227,12 +227,13 @@ def _participant_runtime_capabilities() -> ParticipantRuntimeCapabilities:
 def _observation_capabilities() -> ObservationCapabilities:
     return ObservationCapabilities(
         name="reference-emulation-observation",
-        supported_capture_kinds=frozenset({"artifact", "log", "observation", "telemetry", "trace"}),
+        supported_capture_kinds=frozenset({"artifact", "log", "observation", "packet-capture", "telemetry", "trace"}),
         supported_channel_kinds=frozenset(
             {
                 "backend-log",
                 "evaluation-history",
                 "file-artifact",
+                "packet-capture",
                 "participant-observation",
                 "runtime-snapshot",
                 "workflow-history",

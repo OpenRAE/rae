@@ -252,3 +252,31 @@ augmentation and realized-form behavior.
 | ASR-525 conformance validates experiment-run semantics | `_MODEL_VALIDATORS["experiment-run-v1"]`, `_semantic_diagnostics()` | `test_fixture_suite_exercises_experiment_run_observability_semantics` | yes |
 | EXP-731 run-scoped capture refinements preserve authored requirements | `_run_refinement_conformance_diagnostics()` requires `authored_ref` for capture-window and measurement-channel disclosures | `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
 | EXP-732 augmentation and refinements remain evidence-traced | experiment run model traced evidence refs plus conformance evidence-ref checks | `test_observability_evidence_conformance_accepts_traced_augmentation`, `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
+
+## Implementation Coverage (#1112 / Required-Capture Admission)
+
+Issue #1112 makes OE-03, OE-04, and OE-10 operational. Explicit SDL and
+experiment capture requirements compile to one normalized demand form. A pure
+conjunctive matcher admits a demand only against one coherent backend offer;
+legacy discovery lists cannot be cross-producted into support. Ordinary
+planning, admitted-trial compilation, trial realization, runtime apply, and all
+control-plane plan domains fail before effects when required capture is not
+admitted. Trial compilation performs this check after selecting each concrete
+scenario, so variable-backed capture terms are matched by their realized value.
+
+Post-run validation follows the exact chain from task evidence reference to
+capture requirement, evidence record, emitted artifact, supplied bytes, and
+required JSON fields. Reference-only satisfaction assertions remain descriptive
+metadata and cannot prove capture.
+
+| Invariant | Realizing artifact | Test |
+| --- | --- | --- |
+| Coherent, versioned capture offer with exact authored scope targets | `ObservationCaptureOfferModel`, `ObservationCaptureOffer` | `test_manifest_capture_offers_are_closed_and_round_trip`, `test_sdl_scope_refs_require_exact_offer_scope_targets` |
+| Every explicit demand is checked conjunctively | `CaptureDemand`, `capture_admission_diagnostics()` | `test_planner_rejects_every_unmet_capture_dimension_before_execution` |
+| Trial inputs pin exact capture-spec bytes | `AdmittedTrialPlanInputRefsModel.capture_spec_refs`, `TrialCompilationRequest.capture_specs` | `test_capture_specs_are_required_digest_bound_trial_inputs` |
+| All runtime plan domains retain the authorization boundary | `RuntimeControlPlane.register_planner_produced_plan()` and HTTP submission gates | `test_control_plane_rejects_unregistered_effectful_plans` |
+| Emitted content, not an adapter assertion, proves satisfaction | `validate_experiment_run_evidence()` | `test_post_run_validation_requires_emitted_bytes_and_promised_fields`, `test_static_artifact_id_cannot_stand_in_for_the_validated_capture_artifact` |
+| Output-contract schema and owning semantic model, capture-window time, and exact redaction policy are bound to emitted evidence | `validate_experiment_run_evidence()` | `test_output_contract_shape_and_registry_are_enforced_before_selectors`, `test_output_contract_semantic_invariants_are_enforced`, `test_post_run_validation_rejects_evidence_outside_the_capture_window`, `test_redaction_policy_and_artifact_sensitivity_are_bound_to_the_capture` |
+| Authoritative run/study/conformance validation requires content-backed evidence inputs | `validate_experiment_run_against_task()`, `validate_experiment_study_against_tasks_and_runs()` | `test_authoritative_task_run_validation_requires_and_consumes_content_inputs` |
+| Evidence-based study conditions consume only content-proven bindings | `validate_study_run_task_membership()`, `_run_satisfies_condition_assignment()` | `test_study_evidence_conditions_consume_only_validated_bindings` |
+| Trial capture demand is evaluated after concrete family selection | `trial_compiler._validate_selected_scenario()`, `compile_scenario_capture_demands()` | `test_capture_admission_uses_each_selected_scenario_value` |
