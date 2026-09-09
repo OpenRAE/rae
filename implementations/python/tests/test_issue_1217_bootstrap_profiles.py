@@ -734,6 +734,28 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
     with pytest.raises(ValueError, match="already exists"):
         bootstrap_profile.fetch_offline_kit_payloads("host-a", kit_root, ("uv",))
 
+    tampered_root = tmp_path / "tampered-kit"
+    tampered_root.mkdir()
+
+    def fake_tampered_transfer(
+        _executable: Path,
+        _url: str,
+        output: Path,
+        *,
+        ca_cert: Path | None,
+        max_bytes: int,
+        max_time_seconds: int = 30,
+    ) -> dict[str, str]:
+        assert ca_cert is None and max_bytes == len(payload) and max_time_seconds == 30
+        output.write_bytes(b"tampered")
+        return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
+
+    monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_tampered_transfer)
+    tampered_target = tampered_root / "archives/uv/uv.tar.gz"
+    with pytest.raises(ValueError, match="failed exact verification"):
+        bootstrap_profile.fetch_offline_kit_payloads("host-a", tampered_root, ("uv",))
+    assert not tampered_target.exists()
+
 
 class _CurlFixture(BaseHTTPRequestHandler):
     retries: dict[str, int] = {}

@@ -399,6 +399,7 @@ def test_host_selection_launcher_rejects_an_unbound_validator_response(monkeypat
         tooling_policy_gate.load_tooling_host_profile_selection("host-a")
 
 
+@pytest.mark.integration
 def test_repository_discovery_uses_only_git_tracked_paths(tmp_path: Path) -> None:
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     (tmp_path / "tracked.py").write_text("pass\n", encoding="utf-8")
