@@ -114,10 +114,15 @@ def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
     ci = yaml.safe_load((REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
     interpreter_job = ci["jobs"]["interpreters"]
     assert interpreter_job["strategy"]["fail-fast"] is False
-    assert interpreter_job["strategy"]["matrix"]["python-version"] == supported
+    assert interpreter_job["strategy"]["matrix"]["python"] == [
+        {"feature": "3.11", "payload": "3.11.16"},
+        {"feature": "3.12", "payload": "3.12.14"},
+        {"feature": "3.13", "payload": "3.13.15"},
+        {"feature": "3.14", "payload": "3.14.7"},
+    ]
     assert interpreter_job["env"] == {
-        "UV_PYTHON": "${{ matrix.python-version }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python-version }}",
+        "UV_PYTHON": "${{ matrix.python.payload }}",
+        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
     }
 
     preview = yaml.safe_load(
@@ -126,7 +131,7 @@ def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
     preview_job = preview["jobs"]["python-314t"]
     assert preview_job["continue-on-error"] is True
     assert preview_job["env"] == {
-        "UV_PYTHON": "3.14t",
+        "UV_PYTHON": "3.14.7t",
         "RAES_EXPECTED_PYTHON": "3.14",
         "RAES_EXPECT_FREE_THREADED": "1",
     }

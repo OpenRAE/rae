@@ -71,10 +71,12 @@ jobs:
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
 
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          version: "0.12.4"
 
       - name: Restore pinned Isabelle archive
         # Untrusted PR and manual-release refs may consume this cache but must
@@ -118,6 +120,24 @@ jobs:
             verify_args+=(--skip-requirement)
           fi
           uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify -- "${verify_args[@]}"
+
+      - name: Record qualified proof-host evidence
+        run: |
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile record-case T01 \
+            "${{ inputs.ref }}" noxfile.py --artifact-id cpython-3.12 --artifact-id isabelle --artifact-id uv \
+            > t01-result.json
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile qualification-evidence \
+            proof-ubuntu-22.04-x86_64 "${{ inputs.ref }}" \
+            "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
+            --python-artifact-id cpython-3.12 --case-result t01-result.json > proof-host-qualification.json
+
+      - name: Upload proof-host qualification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: proof-host-${{ inputs.ref }}
+          path: proof-host-qualification.json
+          if-no-files-found: error
 
       - name: Upload coverage report
         if: always()

@@ -90,7 +90,9 @@ def normalize_platform_id(value: str) -> str:
     return "-".join(parts).replace("x86-64", "x86_64")
 
 
-def load_documents(repo_root: Path) -> tuple[dict[str, dict[str, Any]], list[PolicyFailure]]:
+def load_documents(
+    repo_root: Path,
+) -> tuple[dict[str, dict[str, Any]], list[PolicyFailure]]:
     """Load and locally validate every closed policy document."""
 
     try:
@@ -298,7 +300,7 @@ def walk_forbidden_keys(value: object, *, path: str = "<root>") -> list[PolicyFa
                     failure(
                         "tooling-executable-field",
                         f"declarative policy contains forbidden executable field {key!r}",
-                        ARTIFACT_LOCK_PATH,
+                        path,
                     )
                 )
             failures.extend(walk_forbidden_keys(child, path=f"{path}.{key}"))

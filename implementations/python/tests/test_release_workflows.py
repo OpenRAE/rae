@@ -297,15 +297,15 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "verify" in workflow["jobs"]["sonar"]["needs"]
 
     interpreters = workflow["jobs"]["interpreters"]
-    assert interpreters["strategy"]["matrix"]["python-version"] == [
-        "3.11",
-        "3.12",
-        "3.13",
-        "3.14",
+    assert interpreters["strategy"]["matrix"]["python"] == [
+        {"feature": "3.11", "payload": "3.11.16"},
+        {"feature": "3.12", "payload": "3.12.14"},
+        {"feature": "3.13", "payload": "3.13.15"},
+        {"feature": "3.14", "payload": "3.14.7"},
     ]
     assert interpreters["env"] == {
-        "UV_PYTHON": "${{ matrix.python-version }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python-version }}",
+        "UV_PYTHON": "${{ matrix.python.payload }}",
+        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
     }
     compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]

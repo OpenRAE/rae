@@ -20,9 +20,18 @@ documentation more precise and easier to validate.
 
 Prerequisites:
 
-- standard CPython 3.11, 3.12, 3.13, or 3.14
-- [uv](https://github.com/astral-sh/uv)
+- a standard CPython 3.11, 3.12, 3.13, or 3.14 payload admitted by the
+  [development profile](implementations/tooling/README.md); 3.14t is preview-only
+- the exact uv payload selected by the development artifact lock
 - [nox](https://nox.thea.codes/) or `uvx nox`
+
+The host profile also requires Git, trusted CA roots, SHA-256 tooling, GH CLI
+when GitHub operations are used, and curl 8.4.0 or newer with verified
+unknown-length size enforcement. An older client is a hard failure for generic
+artifact acquisition. Provision native prerequisites from the reviewed host
+image or repository snapshot; the offline payload kit supplies exact Python,
+uv, and generic-tool objects after those prerequisites are present. Do not pipe
+a remote installer into a shell.
 
 Install the locked Python environment:
 

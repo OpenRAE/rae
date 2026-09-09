@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-09-06T00:00:00.000000Z
+updated_at: 2026-09-10T00:00:00.000000Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -65,3 +65,10 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/package-artifacts/operations.md` (T22 and T23 policy-gate evidence)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1216-development-artifact-lock-policy-preflight.md` (Artifact-lock implementation preflight)
 - TESTS → TEST `implementations/python/tests/test_tooling_artifact_policy.py` (Artifact identity, drift, coverage and fail-before-acquisition regressions)
+- IMPLEMENTS → GITHUB_ISSUE `1217` (Qualify maintained bootstrap clients and host profiles)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1217-bootstrap-clients-host-profiles-preflight.md` (Bootstrap-client and host-profile qualification preflight)
+- IMPLEMENTS → CONFIG `.github/workflows/bootstrap-qualification.yml` (Cross-platform bootstrap qualification and offline restoration workflow)
+- IMPLEMENTS → CODE_FILE `tools/bootstrap_profile.py` (Host-profile inspection, qualification evidence, and offline-kit verification)
+- IMPLEMENTS → CONFIG `implementations/tooling/profiles/development-profiles.json` (Qualified host identities and capability closures)
+- IMPLEMENTS → CONFIG `implementations/tooling/schemas/profiles.schema.json` (Qualification evidence and host-profile contract)
+- TESTS → TEST `implementations/python/tests/test_issue_1217_bootstrap_profiles.py` (Bootstrap profile, payload identity, curl, and offline-kit regressions)

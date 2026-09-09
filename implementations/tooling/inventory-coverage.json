@@ -23,7 +23,7 @@
     {
       "inventory_id": "I04", "subjects": ["artifact","action"], "evidence_refs": ["reviewed-consumer-reference","reviewed-workflow-reference"], "owner_roles": ["Docs", "Tooling"], "consumers": ["bootstrap", "workflows"],
       "trust_root_refs": ["reviewed-action-commit", "platform-python-distribution"], "availability_class": "R", "retention_class": "supported-input",
-      "disposition": "delegated", "authority_refs": ["implementations/tooling/actions-policy.json", ".readthedocs.yaml"],
+      "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json", "implementations/tooling/artifacts.lock.json", "implementations/tooling/profiles/development-profiles.json", ".readthedocs.yaml"],
       "policy_refs": ["action-source-v1", "artifact-integrity-v1"], "owning_issue": 1217
     },
     {
@@ -59,7 +59,7 @@
     {
       "inventory_id": "I10", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Platform", "Proof", "Tooling"], "consumers": ["bootstrap", "proof"],
       "trust_root_refs": ["native-package-signing-roots", "runner-image"], "availability_class": "R", "retention_class": "supported-input",
-      "disposition": "delegated", "authority_refs": [".github/workflows/canonical-verification.yml", "docs/decisions/package-artifacts/architecture.md"],
+      "disposition": "locked", "authority_refs": ["implementations/tooling/profiles/development-profiles.json", ".github/workflows/canonical-verification.yml", "docs/decisions/package-artifacts/architecture.md"],
       "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1217
     },
     {
@@ -72,7 +72,7 @@
     {
       "inventory_id": "I12", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Backend", "Platform"], "consumers": ["live-verification"],
       "trust_root_refs": ["qualified-native-host-profile"], "availability_class": "L", "retention_class": "supported-input",
-      "disposition": "delegated", "authority_refs": ["tools/real-daemon/README.md", "docs/decisions/package-artifacts/architecture.md"],
+      "disposition": "retained", "authority_refs": ["implementations/tooling/profiles/development-profiles.json", "tools/bootstrap_profile.py", "tools/real-daemon/README.md", "docs/decisions/package-artifacts/architecture.md"],
       "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1217
     },
     {
@@ -146,12 +146,13 @@
     {"path": "tools/nox_support/runner.py", "inventory_id": "I02", "disposition": "legacy-remediation", "site_count": 3},
     {"path": "tools/osv_scanner_tool.py", "inventory_id": "I08", "disposition": "governed", "site_count": 2},
     {"path": "tools/parallel_verification.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/bootstrap_profile.py", "inventory_id": "I04", "disposition": "governed", "site_count": 6},
     {"path": "tools/policy/common.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/policy/conftest_tool.py", "inventory_id": "I05", "disposition": "governed", "site_count": 3},
     {"path": "tools/policy/requirement_governance.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
     {"path": "tools/real-daemon/run_aws_guest_certify.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 2},
     {"path": "tools/real-daemon/run_aws_smoke.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 3},
-    {"path": "tools/tooling_policy_gate.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/tooling_policy_gate.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 2},
     {"path": "tools/vale_tool.py", "inventory_id": "I07", "disposition": "governed", "site_count": 1},
     {"path": "tools/verification_plan.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/verify_all.py", "inventory_id": "I02", "disposition": "legacy-remediation", "site_count": 1}

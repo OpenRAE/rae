@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -24,6 +25,7 @@ from tools.tooling_artifact_policy_common import (
     ARTIFACT_LOCK_PATH,
     INVENTORY_COVERAGE_PATH,
     MAX_JSON_BYTES,
+    POLICY_SCHEMAS,
     PROFILES_PATH,
     SELECTOR_BINDINGS_PATH,
     as_list,
@@ -45,6 +47,8 @@ __all__ = [
     "evaluate_tooling_artifact_policy",
     "normalize_platform_id",
     "select_tooling_artifact",
+    "select_tooling_host_profile",
+    "tooling_policy_sha256",
 ]
 
 
@@ -92,7 +96,37 @@ def evaluate_tooling_artifact_policy(
     failures.extend(action_failures(repo_root, documents, paths))
     failures.extend(selector_failures(repo_root, documents, paths, python_scans))
     failures.extend(inventory_failures(repo_root, documents, paths, python_scans))
+    if all(path in documents for path in POLICY_SCHEMAS):
+        expected_policy_sha256 = tooling_policy_sha256(repo_root)
+        profiles = documents[PROFILES_PATH]
+        failures.extend(
+            failure(
+                "tooling-host-evidence-policy",
+                "qualification evidence is not bound to the complete current tooling policy",
+                PROFILES_PATH,
+            )
+            for record in as_list(profiles.get("qualification_records"))
+            if not isinstance(record, Mapping) or record.get("policy_sha256") != expected_policy_sha256
+        )
     return sorted(set(failures), key=lambda item: (item.path or "", item.rule_id, item.message))
+
+
+def tooling_policy_sha256(repo_root: Path) -> str:
+    """Hash every canonical policy authority without hashing result records."""
+
+    digest = hashlib.sha256()
+    authority_paths = sorted({*POLICY_SCHEMAS, *POLICY_SCHEMAS.values()})
+    for relative_path in authority_paths:
+        value = load_bounded_json_object(repo_root, relative_path, max_bytes=MAX_JSON_BYTES)
+        if relative_path == PROFILES_PATH:
+            value = {key: child for key, child in value.items() if key != "qualification_records"}
+        encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+        path_bytes = relative_path.encode()
+        digest.update(len(path_bytes).to_bytes(8, "big"))
+        digest.update(path_bytes)
+        digest.update(len(encoded).to_bytes(8, "big"))
+        digest.update(encoded)
+    return digest.hexdigest()
 
 
 def _selection_matches(
@@ -157,6 +191,62 @@ def select_tooling_artifact(
     }
 
 
+def select_tooling_host_profile(repo_root: Path, *, host_profile_id: str) -> dict[str, Any]:
+    """Return one fully validated host profile and its exact bootstrap selections."""
+
+    failures = evaluate_tooling_artifact_policy(repo_root)
+    if failures:
+        rendered = "\n".join(item.render() for item in failures)
+        raise ValueError(f"development artifact policy is invalid:\n{rendered}")
+    profiles = load_bounded_json_object(repo_root, PROFILES_PATH, max_bytes=MAX_JSON_BYTES)
+    lock = load_bounded_json_object(repo_root, ARTIFACT_LOCK_PATH, max_bytes=MAX_JSON_BYTES)
+    hosts = [
+        item
+        for item in as_list(profiles.get("host_profiles"))
+        if isinstance(item, Mapping) and item.get("host_profile_id") == host_profile_id
+    ]
+    if len(hosts) != 1:
+        raise ValueError("requested host profile must resolve to exactly one reviewed entry")
+    host = hosts[0]
+    artifacts: list[dict[str, Any]] = []
+    for artifact_id in sorted(string_set(host.get("bootstrap_payload_ids"))):
+        artifact_matches = [
+            item
+            for item in as_list(lock.get("artifacts"))
+            if isinstance(item, Mapping) and item.get("artifact_id") == artifact_id
+        ]
+        platform_matches = [
+            (artifact, platform)
+            for artifact in artifact_matches
+            for platform in as_list(artifact.get("platforms"))
+            if isinstance(platform, Mapping)
+            and normalize_platform_id(str(platform.get("platform_id", "")))
+            == normalize_platform_id(str(host.get("platform_id", "")))
+            and (
+                not string_set(platform.get("host_profile_ids"))
+                or host_profile_id in string_set(platform.get("host_profile_ids"))
+            )
+        ]
+        if len(platform_matches) != 1:
+            raise ValueError(f"host profile must resolve exactly one reviewed {artifact_id} payload")
+        artifact, platform = platform_matches[0]
+        artifacts.append(
+            {
+                "artifact_id": artifact["artifact_id"],
+                "artifact_class": artifact["artifact_class"],
+                "version": artifact["version"],
+                "support_level": artifact.get("support_level", "blocking"),
+                "source": artifact["source"],
+                "platform": platform,
+            }
+        )
+    return {
+        "host_profile": host,
+        "artifacts": artifacts,
+        "policy_sha256": tooling_policy_sha256(repo_root),
+    }
+
+
 def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
@@ -165,6 +255,7 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--version")
     parser.add_argument("--platform-id")
     parser.add_argument("--profile-id")
+    parser.add_argument("--select-host-profile")
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
@@ -207,8 +298,23 @@ def _run_validation(args: argparse.Namespace) -> int:
     return 1
 
 
+def _run_host_selection(args: argparse.Namespace) -> int:
+    try:
+        selection = select_tooling_host_profile(args.repo_root, host_profile_id=args.select_host_profile)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(json.dumps(selection, sort_keys=True, separators=(",", ":")))
+    return 0
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.select_host_profile and any(_selection_args(args)):
+        print("host and artifact selection modes cannot be combined", file=sys.stderr)
+        return 2
+    if args.select_host_profile:
+        return _run_host_selection(args)
     return _run_selection(args) if any(_selection_args(args)) else _run_validation(args)
 
 
