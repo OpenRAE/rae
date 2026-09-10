@@ -379,21 +379,23 @@ def _validate_snapshot(
             )
         )
 
-    _concept_results_failures(
-        repo_root, protocol, snapshot, catalogs, executed, failures, path, replay_current=replay_current
+    rules = protocol.get("execution_rules") if isinstance(protocol.get("execution_rules"), dict) else {}
+    context = _SnapshotContext(
+        repo_root=repo_root,
+        executed=executed,
+        valid_outcomes=set(rules.get("stage_outcomes", [])),
+        valid_strengths=set(rules.get("validation_strength_values", [])),
+        replay_current=replay_current,
     )
+    _concept_results_failures(context, snapshot, catalogs, failures, path)
 
 
 def _concept_results_failures(
-    repo_root: Path,
-    protocol: dict[str, object],
+    context: _SnapshotContext,
     snapshot: dict[str, object],
     catalogs: dict[str, object],
-    executed: dict[str, dict[str, object]],
     failures: list[PolicyFailure],
     path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
     results = _bounded_list(
         snapshot.get("concept_results"),
@@ -419,14 +421,6 @@ def _concept_results_failures(
             )
         )
     concepts = catalogs.get("concepts", {})
-    rules = protocol.get("execution_rules") if isinstance(protocol.get("execution_rules"), dict) else {}
-    context = _SnapshotContext(
-        repo_root=repo_root,
-        executed=executed,
-        valid_outcomes=set(rules.get("stage_outcomes", [])),
-        valid_strengths=set(rules.get("validation_strength_values", [])),
-        replay_current=replay_current,
-    )
     for index, result in enumerate(results):
         if not _exact_keys(
             result,

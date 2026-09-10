@@ -123,22 +123,32 @@ def _extract_routes(
     for app_index, application in enumerate(applications):
         if not isinstance(application, dict) or not isinstance(application.get("routes", []), list):
             continue
-        for route_index, route in enumerate(application.get("routes", [])):
-            if isinstance(route, dict) and "vulnerability_refs" in route:
-                app_id, route_id = application.get("application_id"), route.get("route_id")
-                if any(
-                    not isinstance(value, str) or not value or contains_variable_token(value)
-                    for value in (app_id, route_id)
-                ):
-                    raise ValueError("Route classification migration requires exact concrete route identity.")
-                _extract_fields(
-                    route,
-                    pointer=f"/nodes/{_token(node_name)}/runtime/applications/{app_index}/routes/{route_index}",
-                    subject=f"nodes.{node_name}.runtime.applications.{app_id}.routes.{route_id}",
-                    fields=("vulnerability_refs",),
-                    declarations=declarations,
-                    records=records,
-                )
+        _extract_application_routes(application, node_name, app_index, declarations, records)
+
+
+def _extract_application_routes(
+    application: dict[str, Any],
+    node_name: str,
+    app_index: int,
+    declarations: dict[str, Vulnerability],
+    records: list[LegacyClassification],
+) -> None:
+    for route_index, route in enumerate(application.get("routes", [])):
+        if not isinstance(route, dict) or "vulnerability_refs" not in route:
+            continue
+        app_id, route_id = application.get("application_id"), route.get("route_id")
+        if any(
+            not isinstance(value, str) or not value or contains_variable_token(value) for value in (app_id, route_id)
+        ):
+            raise ValueError("Route classification migration requires exact concrete route identity.")
+        _extract_fields(
+            route,
+            pointer=f"/nodes/{_token(node_name)}/runtime/applications/{app_index}/routes/{route_index}",
+            subject=f"nodes.{node_name}.runtime.applications.{app_id}.routes.{route_id}",
+            fields=("vulnerability_refs",),
+            declarations=declarations,
+            records=records,
+        )
 
 
 def read_legacy_classification_source(
@@ -161,6 +171,31 @@ def read_legacy_classification_source(
     ):
         raise ValueError("Normalize historical declaration values with the source-version formatter first.")
     records: list[LegacyClassification] = []
+    _extract_sections(native, declarations, records)
+    _extract_entities(
+        native.get("entities"), pointer="/entities", subject="entities", declarations=declarations, records=records
+    )
+    _extract_actions(native.get("action_contracts", {}), records)
+    digest = canonical_json_digest(
+        {
+            "profile": SDL_CANONICAL_PROFILE,
+            "scenario": original,
+            "module_variable_specs": {},
+            "module_node_variable_refs": {},
+        }
+    )
+    return LegacyClassificationSource(
+        native,
+        original,
+        tuple(sorted(records, key=lambda item: item.pointer)),
+        tuple(sorted(f"vulnerabilities.{name}" for name in declarations)),
+        SDLCanonicalDigest(SDL_CANONICAL_PROFILE, "sha256", digest),
+    )
+
+
+def _extract_sections(
+    native: dict[str, Any], declarations: dict[str, Vulnerability], records: list[LegacyClassification]
+) -> None:
     for section, fields in (
         ("nodes", ("vulnerabilities",)),
         ("features", ("vulnerabilities",)),
@@ -182,10 +217,9 @@ def read_legacy_classification_source(
             )
             if section == "nodes":
                 _extract_routes(item, node_name=name, declarations=declarations, records=records)
-    _extract_entities(
-        native.get("entities"), pointer="/entities", subject="entities", declarations=declarations, records=records
-    )
-    actions = native.get("action_contracts", {})
+
+
+def _extract_actions(actions: object, records: list[LegacyClassification]) -> None:
     if isinstance(actions, dict):
         for name, action in actions.items():
             if not isinstance(action, dict) or "external_mappings" not in action:
@@ -204,21 +238,6 @@ def read_legacy_classification_source(
                         identifier=mapping.identifier,
                     )
                 )
-    digest = canonical_json_digest(
-        {
-            "profile": SDL_CANONICAL_PROFILE,
-            "scenario": original,
-            "module_variable_specs": {},
-            "module_node_variable_refs": {},
-        }
-    )
-    return LegacyClassificationSource(
-        native,
-        original,
-        tuple(sorted(records, key=lambda item: item.pointer)),
-        tuple(sorted(f"vulnerabilities.{name}" for name in declarations)),
-        SDLCanonicalDigest(SDL_CANONICAL_PROFILE, "sha256", digest),
-    )
 
 
 def legacy_classification_source_digest(content: str) -> SDLCanonicalDigest:

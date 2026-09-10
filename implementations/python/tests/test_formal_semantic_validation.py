@@ -138,7 +138,7 @@ def test_classification_replay_drift_is_not_accepted_by_a_digest_pair(case_id, r
 
     observation = {"actual_outcome": "accepted", "diagnostic_kind": None, "result_digest": recorded}
     replayed = {**observation, "result_digest": changed}
-    assert not _replay_observation_matches(case_id, observation, replayed)
+    assert not _replay_observation_matches(observation, replayed)
 
 
 def test_retest_gate_requires_explicit_baseline_drift_disposition() -> None:

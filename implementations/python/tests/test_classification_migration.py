@@ -158,7 +158,8 @@ def test_missing_assertion_context_is_an_actionable_atomic_refusal():
 
     result = migrate_sdl_classifications(LEGACY_SOURCE)
     assert not result.succeeded
-    assert result.output is None and result.binding_documents == ()
+    assert result.output is None
+    assert result.binding_documents == ()
     assert result.report.diagnostics[0].code == "classification-migration.context-required"
     assert "CWE-89" not in result.report.diagnostics[0].message
 
@@ -206,7 +207,8 @@ def test_migration_refuses_incomplete_or_conflicting_evidence(mutation, expected
     mutated = ExternalConceptBindingDocumentModel.model_validate(payload)
     result = migrate_sdl_classifications(LEGACY_SOURCE, bindings=mutated, scheme_snapshots=snapshots, policy=policy)
     assert not result.succeeded
-    assert result.output is None and result.binding_documents == ()
+    assert result.output is None
+    assert result.binding_documents == ()
     assert result.report.diagnostics[0].code == f"classification-migration.{expected}"
     assert document == _migration_inputs()[0]
 
@@ -262,7 +264,8 @@ def test_canonical_source_migration_is_idempotent():
     source = "name: native\nnodes: {web: {type: compute}}\n"
     first = migrate_sdl_classifications(source)
     second = migrate_sdl_classifications(render_sdl_source(first.output).content)
-    assert first.succeeded and second.succeeded
+    assert first.succeeded
+    assert second.succeeded
     assert first.output == second.output
     assert first.report.source_digest == first.report.target_digest == second.report.target_digest
 
@@ -310,7 +313,8 @@ def test_migration_refuses_to_normalize_native_configuration_incidentally():
         scheme_snapshots=(snapshot,),
         policy=ArtifactTransformationPolicy(allowed_loss_kinds=(ArtifactTransformationLossKind.DECLARATION_REMOVED,)),
     )
-    assert result.output is None and result.binding_documents == ()
+    assert result.output is None
+    assert result.binding_documents == ()
     assert result.report.diagnostics[0].code == "classification-migration.native-projection-changed"
 
 
@@ -370,7 +374,8 @@ def test_malformed_legacy_sources_return_only_bounded_refusal(source):
     from raes.classification_migration import migrate_sdl_classifications
 
     result = migrate_sdl_classifications(source)
-    assert result.output is None and result.binding_documents == ()
+    assert result.output is None
+    assert result.binding_documents == ()
     assert result.report.diagnostics[0].code == "classification-migration.source-invalid"
     assert result.report.canonicalization_profile == "raw-utf8/v1"
 
@@ -380,7 +385,8 @@ def test_source_limits_are_enforced_before_migration():
     from raes.classification_migration import migrate_sdl_classifications
 
     result = migrate_sdl_classifications(LEGACY_SOURCE, limits=SDLParserLimits(max_input_bytes=10))
-    assert result.output is None and result.binding_documents == ()
+    assert result.output is None
+    assert result.binding_documents == ()
     assert result.report.diagnostics[0].code == "classification-migration.source-invalid"
 
 
@@ -399,7 +405,8 @@ nodes:
           routes: [{route_id: b, path: /two}]
 """
     result = migrate_sdl_classifications(source)
-    assert result.output is None and result.binding_documents == ()
+    assert result.output is None
+    assert result.binding_documents == ()
     assert result.report.diagnostics[0].code == "classification-migration.source-invalid"
 
 
@@ -565,7 +572,8 @@ def test_existing_sidecars_are_retargeted_without_rewriting_their_provenance():
         existing_binding_documents=(existing,),
         policy=ArtifactTransformationPolicy(allowed_loss_kinds=(ArtifactTransformationLossKind.DECLARATION_REMOVED,)),
     )
-    assert result.succeeded and len(result.binding_documents) == 2
+    assert result.succeeded
+    assert len(result.binding_documents) == 2
     output = result.binding_documents[1].bindings["attack-execution"]
     assert output.subject.artifact_digest == result.report.target_digest
     assert output.provenance == existing.bindings["attack-execution"].provenance
@@ -583,12 +591,14 @@ def test_historical_vm_snapshot_default_cleanup_never_drops_assertions():
     )["snapshot"]
     original = deepcopy(payload)
     migrated, changed = migrate_legacy_instantiated_snapshot_payload(payload)
-    assert changed and payload == original
+    assert changed
+    assert payload == original
     assert "vulnerabilities" not in migrated["scenario"]
     assert InstantiatedScenarioSnapshot.model_validate(migrated)
     payload["scenario"]["nodes"]["target"]["vulnerabilities"] = ["historical-claim"]
     migrated, changed = migrate_legacy_instantiated_snapshot_payload(payload)
-    assert changed and migrated["scenario"]["nodes"]["target"]["vulnerabilities"] == ["historical-claim"]
+    assert changed
+    assert migrated["scenario"]["nodes"]["target"]["vulnerabilities"] == ["historical-claim"]
     with pytest.raises(ValidationError, match="classification migration"):
         InstantiatedScenarioSnapshot.model_validate(migrated)
 
@@ -617,11 +627,15 @@ def test_empty_snapshot_classification_defaults_migrate_without_legacy_vm_nodes(
         node["vulnerabilities"] = []
     original = deepcopy(payload)
     migrated, changed = migrate_legacy_instantiated_snapshot_payload(payload)
-    assert changed and migrated == clean and payload == original
+    assert changed
+    assert migrated == clean
+    assert payload == original
     admitted = InstantiatedScenarioSnapshot.model_validate(payload)
     assert admitted.model_dump(mode="json") == clean
     joined, digest, changed = migrate_legacy_instantiated_snapshot_join(payload, canonical_json_digest(payload))
-    assert changed and joined == clean and digest == canonical_json_digest(clean)
+    assert changed
+    assert joined == clean
+    assert digest == canonical_json_digest(clean)
     with pytest.raises(ValueError, match="must bind"):
         migrate_legacy_instantiated_snapshot_join(payload, "sha256:" + "0" * 64)
     assert migrate_legacy_instantiated_snapshot_payload(clean) == (clean, False)

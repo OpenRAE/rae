@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from tools.formal_semantic_validation._production import (
+    _ProductionObservationContext,
     _validate_production_evidence_observation,
 )
 from tools.formal_semantic_validation._replay import (
@@ -14,6 +15,7 @@ from tools.formal_semantic_validation._replay import (
     _replay_observation_matches,
     replay_case,
 )
+from tools.formal_semantic_validation._retest_participants import _validate_retest_participant_observations
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
@@ -26,7 +28,6 @@ from tools.formal_semantic_validation._types import (
     _COMMAND_KEYS,
     _COMMIT_RE,
     _OBSERVATION_V2_KEYS,
-    _PARTICIPANT_OBSERVATION_KEYS,
     _SHA256_RE,
     _SNAPSHOT_V2_KEYS,
     _VERSION_KEYS,
@@ -79,22 +80,20 @@ def _validate_retest_snapshot(
         scope, (release_artifacts_by_path, commands_by_id), failures, path
     )
     if release.manifest.get("revision") == "4.0.0":
-        expected_release_paths.update(
-            value
-            for case in cases_by_id.values()
-            for value in (case.get("fixture_path"), case.get("comparison_fixture_path"))
-            if isinstance(value, str)
-        )
-    if (
-        command_ids.issuperset(
-            {
-                case_id
-                for case_id, case in cases_by_id.items()
-                if case.get("replay_mode") in PRODUCTION_EVIDENCE_REPLAY_MODES
-            }
-        )
-        is False
-    ):
+        expected_release_paths.update(_retained_fixture_paths(cases_by_id))
+    _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)
+    _validate_retest_participant_observations(protocol, snapshot, failures, path)
+
+
+def _validate_release_selection(
+    scope: _RetestScope, command_ids: set[object], expected_paths: set[str], failures: list[PolicyFailure], path: str
+) -> None:
+    required_commands = {
+        case_id
+        for case_id, case in scope.cases_by_id.items()
+        if case.get("replay_mode") in PRODUCTION_EVIDENCE_REPLAY_MODES
+    }
+    if not command_ids.issuperset(required_commands):
         failures.append(
             _failure(
                 "formal-validation-production-command",
@@ -104,19 +103,26 @@ def _validate_retest_snapshot(
         )
     selected_release_paths = {
         str(item.get("path"))
-        for item in release_artifacts
-        if item.get("kind") in {"corpus-input", "production-evidence"}
+        for item in scope.release.manifest.get("artifacts", [])
+        if isinstance(item, Mapping) and item.get("kind") in {"corpus-input", "production-evidence"}
     }
-    if selected_release_paths != expected_release_paths:
+    if selected_release_paths != expected_paths:
         failures.append(
             _failure(
                 "formal-validation-production-evidence-join",
                 "the atomic release must select exactly every production input and evidence artifact",
-                release.manifest_path,
+                scope.release.manifest_path,
             )
         )
 
-    _validate_retest_participant_observations(protocol, snapshot, failures, path)
+
+def _retained_fixture_paths(cases_by_id: Mapping[str, Mapping[str, object]]) -> set[str]:
+    return {
+        value
+        for case in cases_by_id.values()
+        for value in (case.get("fixture_path"), case.get("comparison_fixture_path"))
+        if isinstance(value, str)
+    }
 
 
 def _retest_observation_failures(
@@ -142,14 +148,11 @@ def _retest_observation_failures(
     for observation in observations:
         expected_release_paths.update(
             _validate_retest_observation(
-                scope.repo_root,
-                snapshot,
-                cases_by_id,
+                scope,
                 pins,
                 observation,
                 failures,
                 path,
-                replay_current=scope.replay_current,
             )
         )
     if observation_ids != set(cases_by_id) or len(observation_ids) != len(cases_by_id):
@@ -277,9 +280,7 @@ def _validate_retest_participant_command(
 
 
 def _validate_retest_observation(
-    repo_root: Path,
-    snapshot: Mapping[str, object],
-    cases_by_id: Mapping[str, Mapping[str, object]],
+    scope: _RetestScope,
     replay_context: tuple[
         Mapping[object, Mapping[str, object]],
         Mapping[object, Mapping[str, object]],
@@ -287,8 +288,6 @@ def _validate_retest_observation(
     observation: object,
     failures: list[PolicyFailure],
     path: str,
-    *,
-    replay_current: bool = True,
 ) -> set[str]:
     expected_paths: set[str] = set()
     if not _closed_object(
@@ -301,7 +300,7 @@ def _validate_retest_observation(
     ):
         return expected_paths
     case_id = observation.get("case_id")
-    case = cases_by_id.get(str(case_id))
+    case = scope.cases_by_id.get(str(case_id))
     if case is None:
         failures.append(
             _failure(
@@ -311,18 +310,16 @@ def _validate_retest_observation(
             )
         )
     else:
-        _validate_retest_observation_metadata(snapshot, case, observation, failures, path)
+        _validate_retest_observation_metadata(scope.snapshot, case, observation, failures, path)
         if case.get("replay_mode") in PRODUCTION_EVIDENCE_REPLAY_MODES:
             release_artifacts_by_path, commands_by_id = replay_context
             _validate_production_evidence_observation(
-                repo_root,
-                release_artifacts_by_path,
+                _ProductionObservationContext(scope.repo_root, release_artifacts_by_path, scope.replay_current),
                 case,
                 observation,
                 commands_by_id.get(case_id),
                 failures,
                 path,
-                replay_current=replay_current,
             )
             expected_paths.update(
                 value
@@ -331,7 +328,7 @@ def _validate_retest_observation(
             )
         else:
             _validate_retained_retest_observation(
-                repo_root, case, observation, failures, path, replay_current=replay_current
+                scope.repo_root, case, observation, failures, path, replay_current=scope.replay_current
             )
     return expected_paths
 
@@ -404,15 +401,7 @@ def _validate_retained_retest_observation(
         _validate_unsupported_retest_observation(observation, failures, path)
         return
     if not replay_current:
-        digest = observation.get("result_digest")
-        if (
-            observation.get("actual_outcome") != case.get("expected_outcome")
-            or (digest is not None and (not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest)))
-            or (
-                observation.get("diagnostic_kind") is not None
-                and not isinstance(observation.get("diagnostic_kind"), str)
-            )
-        ):
+        if not _historical_observation_matches(case, observation):
             failures.append(
                 _failure("formal-validation-replay-drift", "historical outcome differs from its control", path)
             )
@@ -428,7 +417,7 @@ def _validate_retained_retest_observation(
             )
         )
     else:
-        if not _replay_observation_matches(case_id, observation, replayed):
+        if not _replay_observation_matches(observation, replayed):
             failures.append(
                 _failure(
                     "formal-validation-replay-drift",
@@ -436,6 +425,16 @@ def _validate_retained_retest_observation(
                     path,
                 )
             )
+
+
+def _historical_observation_matches(case: Mapping[str, object], observation: Mapping[str, object]) -> bool:
+    digest = observation.get("result_digest")
+    diagnostic_kind = observation.get("diagnostic_kind")
+    return (
+        observation.get("actual_outcome") == case.get("expected_outcome")
+        and (digest is None or (isinstance(digest, str) and bool(_SHA256_RE.fullmatch(digest))))
+        and (diagnostic_kind is None or isinstance(diagnostic_kind, str))
+    )
 
 
 def _validate_unsupported_retest_observation(
@@ -452,73 +451,6 @@ def _validate_unsupported_retest_observation(
             _failure(
                 "formal-validation-unsupported-observation",
                 f"historical unsupported case {observation.get('case_id')!r} must remain unsupported",
-                path,
-            )
-        )
-
-
-def _validate_retest_participant_observations(
-    protocol: Mapping[str, object],
-    snapshot: Mapping[str, object],
-    failures: list[PolicyFailure],
-    path: str,
-) -> None:
-    obligations = {
-        item.get("obligation_id"): item
-        for item in protocol.get("participant_obligations", [])
-        if isinstance(item, Mapping)
-    }
-    observations = snapshot.get("participant_observations")
-    observation_ids, unique = _stable_ids(observations, "obligation_id")
-    if not _is_sequence(observations) or not unique or observation_ids != set(obligations):
-        failures.append(
-            _failure(
-                "formal-validation-participant-observation-coverage",
-                "retest snapshot must retain every participant obligation exactly once",
-                path,
-            )
-        )
-        return
-    for observation in observations:
-        if not _closed_object(
-            observation,
-            _PARTICIPANT_OBSERVATION_KEYS,
-            rule_id="formal-validation-participant-observation-shape",
-            label="participant observation",
-            failures=failures,
-            path=path,
-        ):
-            continue
-        _retest_participant_observation_failures(observation, obligations, snapshot, failures, path)
-
-
-def _retest_participant_observation_failures(
-    observation: Mapping[str, object],
-    obligations: Mapping[object, Mapping[str, object]],
-    snapshot: Mapping[str, object],
-    failures: list[PolicyFailure],
-    path: str,
-) -> None:
-    obligation = obligations.get(observation.get("obligation_id"))
-    expected_refs = (
-        [
-            obligation.get("positive_test_ref"),
-            obligation.get("negative_test_ref"),
-        ]
-        if isinstance(obligation, Mapping)
-        else []
-    )
-    if (
-        observation.get("execution_id") != snapshot.get("execution_id")
-        or observation.get("evidence_refs") != expected_refs
-        or observation.get("positive_outcome") != "passed"
-        or observation.get("negative_outcome") != "passed"
-        or not _string_list(observation.get("limitations"))
-    ):
-        failures.append(
-            _failure(
-                "formal-validation-participant-observation-join",
-                f"participant observation {observation.get('obligation_id')!r} is stale",
                 path,
             )
         )

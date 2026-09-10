@@ -2798,17 +2798,14 @@ class TestVerifyRuntimeApplication:
         assert _validate(s) == []
 
     def test_route_vulnerability_refs_require_classification_migration(self):
+        node = self._node_with_application(
+            {
+                "application_id": "app",
+                "routes": [{"route_id": "route", "path": "/", "vulnerability_refs": ["known"]}],
+            }
+        )
         with pytest.raises(ValidationError, match="classification migration"):
-            _make_scenario(
-                nodes={
-                    "web": self._node_with_application(
-                        {
-                            "application_id": "app",
-                            "routes": [{"route_id": "route", "path": "/", "vulnerability_refs": ["known"]}],
-                        }
-                    )
-                }
-            )
+            _make_scenario(nodes={"web": node})
 
     def test_route_template_ref_resolves_to_filesystem_inventory(self):
         node = {

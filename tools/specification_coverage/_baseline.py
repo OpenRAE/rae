@@ -34,32 +34,15 @@ def validate_current_deviations(repo_root: Path, snapshot: dict[str, object]) ->
         baseline = _baseline_snapshot(repo_root, snapshot.get("baseline"))
         old = {item["path"]: item for item in baseline["artifacts"]}
         new = {item["path"]: item for item in snapshot["artifacts"]}
-        if old.keys() != new.keys() or any(old[p]["kind"] != new[p]["kind"] for p in old):
-            raise ValueError("current capture must retain the preregistered artifacts")
-        changed = {p for p in old if old[p]["sha256"] != new[p]["sha256"]}
+        changed = _changed_artifacts(old, new)
         deviations = snapshot.get("deviations")
         if not isinstance(deviations, list) or len(deviations) != len(changed):
             raise ValueError("deviations must exactly cover changed source pins")
         seen = set()
         for item in deviations:
-            if not isinstance(item, dict) or set(item) != {
-                "artifact_path",
-                "baseline_sha256",
-                "retest_sha256",
-                "rationale",
-            }:
-                raise ValueError("invalid source deviation shape")
-            artifact = item["artifact_path"]
-            if (
-                not isinstance(artifact, str)
-                or artifact not in changed
-                or artifact in seen
-                or item["baseline_sha256"] != old[artifact]["sha256"]
-                or item["retest_sha256"] != new[artifact]["sha256"]
-                or not isinstance(item["rationale"], str)
-                or not item["rationale"].strip()
-            ):
-                raise ValueError("stale or ambiguous source deviation")
+            artifact = _deviation_artifact(item, old, new, changed)
+            if artifact in seen:
+                raise ValueError("duplicate source deviation")
             seen.add(artifact)
     except (OSError, ValueError, KeyError, TypeError):
         return [
@@ -70,3 +53,30 @@ def validate_current_deviations(repo_root: Path, snapshot: dict[str, object]) ->
             )
         ]
     return []
+
+
+def _deviation_artifact(
+    item: object,
+    old: dict[str, dict[str, object]],
+    new: dict[str, dict[str, object]],
+    changed: set[str],
+) -> str:
+    if not isinstance(item, dict) or set(item) != {"artifact_path", "baseline_sha256", "retest_sha256", "rationale"}:
+        raise ValueError("invalid source deviation shape")
+    artifact = item["artifact_path"]
+    if (
+        not isinstance(artifact, str)
+        or artifact not in changed
+        or item["baseline_sha256"] != old[artifact]["sha256"]
+        or item["retest_sha256"] != new[artifact]["sha256"]
+        or not isinstance(item["rationale"], str)
+        or not item["rationale"].strip()
+    ):
+        raise ValueError("stale or ambiguous source deviation")
+    return artifact
+
+
+def _changed_artifacts(old: dict[str, dict[str, object]], new: dict[str, dict[str, object]]) -> set[str]:
+    if old.keys() != new.keys() or any(old[p]["kind"] != new[p]["kind"] for p in old):
+        raise ValueError("current capture must retain the preregistered artifacts")
+    return {p for p in old if old[p]["sha256"] != new[p]["sha256"]}

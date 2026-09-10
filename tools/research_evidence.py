@@ -15,6 +15,14 @@ SOURCE_PROFILE = "python-reference-source/v1"
 _SOURCE_KEYS = {"profile", "base_revision", "checkout_state", "implementation_digest"}
 
 
+def _source_size(path: Path, total: int) -> int:
+    size = path.stat().st_size
+    total += size
+    if size > 2 * 1024 * 1024 or total > 128 * 1024 * 1024:
+        raise ValueError("implementation source budget exceeded")
+    return total
+
+
 def surface_digest(repo_root: Path, relative: str) -> str:
     """Digest a registered package's Python files with relative path binding."""
     root = safe_repo_path(repo_root, relative)
@@ -26,9 +34,8 @@ def surface_digest(repo_root: Path, relative: str) -> str:
         resolved = safe_repo_path(repo_root, path.relative_to(repo_root).as_posix())
         if resolved != path or path.is_symlink() or not path.is_file():
             raise ValueError("unsafe implementation source")
-        size = path.stat().st_size
-        total += size
-        if size > 2 * 1024 * 1024 or total > 128 * 1024 * 1024 or len(pins) >= 10000:
+        total = _source_size(path, total)
+        if len(pins) >= 10000:
             raise ValueError("implementation source budget exceeded")
         pins.append([path.relative_to(root).as_posix(), hashlib.sha256(path.read_bytes()).hexdigest()])
     if not pins:
@@ -62,18 +69,14 @@ def implementation_digest(repo_root: Path) -> str:
         resolved = safe_repo_path(repo_root, relative)
         if resolved is None or not resolved.is_file() or path.is_symlink():
             raise ValueError("unsafe reference implementation source")
-        size = resolved.stat().st_size
-        total += size
-        if size > 2 * 1024 * 1024 or total > 128 * 1024 * 1024:
-            raise ValueError("reference implementation source budget exceeded")
+        total = _source_size(resolved, total)
         pins.append([relative, hashlib.sha256(resolved.read_bytes()).hexdigest()])
     encoded = json.dumps(pins, ensure_ascii=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
 
 
-def source_state_failures(repo_root: Path, state: object, path: str, *, current: bool) -> list[PolicyFailure]:
-    """Historical source identity is retained; a current capture binds live code."""
-    valid = (
+def _source_identity_valid(state: object) -> bool:
+    return (
         isinstance(state, Mapping)
         and set(state) == _SOURCE_KEYS
         and state.get("profile") == SOURCE_PROFILE
@@ -84,6 +87,11 @@ def source_state_failures(repo_root: Path, state: object, path: str, *, current:
         and isinstance(state.get("implementation_digest"), str)
         and re.fullmatch(r"[0-9a-f]{64}", state["implementation_digest"]) is not None
     )
+
+
+def source_state_failures(repo_root: Path, state: object, path: str, *, current: bool) -> list[PolicyFailure]:
+    """Historical source identity is retained; a current capture binds live code."""
+    valid = _source_identity_valid(state)
     if valid and current:
         try:
             valid = state["implementation_digest"] == implementation_digest(repo_root)

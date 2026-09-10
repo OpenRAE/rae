@@ -35,7 +35,7 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
         "result_digest": "ba0ecbfcb3090ffd6b660cb51324fafcd47ca8dedbbb985e98b6e7f64f8cc25b",
     }
     changed = {**old, "result_digest": "5332666a0299d2c303d7a7da4b56dfd309cebf021af187b063ef597cf81bf40a"}
-    assert not _replay_observation_matches("semantic-resolved-objective", old, changed)
+    assert not _replay_observation_matches(old, changed)
 
 
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch):

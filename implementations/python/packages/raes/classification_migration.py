@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from dataclasses import dataclass
 
 import yaml
 from pydantic import ValidationError
@@ -14,6 +15,7 @@ from raes_contracts.contracts import (
     ArtifactTransformationPreservationModel,
     ArtifactTransformationReportModel,
     ArtifactTransformationStatus,
+    ExternalConceptBindingAssertionModel,
     ExternalConceptBindingDocumentModel,
     PreservationOutcome,
     TransformationCheckOutcome,
@@ -23,6 +25,7 @@ from raes_contracts.external_concept_bindings import ExternalConceptSchemeSnapsh
 
 from ._errors import SDLError
 from ._legacy_classification_source import (
+    LegacyClassification,
     LegacyClassificationSource,
     legacy_classification_source_digest,
     read_legacy_classification_source,
@@ -30,35 +33,49 @@ from ._legacy_classification_source import (
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDLParserLimits
 from ._transformation_bindings import _retarget_binding_document
 from ._transformation_support import check, diagnostic, transformation_policy_digest
-from ._transformation_types import ArtifactTransformationPolicy, SDLTransformationResult
+from ._transformation_types import ArtifactTransformationPolicy, SDLAuthoringArtifact, SDLTransformationResult
 from .canonical import canonical_sdl_digest
 from .external_concept_subjects import external_concept_subjects
 from .parser import parse_sdl
 
 CLASSIFICATION_MIGRATION_PROFILE = "externalize-sdl-classifications/v1"
+_CONTEXT_INVALID = "classification-migration.context-invalid"
+_BINDING_ADMISSION_FAILED = "classification-migration.binding-admission-failed"
+
+
+@dataclass
+class _ReportContext:
+    source_digest: str
+    policy: ArtifactTransformationPolicy
+    context_digest: str
+    canonicalization_profile: str = "raes-sdl-semantic/v1"
+
+
+class _MigrationRefusal(Exception):
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
 
 
 def _report(
+    context: _ReportContext,
     *,
-    source_digest: str,
-    policy: ArtifactTransformationPolicy,
-    context_digest: str,
     code: str | None = None,
     target_digest: str | None = None,
     losses: tuple[ArtifactTransformationLossModel, ...] = (),
     affected: tuple[str, ...] = (),
     binding_digests: tuple[str, ...] = (),
-    canonicalization_profile: str = "raes-sdl-semantic/v1",
 ) -> ArtifactTransformationReportModel:
     succeeded = code is None
-    policy_digest = transformation_policy_digest(policy)
+    source_digest = context.source_digest
+    policy_digest = transformation_policy_digest(context.policy)
     return ArtifactTransformationReportModel(
         operation_profile=CLASSIFICATION_MIGRATION_PROFILE,
         status=ArtifactTransformationStatus.SUCCESS if succeeded else ArtifactTransformationStatus.REFUSED,
         artifact_kind=ArtifactTransformationKind.SDL_AUTHORING,
         source_profile="sdl-legacy-classifications/v1",
         target_profile="sdl-authoring-input/v1",
-        canonicalization_profile=canonicalization_profile,
+        canonicalization_profile=context.canonicalization_profile,
         source_digest=source_digest,
         target_digest=target_digest,
         policy_digest=policy_digest,
@@ -67,7 +84,7 @@ def _report(
                 "operation_profile": CLASSIFICATION_MIGRATION_PROFILE,
                 "source_digest": source_digest,
                 "policy_digest": policy_digest,
-                "context_digest": context_digest,
+                "context_digest": context.context_digest,
             }
         ),
         preconditions=(
@@ -95,17 +112,40 @@ def _report(
 
 
 _MESSAGES = {
-    "classification-migration.source-invalid": "Legacy source is invalid or unsupported; migrate uncomposed authoring sources with concrete classification values. See docs/migration/external-classifications.md.",
-    "classification-migration.context-required": "Supply one complete external concept assertion per legacy association, with exact source-pointer provenance and pinned local scheme snapshots.",
-    "classification-migration.context-invalid": "Assertion context must preserve each exact source subject and source pointer without missing, duplicate, stale, or extra mappings.",
-    "classification-migration.loss-not-authorized": "Vulnerability declaration removal requires declaration-removed authorization; an unreferenced declaration also requires semantic-omission authorization.",
-    "classification-migration.target-invalid": "The native SDL must independently pass structural and semantic validation; migrate references to removed declarations explicitly.",
-    "classification-migration.native-projection-changed": "Normalize legacy native fields with the source-version formatter before migration; migration must preserve the native projection exactly.",
-    "classification-migration.binding-admission-failed": "Supply exact current scheme snapshots and complete valid assertions; unavailable, stale, ambiguous, superseded, or unknown concepts cannot complete migration.",
+    "classification-migration.source-invalid": (
+        "Legacy source is invalid or unsupported; migrate uncomposed authoring sources with concrete "
+        "classification values. See docs/migration/external-classifications.md."
+    ),
+    "classification-migration.context-required": (
+        "Supply one complete external concept assertion per legacy association, with exact source-pointer "
+        "provenance and pinned local scheme snapshots."
+    ),
+    _CONTEXT_INVALID: (
+        "Assertion context must preserve each exact source subject and source pointer without missing, "
+        "duplicate, stale, or extra mappings."
+    ),
+    "classification-migration.loss-not-authorized": (
+        "Vulnerability declaration removal requires declaration-removed authorization; an unreferenced "
+        "declaration also requires semantic-omission authorization."
+    ),
+    "classification-migration.target-invalid": (
+        "The native SDL must independently pass structural and semantic validation; migrate references "
+        "to removed declarations explicitly."
+    ),
+    "classification-migration.native-projection-changed": (
+        "Normalize legacy native fields with the source-version formatter before migration; migration "
+        "must preserve the native projection exactly."
+    ),
+    _BINDING_ADMISSION_FAILED: (
+        "Supply exact current scheme snapshots and complete valid assertions; unavailable, stale, ambiguous, "
+        "superseded, or unknown concepts cannot complete migration."
+    ),
 }
 
 
-def _losses(source: LegacyClassificationSource, policy: ArtifactTransformationPolicy):
+def _losses(
+    source: LegacyClassificationSource, policy: ArtifactTransformationPolicy
+) -> tuple[ArtifactTransformationLossModel, ...] | None:
     referenced = {record.declaration_ref for record in source.classifications}
     allowed = set(policy.allowed_loss_kinds)
     if source.declarations and ArtifactTransformationLossKind.DECLARATION_REMOVED not in allowed:
@@ -143,31 +183,36 @@ def _losses(source: LegacyClassificationSource, policy: ArtifactTransformationPo
 def _context_matches(source: LegacyClassificationSource, document: ExternalConceptBindingDocumentModel | None) -> bool:
     if document is None:
         return not source.classifications
-    if len(document.bindings) != len(source.classifications):
-        return False
     used: set[str] = set()
-    for record in source.classifications:
-        candidates = [
-            binding
-            for binding in document.bindings.values()
-            if any(
-                ref.ref_kind == "authoring-input"
-                and ref.ref_digest == source.source_digest.value
-                and ref.ref_path == record.pointer
-                for ref in binding.provenance.source_refs
-            )
-        ]
-        if len(candidates) != 1:
-            return False
-        binding = candidates[0]
-        if binding.binding_id in used or binding.subject.canonical_ref != record.subject_ref:
-            return False
-        if binding.subject.artifact_digest != source.source_digest.value:
-            return False
-        if record.declaration_ref is not None and binding.scheme.concept_id != record.identifier:
-            return False
-        used.add(binding.binding_id)
-    return True
+    return len(document.bindings) == len(source.classifications) and all(
+        _record_matches(record, source.source_digest.value, document, used) for record in source.classifications
+    )
+
+
+def _provenance_matches(binding: ExternalConceptBindingAssertionModel, digest: str, pointer: str) -> bool:
+    return any(
+        ref.ref_kind == "authoring-input" and ref.ref_digest == digest and ref.ref_path == pointer
+        for ref in binding.provenance.source_refs
+    )
+
+
+def _record_matches(
+    record: LegacyClassification, digest: str, document: ExternalConceptBindingDocumentModel, used: set[str]
+) -> bool:
+    candidates = [
+        binding for binding in document.bindings.values() if _provenance_matches(binding, digest, record.pointer)
+    ]
+    if len(candidates) != 1:
+        return False
+    binding = candidates[0]
+    matches = (
+        binding.binding_id not in used
+        and binding.subject.canonical_ref == record.subject_ref
+        and binding.subject.artifact_digest == digest
+        and (record.declaration_ref is None or binding.scheme.concept_id == record.identifier)
+    )
+    used.add(binding.binding_id)
+    return matches
 
 
 def migrate_sdl_classifications(
@@ -193,46 +238,78 @@ def migrate_sdl_classifications(
             "snapshots": [snapshot.model_dump(mode="json") for snapshot in scheme_snapshots],
         }
     )
-    source_digest = "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
-    source_profile = "raw-utf8/v1"
-
-    def refuse(code: str) -> SDLTransformationResult:
-        return SDLTransformationResult(
-            None,
-            (),
-            _report(
-                source_digest=source_digest,
-                policy=resolved_policy,
-                context_digest=context_digest,
-                code=code,
-                canonicalization_profile=source_profile,
-            ),
-        )
-
+    context = _ReportContext(
+        "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        resolved_policy,
+        context_digest,
+        "raw-utf8/v1",
+    )
     try:
-        source = read_legacy_classification_source(content, limits=limits)
-    except (SDLError, ValueError, TypeError):
-        return refuse("classification-migration.source-invalid")
-    source_digest = source.source_digest.value
-    source_profile = source.source_digest.profile
+        source = _migration_source(content, limits)
+        context.source_digest = source.source_digest.value
+        context.canonicalization_profile = source.source_digest.profile
+        losses = _migration_losses(source, bindings, resolved_policy)
+        target = _migration_target(source, limits)
+        output_documents = _migration_bindings(source, target, bindings, existing_binding_documents, scheme_snapshots)
+    except _MigrationRefusal as exc:
+        return SDLTransformationResult(None, (), _report(context, code=exc.code))
+    # Successful output uses the current canonical profile, as before migration refactoring.
+    context.canonicalization_profile = "raes-sdl-semantic/v1"
+    report = _report(
+        context,
+        target_digest=canonical_sdl_digest(target).value,
+        losses=losses,
+        affected=(*source.declarations, *(record.subject_ref for record in source.classifications)),
+        binding_digests=tuple(canonical_json_digest(document.model_dump(mode="json")) for document in output_documents),
+    )
+    return SDLTransformationResult(target, output_documents, report)
+
+
+def _migration_source(content: str, limits: SDLParserLimits) -> LegacyClassificationSource:
+    try:
+        return read_legacy_classification_source(content, limits=limits)
+    except (SDLError, ValueError, TypeError) as exc:
+        raise _MigrationRefusal("classification-migration.source-invalid") from exc
+
+
+def _migration_losses(
+    source: LegacyClassificationSource,
+    bindings: ExternalConceptBindingDocumentModel | None,
+    policy: ArtifactTransformationPolicy,
+) -> tuple[ArtifactTransformationLossModel, ...]:
     if source.classifications and bindings is None:
-        return refuse("classification-migration.context-required")
+        raise _MigrationRefusal("classification-migration.context-required")
     if not _context_matches(source, bindings):
-        return refuse("classification-migration.context-invalid")
-    losses = _losses(source, resolved_policy)
+        raise _MigrationRefusal(_CONTEXT_INVALID)
+    losses = _losses(source, policy)
     if losses is None:
-        return refuse("classification-migration.loss-not-authorized")
+        raise _MigrationRefusal("classification-migration.loss-not-authorized")
+    return losses
+
+
+def _migration_target(source: LegacyClassificationSource, limits: SDLParserLimits) -> SDLAuthoringArtifact:
     try:
         target = parse_sdl(yaml.safe_dump(source.native, sort_keys=False), limits=limits)
-    except (SDLError, ValueError, TypeError):
-        return refuse("classification-migration.target-invalid")
+    except (SDLError, ValueError, TypeError) as exc:
+        raise _MigrationRefusal("classification-migration.target-invalid") from exc
     if target.model_dump(mode="json", by_alias=True, exclude_unset=True) != source.native:
-        return refuse("classification-migration.native-projection-changed")
+        raise _MigrationRefusal("classification-migration.native-projection-changed")
+    return target
+
+
+def _migration_bindings(
+    source: LegacyClassificationSource,
+    target: SDLAuthoringArtifact,
+    bindings: ExternalConceptBindingDocumentModel | None,
+    existing_binding_documents: tuple[ExternalConceptBindingDocumentModel, ...],
+    scheme_snapshots: tuple[ExternalConceptSchemeSnapshotModel, ...],
+) -> tuple[ExternalConceptBindingDocumentModel, ...]:
+    source_digest = source.source_digest.value
     target_digest = canonical_sdl_digest(target).value
     subject_candidates = external_concept_subjects(target)
     target_subjects = {subject.canonical_ref: subject for subject in subject_candidates}
     if len(target_subjects) != len(subject_candidates):
-        return refuse("classification-migration.context-invalid")
+        raise _MigrationRefusal(_CONTEXT_INVALID)
     source_subjects = {
         ref: subject.model_copy(update={"artifact_digest": source_digest}) for ref, subject in target_subjects.items()
     }
@@ -256,20 +333,10 @@ def migrate_sdl_classifications(
             ).admitted
             for document in output_documents
         ):
-            return refuse("classification-migration.binding-admission-failed")
-    except (ValidationError, ValueError, TypeError):
-        return refuse("classification-migration.binding-admission-failed")
-    binding_digests = tuple(canonical_json_digest(document.model_dump(mode="json")) for document in output_documents)
-    report = _report(
-        source_digest=source_digest,
-        policy=resolved_policy,
-        context_digest=context_digest,
-        target_digest=target_digest,
-        losses=losses,
-        affected=(*source.declarations, *(record.subject_ref for record in source.classifications)),
-        binding_digests=binding_digests,
-    )
-    return SDLTransformationResult(target, output_documents, report)
+            raise _MigrationRefusal(_BINDING_ADMISSION_FAILED)
+    except (ValidationError, ValueError, TypeError) as exc:
+        raise _MigrationRefusal(_BINDING_ADMISSION_FAILED) from exc
+    return output_documents
 
 
 __all__ = ["CLASSIFICATION_MIGRATION_PROFILE", "legacy_classification_source_digest", "migrate_sdl_classifications"]

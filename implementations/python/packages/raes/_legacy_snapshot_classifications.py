@@ -46,7 +46,12 @@ def remove_empty_legacy_snapshot_classifications(scenario: dict[str, Any]) -> bo
             for item in values.values():
                 changed |= _remove_empty(item, fields, [])
     changed |= _entities(scenario.get("entities"))
-    nodes = scenario.get("nodes")
+    changed |= _nodes(scenario.get("nodes"))
+    return changed
+
+
+def _nodes(nodes: object) -> bool:
+    changed = False
     if not isinstance(nodes, dict):
         return changed
     for node in nodes.values():
@@ -55,8 +60,14 @@ def remove_empty_legacy_snapshot_classifications(scenario: dict[str, Any]) -> bo
         if not isinstance(applications, list):
             continue
         for application in applications:
-            routes = application.get("routes") if isinstance(application, dict) else None
-            if isinstance(routes, list):
-                for route in routes:
-                    changed |= _remove_empty(route, ("vulnerability_refs",), [])
+            changed |= _routes(application)
+    return changed
+
+
+def _routes(application: object) -> bool:
+    changed = False
+    routes = application.get("routes") if isinstance(application, dict) else None
+    if isinstance(routes, list):
+        for route in routes:
+            changed |= _remove_empty(route, ("vulnerability_refs",), [])
     return changed

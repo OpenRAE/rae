@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 
 from tools.formal_semantic_validation._shape import (
@@ -31,6 +32,16 @@ from tools.formal_semantic_validation._types import (
     _JsonObject,
 )
 from tools.policy.common import PolicyFailure, safe_repo_path
+
+
+@dataclass(frozen=True)
+class _SatisfiabilityScope:
+    repo_root: Path
+    snapshot: _JsonObject
+    observations_by_case: dict[object, Mapping[str, object]]
+    path: str
+    snapshot_path: str
+    replay_current: bool
 
 
 def validate_satisfiability_analysis(
@@ -74,14 +85,9 @@ def validate_satisfiability_analysis(
         _satisfiability_command_failures(snapshot, cases_by_id, analysis, failures, snapshot_path)
         observations_by_case = _satisfiability_observations(snapshot, cases_by_id, failures, snapshot_path)
         _satisfiability_case_failures(
-            repo_root,
+            _SatisfiabilityScope(repo_root, snapshot, observations_by_case, path, snapshot_path, replay_current),
             cases,
-            snapshot,
-            observations_by_case,
             failures,
-            path,
-            snapshot_path,
-            replay_current=replay_current,
         )
     return failures
 
@@ -289,7 +295,7 @@ def _satisfiability_observations(
     return observations_by_case
 
 
-def _normalized_case_digest_matches(evidence: object, item: Mapping[str, object], case_id: object) -> bool:
+def _normalized_case_digest_matches(evidence: object, item: Mapping[str, object]) -> bool:
     return evidence.normalized_model_digest == item.get("expected_normalized_model_digest")
 
 
@@ -297,7 +303,6 @@ def _observation_drifted(
     observation: Mapping[str, object] | None,
     evidence: object,
     snapshot: _JsonObject,
-    case_id: object,
 ) -> bool:
     if observation is None:
         return True
@@ -346,21 +351,11 @@ def _control_evidence_failures(
 
 
 def _satisfiability_case_entry_failures(
-    repo_root: Path,
+    scope: _SatisfiabilityScope,
     item: Mapping[str, object],
-    snapshot: _JsonObject,
-    observations_by_case: dict[object, Mapping[str, object]],
     failures: list[PolicyFailure],
-    path: str,
-    snapshot_path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
-    from raes_processor.satisfiability import (
-        analyze_scenario_file,
-        replay_satisfiability_evidence,
-    )
-
+    path = scope.path
     case_id = item.get("case_id")
     control = item.get("control")
     expected_for_control = _SATISFIABILITY_CONTROL_OUTCOMES.get(str(control))
@@ -373,7 +368,7 @@ def _satisfiability_case_entry_failures(
             )
         )
     fixture_value = item.get("fixture_path")
-    fixture = safe_repo_path(repo_root, str(fixture_value)) if _nonempty_string(fixture_value) else None
+    fixture = safe_repo_path(scope.repo_root, str(fixture_value)) if _nonempty_string(fixture_value) else None
     if fixture is None or not fixture.is_file():
         failures.append(
             _failure(
@@ -391,25 +386,40 @@ def _satisfiability_case_entry_failures(
                 path,
             )
         )
-    if not replay_current:
-        observation = observations_by_case.get(case_id, {})
-        digest = item.get("expected_normalized_model_digest")
-        if (
-            not isinstance(digest, str)
-            or not digest.startswith("sha256:")
-            or not _SHA256_RE.fullmatch(digest[7:])
-            or observation.get("normalized_model_digest") != digest
-            or observation.get("actual_outcome") != expected_for_control
-            or observation.get("source_byte_digest") != "sha256:" + _sha256_file(fixture)
-        ):
+    if not scope.replay_current:
+        if not _historical_control_matches(scope, item, fixture, expected_for_control):
             failures.append(
                 _failure(
                     "formal-satisfiability-snapshot-drift",
                     "historical control or source digest join is invalid",
-                    snapshot_path,
+                    scope.snapshot_path,
                 )
             )
         return
+    _current_control_failures(scope, item, fixture, failures)
+
+
+def _historical_control_matches(
+    scope: _SatisfiabilityScope, item: Mapping[str, object], fixture: Path, expected_for_control: object
+) -> bool:
+    observation = scope.observations_by_case.get(item.get("case_id"), {})
+    digest = item.get("expected_normalized_model_digest")
+    return (
+        isinstance(digest, str)
+        and digest.startswith("sha256:")
+        and bool(_SHA256_RE.fullmatch(digest[7:]))
+        and observation.get("normalized_model_digest") == digest
+        and observation.get("actual_outcome") == expected_for_control
+        and observation.get("source_byte_digest") == "sha256:" + _sha256_file(fixture)
+    )
+
+
+def _current_control_failures(
+    scope: _SatisfiabilityScope, item: Mapping[str, object], fixture: Path, failures: list[PolicyFailure]
+) -> None:
+    from raes_processor.satisfiability import analyze_scenario_file, replay_satisfiability_evidence
+
+    case_id = item.get("case_id")
     try:
         evidence = analyze_scenario_file(fixture, profile=_CURRENT_SATISFIABILITY_PROFILE)
         replay_satisfiability_evidence(fixture, evidence)
@@ -418,41 +428,33 @@ def _satisfiability_case_entry_failures(
             _failure(
                 "formal-satisfiability-replay-error",
                 f"case {case_id!r} could not complete production replay ({type(exc).__name__})",
-                path,
+                scope.path,
             )
         )
         return
-    if evidence.outcome.value != item.get("expected_outcome") or not _normalized_case_digest_matches(
-        evidence, item, case_id
-    ):
+    if evidence.outcome.value != item.get("expected_outcome") or not _normalized_case_digest_matches(evidence, item):
         failures.append(
             _failure(
                 "formal-satisfiability-replay-drift",
                 f"case {case_id!r} drifted from its frozen outcome or normalized model",
-                path,
+                scope.path,
             )
         )
-    if _observation_drifted(observations_by_case.get(case_id), evidence, snapshot, case_id):
+    if _observation_drifted(scope.observations_by_case.get(case_id), evidence, scope.snapshot):
         failures.append(
             _failure(
                 "formal-satisfiability-snapshot-drift",
                 f"case {case_id!r} drifted from its execution snapshot",
-                snapshot_path,
+                scope.snapshot_path,
             )
         )
-    _control_evidence_failures(control, evidence, failures, path)
+    _control_evidence_failures(item.get("control"), evidence, failures, scope.path)
 
 
 def _satisfiability_case_failures(
-    repo_root: Path,
+    scope: _SatisfiabilityScope,
     cases: list[object],
-    snapshot: _JsonObject,
-    observations_by_case: dict[object, Mapping[str, object]],
     failures: list[PolicyFailure],
-    path: str,
-    snapshot_path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
     for item in cases:
         if not _closed_object(
@@ -461,16 +463,7 @@ def _satisfiability_case_failures(
             rule_id="formal-satisfiability-case-shape",
             label="satisfiability case",
             failures=failures,
-            path=path,
+            path=scope.path,
         ):
             continue
-        _satisfiability_case_entry_failures(
-            repo_root,
-            item,
-            snapshot,
-            observations_by_case,
-            failures,
-            path,
-            snapshot_path,
-            replay_current=replay_current,
-        )
+        _satisfiability_case_entry_failures(scope, item, failures)

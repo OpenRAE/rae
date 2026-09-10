@@ -111,7 +111,6 @@ def _replay_compile_distinguish(
 
 
 def _replay_observation_matches(
-    case_id: object,
     observation: Mapping[str, object],
     replayed: Mapping[str, object],
 ) -> bool:

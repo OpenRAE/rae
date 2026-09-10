@@ -251,24 +251,59 @@ def validate_retest_bundle(
         )
 
     if release_revision == "4.0.0":
-        failures.extend(
-            source_state_failures(repo_root, snapshot.get("source_state"), snapshot_path, current=replay_current)
-        )
-        state = snapshot.get("source_state")
-        if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
-            failures.append(
-                _failure("research-evidence-source-state", "base revision must join source identity", snapshot_path)
-            )
-        if not isinstance(snapshot.get("baseline"), Mapping) or snapshot["baseline"].get("release_revision") != "3.0.0":
-            failures.append(
-                _failure(
-                    "formal-validation-baseline-selection",
-                    "release 4.0.0 must retain the 3.0.0 baseline",
-                    snapshot_path,
-                )
-            )
+        _current_retest_source_failures(repo_root, snapshot, failures, snapshot_path, replay_current=replay_current)
     _validate_protocol(repo_root, protocol, failures, protocol_path)
     cases_by_id = _validate_corpus(repo_root, protocol, corpus, failures, corpus_path)
+    historical_cases = _retained_historical_cases(repo_root, cases_by_id, failures, corpus_path)
+    _validate_retest_snapshot(
+        _RetestScope(
+            repo_root=repo_root,
+            release=release,
+            protocol=protocol,
+            corpus=corpus,
+            snapshot=snapshot,
+            cases_by_id=cases_by_id,
+            replay_current=replay_current,
+        ),
+        failures,
+        snapshot_path,
+    )
+    _validate_baseline_drift(
+        repo_root,
+        snapshot,
+        cases_by_id if release_revision == "4.0.0" else historical_cases,
+        failures,
+        snapshot_path,
+    )
+    _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
+    return failures
+
+
+def _current_retest_source_failures(
+    repo_root: Path,
+    snapshot: dict[str, object],
+    failures: list[PolicyFailure],
+    path: str,
+    *,
+    replay_current: bool,
+) -> None:
+    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=replay_current))
+    state = snapshot.get("source_state")
+    if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
+        failures.append(_failure("research-evidence-source-state", "base revision must join source identity", path))
+    baseline = snapshot.get("baseline")
+    if not isinstance(baseline, Mapping) or baseline.get("release_revision") != "3.0.0":
+        failures.append(
+            _failure("formal-validation-baseline-selection", "release 4.0.0 must retain the 3.0.0 baseline", path)
+        )
+
+
+def _retained_historical_cases(
+    repo_root: Path,
+    cases_by_id: Mapping[str, Mapping[str, object]],
+    failures: list[PolicyFailure],
+    corpus_path: str,
+) -> dict[object, Mapping[str, object]]:
     try:
         historical_corpus = load_bounded_json_object(
             repo_root,
@@ -308,25 +343,4 @@ def validate_retest_bundle(
             )
         )
 
-    _validate_retest_snapshot(
-        _RetestScope(
-            repo_root=repo_root,
-            release=release,
-            protocol=protocol,
-            corpus=corpus,
-            snapshot=snapshot,
-            cases_by_id=cases_by_id,
-            replay_current=replay_current,
-        ),
-        failures,
-        snapshot_path,
-    )
-    _validate_baseline_drift(
-        repo_root,
-        snapshot,
-        cases_by_id if release_revision == "4.0.0" else historical_cases,
-        failures,
-        snapshot_path,
-    )
-    _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
-    return failures
+    return historical_cases

@@ -20,6 +20,13 @@ from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_re
 
 
 @dataclasses.dataclass(frozen=True)
+class _ProductionObservationContext:
+    repo_root: Path
+    release_artifacts_by_path: Mapping[object, Mapping[str, object]]
+    replay_current: bool = True
+
+
+@dataclasses.dataclass(frozen=True)
 class _ProductionEvidenceReplay:
     evidence_digest_matches: bool
     direct_digest: str
@@ -58,16 +65,15 @@ def _evidence_digest_stale(
 
 
 def _validate_production_evidence_observation(
-    repo_root: Path,
-    release_artifacts_by_path: Mapping[object, Mapping[str, object]],
+    context: _ProductionObservationContext,
     case: Mapping[str, object],
     observation: Mapping[str, object],
     command: object,
     failures: list[PolicyFailure],
     path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
+    repo_root = context.repo_root
+    release_artifacts_by_path = context.release_artifacts_by_path
     case_id = case.get("case_id")
     fixture_value = case.get("fixture_path")
     evidence_value = observation.get("evidence_artifact_path")
@@ -102,7 +108,7 @@ def _validate_production_evidence_observation(
             fixture,
             evidence_value,
             expected_argv,
-            replay_current=replay_current,
+            replay_current=context.replay_current,
         )
     except (
         OSError,

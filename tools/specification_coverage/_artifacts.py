@@ -288,16 +288,17 @@ def _validate_artifacts(
         else:
             _historical_artifact_failures(repo_root, artifact, failures)
             executed[artifact_path] = {}
-    return (
-        {
-            artifact_id: next(
-                (item for item in artifacts if isinstance(item, dict) and item.get("artifact_id") == artifact_id),
-                {},
-            )
-            for artifact_id in artifact_ids
-        },
-        executed,
-    )
+    return _artifacts_by_id(artifacts, artifact_ids), executed
+
+
+def _artifacts_by_id(artifacts: list[object], artifact_ids: set[str]) -> dict[str, dict[str, object]]:
+    return {
+        artifact_id: next(
+            (item for item in artifacts if isinstance(item, dict) and item.get("artifact_id") == artifact_id),
+            {},
+        )
+        for artifact_id in artifact_ids
+    }
 
 
 def _historical_artifact_failures(repo_root: Path, artifact: dict[str, object], failures: list[PolicyFailure]) -> None:
