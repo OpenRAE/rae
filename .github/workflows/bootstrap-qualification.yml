@@ -70,7 +70,7 @@ jobs:
           tar -cf bootstrap-offline-kit.tar .qualification-kit
       - name: Restore and exercise the payload kit without network fallback
         run: |
-          rm -rf .qualification-cache/uv .cache/raes-sdl/tooling .qualification-restored .qualification-runtime-cache
+          rm -rf .qualification-kit .qualification-cache/uv .cache/raes-sdl/tooling .qualification-restored .qualification-runtime-cache
           mkdir .qualification-restored
           tar -xf bootstrap-offline-kit.tar -C .qualification-restored --strip-components=1
           restored_root="${{ github.workspace }}/.qualification-restored"
@@ -107,6 +107,8 @@ jobs:
             implementations/python/tests/test_issue_1217_bootstrap_profiles.py > t08-result.json
       - name: Record exact measured profile evidence
         run: |
+          mkdir .qualification-evidence-root
+          tar -xf bootstrap-offline-kit.tar -C .qualification-evidence-root --strip-components=1
           case_results=(--case-result t02-result.json --case-result t08-result.json)
           if [ -f t12-result.json ]; then
             case_results+=(--case-result t12-result.json)
@@ -115,7 +117,7 @@ jobs:
             "${{ matrix.profile }}" "${{ github.sha }}" \
             "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
             --python-artifact-id cpython-3.14 "${case_results[@]}" \
-            --offline-kit-root .qualification-restored --offline-kit bootstrap-offline-kit.tar \
+            --offline-kit-root .qualification-evidence-root --offline-kit bootstrap-offline-kit.tar \
             --offline-kit-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}" \
             > bootstrap-qualification.json
       - name: Retain bounded qualification evidence
