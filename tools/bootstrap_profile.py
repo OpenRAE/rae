@@ -600,6 +600,28 @@ def _offline_kit_entries(kit_root: Path) -> list[dict[str, object]]:
     return entries
 
 
+def copy_relocatable_tree(source_root: Path, destination_root: Path) -> None:
+    """Copy a payload tree and relocate every internal symbolic link."""
+
+    source_root = source_root.resolve(strict=True)
+    if not source_root.is_dir() or destination_root.exists() or destination_root.is_symlink():
+        raise ValueError("relocatable payload copy requires a directory and a new destination")
+    shutil.copytree(source_root, destination_root, symlinks=True)
+    for path in sorted(destination_root.rglob("*")):
+        if not path.is_symlink():
+            continue
+        source_path = source_root / path.relative_to(destination_root)
+        try:
+            source_target = (source_path.parent / os.readlink(source_path)).resolve(strict=True)
+            relative_target = source_target.relative_to(source_root)
+        except (OSError, ValueError) as exc:
+            raise ValueError("relocatable payload contains an escaping symbolic link") from exc
+        destination_target = destination_root / relative_target
+        relocated_target = os.path.relpath(destination_target, path.parent)
+        path.unlink()
+        path.symlink_to(relocated_target, target_is_directory=source_target.is_dir())
+
+
 def build_offline_kit_manifest(
     host_profile_id: str,
     kit_root: Path,
@@ -1194,6 +1216,9 @@ def _parse_args() -> argparse.Namespace:
     kit_manifest.add_argument("--python-artifact-id", required=True)
     kit_digest = subparsers.add_parser("offline-kit-manifest-digest", help="hash a producer-authenticated manifest")
     kit_digest.add_argument("manifest_path", type=Path)
+    kit_copy = subparsers.add_parser("offline-kit-copy-tree", help="copy and relocate an installed payload tree")
+    kit_copy.add_argument("source_root", type=Path)
+    kit_copy.add_argument("destination_root", type=Path)
     kit_verify = subparsers.add_parser("offline-kit-verify", help="verify and execute an imported payload kit")
     kit_verify.add_argument("host_profile_id")
     kit_verify.add_argument("kit_root", type=Path)
@@ -1270,6 +1295,8 @@ def main() -> int:
     elif args.operation == "offline-kit-manifest-digest":
         _load_offline_kit_manifest(args.manifest_path)
         print(_sha256(args.manifest_path))
+    elif args.operation == "offline-kit-copy-tree":
+        copy_relocatable_tree(args.source_root, args.destination_root)
     elif args.operation == "offline-kit-verify":
         result = verify_offline_kit(
             args.host_profile_id,

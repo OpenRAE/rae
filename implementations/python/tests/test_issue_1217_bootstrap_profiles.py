@@ -4,6 +4,7 @@ import datetime as dt
 import hashlib
 import ipaddress
 import json
+import os
 import socket
 import ssl
 import subprocess
@@ -134,15 +135,30 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
             "profile": "public-ubuntu-24.04-x86_64",
             "runner": "ubuntu-24.04",
             "target": "x86_64-unknown-linux-gnu",
+            "no_binary_package": "",
         },
         {
             "profile": "public-linux-arm64",
             "runner": "ubuntu-24.04-arm",
             "target": "aarch64-unknown-linux-gnu",
+            "no_binary_package": "",
         },
-        {"profile": "public-macos-x86_64", "runner": "macos-15-intel", "target": "x86_64-apple-darwin"},
-        {"profile": "public-macos-arm64", "runner": "macos-15", "target": "aarch64-apple-darwin"},
+        {
+            "profile": "public-macos-x86_64",
+            "runner": "macos-15-intel",
+            "target": "x86_64-apple-darwin",
+            "no_binary_package": "z3-solver",
+        },
+        {
+            "profile": "public-macos-arm64",
+            "runner": "macos-15",
+            "target": "aarch64-apple-darwin",
+            "no_binary_package": "",
+        },
     ]
+    assert workflow["jobs"]["generic-tool-platforms"]["env"]["UV_NO_BINARY_PACKAGE"] == (
+        "${{ matrix.no_binary_package }}"
+    )
     workflow_text = (REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8")
     assert "offline-kit-fetch" in workflow_text
     assert "offline-kit-manifest" in workflow_text
@@ -662,6 +678,25 @@ def test_offline_kit_manifest_rejects_an_escaping_symlink(tmp_path: Path) -> Non
     (kit_root / "escape").symlink_to(tmp_path / "outside")
     with pytest.raises(ValueError, match="escaping symbolic link"):
         bootstrap_profile._offline_kit_entries(kit_root)
+
+
+def test_relocatable_tree_copy_rewrites_internal_links_and_rejects_escape(tmp_path: Path) -> None:
+    source_root = tmp_path / "source"
+    source_bin = source_root / "bin"
+    source_bin.mkdir(parents=True)
+    (source_bin / "python3.14").write_bytes(b"python")
+    (source_bin / "python").symlink_to(source_bin / "python3.14")
+
+    destination_root = tmp_path / "destination"
+    bootstrap_profile.copy_relocatable_tree(source_root, destination_root)
+    relocated = destination_root / "bin/python"
+    assert relocated.is_symlink()
+    assert not Path(os.readlink(relocated)).is_absolute()
+    assert relocated.resolve() == destination_root / "bin/python3.14"
+
+    (source_root / "escape").symlink_to(tmp_path / "outside")
+    with pytest.raises(ValueError, match="escaping symbolic link"):
+        bootstrap_profile.copy_relocatable_tree(source_root, tmp_path / "rejected")
 
 
 def test_offline_kit_manifest_uses_the_profile_specific_proof_closure(

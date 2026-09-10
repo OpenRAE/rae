@@ -17,13 +17,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu}
-          - {profile: public-linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu}
-          - {profile: public-macos-x86_64, runner: macos-15-intel, target: x86_64-apple-darwin}
-          - {profile: public-macos-arm64, runner: macos-15, target: aarch64-apple-darwin}
+          - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu, no_binary_package: ""}
+          - {profile: public-linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, no_binary_package: ""}
+          - {profile: public-macos-x86_64, runner: macos-15-intel, target: x86_64-apple-darwin, no_binary_package: z3-solver}
+          - {profile: public-macos-arm64, runner: macos-15, target: aarch64-apple-darwin, no_binary_package: ""}
     env:
       UV_PYTHON: "3.14.7"
       UV_PYTHON_PLATFORM: ${{ matrix.target }}
+      UV_NO_BINARY_PACKAGE: ${{ matrix.no_binary_package }}
       RAES_EXPECTED_PYTHON: "3.14"
       UV_CACHE_DIR: ${{ github.workspace }}/.qualification-cache/uv
     steps:
@@ -52,7 +53,8 @@ jobs:
             "${{ matrix.profile }}" .qualification-kit --artifact-id cpython-3.14 --artifact-id uv \
             --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
           cp "$(command -v uv)" .qualification-kit/bin/uv
-          cp -RL "${pythonLocation}" .qualification-kit/python/cpython-3.14.7
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-copy-tree \
+            "${pythonLocation}" .qualification-kit/python/cpython-3.14.7
           cp -R .qualification-cache/uv .qualification-kit/uv-cache
           cp -R .cache/raes-sdl/tooling .qualification-kit/.cache/raes-sdl/tooling
           implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-manifest \
