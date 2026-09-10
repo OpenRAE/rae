@@ -60,6 +60,9 @@ class _RecordingLibvirtDriver:
             domains=tuple(DomainHandle(address=address, realized=False) for address in domains),
         )
 
+    def observe(self, *, domains):
+        return DriverResult(observations=daemon_compute_substrate_observations(domains))
+
     def realized_addresses(self):
         return frozenset(self._realized)
 

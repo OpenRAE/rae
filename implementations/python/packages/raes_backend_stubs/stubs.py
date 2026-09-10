@@ -16,8 +16,14 @@ from raes_contracts.realization_observation import (
     bind_compute_substrate_observations,
     compute_substrate_readback_addresses,
 )
+from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
-from raes_runtime.registry import ReferenceTimeRuntime, RuntimeTarget, RuntimeTargetComponents
+from raes_runtime.registry import (
+    ReferenceTimeRuntime,
+    RuntimeTarget,
+    RuntimeTargetComponents,
+    backend_selection_observation_runtime,
+)
 
 from .evaluation_support import apply_evaluation_operation
 from .manifest import (
@@ -138,15 +144,17 @@ class StubProvisioner:
             observations=observations,
             envelope=self._realization_envelope,
             previous=snapshot.realization_observations,
+            selected_addresses=set(compute_substrate_collection_addresses(plan=plan)),
         )
         return ApplyResult(
             success=True,
             snapshot=snapshot.with_entries(
                 entries,
-                realization_observations=observation_disclosures,
+                realization_observations=(),
                 realization_envelope=self._realization_envelope.identity,
             ),
             changed_addresses=changed_addresses,
+            operational_realization_observations=observation_disclosures,
         )
 
 
@@ -368,6 +376,7 @@ def create_stub_components(
         evaluator=StubEvaluator(),
         participant_runtime=StubParticipantRuntime() if manifest.has_participant_runtime else None,
         time_runtime=ReferenceTimeRuntime() if manifest.has_time else None,
+        observation_runtime=backend_selection_observation_runtime(manifest),
     )
 
 
@@ -386,4 +395,5 @@ def create_stub_target(**config) -> RuntimeTarget:
         evaluator=components.evaluator,
         participant_runtime=components.participant_runtime,
         time_runtime=components.time_runtime,
+        observation_runtime=components.observation_runtime,
     )

@@ -252,3 +252,53 @@ augmentation and realized-form behavior.
 | ASR-525 conformance validates experiment-run semantics | `_MODEL_VALIDATORS["experiment-run-v1"]`, `_semantic_diagnostics()` | `test_fixture_suite_exercises_experiment_run_observability_semantics` | yes |
 | EXP-731 run-scoped capture refinements preserve authored requirements | `_run_refinement_conformance_diagnostics()` requires `authored_ref` for capture-window and measurement-channel disclosures | `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
 | EXP-732 augmentation and refinements remain evidence-traced | experiment run model traced evidence refs plus conformance evidence-ref checks | `test_observability_evidence_conformance_accepts_traced_augmentation`, `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
+
+## Implementation Coverage (#1212 / Scoped Observation Demand)
+
+Issue #1212 adds `observation-demand-v1` as the shared demand carrier without
+adding another evidence plane. SDL evidence requirements, experiment task and
+capture policy, run planning, normalized runtime models, and all three
+execution plans carry the same closed contract or its effective form.
+
+The normalizer resolves purpose, mode, selector, lifecycle stages,
+prohibitions, redaction, integrity, basis, and authority origins independently,
+preserving selector-local requiredness and lifecycle policies across authorities.
+Absent demand selects no experimental collection. Required/prohibited and
+unsupported-required work is rejected before a producer runs. Backend-known
+selection can be reported with `backend-selected` basis; it is not promoted to
+an observed or independently verified claim.
+
+Realization concern descriptors no longer derive observation strength from
+authored precision. Mandatory internal readiness and execution inputs remain
+separately owned, while reference, stub, and libvirt native compute-substrate
+readback occurs only under explicit effective collection demand. Native
+readback is operational validation input and is not retained as study data.
+Failed post-mutation readback leaves contract-valid resource inventory and
+changed addresses available for recovery and cleanup, without new successful
+observation claims. This applies to missing or malformed data and exceptions,
+not just diagnostic returns.
+
+Authored component selectors compile to canonical runtime addresses, and
+more-specific policies partition broader selectors through explicit normalized
+descendant exclusions. Runtime adapters publish stable selector-family patterns
+and bind compiled selectors during admission. Although all phase plans carry
+the demand for standalone submission, composite execution names one
+last-actionable phase owner and executes the shared demand once. Inherited
+selectors are clipped to each child partition. All executable API phase plans
+require exact planner authorization even when a caller removes the demand.
+
+Protected retention commits atomically with terminal operation state. This does
+not roll back backend resources: mandatory demand accompanying mutation is
+rejected before backend apply because no compensating owner exists. Export is
+rejected because no governed delivery owner exists. Neither an export outbox nor
+an archival carrier is treated as live capture/export integration; #1112 and
+#1209 retain that work.
+
+Selected realization descriptions project to canonical experiment realized-form
+disclosures. Built-in backends can report bound compute-substrate selections
+without a native probe. Nonretained descriptions are immediate manager results
+only; durable operation lookup and recovery expose bodies only under explicit
+retention. Native validation observations use a transient apply-result field,
+never the persisted snapshot. The issue-1212 acceptance suites exercise producer,
+driver, backend-mutation, API, operation-record, and recovery boundaries, including
+the negative cases for independent selectors, mandatory failure, and export.

@@ -4118,6 +4118,17 @@
           "title": "Notes",
           "type": "array"
         },
+        "observation_demand": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandRule"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "redaction": {
           "anyOf": [
             {
@@ -7394,6 +7405,591 @@
         }
       },
       "title": "ObjectiveWindow",
+      "type": "object"
+    },
+    "ObservationBasis": {
+      "description": "Truthful basis requested for a reportable value.",
+      "enum": [
+        "backend-selected",
+        "observed",
+        "independently-verified",
+        "operational"
+      ],
+      "title": "ObservationBasis",
+      "type": "string"
+    },
+    "ObservationDemandMode": {
+      "description": "Selection posture at a named semantic scope.",
+      "enum": [
+        "inherit",
+        "none",
+        "operational-only",
+        "selected",
+        "exhaustive"
+      ],
+      "title": "ObservationDemandMode",
+      "type": "string"
+    },
+    "ObservationDemandRule": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "mode": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "properties": {
+                "selector": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "selector"
+              ]
+            },
+            {
+              "properties": {
+                "collection": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "collection"
+              ]
+            },
+            {
+              "properties": {
+                "retention": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "retention"
+              ]
+            },
+            {
+              "properties": {
+                "export": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "export"
+              ]
+            },
+            {
+              "properties": {
+                "basis": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "basis"
+              ]
+            },
+            {
+              "properties": {
+                "redaction": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "redaction"
+              ]
+            },
+            {
+              "properties": {
+                "integrity": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "integrity"
+              ]
+            },
+            {
+              "properties": {
+                "prohibited_stages": {
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "prohibited_stages"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "exhaustive"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "properties": {
+                  "coverage_profile": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "max_items": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "coverage_profile",
+                  "max_items"
+                ]
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              },
+              "purpose": {
+                "const": "experimental"
+              }
+            },
+            "required": [
+              "purpose",
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "integrity": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "redaction": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "redaction",
+              "integrity"
+            ]
+          }
+        }
+      ],
+      "description": "One local scoped preference or independent mandatory requirement.",
+      "properties": {
+        "authority_ref": {
+          "default": "author",
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Authority Ref",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationBasis"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "collection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "export": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "integrity": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Integrity"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "prohibited_stages": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObservationLifecycleStage"
+          },
+          "maxItems": 3,
+          "title": "Prohibited Stages",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ObservationPurpose"
+        },
+        "redaction": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rule_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "rule_id",
+        "scope",
+        "purpose"
+      ],
+      "title": "ObservationDemandRule",
+      "type": "object"
+    },
+    "ObservationLifecycleDecision": {
+      "description": "One local lifecycle preference or monotone prohibition.",
+      "enum": [
+        "inherit",
+        "forbid",
+        "disable",
+        "require"
+      ],
+      "title": "ObservationLifecycleDecision",
+      "type": "string"
+    },
+    "ObservationLifecycleStage": {
+      "description": "Independently governed data-lifecycle stages.",
+      "enum": [
+        "collection",
+        "retention",
+        "export"
+      ],
+      "title": "ObservationLifecycleStage",
+      "type": "string"
+    },
+    "ObservationPurpose": {
+      "description": "Authority plane for requested data use.",
+      "enum": [
+        "experimental",
+        "realization-description",
+        "operational"
+      ],
+      "title": "ObservationPurpose",
+      "type": "string"
+    },
+    "ObservationSelector": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          }
+        }
+      ],
+      "description": "Bounded selector over a semantic scope and one data surface.",
+      "properties": {
+        "component_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Component Refs",
+          "type": "array"
+        },
+        "coverage_profile": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coverage Profile"
+        },
+        "data_kind": {
+          "enum": [
+            "field",
+            "stream",
+            "artifact"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "excluded_scopes": {
+          "default": [],
+          "items": {
+            "maxLength": 4096,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Excluded Scopes",
+          "type": "array"
+        },
+        "max_items": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Items"
+        },
+        "names": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Names",
+          "type": "array"
+        },
+        "semantic_scope": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Semantic Scope",
+          "type": "string"
+        },
+        "window_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Window Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "semantic_scope",
+        "data_kind",
+        "names"
+      ],
+      "title": "ObservationSelector",
       "type": "object"
     },
     "OperatorSecretCredentialMaterial": {

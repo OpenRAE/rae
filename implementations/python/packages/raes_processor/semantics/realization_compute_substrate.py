@@ -10,6 +10,7 @@ from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, RealizationConcernDisclosureModel
+from raes_contracts.realization_observation_demand import compute_substrate_demand_applies
 from raes_contracts.runtime_state import (
     RealizationObservationDisclosure,
     RealizationProvenanceEntry,
@@ -35,12 +36,18 @@ def evaluate_compute_substrate(
     returned_snapshot: RuntimeSnapshot,
     manifest: BackendManifest | None,
 ) -> tuple[Diagnostic | None, RealizationProvenanceEntry | None]:
-    """Validate the observed substrate without consulting planned payload values."""
+    """Validate backend selection, requiring observation only when explicitly requested."""
 
     result: tuple[Diagnostic | None, RealizationProvenanceEntry | None] = (None, None)
     if _requires_compute_substrate_evaluation(requirement, declared_plan):
         if manifest is None or manifest.realization_envelope is None:
             result = (_evidence_diagnostic(requirement), None)
+        elif not compute_substrate_demand_applies(
+            declared_plan,
+            requirement,
+            stage="collection",
+        ):
+            result = _evaluate_compute_substrate_selection(requirement, declared_plan, returned_snapshot, manifest)
         else:
             result = _evaluate_compute_substrate_observation(
                 requirement,
@@ -49,6 +56,32 @@ def evaluate_compute_substrate(
                 manifest,
             )
     return result
+
+
+def _evaluate_compute_substrate_selection(
+    requirement: CompiledRealizationRequirement,
+    declared_plan: ProvisioningPlan,
+    returned_snapshot: RuntimeSnapshot,
+    manifest: BackendManifest,
+) -> tuple[Diagnostic | None, RealizationProvenanceEntry | None]:
+    """Evaluate a truthful backend-selected mechanism without fabricating evidence."""
+
+    carrier = manifest.realization_envelope
+    claim = _compute_substrate_claim(carrier)
+    identity = declared_plan.realization_envelope
+    if (
+        carrier is None
+        or claim is None
+        or claim.mechanism is None
+        or identity is None
+        or carrier.identity != identity
+        or returned_snapshot.realization_envelope != identity
+    ):
+        return _selection_diagnostic(requirement), None
+    if requirement.value_domain is not None and not scalar_in_domain(claim.mechanism, requirement.value_domain):
+        return silent_approximation_diagnostic(requirement), None
+    honoured = requirement.explicitness is ExplicitnessClass.EXACT
+    return None, realization_provenance_entry(requirement, honoured)
 
 
 def _evaluate_compute_substrate_observation(
@@ -174,6 +207,16 @@ def _evidence_diagnostic(
             f"compute substrate for '{requirement.field_path}'; plan values, handles, and "
             "configuration claims are not realization evidence."
         ),
+        severity=Severity.ERROR,
+    )
+
+
+def _selection_diagnostic(requirement: CompiledRealizationRequirement) -> Diagnostic:
+    return Diagnostic(
+        code=BACKEND_CONTRACT_INVALID,
+        domain=requirement.domain,
+        address=requirement.address,
+        message=f"Backend returned no bound substrate selection for '{requirement.field_path}'.",
         severity=Severity.ERROR,
     )
 

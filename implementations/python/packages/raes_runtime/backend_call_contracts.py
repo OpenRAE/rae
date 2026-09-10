@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 
@@ -42,6 +43,10 @@ def _apply_result_shape_violation(result: object, address: str) -> str | None:
             f"Backend method '{address}' returned ApplyResult.snapshot "
             f"as {type(result.snapshot).__name__}; expected RuntimeSnapshot."
         )
+    elif not isinstance(result.operational_realization_observations, tuple) or any(
+        not isinstance(item, RealizationObservationDisclosure) for item in result.operational_realization_observations
+    ):
+        message = f"Backend method '{address}' returned invalid operational realization observations."
     return message
 
 

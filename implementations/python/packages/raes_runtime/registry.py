@@ -13,9 +13,12 @@ from raes_backend_protocols.protocols import (
     Provisioner,
     TimeRuntime,
 )
+from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
 from . import time_coordinator as _time_coordinator
+from .observation_execution import ObservationRuntime
+from .observation_native import backend_selection_observation_runtime as backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
 
 ReferenceTimeRuntime = _time_coordinator.ReferenceTimeRuntime
@@ -81,6 +84,7 @@ def _validate_runtime_target_shape(
     evaluator: Evaluator | None,
     participant_runtime: ParticipantRuntime | None,
     time_runtime: TimeRuntime | None,
+    observation_runtime: ObservationRuntime | None,
 ) -> None:
     if manifest is None:
         raise ValueError("RuntimeTarget requires an explicit manifest.")
@@ -93,6 +97,16 @@ def _validate_runtime_target_shape(
         participant_runtime=participant_runtime,
         time_runtime=time_runtime,
     )
+    if (
+        observation_runtime is not None
+        and manifest.observation is None
+        and any(
+            capability.bases != frozenset({ObservationBasis.BACKEND_SELECTED})
+            or not capability.stages.issubset({ObservationLifecycleStage.RETENTION})
+            for capability in observation_runtime.capabilities
+        )
+    ):
+        raise ValueError("registry.target-shape-mismatch: observation runtime requires manifest capabilities.")
     sample_plan = object()
     sample_snapshot = object()
     sample_request = object()
@@ -381,6 +395,7 @@ class RuntimeTarget:
     evaluator: Evaluator | None = None
     participant_runtime: ParticipantRuntime | None = None
     time_runtime: TimeRuntime | None = None
+    observation_runtime: ObservationRuntime | None = None
 
     def __post_init__(self) -> None:
         _validate_runtime_target_shape(
@@ -390,6 +405,7 @@ class RuntimeTarget:
             evaluator=self.evaluator,
             participant_runtime=self.participant_runtime,
             time_runtime=self.time_runtime,
+            observation_runtime=self.observation_runtime,
         )
 
 
@@ -402,6 +418,7 @@ class RuntimeTargetComponents:
     evaluator: Evaluator | None = None
     participant_runtime: ParticipantRuntime | None = None
     time_runtime: TimeRuntime | None = None
+    observation_runtime: ObservationRuntime | None = None
 
 
 @dataclass(frozen=True)
@@ -457,6 +474,7 @@ class BackendRegistry:
             evaluator=components.evaluator,
             participant_runtime=components.participant_runtime,
             time_runtime=components.time_runtime,
+            observation_runtime=components.observation_runtime,
         )
 
         return RuntimeTarget(
@@ -467,6 +485,7 @@ class BackendRegistry:
             evaluator=components.evaluator,
             participant_runtime=components.participant_runtime,
             time_runtime=components.time_runtime,
+            observation_runtime=components.observation_runtime,
         )
 
     def list_backends(self) -> list[str]:

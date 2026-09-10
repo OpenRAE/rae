@@ -11,11 +11,9 @@ from raes.runtime_resource_limits import (
     process_resource_limit_identity_digest,
 )
 from raes.scenario import InstantiatedScenario
-from raes.semantics.domain_topology import (
-    DomainTopologyAnalysis,
-)
+from raes.semantics.domain_topology import DomainTopologyAnalysis
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
-from raes_contracts.vocabulary import ObservationStrength, ProcessResourceLimitScope, RealizationVerificationScope
+from raes_contracts.vocabulary import ProcessResourceLimitScope
 
 from ..semantics.realization import (
     REALIZATION_DOMAIN,
@@ -26,6 +24,7 @@ from ..semantics.realization import (
     registered_realization_concern_descriptors,
 )
 from ..semantics.realization_concerns import CONCERN_PAYLOAD_PATH, RegisteredRealizationConcern
+from ..semantics.realization_operational_verification import operational_verification_requirement
 from .addresses import (
     _account_address,
     _condition_binding_address,
@@ -321,6 +320,9 @@ def _compiled_registered_realization(
         )
         if root_open and structure is not None:
             posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
+    verification_scope, observation_strength = operational_verification_requirement(
+        descriptor.concern_kind, authored_value
+    )
     authority = CompiledRealizationAuthority(
         field_path=registered.field_path,
         address=address,
@@ -332,8 +334,8 @@ def _compiled_registered_realization(
         provenance=posture.provenance,
         governing_scope=posture.governing_scope,
         delegated=posture.delegated,
-        verification_scope=descriptor.required_verification_scope(authored_value),
-        required_observation_strength=descriptor.required_observation_strength(),
+        verification_scope=verification_scope,
+        required_observation_strength=observation_strength,
     )
     if posture.explicitness is None and not posture.delegated:
         return None, authority
@@ -346,8 +348,8 @@ def _compiled_registered_realization(
         provenance=posture.provenance,
         governing_scope=posture.governing_scope,
         delegated=posture.delegated,
-        verification_scope=descriptor.required_verification_scope(authored_value),
-        required_observation_strength=descriptor.required_observation_strength(),
+        verification_scope=verification_scope,
+        required_observation_strength=observation_strength,
         value_domain=value_domain,
         constraint_provenance=constraint_provenance,
         value_constraints=value_constraints,
@@ -477,11 +479,6 @@ def _append_compute_substrate_requirements(
         field_pointer = f"/nodes/{pointer_name}"
         record = records_by_pointer.get(field_pointer)
         posture = record.posture if record is not None else RealizationConstraintPosture.OPEN
-        required_strength = (
-            ObservationStrength.DRIVER_REPORTED
-            if posture is RealizationConstraintPosture.OPEN
-            else ObservationStrength.DAEMON_OBSERVED
-        )
         requirements.append(
             CompiledRealizationRequirement(
                 field_path=f"nodes.{node_name}.realization.compute-substrate",
@@ -491,8 +488,8 @@ def _append_compute_substrate_requirements(
                 explicitness=explicitness_by_posture[posture],
                 provenance=ExplicitnessProvenance.AUTHOR_DECLARED,
                 governing_scope=record.governing_scope if record is not None else f"#{field_pointer}",
-                verification_scope=RealizationVerificationScope.PRESENCE,
-                required_observation_strength=required_strength,
+                verification_scope=None,
+                required_observation_strength=None,
                 value_domain=record.domain if record is not None else None,
                 constraint_provenance=record.provenance if record is not None else "author-declared",
             )

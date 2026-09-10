@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from raes_contracts.observation_demand import EffectiveObservationDemand, ObservationSelector
 from raes_contracts.planning import (
     ChangeAction,
     ProvisioningPlan,
@@ -50,8 +51,7 @@ def complete_test_realization_authority(plan: ProvisioningPlan) -> ProvisioningP
             if not _descriptor_applies(operation.resource_type, descriptor.section):
                 continue
             value = _nested_value(operation.payload, descriptor.payload_path)
-            authored_value = None if value is _MISSING else value
-            if not descriptor.includes_authored_value(authored_value):
+            if not descriptor.includes_authored_value(None if value is _MISSING else value):
                 continue
             exact = value is not _MISSING and value not in (None, "", [], {})
             authority.append(
@@ -67,8 +67,8 @@ def complete_test_realization_authority(plan: ProvisioningPlan) -> ProvisioningP
                         if exact
                         else RealizationResolutionSource.LEGACY_DEFAULT
                     ),
-                    verification_scope=descriptor.required_verification_scope(authored_value),
-                    required_observation_strength=descriptor.required_observation_strength(),
+                    verification_scope=None,
+                    required_observation_strength=None,
                 )
             )
         for concern_kind in processor_derived_provisioning_concern_kinds(
@@ -89,4 +89,31 @@ def complete_test_realization_authority(plan: ProvisioningPlan) -> ProvisioningP
     return replace(plan, realization_authority=tuple(authority))
 
 
-__all__ = ["complete_test_realization_authority"]
+def with_compute_substrate_collection_demand(
+    plan: ProvisioningPlan,
+    *,
+    semantic_scope: str,
+    address: str,
+) -> ProvisioningPlan:
+    """Attach an explicit non-persistent operational substrate readback owner."""
+
+    selector = ObservationSelector(
+        semantic_scope=semantic_scope,
+        component_refs=(address,),
+        data_kind="field",
+        names=("compute-substrate",),
+    )
+    demand = EffectiveObservationDemand(
+        scope=semantic_scope,
+        purpose="operational",
+        mode="operational-only",
+        selectors=(selector,),
+        collection="require",
+        retention="disable",
+        export="disable",
+        basis="operational",
+    )
+    return replace(plan, observation_demands=(*plan.observation_demands, demand))
+
+
+__all__ = ["complete_test_realization_authority", "with_compute_substrate_collection_demand"]

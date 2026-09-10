@@ -43,6 +43,7 @@ __all__ = [
     "orchestration_plan_model",
     "provisioning_plan_digest",
     "provisioning_plan_model",
+    "runtime_plan_digest",
 ]
 
 
@@ -109,6 +110,7 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
             for item in plan.realization_constraints
         ],
         operation_id=plan.operation_id,
+        observation_demands=list(plan.observation_demands),
     )
 
 
@@ -118,6 +120,28 @@ def provisioning_plan_digest(plan: ProvisioningPlan) -> str:
     return canonical_json_digest(provisioning_plan_model(plan).model_dump(mode="json", exclude_none=True))
 
 
+def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str:
+    """Return the immutable digest for any published runtime plan artifact."""
+
+    if isinstance(plan, ProvisioningPlan):
+        model = provisioning_plan_model(plan)
+        domain = "provisioning"
+    elif isinstance(plan, OrchestrationPlan):
+        model = orchestration_plan_model(plan)
+        domain = "orchestration"
+    elif isinstance(plan, EvaluationPlan):
+        model = evaluation_plan_model(plan)
+        domain = "evaluation"
+    else:
+        raise TypeError("runtime plan digest requires a typed runtime plan")
+    return canonical_json_digest(
+        {
+            "runtime_domain": domain,
+            "plan": model.model_dump(mode="json", exclude_none=True),
+        }
+    )
+
+
 def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
     """Project an orchestration plan into its published contract model."""
 
@@ -125,6 +149,7 @@ def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
+        observation_demands=list(plan.observation_demands),
     )
 
 
@@ -135,4 +160,5 @@ def evaluation_plan_model(plan: EvaluationPlan) -> EvaluationPlanModel:
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
+        observation_demands=list(plan.observation_demands),
     )

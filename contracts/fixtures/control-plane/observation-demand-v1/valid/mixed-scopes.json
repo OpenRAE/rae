@@ -1,0 +1,32 @@
+{
+  "contract_id": "observation-demand-v1",
+  "schema_version": "observation-demand/v1",
+  "document_id": "mixed-scopes",
+  "scope_profile": "recursive-realization-constraint/v1",
+  "rules": [
+    {
+      "rule_id": "packets",
+      "scope": "/links/observed",
+      "purpose": "experimental",
+      "mode": "selected",
+      "selector": {
+        "semantic_scope": "/links/observed",
+        "data_kind": "stream",
+        "names": ["packets"]
+      },
+      "collection": "require",
+      "retention": "require",
+      "export": "disable",
+      "redaction": "redact-sensitive",
+      "integrity": "checksum",
+      "required": true
+    },
+    {
+      "rule_id": "silent",
+      "scope": "/nodes/silent",
+      "purpose": "experimental",
+      "mode": "none",
+      "prohibited_stages": ["collection", "retention", "export"]
+    }
+  ]
+}

@@ -68,6 +68,7 @@ from raes_contracts.domain_profiles import (
     DomainProfileResolutionContextModel,
     DomainProfileSupportDeclarationModel,
 )
+from raes_contracts.observation_demand import ObservationDemandDocument
 from raes_contracts.participant_opacity import (
     ParticipantOpacityAnalysisEvidenceModel,
     ParticipantOpacityAnalysisInputModel,
@@ -150,6 +151,7 @@ _STRUCTURAL_ONLY_VALIDATORS = {
     "participant-opacity-model-check-input-v1": ParticipantOpacityModelCheckInputModel.model_validate,
     "participant-opacity-model-check-evidence-v1": ParticipantOpacityModelCheckEvidenceModel.model_validate,
     "w3c-activitystreams-activity-types-source-v1": ActivityStreamsActivityTypesSourceModel.model_validate,
+    "observation-demand-v1": ObservationDemandDocument.model_validate,
 }
 
 

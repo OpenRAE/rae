@@ -117,6 +117,14 @@ def _verification_lane_workers(*, cpu_count: int, lane_count: int) -> int:
     return min(lane_count, 4, max(1, cpu_count // 2))
 
 
+def _failure_summary(output: str) -> str:
+    summary_lines = [line.strip() for line in output.splitlines() if line.startswith(("FAILED ", "ERROR "))]
+    if not summary_lines:
+        summary_lines = [line.strip() for line in output.splitlines() if line.strip()][-1:]
+    summary = " | ".join(summary_lines[:3])
+    return summary if len(summary) <= 600 else f"{summary[:599]}…"
+
+
 def _run_parallel_verification(
     session: nox.Session,
     reporter: SessionReporter,
@@ -166,6 +174,9 @@ def _run_parallel_verification(
                     max_workers=lane_workers,
                 )
             )
+            failures = [result for result in results if result.returncode != 0]
+            for result in failures:
+                session.log(f"[verify] failure summary {result.name}: {_failure_summary(result.output)}")
             for result in results:
                 session.log(
                     f"[verify] lane {result.name}: "
@@ -173,7 +184,6 @@ def _run_parallel_verification(
                 )
                 if result.output:
                     print(result.output, end="" if result.output.endswith("\n") else "\n")
-            failures = [result for result in results if result.returncode != 0]
             if failures:
                 failed = ", ".join(f"{result.name} (exit {result.returncode})" for result in failures)
                 raise RuntimeError(f"parallel verification lanes failed: {failed}")

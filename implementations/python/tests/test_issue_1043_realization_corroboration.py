@@ -158,9 +158,11 @@ def test_runtime_store_rejects_malformed_observation_instead_of_defaulting_it() 
         )
 
 
-def test_planner_rejects_exact_configuration_when_backend_only_attests_presence() -> None:
-    planned = plan(_compiled(), _manifest(RealizationVerificationScope.PRESENCE))
+def test_planner_requires_operational_verification_without_inferred_observation_demand() -> None:
+    model = _compiled()
+    planned = plan(model, _manifest(RealizationVerificationScope.PRESENCE))
 
+    assert model.observation_demands == ()
     assert any(
         diagnostic.code == "realization.under-observed-exact-requirement" and "forwarding-agents" in diagnostic.message
         for diagnostic in planned.diagnostics
@@ -175,7 +177,7 @@ def test_planner_accepts_presence_only_inventory_with_presence_capability() -> N
     )
 
 
-def test_runtime_rejects_matching_configuration_without_observation_disclosure() -> None:
+def test_runtime_rejects_matching_configuration_without_operational_observation() -> None:
     model = _compiled()
     manifest = _manifest(RealizationVerificationScope.CONFIGURATION)
     execution_plan = plan(model, manifest)
@@ -195,7 +197,7 @@ def test_runtime_rejects_matching_configuration_without_observation_disclosure()
     )
 
 
-def test_runtime_rejects_under_scoped_observation_but_accepts_configuration_readback() -> None:
+def test_operational_observation_scope_controls_realization_acceptance() -> None:
     model = _compiled()
     manifest = _manifest(RealizationVerificationScope.CONFIGURATION)
     execution_plan = plan(model, manifest)

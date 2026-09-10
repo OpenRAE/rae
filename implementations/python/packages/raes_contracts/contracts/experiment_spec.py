@@ -8,6 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..observation_demand import ObservationDemandDocument
 from ..versions import EXPERIMENT_AUTHORING_INPUT_SCHEMA_VERSION, EXPERIMENT_STUDY_SCHEMA_VERSION
 from .base import BehavioralClaimBindingModel, ContractModel, NonEmptyString, PositiveInteger
 from .difficulty_adaptation import DifficultyPolicyRegistryModel
@@ -269,6 +270,7 @@ class ExperimentRunPlanModel(ContractModel):
     difficulty_policy_registry: DifficultyPolicyRegistryModel | None = None
     red_variant_selections: dict[NonEmptyString, ExperimentRedVariantSelectionModel] = Field(default_factory=dict)
     clock_intent: ExperimentClockContextModel | None = None
+    observation_demands: ObservationDemandDocument | None = None
 
     @model_validator(mode="after")
     def _validate_run_plan(self) -> ExperimentRunPlanModel:

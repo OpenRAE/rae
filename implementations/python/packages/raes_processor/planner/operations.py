@@ -1,6 +1,7 @@
 """Domain plan construction from reconciled resources and actions."""
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import ResolvedRealizationAuthority
 
 from ..models import (
@@ -87,6 +88,7 @@ def _build_provisioning_plan(
     manifest: BackendManifest,
     realization_requirements: tuple[CompiledRealizationRequirement, ...],
     realization_authority: tuple[ResolvedRealizationAuthority, ...],
+    observation_demands: tuple[EffectiveObservationDemand, ...],
 ) -> ProvisioningPlan:
     provisioning_resources = {
         address: resource for address, resource in resources.items() if resource.domain == RuntimeDomain.PROVISIONING
@@ -115,6 +117,7 @@ def _build_provisioning_plan(
             for requirement in realization_requirements
             if requirement.requirement_kind == "compute-substrate" and requirement.explicitness is not None
         ),
+        observation_demands=observation_demands,
     )
 
 
@@ -122,6 +125,7 @@ def _build_orchestration_plan(
     resources: dict[str, PlannedResource],
     actions: dict[str, ChangeAction],
     deleted_entries: dict[str, SnapshotEntry],
+    observation_demands: tuple[EffectiveObservationDemand, ...],
 ) -> OrchestrationPlan:
     orchestration_resources = {
         address: resource for address, resource in resources.items() if resource.domain == RuntimeDomain.ORCHESTRATION
@@ -158,6 +162,7 @@ def _build_orchestration_plan(
         resources=orchestration_resources,
         operations=ops,
         startup_order=startup_order,
+        observation_demands=observation_demands,
     )
 
 
@@ -165,6 +170,7 @@ def _build_evaluation_plan(
     resources: dict[str, PlannedResource],
     actions: dict[str, ChangeAction],
     deleted_entries: dict[str, SnapshotEntry],
+    observation_demands: tuple[EffectiveObservationDemand, ...],
 ) -> EvaluationPlan:
     evaluation_resources = {
         address: resource for address, resource in resources.items() if resource.domain == RuntimeDomain.EVALUATION
@@ -201,4 +207,5 @@ def _build_evaluation_plan(
         resources=evaluation_resources,
         operations=ops,
         startup_order=startup_order,
+        observation_demands=observation_demands,
     )

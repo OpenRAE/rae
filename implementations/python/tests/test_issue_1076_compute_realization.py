@@ -43,6 +43,7 @@ from raes_reference_backend.manifest import create_reference_backend_manifest
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api_models import _provisioning_plan
 from raes_runtime.manager import RuntimeManager
+from realization_authority_fixtures import with_compute_substrate_collection_demand
 
 _FORMAL_ROOT = Path(__file__).resolve().parents[3] / "docs/research/formal-semantic-validation"
 
@@ -323,7 +324,7 @@ def test_snapshot_and_plan_carriers_reject_domains_that_authoring_cannot_produce
         published_type.model_validate(plan_payload)
 
 
-def test_stub_noop_bootstraps_missing_substrate_disclosure() -> None:
+def test_stub_noop_does_not_bootstrap_unrequested_substrate_disclosure() -> None:
     target = create_stub_target()
     scenario = _parse(
         """
@@ -343,7 +344,7 @@ def test_stub_noop_bootstraps_missing_substrate_disclosure() -> None:
     receipt = upgraded.submit_provisioning(unchanged_plan)
 
     assert upgraded.get_operation(receipt.operation_id).state.value == "succeeded"
-    assert upgraded.snapshot.realization_observations
+    assert upgraded.snapshot.realization_observations == ()
 
 
 def test_constraint_provenance_and_domain_survive_instantiation_and_compilation() -> None:
@@ -494,9 +495,15 @@ def test_two_native_substrates_are_admitted_and_proven_only_by_bound_observation
     execution = plan(model, manifest)
     assert execution.is_valid
     bound_plan = replace(execution.provisioning, operation_id="operation-1076")
+    bound_plan = with_compute_substrate_collection_demand(
+        bound_plan,
+        semantic_scope="/nodes/endpoint",
+        address="provision.node.endpoint",
+    )
     envelope = manifest.realization_envelope
     assert envelope is not None
     observations = bind_compute_substrate_observations(
+        selected_addresses={"provision.node.endpoint"},
         plan=bound_plan,
         envelope=envelope,
         observations=(
@@ -563,9 +570,15 @@ def test_compute_substrate_rejects_each_forged_execution_binding(field_name: str
     manifest = create_libvirt_manifest()
     execution = plan(model, manifest)
     bound_plan = replace(execution.provisioning, operation_id="expected-operation")
+    bound_plan = with_compute_substrate_collection_demand(
+        bound_plan,
+        semantic_scope="/nodes/endpoint",
+        address="provision.node.endpoint",
+    )
     envelope = manifest.realization_envelope
     assert envelope is not None
     [valid] = bind_compute_substrate_observations(
+        selected_addresses={"provision.node.endpoint"},
         plan=bound_plan,
         envelope=envelope,
         observations=(
@@ -610,7 +623,7 @@ def test_compute_substrate_rejects_each_forged_execution_binding(field_name: str
     assert not any(item.requirement_kind == "compute-substrate" for item in provenance)
 
 
-def test_selected_apparatus_and_plan_echo_do_not_replace_substrate_observation() -> None:
+def test_substrate_observation_is_required_only_by_explicit_collection_demand() -> None:
     scenario = _parse(
         """
         name: missing-substrate-readback
@@ -641,8 +654,23 @@ def test_selected_apparatus_and_plan_echo_do_not_replace_substrate_observation()
         snapshot,
         manifest=manifest,
     )
+    demanded_plan = with_compute_substrate_collection_demand(
+        bound_plan,
+        semantic_scope="/nodes/endpoint",
+        address="provision.node.endpoint",
+    )
+    demanded_diagnostics, _ = realization_disclosure(
+        model.realization_requirements,
+        demanded_plan,
+        snapshot,
+        manifest=manifest,
+    )
 
-    assert any("handles" in item.message and "not realization evidence" in item.message for item in diagnostics)
+    assert model.observation_demands == ()
+    assert not any(item.code == "runtime.backend-contract-invalid" for item in diagnostics)
+    assert any(
+        "handles" in item.message and "not realization evidence" in item.message for item in demanded_diagnostics
+    )
 
 
 def test_execution_fails_closed_when_compute_substrate_has_no_selected_envelope() -> None:

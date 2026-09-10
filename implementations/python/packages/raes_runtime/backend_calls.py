@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from copy import deepcopy
+from dataclasses import replace
 
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
@@ -183,6 +184,17 @@ def _post_apply_contract_result(
     *,
     information_state_context_resolver: ParticipantInformationStateContextResolver | None,
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
+    if result.operational_realization_observations:
+        result = replace(
+            result,
+            snapshot=result.snapshot.with_entries(
+                dict(result.snapshot.entries),
+                realization_observations=(
+                    *result.snapshot.realization_observations,
+                    *result.operational_realization_observations,
+                ),
+            ),
+        )
     diagnostics = _backend_snapshot_contract_diagnostics(
         result,
         baseline_snapshot,
@@ -190,8 +202,12 @@ def _post_apply_contract_result(
     )
     provenance: tuple[RealizationProvenanceEntry, ...] = ()
     if not diagnostics and realization.plan is not None:
+        # Failed apply results are cleanup inventory, not observation-success
+        # claims. Still check materialization authority and sanitize the snapshot;
+        # requiring the failed readback here would erase recoverable resources.
+        validation_plan = realization.plan if result.success else replace(realization.plan, observation_demands=())
         diagnostics, provenance = realization_authority_disclosure(
-            realization.plan,
+            validation_plan,
             result.snapshot,
             manifest=realization.manifest,
         )
@@ -199,7 +215,7 @@ def _post_apply_contract_result(
         if not diagnostics and supplemental:
             supplemental_diagnostics, supplemental_provenance = realization_disclosure(
                 supplemental,
-                realization.plan,
+                validation_plan,
                 result.snapshot,
                 manifest=realization.manifest,
                 artifact_availability=realization.artifact_availability,
@@ -255,6 +271,13 @@ def _sanitize_backend_realization(
             )
         sanitized = _with_snapshot(result, safe_snapshot)
     if realization_plan is not None:
+        sanitized = _with_snapshot(
+            sanitized,
+            sanitized.snapshot.with_entries(
+                dict(sanitized.snapshot.entries),
+                realization_observations=(),
+            ),
+        )
         try:
             sanitized = sanitize_account_credential_result(sanitized, realization_plan, baseline_snapshot)
         except ValueError:

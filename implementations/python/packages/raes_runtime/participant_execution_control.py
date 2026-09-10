@@ -56,6 +56,7 @@ class RuntimeParticipantExecutionMixin:
             snapshot=self._snapshot,
             diagnostics=state.diagnostics,
             changed_addresses=list(dict.fromkeys(state.changed_addresses)),
+            details=state.details,
         )
 
     def _apply_participant_execution_phase(

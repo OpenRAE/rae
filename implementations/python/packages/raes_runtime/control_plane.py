@@ -13,7 +13,7 @@ from threading import RLock
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
-from raes_contracts.plan_projection import provisioning_plan_digest
+from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -53,6 +53,8 @@ from .control_plane_store import (
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import _submitted_plan_diagnostics
 from .control_plane_workflow_control import WorkflowControlMixin
+from .observation_execution import ObservationExecution
+from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
 from .participant_crossing_mediation import (
@@ -147,8 +149,8 @@ class RuntimeControlPlane(
             self._operation_lock = RLock()
             self._ephemeral_idempotency_fingerprints: dict[str, str] = {}
             self._participant_control_lock = self._operation_lock
-            self._trusted_provisioning_plan_lock = RLock()
-            self._trusted_provisioning_plan_digests: set[str] = set()
+            self._trusted_runtime_plan_lock = RLock()
+            self._trusted_runtime_plan_digests: set[str] = set()
             require_participant_information_state_snapshot(
                 self._snapshot,
                 information_state_context_resolver,
@@ -194,7 +196,10 @@ class RuntimeControlPlane(
         )
 
     @runtime_owned
-    def register_planner_produced_provisioning_plan(self, plan: ProvisioningPlan) -> str:
+    def register_planner_produced_plan(
+        self,
+        plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    ) -> str:
         """Trust one exact planner artifact for later HTTP relay submission.
 
         This method is an in-process authority boundary and is deliberately not
@@ -203,19 +208,36 @@ class RuntimeControlPlane(
         """
 
         self._assert_runtime_owner()
-        digest = provisioning_plan_digest(plan)
-        with self._trusted_provisioning_plan_lock:
-            self._trusted_provisioning_plan_digests.add(digest)
+        digest = runtime_plan_digest(plan)
+        with self._trusted_runtime_plan_lock:
+            self._trusted_runtime_plan_digests.add(digest)
         return digest
 
     @runtime_owned
-    def is_planner_authorized_provisioning_plan(self, plan: ProvisioningPlan) -> bool:
+    def is_planner_authorized_plan(
+        self,
+        plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    ) -> bool:
         """Return whether the exact published plan was registered in-process."""
 
         self._assert_runtime_owner()
-        digest = provisioning_plan_digest(plan)
-        with self._trusted_provisioning_plan_lock:
-            return digest in self._trusted_provisioning_plan_digests
+        digest = runtime_plan_digest(plan)
+        with self._trusted_runtime_plan_lock:
+            return digest in self._trusted_runtime_plan_digests
+
+    @runtime_owned
+    def register_planner_produced_provisioning_plan(self, plan: ProvisioningPlan) -> str:
+        """Compatibility alias for provisioning-only callers."""
+
+        self._assert_runtime_owner()
+        return self.register_planner_produced_plan(plan)
+
+    @runtime_owned
+    def is_planner_authorized_provisioning_plan(self, plan: ProvisioningPlan) -> bool:
+        """Compatibility alias for provisioning-only callers."""
+
+        self._assert_runtime_owner()
+        return self.is_planner_authorized_plan(plan)
 
     @runtime_owned
     def submit_provisioning(
@@ -249,6 +271,8 @@ class RuntimeControlPlane(
             RuntimeDomain.PROVISIONING,
             self._snapshot,
             self._target.manifest,
+            self._target.observation_runtime,
+            durable_lifecycle_available=self._store_commits.crash_atomic,
         )
         if diagnostics:
             return self._reject_diagnostics(
@@ -313,7 +337,14 @@ class RuntimeControlPlane(
                 request_fingerprint=context.request_commitment,
                 context=context,
             )
-        diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.ORCHESTRATION, self._snapshot)
+        diagnostics = _submitted_plan_diagnostics(
+            plan,
+            RuntimeDomain.ORCHESTRATION,
+            self._snapshot,
+            self._target.manifest,
+            self._target.observation_runtime,
+            durable_lifecycle_available=self._store_commits.crash_atomic,
+        )
         if diagnostics:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.ORCHESTRATION,
@@ -372,7 +403,14 @@ class RuntimeControlPlane(
                 request_fingerprint=context.request_commitment,
                 context=context,
             )
-        diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.EVALUATION, self._snapshot)
+        diagnostics = _submitted_plan_diagnostics(
+            plan,
+            RuntimeDomain.EVALUATION,
+            self._snapshot,
+            self._target.manifest,
+            self._target.observation_runtime,
+            durable_lifecycle_available=self._store_commits.crash_atomic,
+        )
         if diagnostics:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.EVALUATION,
@@ -403,6 +441,15 @@ class RuntimeControlPlane(
         with self._operation_lock:
             record = self._operations.get(operation_id)
         return None if record is None else record.status
+
+    @runtime_owned
+    def observation_execution(self, operation_id: str) -> ObservationExecution | None:
+        """Return committed metadata and explicitly retained descriptions."""
+
+        self._assert_runtime_owner()
+        with self._operation_lock:
+            record = self._operations.get(operation_id)
+        return observation_execution_from_payload(None if record is None else record.result_payload)
 
     @runtime_owned
     def get_snapshot(self) -> RuntimeSnapshotEnvelope:

@@ -70,12 +70,11 @@ def test_scenario_is_admitted_without_diagnostics_by_each_backend(backend_name):
     assert execution_plan.provisioning.operations
 
 
-def test_both_backends_preserve_resources_and_disclose_selected_substrate():
-    """Preserve authored resources while disclosing each selected substrate."""
+def test_both_backends_preserve_resources_without_implicit_observation():
+    """Preserve authored resources without turning backend selection into telemetry."""
 
     scenario = _scenario()
     realized: dict[str, dict[str, str]] = {}
-    substrates: dict[str, tuple[str | None, str]] = {}
 
     for backend_name, target in _targets():
         manager = RuntimeManager(target)
@@ -88,11 +87,7 @@ def test_both_backends_preserve_resources_and_disclose_selected_substrate():
             for observation in result.snapshot.realization_observations
             if observation.requirement_kind == "compute-substrate"
         ]
-        assert len(substrate_observations) == 1
-        [observation] = substrate_observations
-        assert observation.address == "provision.node.workload"
-        assert observation.binding_verified
-        substrates[backend_name] = (observation.observed_value, observation.observation_strength.value)
+        assert substrate_observations == []
 
         substrate_provenance = [
             provenance
@@ -111,7 +106,3 @@ def test_both_backends_preserve_resources_and_disclose_selected_substrate():
         "only-in-libvirt": sorted(set(libvirt) - set(reference)),
     }
     assert sorted(reference) == ["provision.network.lab", "provision.node.workload"]
-    assert substrates == {
-        "reference": ("x-openrae:in-process-emulation", "driver-reported"),
-        "libvirt": ("virtual-machine", "daemon-observed"),
-    }

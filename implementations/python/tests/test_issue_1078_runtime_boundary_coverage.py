@@ -361,15 +361,15 @@ def test_each_runtime_family_has_fail_closed_exact_open_and_constrained_admissio
             requirement_kind=descriptor.concern_kind,
             explicitness=explicitness,
             provenance=ExplicitnessProvenance.AUTHOR_DECLARED,
-            verification_scope=descriptor.required_verification_scope(None),
-            required_observation_strength=descriptor.required_observation_strength(),
+            verification_scope=RealizationVerificationScope.CONFIGURATION,
+            required_observation_strength=ObservationStrength.GUEST_OBSERVED,
         )
 
     manifest = create_stub_manifest()
     declaration = manifest.realization_support[0]
     capability = RealizationObservationCapability(
-        verification_scope=descriptor.required_verification_scope(None),
-        observation_strength=descriptor.required_observation_strength(),
+        verification_scope=RealizationVerificationScope.CONFIGURATION,
+        observation_strength=ObservationStrength.GUEST_OBSERVED,
     )
     exact = replace(
         manifest,
@@ -415,7 +415,7 @@ def test_each_runtime_family_has_fail_closed_exact_open_and_constrained_admissio
     assert realization_support_diagnostics((requirement(ExplicitnessClass.CONSTRAINED),), constrained) == []
 
 
-def test_runtime_exact_support_requires_concern_specific_corroboration() -> None:
+def test_runtime_exact_support_requires_separate_operational_corroboration() -> None:
     model = compile_runtime_model(
         parse_sdl(
             """
@@ -433,7 +433,6 @@ nodes:
     requirement = next(item for item in model.realization_requirements if item.requirement_kind == "runtime-packages")
     manifest = create_stub_manifest()
 
-    rejected = realization_support_diagnostics((requirement,), manifest)
     declaration = manifest.realization_support[0]
     supported = replace(
         manifest,
@@ -455,14 +454,16 @@ nodes:
     )
 
     assert requirement.explicitness is ExplicitnessClass.EXACT
-    assert [diagnostic.code for diagnostic in rejected] == ["realization.unsupported-exact-requirement"]
+    assert model.observation_demands == ()
+    assert requirement.verification_scope is RealizationVerificationScope.CONFIGURATION
+    assert requirement.required_observation_strength is ObservationStrength.GUEST_OBSERVED
+    assert [item.code for item in realization_support_diagnostics((requirement,), manifest)] == [
+        "realization.unsupported-exact-requirement"
+    ]
     assert realization_support_diagnostics((requirement,), supported) == []
 
 
-def test_all_portable_runtime_concerns_require_independent_observation() -> None:
+def test_portable_runtime_concerns_do_not_own_observation_policy() -> None:
     for descriptor in _runtime_descriptors():
-        assert descriptor.required_verification_scope(None) is not None, descriptor.concern_kind
-        assert descriptor.required_observation_strength() in {
-            ObservationStrength.DAEMON_OBSERVED,
-            ObservationStrength.GUEST_OBSERVED,
-        }, descriptor.concern_kind
+        assert not hasattr(descriptor, "verification_scope"), descriptor.concern_kind
+        assert not hasattr(descriptor, "observation_strength"), descriptor.concern_kind

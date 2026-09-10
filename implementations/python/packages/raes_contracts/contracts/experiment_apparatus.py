@@ -8,6 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..observation_demand import ObservationDemandDocument
 from ..versions import (
     BACKEND_MANIFEST_V2_SCHEMA_VERSION,
     EXPERIMENT_APPARATUS_CONTEXT_SCHEMA_VERSION,
@@ -75,6 +76,7 @@ class ExperimentTaskModel(ContractModel):
     validity_notes: list[ExperimentValidityNoteModel] = Field(min_length=1)
     artifact_refs: list[ExperimentArtifactRefModel] = Field(min_length=1)
     validation_basis_disclosures: list[ValidationBasisDisclosureModel] = Field(default_factory=list)
+    observation_demands: ObservationDemandDocument | None = None
 
     @model_validator(mode="after")
     def _validate_task_validation_basis_disclosures(self) -> ExperimentTaskModel:

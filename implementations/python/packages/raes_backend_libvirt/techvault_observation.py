@@ -76,7 +76,6 @@ def domain_observations(
         network_addresses.get(source.get("network", "")) for source in root.findall("./devices/interface/source")
     )
     return (
-        substrate_observation(address),
         observation(
             address,
             "exists",

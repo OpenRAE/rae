@@ -408,7 +408,7 @@ def test_curated_variants_do_not_turn_planned_surfaces_into_native_claims(
     assert snapshot.entries == {}
 
 
-def test_bounded_substrate_emits_complete_daemon_observations(tmp_path):
+def test_bounded_substrate_keeps_operational_checks_and_observes_substrate_only_on_request(tmp_path):
     connection = _FakeConnection()
     kernel = tmp_path / "vmlinuz"
     kernel.write_bytes(b"kernel")
@@ -438,17 +438,14 @@ def test_bounded_substrate_emits_complete_daemon_observations(tmp_path):
     result = driver.realize(networks=(network,), domains=(domain,))
 
     assert not result.diagnostics
-    assert len(result.observations) == 14
+    assert len(result.observations) == 13
     assert {observation.source.value for observation in result.observations} == {"daemon-observed"}
-    substrate = next(
-        observation for observation in result.observations if observation.concern.value == "compute-substrate"
-    )
-    assert substrate.value == "virtual-machine"
-    assert substrate.binding_verified
+    assert all(observation.concern.value != "compute-substrate" for observation in result.observations)
     definitions_before = tuple(connection.domain_xml)
     readback = driver.observe(domains=(domain,))
     assert not readback.diagnostics
     assert [item.value for item in readback.observations] == ["virtual-machine"]
+    assert readback.observations[0].binding_verified
     assert tuple(connection.domain_xml) == definitions_before
     surface = expected_surface(driver.last_snapshot)
     assert surface["source"] == "daemon-observed"

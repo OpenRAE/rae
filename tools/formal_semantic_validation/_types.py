@@ -151,12 +151,12 @@ _RENAMED_FORMAL_REPLAY_DIGESTS = {
         "5332666a0299d2c303d7a7da4b56dfd309cebf021af187b063ef597cf81bf40a",
     ),
     "compile-repeatability-control": (
-        "23b9d84fa757bd80436357ed52569b5445b0e4161641598e4b15c3b18cf6e668",
-        "4bb77034a8f2b1a577700ad03772a80acc0f4515a6831c8a35ac1bf50482d760",
+        "a7a03db548d2a62214567834da0876609f9ff64f988878f719f846e6c5218f31",
+        "0e03b80171b795c24babcca3b4dc337584c1ae1483327124ff1717b50acaf9d9",
     ),
     "compile-non-vacuity-control": (
-        "2e92bdb90a218c29201312052b64b7fb88e8a65e887f05168e2273d9710a5080",
-        "6cdc44529a87fb9addaf4040795c7f9ae702c5f6ae30e29a5086ee60072ded73",
+        "a9705de7191f3d2a76bd7aa53a1da0603c1cdc60f154a90c4e9cba6bf4d37e76",
+        "204baf2963c10a9c3c10b2ac0881b7041a845fc7d11b6d4a25b4f14f9bdb5760",
     ),
 }
 _HISTORICAL_VM_REPLAY_INPUTS = {

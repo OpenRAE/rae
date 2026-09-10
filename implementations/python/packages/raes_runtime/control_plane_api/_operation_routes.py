@@ -93,10 +93,10 @@ def _register_operation_submission_routes(
         submitted_plan = _provisioning_plan(plan)
         calls = _control_plane_calls(request)
         planner_authorized = await calls.run(
-            control_plane.is_planner_authorized_provisioning_plan,
+            control_plane.is_planner_authorized_plan,
             submitted_plan,
         )
-        if submitted_plan.operations and not planner_authorized:
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not planner_authorized:
             await calls.run(
                 control_plane.record_audit,
                 action="submit_provisioning",
@@ -131,11 +131,25 @@ def _register_operation_submission_routes(
         plan: OrchestrationPlanModel,
         identity: _MutatingIdentity,
     ) -> OperationReceiptModel:
+        submitted_plan = _orchestration_plan(plan)
         calls = _control_plane_calls(request)
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not await calls.run(
+            control_plane.is_planner_authorized_plan,
+            submitted_plan,
+        ):
+            await calls.run(
+                control_plane.record_audit,
+                action="submit_orchestration",
+                identity=identity.identity,
+                allowed=False,
+                target=str(request.url.path),
+                reason="planner-authorization-mismatch",
+            )
+            raise HTTPException(status_code=403, detail="observation demand is not planner-authorized")
         try:
             receipt = await calls.mutate(
                 control_plane.submit_orchestration,
-                _orchestration_plan(plan),
+                submitted_plan,
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,
             )
@@ -157,11 +171,25 @@ def _register_operation_submission_routes(
         plan: EvaluationPlanModel,
         identity: _MutatingIdentity,
     ) -> OperationReceiptModel:
+        submitted_plan = _evaluation_plan(plan)
         calls = _control_plane_calls(request)
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not await calls.run(
+            control_plane.is_planner_authorized_plan,
+            submitted_plan,
+        ):
+            await calls.run(
+                control_plane.record_audit,
+                action="submit_evaluation",
+                identity=identity.identity,
+                allowed=False,
+                target=str(request.url.path),
+                reason="planner-authorization-mismatch",
+            )
+            raise HTTPException(status_code=403, detail="observation demand is not planner-authorized")
         try:
             receipt = await calls.mutate(
                 control_plane.submit_evaluation,
-                _evaluation_plan(plan),
+                submitted_plan,
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,
             )

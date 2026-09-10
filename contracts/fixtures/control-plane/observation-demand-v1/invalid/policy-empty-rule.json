@@ -1,0 +1,13 @@
+{
+  "contract_id": "observation-demand-v1",
+  "schema_version": "observation-demand/v1",
+  "document_id": "policy-empty-rule",
+  "scope_profile": "recursive-realization-constraint/v1",
+  "rules": [
+    {
+      "rule_id": "empty",
+      "scope": "/nodes/kali",
+      "purpose": "experimental"
+    }
+  ]
+}

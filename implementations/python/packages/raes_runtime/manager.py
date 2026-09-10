@@ -18,7 +18,9 @@ from raes_processor.planner import plan, snapshot_delete_order
 
 from .apply_failure import maybe_synthesize_failure, rollback_services
 from .backend_calls import _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
+from .backend_observation_calls import _apply_runtime_plan_with_observation
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
+from .manager_plan_admission import runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
 from .participant_execution_control import RuntimeParticipantExecutionMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
@@ -38,52 +40,9 @@ class _RuntimeApplyState:
     working_snapshot: RuntimeSnapshot
     diagnostics: list[Diagnostic]
     changed_addresses: list[str]
+    details: dict[str, object]
     started_evaluator: bool = False
     failure: ApplyResult | None = None
-
-
-def _provenance_diagnostics(
-    execution_plan: ExecutionPlan,
-    target: _RuntimeTarget,
-    snapshot: RuntimeSnapshot,
-) -> list[Diagnostic]:
-    diagnostics: list[Diagnostic] = []
-    if execution_plan.target_name is None:
-        diagnostics.append(
-            _failure_diagnostic(
-                "runtime.plan-target-unbound",
-                _RUNTIME_APPLY_ADDRESS,
-                (
-                    "Execution plan is not bound to a runtime target. Use "
-                    "RuntimeManager.plan() or pass target_name explicitly."
-                ),
-            )
-        )
-    elif execution_plan.target_name != target.name:
-        diagnostics.append(
-            _failure_diagnostic(
-                "runtime.plan-target-mismatch",
-                _RUNTIME_APPLY_ADDRESS,
-                (f"Execution plan targets '{execution_plan.target_name}', but manager target is '{target.name}'."),
-            )
-        )
-    if execution_plan.manifest != target.manifest:
-        diagnostics.append(
-            _failure_diagnostic(
-                "runtime.plan-manifest-mismatch",
-                _RUNTIME_APPLY_ADDRESS,
-                "Execution plan manifest does not match the manager target manifest.",
-            )
-        )
-    if execution_plan.base_snapshot != snapshot:
-        diagnostics.append(
-            _failure_diagnostic(
-                "runtime.plan-snapshot-mismatch",
-                _RUNTIME_APPLY_ADDRESS,
-                "Execution plan base snapshot does not match the manager snapshot.",
-            )
-        )
-    return diagnostics
 
 
 class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
@@ -104,6 +63,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
             evaluator=target.evaluator,
             participant_runtime=target.participant_runtime,
             time_runtime=target.time_runtime,
+            observation_runtime=target.observation_runtime,
         )
         self._target = target
         self._snapshot = initial_snapshot if initial_snapshot is not None else RuntimeSnapshot()
@@ -151,6 +111,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
             working_snapshot=execution_plan.base_snapshot,
             diagnostics=diagnostics,
             changed_addresses=[],
+            details={},
         )
         self._run_apply_phases(execution_plan, state)
         if state.failure is None:
@@ -199,12 +160,13 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         execution_plan: ExecutionPlan,
         state: _RuntimeApplyState,
     ) -> None:
-        provision_result = _call_backend_apply(
+        provision_result = _apply_runtime_plan_with_observation(
+            self._target,
             self._target.provisioner.apply,
             execution_plan.provisioning,
             state.working_snapshot,
             address="runtime.apply.provisioning",
-            snapshot=state.working_snapshot,
+            execute_observation=execution_plan.observation_owner is RuntimeDomain.PROVISIONING,
             realization=_RealizationApplyContext(
                 requirements=execution_plan.model.realization_requirements,
                 plan=execution_plan.provisioning,
@@ -230,12 +192,13 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         state: _RuntimeApplyState,
     ) -> None:
         if execution_plan.evaluation.actionable_operations and self._target.evaluator is not None:
-            evaluation_result = _call_backend_apply(
+            evaluation_result = _apply_runtime_plan_with_observation(
+                self._target,
                 self._target.evaluator.start,
                 execution_plan.evaluation,
                 state.working_snapshot,
                 address=_APPLY_EVALUATOR_ADDRESS,
-                snapshot=state.working_snapshot,
+                execute_observation=execution_plan.observation_owner is RuntimeDomain.EVALUATION,
                 information_state_context_resolver=self._information_state_context_resolver,
             )
             self._record_phase_result(state, evaluation_result)
@@ -263,12 +226,13 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         state: _RuntimeApplyState,
     ) -> None:
         if execution_plan.orchestration.actionable_operations and self._target.orchestrator is not None:
-            orchestration_result = _call_backend_apply(
+            orchestration_result = _apply_runtime_plan_with_observation(
+                self._target,
                 self._target.orchestrator.start,
                 execution_plan.orchestration,
                 state.working_snapshot,
                 address=_APPLY_ORCHESTRATOR_ADDRESS,
-                snapshot=state.working_snapshot,
+                execute_observation=execution_plan.observation_owner is RuntimeDomain.ORCHESTRATION,
                 information_state_context_resolver=self._information_state_context_resolver,
             )
             self._record_phase_result(state, orchestration_result)
@@ -298,6 +262,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         state.diagnostics.extend(result.diagnostics)
         state.changed_addresses.extend(result.changed_addresses)
         state.working_snapshot = result.snapshot
+        state.details.update(result.details)
 
     def _fail_apply_state(self, state: _RuntimeApplyState) -> None:
         self._time_declaration = None
@@ -307,6 +272,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
             snapshot=self._snapshot,
             diagnostics=state.diagnostics,
             changed_addresses=list(dict.fromkeys(state.changed_addresses)),
+            details=state.details,
         )
 
     def _apply_precondition_failure(
@@ -314,14 +280,14 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         execution_plan: ExecutionPlan,
         diagnostics: list[Diagnostic],
     ) -> ApplyResult | None:
-        provenance_diagnostics = _provenance_diagnostics(
+        precondition_diagnostics = runtime_plan_precondition_diagnostics(
             execution_plan,
             self._target,
             self._snapshot,
         )
-        diagnostics.extend(provenance_diagnostics)
+        diagnostics.extend(precondition_diagnostics)
         failure = None
-        if provenance_diagnostics or not execution_plan.is_valid:
+        if precondition_diagnostics or not execution_plan.is_valid:
             failure = ApplyResult(
                 success=False,
                 snapshot=self._snapshot,

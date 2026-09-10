@@ -74,6 +74,46 @@ does not select new SDL authoring syntax, change ADR-070 universal subsumption,
 authorize a backend witness, or create observation, retention, or export demand.
 Those migrations retain their separately assigned issues.
 
+Issue #1212 publishes `observation-demand-v1` as the separate, versioned
+demand normal form anticipated by decision 7. Its scope addresses reuse the
+recursive semantic hierarchy, but its purpose, mode, selector, collection,
+retention, export, prohibition, redaction, integrity, and reporting-basis axes
+do not inherit meaning from realization posture or closure. Normalized demand
+is carried through runtime and published execution plans. Realization concern
+descriptors no longer impose observation strength, and backend substrate
+readback occurs only when explicit effective collection demand selects that
+operational observation. Component selectors are validated in the authored
+declaration domain and compiled to canonical runtime addresses before
+execution. More-specific policy partitions a broader selector instead of
+allowing the broader rule to bypass a restrictive descendant: the normalized
+selector carries excluded descendant scopes so an adapter can still collect
+the permitted sibling remainder. Runtime adapters advertise stable
+selector-family patterns rather than scenario-specific selector keys, then
+bind each compiled selector to one unambiguous most-specific capability during
+admission. A composite execution plan names one observation-owning phase (the
+last actionable backend phase, falling back to provisioning), so its shared
+demand executes once; an independently submitted phase plan remains its own
+single execution boundary.
+
+Normalization preserves separate selector/authority obligations and clips
+inherited selectors to child partitions. Mandatory retention for one selector
+does not make unrelated optional selectors mandatory or retained; overlapping
+prohibitions still constrain all uses of the affected data.
+
+Protected explicitly retained values become durable in the same atomic commit
+as terminal operation state. This is not backend resource atomicity. The current
+runtime rejects mandatory observation combined with mutation before backend
+apply, pending a real compensating execution owner. It also rejects requested
+export until a governed delivery owner exists. Live capture/export integration
+remains with #1112/#1209, not an unconsumed outbox or an archival policy carrier.
+
+Realization-description values project to the canonical experiment realized-form
+disclosure contract. Nonretained descriptions exist only in the immediate manager
+result; control-plane recovery requires explicit retention. Native substrate
+readback is selected before driver observation and remains transient operational
+validation input outside persisted snapshots. Built-in backends can report their
+bound compute-substrate selection without probing or fabricating evidence.
+
 ## Alternatives Considered
 
 - A larger product enum or extensible installation catalog still forces detail

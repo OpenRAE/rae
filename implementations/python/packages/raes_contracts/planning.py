@@ -21,6 +21,7 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import DomainDescriptor
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.realization_structure import RealizationStructure
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
@@ -352,6 +353,7 @@ class ProvisioningPlan:
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     realization_constraints: tuple[PlannedRealizationConstraint, ...] = ()
     operation_id: str | None = None
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
 
     def __post_init__(self) -> None:
         if self.operation_id is not None and not self.operation_id.strip():
@@ -375,6 +377,7 @@ class OrchestrationPlan:
     operations: list[OrchestrationOp] = field(default_factory=list)
     startup_order: list[str] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_plan_addresses(
@@ -397,6 +400,7 @@ class EvaluationPlan:
     operations: list[EvaluationOp] = field(default_factory=list)
     startup_order: list[str] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_plan_addresses(

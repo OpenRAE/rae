@@ -49,6 +49,7 @@ from ._models import (
     RecursiveRealizationStructure,
 )
 from ._normalization import normalize_realization_literal
+from ._semantic_addresses import canonical_semantic_address, semantic_address_contains
 
 __all__ = [
     "DEFAULT_REALIZATION_CONSTRAINT_LIMITS",
@@ -84,10 +85,12 @@ __all__ = [
     "RealizationStructure",
     "RecursiveRealizationStructure",
     "compose_realization_constraints",
+    "canonical_semantic_address",
     "downgrade_recursive_realization_structure",
     "evaluate_realization_constraint",
     "normalize_realization_literal",
     "realization_constraint_refines",
+    "semantic_address_contains",
     "realization_member_identity",
     "structure_matches",
     "upgrade_legacy_realization_structure",

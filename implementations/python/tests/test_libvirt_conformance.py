@@ -36,6 +36,7 @@ from raes_contracts.planning import RuntimeDomain
 from raes_processor.reference import run_reference_processor
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
+from realization_authority_fixtures import with_compute_substrate_collection_demand
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 COMMITTED_REPORT = REPO_ROOT / "docs" / "conformance" / "libvirt-qemu.provisioning-only.report.json"
@@ -152,22 +153,37 @@ def test_libvirt_provisioning_mutates_snapshot():
     assert provisioned & set(driver.realized_addresses())
 
 
-def test_libvirt_conformance_driver_bootstraps_missing_noop_substrate_evidence():
+def test_libvirt_conformance_driver_uses_non_retained_operational_readback():
     driver = RecordingLibvirtDriver()
     target = create_libvirt_target(driver=driver)
     scenario = parse_sdl(_PROVISIONING_SCENARIO)
     first = RuntimeControlPlane(target)
     first.submit_provisioning(_provisioning_plan(target))
     legacy_snapshot = replace(first.snapshot, realization_observations=())
+    observes_before = tuple(operation for operation in driver.recorded_ops if operation.verb == "observe")
     unchanged = RuntimeManager(target, initial_snapshot=legacy_snapshot).plan(scenario).provisioning
     assert all(operation.action.value == "unchanged" for operation in unchanged.operations)
+
+    without_demand = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
+    receipt = without_demand.submit_provisioning(unchanged)
+
+    assert without_demand.get_operation(receipt.operation_id).state.value == "succeeded"
+    assert tuple(operation for operation in driver.recorded_ops if operation.verb == "observe") == observes_before
+
+    unchanged = with_compute_substrate_collection_demand(
+        unchanged,
+        semantic_scope="/nodes/vm",
+        address="provision.node.vm",
+    )
 
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
     receipt = upgraded.submit_provisioning(unchanged)
 
     assert upgraded.get_operation(receipt.operation_id).state.value == "succeeded"
-    assert upgraded.snapshot.realization_observations
-    assert any(operation.verb == "observe" for operation in driver.recorded_ops)
+    assert upgraded.snapshot.realization_observations == ()
+    assert len(tuple(operation for operation in driver.recorded_ops if operation.verb == "observe")) == (
+        len(observes_before) + 1
+    )
 
 
 def test_provisioning_only_conformance_requires_confirmed_realization():
