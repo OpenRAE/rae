@@ -130,7 +130,7 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     import yaml
 
     workflow = yaml.safe_load((REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8"))
-    assert workflow["jobs"]["generic-tool-platforms"]["timeout-minutes"] == 40
+    assert workflow["jobs"]["generic-tool-platforms"]["timeout-minutes"] == 60
     matrix = workflow["jobs"]["generic-tool-platforms"]["strategy"]["matrix"]["include"]
     assert matrix == [
         {
