@@ -55,8 +55,10 @@ jobs:
           cp "$(command -v uv)" .qualification-kit/bin/uv
           implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-copy-tree \
             "${pythonLocation}" .qualification-kit/python/cpython-3.14.7
-          cp -R .qualification-cache/uv .qualification-kit/uv-cache
-          cp -R .cache/raes-sdl/tooling .qualification-kit/.cache/raes-sdl/tooling
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-copy-tree \
+            .qualification-cache/uv .qualification-kit/uv-cache
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-copy-tree \
+            .cache/raes-sdl/tooling .qualification-kit/.cache/raes-sdl/tooling
           implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-manifest \
             "${{ matrix.profile }}" .qualification-kit --python-artifact-id cpython-3.14 \
             > .qualification-kit/offline-kit-manifest.json

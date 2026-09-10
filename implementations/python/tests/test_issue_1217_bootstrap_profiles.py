@@ -4,7 +4,6 @@ import datetime as dt
 import hashlib
 import ipaddress
 import json
-import os
 import socket
 import ssl
 import subprocess
@@ -680,7 +679,7 @@ def test_offline_kit_manifest_rejects_an_escaping_symlink(tmp_path: Path) -> Non
         bootstrap_profile._offline_kit_entries(kit_root)
 
 
-def test_relocatable_tree_copy_rewrites_internal_links_and_rejects_escape(tmp_path: Path) -> None:
+def test_relocatable_tree_copy_materializes_links_and_rejects_dangling_links(tmp_path: Path) -> None:
     source_root = tmp_path / "source"
     source_bin = source_root / "bin"
     source_bin.mkdir(parents=True)
@@ -690,12 +689,12 @@ def test_relocatable_tree_copy_rewrites_internal_links_and_rejects_escape(tmp_pa
     destination_root = tmp_path / "destination"
     bootstrap_profile.copy_relocatable_tree(source_root, destination_root)
     relocated = destination_root / "bin/python"
-    assert relocated.is_symlink()
-    assert not Path(os.readlink(relocated)).is_absolute()
-    assert relocated.resolve() == destination_root / "bin/python3.14"
+    assert relocated.is_file()
+    assert not relocated.is_symlink()
+    assert relocated.read_bytes() == b"python"
 
-    (source_root / "escape").symlink_to(tmp_path / "outside")
-    with pytest.raises(ValueError, match="escaping symbolic link"):
+    (source_root / "dangling").symlink_to(tmp_path / "missing")
+    with pytest.raises(ValueError, match="could not be materialized"):
         bootstrap_profile.copy_relocatable_tree(source_root, tmp_path / "rejected")
 
 

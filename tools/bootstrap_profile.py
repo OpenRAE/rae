@@ -601,25 +601,18 @@ def _offline_kit_entries(kit_root: Path) -> list[dict[str, object]]:
 
 
 def copy_relocatable_tree(source_root: Path, destination_root: Path) -> None:
-    """Copy a payload tree and relocate every internal symbolic link."""
+    """Copy a payload tree while materializing host-bound symbolic links."""
 
     source_root = source_root.resolve(strict=True)
     if not source_root.is_dir() or destination_root.exists() or destination_root.is_symlink():
         raise ValueError("relocatable payload copy requires a directory and a new destination")
-    shutil.copytree(source_root, destination_root, symlinks=True)
+    try:
+        shutil.copytree(source_root, destination_root, symlinks=False)
+    except (OSError, shutil.Error) as exc:
+        raise ValueError("relocatable payload links could not be materialized") from exc
     for path in sorted(destination_root.rglob("*")):
-        if not path.is_symlink():
-            continue
-        source_path = source_root / path.relative_to(destination_root)
-        try:
-            source_target = (source_path.parent / os.readlink(source_path)).resolve(strict=True)
-            relative_target = source_target.relative_to(source_root)
-        except (OSError, ValueError) as exc:
-            raise ValueError("relocatable payload contains an escaping symbolic link") from exc
-        destination_target = destination_root / relative_target
-        relocated_target = os.path.relpath(destination_target, path.parent)
-        path.unlink()
-        path.symlink_to(relocated_target, target_is_directory=source_target.is_dir())
+        if path.is_symlink():
+            raise ValueError("relocatable payload copy retained a symbolic link")
 
 
 def build_offline_kit_manifest(
