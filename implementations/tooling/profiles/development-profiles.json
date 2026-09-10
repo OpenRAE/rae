@@ -190,7 +190,7 @@
       "capability_results": [{"capability_id": "qualification-workflow", "outcome": "not-run", "observed_identity": "delivery-revision", "reason_code": "awaiting-delivery-revision"}],
       "limitations": ["Reviewed profile declaration is not execution evidence until the delivery workflow records a result."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "bf0e5626bf8019c53ae30e86f2c5b8832014026208539b0144bc3a628914227c"
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
     },
     {
       "evidence_id": "linux-arm64-t02-t08-t12",
@@ -206,7 +206,7 @@
       "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "linux-arm64", "reason_code": "proof-requires-linux-x86_64"}],
       "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "bf0e5626bf8019c53ae30e86f2c5b8832014026208539b0144bc3a628914227c"
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
     },
     {
       "evidence_id": "macos-x86_64-t02-t08",
@@ -222,7 +222,7 @@
       "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "macos-x86_64", "reason_code": "proof-requires-linux-x86_64"}],
       "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "bf0e5626bf8019c53ae30e86f2c5b8832014026208539b0144bc3a628914227c"
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
     },
     {
       "evidence_id": "macos-arm64-t02-t08-t12",
@@ -238,7 +238,7 @@
       "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "macos-arm64", "reason_code": "proof-requires-linux-x86_64"}],
       "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "bf0e5626bf8019c53ae30e86f2c5b8832014026208539b0144bc3a628914227c"
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
     },
     {
       "evidence_id": "proof-ubuntu-22.04-x86_64-t01",

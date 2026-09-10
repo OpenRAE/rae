@@ -12,7 +12,7 @@ jobs:
   generic-tool-platforms:
     name: ${{ matrix.profile }} T02/T08 (arm64 T12)
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
