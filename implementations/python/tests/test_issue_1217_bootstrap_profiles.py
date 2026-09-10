@@ -346,6 +346,20 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
     monkeypatch.setenv("ImageOS", "ubuntu24")
     monkeypatch.setenv("ImageVersion", "20261005.999.1")
     monkeypatch.setenv("RUNNER_ARCH", "X64")
+    monkeypatch.setattr(
+        bootstrap_profile,
+        "_native_client_results",
+        lambda _host: [
+            {"capability_id": capability_id, "outcome": "passed", "version": version}
+            for capability_id, version in (
+                ("git", "2.55.0"),
+                ("ca-roots", "reviewed"),
+                ("sha256", "9.4"),
+                ("curl-unknown-length-max-filesize", "8.5.0"),
+                ("gh-cli", "2.98.0"),
+            )
+        ],
+    )
     selections = tuple(
         (name, Path(f"/qualified/{name}"), ("--version",), "1.0.0")
         for name in ("conftest", "gitleaks", "osv-scanner", "vale")

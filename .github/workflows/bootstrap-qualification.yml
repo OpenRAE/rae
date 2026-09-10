@@ -52,7 +52,7 @@ jobs:
             "${{ matrix.profile }}" .qualification-kit --artifact-id cpython-3.14 --artifact-id uv \
             --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
           cp "$(command -v uv)" .qualification-kit/bin/uv
-          cp -R "${pythonLocation}" .qualification-kit/python/cpython-3.14.7
+          cp -RL "${pythonLocation}" .qualification-kit/python/cpython-3.14.7
           cp -R .qualification-cache/uv .qualification-kit/uv-cache
           cp -R .cache/raes-sdl/tooling .qualification-kit/.cache/raes-sdl/tooling
           implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-manifest \
