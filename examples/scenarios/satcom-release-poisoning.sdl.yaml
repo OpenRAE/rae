@@ -754,27 +754,6 @@ evidence_requirements:
     integrity: checksum
     retention: study_lifetime
     loss_disclosure: required
-vulnerabilities:
-  runner-token-reuse:
-    name: Runner token reuse
-    description: Long-lived CI token can be replayed from a compromised build workspace
-    technical: true
-    class: CWE-798
-  overbroad-registry-cred:
-    name: Overbroad registry credential
-    description: Registry service credential can both publish and promote artifacts
-    technical: true
-    class: CWE-266
-  bastion-sudo-gap:
-    name: Bastion sudo gap
-    description: Support bastion grants overly broad sudo access during incidents
-    technical: true
-    class: CWE-250
-  oidc-trust-drift:
-    name: OIDC trust drift
-    description: Customer portal accepts stale trust metadata from partner IdPs
-    technical: true
-    class: CWE-345
 entities:
   platform-blue:
     name: Platform Blue Team

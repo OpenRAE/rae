@@ -17,6 +17,7 @@ from ._base import (
     parse_enum_or_var,
     parse_int_or_var,
 )
+from ._classification_guard import LegacyClassificationGuard
 from ._identifiers import OptionalPortableIdentifier, PortableIdentifier
 from ._runtime_service_families import install_runtime_service_family_exports
 from ._source import Source
@@ -288,12 +289,14 @@ class ServicePort(SDLModel):
         return parse_int_or_var(v, minimum=1, maximum=65535, field_name="port")
 
 
-class Node(SDLModel):
+class Node(LegacyClassificationGuard):
     """A scenario node — either a compute endpoint or a strict switch.
 
     The ``type`` field determines which structural variant is active. Compute
     fields are only valid for compute nodes; switches carry no extra data.
     """
+
+    legacy_classification_fields = ("vulnerabilities",)
 
     type: NodeType = Field(alias="type")
     description: str = ""
@@ -312,7 +315,6 @@ class Node(SDLModel):
     features: dict[str, str] = Field(default_factory=dict)
     conditions: dict[str, str] = Field(default_factory=dict)
     injects: dict[str, str] = Field(default_factory=dict)
-    vulnerabilities: list[str] = Field(default_factory=list)
     roles: dict[PortableIdentifier, Role] = Field(default_factory=dict)
     services: list[ServicePort] = Field(default_factory=list)
     asset_value: AssetValue | None = None
@@ -401,7 +403,6 @@ class Node(SDLModel):
             "features": bool(self.features),
             "conditions": bool(self.conditions),
             "injects": bool(self.injects),
-            "vulnerabilities": bool(self.vulnerabilities),
             "roles": bool(self.roles),
             "services": bool(self.services),
             "asset_value": self.asset_value is not None,

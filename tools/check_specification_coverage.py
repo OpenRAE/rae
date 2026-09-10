@@ -38,6 +38,7 @@ from tools.specification_coverage._keys import (
 from tools.specification_coverage._primitives import _failure, _sha256
 from tools.specification_coverage._protocol import _validate_protocol
 from tools.specification_coverage._snapshot import _validate_snapshot
+from tools.research_evidence import current_release_path
 
 __all__ = [
     "EXPECTED_CLASSIFICATIONS",
@@ -89,6 +90,13 @@ def load_bundles(
         directory_key="bundles_directory",
         max_bytes=_MAX_FILE_BYTES,
     )
+    current_path = current_release_path(records)
+    if dict(records)[current_path].get("revision") != "2.0.0" or {record.get("revision") for _, record in records} != {
+        "1.0.0",
+        "1.1.0",
+        "2.0.0",
+    }:
+        raise ValueError("coverage evidence requires the explicit current 2.0.0 release and supported history")
     bundles = []
     for manifest_path, manifest in records:
         bundles.append(_load_bundle_record(repo_root, manifest_path, manifest))
@@ -126,8 +134,20 @@ def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     except (OSError, ValueError) as exc:
         return [_failure("specification-coverage-bundle-invalid", str(exc), MANIFEST_PATH)]
     failures: list[PolicyFailure] = []
-    for _manifest, protocol, snapshot, analysis in bundles:
-        failures.extend(validate_bundle(repo_root, protocol, snapshot, analysis))
+    for manifest, protocol, snapshot, analysis in bundles:
+        validator = validate_bundle if manifest.get("revision") == "2.0.0" else validate_historical_bundle
+        failures.extend(validator(repo_root, protocol, snapshot, analysis))
+    return failures
+
+
+def validate_historical_bundle(
+    repo_root: Path, protocol: dict[str, object], snapshot: dict[str, object], analysis: dict[str, object]
+) -> list[PolicyFailure]:
+    """Validate frozen archive integrity and recorded joins, not current replay."""
+    failures: list[PolicyFailure] = []
+    catalogs = _validate_protocol(repo_root, protocol, failures)
+    _validate_snapshot(repo_root, protocol, snapshot, catalogs, failures, replay_current=False)
+    _validate_analysis(protocol, snapshot, analysis, failures)
     return failures
 
 

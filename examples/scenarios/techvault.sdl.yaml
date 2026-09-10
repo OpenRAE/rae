@@ -139,9 +139,6 @@ nodes:
       ram: 1073741824
       cpu: 1
     os: linux
-    vulnerabilities:
-    - unrestricted-upload
-    - verbose-error-disclosure
     services:
     - port: 8080
       protocol: tcp
@@ -620,8 +617,6 @@ nodes:
           responses:
           - status_code: 302
             content_type: text/html
-          vulnerability_refs:
-          - unrestricted-upload
         - route_id: file-download
           path: /files/<file_id>
           methods:
@@ -652,8 +647,6 @@ nodes:
           responses:
           - status_code: 200
             content_type: application/json
-          vulnerability_refs:
-          - verbose-error-disclosure
           disclosures:
           - trigger: any request to the diagnostic endpoint
             status_code: 200
@@ -694,19 +687,6 @@ infrastructure:
       cidr: 172.21.0.0/24
       gateway: 172.21.0.1
       internal: true
-vulnerabilities:
-  unrestricted-upload:
-    name: Unrestricted file upload
-    description: The file upload route accepts arbitrary file types and does not constrain
-      the storage path, allowing a participant to place executable content.
-    technical: true
-    class: CWE-434
-  verbose-error-disclosure:
-    name: Verbose error and diagnostic disclosure
-    description: The diagnostic route and unhandled-exception handler expose internal
-      package versions, host paths, and Python tracebacks to any caller.
-    technical: false
-    class: CWE-209
 variables:
   app_py_sha256:
     type: string

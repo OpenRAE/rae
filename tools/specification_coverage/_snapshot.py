@@ -7,10 +7,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from tools.policy.common import PolicyFailure, safe_repo_path
+from tools.research_evidence import source_state_failures
 from tools.specification_coverage._artifacts import (
     _validate_artifacts,
     _validate_implementation_surfaces,
 )
+from tools.specification_coverage._baseline import validate_current_deviations
 from tools.specification_coverage._keys import (
     _BACKEND_OCCURRENCE_KEYS,
     _CONCEPT_RESULT_KEYS,
@@ -41,6 +43,7 @@ class _SnapshotContext:
     executed: dict[str, dict[str, object]]
     valid_outcomes: set[object] = field(default_factory=set)
     valid_strengths: set[object] = field(default_factory=set)
+    replay_current: bool = True
 
 
 def _snapshot_join_failures(
@@ -75,7 +78,7 @@ def _snapshot_join_failures(
                 path,
             )
         )
-    revision = snapshot.get(_HISTORICAL_REVISION_FIELD)
+    revision = snapshot.get("raes_revision" if "source_state" in snapshot else _HISTORICAL_REVISION_FIELD)
     if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-f]{40}", revision):
         failures.append(
             _failure(
@@ -178,7 +181,7 @@ def _stage_outcome_failures(
                 path,
             )
         )
-    if outcome == "passed":
+    if outcome == "passed" and context.replay_current:
         payload = context.executed.get(artifact_path, {}).get(stage_id)
         exists, _ = _json_pointer_get(payload, stage.get("pointer"))
         if payload is None or not exists:
@@ -337,11 +340,15 @@ def _validate_snapshot(
     snapshot: dict[str, object],
     catalogs: dict[str, object],
     failures: list[PolicyFailure],
+    *,
+    replay_current: bool = True,
 ) -> None:
     path = _EXECUTION_SNAPSHOT_PATH
     if not _exact_keys(
         snapshot,
-        _SNAPSHOT_KEYS,
+        (_SNAPSHOT_KEYS - {_HISTORICAL_REVISION_FIELD}) | {"raes_revision", "source_state", "baseline"}
+        if replay_current
+        else _SNAPSHOT_KEYS,
         failures,
         rule_id="specification-coverage-snapshot-shape",
         label="snapshot",
@@ -349,9 +356,15 @@ def _validate_snapshot(
     ):
         return
     _snapshot_join_failures(repo_root, protocol, snapshot, failures, path)
-    _validate_implementation_surfaces(repo_root, snapshot, failures)
+    if replay_current:
+        failures.extend(validate_current_deviations(repo_root, snapshot))
+        failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=True))
+        state = snapshot.get("source_state")
+        if not isinstance(state, dict) or state.get("base_revision") != snapshot.get("raes_revision"):
+            failures.append(_failure("research-evidence-source-state", "base revision must join source identity", path))
+    _validate_implementation_surfaces(repo_root, snapshot, failures, replay_current=replay_current)
 
-    artifacts_by_id, executed = _validate_artifacts(repo_root, snapshot, failures)
+    artifacts_by_id, executed = _validate_artifacts(repo_root, snapshot, failures, replay_current=replay_current)
     carrier_artifacts = {
         item.get("artifact_id")
         for item in protocol.get("carriers", [])
@@ -366,15 +379,21 @@ def _validate_snapshot(
             )
         )
 
-    _concept_results_failures(repo_root, protocol, snapshot, catalogs, executed, failures, path)
+    rules = protocol.get("execution_rules") if isinstance(protocol.get("execution_rules"), dict) else {}
+    context = _SnapshotContext(
+        repo_root=repo_root,
+        executed=executed,
+        valid_outcomes=set(rules.get("stage_outcomes", [])),
+        valid_strengths=set(rules.get("validation_strength_values", [])),
+        replay_current=replay_current,
+    )
+    _concept_results_failures(context, snapshot, catalogs, failures, path)
 
 
 def _concept_results_failures(
-    repo_root: Path,
-    protocol: dict[str, object],
+    context: _SnapshotContext,
     snapshot: dict[str, object],
     catalogs: dict[str, object],
-    executed: dict[str, dict[str, object]],
     failures: list[PolicyFailure],
     path: str,
 ) -> None:
@@ -402,13 +421,6 @@ def _concept_results_failures(
             )
         )
     concepts = catalogs.get("concepts", {})
-    rules = protocol.get("execution_rules") if isinstance(protocol.get("execution_rules"), dict) else {}
-    context = _SnapshotContext(
-        repo_root=repo_root,
-        executed=executed,
-        valid_outcomes=set(rules.get("stage_outcomes", [])),
-        valid_strengths=set(rules.get("validation_strength_values", [])),
-    )
     for index, result in enumerate(results):
         if not _exact_keys(
             result,

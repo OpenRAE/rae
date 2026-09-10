@@ -10,6 +10,7 @@ from pydantic import Field, model_validator
 
 from .contracts import (
     ActivityStreamsActivityTypesSourceModel,
+    AtlasTacticsSourceModel,
     AttackEnterpriseTacticsSourceModel,
     ExternalConceptBindingDocumentModel,
     ExternalConceptSchemeCoordinateModel,
@@ -332,6 +333,18 @@ def adapt_attack_enterprise_tactics_snapshot(
     )
 
 
+def adapt_atlas_tactics_snapshot(source: AtlasTacticsSourceModel) -> ExternalConceptSchemeSnapshotModel:
+    """Project the pinned ATLAS source through the same scheme-neutral boundary."""
+    return ExternalConceptSchemeSnapshotModel(
+        scheme_id="mitre-atlas-tactics",
+        authority=source.source_authority,
+        revision=source.source_version,
+        source_locator=source.source_url,
+        source_digest=source.source_digest,
+        concepts=[ExternalConceptSnapshotTermModel(concept_id=term.tactic_id) for term in source.tactics],
+    )
+
+
 def adapt_nist_csf_defensive_categories_snapshot(
     source: NistCsfDefensiveCategorySourceModel,
 ) -> ExternalConceptSchemeSnapshotModel:
@@ -379,6 +392,7 @@ __all__ = [
     "ExternalConceptSnapshotTermModel",
     "adapt_activitystreams_activity_types_snapshot",
     "adapt_attack_enterprise_tactics_snapshot",
+    "adapt_atlas_tactics_snapshot",
     "adapt_fipa_communicative_acts_snapshot",
     "adapt_nist_csf_defensive_categories_snapshot",
     "admit_external_concept_bindings",

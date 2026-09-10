@@ -389,7 +389,6 @@ class TestNode:
             ("features", {"nginx": ""}),
             ("conditions", {"health-check": ""}),
             ("injects", {"email": ""}),
-            ("vulnerabilities", ["sqli"]),
             ("roles", {"admin": {"username": "root"}}),
             ("services", [{"port": 80, "name": "http"}]),
             ("asset_value", {"confidentiality": "high"}),
@@ -397,8 +396,9 @@ class TestNode:
         ],
     )
     def test_switch_rejects_other_vm_only_fields(self, field_name, value):
-        with pytest.raises(ValidationError, match=field_name):
+        with pytest.raises(ValidationError, match="Switch") as excinfo:
             Node(type="switch", **{field_name: value})
+        assert field_name in excinfo.value.errors(include_input=False)[0]["msg"]
 
     def test_vm_runtime_configuration_surfaces(self):
         n = Node(
@@ -3065,7 +3065,6 @@ class TestRuntimeApplicationSurface:
                                 "parameters": [
                                     {"name": "document", "location": "uploaded_file", "required": True},
                                 ],
-                                "vulnerability_refs": ["unrestricted-upload"],
                             },
                             {
                                 "route_id": "diagnostics",
@@ -3108,7 +3107,6 @@ class TestRuntimeApplicationSurface:
         upload = surface.routes[1]
         assert upload.auth_required is True
         assert upload.parameters[0].location == RuntimeApplicationParameterLocation.UPLOADED_FILE
-        assert upload.vulnerability_refs == ["unrestricted-upload"]
         diag = surface.routes[2]
         assert diag.exposed_fields[0].sensitivity == RuntimeSensitivityClassification.SECRET_FIXTURE
         assert diag.disclosures[0].disclosure == "internal package versions and host paths"

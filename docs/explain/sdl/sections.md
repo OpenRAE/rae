@@ -33,7 +33,6 @@ plane (ADR-055/064/069). Declarative `conditions` remain.
 | `infrastructure` | `dict[str, InfraNode]` | Deployment topology: counts, links, dependencies, IP/CIDR, ACLs |
 | `features` | `dict[str, Feature]` | Software (Service/Configuration/Artifact) deployed to compute nodes |
 | `conditions` | `dict[str, Condition]` | Declarative health/readiness checks (command+interval or library source) |
-| `vulnerabilities` | `dict[str, Vulnerability]` | CWE-classified vulnerabilities assigned to nodes/features |
 | `entities` | `dict[str, Entity]` | Teams, organizations, people (recursive, with exercise roles) |
 | `injects` | `dict[str, Inject]` | Actions between entities during exercises |
 | `events` | `dict[str, Event]` | Triggered actions combining conditions + injects |
@@ -95,7 +94,6 @@ nodes:
       nginx: web-admin
     conditions:
       web-health: web-admin
-    vulnerabilities: [sqli, xss]
     roles:
       web-admin: www-data               # shorthand: role: username
       operator:                         # longhand
@@ -359,7 +357,6 @@ nodes:
                 - name: document
                   location: uploaded_file
                   required: true
-              vulnerability_refs: [unrestricted-upload]   # → top-level vulnerabilities
             - route_id: diagnostics
               path: /debug/info
               methods: [GET]
@@ -732,7 +729,7 @@ nodes:
       availability: critical
 ```
 
-**Switch** nodes are pure connectivity objects. They may define `type` and an optional `description`, but `source`, `resources`, `os`, `architecture`, `os_version`, `features`, `conditions`, `injects`, `vulnerabilities`, `roles`, `services`, `asset_value`, and `runtime` are rejected.
+**Switch** nodes are pure connectivity objects. They may define `type` and an optional `description`, but `source`, `resources`, `os`, `architecture`, `os_version`, `features`, `conditions`, `injects`, `roles`, `services`, `asset_value`, and `runtime` are rejected.
 
 **Compute** is a portable resource kind, not a synonym for virtual machine.
 Without another declaration a backend may realize a compute node with any
@@ -886,7 +883,7 @@ the valid portable fixture
 shows that carrier. Scanner identity/version/database, scan time, raw findings,
 and advisory snapshot state likewise belong in evidence. Derived severity
 counts belong in `ExperimentDerivedMeasureModel`; they do not automatically
-become top-level authored `vulnerabilities`.
+become native weakness facts. Authored classifications use standalone external concept bindings.
 
 `runtime.service_manager_units` records observed service-manager unit
 lifecycle state — what `systemctl` exposes from inside a realized range node.
@@ -1010,8 +1007,7 @@ observable `auth_required`/`session_required`/`auth_scheme`, typed `parameters`
 located by `path`/`query`/`header`/`cookie`/`form`/`json_body`/`uploaded_file`,
 `responses` with status code and content type, `templates`/`static_assets`
 associations resolving to the node's observed file inventory,
-`vulnerability_refs` pointing at top-level `vulnerabilities` for route-specific
-weakness placement, `redirects`, observable error/disclosure behavior in
+`redirects`, observable error/disclosure behavior in
 `disclosures`, and `exposed_fields` for route-visible fixture secrets or
 intentionally exposed diagnostic fields classified with the shared runtime
 sensitivity vocabulary — `redacted` and `operator_secret` fields omit their raw
@@ -1500,18 +1496,13 @@ behavioral equivalence remain separate claims.
 
 ---
 
-## Vulnerabilities
+## External classifications
 
-CWE-classified weaknesses. The `class` field is validated against `CWE-\d+`.
-
-```yaml
-vulnerabilities:
-  sqli:
-    name: SQL Injection
-    description: SQLi in login form allows auth bypass
-    technical: true
-    class: CWE-89
-```
+Weakness and behavior classifications use standalone
+[external concept bindings](../../../specs/concept-authority/external-concept-bindings.md),
+not native SDL fields. See the
+[migration guide](../../migration/external-classifications.md) for historical sources.
+Route assertions use the exact route subject, never an implied node-level claim.
 
 ---
 
@@ -2044,9 +2035,6 @@ behavior_specifications:
     authority_scope_refs:
       - nodes.web-server.services.https
     behavior_mode: policy-directed
-    ai_offensive_behavior_refs: [ai-model-access, defense-evasion]
-    defensive_behavior_refs: [continuous-monitoring, incident-analysis]
-    offensive_behavior_refs: [reconnaissance, exfiltration]
     realization_profile_ref: participant-implementation-manifest:red-agent
     backend_feature_support_refs: [behavior_history]
     evidence_contract_refs: [participant-behavior-history-event-stream-v1]
@@ -2068,27 +2056,10 @@ boundaries must resolve to their registries, outcome rules must resolve to
 `outcome_interpretation_rules`, and `authority_scope_refs` must resolve to
 targetable named scenario elements. `behavior_mode` is validated against the
 governed `participant-decision-surface-modes` vocabulary.
-`offensive_behavior_refs` is validated against the governed
-`participant-offensive-behavior-activities` vocabulary. Its base values are a
-direct adoption of MITRE ATT&CK Enterprise tactics v19.1, pinned by
-`contracts/concept-authority/attack-enterprise-tactics-source-v1.json` and
-checked by `tools/check_attack_tactic_vocabulary.py`.
-`ai_offensive_behavior_refs` is validated against the separate governed
-`participant-ai-offensive-behavior-activities` vocabulary. Its base values are a
-direct adoption of MITRE ATLAS tactics release v2026.06, pinned by
-`contracts/concept-authority/atlas-tactics-source-v1.json` and checked by
-`tools/check_atlas_tactic_vocabulary.py`. These refs classify authored
-attack-oriented participant tasks, goals, or activities without replacing
-action contracts, experiment tasks, workflow steps, or runtime
-history. `defensive_behavior_refs` is validated against the independent
-`participant-defensive-behavior-activities` vocabulary. Its base values adapt
-the active NIST CSF 2.0 Detect, Respond, and Recover categories pinned by
-`contracts/concept-authority/nist-csf-defensive-categories-source-v1.json` and
-checked by `tools/check_nist_csf_defensive_vocabulary.py`. A defensive ref
-classifies authored intent or outcome domain; it does not prove an incident,
-detection quality, response effectiveness, recovery completion, or NIST CSF
-conformance. Extensions are only allowed when `extension_policy` permits them, and
-extension keys must use `x-<owner>:<term>`.
+External behavior classifications use standalone concept binding documents.
+ATT&CK, ATLAS and NIST CSF remain optional pinned source catalogs, not governed
+SDL scopes. A binding is an authored interpretation, not evidence of execution,
+realization or conformance.
 
 `tool_affordances` is a closed, participant-local mapping. Its keys identify
 authored affordance bindings; each value may name one governed scenario

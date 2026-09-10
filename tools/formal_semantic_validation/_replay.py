@@ -17,7 +17,6 @@ from tools.formal_semantic_validation._shape import (
 )
 from tools.formal_semantic_validation._types import (
     _HISTORICAL_VM_REPLAY_INPUTS,
-    _RENAMED_FORMAL_REPLAY_DIGESTS,
 )
 from tools.policy.common import safe_repo_path
 
@@ -90,10 +89,6 @@ def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Pat
     )
     instantiated = instantiate_scenario(scenario, parameters={})
     compiled = dataclasses.asdict(compile_runtime_model(instantiated))
-    # Additive empty runtime dimensions do not alter the historical semantic
-    # replay projection. A non-empty capture demand remains digest-bearing.
-    if not compiled.get("capture_demands"):
-        compiled.pop("capture_demands", None)
     return _digest(compiled)
 
 
@@ -116,18 +111,13 @@ def _replay_compile_distinguish(
 
 
 def _replay_observation_matches(
-    case_id: object,
     observation: Mapping[str, object],
     replayed: Mapping[str, object],
 ) -> bool:
-    digest_pair = (observation.get("result_digest"), replayed.get("result_digest"))
     return (
         observation.get("actual_outcome") == replayed.get("actual_outcome")
         and observation.get("diagnostic_kind") == replayed.get("diagnostic_kind")
-        and (
-            observation.get("result_digest") == replayed.get("result_digest")
-            or _RENAMED_FORMAL_REPLAY_DIGESTS.get(str(case_id)) == digest_pair
-        )
+        and observation.get("result_digest") == replayed.get("result_digest")
     )
 
 

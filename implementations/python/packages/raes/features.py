@@ -8,7 +8,8 @@ from enum import Enum
 
 from pydantic import Field, field_validator
 
-from ._base import SDLModel, normalize_enum_value
+from ._base import normalize_enum_value
+from ._classification_guard import LegacyClassificationGuard
 from ._source import Source
 
 
@@ -20,8 +21,10 @@ class FeatureType(str, Enum):
     ARTIFACT = "artifact"
 
 
-class Feature(SDLModel):
+class Feature(LegacyClassificationGuard):
     """A software artifact, service, or configuration deployed to a compute node."""
+
+    legacy_classification_fields = ("vulnerabilities",)
 
     name: str = ""
     type: FeatureType = Field(alias="type")
@@ -33,7 +36,6 @@ class Feature(SDLModel):
         return normalize_enum_value(v)
 
     dependencies: list[str] = Field(default_factory=list)
-    vulnerabilities: list[str] = Field(default_factory=list)
     destination: str = ""
     description: str = ""
     environment: list[str] = Field(default_factory=list)

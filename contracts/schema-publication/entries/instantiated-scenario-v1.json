@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft",
-  "content_hash": "8fed20fd42e42c1875a94f85359512cc0124a068271373115f01ac5b705f5583",
+  "content_hash": "54077d818257caf41872313b16b32374374ac137c84c098d25e2ed7d4dd35775",
   "last_change": {
-    "summary": "Added explicit evidence output-contract and field demand terms for issue #1112.",
-    "content_hash": "8fed20fd42e42c1875a94f85359512cc0124a068271373115f01ac5b705f5583"
+    "summary": "Removed native classification fields in favor of external concept bindings (issue #989), retaining explicit evidence output-contract and field demand terms (issue #1112).",
+    "content_hash": "54077d818257caf41872313b16b32374374ac137c84c098d25e2ed7d4dd35775"
   }
 }

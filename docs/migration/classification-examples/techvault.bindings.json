@@ -1,0 +1,315 @@
+{
+  "schema_version": "external-concept-bindings/v1",
+  "binding_set_id": "techvault-historical-classifications",
+  "binding_set_version": "1.0.0",
+  "bindings": {
+    "legacy-association-1": {
+      "binding_id": "legacy-association-1",
+      "subject": {
+        "subject_kind": "runtime-application-route",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "lifecycle_phase": "normalized-authoring",
+        "canonical_ref": "nodes.techvault-webapp.runtime.applications.techvault-webapp.routes.file-upload",
+        "artifact_digest": "sha256:1048d4c974503d3ebb94c46f9e72a198ca78b333c5d4b537b7d021c933e706f1"
+      },
+      "scheme": {
+        "scheme_id": "techvault-historical-author-labels",
+        "authority": "TechVault scenario authors (historical labels, not CWE authority)",
+        "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+        "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/techvault.sdl.yaml",
+        "source_digest": "sha256:af5a7499bf6b467c9f639f953030a07f0242fcb712212f368f43016835b95476",
+        "concept_id": "CWE-434"
+      },
+      "assertion": {
+        "relationship_kind": "related-to",
+        "motivation": "Retain the historical author association as a newly authored illustrative binding.",
+        "motivation_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ],
+        "semantic_effect": "annotates",
+        "semantic_effect_basis_refs": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "external-concept-bindings/v1"
+          }
+        ]
+      },
+      "perspective": {
+        "asserting_party_kind": "author",
+        "asserting_party_ref": "authors.migration-example",
+        "perspective": "historical-label-curation",
+        "authority_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ]
+      },
+      "provenance": {
+        "asserted_at": "2026-09-07T00:00:00Z",
+        "source_refs": [
+          {
+            "ref_kind": "authoring-input",
+            "ref_id": "examples/scenarios/techvault.sdl.yaml",
+            "ref_version": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+            "ref_digest": "sha256:68d886e1df851942bcfb136d34d0fe6a46b9b0b5fcb58555a2c5bd99cdefbd29",
+            "ref_path": "/nodes/techvault-webapp/runtime/applications/0/routes/2/vulnerability_refs/0"
+          }
+        ]
+      },
+      "supporting_evidence_refs": [],
+      "confidence": {
+        "posture": "unknown",
+        "basis": "The historical source lacks a pinned CWE revision and verified realization evidence."
+      },
+      "approximation": {
+        "posture": "lossy",
+        "loss_details": [
+          "Preserves the author label, not an authoritative CWE interpretation; the old source supplies no assertion perspective, relationship, confidence, time or review."
+        ]
+      },
+      "limitations": [
+        "New example assertion context is authored for #989, not reconstructed historical metadata.",
+        "An association neither grants capability nor proves a weakness is realized."
+      ],
+      "review": {
+        "status": "unreviewed",
+        "review_refs": []
+      }
+    },
+    "legacy-association-2": {
+      "binding_id": "legacy-association-2",
+      "subject": {
+        "subject_kind": "runtime-application-route",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "lifecycle_phase": "normalized-authoring",
+        "canonical_ref": "nodes.techvault-webapp.runtime.applications.techvault-webapp.routes.diagnostics",
+        "artifact_digest": "sha256:1048d4c974503d3ebb94c46f9e72a198ca78b333c5d4b537b7d021c933e706f1"
+      },
+      "scheme": {
+        "scheme_id": "techvault-historical-author-labels",
+        "authority": "TechVault scenario authors (historical labels, not CWE authority)",
+        "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+        "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/techvault.sdl.yaml",
+        "source_digest": "sha256:af5a7499bf6b467c9f639f953030a07f0242fcb712212f368f43016835b95476",
+        "concept_id": "CWE-209"
+      },
+      "assertion": {
+        "relationship_kind": "related-to",
+        "motivation": "Retain the historical author association as a newly authored illustrative binding.",
+        "motivation_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ],
+        "semantic_effect": "annotates",
+        "semantic_effect_basis_refs": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "external-concept-bindings/v1"
+          }
+        ]
+      },
+      "perspective": {
+        "asserting_party_kind": "author",
+        "asserting_party_ref": "authors.migration-example",
+        "perspective": "historical-label-curation",
+        "authority_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ]
+      },
+      "provenance": {
+        "asserted_at": "2026-09-07T00:00:00Z",
+        "source_refs": [
+          {
+            "ref_kind": "authoring-input",
+            "ref_id": "examples/scenarios/techvault.sdl.yaml",
+            "ref_version": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+            "ref_digest": "sha256:68d886e1df851942bcfb136d34d0fe6a46b9b0b5fcb58555a2c5bd99cdefbd29",
+            "ref_path": "/nodes/techvault-webapp/runtime/applications/0/routes/4/vulnerability_refs/0"
+          }
+        ]
+      },
+      "supporting_evidence_refs": [],
+      "confidence": {
+        "posture": "unknown",
+        "basis": "The historical source lacks a pinned CWE revision and verified realization evidence."
+      },
+      "approximation": {
+        "posture": "lossy",
+        "loss_details": [
+          "Preserves the author label, not an authoritative CWE interpretation; the old source supplies no assertion perspective, relationship, confidence, time or review."
+        ]
+      },
+      "limitations": [
+        "New example assertion context is authored for #989, not reconstructed historical metadata.",
+        "An association neither grants capability nor proves a weakness is realized."
+      ],
+      "review": {
+        "status": "unreviewed",
+        "review_refs": []
+      }
+    },
+    "legacy-association-3": {
+      "binding_id": "legacy-association-3",
+      "subject": {
+        "subject_kind": "node",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "lifecycle_phase": "normalized-authoring",
+        "canonical_ref": "nodes.techvault-webapp",
+        "artifact_digest": "sha256:1048d4c974503d3ebb94c46f9e72a198ca78b333c5d4b537b7d021c933e706f1"
+      },
+      "scheme": {
+        "scheme_id": "techvault-historical-author-labels",
+        "authority": "TechVault scenario authors (historical labels, not CWE authority)",
+        "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+        "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/techvault.sdl.yaml",
+        "source_digest": "sha256:af5a7499bf6b467c9f639f953030a07f0242fcb712212f368f43016835b95476",
+        "concept_id": "CWE-434"
+      },
+      "assertion": {
+        "relationship_kind": "related-to",
+        "motivation": "Retain the historical author association as a newly authored illustrative binding.",
+        "motivation_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ],
+        "semantic_effect": "annotates",
+        "semantic_effect_basis_refs": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "external-concept-bindings/v1"
+          }
+        ]
+      },
+      "perspective": {
+        "asserting_party_kind": "author",
+        "asserting_party_ref": "authors.migration-example",
+        "perspective": "historical-label-curation",
+        "authority_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ]
+      },
+      "provenance": {
+        "asserted_at": "2026-09-07T00:00:00Z",
+        "source_refs": [
+          {
+            "ref_kind": "authoring-input",
+            "ref_id": "examples/scenarios/techvault.sdl.yaml",
+            "ref_version": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+            "ref_digest": "sha256:68d886e1df851942bcfb136d34d0fe6a46b9b0b5fcb58555a2c5bd99cdefbd29",
+            "ref_path": "/nodes/techvault-webapp/vulnerabilities/0"
+          }
+        ]
+      },
+      "supporting_evidence_refs": [],
+      "confidence": {
+        "posture": "unknown",
+        "basis": "The historical source lacks a pinned CWE revision and verified realization evidence."
+      },
+      "approximation": {
+        "posture": "lossy",
+        "loss_details": [
+          "Preserves the author label, not an authoritative CWE interpretation; the old source supplies no assertion perspective, relationship, confidence, time or review."
+        ]
+      },
+      "limitations": [
+        "New example assertion context is authored for #989, not reconstructed historical metadata.",
+        "An association neither grants capability nor proves a weakness is realized."
+      ],
+      "review": {
+        "status": "unreviewed",
+        "review_refs": []
+      }
+    },
+    "legacy-association-4": {
+      "binding_id": "legacy-association-4",
+      "subject": {
+        "subject_kind": "node",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "lifecycle_phase": "normalized-authoring",
+        "canonical_ref": "nodes.techvault-webapp",
+        "artifact_digest": "sha256:1048d4c974503d3ebb94c46f9e72a198ca78b333c5d4b537b7d021c933e706f1"
+      },
+      "scheme": {
+        "scheme_id": "techvault-historical-author-labels",
+        "authority": "TechVault scenario authors (historical labels, not CWE authority)",
+        "revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+        "source_locator": "https://github.com/OpenRAE/rae/blob/a717cc2295ba6e67cd1723613171b93bba07bef5/examples/scenarios/techvault.sdl.yaml",
+        "source_digest": "sha256:af5a7499bf6b467c9f639f953030a07f0242fcb712212f368f43016835b95476",
+        "concept_id": "CWE-209"
+      },
+      "assertion": {
+        "relationship_kind": "related-to",
+        "motivation": "Retain the historical author association as a newly authored illustrative binding.",
+        "motivation_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ],
+        "semantic_effect": "annotates",
+        "semantic_effect_basis_refs": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "external-concept-bindings/v1"
+          }
+        ]
+      },
+      "perspective": {
+        "asserting_party_kind": "author",
+        "asserting_party_ref": "authors.migration-example",
+        "perspective": "historical-label-curation",
+        "authority_basis_refs": [
+          {
+            "ref_kind": "other",
+            "ref_id": "issue-989-example-curation"
+          }
+        ]
+      },
+      "provenance": {
+        "asserted_at": "2026-09-07T00:00:00Z",
+        "source_refs": [
+          {
+            "ref_kind": "authoring-input",
+            "ref_id": "examples/scenarios/techvault.sdl.yaml",
+            "ref_version": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+            "ref_digest": "sha256:68d886e1df851942bcfb136d34d0fe6a46b9b0b5fcb58555a2c5bd99cdefbd29",
+            "ref_path": "/nodes/techvault-webapp/vulnerabilities/1"
+          }
+        ]
+      },
+      "supporting_evidence_refs": [],
+      "confidence": {
+        "posture": "unknown",
+        "basis": "The historical source lacks a pinned CWE revision and verified realization evidence."
+      },
+      "approximation": {
+        "posture": "lossy",
+        "loss_details": [
+          "Preserves the author label, not an authoritative CWE interpretation; the old source supplies no assertion perspective, relationship, confidence, time or review."
+        ]
+      },
+      "limitations": [
+        "New example assertion context is authored for #989, not reconstructed historical metadata.",
+        "An association neither grants capability nor proves a weakness is realized."
+      ],
+      "review": {
+        "status": "unreviewed",
+        "review_refs": []
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 The Scenario combines specification sections covering
 who (entities, accounts, agents), what (nodes, features,
-vulnerabilities, content), when (scripts, stories, events),
+content), when (scripts, stories, events),
 and declarative experiment semantics (objectives, conditions,
 relationships, workflows, variables). Per ADR-073 the SDL no
 longer carries the OCR scoring pipeline; graded scoring/reward
@@ -17,6 +17,7 @@ from typing import ClassVar
 from pydantic import ConfigDict, Field, PrivateAttr, model_validator
 
 from ._base import SDLModel
+from ._classification_guard import LegacyClassificationGuard
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
     PortableIdentifier,
@@ -67,7 +68,6 @@ from .time_model import (
 )
 from .variables import Variable
 from .variation import VariationPoint
-from .vulnerabilities import Vulnerability
 
 VariableName = PortableIdentifier
 VariableDefinitions = dict[PortableIdentifier, Variable]
@@ -244,8 +244,10 @@ class ImportDecl(SDLModel):
         return f"local:{self.path}"
 
 
-class ScenarioContent(SDLModel):
+class ScenarioContent(LegacyClassificationGuard):
     """Executable SDL content shared by the closed document-phase types."""
+
+    legacy_classification_fields = ("vulnerabilities",)
 
     _allows_qualified_declaration_keys: ClassVar[bool] = False
 
@@ -261,7 +263,6 @@ class ScenarioContent(SDLModel):
     conditions: dict[str, Condition] = Field(default_factory=dict)
     propositions: dict[str, Proposition] = Field(default_factory=dict)
     assertions: dict[str, Assertion] = Field(default_factory=dict)
-    vulnerabilities: dict[str, Vulnerability] = Field(default_factory=dict)
     entities: dict[str, Entity] = Field(default_factory=dict)
     injects: dict[str, Inject] = Field(default_factory=dict)
     events: dict[str, Event] = Field(default_factory=dict)

@@ -109,7 +109,6 @@ class RuntimeModel:
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     inject_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
-    vulnerability_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     entity_specs: dict[str, dict[str, Any]] = field(default_factory=dict)
     agent_specs: dict[str, dict[str, Any]] = field(default_factory=dict)
     relationship_specs: dict[str, dict[str, Any]] = field(default_factory=dict)

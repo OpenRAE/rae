@@ -198,40 +198,6 @@ def _behavior_specification_vocabulary_issues(
     )
     if mode_issue is not None:
         issues.append(mode_issue)
-    from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
-
-    for field_name, scope, code in (
-        (
-            "ai_offensive_behavior_refs",
-            "behavior_specifications.ai_offensive_behavior_refs",
-            "participant.behavior-spec-ai-offensive-behavior-ungoverned",
-        ),
-        (
-            "defensive_behavior_refs",
-            "behavior_specifications.defensive_behavior_refs",
-            "participant.behavior-spec-defensive-behavior-ungoverned",
-        ),
-        (
-            "offensive_behavior_refs",
-            "behavior_specifications.offensive_behavior_refs",
-            "participant.behavior-spec-offensive-behavior-ungoverned",
-        ),
-    ):
-        for ref in getattr(behavior_spec, field_name, []) or []:
-            if is_unresolved(ref):
-                continue
-            try:
-                validate_controlled_vocabulary_scope_values(scope, [str(ref)])
-            except ValueError as exc:
-                issues.append(
-                    ParticipantBehaviorIssue(
-                        code=code,
-                        participant_name="",
-                        spec_name=spec_name,
-                        ref=str(ref),
-                        message=str(exc),
-                    )
-                )
     issues.extend(
         _behavior_specification_feature_issues(
             spec_name=spec_name,

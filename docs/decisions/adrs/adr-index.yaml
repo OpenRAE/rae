@@ -17,6 +17,9 @@ adrs:
       - date: 2026-07-11
         ref: "#721"
         summary: "Replaced implicit case-insensitive field parsing with strict sdl-yaml/v1, explicit diagnosed migration, an honest normalized-authoring-object schema boundary, and RFC 8785 semantic identity."
+      - date: 2026-09-09
+        ref: "#989"
+        summary: "Replace native vulnerability and classification sections with generic external concept bindings, preserving native execution semantics, explicit migration, and ordinary participant disclosure."
   - id: ADR-002
     path: docs/decisions/adrs/adr-002-declarative-sdl-objectives.md
     pin: 70db360e393dd0a02b0bed7aaa668a68ed6961eda0f9246905a536b9c6cba82c

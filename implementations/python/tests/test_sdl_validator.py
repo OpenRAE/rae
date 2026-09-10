@@ -45,17 +45,8 @@ class TestVerifyNodes:
         assert any("undefined feature" in e for e in errors)
 
     def test_undefined_vulnerability_on_node(self):
-        s = _make_scenario(
-            nodes={
-                "vm-1": {
-                    "type": "compute",
-                    "resources": {"ram": "1 gib", "cpu": 1},
-                    "vulnerabilities": ["nonexistent"],
-                }
-            },
-        )
-        errors = _validate(s)
-        assert any("undefined vulnerability" in e for e in errors)
+        with pytest.raises(ValidationError, match="classification migration"):
+            _make_scenario(nodes={"web": {"type": "compute", "vulnerabilities": ["unknown"]}})
 
     def test_node_name_too_long(self):
         long_name = "a" * 36
@@ -373,13 +364,8 @@ class TestVerifyFeatures:
         assert any("cycle" in e for e in errors)
 
     def test_feature_references_undefined_vuln(self):
-        s = _make_scenario(
-            features={
-                "f": {"type": "service", "vulnerabilities": ["missing"]},
-            },
-        )
-        errors = _validate(s)
-        assert any("undefined vulnerability" in e for e in errors)
+        with pytest.raises(ValidationError, match="classification migration"):
+            _make_scenario(features={"service": {"type": "service", "vulnerabilities": ["unknown"]}})
 
     def test_valid_feature_dependencies(self):
         s = _make_scenario(
@@ -448,9 +434,9 @@ class TestErrorCollection:
         """Validator collects all errors, not just the first."""
         s = _make_scenario(
             features={
-                "f1": {"type": "service", "vulnerabilities": ["missing-1"]},
-                "f2": {"type": "service", "vulnerabilities": ["missing-2"]},
-                "f3": {"type": "service", "vulnerabilities": ["missing-3"]},
+                "f1": {"type": "service", "dependencies": ["missing-1"]},
+                "f2": {"type": "service", "dependencies": ["missing-2"]},
+                "f3": {"type": "service", "dependencies": ["missing-3"]},
             },
         )
         errors = _validate(s)
@@ -2811,47 +2797,15 @@ class TestVerifyRuntimeApplication:
         )
         assert _validate(s) == []
 
-    def test_route_vulnerability_ref_resolves(self):
-        s = _make_scenario(
-            nodes={
-                "vm": self._node_with_application(
-                    {
-                        "application_id": "app",
-                        "routes": [
-                            {
-                                "route_id": "r1",
-                                "path": "/a",
-                                "methods": ["GET"],
-                                "vulnerability_refs": ["sqli"],
-                            }
-                        ],
-                    },
-                ),
-            },
-            vulnerabilities={"sqli": {"name": "SQLi", "description": "x", "class": "CWE-89"}},
+    def test_route_vulnerability_refs_require_classification_migration(self):
+        node = self._node_with_application(
+            {
+                "application_id": "app",
+                "routes": [{"route_id": "route", "path": "/", "vulnerability_refs": ["known"]}],
+            }
         )
-        assert _validate(s) == []
-
-    def test_route_vulnerability_ref_undefined_is_rejected(self):
-        s = _make_scenario(
-            nodes={
-                "vm": self._node_with_application(
-                    {
-                        "application_id": "app",
-                        "routes": [
-                            {
-                                "route_id": "r1",
-                                "path": "/a",
-                                "methods": ["GET"],
-                                "vulnerability_refs": ["ghost-vuln"],
-                            }
-                        ],
-                    },
-                ),
-            },
-        )
-        errors = _validate(s)
-        assert any("references undefined vulnerability 'ghost-vuln'" in e for e in errors)
+        with pytest.raises(ValidationError, match="classification migration"):
+            _make_scenario(nodes={"web": node})
 
     def test_route_template_ref_resolves_to_filesystem_inventory(self):
         node = {

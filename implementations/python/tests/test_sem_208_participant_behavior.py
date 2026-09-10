@@ -181,11 +181,6 @@ def _scenario_yaml(*, actions: str = "[scan]", boundaries: str = "[red-view]") -
                 target: nodes.web.services.http
                 rationale: scan reads and updates participant-visible service knowledge
                 shared_state_refs: [nodes.web.services.http]
-            external_mappings:
-              - system: attack
-                identifier: T1046
-                loss_label: technique-to-contract
-                rationale: ATT&CK does not encode RAES observation or state-transition semantics
         observation_boundaries:
           red-view:
             projection_basis: participant-local projection over observed services
@@ -483,9 +478,6 @@ def test_behavior_specifications_parse_validate_and_compile():
             observation_boundary_refs: [red-view]
             authority_scope_refs: [nodes.web.services.http]
             behavior_mode: policy-directed
-            ai_offensive_behavior_refs: [ai-model-access, defense-evasion]
-            defensive_behavior_refs: [continuous-monitoring, incident-analysis]
-            offensive_behavior_refs: [reconnaissance, exfiltration]
             realization_profile_ref: participant-implementation-manifest:reference-red-agent
             backend_feature_support_refs: [action_contracts]
             evidence_contract_refs: [participant-behavior-history-event-stream-v1]
@@ -503,9 +495,6 @@ def test_behavior_specifications_parse_validate_and_compile():
     assert spec.participant_refs == ["red-agent"]
     assert spec.participant_role_refs == ["red"]
     assert spec.behavior_mode == "policy-directed"
-    assert spec.ai_offensive_behavior_refs == ["ai-model-access", "defense-evasion"]
-    assert spec.defensive_behavior_refs == ["continuous-monitoring", "incident-analysis"]
-    assert spec.offensive_behavior_refs == ["reconnaissance", "exfiltration"]
     assert spec.extensions["x-acme:review-note"]["note"] == "reference-only extension"
 
     model = compile_runtime_model(scenario)
@@ -515,9 +504,6 @@ def test_behavior_specifications_parse_validate_and_compile():
     assert compiled.observation_boundary_addresses == (OBSERVATION_ADDRESS,)
     assert compiled.authority_scope_refs == ("nodes.web.services.http",)
     assert compiled.behavior_mode == "policy-directed"
-    assert compiled.ai_offensive_behavior_refs == ("ai-model-access", "defense-evasion")
-    assert compiled.defensive_behavior_refs == ("continuous-monitoring", "incident-analysis")
-    assert compiled.offensive_behavior_refs == ("reconnaissance", "exfiltration")
     assert compiled.spec["participant_refs"] == ["red-agent"]
 
 
@@ -1289,73 +1275,20 @@ def test_behavior_specification_behavior_mode_allows_governed_extensions():
     assert compiled.behavior_mode == "x-acme:swarm-control"
 
 
-def test_act_609_offensive_behavior_refs_allow_governed_extensions():
-    scenario = parse_sdl(
-        _scenario_yaml()
-        + textwrap.dedent(
-            """
+@pytest.mark.parametrize("field", ["offensive_behavior_refs", "ai_offensive_behavior_refs", "defensive_behavior_refs"])
+def test_behavior_classifications_require_external_binding_migration(field):
+    source = _scenario_yaml() + textwrap.dedent(
+        f"""
         behavior_specifications:
-          red-scan-behavior:
+          legacy:
             semantic_version: 1.0.0
-            lifecycle_state: active
             participant_refs: [red-agent]
             action_contract_refs: [scan]
-            offensive_behavior_refs: [reconnaissance, x-acme:phishing-campaign]
-            extension_policy: governed-extension
+            {field}: [x-acme:custom-term]
         """
-        )
     )
-
-    compiled = compile_runtime_model(scenario).behavior_specifications[
-        "participant.behavior-specification.red-scan-behavior"
-    ]
-    assert compiled.offensive_behavior_refs == ("reconnaissance", "x-acme:phishing-campaign")
-
-
-def test_act_609_ai_offensive_behavior_refs_allow_governed_extensions():
-    scenario = parse_sdl(
-        _scenario_yaml()
-        + textwrap.dedent(
-            """
-        behavior_specifications:
-          red-scan-behavior:
-            semantic_version: 1.0.0
-            lifecycle_state: active
-            participant_refs: [red-agent]
-            action_contract_refs: [scan]
-            ai_offensive_behavior_refs: [ai-model-access, x-acme:model-poisoning]
-            extension_policy: governed-extension
-        """
-        )
-    )
-
-    compiled = compile_runtime_model(scenario).behavior_specifications[
-        "participant.behavior-specification.red-scan-behavior"
-    ]
-    assert compiled.ai_offensive_behavior_refs == ("ai-model-access", "x-acme:model-poisoning")
-
-
-def test_act_610_defensive_behavior_refs_allow_governed_extensions():
-    scenario = parse_sdl(
-        _scenario_yaml()
-        + textwrap.dedent(
-            """
-        behavior_specifications:
-          red-scan-behavior:
-            semantic_version: 1.0.0
-            lifecycle_state: active
-            participant_refs: [red-agent]
-            action_contract_refs: [scan]
-            defensive_behavior_refs: [continuous-monitoring, x-acme:threat-hunting]
-            extension_policy: governed-extension
-        """
-        )
-    )
-
-    compiled = compile_runtime_model(scenario).behavior_specifications[
-        "participant.behavior-specification.red-scan-behavior"
-    ]
-    assert compiled.defensive_behavior_refs == ("continuous-monitoring", "x-acme:threat-hunting")
+    with pytest.raises(SDLParseError, match="classification migration"):
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize(
@@ -1429,66 +1362,6 @@ def test_behavior_specification_behavior_mode_uses_governed_vocabulary():
         parse_sdl(scenario)
 
     assert "participant-decision-surface-modes" in str(excinfo.value)
-
-
-def test_behavior_specification_offensive_behavior_refs_use_governed_vocabulary():
-    scenario = _scenario_yaml() + textwrap.dedent(
-        """
-        behavior_specifications:
-          red-scan-behavior:
-            semantic_version: 1.0.0
-            lifecycle_state: active
-            participant_refs: [red-agent]
-            action_contract_refs: [scan]
-            offensive_behavior_refs: [fabricated-attack]
-            extension_policy: governed-extension
-        """
-    )
-
-    with pytest.raises(SDLValidationError) as excinfo:
-        parse_sdl(scenario)
-
-    assert "participant-offensive-behavior-activities" in str(excinfo.value)
-
-
-def test_behavior_specification_ai_offensive_behavior_refs_use_governed_vocabulary():
-    scenario = _scenario_yaml() + textwrap.dedent(
-        """
-        behavior_specifications:
-          red-scan-behavior:
-            semantic_version: 1.0.0
-            lifecycle_state: active
-            participant_refs: [red-agent]
-            action_contract_refs: [scan]
-            ai_offensive_behavior_refs: [fabricated-ai-attack]
-            extension_policy: governed-extension
-        """
-    )
-
-    with pytest.raises(SDLValidationError) as excinfo:
-        parse_sdl(scenario)
-
-    assert "participant-ai-offensive-behavior-activities" in str(excinfo.value)
-
-
-def test_behavior_specification_defensive_behavior_refs_use_governed_vocabulary():
-    scenario = _scenario_yaml() + textwrap.dedent(
-        """
-        behavior_specifications:
-          red-scan-behavior:
-            semantic_version: 1.0.0
-            lifecycle_state: active
-            participant_refs: [red-agent]
-            action_contract_refs: [scan]
-            defensive_behavior_refs: [fabricated-defense]
-            extension_policy: governed-extension
-        """
-    )
-
-    with pytest.raises(SDLValidationError) as excinfo:
-        parse_sdl(scenario)
-
-    assert "participant-defensive-behavior-activities" in str(excinfo.value)
 
 
 def test_behavior_specification_backend_feature_refs_use_governed_vocabulary():

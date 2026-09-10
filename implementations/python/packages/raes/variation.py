@@ -54,7 +54,6 @@ class CollectionTargetSlot(str, Enum):
     NODE_FEATURES = "nodes.features"
     NODE_CONDITIONS = "nodes.conditions"
     NODE_INJECTS = "nodes.injects"
-    NODE_VULNERABILITIES = "nodes.vulnerabilities"
     EVENT_ASSERTIONS = "events.assertions"
     EVENT_INJECTS = "events.injects"
     STORY_SCRIPTS = "stories.scripts"
@@ -94,7 +93,6 @@ COLLECTION_TARGET_SPECS: dict[CollectionTargetSlot, tuple[str, str]] = {
     CollectionTargetSlot.NODE_FEATURES: ("nodes", "features"),
     CollectionTargetSlot.NODE_CONDITIONS: ("nodes", "conditions"),
     CollectionTargetSlot.NODE_INJECTS: ("nodes", "injects"),
-    CollectionTargetSlot.NODE_VULNERABILITIES: ("nodes", "vulnerabilities"),
     CollectionTargetSlot.EVENT_ASSERTIONS: ("events", "assertions"),
     CollectionTargetSlot.EVENT_INJECTS: ("events", "injects"),
     CollectionTargetSlot.STORY_SCRIPTS: ("stories", "scripts"),
