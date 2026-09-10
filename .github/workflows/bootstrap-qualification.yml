@@ -38,6 +38,7 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
         with:
           version: "0.12.4"
+          enable-cache: false
       - name: Install frozen qualification environment
         run: uv sync --project implementations/python --all-extras --frozen
       - name: Validate reviewed bootstrap policy

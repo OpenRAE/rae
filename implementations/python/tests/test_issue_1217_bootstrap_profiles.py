@@ -160,6 +160,12 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
         "${{ matrix.no_binary_package }}"
     )
     assert workflow["jobs"]["generic-tool-platforms"]["env"]["RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"] == "1"
+    setup_uv = next(
+        step
+        for step in workflow["jobs"]["generic-tool-platforms"]["steps"]
+        if str(step.get("uses", "")).startswith("astral-sh/setup-uv@")
+    )
+    assert setup_uv["with"]["enable-cache"] is False
     workflow_text = (REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8")
     assert "offline-kit-fetch" in workflow_text
     assert "offline-kit-install-python" in workflow_text
