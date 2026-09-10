@@ -186,11 +186,11 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "d80bd1ffb6fb7e9d79d65f94448a14aa3995bfd2017c4775ab2a0c011d01b22c",
+      "policy_sha256": "15b087c25d9d8eae36a0baf2cec2879307299c08408e2c1c01ca32cb4a2a3174",
       "capability_results": [{"capability_id": "qualification-workflow", "outcome": "not-run", "observed_identity": "delivery-revision", "reason_code": "awaiting-delivery-revision"}],
       "limitations": ["Reviewed profile declaration is not execution evidence until the delivery workflow records a result."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "34be1edc2e53fa9547acff32ad4298b51589885a05751f3ed1fe0ee60a1d78d4"
+      "evidence_sha256": "9d745fc833f4ee99003f5d72835a3ea5aafc9a4f94088be23cd6df6b899f9b99"
     },
     {
       "evidence_id": "linux-arm64-t02-t08-t12",
@@ -202,11 +202,11 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "d80bd1ffb6fb7e9d79d65f94448a14aa3995bfd2017c4775ab2a0c011d01b22c",
+      "policy_sha256": "15b087c25d9d8eae36a0baf2cec2879307299c08408e2c1c01ca32cb4a2a3174",
       "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "linux-arm64", "reason_code": "proof-requires-linux-x86_64"}],
       "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "34be1edc2e53fa9547acff32ad4298b51589885a05751f3ed1fe0ee60a1d78d4"
+      "evidence_sha256": "9d745fc833f4ee99003f5d72835a3ea5aafc9a4f94088be23cd6df6b899f9b99"
     },
     {
       "evidence_id": "macos-x86_64-t02-t08",
@@ -218,11 +218,11 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "d80bd1ffb6fb7e9d79d65f94448a14aa3995bfd2017c4775ab2a0c011d01b22c",
+      "policy_sha256": "15b087c25d9d8eae36a0baf2cec2879307299c08408e2c1c01ca32cb4a2a3174",
       "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "macos-x86_64", "reason_code": "proof-requires-linux-x86_64"}],
       "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "34be1edc2e53fa9547acff32ad4298b51589885a05751f3ed1fe0ee60a1d78d4"
+      "evidence_sha256": "9d745fc833f4ee99003f5d72835a3ea5aafc9a4f94088be23cd6df6b899f9b99"
     },
     {
       "evidence_id": "macos-arm64-t02-t08-t12",
@@ -234,11 +234,11 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "d80bd1ffb6fb7e9d79d65f94448a14aa3995bfd2017c4775ab2a0c011d01b22c",
+      "policy_sha256": "15b087c25d9d8eae36a0baf2cec2879307299c08408e2c1c01ca32cb4a2a3174",
       "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "macos-arm64", "reason_code": "proof-requires-linux-x86_64"}],
       "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
       "evidence_location": "github-actions:bootstrap-qualification",
-      "evidence_sha256": "34be1edc2e53fa9547acff32ad4298b51589885a05751f3ed1fe0ee60a1d78d4"
+      "evidence_sha256": "9d745fc833f4ee99003f5d72835a3ea5aafc9a4f94088be23cd6df6b899f9b99"
     },
     {
       "evidence_id": "proof-ubuntu-22.04-x86_64-t01",
@@ -250,7 +250,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "d80bd1ffb6fb7e9d79d65f94448a14aa3995bfd2017c4775ab2a0c011d01b22c",
+      "policy_sha256": "15b087c25d9d8eae36a0baf2cec2879307299c08408e2c1c01ca32cb4a2a3174",
       "capability_results": [{"capability_id": "qualification-workflow", "outcome": "not-run", "observed_identity": "delivery-revision", "reason_code": "awaiting-delivery-revision"}],
       "limitations": ["The existing proof gate passed on the base revision; exact host-capability evidence begins with the delivery workflow."],
       "evidence_location": ".github/workflows/canonical-verification.yml",

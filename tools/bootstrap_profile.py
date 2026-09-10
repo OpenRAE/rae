@@ -20,9 +20,10 @@ import stat
 import subprocess
 import sys
 import sysconfig
+import tarfile
 import tempfile
 from collections.abc import Sequence
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 
 from tools.tooling_policy_gate import load_tooling_host_profile_selection, safe_tooling_cache_parent
@@ -613,6 +614,46 @@ def copy_relocatable_tree(source_root: Path, destination_root: Path) -> None:
     for path in sorted(destination_root.rglob("*")):
         if path.is_symlink():
             raise ValueError("relocatable payload copy retained a symbolic link")
+
+
+def install_offline_python_payload(host_profile_id: str, kit_root: Path, python_artifact_id: str) -> dict[str, str]:
+    """Verify and extract one locked relocatable CPython payload."""
+
+    _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
+    artifact = artifacts.get(python_artifact_id)
+    if artifact is None:
+        raise ValueError("offline kit Python payload is not selected by the host profile")
+    raw_manifest = artifact["platform"]["raw_manifest"]
+    if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
+        raise ValueError("offline kit Python payload must have exactly one raw archive")
+    raw = raw_manifest[0]
+    archive = kit_root / "archives" / python_artifact_id / raw["path"]
+    if (
+        not archive.is_file()
+        or archive.is_symlink()
+        or archive.stat().st_size != raw["size"]
+        or _sha256(archive) != raw["sha256"]
+    ):
+        raise ValueError("offline kit Python archive differs from the validated lock")
+    destination = kit_root / "python" / f"cpython-{artifact['version']}"
+    if destination.exists() or destination.is_symlink():
+        raise ValueError("offline kit Python destination must be new")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".python-extract-", dir=kit_root) as temporary_dir:
+        temporary_root = Path(temporary_dir)
+        try:
+            with tarfile.open(archive, mode="r:gz") as bundle:
+                members = bundle.getmembers()
+                if not members or any(PurePosixPath(member.name).parts[:1] != ("python",) for member in members):
+                    raise ValueError("offline kit Python archive has an unexpected root")
+                bundle.extractall(temporary_root, filter="data")
+        except (OSError, tarfile.TarError) as exc:
+            raise ValueError("offline kit Python archive could not be extracted safely") from exc
+        extracted = temporary_root / "python"
+        if not extracted.is_dir() or extracted.is_symlink():
+            raise ValueError("offline kit Python archive omits its payload root")
+        extracted.rename(destination)
+    return {"artifact_id": python_artifact_id, "path": destination.relative_to(kit_root).as_posix()}
 
 
 def build_offline_kit_manifest(
@@ -1212,6 +1253,10 @@ def _parse_args() -> argparse.Namespace:
     kit_copy = subparsers.add_parser("offline-kit-copy-tree", help="copy and relocate an installed payload tree")
     kit_copy.add_argument("source_root", type=Path)
     kit_copy.add_argument("destination_root", type=Path)
+    kit_python = subparsers.add_parser("offline-kit-install-python", help="verify and extract locked CPython")
+    kit_python.add_argument("host_profile_id")
+    kit_python.add_argument("kit_root", type=Path)
+    kit_python.add_argument("--python-artifact-id", required=True)
     kit_verify = subparsers.add_parser("offline-kit-verify", help="verify and execute an imported payload kit")
     kit_verify.add_argument("host_profile_id")
     kit_verify.add_argument("kit_root", type=Path)
@@ -1290,6 +1335,13 @@ def main() -> int:
         print(_sha256(args.manifest_path))
     elif args.operation == "offline-kit-copy-tree":
         copy_relocatable_tree(args.source_root, args.destination_root)
+    elif args.operation == "offline-kit-install-python":
+        print(
+            json.dumps(
+                install_offline_python_payload(args.host_profile_id, args.kit_root, args.python_artifact_id),
+                sort_keys=True,
+            )
+        )
     elif args.operation == "offline-kit-verify":
         result = verify_offline_kit(
             args.host_profile_id,

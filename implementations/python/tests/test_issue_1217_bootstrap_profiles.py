@@ -7,6 +7,7 @@ import json
 import socket
 import ssl
 import subprocess
+import tarfile
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -161,6 +162,7 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert workflow["jobs"]["generic-tool-platforms"]["env"]["RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"] == "1"
     workflow_text = (REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8")
     assert "offline-kit-fetch" in workflow_text
+    assert "offline-kit-install-python" in workflow_text
     assert "offline-kit-manifest" in workflow_text
     assert "offline-kit-verify" in workflow_text
     assert "implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-verify" in workflow_text
@@ -698,6 +700,45 @@ def test_relocatable_tree_copy_materializes_links_and_rejects_dangling_links(tmp
     (source_root / "dangling").symlink_to(tmp_path / "missing")
     with pytest.raises(ValueError, match="could not be materialized"):
         bootstrap_profile.copy_relocatable_tree(source_root, tmp_path / "rejected")
+
+
+def test_offline_python_install_extracts_only_the_locked_relocatable_archive(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    payload_root = tmp_path / "payload"
+    (payload_root / "bin").mkdir(parents=True)
+    (payload_root / "bin/python3.14").write_bytes(b"relocatable-python")
+    kit_root = tmp_path / "kit"
+    archive = kit_root / "archives/cpython-3.14/cpython.tar.gz"
+    archive.parent.mkdir(parents=True)
+    with tarfile.open(archive, "w:gz") as bundle:
+        bundle.add(payload_root, arcname="python")
+    artifact = {
+        "artifact_id": "cpython-3.14",
+        "version": "3.14.7",
+        "platform": {
+            "raw_manifest": [
+                {
+                    "path": archive.name,
+                    "sha256": bootstrap_profile._sha256(archive),
+                    "size": archive.stat().st_size,
+                }
+            ]
+        },
+    }
+    monkeypatch.setattr(
+        bootstrap_profile,
+        "_load_host_selection",
+        lambda _host_id: ({}, {"cpython-3.14": artifact}, "a" * 64),
+    )
+
+    result = bootstrap_profile.install_offline_python_payload("host-a", kit_root, "cpython-3.14")
+    installed = kit_root / result["path"] / "bin/python3.14"
+    assert installed.read_bytes() == b"relocatable-python"
+    archive.write_bytes(archive.read_bytes() + b"tampered")
+    with pytest.raises(ValueError, match="differs from the validated lock"):
+        bootstrap_profile.install_offline_python_payload("host-a", kit_root, "cpython-3.14")
 
 
 def test_offline_kit_manifest_uses_the_profile_specific_proof_closure(
