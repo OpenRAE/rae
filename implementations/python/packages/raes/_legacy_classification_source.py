@@ -220,24 +220,25 @@ def _extract_sections(
 
 
 def _extract_actions(actions: object, records: list[LegacyClassification]) -> None:
-    if isinstance(actions, dict):
-        for name, action in actions.items():
-            if not isinstance(action, dict) or "external_mappings" not in action:
-                continue
-            raw_mappings = action.pop("external_mappings")
-            mappings = TypeAdapter(list[ExternalMappingLoss]).validate_python(raw_mappings)
-            if [model.model_dump(mode="json", by_alias=True, exclude_unset=True) for model in mappings] != raw_mappings:
-                raise ValueError("Normalize historical action mappings with the source-version formatter first.")
-            for index, mapping in enumerate(mappings):
-                if contains_variable_token(mapping.identifier):
-                    raise ValueError("Legacy action mappings require concrete identifiers.")
-                records.append(
-                    LegacyClassification(
-                        pointer=f"/action_contracts/{_token(name)}/external_mappings/{index}",
-                        subject_ref=f"action_contracts.{name}",
-                        identifier=mapping.identifier,
-                    )
+    if not isinstance(actions, dict):
+        return
+    for name, action in actions.items():
+        if not isinstance(action, dict) or "external_mappings" not in action:
+            continue
+        raw_mappings = action.pop("external_mappings")
+        mappings = TypeAdapter(list[ExternalMappingLoss]).validate_python(raw_mappings)
+        if [model.model_dump(mode="json", by_alias=True, exclude_unset=True) for model in mappings] != raw_mappings:
+            raise ValueError("Normalize historical action mappings with the source-version formatter first.")
+        for index, mapping in enumerate(mappings):
+            if contains_variable_token(mapping.identifier):
+                raise ValueError("Legacy action mappings require concrete identifiers.")
+            records.append(
+                LegacyClassification(
+                    pointer=f"/action_contracts/{_token(name)}/external_mappings/{index}",
+                    subject_ref=f"action_contracts.{name}",
+                    identifier=mapping.identifier,
                 )
+            )
 
 
 def legacy_classification_source_digest(content: str) -> SDLCanonicalDigest:
