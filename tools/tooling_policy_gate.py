@@ -234,7 +234,12 @@ def _selection_is_valid(
     platform_id: str,
     profile_id: str,
 ) -> bool:
-    identity = (selection.artifact_id, selection.version, selection.platform_id, selection.profile_id)
+    identity = (
+        selection.artifact_id,
+        selection.version,
+        selection.platform_id,
+        selection.profile_id,
+    )
     expected_identity = (artifact_id, version, platform_id, profile_id)
     scalar_values = (
         selection.platform_id,
@@ -288,7 +293,9 @@ def load_tooling_artifact_selection(
     return result
 
 
-def load_tooling_host_profile_selection(host_profile_id: str) -> dict[str, object]:
+def load_tooling_host_profile_selection(  # NOSONAR -- closed response validation is deliberately explicit.
+    host_profile_id: str,
+) -> dict[str, object]:
     """Load one schema- and semantics-validated host/bootstrap selection."""
 
     payload = _validator_host_stdout(_frozen_validator_command(REPO_ROOT), host_profile_id=host_profile_id)

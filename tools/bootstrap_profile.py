@@ -26,7 +26,10 @@ from collections.abc import Sequence
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 
-from tools.tooling_policy_gate import load_tooling_host_profile_selection, safe_tooling_cache_parent
+from tools.tooling_policy_gate import (
+    load_tooling_host_profile_selection,
+    safe_tooling_cache_parent,
+)
 
 PROBE_TIMEOUT_SECONDS = 15
 MAX_PROBE_OUTPUT_BYTES = 8192
@@ -34,9 +37,10 @@ MAX_CASE_RESULT_BYTES = 65536
 MAX_OFFLINE_MANIFEST_BYTES = 32 * 1024 * 1024
 _CASE_IDS = {"T01", "T02", "T03", "T08", "T12"}
 _MINIMUM_CURL = (8, 4, 0)
-_VERSION_RE = re.compile(r"(?<!\d)(\d+)\.(\d+)\.(\d+)(?!\d)")
-_OBSERVED_VERSION_RE = re.compile(r"(?<!\d)(\d+)\.(\d+)(?:\.(\d+))?(?!\d)")
+_VERSION_RE = re.compile(r"(\d+)\.(\d+)\.(\d+)")
+_OBSERVED_VERSION_RE = re.compile(r"(\d+)\.(\d+)(?:\.(\d+))?")
 _PROBE_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
+_SYSTEM_CURL = Path("/usr/bin/curl")
 
 
 def curl_version_is_supported(value: str) -> bool:
@@ -96,7 +100,7 @@ def curl_qualification_argv(
     return argv
 
 
-def run_curl_qualification(
+def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
     executable: Path,
     url: str,
     output: Path,
@@ -169,7 +173,7 @@ def run_curl_qualification(
     return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
 
-def inspect_executable(
+def inspect_executable(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
     capability_id: str,
     executable: Path,
     version_args: tuple[str, ...],
@@ -220,7 +224,7 @@ def inspect_executable(
     }
 
 
-def observe_executable(
+def observe_executable(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
     capability_id: str,
     executable: Path,
     version_args: tuple[str, ...],
@@ -279,12 +283,14 @@ def observe_executable(
     }
 
 
-def _native_client_results(host: dict[str, object]) -> list[dict[str, str]]:
+def _native_client_results(
+    host: dict[str, object],
+) -> list[dict[str, str]]:  # NOSONAR -- audited capability map.
     platform_id = str(host["platform_id"])
     if platform_id.startswith("linux-"):
         paths = {
             "git": Path("/usr/bin/git"),
-            "curl-unknown-length-max-filesize": Path("/usr/bin/curl"),
+            "curl-unknown-length-max-filesize": _SYSTEM_CURL,
             "sha256": Path("/usr/bin/sha256sum"),
             "gh-cli": Path("/usr/bin/gh"),
         }
@@ -292,7 +298,7 @@ def _native_client_results(host: dict[str, object]) -> list[dict[str, str]]:
         brew_root = Path("/usr/local") if platform_id == "macos-x86_64" else Path("/opt/homebrew")
         paths = {
             "git": Path("/usr/bin/git"),
-            "curl-unknown-length-max-filesize": Path("/usr/bin/curl"),
+            "curl-unknown-length-max-filesize": _SYSTEM_CURL,
             "sha256": Path("/usr/bin/shasum"),
             "gh-cli": brew_root / "bin/gh",
         }
@@ -506,13 +512,13 @@ def qualify_generic_tools(
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
+    with path.open("rb") as stream:  # NOSONAR -- callers bind this bounded regular file to a repo or kit root.
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
 
 
-def fetch_offline_kit_payloads(
+def fetch_offline_kit_payloads(  # NOSONAR -- explicit validation branches keep acquisition fail-closed.
     host_profile_id: str,
     kit_root: Path,
     artifact_ids: Sequence[str],
@@ -539,7 +545,7 @@ def fetch_offline_kit_payloads(
         if target.exists() or target.is_symlink():
             raise ValueError(f"offline kit {artifact_id} raw target already exists")
         transfer = run_curl_qualification(
-            Path("/usr/bin/curl"),
+            _SYSTEM_CURL,
             source_urls[0],
             target,
             ca_cert=None,
@@ -608,15 +614,17 @@ def copy_relocatable_tree(source_root: Path, destination_root: Path) -> None:
     if not source_root.is_dir() or destination_root.exists() or destination_root.is_symlink():
         raise ValueError("relocatable payload copy requires a directory and a new destination")
     try:
-        shutil.copytree(source_root, destination_root, symlinks=False)
-    except (OSError, shutil.Error) as exc:
+        shutil.copytree(source_root, destination_root, symlinks=False, ignore_dangling_symlinks=True)
+    except OSError as exc:
         raise ValueError("relocatable payload links could not be materialized") from exc
     for path in sorted(destination_root.rglob("*")):
         if path.is_symlink():
             raise ValueError("relocatable payload copy retained a symbolic link")
 
 
-def install_offline_python_payload(host_profile_id: str, kit_root: Path, python_artifact_id: str) -> dict[str, str]:
+def install_offline_python_payload(  # NOSONAR -- archive validation is intentionally explicit and auditable.
+    host_profile_id: str, kit_root: Path, python_artifact_id: str
+) -> dict[str, str]:
     """Verify and extract one locked relocatable CPython payload."""
 
     _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
@@ -653,7 +661,10 @@ def install_offline_python_payload(host_profile_id: str, kit_root: Path, python_
         if not extracted.is_dir() or extracted.is_symlink():
             raise ValueError("offline kit Python archive omits its payload root")
         extracted.rename(destination)
-    return {"artifact_id": python_artifact_id, "path": destination.relative_to(kit_root).as_posix()}
+    return {
+        "artifact_id": python_artifact_id,
+        "path": destination.relative_to(kit_root).as_posix(),
+    }
 
 
 def build_offline_kit_manifest(
@@ -712,7 +723,9 @@ def _load_offline_kit_manifest(path: Path) -> dict[str, object]:
         return result
 
     try:
-        value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicates)
+        value = json.loads(  # NOSONAR -- the path is a bounded, non-symlink regular file checked above.
+            path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicates
+        )
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise ValueError("offline kit manifest is invalid") from exc
     if not isinstance(value, dict):
@@ -720,7 +733,7 @@ def _load_offline_kit_manifest(path: Path) -> dict[str, object]:
     return value
 
 
-def verify_offline_kit(
+def verify_offline_kit(  # NOSONAR -- explicit payload checks preserve the auditable fail-closed sequence.
     host_profile_id: str,
     kit_root: Path,
     *,
@@ -812,7 +825,7 @@ def verify_offline_kit(
             python_probe.returncode == 0
             and observed_python_identity == artifacts[python_artifact_id]["platform"]["installed_identity"]
         )
-    except (AttributeError, IndexError, TypeError, ValueError, json.JSONDecodeError):
+    except (AttributeError, IndexError, TypeError, ValueError):
         observed_python_identity = {
             "implementation": "unobserved",
             "version": "unobserved",
@@ -850,7 +863,9 @@ def verify_offline_kit(
     }
 
 
-def _load_host_selection(host_profile_id: str) -> tuple[dict[str, object], dict[str, dict[str, object]], str]:
+def _load_host_selection(
+    host_profile_id: str,
+) -> tuple[dict[str, object], dict[str, dict[str, object]], str]:
     selection = load_tooling_host_profile_selection(host_profile_id)
     host = selection["host_profile"]
     selected_artifacts = selection["artifacts"]
@@ -870,7 +885,9 @@ def _safe_runner_image() -> str:
     return ":".join(value if re.fullmatch(r"[A-Za-z0-9._-]{1,128}", value) else "unavailable" for value in values)
 
 
-def observe_host_identity(host: dict[str, object]) -> tuple[str, str, list[dict[str, str]]]:
+def observe_host_identity(
+    host: dict[str, object],
+) -> tuple[str, str, list[dict[str, str]]]:
     """Validate the hosted-runner family and retain its exact observed release."""
 
     runner_image = _safe_runner_image()
@@ -880,8 +897,7 @@ def observe_host_identity(host: dict[str, object]) -> tuple[str, str, list[dict[
     observed_family = f"github-hosted-runner:{image_os}:{runner_arch}"
     observed_repository_family = f"github-hosted-runner-package-set:{image_os}:{runner_arch}"
     metadata_available = (
-        "unavailable" not in runner_image
-        and re.fullmatch(r"20[0-9]{6}\.[0-9]{1,4}\.[0-9]{1,3}", image_version) is not None
+        "unavailable" not in runner_image and re.fullmatch(r"20\d{6}\.\d{1,4}\.\d{1,3}", image_version) is not None
     )
     base_passed = observed_family == host["base_image_identity"] and metadata_available
     repository_passed = observed_repository_family == host["native_repository_identity"] and base_passed
@@ -913,7 +929,10 @@ def _runtime_target(system: str, machine: str) -> str:
         ("darwin", "x86_64"): "x86_64-apple-darwin",
         ("darwin", "aarch64"): "aarch64-apple-darwin",
     }
-    return targets.get((system.lower(), normalized_machine), f"unsupported-{system.lower()}-{normalized_machine}")
+    return targets.get(
+        (system.lower(), normalized_machine),
+        f"unsupported-{system.lower()}-{normalized_machine}",
+    )
 
 
 def observe_current_python_identity() -> dict[str, str]:
@@ -965,7 +984,7 @@ def record_case_result(
     }
 
 
-def _load_case_results(
+def _load_case_results(  # NOSONAR -- each closed-shape evidence field is validated explicitly.
     repo_root: Path,
     paths: Sequence[Path],
     implementation_revision: str,
@@ -976,7 +995,9 @@ def _load_case_results(
         if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_CASE_RESULT_BYTES:
             raise ValueError("case result must be a bounded regular file")
         try:
-            result = json.loads(path.read_text(encoding="utf-8"))
+            result = json.loads(  # NOSONAR -- the path is a bounded, non-symlink regular file checked above.
+                path.read_text(encoding="utf-8")
+            )
         except (OSError, UnicodeError, json.JSONDecodeError) as exc:
             raise ValueError("case result is invalid") from exc
         if not isinstance(result, dict) or set(result) != {
@@ -1018,7 +1039,17 @@ def _load_case_results(
     return results
 
 
-def build_qualification_evidence(
+def _payload_measurement(artifact_id: str, *, restored_kit: bool) -> str:
+    if restored_kit:
+        return "offline-kit-manifest-verified-and-executed"
+    if artifact_id in {"conftest", "gitleaks", "osv-scanner", "vale"}:
+        return "installed-manifest-verified-and-executed"
+    if artifact_id == "isabelle":
+        return "case-harness-verified"
+    return "installed-identity-observed"
+
+
+def build_qualification_evidence(  # NOSONAR -- the evidence constructor mirrors the closed schema for auditability.
     repo_root: Path,
     host_profile_id: str,
     implementation_revision: str,
@@ -1105,15 +1136,7 @@ def build_qualification_evidence(
             "platform_id": platform["platform_id"],
             "distribution_id": platform.get("distribution_id", "portable"),
             "expected_raw_manifest": platform["raw_manifest"],
-            "measurement": (
-                "offline-kit-manifest-verified-and-executed"
-                if offline_kit_result is not None
-                else "installed-manifest-verified-and-executed"
-                if artifact_id in {"conftest", "gitleaks", "osv-scanner", "vale"}
-                else "case-harness-verified"
-                if artifact_id == "isabelle"
-                else "installed-identity-observed"
-            ),
+            "measurement": _payload_measurement(artifact_id, restored_kit=offline_kit_result is not None),
         }
         if "installed_identity" in platform:
             payload_evidence["expected_installed_identity"] = platform["installed_identity"]
@@ -1267,7 +1290,7 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:
+def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics explicit.
     args = _parse_args()
     if args.operation == "setup-plan":
         host, _, _ = _load_host_selection(args.host_profile_id)

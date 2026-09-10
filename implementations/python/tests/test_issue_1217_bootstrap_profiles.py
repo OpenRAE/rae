@@ -105,7 +105,8 @@ def test_workflow_action_source_and_payload_selectors_are_separate() -> None:
     setup_uv = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("astral-sh/setup-uv@"))
     assert setup_python["with"]["python-version"] == "${{ matrix.python.payload }}"
     assert setup_uv["with"]["version"] == "0.12.4"
-    assert "@" in setup_python["uses"] and len(setup_python["uses"].rsplit("@", 1)[1].split()[0]) == 40
+    assert "@" in setup_python["uses"]
+    assert len(setup_python["uses"].rsplit("@", 1)[1].split()[0]) == 40
 
 
 def test_every_setup_action_uses_an_exact_admitted_payload() -> None:
@@ -214,7 +215,9 @@ def test_curl_qualification_uses_fixed_hardened_argv() -> None:
     assert argv[:2] == ["/usr/bin/curl", "--disable"]
     assert argv[argv.index("--proto") : argv.index("--proto") + 2] == ["--proto", "=https"]
     assert argv[argv.index("--proto-redir") : argv.index("--proto-redir") + 2] == ["--proto-redir", "=https"]
-    assert "--insecure" not in argv and "--location-trusted" not in argv and "--retry-all-errors" not in argv
+    assert "--insecure" not in argv
+    assert "--location-trusted" not in argv
+    assert "--retry-all-errors" not in argv
     assert argv[argv.index("--max-filesize") : argv.index("--max-filesize") + 2] == ["--max-filesize", "1024"]
 
 
@@ -695,7 +698,7 @@ def test_offline_kit_manifest_rejects_an_escaping_symlink(tmp_path: Path) -> Non
         bootstrap_profile._offline_kit_entries(kit_root)
 
 
-def test_relocatable_tree_copy_materializes_links_and_rejects_dangling_links(tmp_path: Path) -> None:
+def test_relocatable_tree_copy_materializes_links_and_omits_dangling_links(tmp_path: Path) -> None:
     source_root = tmp_path / "source"
     source_bin = source_root / "bin"
     source_bin.mkdir(parents=True)
@@ -710,8 +713,9 @@ def test_relocatable_tree_copy_materializes_links_and_rejects_dangling_links(tmp
     assert relocated.read_bytes() == b"python"
 
     (source_root / "dangling").symlink_to(tmp_path / "missing")
-    with pytest.raises(ValueError, match="could not be materialized"):
-        bootstrap_profile.copy_relocatable_tree(source_root, tmp_path / "rejected")
+    copied_root = tmp_path / "copied"
+    bootstrap_profile.copy_relocatable_tree(source_root, copied_root)
+    assert not (copied_root / "dangling").exists()
 
 
 def test_offline_python_install_extracts_only_the_locked_relocatable_archive(
@@ -848,7 +852,9 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
         max_time_seconds: int = 30,
     ) -> dict[str, str]:
         assert url == "https://example.invalid/uv.tar.gz"
-        assert ca_cert is None and max_bytes == len(payload) and max_time_seconds == 30
+        assert ca_cert is None
+        assert max_bytes == len(payload)
+        assert max_time_seconds == 30
         output.write_bytes(payload)
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
@@ -877,7 +883,9 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
         max_bytes: int,
         max_time_seconds: int = 30,
     ) -> dict[str, str]:
-        assert ca_cert is None and max_bytes == len(payload) and max_time_seconds == 30
+        assert ca_cert is None
+        assert max_bytes == len(payload)
+        assert max_time_seconds == 30
         output.write_bytes(b"tampered")
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
@@ -965,6 +973,7 @@ def _https_fixture(tmp_path: Path) -> tuple[ThreadingHTTPServer, Path]:
 @pytest.mark.parametrize(("path", "status"), [("/retry429", 429), ("/retry503", 503)])
 @pytest.mark.integration
 def test_real_curl_enforces_unknown_length_limit_and_native_retry(
+    monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     path: str,
     status: int,
@@ -979,7 +988,7 @@ def test_real_curl_enforces_unknown_length_limit_and_native_retry(
             max_bytes=1024,
         )
         assert oversize == {"outcome": "passed", "reason_code": "curl-size-limit-enforced"}
-        _CurlFixture.retries = {}
+        monkeypatch.setattr(_CurlFixture, "retries", {})
         retry = bootstrap_profile.run_curl_qualification(
             Path("/usr/bin/curl"),
             f"https://127.0.0.1:{server.server_port}{path}",

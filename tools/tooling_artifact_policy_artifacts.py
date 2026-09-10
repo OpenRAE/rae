@@ -343,7 +343,7 @@ def _manifest_failures(
     return failures
 
 
-def _host_profile_failures(
+def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy failure independently.
     document: Mapping[str, Any],
     artifacts: Mapping[str, Mapping[str, Any]],
 ) -> list[PolicyFailure]:
@@ -478,17 +478,18 @@ def _host_profile_failures(
         if (
             str(host.get("base_image_identity", "")).startswith("github-hosted-runner:")
             and record.get("outcome") == "passed"
+            and (
+                not str(record.get("base_image_identity", "")).startswith("github-runner:")
+                or not str(record.get("native_repository_identity", "")).startswith("github-runner-package-set:")
+            )
         ):
-            if not str(record.get("base_image_identity", "")).startswith("github-runner:") or not str(
-                record.get("native_repository_identity", "")
-            ).startswith("github-runner-package-set:"):
-                failures.append(
-                    failure(
-                        "tooling-host-evidence-observation",
-                        f"{evidence_id} passed without exact observed hosted-runner identities",
-                        PROFILES_PATH,
-                    )
+            failures.append(
+                failure(
+                    "tooling-host-evidence-observation",
+                    f"{evidence_id} passed without exact observed hosted-runner identities",
+                    PROFILES_PATH,
                 )
+            )
     failures.extend(walk_forbidden_keys(document, path=PROFILES_PATH))
     return failures
 

@@ -17,7 +17,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools.policy.common import PolicyFailure, failures_to_json, load_bounded_json_object
+from tools.policy.common import (
+    PolicyFailure,
+    failures_to_json,
+    load_bounded_json_object,
+)
 from tools.tooling_artifact_policy_actions import action_failures
 from tools.tooling_artifact_policy_artifacts import artifact_failures
 from tools.tooling_artifact_policy_common import (
@@ -191,7 +195,9 @@ def select_tooling_artifact(
     }
 
 
-def select_tooling_host_profile(repo_root: Path, *, host_profile_id: str) -> dict[str, Any]:
+def select_tooling_host_profile(  # NOSONAR -- selection checks mirror the closed policy schema.
+    repo_root: Path, *, host_profile_id: str
+) -> dict[str, Any]:
     """Return one fully validated host profile and its exact bootstrap selections."""
 
     failures = evaluate_tooling_artifact_policy(repo_root)
