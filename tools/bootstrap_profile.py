@@ -23,6 +23,7 @@ import sysconfig
 import tarfile
 import tempfile
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 
@@ -37,10 +38,23 @@ MAX_CASE_RESULT_BYTES = 65536
 MAX_OFFLINE_MANIFEST_BYTES = 32 * 1024 * 1024
 _CASE_IDS = {"T01", "T02", "T03", "T08", "T12"}
 _MINIMUM_CURL = (8, 4, 0)
-_VERSION_RE = re.compile(r"(\d+)\.(\d+)\.(\d+)")
-_OBSERVED_VERSION_RE = re.compile(r"(\d+)\.(\d+)(?:\.(\d+))?")
+_VERSION_RE = re.compile(r"([0-9]{1,10})[.]([0-9]{1,10})[.]([0-9]{1,10})")
+_OBSERVED_VERSION_RE = re.compile(r"([0-9]{1,10})[.]([0-9]{1,10})(?:[.]([0-9]{1,10}))?")
 _PROBE_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
 _SYSTEM_CURL = Path("/usr/bin/curl")
+
+
+@dataclass(frozen=True)
+class QualificationEvidenceOptions:
+    """Optional sources used to build a qualification evidence record."""
+
+    offline_kit_root: Path | None = None
+    offline_kit_archive_path: Path | None = None
+    offline_kit_manifest_sha256: str | None = None
+    generic_selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None
+
+
+_DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS = QualificationEvidenceOptions()
 
 
 def curl_version_is_supported(value: str) -> bool:
@@ -283,9 +297,23 @@ def observe_executable(  # NOSONAR -- explicit fail-closed outcomes are part of 
     }
 
 
-def _native_client_results(
-    host: dict[str, object],
-) -> list[dict[str, str]]:  # NOSONAR -- audited capability map.
+def _file_identity_result(capability_id: str, path: Path, unavailable_reason: str) -> dict[str, str]:
+    try:
+        identity = _sha256(path)
+    except OSError:
+        return {
+            "capability_id": capability_id,
+            "outcome": "failed",
+            "reason_code": unavailable_reason,
+        }
+    return {
+        "capability_id": capability_id,
+        "outcome": "passed",
+        "observed_identity": identity,
+    }
+
+
+def _native_client_results(host: dict[str, object]) -> list[dict[str, str]]:
     platform_id = str(host["platform_id"])
     if platform_id.startswith("linux-"):
         paths = {
@@ -321,48 +349,14 @@ def _native_client_results(
     ]
     ca_path = Path("/etc/ssl/certs/ca-certificates.crt" if platform_id.startswith("linux-") else "/etc/ssl/cert.pem")
     if "ca-roots" in required:
-        try:
-            ca_identity = _sha256(ca_path)
-        except OSError:
-            results.append(
-                {
-                    "capability_id": "ca-roots",
-                    "outcome": "failed",
-                    "reason_code": "ca-store-unavailable",
-                }
-            )
-        else:
-            results.append(
-                {
-                    "capability_id": "ca-roots",
-                    "outcome": "passed",
-                    "observed_identity": ca_identity,
-                }
-            )
+        results.append(_file_identity_result("ca-roots", ca_path, "ca-store-unavailable"))
     if "bubblewrap" in required:
         results.append(observe_executable("bubblewrap", Path("/usr/bin/bwrap"), ("--version",)))
     if "fontconfig" in required:
         results.append(observe_executable("fontconfig", Path("/usr/bin/fc-match"), ("--version",)))
     if "fonts" in required:
         font_path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
-        try:
-            font_identity = _sha256(font_path)
-        except OSError:
-            results.append(
-                {
-                    "capability_id": "fonts",
-                    "outcome": "failed",
-                    "reason_code": "font-unavailable",
-                }
-            )
-        else:
-            results.append(
-                {
-                    "capability_id": "fonts",
-                    "outcome": "passed",
-                    "observed_identity": font_identity,
-                }
-            )
+        results.append(_file_identity_result("fonts", font_path, "font-unavailable"))
     if "locale-c-utf-8" in required:
         results.append(
             inspect_executable(
@@ -723,8 +717,9 @@ def _load_offline_kit_manifest(path: Path) -> dict[str, object]:
         return result
 
     try:
-        value = json.loads(  # NOSONAR -- the path is a bounded, non-symlink regular file checked above.
-            path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicates
+        value = json.loads(
+            path.read_text(encoding="utf-8"),  # NOSONAR -- bounded non-symlink file checked above.
+            object_pairs_hook=reject_duplicates,
         )
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise ValueError("offline kit manifest is invalid") from exc
@@ -995,9 +990,7 @@ def _load_case_results(  # NOSONAR -- each closed-shape evidence field is valida
         if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_CASE_RESULT_BYTES:
             raise ValueError("case result must be a bounded regular file")
         try:
-            result = json.loads(  # NOSONAR -- the path is a bounded, non-symlink regular file checked above.
-                path.read_text(encoding="utf-8")
-            )
+            result = json.loads(path.read_text(encoding="utf-8"))  # NOSONAR -- bounded non-symlink file checked above.
         except (OSError, UnicodeError, json.JSONDecodeError) as exc:
             raise ValueError("case result is invalid") from exc
         if not isinstance(result, dict) or set(result) != {
@@ -1042,14 +1035,17 @@ def _load_case_results(  # NOSONAR -- each closed-shape evidence field is valida
 def _payload_measurement(artifact_id: str, *, restored_kit: bool) -> str:
     if restored_kit:
         return "offline-kit-manifest-verified-and-executed"
-    if artifact_id in {"conftest", "gitleaks", "osv-scanner", "vale"}:
-        return "installed-manifest-verified-and-executed"
-    if artifact_id == "isabelle":
-        return "case-harness-verified"
-    return "installed-identity-observed"
+    measurements = {
+        "conftest": "installed-manifest-verified-and-executed",
+        "gitleaks": "installed-manifest-verified-and-executed",
+        "osv-scanner": "installed-manifest-verified-and-executed",
+        "vale": "installed-manifest-verified-and-executed",
+        "isabelle": "case-harness-verified",
+    }
+    return measurements.get(artifact_id, "installed-identity-observed")
 
 
-def build_qualification_evidence(  # NOSONAR -- the evidence constructor mirrors the closed schema for auditability.
+def build_qualification_evidence(
     repo_root: Path,
     host_profile_id: str,
     implementation_revision: str,
@@ -1057,10 +1053,7 @@ def build_qualification_evidence(  # NOSONAR -- the evidence constructor mirrors
     *,
     python_artifact_id: str,
     case_result_paths: Sequence[Path],
-    offline_kit_root: Path | None = None,
-    offline_kit_archive_path: Path | None = None,
-    offline_kit_manifest_sha256: str | None = None,
-    generic_selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None,
+    options: QualificationEvidenceOptions = _DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS,
 ) -> dict[str, object]:
     """Execute maintained clients and build a bounded, credential-free evidence record."""
 
@@ -1071,18 +1064,22 @@ def build_qualification_evidence(  # NOSONAR -- the evidence constructor mirrors
     host, artifacts, policy_sha256 = _load_host_selection(host_profile_id)
     case_results = _load_case_results(repo_root, case_result_paths, implementation_revision)
     passed_case_ids = {result["test_case_id"] for result in case_results}
-    if offline_kit_root is None:
-        if offline_kit_archive_path is not None or offline_kit_manifest_sha256 is not None or "T12" in passed_case_ids:
+    if options.offline_kit_root is None:
+        if (
+            options.offline_kit_archive_path is not None
+            or options.offline_kit_manifest_sha256 is not None
+            or "T12" in passed_case_ids
+        ):
             raise ValueError("T12 and offline-kit evidence require a verified restored kit")
         offline_kit_result = None
     else:
-        if offline_kit_archive_path is None or offline_kit_manifest_sha256 is None:
+        if options.offline_kit_archive_path is None or options.offline_kit_manifest_sha256 is None:
             raise ValueError("restored offline-kit evidence requires its exact archive and trusted manifest digest")
         offline_kit_result = verify_offline_kit(
             host_profile_id,
-            offline_kit_root,
+            options.offline_kit_root,
             python_artifact_id=python_artifact_id,
-            trusted_manifest_sha256=offline_kit_manifest_sha256,
+            trusted_manifest_sha256=options.offline_kit_manifest_sha256,
         )
         if offline_kit_result["outcome"] != "passed":
             raise ValueError("restored offline kit did not pass exact verification")
@@ -1155,7 +1152,7 @@ def build_qualification_evidence(  # NOSONAR -- the evidence constructor mirrors
         generic = (
             offline_kit_result["generic_tools"]
             if offline_kit_result is not None
-            else qualify_generic_tools(selections=generic_selections)
+            else qualify_generic_tools(selections=options.generic_selections)
         )
     else:
         generic = {"outcome": "not-run", "results": []}
@@ -1215,7 +1212,7 @@ def build_qualification_evidence(  # NOSONAR -- the evidence constructor mirrors
         "implementation_revision": implementation_revision,
         "observed_at": dt.datetime.now(dt.UTC).isoformat().replace("+00:00", "Z"),
         "test_case_ids": sorted(result["test_case_id"] for result in case_results),
-        "context": "restored-offline-kit" if offline_kit_root is not None else "public-runner",
+        "context": "restored-offline-kit" if options.offline_kit_root is not None else "public-runner",
         "base_image_identity": observed_base,
         "declared_base_image_identity": host["base_image_identity"],
         "observed_runner_image": _safe_runner_image(),
@@ -1228,13 +1225,13 @@ def build_qualification_evidence(  # NOSONAR -- the evidence constructor mirrors
         "case_results": case_results,
         "outcome": outcome,
     }
-    if offline_kit_archive_path is not None:
-        if not offline_kit_archive_path.is_file() or offline_kit_archive_path.is_symlink():
+    if options.offline_kit_archive_path is not None:
+        if not options.offline_kit_archive_path.is_file() or options.offline_kit_archive_path.is_symlink():
             raise ValueError("offline kit archive must be a regular file")
         record["offline_kit_evidence"] = {
-            "path": offline_kit_archive_path.name,
-            "sha256": _sha256(offline_kit_archive_path),
-            "size": offline_kit_archive_path.stat().st_size,
+            "path": options.offline_kit_archive_path.name,
+            "sha256": _sha256(options.offline_kit_archive_path),
+            "size": options.offline_kit_archive_path.stat().st_size,
         }
     encoded = json.dumps(record, sort_keys=True, separators=(",", ":")).encode()
     record["evidence_sha256"] = hashlib.sha256(encoded).hexdigest()
@@ -1312,9 +1309,11 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
             args.evidence_location,
             python_artifact_id=args.python_artifact_id,
             case_result_paths=args.case_result,
-            offline_kit_root=args.offline_kit_root,
-            offline_kit_archive_path=args.offline_kit,
-            offline_kit_manifest_sha256=args.offline_kit_manifest_sha256,
+            options=QualificationEvidenceOptions(
+                offline_kit_root=args.offline_kit_root,
+                offline_kit_archive_path=args.offline_kit,
+                offline_kit_manifest_sha256=args.offline_kit_manifest_sha256,
+            ),
         )
         print(json.dumps(result, sort_keys=True))
         return 0 if result["outcome"] == "passed" else 1

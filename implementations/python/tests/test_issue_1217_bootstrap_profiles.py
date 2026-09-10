@@ -414,7 +414,7 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
         "github-actions:OpenRAE/rae:1:1",
         python_artifact_id="cpython-3.14",
         case_result_paths=(case_path,),
-        generic_selections=selections,
+        options=bootstrap_profile.QualificationEvidenceOptions(generic_selections=selections),
     )
     assert result["outcome"] == "passed"
     assert result["base_image_identity"] == "github-runner:ubuntu24:20261005.999.1:X64"
@@ -461,7 +461,7 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
         "github-actions:OpenRAE/rae:1:1",
         python_artifact_id="cpython-3.14",
         case_result_paths=(case_path,),
-        generic_selections=selections,
+        options=bootstrap_profile.QualificationEvidenceOptions(generic_selections=selections),
     )
     assert mismatched["outcome"] == "failed"
     mismatched_capabilities = {item["capability_id"]: item for item in mismatched["capability_results"]}
