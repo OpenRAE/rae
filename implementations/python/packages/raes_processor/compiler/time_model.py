@@ -52,7 +52,6 @@ def _section_subject_address(scenario: InstantiatedScenario, ref: str) -> str | 
         "conditions",
         "propositions",
         "assertions",
-        "vulnerabilities",
         "entities",
         "injects",
         "events",

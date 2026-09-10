@@ -22,12 +22,11 @@ RAES validators and is not claimed compatible with the OCR implementation.
 
 | Pass | What It Checks |
 |------|----------------|
-| `verify_nodes` | Features, conditions, injects, vulnerabilities referenced by nodes exist in their respective sections. Role names on feature/condition/inject assignments must match declared node `roles`. Node names ≤ 35 characters. |
+| `verify_nodes` | Features, conditions and injects referenced by nodes exist in their respective sections. Role names on feature/condition/inject assignments must match declared node `roles`. Node names ≤ 35 characters. |
 | `verify_infrastructure` | Every infrastructure entry has a matching node. Links reference existing switch/network entries. Dependencies reference existing infrastructure entries. Switch nodes cannot have count > 1, and nodes with conditions cannot scale above 1. Complex property IPs must be valid IPs within the linked switch's CIDR. ACL `from_net` and `to_net` references are each checked and must resolve to switch/network entries. |
-| `verify_features` | Vulnerability references exist. Dependency references exist. **Dependency cycle detection** via topological sort. |
+| `verify_features` | Dependency references exist. **Dependency cycle detection** via topological sort. |
 | `verify_conditions` | (Structural: command+interval XOR source — enforced by Pydantic) |
-| `verify_vulnerabilities` | (Structural: CWE format — enforced by Pydantic) |
-| `verify_entities` | Vulnerability and event references on entities (including nested) exist. |
+| `verify_entities` | Event references on entities (including nested) exist. |
 | `verify_injects` | from-entity and to-entities reference existing (possibly nested) entities. |
 | `verify_events` | Condition and inject references exist. |
 | `verify_scripts` | Event references exist. Event times within script start/end bounds. |
@@ -42,6 +41,11 @@ no longer a "references undefined metric/evaluation/TLO/goal" validation error;
 `conditions` remain the observable-state surface objective success references.
 
 ### Extension passes
+
+Historical classification fields are rejected at structural ingress with
+`sdl.classification-migration-required`. External authored assertions use
+standalone concept-binding admission, not native vulnerability or behavior
+validation passes. See the [migration guide](../../migration/external-classifications.md).
 
 | Pass | What It Checks |
 |------|----------------|

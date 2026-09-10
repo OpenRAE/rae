@@ -1,7 +1,8 @@
-"""Vulnerability models — CWE-classified vulnerabilities.
+"""Historical vulnerability syntax for explicit classification migration only.
 
 Each vulnerability is classified by its CWE identifier (e.g., CWE-89
-for SQL injection). The class field is validated against a regex.
+for SQL injection). This compatibility reader is not a canonical SDL section,
+native predicate, compiler template, or evidence of realized weakness.
 """
 
 import re

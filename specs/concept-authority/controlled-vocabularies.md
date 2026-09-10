@@ -168,12 +168,12 @@ release, a change must update all of the following together:
   the new pinned release
 - affected authoring and behavior-model documentation
 
-ATT&CK, ATLAS, and NIST CSF terms must remain in distinct governed scopes:
-`behavior_specifications.offensive_behavior_refs` for ATT&CK and
-`behavior_specifications.ai_offensive_behavior_refs` for ATLAS, and
-`behavior_specifications.defensive_behavior_refs` for NIST CSF. A catalog entry
-must not merge these authorities or reuse one vocabulary to govern multiple
-scopes.
+ATT&CK, ATLAS, and NIST CSF remain distinct optional source catalogs. Their
+`governed_scopes` are empty and their adopted term sets are closed. Generic
+[external concept bindings](external-concept-bindings.md) carry explicit scheme
+coordinates; no catalog governs a privileged SDL classification field.
+Extensions require their own explicit source context, not an implicit adopted
+authority.
 
 `tools/check_attack_tactic_vocabulary.py` is part of the contract verification
 stage. Its default offline mode compares the catalog to the pinned source

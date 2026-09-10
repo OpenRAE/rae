@@ -257,10 +257,18 @@ def test_closed_enum_vocabularies_match_python_enums():
     }
 
 
-def test_governed_extension_values_are_allowed_for_extensible_vocabularies():
-    validate_controlled_vocabulary_value("provisioner-node-types", "x-acme:bare-metal")
-    validate_controlled_vocabulary_value("orchestrator-supported-sections", "x-acme:custom-stage")
-    validate_controlled_vocabulary_value("participant-decision-surface-modes", "x-acme:swarm-control")
+@pytest.mark.parametrize(
+    ("vocabulary", "extension"),
+    [
+        ("provisioner-node-types", "bare-metal"),
+        ("orchestrator-supported-sections", "custom-stage"),
+        ("participant-decision-surface-modes", "swarm-control"),
+    ],
+)
+def test_governed_extension_values_are_allowed_for_extensible_vocabularies(vocabulary, extension):
+    validate_controlled_vocabulary_value(vocabulary, "x-acme:" + extension)
+    with pytest.raises(ValueError, match="not a permitted term"):
+        validate_controlled_vocabulary_value(vocabulary, extension)
 
 
 def test_behavior_specification_behavior_mode_scope_uses_decision_surface_vocabulary():
@@ -268,27 +276,32 @@ def test_behavior_specification_behavior_mode_scope_uses_decision_surface_vocabu
         "behavior_specifications.behavior_mode",
         ["autonomous", "human-supervised", "x-acme:swarm-control"],
     )
+    with pytest.raises(ValueError, match="not a permitted term"):
+        validate_controlled_vocabulary_scope_values("behavior_specifications.behavior_mode", ["swarm-control"])
 
 
-def test_behavior_specification_offensive_behavior_scope_uses_governed_vocabulary():
-    validate_controlled_vocabulary_scope_values(
-        "behavior_specifications.offensive_behavior_refs",
-        ["reconnaissance", "defense-impairment", "stealth", "exfiltration", "x-acme:phishing-campaign"],
-    )
-
-
-def test_behavior_specification_ai_offensive_behavior_scope_uses_atlas_vocabulary():
-    validate_controlled_vocabulary_scope_values(
-        "behavior_specifications.ai_offensive_behavior_refs",
-        ["ai-model-access", "defense-evasion", "ai-attack-staging", "impact", "x-acme:model-poisoning"],
-    )
-
-
-def test_behavior_specification_defensive_behavior_scope_uses_nist_csf_vocabulary():
-    validate_controlled_vocabulary_scope_values(
-        "behavior_specifications.defensive_behavior_refs",
-        ["continuous-monitoring", "incident-analysis", "incident-mitigation", "x-acme:threat-hunting"],
-    )
+@pytest.mark.parametrize(
+    ("vocabulary", "terms"),
+    [
+        (
+            "participant-offensive-behavior-activities",
+            ["reconnaissance", "defense-impairment", "stealth", "exfiltration"],
+        ),
+        (
+            "participant-ai-offensive-behavior-activities",
+            ["ai-model-access", "defense-evasion", "ai-attack-staging", "impact"],
+        ),
+        (
+            "participant-defensive-behavior-activities",
+            ["continuous-monitoring", "incident-analysis", "incident-mitigation"],
+        ),
+    ],
+)
+def test_behavior_classification_catalog_accepts_only_governed_terms(vocabulary, terms):
+    for term in terms:
+        validate_controlled_vocabulary_value(vocabulary, term)
+    with pytest.raises(ValueError, match="not a permitted term"):
+        validate_controlled_vocabulary_value(vocabulary, "unregistered-activity")
 
 
 def test_defensive_behavior_vocabulary_adapts_pinned_nist_csf_categories():
@@ -345,42 +358,39 @@ def test_ai_offensive_behavior_vocabulary_directly_adopts_pinned_atlas_tactics()
 
 def test_old_defense_evasion_tactic_is_not_a_pinned_attack_v19_1_term():
     with pytest.raises(ValueError, match="not a permitted term"):
-        validate_controlled_vocabulary_scope_values(
-            "behavior_specifications.offensive_behavior_refs",
-            ["defense-evasion"],
-        )
+        [
+            validate_controlled_vocabulary_value("participant-offensive-behavior-activities", term)
+            for term in ["defense-evasion"]
+        ]
 
 
 def test_attack_and_atlas_scopes_do_not_bleed_into_each_other():
     with pytest.raises(ValueError, match="not a permitted term"):
-        validate_controlled_vocabulary_scope_values(
-            "behavior_specifications.offensive_behavior_refs",
-            ["ai-model-access"],
-        )
+        [
+            validate_controlled_vocabulary_value("participant-offensive-behavior-activities", term)
+            for term in ["ai-model-access"]
+        ]
     with pytest.raises(ValueError, match="not a permitted term"):
-        validate_controlled_vocabulary_scope_values(
-            "behavior_specifications.ai_offensive_behavior_refs",
-            ["defense-impairment"],
-        )
+        [
+            validate_controlled_vocabulary_value("participant-ai-offensive-behavior-activities", term)
+            for term in ["defense-impairment"]
+        ]
 
 
 def test_offensive_and_defensive_scopes_do_not_bleed_into_each_other():
     for offensive_scope in (
-        "behavior_specifications.offensive_behavior_refs",
-        "behavior_specifications.ai_offensive_behavior_refs",
+        "participant-offensive-behavior-activities",
+        "participant-ai-offensive-behavior-activities",
     ):
         with pytest.raises(ValueError, match="not a permitted term"):
-            validate_controlled_vocabulary_scope_values(
-                offensive_scope,
-                ["continuous-monitoring"],
-            )
+            [validate_controlled_vocabulary_value(offensive_scope, term) for term in ["continuous-monitoring"]]
 
     for offensive_term in ("reconnaissance", "ai-model-access"):
         with pytest.raises(ValueError, match="not a permitted term"):
-            validate_controlled_vocabulary_scope_values(
-                "behavior_specifications.defensive_behavior_refs",
-                [offensive_term],
-            )
+            [
+                validate_controlled_vocabulary_value("participant-defensive-behavior-activities", term)
+                for term in [offensive_term]
+            ]
 
 
 def test_unguarded_extension_values_are_rejected():

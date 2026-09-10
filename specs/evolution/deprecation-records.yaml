@@ -35,6 +35,17 @@ adr_refs:
 spec: specs/evolution/versioning-deprecation-and-migration.md
 
 records:
+  - id: sdl-domain-classification-fields
+    surface_class: sdl-scenario-module
+    identifier: "vulnerabilities declarations and node/feature/entity associations; application-route vulnerability_refs; offensive_behavior_refs, ai_offensive_behavior_refs and defensive_behavior_refs; action external_mappings; entity categories"
+    status: removed
+    first_notice: "Issue #989 classification externalization contract, following external-concept-bindings/v1 in #986"
+    replacement: "Native SDL plus standalone external-concept-bindings/v1 artifacts via migrate_sdl_classifications"
+    migration_reference: "docs/migration/external-classifications.md; specs/concept-authority/classification-migration.md"
+    notice_window: "Removal eligibility is the availability of the #986 generic contract, explicit deterministic migration with atomic refusals and loss reports, and canonical schema/compiler exclusion tests. The source migration reader remains supported for the pre-989 authoring lineage."
+    verification_evidence: "test_classification_migration.py exercises source recognition, context-required refusal, deterministic conversion, native projection equality, binding admission and absence of canonical fields. Legacy source bytes remain available to the explicit migrator; canonical parsing fails with migration guidance."
+    removal_record: "Issue #989 meets the named contract-and-migrator eligibility rule. This removes SDL fields, not a published schema artifact; the affected draft schema lineages remain published with updated last_change records."
+
   # The old PyPI project needs one final pointer release before archival. This
   # is distribution lifecycle, not an import compatibility promise: the final
   # release changes metadata and guidance only and does not restore old imports.

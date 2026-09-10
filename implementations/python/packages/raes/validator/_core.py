@@ -216,7 +216,6 @@ class _ValidatorCore:
         self._verify_runtime_mail_services()
         self._verify_features()
         self._verify_conditions()
-        self._verify_vulnerabilities()
         self._verify_entities()
         self._verify_injects()
         self._verify_events()

@@ -21,6 +21,9 @@ Requirement inventory expansion. Evolution requires explicit migration and upgra
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/classification_migration.py` (Deterministic classification migration with atomic refusals and typed loss reports)
+- TESTS → TEST `implementations/python/tests/test_classification_migration.py` (Legacy conversion, exact provenance, loss authorization and refusal tests)
+
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-075-ecosystem-versioning-deprecation-and-migration-governance.md` (ADR-075 Ecosystem Versioning, Deprecation, and Migration Governance)
 - IMPLEMENTS → SPEC `specs/evolution/versioning-deprecation-and-migration.md` (Versioning, Deprecation, and Migration Specification)
 - IMPLEMENTS → GITHUB_ISSUE `90` (Issue #90: Versioning, deprecation & migration governance)

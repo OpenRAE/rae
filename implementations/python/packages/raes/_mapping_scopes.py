@@ -20,7 +20,6 @@ HASHMAP_SECTIONS = frozenset(
         "conditions",
         "propositions",
         "assertions",
-        "vulnerabilities",
         "entities",
         "injects",
         "events",
@@ -95,7 +94,9 @@ def is_literal_map_field(
     value_is_sequence: bool,
 ) -> bool:
     """Return whether a structural field's immediate child keys are literal."""
-    if key in HASHMAP_SECTIONS:
+    # Historical declaration names remain literal while the compatibility
+    # migrator reads them; this does not make the section canonical SDL.
+    if key in HASHMAP_SECTIONS or key == "vulnerabilities":
         return value_is_mapping
     if key in NESTED_HASHMAP_FIELDS:
         return True

@@ -9,7 +9,8 @@ from enum import Enum
 
 from pydantic import Field, field_validator
 
-from ._base import SDLModel, parse_enum_or_var
+from ._base import parse_enum_or_var
+from ._classification_guard import LegacyClassificationGuard
 from ._identifiers import PortableIdentifier
 
 
@@ -22,13 +23,15 @@ class ExerciseRole(str, Enum):
     BLUE = "blue"
 
 
-class Entity(SDLModel):
+class Entity(LegacyClassificationGuard):
     """An organizational unit, team, or person in the exercise.
 
     Entities can nest recursively. Flattened names use dot-notation:
     ``blue-team.bob`` refers to the ``bob`` entity nested inside
     ``blue-team``.
     """
+
+    legacy_classification_fields = ("vulnerabilities", "categories")
 
     name: str = ""
     description: str = ""
@@ -40,8 +43,6 @@ class Entity(SDLModel):
         return parse_enum_or_var(v, ExerciseRole, field_name="role") if v is not None else v
 
     mission: str = ""
-    categories: list[str] = Field(default_factory=list)
-    vulnerabilities: list[str] = Field(default_factory=list)
     facts: dict[str, str] = Field(default_factory=dict)
     events: list[str] = Field(default_factory=list)
     entities: dict[PortableIdentifier, "Entity"] = Field(default_factory=dict)

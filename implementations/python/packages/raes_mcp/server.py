@@ -24,7 +24,7 @@ authoring server. RAES supports agentic environments; RAES SDL is its authored s
 language.
 
 The SDL is a YAML-based language for specifying scenarios — \
-who (entities, accounts, agents), what (nodes, features, vulnerabilities, \
+who (entities, accounts, agents), what (nodes, features, \
 content), when (scripts, stories, events), and declarative experiment \
 semantics (objectives, scoring, conditions, relationships, workflows, \
 variables).

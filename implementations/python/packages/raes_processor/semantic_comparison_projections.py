@@ -30,7 +30,6 @@ _SCENARIO_DECLARATION_FIELDS = (
     "conditions",
     "propositions",
     "assertions",
-    "vulnerabilities",
     "entities",
     "injects",
     "events",

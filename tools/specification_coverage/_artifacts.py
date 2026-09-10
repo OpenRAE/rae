@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import re
 from dataclasses import asdict
 from pathlib import Path
 
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
+from tools.research_evidence import surface_digest
 from tools.specification_coverage._keys import (
     _ARTIFACT_KEYS,
     _EXECUTION_SNAPSHOT_PATH,
@@ -14,7 +18,6 @@ from tools.specification_coverage._keys import (
     _SHA256_RE,
     HISTORICAL_IMPLEMENTATION_SURFACE_PATHS,
     IMPLEMENTATION_SURFACE_PATHS,
-    RENAMED_ARTIFACT_DIGESTS,
 )
 from tools.specification_coverage._primitives import (
     _bounded_list,
@@ -30,6 +33,8 @@ def _surface_entry_failures(
     surface: dict[str, object],
     failures: list[PolicyFailure],
     path: str,
+    *,
+    replay_current: bool = True,
 ) -> None:
     surface_id = surface.get("surface_id")
     expected_path = IMPLEMENTATION_SURFACE_PATHS.get(surface_id)
@@ -57,7 +62,13 @@ def _surface_entry_failures(
         )
         return
     expected_sha = surface.get("content_sha256")
-    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha):
+    current_valid = True
+    if replay_current:
+        try:
+            current_valid = recorded_path == expected_path and expected_sha == surface_digest(repo_root, expected_path)
+        except (OSError, ValueError):
+            current_valid = False
+    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha) or not current_valid:
         failures.append(
             _failure(
                 "specification-coverage-implementation-identity",
@@ -71,6 +82,8 @@ def _validate_implementation_surfaces(
     repo_root: Path,
     snapshot: dict[str, object],
     failures: list[PolicyFailure],
+    *,
+    replay_current: bool = True,
 ) -> None:
     path = _EXECUTION_SNAPSHOT_PATH
     surfaces = _bounded_list(
@@ -105,7 +118,7 @@ def _validate_implementation_surfaces(
             label=f"implementation_surfaces[{index}]",
             path=path,
         ):
-            _surface_entry_failures(repo_root, surface, failures, path)
+            _surface_entry_failures(repo_root, surface, failures, path, replay_current=replay_current)
 
 
 def _execute_sdl_artifact(path: Path) -> dict[str, object]:
@@ -179,11 +192,7 @@ def _artifact_digest_failures(
         )
         return
     actual_sha = _sha256(resolved)
-    renamed_digests = RENAMED_ARTIFACT_DIGESTS.get(artifact_path)
-    if actual_sha != expected_sha and renamed_digests != (
-        expected_sha,
-        actual_sha,
-    ):
+    if actual_sha != expected_sha:
         failures.append(
             _failure(
                 "specification-coverage-artifact-digest",
@@ -227,6 +236,8 @@ def _validate_artifacts(
     repo_root: Path,
     snapshot: dict[str, object],
     failures: list[PolicyFailure],
+    *,
+    replay_current: bool = True,
 ) -> tuple[dict[str, dict[str, object]], dict[str, dict[str, object]]]:
     path = _EXECUTION_SNAPSHOT_PATH
     artifacts = _bounded_list(
@@ -258,7 +269,7 @@ def _validate_artifacts(
             continue
         artifact_path = artifact.get("path")
         resolved = safe_repo_path(repo_root, artifact_path) if isinstance(artifact_path, str) else None
-        if resolved is None or not resolved.is_file():
+        if resolved is None or (replay_current and not resolved.is_file()):
             failures.append(
                 _failure(
                     "specification-coverage-artifact-path",
@@ -271,15 +282,53 @@ def _validate_artifacts(
             failures.append(_failure("specification-coverage-artifacts", "duplicate artifact path", path))
         else:
             by_path[artifact_path] = artifact
-        _artifact_digest_failures(artifact, artifact_path, resolved, failures)
-        _record_artifact_execution(repo_root, artifact, artifact_path, resolved, executed, failures)
-    return (
-        {
-            artifact_id: next(
-                (item for item in artifacts if isinstance(item, dict) and item.get("artifact_id") == artifact_id),
-                {},
+        if replay_current:
+            _artifact_digest_failures(artifact, artifact_path, resolved, failures)
+            _record_artifact_execution(repo_root, artifact, artifact_path, resolved, executed, failures)
+        else:
+            _historical_artifact_failures(repo_root, artifact, failures)
+            executed[artifact_path] = {}
+    return _artifacts_by_id(artifacts, artifact_ids), executed
+
+
+def _artifacts_by_id(artifacts: list[object], artifact_ids: set[str]) -> dict[str, dict[str, object]]:
+    return {
+        artifact_id: next(
+            (item for item in artifacts if isinstance(item, dict) and item.get("artifact_id") == artifact_id),
+            {},
+        )
+        for artifact_id in artifact_ids
+    }
+
+
+def _historical_artifact_failures(repo_root: Path, artifact: dict[str, object], failures: list[PolicyFailure]) -> None:
+    """Authenticate archived source bytes without executing them on current code."""
+    digest = artifact.get("sha256")
+    path = artifact.get("path")
+    try:
+        if not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
+            raise ValueError("invalid historical source pin")
+        archive = load_bounded_json_object(
+            repo_root,
+            f"docs/research/specification-coverage/historical-artifacts/{digest}.json",
+            max_bytes=_MAX_FILE_BYTES,
+        )
+        if (
+            set(archive) != {"artifact_path", "recovered_from_revision", "content_base64"}
+            or archive.get("artifact_path") != path
+            or not isinstance(archive.get("recovered_from_revision"), str)
+            or not re.fullmatch(r"[0-9a-f]{40}", archive["recovered_from_revision"])
+            or not isinstance(archive.get("content_base64"), str)
+        ):
+            raise ValueError("invalid historical archive")
+        content = base64.b64decode(archive["content_base64"], validate=True)
+        if hashlib.sha256(content).hexdigest() != digest:
+            raise ValueError("archive bytes differ from the frozen source pin")
+    except (OSError, ValueError):
+        failures.append(
+            _failure(
+                "specification-coverage-artifact-digest",
+                "historical source archive is missing or does not match its exact pin",
+                path,
             )
-            for artifact_id in artifact_ids
-        },
-        executed,
-    )
+        )

@@ -39,7 +39,6 @@ def _compile_templates(
     dict[str, RuntimeTemplate],
     dict[str, RuntimeTemplate],
     dict[str, RuntimeTemplate],
-    dict[str, RuntimeTemplate],
 ]:
     feature_templates = {
         name: RuntimeTemplate(address=_template_address("feature", name), name=name, spec=_dump(template))
@@ -53,11 +52,7 @@ def _compile_templates(
         name: RuntimeTemplate(address=_template_address("inject", name), name=name, spec=_dump(template))
         for name, template in scenario.injects.items()
     }
-    vulnerability_templates = {
-        name: RuntimeTemplate(address=_template_address("vulnerability", name), name=name, spec=_dump(template))
-        for name, template in scenario.vulnerabilities.items()
-    }
-    return feature_templates, condition_templates, inject_templates, vulnerability_templates
+    return feature_templates, condition_templates, inject_templates
 
 
 def _metadata_specs(

@@ -21,6 +21,16 @@ Agent-assisted development can produce internally coherent code and documentatio
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `989` (Versioned current replay and immutable historical evidence)
+- IMPLEMENTS → CODE_FILE `tools/research_evidence.py` (Exact source-state provenance and coherent release selection)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_releases.py` (Version-specific historical and current validation)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_production.py` (Strict stored, direct, CLI, and replay joins)
+- IMPLEMENTS → CODE_FILE `tools/check_specification_coverage.py` (Current coverage replay and historical integrity dispatch)
+- IMPLEMENTS → CODE_FILE `tools/specification_coverage/_artifacts.py` (Exact current source pins and bounded historical archives)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v3.json` (Atomic current retest release 4.0.0)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-989-v2.json` (Atomic current coverage release 2.0.0)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Replay bypass, provenance, selection, and archive-integrity regressions)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Current coverage and frozen historical evidence checks)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/lineage.md` (SDL lineage and prior work)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/precedents.md` (SDL design precedents for participant semantics and language adequacy)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md` (ADR-021: Falsification-First Claim Evidence Gate)

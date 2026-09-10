@@ -3,15 +3,15 @@
 These models express the participant-observable application-layer surface of a
 range service (see ADR-026): HTTP route paths and methods, owning transport
 service, auth/session requirements, typed request inputs, responses,
-template/static asset associations, route-specific vulnerability placement,
+template/static asset associations,
 route-visible fixture secrets or diagnostic disclosures, and redirect/error
 behavior.
 
 This is observed runtime state attached to ``Node.runtime``. It is distinct
 from ``Node.services`` (transport bindings), ``runtime.network.published_ports``
-(host/OS publication), ``content`` (scenario data fixtures), and the top-level
-``vulnerabilities`` weakness definitions — a route may *reference* those
-surfaces but never duplicates or mutates them.
+(host/OS publication), and ``content`` (scenario data fixtures). External
+weakness assertions use standalone generic bindings against the exact route
+subject, never intrinsic route classification fields.
 """
 
 from enum import Enum
@@ -24,6 +24,7 @@ from ._base import (
     is_variable_ref,
     parse_int_or_var,
 )
+from ._classification_guard import LegacyClassificationGuard
 from .runtime_filesystem import RuntimeSensitivityClassification
 from .runtime_values import (
     coerce_string_list,
@@ -315,12 +316,14 @@ class RuntimeApplicationRouteUpstreamTarget(SDLModel):
         return parse_optional_bool_or_var(v, field_name="tls_terminated_here")
 
 
-class RuntimeApplicationRoute(SDLModel):
+class RuntimeApplicationRoute(LegacyClassificationGuard):
     """An observed application route — a participant-visible endpoint.
 
     ``route_id`` is the stable identity; ``path`` is data and may carry path
     variables, may be shared across HTTP methods, and is never a mapping key.
     """
+
+    legacy_classification_fields = ("vulnerability_refs",)
 
     route_id: str
     path: str
@@ -334,7 +337,6 @@ class RuntimeApplicationRoute(SDLModel):
     responses: list[RuntimeApplicationResponse] = Field(default_factory=list)
     templates: list[str] = Field(default_factory=list)
     static_assets: list[str] = Field(default_factory=list)
-    vulnerability_refs: list[str] = Field(default_factory=list)
     redirects: list[RuntimeApplicationRedirect] = Field(default_factory=list)
     disclosures: list[RuntimeApplicationDisclosure] = Field(default_factory=list)
     exposed_fields: list[RuntimeApplicationExposedField] = Field(default_factory=list)
@@ -379,7 +381,7 @@ class RuntimeApplicationRoute(SDLModel):
     def parse_auth_flags(cls, v: bool | str | None, info: ValidationInfo) -> bool | str | None:
         return parse_optional_bool_or_var(v, field_name=info.field_name)
 
-    @field_validator("templates", "static_assets", "vulnerability_refs", mode="before")
+    @field_validator("templates", "static_assets", mode="before")
     @classmethod
     def coerce_ref_lists(cls, v: Any) -> list[str]:
         return coerce_string_list(v)
@@ -396,7 +398,7 @@ class RuntimeApplicationRoute(SDLModel):
                 )
             seen_params.add(key)
 
-        for field_name in ("templates", "static_assets", "vulnerability_refs"):
+        for field_name in ("templates", "static_assets"):
             values = getattr(self, field_name)
             if len(values) != len(set(values)):
                 raise ValueError(f"Duplicate runtime application {field_name} entry on route '{self.route_id}'")
