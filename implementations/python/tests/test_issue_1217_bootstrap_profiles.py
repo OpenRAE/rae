@@ -170,6 +170,8 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert "UV_PYTHON_DOWNLOADS=never" in workflow_text
     assert "UV_OFFLINE=1" in workflow_text
     assert 'export UV_PYTHON="${restored_python}"' in workflow_text
+    assert 'cp -R "${restored_root}/uv-cache" .qualification-runtime-cache' in workflow_text
+    assert 'export UV_CACHE_DIR="${{ github.workspace }}/.qualification-runtime-cache"' in workflow_text
     assert "record-case T12" in workflow_text
     assert "bootstrap-offline-kit.tar" in workflow_text
     canonical = yaml.safe_load((REPO_ROOT / ".github/workflows/canonical-verification.yml").read_text(encoding="utf-8"))

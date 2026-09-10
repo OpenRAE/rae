@@ -69,15 +69,16 @@ jobs:
           tar -cf bootstrap-offline-kit.tar .qualification-kit
       - name: Restore and exercise the payload kit without network fallback
         run: |
-          rm -rf .qualification-cache/uv .cache/raes-sdl/tooling .qualification-restored
+          rm -rf .qualification-cache/uv .cache/raes-sdl/tooling .qualification-restored .qualification-runtime-cache
           mkdir .qualification-restored
           tar -xf bootstrap-offline-kit.tar -C .qualification-restored --strip-components=1
           restored_root="${{ github.workspace }}/.qualification-restored"
           restored_python="$(find "${restored_root}/python" -path '*/bin/python3.14' -print)"
           test -n "${restored_python}"
+          cp -R "${restored_root}/uv-cache" .qualification-runtime-cache
           export UV_PYTHON="${restored_python}"
           export PATH="${restored_root}/bin:/usr/bin:/bin"
-          export UV_CACHE_DIR="${restored_root}/uv-cache"
+          export UV_CACHE_DIR="${{ github.workspace }}/.qualification-runtime-cache"
           export UV_PYTHON_INSTALL_DIR="${restored_root}/python"
           export UV_PYTHON_DOWNLOADS=never
           export UV_OFFLINE=1
