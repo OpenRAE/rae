@@ -558,13 +558,13 @@ def test_graph_base_revision_and_cpu_fallbacks(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(nox_graph, "resolve_upstream", lambda _root: "origin/dev")
     assert nox_graph._changed_base_rev([]) == "origin/dev"
 
-    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", lambda _pid: {0, 1})
+    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", lambda _pid: {0, 1}, raising=False)
     assert nox_graph._available_cpu_count() == 2
 
     def unavailable(_pid: int) -> set[int]:
         raise OSError("unsupported")
 
-    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", unavailable)
+    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", unavailable, raising=False)
     monkeypatch.setattr(nox_graph.os, "cpu_count", lambda: None)
     assert nox_graph._available_cpu_count() == 1
 

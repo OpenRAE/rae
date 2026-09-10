@@ -130,10 +130,18 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     workflow = yaml.safe_load((REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8"))
     matrix = workflow["jobs"]["generic-tool-platforms"]["strategy"]["matrix"]["include"]
     assert matrix == [
-        {"profile": "public-ubuntu-24.04-x86_64", "runner": "ubuntu-24.04"},
-        {"profile": "public-linux-arm64", "runner": "ubuntu-24.04-arm"},
-        {"profile": "public-macos-x86_64", "runner": "macos-15-intel"},
-        {"profile": "public-macos-arm64", "runner": "macos-15"},
+        {
+            "profile": "public-ubuntu-24.04-x86_64",
+            "runner": "ubuntu-24.04",
+            "target": "x86_64-unknown-linux-gnu",
+        },
+        {
+            "profile": "public-linux-arm64",
+            "runner": "ubuntu-24.04-arm",
+            "target": "aarch64-unknown-linux-gnu",
+        },
+        {"profile": "public-macos-x86_64", "runner": "macos-15-intel", "target": "x86_64-apple-darwin"},
+        {"profile": "public-macos-arm64", "runner": "macos-15", "target": "aarch64-apple-darwin"},
     ]
     workflow_text = (REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8")
     assert "offline-kit-fetch" in workflow_text
@@ -259,9 +267,13 @@ def test_proof_capability_is_explicitly_unsupported_outside_linux_x86_64() -> No
 
 def test_generic_tool_qualification_executes_each_selected_binary(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[list[str]] = []
+    environments: list[dict[str, str]] = []
 
-    def fake_run(argv: list[str], **_kwargs: object) -> SimpleNamespace:
+    def fake_run(argv: list[str], **kwargs: object) -> SimpleNamespace:
         calls.append(argv)
+        environment = kwargs["env"]
+        assert isinstance(environment, dict)
+        environments.append(environment)
         return SimpleNamespace(returncode=0, stdout=f"{Path(argv[0]).name} 1.0.0", stderr="")
 
     monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
@@ -286,6 +298,12 @@ def test_generic_tool_qualification_executes_each_selected_binary(monkeypatch: p
         ["/qualified/osv-scanner", "--version"],
         ["/qualified/vale", "--version"],
     ]
+    assert len(environments) == 4
+    for environment in environments:
+        assert "HOME" not in environment
+        assert all(
+            Path(environment[name]).is_absolute() for name in ("XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME")
+        )
 
 
 def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
@@ -315,6 +333,16 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
         "target": "x86_64-unknown-linux-gnu",
     }
     monkeypatch.setattr(bootstrap_profile, "observe_current_python_identity", lambda: expected_python_identity)
+    monkeypatch.setattr(
+        bootstrap_profile,
+        "_observed_uv_identity",
+        lambda _version: {
+            "implementation": "uv",
+            "version": "0.12.4",
+            "abi": "native",
+            "target": "x86_64-unknown-linux-gnu",
+        },
+    )
     monkeypatch.setenv("ImageOS", "ubuntu24")
     monkeypatch.setenv("ImageVersion", "20261005.999.1")
     monkeypatch.setenv("RUNNER_ARCH", "X64")
@@ -793,6 +821,14 @@ class _CurlFixture(BaseHTTPRequestHandler):
 
 
 def _https_fixture(tmp_path: Path) -> tuple[ThreadingHTTPServer, Path]:
+    curl_version = bootstrap_profile.observe_executable(
+        "curl-unknown-length-max-filesize",
+        Path("/usr/bin/curl"),
+        ("--version",),
+        minimum_version=(8, 4, 0),
+    )
+    if curl_version["outcome"] != "passed":
+        pytest.skip("real curl qualification requires curl 8.4.0 or newer")
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     now = dt.datetime.now(dt.UTC)
     name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "RAES curl qualification fixture")])
@@ -816,6 +852,7 @@ def _https_fixture(tmp_path: Path) -> tuple[ThreadingHTTPServer, Path]:
     server = ThreadingHTTPServer(("127.0.0.1", 0), _CurlFixture)
     server.daemon_threads = True
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.load_cert_chain(cert_path, key_path)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()

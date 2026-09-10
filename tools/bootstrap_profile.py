@@ -20,6 +20,7 @@ import stat
 import subprocess
 import sys
 import sysconfig
+import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -453,42 +454,49 @@ def qualify_generic_tools(
 
     selected = tuple(selections) if selections is not None else _default_generic_tool_selections()
     results: list[dict[str, str]] = []
-    for capability_id, executable, version_args, version in selected:
-        try:
-            completed = subprocess.run(
-                [str(executable), *version_args],
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                check=False,
-                timeout=PROBE_TIMEOUT_SECONDS,
-                env=dict(_PROBE_ENV),
-            )
-        except (OSError, subprocess.SubprocessError):
-            results.append(
-                {
-                    "capability_id": capability_id,
-                    "outcome": "failed",
-                    "reason_code": "native-client-unavailable",
-                }
-            )
-            continue
-        if completed.returncode != 0:
-            results.append(
-                {
-                    "capability_id": capability_id,
-                    "outcome": "failed",
-                    "reason_code": "native-client-exit",
-                }
-            )
-        else:
-            results.append(
-                {
-                    "capability_id": capability_id,
-                    "outcome": "passed",
-                    "version": version,
-                }
-            )
+    with tempfile.TemporaryDirectory(prefix="raes-generic-tool-probe-") as probe_root:
+        probe_environment = {
+            **_PROBE_ENV,
+            "XDG_CACHE_HOME": f"{probe_root}/cache",
+            "XDG_CONFIG_HOME": f"{probe_root}/config",
+            "XDG_DATA_HOME": f"{probe_root}/data",
+        }
+        for capability_id, executable, version_args, version in selected:
+            try:
+                completed = subprocess.run(
+                    [str(executable), *version_args],
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    check=False,
+                    timeout=PROBE_TIMEOUT_SECONDS,
+                    env=probe_environment,
+                )
+            except (OSError, subprocess.SubprocessError):
+                results.append(
+                    {
+                        "capability_id": capability_id,
+                        "outcome": "failed",
+                        "reason_code": "native-client-unavailable",
+                    }
+                )
+                continue
+            if completed.returncode != 0:
+                results.append(
+                    {
+                        "capability_id": capability_id,
+                        "outcome": "failed",
+                        "reason_code": "native-client-exit",
+                    }
+                )
+            else:
+                results.append(
+                    {
+                        "capability_id": capability_id,
+                        "outcome": "passed",
+                        "version": version,
+                    }
+                )
     return {
         "outcome": "passed" if results and all(item["outcome"] == "passed" for item in results) else "failed",
         "results": results,

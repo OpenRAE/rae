@@ -17,12 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04}
-          - {profile: public-linux-arm64, runner: ubuntu-24.04-arm}
-          - {profile: public-macos-x86_64, runner: macos-15-intel}
-          - {profile: public-macos-arm64, runner: macos-15}
+          - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu}
+          - {profile: public-linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu}
+          - {profile: public-macos-x86_64, runner: macos-15-intel, target: x86_64-apple-darwin}
+          - {profile: public-macos-arm64, runner: macos-15, target: aarch64-apple-darwin}
     env:
       UV_PYTHON: "3.14.7"
+      UV_PYTHON_PLATFORM: ${{ matrix.target }}
       RAES_EXPECTED_PYTHON: "3.14"
       UV_CACHE_DIR: ${{ github.workspace }}/.qualification-cache/uv
     steps:
@@ -91,7 +92,9 @@ jobs:
           fi
       - name: Exercise maintained curl behavior
         run: |
-          implementations/python/.venv/bin/python -m pytest -q implementations/python/tests/test_issue_1217_bootstrap_profiles.py -k real_curl
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile inspect-profile "${{ matrix.profile }}"
+          implementations/python/.venv/bin/python -m pytest -q \
+            implementations/python/tests/test_issue_1217_bootstrap_profiles.py -m integration -k real_curl
           implementations/python/.venv/bin/python -m tools.bootstrap_profile record-case T08 "${{ github.sha }}" \
             implementations/python/tests/test_issue_1217_bootstrap_profiles.py > t08-result.json
       - name: Record exact measured profile evidence
