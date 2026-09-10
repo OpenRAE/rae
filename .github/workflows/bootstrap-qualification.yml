@@ -82,6 +82,7 @@ jobs:
           export UV_PYTHON_INSTALL_DIR="${restored_root}/python"
           export UV_PYTHON_DOWNLOADS=never
           export UV_OFFLINE=1
+          export PYTHONDONTWRITEBYTECODE=1
           implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-verify \
             "${{ matrix.profile }}" "${restored_root}" --python-artifact-id cpython-3.14 \
             --trusted-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}"
