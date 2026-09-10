@@ -158,6 +158,7 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert workflow["jobs"]["generic-tool-platforms"]["env"]["UV_NO_BINARY_PACKAGE"] == (
         "${{ matrix.no_binary_package }}"
     )
+    assert workflow["jobs"]["generic-tool-platforms"]["env"]["RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"] == "1"
     workflow_text = (REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8")
     assert "offline-kit-fetch" in workflow_text
     assert "offline-kit-manifest" in workflow_text

@@ -26,6 +26,7 @@ jobs:
       UV_PYTHON_PLATFORM: ${{ matrix.target }}
       UV_NO_BINARY_PACKAGE: ${{ matrix.no_binary_package }}
       RAES_EXPECTED_PYTHON: "3.14"
+      RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY: "1"
       UV_CACHE_DIR: ${{ github.workspace }}/.qualification-cache/uv
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

@@ -665,6 +665,7 @@ def _exercise_python_compatibility(
     monkeypatch: pytest.MonkeyPatch,
     *,
     build_artifacts: bool,
+    smoke_only: bool = False,
 ) -> tuple[list[tuple[str, ...]], list[tuple[str, ...]], list[str]]:
     commands: list[tuple[str, ...]] = []
     pytest_calls: list[tuple[str, ...]] = []
@@ -691,6 +692,7 @@ def _exercise_python_compatibility(
     monkeypatch.setenv(nox_config.EXPECTED_PYTHON_ENV, "3.14")
     monkeypatch.setenv("UV_PYTHON", "cpython-3.14")
     monkeypatch.setenv(nox_config.EXPECT_FREE_THREADED_ENV, "1")
+    monkeypatch.setenv(nox_config.PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV, "1" if smoke_only else "0")
     monkeypatch.setattr(nox_test_lanes, "_run", fake_run)
     monkeypatch.setattr(nox_test_lanes, "_sync_project", lambda _session: None)
     monkeypatch.setattr(
@@ -731,6 +733,20 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
     assert installed_python[-1] == "3.14"
     assert any(command and command[0].endswith("/bin/raes") and command[-1] == "--version" for command in commands)
     assert nox_config.PROJECT_ROOT.as_posix() in build_command
+
+
+def test_python_compatibility_smoke_omits_redundant_hermetic_suite(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _commands, pytest_calls, stages = _exercise_python_compatibility(
+        monkeypatch,
+        build_artifacts=True,
+        smoke_only=True,
+    )
+
+    assert "python compatibility / hermetic tests" not in stages
+    assert "python compatibility / installed metadata and imports" in stages
+    assert pytest_calls == []
 
 
 @pytest.mark.parametrize(

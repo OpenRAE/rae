@@ -19,6 +19,7 @@ from tools.nox_support.config import (
     PUBLIC_DOCS_ENTRYPOINTS,
     PUBLIC_DOCS_EXAMPLE_TESTS,
     PUBLIC_DOCS_ROOT,
+    PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV,
     REPO_ROOT,
 )
 from tools.nox_support.runner import (
@@ -117,6 +118,7 @@ def _compatibility_runtime_stages(
     selector: str,
     expected: str,
     expect_free_threaded: bool,
+    smoke_only: bool,
 ) -> None:
     reporter.run(
         "python compatibility / frozen sync",
@@ -140,11 +142,12 @@ def _compatibility_runtime_stages(
             "1" if expect_free_threaded else "0",
         ),
     )
-    reporter.run(
-        "python compatibility / hermetic tests",
-        lambda: _run_pytest(session, "-q", parallel=True),
-        detail="xdist auto, max 8, worksteal",
-    )
+    if not smoke_only:
+        reporter.run(
+            "python compatibility / hermetic tests",
+            lambda: _run_pytest(session, "-q", parallel=True),
+            detail="xdist auto, max 8, worksteal",
+        )
 
 
 def _compatibility_distribution_stages(
@@ -226,6 +229,9 @@ def _run_python_compatibility(session: nox.Session, reporter: SessionReporter) -
     if not selector:
         raise RuntimeError("UV_PYTHON must select the interpreter under test")
     expect_free_threaded = os.environ.get(EXPECT_FREE_THREADED_ENV) == "1"
+    smoke_only_value = os.environ.get(PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV, "0")
+    if smoke_only_value not in {"0", "1"}:
+        raise RuntimeError(f"{PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV} must be 0 or 1")
     # Nox removes UV_PYTHON inherited from the parent process. Put the
     # matrix selector back into the per-session command environment so every
     # nested uv invocation uses the interpreter that the lane names.
@@ -236,6 +242,7 @@ def _run_python_compatibility(session: nox.Session, reporter: SessionReporter) -
         selector=selector,
         expected=expected,
         expect_free_threaded=expect_free_threaded,
+        smoke_only=smoke_only_value == "1",
     )
     _compatibility_distribution_stages(session, reporter, selector=selector, expected=expected)
 
