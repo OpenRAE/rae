@@ -74,6 +74,7 @@ jobs:
           restored_root="${{ github.workspace }}/.qualification-restored"
           restored_python="$(find "${restored_root}/python" -path '*/bin/python3.14' -print)"
           test -n "${restored_python}"
+          export UV_PYTHON="${restored_python}"
           export PATH="${restored_root}/bin:/usr/bin:/bin"
           export UV_CACHE_DIR="${restored_root}/uv-cache"
           export UV_PYTHON_INSTALL_DIR="${restored_root}/python"
