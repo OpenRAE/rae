@@ -169,7 +169,7 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert '"${restored_python}" -m tools.bootstrap_profile offline-kit-verify' not in workflow_text
     assert "UV_PYTHON_DOWNLOADS=never" in workflow_text
     assert "UV_OFFLINE=1" in workflow_text
-    assert "PYTHONDONTWRITEBYTECODE=1" in workflow_text
+    assert 'PYTHONDONTWRITEBYTECODE: "1"' in workflow_text
     assert 'export UV_PYTHON="${restored_python}"' in workflow_text
     assert 'cp -R "${restored_root}/uv-cache" .qualification-runtime-cache' in workflow_text
     assert 'export UV_CACHE_DIR="${{ github.workspace }}/.qualification-runtime-cache"' in workflow_text

@@ -27,6 +27,7 @@ jobs:
       UV_NO_BINARY_PACKAGE: ${{ matrix.no_binary_package }}
       RAES_EXPECTED_PYTHON: "3.14"
       RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
       UV_CACHE_DIR: ${{ github.workspace }}/.qualification-cache/uv
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -82,7 +83,6 @@ jobs:
           export UV_PYTHON_INSTALL_DIR="${restored_root}/python"
           export UV_PYTHON_DOWNLOADS=never
           export UV_OFFLINE=1
-          export PYTHONDONTWRITEBYTECODE=1
           implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-verify \
             "${{ matrix.profile }}" "${restored_root}" --python-artifact-id cpython-3.14 \
             --trusted-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}"
