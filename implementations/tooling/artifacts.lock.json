@@ -1,6 +1,6 @@
 {
   "schema_version": "raes-development-artifact-lock/v1",
-  "lock_revision": "2026-09-07",
+  "lock_revision": "2026-09-11",
   "artifacts": [
     {
       "artifact_id": "conftest",
@@ -690,6 +690,68 @@
           "dependencies": [],
           "profile_ids": ["public-macos-arm64"],
           "host_profile_ids": ["public-macos-arm64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "sonar-scanner-cli",
+      "artifact_class": "generic-cli",
+      "version": "8.1.0.6389",
+      "support_level": "blocking",
+      "owner": "Security",
+      "consumers": ["sonarqube-scan-action"],
+      "trust_root_refs": ["sonarqube-action-reviewed-sha256"],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {"spdx": "LGPL-3.0-only", "redistribution": "allowed", "review_ref": "issue-839"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "issue-839-action-input-review"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/SonarSource/sonar-scanner-cli",
+        "release": "8.1.0.6389",
+        "asset": "sonar-scanner-cli-8.1.0.6389-linux-x64.zip",
+        "locator_refs": ["official-sonarsource-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-8.1.0.6389-linux-x64.zip"],
+          "raw_manifest": [{"path": "sonar-scanner-cli-8.1.0.6389-linux-x64.zip", "sha256": "bb8f709f9cb73352f8d1260a3b3c506c0f41146754bc630762c126d795499d0b", "size": 61626644}],
+          "installed_identity": {"implementation": "SonarScanner CLI", "version": "8.1.0.6389", "abi": "java", "target": "linux-x86_64"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "scorecard-action-image",
+      "artifact_class": "oci-image",
+      "version": "2.4.4",
+      "support_level": "blocking",
+      "owner": "Security",
+      "consumers": ["scorecard-workflow"],
+      "trust_root_refs": ["ghcr-immutable-manifest-digest"],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {"spdx": "Apache-2.0", "redistribution": "allowed", "review_ref": "issue-839"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "issue-839-action-input-review"},
+      "policy_refs": ["oci-input-v1"],
+      "source": {
+        "repository": "https://github.com/ossf/scorecard-action",
+        "release": "sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670",
+        "asset": "ghcr.io/ossf/scorecard-action",
+        "locator_refs": ["github-container-registry"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670"],
+          "raw_manifest": [{"path": "scorecard-action-2.4.4-manifest.json", "sha256": "ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670", "size": 4281}],
+          "installed_identity": {"implementation": "OCI image", "version": "2.4.4", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
         }
       ]
     }

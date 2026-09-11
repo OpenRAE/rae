@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-09-10T00:00:00.000000Z
+updated_at: 2026-09-11T00:00:00.000000Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -72,3 +72,12 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CONFIG `implementations/tooling/profiles/development-profiles.json` (Qualified host identities and capability closures)
 - IMPLEMENTS → CONFIG `implementations/tooling/schemas/profiles.schema.json` (Qualification evidence and host-profile contract)
 - TESTS → TEST `implementations/python/tests/test_issue_1217_bootstrap_profiles.py` (Bootstrap profile, payload identity, curl, and offline-kit regressions)
+- IMPLEMENTS → GITHUB_ISSUE `839` (Admit third-party action inputs and finish Scorecard evidence)
+- IMPLEMENTS → CONFIG `implementations/tooling/actions-policy.json` (Exact action-source, transitive-input, workflow-job, and use-site admission)
+- IMPLEMENTS → CONFIG `implementations/tooling/artifacts.lock.json` (Pinned Sonar scanner and Scorecard OCI payload identities)
+- IMPLEMENTS → CODE_FILE `tools/tooling_artifact_policy_actions.py` (Closed workflow parser and action admission enforcement)
+- IMPLEMENTS → CODE_FILE `tools/tooling_artifact_policy_selectors.py` (Action-transitive artifact selection coverage)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-839-action-input-admission-scorecard-preflight.md` (Action-input and Scorecard architecture guardrails)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-839-scorecard-evidence.md` (Live Scorecard evidence, service boundaries, and offline nonclaims)
+- TESTS → TEST `implementations/python/tests/test_tooling_artifact_policy.py` (Action closure, workflow trust, input, credential, runner, and Dependabot drift)
+- TESTS → TEST `implementations/python/tests/test_public_project_readiness.py` (Scorecard schedule, reporting, runner, and badge regression)
