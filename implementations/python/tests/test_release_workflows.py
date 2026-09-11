@@ -245,8 +245,9 @@ def test_canonical_verifier_requires_and_checks_out_an_exact_commit_sha() -> Non
 
 def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> None:
     workflow = _load(CANONICAL_PATH)
-    assert set(workflow["jobs"]) == {"verify"}
+    assert set(workflow["jobs"]) == {"generic-tool-local-inputs", "verify"}
     job = workflow["jobs"]["verify"]
+    assert job["needs"] == "generic-tool-local-inputs"
     assert job["runs-on"] == "ubuntu-22.04"
 
     step_names = [step.get("name") for step in job["steps"]]

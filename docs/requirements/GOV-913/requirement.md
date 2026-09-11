@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-09-10T00:00:00.000000Z
+updated_at: 2026-09-11T00:00:00.000000Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -72,3 +72,9 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CONFIG `implementations/tooling/profiles/development-profiles.json` (Qualified host identities and capability closures)
 - IMPLEMENTS → CONFIG `implementations/tooling/schemas/profiles.schema.json` (Qualification evidence and host-profile contract)
 - TESTS → TEST `implementations/python/tests/test_issue_1217_bootstrap_profiles.py` (Bootstrap profile, payload identity, curl, and offline-kit regressions)
+- IMPLEMENTS → CODE_FILE `tools/maintained_client_acquisition.py` (Qualified fixed-argv curl and explicit local-input admission boundary)
+- IMPLEMENTS → CODE_FILE `tools/policy/conftest_tool.py` (Lock-selected Conftest acquisition and installation)
+- IMPLEMENTS → CODE_FILE `tools/gitleaks_tool.py` (Lock-selected Gitleaks acquisition and installation)
+- IMPLEMENTS → CODE_FILE `tools/vale_tool.py` (Lock-selected Vale acquisition and installation)
+- IMPLEMENTS → CODE_FILE `tools/osv_scanner_tool.py` (Lock-selected OSV-Scanner acquisition and installation)
+- TESTS → TEST `implementations/python/tests/test_issue_1137_maintained_client_acquisition.py` (Maintained-client, local-input, integrity, and installer regressions)
