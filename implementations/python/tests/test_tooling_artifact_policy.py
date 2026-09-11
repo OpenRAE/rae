@@ -986,13 +986,13 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
             ),
         )
 
-    def download(url: str, **_kwargs: object) -> bytes:
-        observed["url"] = url
+    def acquire_locked_bytes(**kwargs: object) -> bytes:
+        observed["acquisition"] = kwargs
         return archive_bytes
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
-    monkeypatch.setattr(module, "download_bytes", download)
+    monkeypatch.setattr(module, "acquire_locked_bytes", acquire_locked_bytes)
 
     binary = acquire(tmp_path, version=version)
 
@@ -1004,7 +1004,16 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
             "platform_id": "linux-x86_64",
             "profile_id": "public-linux-x86_64",
         },
-        "url": source_url,
+        "acquisition": {
+            "artifact_id": artifact_id,
+            "source_url": source_url,
+            "expected": LockedManifestEntry(
+                f"{artifact_id}-{version}.tar.gz",
+                hashlib.sha256(archive_bytes).hexdigest(),
+                len(archive_bytes),
+            ),
+            "local_input": None,
+        },
     }
 
 
@@ -1054,7 +1063,7 @@ def test_archive_tool_rejects_a_symlink_selected_by_the_installed_manifest(
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
-    monkeypatch.setattr(module, "download_bytes", lambda *_args, **_kwargs: archive_bytes)
+    monkeypatch.setattr(module, "acquire_locked_bytes", lambda **_kwargs: archive_bytes)
 
     with pytest.raises(RuntimeError, match="regular"):
         acquire(tmp_path, version=version)
@@ -1117,11 +1126,11 @@ def test_archive_tool_never_accepts_a_symlink_cache_entry(
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
 
-    def reject_download(*_args: object, **_kwargs: object) -> bytes:
-        raise RuntimeError("download-sentinel")
+    def reject_acquisition(**_kwargs: object) -> bytes:
+        raise RuntimeError("acquisition-sentinel")
 
-    monkeypatch.setattr(module, "download_bytes", reject_download)
-    with pytest.raises(RuntimeError, match="download-sentinel"):
+    monkeypatch.setattr(module, "acquire_locked_bytes", reject_acquisition)
+    with pytest.raises(RuntimeError, match="acquisition-sentinel"):
         acquire(tmp_path, version=version)
     assert not cached.is_symlink()
     assert outside.read_bytes() == binary_bytes

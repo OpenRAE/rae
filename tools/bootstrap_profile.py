@@ -25,8 +25,8 @@ import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from urllib.parse import urlsplit
 
+from tools import maintained_client_acquisition
 from tools.tooling_policy_gate import (
     load_tooling_host_profile_selection,
     safe_tooling_cache_parent,
@@ -38,10 +38,11 @@ MAX_CASE_RESULT_BYTES = 65536
 MAX_OFFLINE_MANIFEST_BYTES = 32 * 1024 * 1024
 _CASE_IDS = {"T01", "T02", "T03", "T08", "T12"}
 _MINIMUM_CURL = (8, 4, 0)
-_VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})[.](\d{1,10})")
 _OBSERVED_VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})(?:[.](\d{1,10}))?")
 _PROBE_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
-_SYSTEM_CURL = Path("/usr/bin/curl")
+_SYSTEM_CURL = maintained_client_acquisition.SYSTEM_CURL
+curl_qualification_argv = maintained_client_acquisition.curl_transfer_argv
+curl_version_is_supported = maintained_client_acquisition.curl_version_is_supported
 
 
 @dataclass(frozen=True)
@@ -57,63 +58,6 @@ class QualificationEvidenceOptions:
 _DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS = QualificationEvidenceOptions()
 
 
-def curl_version_is_supported(value: str) -> bool:
-    """Return whether a curl version meets the unknown-length size floor."""
-
-    match = _VERSION_RE.search(value)
-    return match is not None and tuple(int(part) for part in match.groups()) >= _MINIMUM_CURL
-
-
-def curl_qualification_argv(
-    executable: Path,
-    url: str,
-    output: Path,
-    *,
-    ca_cert: Path | None,
-    max_bytes: int,
-    max_time_seconds: int = 30,
-) -> list[str]:
-    """Build the fixed native-client argv used by behavioral qualification."""
-
-    parsed = urlsplit(url)
-    if parsed.scheme != "https" or not parsed.hostname or parsed.username is not None or parsed.password is not None:
-        raise ValueError("curl qualification requires a credential-free HTTPS URL")
-    if max_bytes < 1:
-        raise ValueError("curl qualification size limit must be positive")
-    if not 1 <= max_time_seconds <= 30:
-        raise ValueError("curl qualification deadline must be between 1 and 30 seconds")
-    argv = [
-        str(executable),
-        "--disable",
-        "--silent",
-        "--show-error",
-        "--fail",
-        "--location",
-        "--proto",
-        "=https",
-        "--proto-redir",
-        "=https",
-        "--max-redirs",
-        "5",
-        "--retry",
-        "2",
-        "--retry-delay",
-        "1",
-        "--retry-max-time",
-        "15",
-        "--connect-timeout",
-        "5",
-        "--max-time",
-        str(max_time_seconds),
-        "--max-filesize",
-        str(max_bytes),
-    ]
-    if ca_cert is not None:
-        argv.extend(("--cacert", str(ca_cert)))
-    argv.extend(("--output", str(output), url))
-    return argv
-
-
 def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
     executable: Path,
     url: str,
@@ -125,66 +69,17 @@ def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part
 ) -> dict[str, str]:
     """Exercise the real selected curl and classify only sanitized outcomes."""
 
-    version_result = inspect_executable("curl", executable, ("--version",), expected_version="curl ")
-    if version_result.get("outcome") != "passed":
-        return {"outcome": "failed", "reason_code": "curl-unavailable"}
-    try:
-        version_probe = subprocess.run(
-            [str(executable), "--version"],
-            stdin=subprocess.DEVNULL,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=PROBE_TIMEOUT_SECONDS,
-            env=dict(_PROBE_ENV),
-        )
-    except (OSError, subprocess.SubprocessError):
-        return {"outcome": "failed", "reason_code": "curl-unavailable"}
-    if version_probe.returncode != 0 or not curl_version_is_supported(version_probe.stdout):
-        return {"outcome": "failed", "reason_code": "curl-version-inadequate"}
-    try:
-        completed = subprocess.run(
-            curl_qualification_argv(
-                executable,
-                url,
-                output,
-                ca_cert=ca_cert,
-                max_bytes=max_bytes,
-                max_time_seconds=max_time_seconds,
-            ),
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-            timeout=max_time_seconds + 5,
-            env=dict(_PROBE_ENV),
-        )
-    except subprocess.TimeoutExpired:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-wall-deadline"}
-    except OSError:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-unavailable"}
-    if completed.returncode == 63:
-        output.unlink(missing_ok=True)
-        return {"outcome": "passed", "reason_code": "curl-size-limit-enforced"}
-    if completed.returncode in {35, 51, 58, 60, 77, 82, 83, 90, 91}:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-tls-rejected"}
-    if completed.returncode == 28:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-transfer-deadline"}
-    if completed.returncode != 0:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-transfer-failed"}
-    try:
-        within_limit = output.is_file() and output.stat().st_size <= max_bytes
-    except OSError:
-        within_limit = False
-    if not within_limit:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-size-limit-bypassed"}
-    return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
+    result = maintained_client_acquisition.run_curl_transfer(
+        executable,
+        url,
+        output,
+        ca_cert=ca_cert,
+        max_bytes=max_bytes,
+        max_time_seconds=max_time_seconds,
+    )
+    if result["reason_code"] == "curl-size-limit-enforced":
+        return {"outcome": "passed", "reason_code": result["reason_code"]}
+    return result
 
 
 def inspect_executable(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
