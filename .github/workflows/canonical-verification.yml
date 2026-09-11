@@ -51,6 +51,7 @@ jobs:
           name: canonical-generic-tool-inputs-${{ inputs.ref }}
           path: .canonical-tool-inputs
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 1
 
   verify:

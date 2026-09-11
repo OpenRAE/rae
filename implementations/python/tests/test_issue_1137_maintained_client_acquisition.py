@@ -323,6 +323,8 @@ def test_canonical_proof_job_consumes_same_run_locked_generic_tool_inputs() -> N
     assert "--artifact-id osv-scanner" in workflow_text
     assert "--artifact-id vale" in workflow_text
     assert "generic-tools --local-input-root .canonical-tool-inputs" in workflow_text
+    upload = next(step for step in prepare["steps"] if str(step.get("uses", "")).startswith("actions/upload-artifact@"))
+    assert upload["with"]["include-hidden-files"] is True
 
 
 def test_bootstrap_qualification_maps_size_enforcement_without_changing_production_semantics(
