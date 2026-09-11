@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import io
-import platform
+import os
 import shutil
 import stat
 import tarfile
+import tempfile
 from hashlib import sha256
 from pathlib import Path
 
@@ -13,48 +14,35 @@ from tools.tool_versions import VALE_VERSION
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-VALE_ARCHIVE_SHA256 = {
-    "vale_3.15.2_Linux_64-bit.tar.gz": "fc72e64454d6bd7af91905d4faebbf411bae3eec17bb572f4101311212bc0d9e",
-    "vale_3.15.2_Linux_arm64.tar.gz": "e8240a3304e2c07b0476d30423f241a80296865cf6d2b78b128fb7e4e14cbb69",
-    "vale_3.15.2_macOS_64-bit.tar.gz": "5d56b292f1612758f6d9e8d735dd739aec4e475830d0ba8c1e0ef7d8f08fa198",
-    "vale_3.15.2_macOS_arm64.tar.gz": "d3f613ff9226935ace08895fc8557206f309cdbd3a81881d86b6ab5b8b408757",
-}
-
-
-def _release_base_url(version: str = VALE_VERSION) -> str:
-    return f"https://github.com/errata-ai/vale/releases/download/v{version}"
-
-
-def _release_asset_name(version: str = VALE_VERSION) -> str:
-    system = platform.system()
-    machine = platform.machine().lower()
-    arch_map = {
-        "x86_64": "64-bit",
-        "amd64": "64-bit",
-        "arm64": "arm64",
-        "aarch64": "arm64",
-    }
-    platform_map = {
-        "Linux": "Linux",
-        "Darwin": "macOS",
-    }
-    arch = arch_map.get(machine)
-    platform_name = platform_map.get(system)
-    if arch is None:
-        raise RuntimeError(f"unsupported Vale architecture: {machine}")
-    if platform_name is None:
-        raise RuntimeError(f"unsupported Vale platform: {system}")
-    return f"vale_{version}_{platform_name}_{arch}.tar.gz"
-
 
 def vale_binary_path(repo_root: Path = REPO_ROOT, *, version: str = VALE_VERSION) -> Path:
     return repo_root / ".cache" / "raes-sdl" / "tooling" / "vale" / version / "vale"
 
 
-def _extract_binary(archive_bytes: bytes, binary_path: Path) -> None:
+def _locked_binary_cache_hit(path: Path, *, expected_sha256: str, expected_size: int) -> bool:
+    try:
+        mode = path.lstat().st_mode
+    except FileNotFoundError:
+        return False
+    if stat.S_ISLNK(mode):
+        path.unlink()
+        return False
+    if not stat.S_ISREG(mode):
+        raise RuntimeError("unsafe Vale cache entry is not a regular file")
+    return path.stat().st_size == expected_size and sha256(path.read_bytes()).hexdigest() == expected_sha256
+
+
+def _extract_binary(
+    archive_bytes: bytes,
+    binary_path: Path,
+    *,
+    installed_path: str = "vale",
+    expected_sha256: str | None = None,
+    expected_size: int | None = None,
+) -> None:
     with tarfile.open(fileobj=io.BytesIO(archive_bytes), mode="r:gz") as archive:
         try:
-            member = archive.getmember("vale")
+            member = archive.getmember(installed_path)
         except KeyError as exc:
             raise RuntimeError("Vale archive does not contain a root vale binary") from exc
         if not member.isfile():
@@ -63,29 +51,59 @@ def _extract_binary(archive_bytes: bytes, binary_path: Path) -> None:
         if extracted is None:
             raise RuntimeError("Vale archive root vale binary cannot be read")
         binary_bytes = extracted.read()
+    if expected_size is not None and len(binary_bytes) != expected_size:
+        raise RuntimeError("Vale installed binary size differs from the reviewed lock manifest")
+    if expected_sha256 is not None and sha256(binary_bytes).hexdigest() != expected_sha256:
+        raise RuntimeError("Vale installed binary digest differs from the reviewed lock manifest")
 
-    binary_path.parent.mkdir(parents=True, exist_ok=True)
-    temporary_path = binary_path.with_suffix(".download")
-    temporary_path.write_bytes(binary_bytes)
-    temporary_path.chmod(temporary_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    shutil.move(temporary_path, binary_path)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=".vale-", suffix=".download", dir=binary_path.parent)
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(binary_bytes)
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary_path.chmod(temporary_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        shutil.move(temporary_path, binary_path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
 
 
 def ensure_vale(repo_root: Path = REPO_ROOT, *, version: str = VALE_VERSION) -> Path:
-    binary_path = vale_binary_path(repo_root, version=version)
-    if binary_path.exists():
+    from tools.tooling_policy_gate import (
+        host_platform_id,
+        load_tooling_artifact_selection,
+        safe_tooling_cache_parent,
+    )
+
+    platform_id = host_platform_id()
+    selection = load_tooling_artifact_selection(
+        artifact_id="vale",
+        version=version,
+        platform_id=platform_id,
+        profile_id=f"public-{platform_id}",
+    )
+    if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1 or len(selection.installed_manifest) != 1:
+        raise RuntimeError("Vale lock selection must contain one source, raw asset, and installed binary")
+    raw = selection.raw_manifest[0]
+    installed = selection.installed_manifest[0]
+    requested_path = vale_binary_path(repo_root, version=version)
+    binary_path = safe_tooling_cache_parent(repo_root, requested_path, artifact_id="Vale") / requested_path.name
+    if _locked_binary_cache_hit(binary_path, expected_sha256=installed.sha256, expected_size=installed.size):
         return binary_path
+    binary_path.unlink(missing_ok=True)
 
-    asset_name = _release_asset_name(version)
-    expected = VALE_ARCHIVE_SHA256.get(asset_name)
-    if expected is None:
-        raise RuntimeError(f"no repository-pinned checksum for Vale asset {asset_name}")
-    base_url = _release_base_url(version)
-    asset_url = f"{base_url}/{asset_name}"
-    archive_bytes = download_bytes(asset_url, description="Vale")
+    asset_name = raw.path
+    archive_bytes = download_bytes(selection.source_urls[0], description="Vale")
     actual = sha256(archive_bytes).hexdigest()
-    if actual != expected:
-        raise RuntimeError(f"Vale checksum mismatch for {asset_name}: expected {expected}, got {actual}")
+    if len(archive_bytes) != raw.size or actual != raw.sha256:
+        raise RuntimeError(f"Vale checksum or size mismatch for locked asset {asset_name}")
 
-    _extract_binary(archive_bytes, binary_path)
+    _extract_binary(
+        archive_bytes,
+        binary_path,
+        installed_path=installed.path,
+        expected_sha256=installed.sha256,
+        expected_size=installed.size,
+    )
     return binary_path

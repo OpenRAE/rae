@@ -122,9 +122,6 @@ assertions:
     role: postcondition
     polarity: positive
 
-vulnerabilities:
-  sqli: {name: SQL Injection, description: "SQLi in login", technical: true, class: CWE-89}
-
 entities:
   blue-team:
     name: Blue
@@ -273,6 +270,17 @@ class TestReferenceTools:
 
 
 class TestAuthoringTools:
+    @pytest.mark.parametrize("legacy", ["{}", "{weakness: {class: CWE-79}}"])
+    def test_validate_surfaces_classification_migration(self, server, legacy):
+        source = MINIMAL_SDL + "vulnerabilities: " + legacy + "\n"
+        text = _call(server, "sdl_validate", {"sdl_content": source})
+        assert "PARSE ERROR" in text
+        assert "classification migration" in text
+        payload = _json_call(server, "sdl_diagnostics", {"sdl_content": source})
+        assert payload["status"] == "invalid"
+        assert payload["diagnostics"][0]["code"] == "sdl.classification-migration-required"
+        assert "classification migration" in payload["diagnostics"][0]["message"]
+
     def test_validate_valid_sdl(self, server):
         text = _call(server, "sdl_validate", {"sdl_content": MINIMAL_SDL})
         assert text.startswith("VALID")
@@ -597,9 +605,9 @@ class TestInspectionTools:
         text = _call(
             server,
             "sdl_get_element",
-            {"sdl_content": FULL_SDL, "element_name": "sqli"},
+            {"sdl_content": FULL_SDL, "element_name": "app"},
         )
-        assert "SQL Injection" in text
+        assert "my-app" in text
 
     def test_get_element_ambiguous(self, server):
         text = _call(
@@ -806,9 +814,10 @@ class TestOperationTools:
 
     def test_plan_dry_run_reports_reference_manifest_and_operations(self, server):
         payload = _json_call(server, "sdl_plan", {"sdl_content": FULL_SDL})
-        assert payload["status"] == "planned"
+        assert payload["status"] == "planned_with_errors"
         assert payload["manifest"]["backend"] == "stub"
-        assert payload["plan"]["is_valid"] is True
+        assert payload["plan"]["is_valid"] is False
+        assert any(diagnostic["code"] == "capture.offer-missing" for diagnostic in payload["diagnostics"])
         assert payload["plan"]["operations"]["provisioning"]["create"] > 0
         assert "dry run" in payload["claim_boundary"]
 
@@ -816,7 +825,9 @@ class TestOperationTools:
         payload = _json_call(server, "sdl_design_assessment", {"sdl_content": FULL_SDL})
         messages = [note["message"] for note in payload["design_notes"]]
         assert any("action names without action contracts" in message for message in messages)
-        assert payload["plan"]["is_valid"] is True
+        assert payload["status"] == "needs_attention"
+        assert payload["plan"]["is_valid"] is False
+        assert any(diagnostic["code"] == "capture.offer-missing" for diagnostic in payload["diagnostics"])
 
     def test_claims_assessment_limits_participant_skill_claims(self, server):
         payload = _json_call(server, "sdl_claims_assessment", {"sdl_content": FULL_SDL})

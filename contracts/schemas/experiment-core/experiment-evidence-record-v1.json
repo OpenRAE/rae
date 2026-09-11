@@ -584,6 +584,51 @@
           "raw_content"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "redaction_state": {
+            "const": "none"
+          }
+        },
+        "required": [
+          "redaction_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "redaction_policy": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "redaction_state": {
+            "enum": [
+              "redacted",
+              "withheld"
+            ]
+          }
+        },
+        "required": [
+          "redaction_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "redaction_policy": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "redaction_policy"
+        ]
+      }
     }
   ],
   "description": "Raw captured EXP-708 evidence record, distinct from derived measures.",
@@ -637,6 +682,11 @@
       "title": "Evidence Record Id",
       "type": "string"
     },
+    "output_contract": {
+      "minLength": 1,
+      "title": "Output Contract",
+      "type": "string"
+    },
     "provenance_refs": {
       "items": {
         "$ref": "#/$defs/ExperimentReferenceModel"
@@ -651,6 +701,19 @@
       "minLength": 1,
       "title": "Record Version",
       "type": "string"
+    },
+    "redaction_policy": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Redaction Policy"
     },
     "redaction_state": {
       "enum": [
@@ -705,6 +768,7 @@
     "record_version",
     "capture_spec_ref",
     "capture_requirement_ref",
+    "output_contract",
     "run_ref",
     "source_refs",
     "evidence_kind",

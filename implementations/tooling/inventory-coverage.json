@@ -1,0 +1,159 @@
+{
+  "schema_version": "raes-development-inventory-coverage/v1",
+  "inventory_source": "docs/decisions/package-artifacts/inventory.md",
+  "rows": [
+    {
+      "inventory_id": "I01", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["docs", "runtime", "tests"],
+      "trust_root_refs": ["implementations/python/uv.lock"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "delegated", "authority_refs": ["implementations/python/pyproject.toml", "implementations/python/uv.lock"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1218
+    },
+    {
+      "inventory_id": "I02", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Tooling"], "consumers": ["hooks", "nox", "workflows"],
+      "trust_root_refs": ["reviewed-python-tool-resolution"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "delegated", "authority_refs": ["tools/tool_versions.py", "implementations/python/uv.lock"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1218
+    },
+    {
+      "inventory_id": "I03", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Release", "Tooling"], "consumers": ["build", "release-smoke"],
+      "trust_root_refs": ["reviewed-build-closure"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "delegated", "authority_refs": ["implementations/python/pyproject.toml", "implementations/python/hatch_build.py"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1218
+    },
+    {
+      "inventory_id": "I04", "subjects": ["artifact","action"], "evidence_refs": ["reviewed-consumer-reference","reviewed-workflow-reference"], "owner_roles": ["Docs", "Tooling"], "consumers": ["bootstrap", "workflows"],
+      "trust_root_refs": ["reviewed-action-commit", "platform-python-distribution"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "delegated", "authority_refs": ["implementations/tooling/actions-policy.json", ".readthedocs.yaml"],
+      "policy_refs": ["action-source-v1", "artifact-integrity-v1"], "owning_issue": 1217
+    },
+    {
+      "inventory_id": "I05", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["repository-policy"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/policy/conftest_tool.py"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
+    },
+    {
+      "inventory_id": "I06", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["hygiene", "hooks"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/gitleaks_tool.py"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
+    },
+    {
+      "inventory_id": "I07", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Docs", "Tooling"], "consumers": ["documentation-style"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/vale_tool.py"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
+    },
+    {
+      "inventory_id": "I08", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["supply-chain-policy"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/osv_scanner_tool.py"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
+    },
+    {
+      "inventory_id": "I09", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Proof", "Tooling"], "consumers": ["participant-opacity-proof"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/isabelle_tool.py"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1220
+    },
+    {
+      "inventory_id": "I10", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Platform", "Proof", "Tooling"], "consumers": ["bootstrap", "proof"],
+      "trust_root_refs": ["native-package-signing-roots", "runner-image"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "delegated", "authority_refs": [".github/workflows/canonical-verification.yml", "docs/decisions/package-artifacts/architecture.md"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1217
+    },
+    {
+      "inventory_id": "I11", "subjects": ["oci-image"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Backend", "Release"], "consumers": ["reference-backend-test", "release"],
+      "trust_root_refs": ["docker.io/library/alpine@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc"],
+      "availability_class": "R", "retention_class": "supported-input", "disposition": "delegated",
+      "authority_refs": ["implementations/python/tests/test_reference_backend_docker_integration.py"],
+      "policy_refs": ["oci-input-v1"], "owning_issue": 1223
+    },
+    {
+      "inventory_id": "I12", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Backend", "Platform"], "consumers": ["live-verification"],
+      "trust_root_refs": ["qualified-native-host-profile"], "availability_class": "L", "retention_class": "supported-input",
+      "disposition": "delegated", "authority_refs": ["tools/real-daemon/README.md", "docs/decisions/package-artifacts/architecture.md"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1217
+    },
+    {
+      "inventory_id": "I13", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Backend", "Platform"], "consumers": ["aws-live-certification"],
+      "trust_root_refs": ["aws-image-identity", "native-package-signing-roots"], "availability_class": "L", "retention_class": "supported-input",
+      "disposition": "delegated", "authority_refs": ["tools/real-daemon/run_aws_smoke.sh", "tools/real-daemon/run_aws_guest_certify.sh"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1222
+    },
+    {
+      "inventory_id": "I14", "subjects": ["source-snapshot"], "evidence_refs": ["incumbent-source-digest"], "owner_roles": ["Security", "Semantics"], "consumers": ["vocabulary-validation"],
+      "trust_root_refs": ["ACT-609-source-digest", "ACT-610-source-digest", "ACT-611-source-digest"],
+      "availability_class": "N", "retention_class": "supported-input", "disposition": "locked",
+      "authority_refs": ["implementations/tooling/artifacts.lock.json", "contracts/concept-authority"],
+      "policy_refs": ["source-snapshot-integrity-v1"], "owning_issue": 1221
+    },
+    {
+      "inventory_id": "I15", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Docs", "Release", "Semantics"], "consumers": ["documentation", "distribution-corpus"],
+      "trust_root_refs": ["reviewed-git-tree"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "retained", "authority_refs": [".vale.ini", "styles/RAES", "contracts"],
+      "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
+    },
+    {
+      "inventory_id": "I16", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Release", "Tooling"], "consumers": ["all-workflows", "release"],
+      "trust_root_refs": ["reviewed-git-commit"], "availability_class": "R", "retention_class": "supported-input",
+      "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json", ".github/workflows"],
+      "policy_refs": ["action-source-v1"], "owning_issue": 1216
+    },
+
+    {"inventory_id": "A01", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Tooling"], "consumers": ["setup-workflows"], "trust_root_refs": ["reviewed-git-commit"], "availability_class": "R", "retention_class": "supported-input", "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json"], "policy_refs": ["action-source-v1"], "owning_issue": 1216},
+    {"inventory_id": "A02", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Release", "Tooling"], "consumers": ["artifact-handoff", "coverage", "proof"], "trust_root_refs": ["reviewed-git-commit"], "availability_class": "R", "retention_class": "operational-cache", "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json"], "policy_refs": ["action-source-v1"], "owning_issue": 1216},
+    {"inventory_id": "A03", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Docs"], "consumers": ["pages-delivery"], "trust_root_refs": ["reviewed-git-commit"], "availability_class": "R", "retention_class": "release-evidence", "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json"], "policy_refs": ["action-source-v1"], "owning_issue": 1216},
+    {"inventory_id": "A04", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Release"], "consumers": ["release-orchestration", "pypi-publish"], "trust_root_refs": ["reviewed-git-commit", "github-oidc"], "availability_class": "R", "retention_class": "release-evidence", "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json"], "policy_refs": ["action-source-v1"], "owning_issue": 1216},
+    {"inventory_id": "A05", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["sonar-analysis"], "trust_root_refs": ["reviewed-git-commit"], "availability_class": "N", "retention_class": "operational-cache", "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json"], "policy_refs": ["action-source-v1"], "owning_issue": 1216},
+    {"inventory_id": "A06", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Security"], "consumers": ["scorecard", "code-scanning"], "trust_root_refs": ["reviewed-git-commit", "github-oidc"], "availability_class": "N", "retention_class": "release-evidence", "disposition": "locked", "authority_refs": ["implementations/tooling/actions-policy.json"], "policy_refs": ["action-source-v1"], "owning_issue": 839},
+    {"inventory_id": "A07", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["dependency-maintenance", "status-checks"], "trust_root_refs": ["github-managed-app"], "availability_class": "N", "retention_class": "operational-cache", "disposition": "delegated", "authority_refs": [".github/dependabot.yml"], "policy_refs": ["action-source-v1"], "owning_issue": 839},
+
+    {"inventory_id": "O01", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Release"], "consumers": ["release", "smoke-tests"], "trust_root_refs": ["verified-source-commit"], "availability_class": "R", "retention_class": "release-evidence", "disposition": "delegated", "authority_refs": [".github/workflows/release-please.yml"], "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1227},
+    {"inventory_id": "O02", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Release", "Security"], "consumers": ["release-admission"], "trust_root_refs": ["verified-build-run"], "availability_class": "R", "retention_class": "release-evidence", "disposition": "delegated", "authority_refs": ["docs/decisions/package-artifacts/migration.md"], "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1226},
+    {"inventory_id": "O03", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Release"], "consumers": ["github-release", "pypi"], "trust_root_refs": ["github-oidc", "verified-release-admission"], "availability_class": "R", "retention_class": "release-evidence", "disposition": "delegated", "authority_refs": [".github/workflows/release-please.yml", "docs/explain/releasing.md"], "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1227},
+    {"inventory_id": "O04", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Docs"], "consumers": ["pages", "read-the-docs"], "trust_root_refs": ["reviewed-documentation-source"], "availability_class": "R", "retention_class": "operational-cache", "disposition": "retained", "authority_refs": [".github/workflows/docs.yml", ".readthedocs.yaml"], "policy_refs": ["action-source-v1"], "owning_issue": 1218},
+
+    {"inventory_id": "C01", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Platform", "Tooling"], "consumers": ["local-development", "nox"], "trust_root_refs": ["admitted-upstream-bytes"], "availability_class": "L", "retention_class": "operational-cache", "disposition": "delegated", "authority_refs": ["docs/decisions/package-artifacts/architecture.md"], "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1219},
+    {"inventory_id": "C02", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Proof", "Tooling"], "consumers": ["generic-tools", "proof"], "trust_root_refs": ["admitted-upstream-bytes"], "availability_class": "R", "retention_class": "operational-cache", "disposition": "delegated", "authority_refs": ["docs/decisions/package-artifacts/architecture.md"], "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1220},
+    {"inventory_id": "C03", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Release", "Security", "Tooling"], "consumers": ["ci", "release-admission"], "trust_root_refs": ["verified-run-identity"], "availability_class": "L", "retention_class": "release-evidence", "disposition": "delegated", "authority_refs": [".github/workflows/canonical-verification.yml"], "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1226},
+    {"inventory_id": "C04", "subjects": ["oci-image"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Backend", "Platform"], "consumers": ["containers", "live-tests"], "trust_root_refs": ["private-job-workspace"], "availability_class": "L", "retention_class": "operational-cache", "disposition": "delegated", "authority_refs": ["tools/real-daemon/README.md"], "policy_refs": ["oci-input-v1"], "owning_issue": 1223},
+
+    {"inventory_id": "S01", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security"], "consumers": ["vulnerability-policy"], "trust_root_refs": ["dated-vulnerability-snapshot"], "availability_class": "N", "retention_class": "release-evidence", "disposition": "delegated", "authority_refs": ["tools/osv_scanner_tool.py", "docs/decisions/package-artifacts/architecture.md"], "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1225},
+    {"inventory_id": "S02", "subjects": ["action"], "evidence_refs": ["reviewed-workflow-reference"], "owner_roles": ["Backend", "Docs", "Security", "Tooling"], "consumers": ["governance", "github", "sonar", "aws"], "trust_root_refs": ["external-service-identity"], "availability_class": "N", "retention_class": "operational-cache", "disposition": "retained", "authority_refs": ["docs/decisions/package-artifacts/inventory.md"], "policy_refs": ["action-source-v1"], "owning_issue": 1225},
+    {"inventory_id": "D01", "subjects": ["oci-image"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Runtime"], "consumers": ["sdl-runtime"], "trust_root_refs": ["runtime-domain-authorities"], "availability_class": "L", "retention_class": "supported-input", "disposition": "prohibited", "authority_refs": ["contracts", "implementations/python/packages/raes/module_registry"], "policy_refs": ["oci-input-v1"], "owning_issue": 1205}
+  ],
+  "acquisition_paths": [
+    {"path": ".github/workflows/release-please.yml", "inventory_id": "I03", "disposition": "legacy-remediation", "site_count": 3},
+    {"path": "implementations/python/packages/raes/module_registry/__init__.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 2},
+    {"path": "implementations/python/packages/raes_backend_libvirt/drivers/seed.py", "inventory_id": "I12", "disposition": "legacy-remediation", "site_count": 1},
+    {"path": "implementations/python/packages/raes_reference_backend/drivers/oci.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 1},
+    {"path": "implementations/python/tests/test_corpus_packaging.py", "inventory_id": "I03", "disposition": "legacy-remediation", "site_count": 1},
+    {"path": "implementations/python/tests/test_http_download.py", "inventory_id": "I05", "disposition": "governed", "site_count": 4},
+    {"path": "implementations/python/tests/test_identity_cutover_policy.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "implementations/python/tests/test_reference_backend_docker_integration.py", "inventory_id": "I11", "disposition": "governed", "site_count": 2},
+    {"path": "implementations/python/tests/test_satisfiability_cli.py", "inventory_id": "D01", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "implementations/python/tests/test_verification_plan.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/check_atlas_tactic_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
+    {"path": "tools/check_attack_tactic_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
+    {"path": "tools/check_autonomous_behavior_vocabularies.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
+    {"path": "tools/check_nist_csf_defensive_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
+    {"path": "tools/check_pr_body.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
+    {"path": "tools/formal_semantic_validation/_production.py", "inventory_id": "D01", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/gitleaks_tool.py", "inventory_id": "I06", "disposition": "governed", "site_count": 1},
+    {"path": "tools/http_download.py", "inventory_id": "I05", "disposition": "governed", "site_count": 1},
+    {"path": "tools/isabelle_tool.py", "inventory_id": "I09", "disposition": "governed", "site_count": 3},
+    {"path": "tools/nox_support/runner.py", "inventory_id": "I02", "disposition": "legacy-remediation", "site_count": 3},
+    {"path": "tools/osv_scanner_tool.py", "inventory_id": "I08", "disposition": "governed", "site_count": 2},
+    {"path": "tools/parallel_verification.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/policy/common.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/policy/conftest_tool.py", "inventory_id": "I05", "disposition": "governed", "site_count": 3},
+    {"path": "tools/policy/requirement_governance.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
+    {"path": "tools/real-daemon/run_aws_guest_certify.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 2},
+    {"path": "tools/real-daemon/run_aws_smoke.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 3},
+    {"path": "tools/tooling_policy_gate.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/vale_tool.py", "inventory_id": "I07", "disposition": "governed", "site_count": 1},
+    {"path": "tools/verification_plan.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "tools/verify_all.py", "inventory_id": "I02", "disposition": "legacy-remediation", "site_count": 1}
+  ]
+}

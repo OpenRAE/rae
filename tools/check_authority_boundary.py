@@ -153,6 +153,11 @@ _REQUIRED_SCHEMA_AUTHORITY_FIELDS: tuple[str, ...] = (
 _SCHEMA_NORMATIVE_ROOT = "contracts/schemas/"
 _SCHEMA_PUBLICATION_MANIFEST = "contracts/schema-publication-manifest.json"
 _SCHEMA_FORBIDDEN_ROOTS_FLOOR: frozenset[str] = frozenset({"implementations/"})
+# Closed schemas used only to validate repository-internal tooling policy are
+# implementation data, not published ecosystem contracts. This exact root is
+# the sole exception to the filename heuristic below; the publication manifest
+# remains authoritative for public schemas.
+_INTERNAL_TOOLING_SCHEMA_ROOT = "implementations/tooling/schemas/"
 
 
 # --------------------------------------------------------------------------- #
@@ -1138,52 +1143,48 @@ _PRUNE_DIR_NAMES: frozenset[str] = frozenset(
 )
 
 
+def _misplaced_schema_failures(
+    repo_root: Path,
+    directory: Path,
+    forbidden_root: str,
+    suffixes: tuple[str, ...],
+) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
+    for dirpath, dirnames, filenames in os.walk(directory):
+        dirnames[:] = [name for name in dirnames if name not in _PRUNE_DIR_NAMES and not name.startswith(".")]
+        for filename in filenames:
+            rel_path = Path(dirpath, filename).relative_to(repo_root).as_posix()
+            if not filename.endswith(suffixes) or rel_path.startswith(_INTERNAL_TOOLING_SCHEMA_ROOT):
+                continue
+            failures.append(
+                _fail(
+                    "authority-boundary-schema-misplaced",
+                    (
+                        f"published schema file '{rel_path}' is under a forbidden authority root "
+                        f"('{forbidden_root}'); published schemas must live under '{_SCHEMA_NORMATIVE_ROOT}'"
+                    ),
+                    rel_path,
+                )
+            )
+    return failures
+
+
 def _check_schemas_outside_normative_root(
     repo_root: Path,
     suffixes: list[str],
     forbidden_roots: list[str],
 ) -> list[PolicyFailure]:
-    """Reject schema files (matching any ``suffix``) that live outside the
-    normative ``contracts/schemas/`` root.
+    """Reject published schemas under configured non-normative roots."""
 
-    Each forbidden root is path-validated before being walked: a malformed
-    root (absolute, parent-traversal, missing trailing slash) is skipped
-    here — the shape check in ``_check_schema_authority_block`` already
-    surfaces it — so this scan never traverses an unrelated filesystem
-    tree. The walk uses ``os.walk`` with an in-place prune against
-    ``_PRUNE_DIR_NAMES`` so a developer-local
-    ``implementations/python/.venv/`` (or a ``__pycache__`` / ``node_modules``
-    somewhere down the tree) cannot introduce non-deterministic findings
-    keyed on whichever third-party package happens to be installed."""
     failures: list[PolicyFailure] = []
     suffix_tuple = tuple(suffixes)
     for forbidden in forbidden_roots:
-        # Refuse malformed roots before doing any I/O. _check_root_path_shape
-        # returns None for a well-formed root; anything else means the shape
-        # check has already surfaced the underlying problem, and walking
-        # this value would either error or traverse an unintended tree.
         if _check_root_path_shape(forbidden) is not None:
             continue
         directory = repo_root / forbidden
         if not directory.is_dir():
             continue
-        for dirpath, dirnames, filenames in os.walk(directory):
-            # Prune ignored/build dirs in place so os.walk does not descend.
-            dirnames[:] = [d for d in dirnames if d not in _PRUNE_DIR_NAMES and not d.startswith(".")]
-            for filename in filenames:
-                if not filename.endswith(suffix_tuple):
-                    continue
-                rel_path = Path(dirpath, filename).relative_to(repo_root).as_posix()
-                failures.append(
-                    _fail(
-                        "authority-boundary-schema-misplaced",
-                        (
-                            f"published schema file '{rel_path}' is under a forbidden authority root "
-                            f"('{forbidden}'); published schemas must live under '{_SCHEMA_NORMATIVE_ROOT}'"
-                        ),
-                        rel_path,
-                    )
-                )
+        failures.extend(_misplaced_schema_failures(repo_root, directory, forbidden, suffix_tuple))
     return failures
 
 

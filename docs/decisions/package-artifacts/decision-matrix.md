@@ -93,8 +93,8 @@ an OCI-specific adapter. The storage interface is selected now; no unowned
 service endpoint or unverified vendor deployment is claimed to exist.
 
 Direct raw acquisition is justified for Conftest, Gitleaks, Vale, OSV Scanner,
-Isabelle and the three vocabulary snapshots because they have no shared
-dependency resolution problem and need different execution/sandbox behavior.
+Isabelle and the five governed vocabulary source snapshots because they have no
+shared dependency resolution problem and need different execution/sandbox behavior.
 It may perform selection and local admission but cannot grow a resolver,
 plugin ecosystem or HTTP service. Intake manifests must make every exception
 visible. A new dependency graph, repeated complex package extraction, a second

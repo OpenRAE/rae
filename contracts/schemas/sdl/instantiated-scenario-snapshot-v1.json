@@ -3755,16 +3755,6 @@
       "additionalProperties": false,
       "description": "An organizational unit, team, or person in the exercise.\n\nEntities can nest recursively. Flattened names use dot-notation:\n``blue-team.bob`` refers to the ``bob`` entity nested inside\n``blue-team``.",
       "properties": {
-        "categories": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Categories",
-          "type": "array"
-        },
         "description": {
           "default": "",
           "not": {
@@ -3842,16 +3832,6 @@
           ],
           "default": null,
           "title": "Role"
-        },
-        "vulnerabilities": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Vulnerabilities",
-          "type": "array"
         }
       },
       "title": "Entity",
@@ -4070,6 +4050,16 @@
           "title": "Description",
           "type": "string"
         },
+        "field_selectors": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Field Selectors",
+          "type": "array"
+        },
         "integrity": {
           "anyOf": [
             {
@@ -4128,6 +4118,14 @@
             }
           ],
           "default": null
+        },
+        "output_contract": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Output Contract",
+          "type": "string"
         },
         "redaction": {
           "anyOf": [
@@ -4440,48 +4438,6 @@
       "title": "ExplicitnessProvenanceRecord",
       "type": "object"
     },
-    "ExternalMappingLoss": {
-      "additionalProperties": false,
-      "description": "Loss-labeled mapping from an external vocabulary to RAES semantics.",
-      "properties": {
-        "identifier": {
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Identifier",
-          "type": "string"
-        },
-        "loss_label": {
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Loss Label",
-          "type": "string"
-        },
-        "rationale": {
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Rationale",
-          "type": "string"
-        },
-        "system": {
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "System",
-          "type": "string"
-        }
-      },
-      "required": [
-        "system",
-        "identifier",
-        "loss_label",
-        "rationale"
-      ],
-      "title": "ExternalMappingLoss",
-      "type": "object"
-    },
     "Feature": {
       "additionalProperties": false,
       "description": "A software artifact, service, or configuration deployed to a compute node.",
@@ -4543,16 +4499,6 @@
         },
         "type": {
           "$ref": "#/$defs/FeatureType"
-        },
-        "vulnerabilities": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Vulnerabilities",
-          "type": "array"
         }
       },
       "required": [
@@ -6234,22 +6180,6 @@
           "title": "Version",
           "type": "string"
         },
-        "vulnerabilities": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Vulnerability"
-          },
-          "propertyNames": {
-            "maxLength": 2048,
-            "minLength": 1,
-            "not": {
-              "pattern": "[^a-z0-9_.-]"
-            },
-            "pattern": "^(?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63}$",
-            "type": "string"
-          },
-          "title": "Vulnerabilities",
-          "type": "object"
-        },
         "workflows": {
           "additionalProperties": {
             "$ref": "#/$defs/Workflow"
@@ -7020,16 +6950,6 @@
         },
         "type": {
           "$ref": "#/$defs/NodeType"
-        },
-        "vulnerabilities": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Vulnerabilities",
-          "type": "array"
         }
       },
       "required": [
@@ -8677,13 +8597,6 @@
           "title": "Evidence Expectations",
           "type": "array"
         },
-        "external_mappings": {
-          "items": {
-            "$ref": "#/$defs/ExternalMappingLoss"
-          },
-          "title": "External Mappings",
-          "type": "array"
-        },
         "failure_classes": {
           "items": {
             "$ref": "#/$defs/ParticipantFailureClass"
@@ -9544,16 +9457,6 @@
           "title": "Action Contract Refs",
           "type": "array"
         },
-        "ai_offensive_behavior_refs": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Ai Offensive Behavior Refs",
-          "type": "array"
-        },
         "authority_scope_refs": {
           "items": {
             "not": {
@@ -9607,16 +9510,6 @@
           "default": null,
           "title": "Behavior Mode"
         },
-        "defensive_behavior_refs": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Defensive Behavior Refs",
-          "type": "array"
-        },
         "evidence_contract_refs": {
           "items": {
             "not": {
@@ -9665,16 +9558,6 @@
             "type": "string"
           },
           "title": "Observation Boundary Refs",
-          "type": "array"
-        },
-        "offensive_behavior_refs": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Offensive Behavior Refs",
           "type": "array"
         },
         "outcome_interpretation_rule_refs": {
@@ -13729,16 +13612,6 @@
             }
           ],
           "default": null
-        },
-        "vulnerability_refs": {
-          "items": {
-            "not": {
-              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-            },
-            "type": "string"
-          },
-          "title": "Vulnerability Refs",
-          "type": "array"
         }
       },
       "required": [
@@ -28918,55 +28791,6 @@
       ],
       "title": "VolumeLifecycle",
       "type": "string"
-    },
-    "Vulnerability": {
-      "additionalProperties": false,
-      "description": "A named vulnerability with CWE classification.",
-      "properties": {
-        "class": {
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Class",
-          "type": "string"
-        },
-        "description": {
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Description",
-          "type": "string"
-        },
-        "name": {
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Name",
-          "type": "string"
-        },
-        "technical": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "not": {
-                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-              },
-              "type": "string"
-            }
-          ],
-          "default": false,
-          "title": "Technical"
-        }
-      },
-      "required": [
-        "name",
-        "description",
-        "class"
-      ],
-      "title": "Vulnerability",
-      "type": "object"
     },
     "Workflow": {
       "additionalProperties": false,

@@ -22,7 +22,6 @@ from raes_contracts.contracts import (  # noqa: E402
 )
 
 VOCABULARY_ID = "participant-offensive-behavior-activities"
-GOVERNED_SCOPE = "behavior_specifications.offensive_behavior_refs"
 CATALOG_RELATIVE_PATH = "contracts/concept-authority/controlled-vocabularies-v1.json"
 SOURCE_RELATIVE_PATH = "contracts/concept-authority/attack-enterprise-tactics-source-v1.json"
 SOURCE_AUTHORITY = "MITRE ATT&CK"
@@ -161,13 +160,13 @@ def _check_catalog(
         if LICENSE_URL not in vocabulary.source.citation_urls:
             failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.source.citation_urls omits terms URL")
 
-    if vocabulary.governed_scopes != [GOVERNED_SCOPE]:
+    if vocabulary.governed_scopes != []:
         failures.append(
             f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.governed_scopes is "
-            f"{vocabulary.governed_scopes!r}; expected {[GOVERNED_SCOPE]!r}"
+            f"{vocabulary.governed_scopes!r}; expected {[]!r}"
         )
-    if vocabulary.extension_policy != "governed-extension":
-        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must keep governed-extension policy")
+    if vocabulary.extension_policy != "closed":
+        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must remain a closed optional source catalog")
 
     source_terms = _source_tactics(source)
     expected_shortnames = [term["shortname"] for term in source_terms]
@@ -205,16 +204,50 @@ def _check_catalog(
     return failures
 
 
+def _remote_url_failure(source: AttackEnterpriseTacticsSourceModel, selected_url: str) -> str | None:
+    failure = None
+    if source.source_url != selected_url:
+        failure = f"{SOURCE_RELATIVE_PATH}: source URL differs from the reviewed lock selection"
+    else:
+        parsed = urllib.parse.urlparse(selected_url)
+        if parsed.scheme != "https" or parsed.netloc != "raw.githubusercontent.com":
+            failure = (
+                f"{SOURCE_RELATIVE_PATH}: remote verification URL must stay pinned to raw.githubusercontent.com HTTPS"
+            )
+    return failure
+
+
+def _remote_bytes_failure(data: bytes, *, size: int, sha256: str) -> str | None:
+    digest = _sha256_digest(data)
+    if len(data) != size or digest != f"sha256:{sha256}":
+        return f"{SOURCE_RELATIVE_PATH}: retrieved bytes differ from the reviewed lock manifest"
+    return None
+
+
 def _check_remote(source: AttackEnterpriseTacticsSourceModel) -> list[str]:
-    failures: list[str] = []
-    parsed = urllib.parse.urlparse(source.source_url)
-    if parsed.scheme != "https" or parsed.netloc != "raw.githubusercontent.com":
-        return [f"{SOURCE_RELATIVE_PATH}: remote verification URL must stay pinned to raw.githubusercontent.com HTTPS"]
-    with urllib.request.urlopen(source.source_url, timeout=60) as response:  # noqa: S310
+    from tools.tooling_policy_gate import load_tooling_artifact_selection
+
+    selection = load_tooling_artifact_selection(
+        artifact_id="attack-enterprise-tactics-snapshot",
+        version=SOURCE_VERSION,
+        platform_id="source-any",
+        profile_id="source-snapshot",
+    )
+    if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1:
+        raise RuntimeError("ATT&CK lock selection must contain one source and raw snapshot")
+    raw = selection.raw_manifest[0]
+    url_failure = _remote_url_failure(source, selection.source_urls[0])
+    if url_failure is not None:
+        return [url_failure]
+    with urllib.request.urlopen(selection.source_urls[0], timeout=60) as response:  # noqa: S310
         data = response.read()
     digest = _sha256_digest(data)
+    bytes_failure = _remote_bytes_failure(data, size=raw.size, sha256=raw.sha256)
+    if bytes_failure is not None:
+        return [bytes_failure]
+    failures: list[str] = []
     if digest != source.source_digest:
-        return [f"{source.source_url}: digest is {digest}; expected {source.source_digest}"]
+        failures.append(f"{SOURCE_RELATIVE_PATH}: source_digest differs from the reviewed lock manifest")
     remote_tactics = _extract_enterprise_tactics(json.loads(data.decode("utf-8")))
     if remote_tactics != _source_tactics(source):
         failures.append(f"{SOURCE_RELATIVE_PATH}: tactic snapshot differs from pinned upstream STIX bundle")

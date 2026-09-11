@@ -12,8 +12,7 @@ class _RuntimeServicesMixin:
         """Validate observed runtime application surfaces against the scenario.
 
         Each surface's owning service must resolve to a service on the same
-        node; route vulnerability refs must resolve to top-level
-        ``vulnerabilities``; and template/static refs should resolve to the
+        node; template/static refs should resolve to the
         node's observed file inventory when one is recorded (ADR-026).
         """
         for name, node in self._s.nodes.items():
@@ -250,14 +249,6 @@ class _RuntimeServicesMixin:
     ) -> None:
         app_id = application.application_id
         route_id = route.route_id
-        for ref in route.vulnerability_refs:
-            if self._is_unresolved_var(ref):
-                continue
-            if ref not in self._s.vulnerabilities:
-                self._err(
-                    f"Node '{node_name}' runtime application '{app_id}' route '{route_id}' "
-                    f"references undefined vulnerability '{ref}'"
-                )
         if not observed_paths:
             return
         for field_name in ("templates", "static_assets"):

@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-snapshot-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "a2105c044b6f3f73ee32f032f67c2aedefe661f9c400e8db47e00ed2963a4172",
+  "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c",
   "last_change": {
-    "summary": "Embedded the scoped SDL observation-demand carrier for issue #1212.",
-    "content_hash": "a2105c044b6f3f73ee32f032f67c2aedefe661f9c400e8db47e00ed2963a4172"
+    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c"
   }
 }

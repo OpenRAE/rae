@@ -2,10 +2,9 @@
 
 ## Status
 
-proposed
+accepted
 
-Acceptance requires maintainer approval of this ADR and its linked design set.
-Issue #1168 remains the implementation gate until that acceptance is recorded.
+Accepted by the maintainer through merged PR #1229 for issue #1168.
 
 ## Date
 
@@ -157,3 +156,9 @@ The [migration program](../package-artifacts/migration.md) provides one issue
 per reviewable change, native GitHub dependencies, the incumbent disposition,
 and the final acceptance gate. Implementation begins only after design
 acceptance; closing #1168 does not claim that the migration issues are shipped.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-06 | #1229 | Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest. |

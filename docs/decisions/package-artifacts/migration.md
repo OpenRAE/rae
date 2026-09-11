@@ -3,11 +3,10 @@
 ## Design gate and execution rules
 
 [Issue #1168](https://github.com/OpenRAE/rae/issues/1168) is the design gate for
-[milestone 69](https://github.com/OpenRAE/rae/milestone/69). ADR-106 and ADR-107
-are proposed until the maintainer accepts the concrete design. Record acceptance
-in their status and ADR pin manifest, integrate the reviewed design, and close
-the design issue only after verifying its outputs and issue graph. That action
-unblocks implementation; it does not claim the migration is already deployed.
+[milestone 69](https://github.com/OpenRAE/rae/milestone/69). Merged PR #1229 for
+issue #1168 records maintainer acceptance of ADR-106, ADR-107, and the concrete
+design set. That acceptance unblocks implementation; it does not claim the
+migration is already deployed.
 
 Every open implementation issue below belongs to milestone 69 and has native
 GitHub `blocked_by` relationships, including a direct #1168 gate. Edges mean

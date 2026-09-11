@@ -914,28 +914,6 @@ evidence_requirements:
     integrity: checksum
     retention: study_lifetime
     loss_disclosure: required
-vulnerabilities:
-  macro-lure:
-    name: Phishing macro lure
-    description: Macro-enabled attachment delivers initial access to the vendor support
-      path
-    technical: false
-    class: CWE-451
-  vpn-portal-bypass:
-    name: VPN portal bypass
-    description: Vendor VPN policy allows credential reuse from unmanaged endpoints
-    technical: true
-    class: CWE-287
-  kerberoastable-service:
-    name: Kerberoastable service credential
-    description: Weak service account password permits offline cracking
-    technical: true
-    class: CWE-521
-  backup-share-exposure:
-    name: Backup share exposure
-    description: Restore staging area is writable from the clinical tier
-    technical: true
-    class: CWE-732
 entities:
   hospital-blue:
     name: Hospital Blue Team

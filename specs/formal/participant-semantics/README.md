@@ -513,7 +513,6 @@ ActionContract =
   temporal_contract
   visibility_effects
   evidence_expectations
-  external_mappings
   fidelity_claims
   realization_profile
   backend_realization_requirements
@@ -536,9 +535,11 @@ that require a contract.
 tool invocation, command, and realized system effect. `procedure_basis` names
 the evidence for the procedure, such as an ATT&CK technique, CVE, exploit
 module, CACAO command, OpenC2 command, human runbook step, emulated trace, or
-experiment-specific procedure. `external_mappings` are typed references with a
-declared loss label; a mapping to ATT&CK, OCSF, CACAO, STIX, OpenC2, Cyber DEM,
-Metasploit, or a benchmark milestone is not itself the RAES action semantics.
+experiment-specific procedure. External classifications use standalone
+[concept binding documents](../../concept-authority/external-concept-bindings.md)
+with explicit provenance and approximation/loss, not action-contract fields.
+A mapping to ATT&CK, OCSF, CACAO, STIX, OpenC2, Cyber DEM, Metasploit, or a
+benchmark milestone is not itself the RAES action semantics.
 `fidelity_claims` and `realization_profile` distinguish portable intent from
 simulation, emulation, live, human-mediated, or stubbed realization.
 

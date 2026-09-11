@@ -41,6 +41,12 @@ from raes_runtime.registry import RuntimeTarget
 
 _SCENARIO = """\
 name: honesty
+realization:
+  constraints:
+    - field_pointer: /nodes/vm
+      concern: compute-substrate
+      posture: exact
+      domain: {kind: exact, value: virtual-machine}
 nodes:
   vm:
     type: compute
@@ -76,6 +82,13 @@ def _constructive_envelope(
                 disposition=ConcernDisposition.REALIZED.value,
                 observation_strength=strength.value,
                 mechanism="test-addressed-observer",
+                transformations=[],
+            )
+        elif disclosure["concern"] == RealizationConcern.COMPUTE_SUBSTRATE.value:
+            disclosure.update(
+                disposition=ConcernDisposition.REALIZED.value,
+                observation_strength=ObservationStrength.DAEMON_OBSERVED.value,
+                mechanism="virtual-machine",
                 transformations=[],
             )
         else:

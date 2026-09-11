@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:raes:tooling:artifact-lock:v1",
+  "title": "RAES development artifact lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "lock_revision", "artifacts"],
+  "properties": {
+    "schema_version": {"const": "raes-development-artifact-lock/v1"},
+    "lock_revision": {"type": "string", "format": "date"},
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/artifact"}
+    }
+  },
+  "$defs": {
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "manifestEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "size"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\u0000]+$"
+        },
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size": {"type": "integer", "minimum": 1},
+        "executable": {"type": "boolean"}
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform_id", "source_urls", "raw_manifest", "installed_manifest", "dependencies", "profile_ids"],
+      "properties": {
+        "platform_id": {"type": "string", "minLength": 1},
+        "source_urls": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^https://"}
+        },
+        "raw_manifest": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/manifestEntry"}
+        },
+        "installed_manifest": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/manifestEntry"}
+        },
+        "dependencies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "profile_ids": {"$ref": "#/$defs/nonEmptyStrings"}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id", "artifact_class", "version", "owner", "consumers",
+        "trust_root_refs", "availability_class", "retention_class", "license",
+        "authenticity", "policy_refs", "source", "platforms"
+      ],
+      "properties": {
+        "artifact_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+        "artifact_class": {
+          "enum": ["generic-cli", "source-snapshot", "bootstrap", "native-tool", "oci-image"]
+        },
+        "version": {"type": "string", "minLength": 1},
+        "owner": {"type": "string", "minLength": 1},
+        "consumers": {"$ref": "#/$defs/nonEmptyStrings"},
+        "trust_root_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+        "availability_class": {"enum": ["R", "L", "N"]},
+        "retention_class": {"enum": ["supported-input", "operational-cache", "release-evidence"]},
+        "license": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["spdx", "redistribution", "review_ref"],
+          "properties": {
+            "spdx": {"type": "string", "minLength": 1},
+            "redistribution": {"enum": ["allowed", "restricted", "not-applicable"]},
+            "review_ref": {"type": "string", "minLength": 1}
+          }
+        },
+        "authenticity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "decision_ref"],
+          "properties": {
+            "status": {"enum": ["verified", "absent-reviewed"]},
+            "decision_ref": {"type": "string", "minLength": 1}
+          }
+        },
+        "policy_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "release", "asset", "locator_refs"],
+          "properties": {
+            "repository": {"type": "string", "minLength": 1},
+            "release": {"type": "string", "minLength": 1},
+            "asset": {"type": "string", "minLength": 1},
+            "locator_refs": {"$ref": "#/$defs/nonEmptyStrings"}
+          }
+        },
+        "platforms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/platform"}
+        }
+      }
+    }
+  }
+}

@@ -17,6 +17,7 @@ from raes.parser import parse_sdl
 from raes.participant_behavior import ParticipantFailureClass
 from raes.participant_execution import ParticipantAutonomousExecutionPolicyV2
 from raes_backend_protocols.capabilities import (
+    ObservationCaptureOffer,
     ParticipantExecutionBinding,
     ParticipantFeatureSupport,
 )
@@ -608,10 +609,38 @@ def _autonomous_manifest(
         with_realization_envelope=with_realization_envelope,
     )
     assert base_manifest.participant_runtime is not None
+    assert base_manifest.observation is not None
+    capture_offers = tuple(
+        ObservationCaptureOffer(
+            offer_id=f"test-{demand.demand_id}",
+            offer_version="1.0.0",
+            output_contract=demand.output_contract or "experiment-evidence-record-v1",
+            field_selectors=demand.field_selectors or ("",),
+            artifact_roles=frozenset(demand.artifact_roles or ("observation",)),
+            media_types=frozenset(demand.media_types or ("application/json",)),
+            capture_kind=demand.capture_kind or "observation",
+            source_classes=frozenset(demand.source_classes or ("sdl-evidence-requirement",)),
+            source_refs=frozenset(demand.source_refs),
+            scopes=frozenset(demand.scopes or ("run",)),
+            channel_kinds=frozenset(demand.channel_kinds),
+            channel_refs=frozenset(demand.channel_refs),
+            window_kinds=frozenset(demand.window_kinds or ("run",)),
+            integrity_modes=frozenset(demand.integrity_modes or ("checksum",)),
+            sensitivity=demand.sensitivity or "internal",
+            availability="available",
+            fidelity="complete",
+            disclosure=demand.disclosure,
+            retention_policy_refs=frozenset(demand.retention_policy_refs),
+            export_policy=demand.export_policy,
+            redaction_policy=demand.redaction_policy,
+        )
+        for demand in runtime_model.capture_demands
+    )
     return replace(
         base_manifest,
         capabilities=replace(
             base_manifest.capabilities,
+            observation=replace(base_manifest.observation, capture_offers=capture_offers),
             participant_runtime=replace(
                 base_manifest.participant_runtime,
                 supported_behavior_features=(

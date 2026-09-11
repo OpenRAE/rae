@@ -61,13 +61,15 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
 
     monkeypatch.setattr(driver, "observe", fail_observe)
     monkeypatch.setattr(driver, "realize", realize)
+    execution = RuntimeManager(target).plan(parse_sdl(_SCENARIO))
     plan = with_compute_substrate_collection_demand(
-        RuntimeManager(target).plan(parse_sdl(_SCENARIO)).provisioning,
+        execution.provisioning,
         semantic_scope="/nodes/vm",
         address="provision.node.vm",
     )
     store = InMemoryControlPlaneStore()
     cp = RuntimeControlPlane(target, store=store)
+    cp.register_planner_produced_plan(replace(execution, provisioning=plan))
     receipt = cp.submit_provisioning(plan)
     assert receipt.accepted
     status = cp.get_operation(receipt.operation_id)
@@ -81,14 +83,14 @@ def test_failed_post_creation_readback_remains_in_recoverable_inventory(backend,
     assert cp.snapshot.realization_provenance == ()
     recovered = RuntimeControlPlane(target, store=store)
     assert recovered.snapshot.entries == cp.snapshot.entries
-    cleanup = recovered.submit_provisioning(
-        ProvisioningPlan(
-            realization_envelope=target.manifest.realization_envelope.identity,
-            operations=[
-                ProvisionOp(action=ChangeAction.DELETE, address="provision.node.vm", resource_type="node", payload={}),
-            ],
-        )
+    cleanup_plan = ProvisioningPlan(
+        realization_envelope=target.manifest.realization_envelope.identity,
+        operations=[
+            ProvisionOp(action=ChangeAction.DELETE, address="provision.node.vm", resource_type="node", payload={}),
+        ],
     )
+    recovered.register_planner_produced_plan(replace(execution, provisioning=cleanup_plan))
+    cleanup = recovered.submit_provisioning(cleanup_plan)
     assert recovered.get_operation(cleanup.operation_id).state.value == "succeeded"
     assert recovered.snapshot.entries == {}
     assert not driver.realized_addresses()
@@ -149,7 +151,9 @@ evidence_requirements:
     )
     store = InMemoryControlPlaneStore()
     cp = RuntimeControlPlane(target, store=store)
-    receipt = cp.submit_provisioning(RuntimeManager(target).plan(scenario).provisioning)
+    execution = RuntimeManager(target).plan(scenario)
+    cp.register_planner_produced_plan(execution)
+    receipt = cp.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     assert cp.get_operation(receipt.operation_id).state.value == "succeeded"
     assert cp.snapshot.realization_observations == ()
@@ -177,7 +181,9 @@ def test_failed_readback_inventory_still_enforces_materialization_authority(back
 
     monkeypatch.setattr(target.provisioner, "apply", altered_failed_apply)
     cp = RuntimeControlPlane(target)
-    receipt = cp.submit_provisioning(RuntimeManager(target).plan(parse_sdl(_SCENARIO)).provisioning)
+    execution = RuntimeManager(target).plan(parse_sdl(_SCENARIO))
+    cp.register_planner_produced_plan(execution)
+    receipt = cp.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     status = cp.get_operation(receipt.operation_id)
     assert status.state.value == "failed"

@@ -61,6 +61,7 @@ class WorkflowControlMixin:
         identity: object | None = None,
     ) -> OperationReceipt:
         with self._operation_lock:
+            self._reload_derived_state()
             return self._cancel_workflow_locked(
                 workflow_address,
                 run_id=run_id,
@@ -267,6 +268,7 @@ class WorkflowControlMixin:
     ) -> OperationReceipt:
         del request_fingerprint
         with self._operation_lock:
+            self._reload_derived_state()
             return self._reconcile_workflow_timeouts_locked(
                 now=now,
                 idempotency_key=idempotency_key,

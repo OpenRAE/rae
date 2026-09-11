@@ -125,6 +125,9 @@ def test_proof_sandbox_exposes_only_fixed_inputs_runtime_and_private_state() -> 
     assert "/home" not in command
     assert "--unshare-net" in command
     assert "--unshare-pid" in command
+    sandbox_tmp = str(Path("/") / "tmp")
+    assert command[command.index("TMPDIR") + 1] == sandbox_tmp
+    assert command[command.index("--tmpfs") + 1] == sandbox_tmp
     assert command[-2:] == ["-D", "/workspace/session"]
 
 
@@ -271,13 +274,15 @@ def test_isabelle_download_falls_back_between_integrity_checked_official_mirrors
             raise URLError("simulated primary mirror outage")
         return DownloadResponse(payload)
 
-    monkeypatch.setattr(isabelle_tool, "ISABELLE_ARCHIVE_URLS", ("https://primary.invalid", "https://fallback.invalid"))
-    monkeypatch.setattr(isabelle_tool, "ISABELLE_ARCHIVE_BYTES", len(payload))
-    monkeypatch.setattr(isabelle_tool, "ISABELLE_ARCHIVE_SHA256", hashlib.sha256(payload).hexdigest())
     monkeypatch.setattr(isabelle_tool, "urlopen", fake_urlopen)
     archive_path = tmp_path / "Isabelle.tar.gz"
 
-    isabelle_tool._download_archive(archive_path)
+    isabelle_tool._download_archive(
+        archive_path,
+        source_urls=("https://primary.invalid", "https://fallback.invalid"),
+        expected_sha256=hashlib.sha256(payload).hexdigest(),
+        expected_size=len(payload),
+    )
 
     assert attempted_urls == ["https://primary.invalid", "https://fallback.invalid"]
     assert archive_path.read_bytes() == payload
@@ -305,12 +310,14 @@ def test_current_and_historical_authority_resolve_by_exact_revision() -> None:
     assert historical_profile.taxonomy_revision == "rev8"
 
 
+@pytest.mark.integration
 def test_proof_manifest_closes_claim_theorem_assumption_and_digest_joins() -> None:
     manifest = load_proof_manifest(MANIFEST_PATH)
 
     validate_proof_manifest(manifest, repo_root=REPO_ROOT, run_prover=False)
 
 
+@pytest.mark.integration
 def test_proof_manifest_rejects_axis_and_checked_theorem_drift() -> None:
     manifest = load_proof_manifest(MANIFEST_PATH)
     drifted = deepcopy(manifest)

@@ -30,6 +30,7 @@ from .participant_crossing_mediation import (
     PreparedParticipantCrossing,
     prepare_participant_crossing,
 )
+from .participant_crossing_projection import RuntimeRevisionPath, stable_projection_subject
 from .participant_crossing_records import _expected_history_heads
 from .participant_flow_sink import (
     ParticipantFlowSinkDecision,
@@ -54,6 +55,7 @@ class ParticipantViewSerialization:
     identity: object
     crossing_evidence: ParticipantCrossingEvidence | None
     idempotency_key: str
+    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = ()
 
     def with_crossing_evidence(
         self,
@@ -70,6 +72,7 @@ class ParticipantViewSerialization:
             identity=self.identity,
             crossing_evidence=crossing_evidence,
             idempotency_key=self.idempotency_key,
+            runtime_owned_revision_paths=self.runtime_owned_revision_paths,
         )
 
 
@@ -83,11 +86,13 @@ def serialize_participant_view(
     if serialization.crossing_evidence is None:
         raise ValueError("configured participant egress requires crossing evidence")
     with control_plane._participant_control_lock:
+        control_plane._reload_derived_state_if_unpinned()
         subject = _view_subject(
             view,
             participant_address=serialization.participant_address,
             episode_id=serialization.episode_id,
             subject_kind=serialization.subject_kind,
+            runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
         )
         canonical = ParticipantCrossingIntent.model_validate(
             {
@@ -173,6 +178,7 @@ def _governed_egress_view(
         participant_address=serialization.participant_address,
         episode_id=serialization.episode_id,
         subject_kind=prepared.governed_subject.subject_kind,
+        runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
     )
     if actual != prepared.governed_subject:
         raise ValueError("trusted egress transformation does not match its governed identity")
@@ -398,13 +404,18 @@ def _view_subject(
     participant_address: str,
     episode_id: str,
     subject_kind: ParticipantCrossingSubjectKind,
+    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = (),
 ) -> ParticipantCrossingSubjectReferenceModel:
     payload = view.model_dump(mode="json")
     payload.pop("generated_at", None)
     view_ref = payload.get("view_id")
     if not isinstance(view_ref, str) or not view_ref:
         raise ValueError("participant projection requires an exact view identity")
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    encoded = json.dumps(
+        stable_projection_subject(payload, runtime_owned_revision_paths),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
     return ParticipantCrossingSubjectReferenceModel(
         subject_kind=subject_kind,
         contract_id=f"{subject_kind.value}-v1",

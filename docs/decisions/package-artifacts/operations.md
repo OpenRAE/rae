@@ -177,10 +177,32 @@ future implementation, not tests claimed to have passed in the design change.
 | T18 | Source SHA moved, tag retargeted, wrong run/attempt or artifact replaced after approval | Protected publisher freshly rejects stale identity, producer or subject digest; #1110/#1125 remain mandatory |
 | T19 | Missing/extra wheel/sdist/SBOM, wrong SBOM subject, missing attestation or foreign signer | Artifact admission fails before any publisher obtains usable output; source and build/runtime inventory distinctions preserved |
 | T20 | PyPI succeeds, GitHub fails; ambiguous success; Actions artifact expires | Compare destination and retained admitted bytes; recover only pending destination; no overwrite, tag move or rebuild under same version |
-| T21 | ATT&CK/ATLAS/NIST refresh and live-runner bootstrap | Same raw and canonical snapshot identities, no custom network code; verified VM/native/uv closure, no pipe-to-shell or ignored acquisition failure |
+| T21 | ATT&CK/ATLAS/NIST/W3C ActivityStreams/FIPA refresh and live-runner bootstrap | Same source-specific raw and canonical snapshot identities, no custom network code; verified VM/native/uv closure, no pipe-to-shell or ignored acquisition failure |
 | T22 | Full tracked acquisition/configuration scan after migration | Every inventory row owned and dispositioned; no development acquisition imports or calls a repository HTTP implementation; no mutable/unreviewed install bypass |
 | T23 | A tool's version/digest/platform mapping changes in one entry point but not its authority | Deterministic policy failure across Nox, hooks, workflows, docs/bootstrap and release; failed coverage of a new path blocks qualification |
 | T24 | Current protected release from admitted inputs with configured external controls | Wheel/sdist consumption from PyPI and GitHub works, corpus/CLI/conformance smoke passes, SBOM/provenance resolve, evidence retained; docs-only promotion creates no release |
+
+### Issue #1216 policy-gate evidence
+
+T22 and T23 are implemented as deterministic, offline policy coverage for this
+issue. They do not claim that the downstream acquisition migrations in
+issues #1137 and #1217–#1228 have landed.
+
+- T22: `tools/check_tooling_artifact_policy.py` validates the six closed schemas
+  and policy records under `implementations/tooling/`, requires exactly one
+  disposition for every I01–I16, A01–A07, O01–O04, C01–C04, S01–S02 and D01
+  inventory row, checks every tracked workflow action against its exact commit,
+  rejects an unowned acquisition path or unknown dynamic executable, and checks
+  the discovered site count for already covered paths. Runtime lock-selection
+  calls are discovered across all tracked Python files and must exactly equal
+  the declared consumer mapping. The acquisition-path dispositions identify the
+  owning native client or downstream remediation issue.
+- T23: `implementations/python/tests/test_tooling_artifact_policy.py` changes
+  version, digest, canonical platform identity, selector bindings, workflow
+  action references and acquisition paths independently. Each drift case must
+  fail before the governed cache or network function is reached. The same gate
+  is the first repository-policy stage and is called directly by each current
+  generic-tool and vocabulary acquisition entry point.
 
 Native client failure tests may use a controlled test server or a commodity
 fault-injection proxy. Test fixture protocol handling is not a production

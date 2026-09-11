@@ -12,6 +12,7 @@ from tools.check_specification_coverage import (
     load_bundles,
     recompute_analysis,
     validate_bundle,
+    validate_historical_bundle,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -49,7 +50,7 @@ def test_immutable_bundle_index_preserves_concurrent_captures() -> None:
     bundles = load_bundles(REPO_ROOT)
     assert {manifest["revision"] for manifest, *_rest in bundles} >= {"1.0.0", "1.1.0"}
     manifest, *_rest = load_bundle(REPO_ROOT)
-    assert manifest["revision"] == "1.1.0"
+    assert manifest["revision"] == "3.0.0"
 
 
 def test_gate_rejects_missing_strata_and_composite_concepts() -> None:
@@ -181,11 +182,18 @@ def test_gate_rejects_invalid_implementation_identity_and_analysis_join() -> Non
 
 
 def test_historical_implementation_digest_does_not_bind_the_live_checkout() -> None:
-    _, protocol, snapshot, analysis = _bundle()
+    _, protocol, snapshot, analysis = deepcopy(load_bundles(REPO_ROOT)[0])
     surfaces = snapshot.get("implementation_surfaces")
     assert isinstance(surfaces, list) and surfaces
     surfaces[0]["content_sha256"] = "f" * 64
 
-    failures = validate_bundle(REPO_ROOT, protocol, snapshot, analysis)
+    failures = validate_historical_bundle(REPO_ROOT, protocol, snapshot, analysis)
 
     assert "specification-coverage-implementation-identity" not in _rule_ids(failures)
+
+
+def test_current_implementation_surface_digest_binds_live_checkout() -> None:
+    _, protocol, snapshot, analysis = _bundle()
+    snapshot["implementation_surfaces"][0]["content_sha256"] = "f" * 64
+    failures = validate_bundle(REPO_ROOT, protocol, snapshot, analysis)
+    assert "specification-coverage-implementation-identity" in _rule_ids(failures)

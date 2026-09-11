@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:raes:tooling:profiles:v1",
+  "title": "RAES development profiles",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profiles"],
+  "properties": {
+    "schema_version": {"const": "raes-development-profiles/v1"},
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["profile_id", "contexts", "platform", "locator_classes", "supported_artifact_ids"],
+        "properties": {
+          "profile_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+          "contexts": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"enum": ["public-contributor", "maintainer", "release", "self-hosted"]}
+          },
+          "platform": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["canonical_id", "aliases"],
+            "properties": {
+              "canonical_id": {"type": "string", "minLength": 1},
+              "aliases": {
+                "type": "array", "minItems": 1, "uniqueItems": true,
+                "items": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "locator_classes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["locator_id", "kind", "trust_root_ref"],
+              "properties": {
+                "locator_id": {"type": "string", "minLength": 1},
+                "kind": {"enum": ["official-https", "git-object", "oci-digest", "local-path"]},
+                "trust_root_ref": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "supported_artifact_ids": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}

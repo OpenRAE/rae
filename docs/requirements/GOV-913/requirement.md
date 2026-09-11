@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-07-05T02:43:29.021311Z
+updated_at: 2026-09-06T00:00:00.000000Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -51,3 +51,17 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_expand.py` (Verified nested-source and admitted policy context propagation)
 - TESTS → TEST `implementations/python/tests/test_sdl_module_registry.py` (Bundle-bound cache integrity, safe lock/depth handling, legacy-layout rejection, and atomic-pointer regressions)
 - TESTS → TEST `implementations/python/tests/test_issue_1107_oci_source_snapshot.py` (Descriptor-bound source snapshot regressions)
+- IMPLEMENTS → GITHUB_ISSUE `1216` (Reviewed development artifact locks and policy)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md` (Accepted development package and artifact architecture)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-107-artifact-promotion-and-release-admission.md` (Accepted artifact promotion and release admission architecture)
+- IMPLEMENTS → CONFIG `implementations/tooling/artifacts.lock.json` (Reviewed raw and installed artifact identities)
+- IMPLEMENTS → CONFIG `implementations/tooling/profiles/development-profiles.json` (Supported development platforms and locator classes)
+- IMPLEMENTS → CONFIG `implementations/tooling/admission-policy.json` (Artifact, source snapshot, action and OCI admission policy)
+- IMPLEMENTS → CONFIG `implementations/tooling/actions-policy.json` (Exact GitHub Action source commits)
+- IMPLEMENTS → CONFIG `implementations/tooling/selector-bindings.json` (Literal selector authority bindings)
+- IMPLEMENTS → CONFIG `implementations/tooling/inventory-coverage.json` (Complete package-artifact inventory ownership and disposition)
+- IMPLEMENTS → CODE_FILE `tools/check_tooling_artifact_policy.py` (Deterministic offline artifact-policy gate)
+- IMPLEMENTS → CODE_FILE `tools/tooling_policy_gate.py` (Dependency-free fail-before-acquisition launcher)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/package-artifacts/operations.md` (T22 and T23 policy-gate evidence)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1216-development-artifact-lock-policy-preflight.md` (Artifact-lock implementation preflight)
+- TESTS → TEST `implementations/python/tests/test_tooling_artifact_policy.py` (Artifact identity, drift, coverage and fail-before-acquisition regressions)

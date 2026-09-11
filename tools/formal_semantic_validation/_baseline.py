@@ -94,8 +94,15 @@ def _selected_baseline_manifest(
         or not resolved_baseline_path.is_file()
         or _sha256_file(resolved_baseline_path) != baseline.get("release_sha256")
         or baseline_manifest.get("revision") != baseline.get("release_revision")
-        or baseline_manifest.get("protocol_path") != "docs/research/formal-semantic-validation/protocol-v1.json"
-        or baseline_manifest.get("corpus_path") != "docs/research/formal-semantic-validation/corpus/manifest-v1.json"
+        or (baseline_manifest.get("protocol_path"), baseline_manifest.get("corpus_path"))
+        != (
+            "docs/research/formal-semantic-validation/protocol-v2.json"
+            if baseline.get("release_revision") in {"3.0.0", "4.0.0"}
+            else "docs/research/formal-semantic-validation/protocol-v1.json",
+            "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
+            if baseline.get("release_revision") in {"3.0.0", "4.0.0"}
+            else "docs/research/formal-semantic-validation/corpus/manifest-v1.json",
+        )
     ):
         failures.append(
             _failure(

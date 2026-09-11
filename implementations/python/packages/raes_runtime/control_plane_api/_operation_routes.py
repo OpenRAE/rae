@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from raes_contracts.contracts import (
@@ -31,6 +31,7 @@ from ._responses import (
     _NOT_FOUND_RESPONSES,
     _receipt_response,
     _record_operation_receipt_audit,
+    _set_snapshot_revision_header,
 )
 
 
@@ -84,6 +85,15 @@ def _register_operation_submission_routes(
     app: FastAPI,
     control_plane: RuntimeControlPlane,
 ) -> None:
+    _register_provisioning_submission_route(app, control_plane)
+    _register_orchestration_submission_route(app, control_plane)
+    _register_evaluation_submission_route(app, control_plane)
+
+
+def _register_provisioning_submission_route(
+    app: FastAPI,
+    control_plane: RuntimeControlPlane,
+) -> None:
     @app.post("/operations/provisioning", responses=_CONFLICT_RESPONSES)
     async def submit_provisioning(
         request: Request,
@@ -125,6 +135,11 @@ def _register_operation_submission_routes(
         )
         return _receipt_response(receipt)
 
+
+def _register_orchestration_submission_route(
+    app: FastAPI,
+    control_plane: RuntimeControlPlane,
+) -> None:
     @app.post("/operations/orchestration", responses=_CONFLICT_RESPONSES)
     async def submit_orchestration(
         request: Request,
@@ -145,7 +160,7 @@ def _register_operation_submission_routes(
                 target=str(request.url.path),
                 reason="planner-authorization-mismatch",
             )
-            raise HTTPException(status_code=403, detail="observation demand is not planner-authorized")
+            raise HTTPException(status_code=403, detail="orchestration plan is not planner-authorized")
         try:
             receipt = await calls.mutate(
                 control_plane.submit_orchestration,
@@ -165,6 +180,11 @@ def _register_operation_submission_routes(
         )
         return _receipt_response(receipt)
 
+
+def _register_evaluation_submission_route(
+    app: FastAPI,
+    control_plane: RuntimeControlPlane,
+) -> None:
     @app.post("/operations/evaluation", responses=_CONFLICT_RESPONSES)
     async def submit_evaluation(
         request: Request,
@@ -185,7 +205,7 @@ def _register_operation_submission_routes(
                 target=str(request.url.path),
                 reason="planner-authorization-mismatch",
             )
-            raise HTTPException(status_code=403, detail="observation demand is not planner-authorized")
+            raise HTTPException(status_code=403, detail="evaluation plan is not planner-authorized")
         try:
             receipt = await calls.mutate(
                 control_plane.submit_evaluation,
@@ -233,6 +253,7 @@ def _register_operation_read_routes(
     @app.get("/snapshot")
     async def get_snapshot(
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> RuntimeSnapshotEnvelopeModel:
         calls = _control_plane_calls(request)
@@ -243,11 +264,17 @@ def _register_operation_read_routes(
             allowed=True,
             target=str(request.url.path),
         )
-        return await calls.run(lambda: _snapshot_model(control_plane.get_snapshot()))
+        model, revision = await calls.run(
+            control_plane._project_snapshot_read,
+            lambda: _snapshot_model(control_plane.get_snapshot()),
+        )
+        _set_snapshot_revision_header(response, revision)
+        return model
 
     @app.get("/apparatus/operational-summary")
     async def get_operational_apparatus_summary(
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> dict[str, object]:
         calls = _control_plane_calls(request)
@@ -258,4 +285,9 @@ def _register_operation_read_routes(
             allowed=True,
             target=str(request.url.path),
         )
-        return await calls.run(control_plane.operational_apparatus_summary)
+        summary, revision = await calls.run(
+            control_plane._project_snapshot_read,
+            control_plane.operational_apparatus_summary,
+        )
+        _set_snapshot_revision_header(response, revision)
+        return summary

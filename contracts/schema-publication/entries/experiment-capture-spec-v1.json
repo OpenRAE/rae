@@ -2,9 +2,9 @@
   "contract_id": "experiment-capture-spec-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-capture-spec-v1.json",
   "stability": "draft",
-  "content_hash": "aba57d6253bd962083e77a0f7199c433beca69aa4b4f539b772f69c3e3cca741",
+  "content_hash": "c9deceefe7d25b9058b08c971c4e4ebe2436e794ec7eda52cdaf7233d3d25a6d",
   "last_change": {
-    "summary": "Added scoped demand semantics to capture requirements for issue #1212.",
-    "content_hash": "aba57d6253bd962083e77a0f7199c433beca69aa4b4f539b772f69c3e3cca741"
+    "summary": "Added scoped demand semantics and governed output, selector, window, and redaction terms for issues #1212 and #1112.",
+    "content_hash": "c9deceefe7d25b9058b08c971c4e4ebe2436e794ec7eda52cdaf7233d3d25a6d"
   }
 }

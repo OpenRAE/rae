@@ -1,0 +1,121 @@
+{
+  "schema_version": "raes-development-selector-bindings/v1",
+  "bindings": [
+    {
+      "binding_id": "conftest-tool-version",
+      "artifact_id": "conftest",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/tool_versions.py", "template": "CONTFEST_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "gitleaks-tool-version",
+      "artifact_id": "gitleaks",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/tool_versions.py", "template": "GITLEAKS_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "isabelle-tool-version",
+      "artifact_id": "isabelle",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/tool_versions.py", "template": "ISABELLE_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "osv-scanner-tool-version",
+      "artifact_id": "osv-scanner",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/tool_versions.py", "template": "OSV_SCANNER_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "vale-tool-version",
+      "artifact_id": "vale",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/tool_versions.py", "template": "VALE_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "attack-source-version",
+      "artifact_id": "attack-enterprise-tactics-snapshot",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/check_attack_tactic_vocabulary.py", "template": "SOURCE_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "atlas-source-version",
+      "artifact_id": "atlas-tactics-snapshot",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/check_atlas_tactic_vocabulary.py", "template": "SOURCE_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "nist-source-version",
+      "artifact_id": "nist-csf-defensive-categories-snapshot",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/check_nist_csf_defensive_vocabulary.py", "template": "SOURCE_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "activitystreams-source-version",
+      "artifact_id": "w3c-activitystreams-activity-types-snapshot",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/check_autonomous_behavior_vocabularies.py", "template": "ACTIVITYSTREAMS_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "fipa-source-version",
+      "artifact_id": "fipa-communicative-acts-snapshot",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/check_autonomous_behavior_vocabularies.py", "template": "FIPA_VERSION = \"{selector}\""}]
+    }
+  ],
+  "runtime_selections": [
+    {
+      "artifact_id": "conftest",
+      "consumers": ["tools/policy/conftest_tool.py"]
+    },
+    {
+      "artifact_id": "gitleaks",
+      "consumers": ["tools/gitleaks_tool.py"]
+    },
+    {
+      "artifact_id": "vale",
+      "consumers": ["tools/vale_tool.py"]
+    },
+    {
+      "artifact_id": "osv-scanner",
+      "consumers": ["tools/osv_scanner_tool.py"]
+    },
+    {
+      "artifact_id": "isabelle",
+      "consumers": ["tools/isabelle_tool.py", "tools/check_participant_opacity_proof.py"]
+    },
+    {
+      "artifact_id": "attack-enterprise-tactics-snapshot",
+      "consumers": ["tools/check_attack_tactic_vocabulary.py"]
+    },
+    {
+      "artifact_id": "atlas-tactics-snapshot",
+      "consumers": ["tools/check_atlas_tactic_vocabulary.py"]
+    },
+    {
+      "artifact_id": "nist-csf-defensive-categories-snapshot",
+      "consumers": ["tools/check_nist_csf_defensive_vocabulary.py"]
+    },
+    {
+      "artifact_id": "w3c-activitystreams-activity-types-snapshot",
+      "consumers": ["tools/check_autonomous_behavior_vocabularies.py"]
+    },
+    {
+      "artifact_id": "fipa-communicative-acts-snapshot",
+      "consumers": ["tools/check_autonomous_behavior_vocabularies.py"]
+    }
+  ],
+  "tracked_literals": [
+    {
+      "selector_id": "nox-tool-spec",
+      "authority_path": "tools/tool_versions.py",
+      "authority_template": "NOX_TOOL_SPEC = \"nox[uv]=={selector}\"",
+      "consumer_prefix": "nox[uv]=="
+    },
+    {
+      "selector_id": "alpine-oci-index-digest",
+      "authority_path": "implementations/python/tests/test_reference_backend_docker_integration.py",
+      "authority_template": "docker.io/library/alpine@sha256:{selector}\"",
+      "consumer_prefix": "docker.io/library/alpine@sha256:"
+    }
+  ]
+}

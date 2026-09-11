@@ -221,7 +221,6 @@ conditions:
     target = create_stub_target()
     cp = RuntimeControlPlane(target)
     execution = RuntimeManager(target).plan(scenario)
-    assert cp.submit_provisioning(execution.provisioning).accepted
     selector = ObservationSelector(semantic_scope="/nodes/vm", data_kind="stream", names=("audit",))
     approved = replace(
         execution.evaluation,
@@ -232,7 +231,9 @@ conditions:
             required=True,
         ),
     )
-    cp.register_planner_produced_plan(approved)
+    authorization_plan = replace(execution, evaluation=approved)
+    cp.register_planner_produced_plan(authorization_plan)
+    assert cp.submit_provisioning(authorization_plan.provisioning).accepted
     security = ControlPlaneSecurityConfig(
         trust_proxy_identity_headers=True,
         trusted_identities={

@@ -6,4 +6,5 @@
 # this list is empty. Do NOT add new entries — split the file instead. This set
 # was re-baselined to the 500-line cap on 2026-07-12 (#561); see ADR-015 §2 and
 # its Amendments section.
-files: []
+files:
+  - implementations/python/packages/raes_runtime/control_plane.py

@@ -1,0 +1,22 @@
+{
+  "schema_version": "raes-development-actions-policy/v1",
+  "policy_revision": "2026-09-06",
+  "policy_refs": ["action-source-v1"],
+  "actions": [
+    {"action": "SonarSource/sonarqube-scan-action", "commit": "22918119ff8e1ca75a623e15c8296b6ea4fbe28f", "owner_roles": ["Security", "Tooling"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "actions/cache/restore", "commit": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9", "owner_roles": ["Release", "Tooling"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "actions/checkout", "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1", "owner_roles": ["Tooling"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "actions/deploy-pages", "commit": "368f82528645a54fb793d4d04e342629a3f51346", "owner_roles": ["Docs"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "actions/download-artifact", "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c", "owner_roles": ["Release", "Tooling"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "actions/setup-python", "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97", "owner_roles": ["Tooling"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "actions/upload-artifact", "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a", "owner_roles": ["Release", "Tooling"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "actions/upload-pages-artifact", "commit": "fc324d3547104276b827a68afc52ff2a11cc49c9", "owner_roles": ["Docs"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "astral-sh/setup-uv", "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d", "owner_roles": ["Tooling"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "github/codeql-action/upload-sarif", "commit": "cdf488f595d80d6e07e03d4674febd5ab45fa938", "owner_roles": ["Security"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "googleapis/release-please-action", "commit": "45996ed1f6d02564a971a2fa1b5860e934307cf7", "owner_roles": ["Release"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "ossf/scorecard-action", "commit": "2d1146689b8cda280b9bc96326124645441f03bc", "owner_roles": ["Security"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "pypa/gh-action-pypi-publish", "commit": "dc37677b2e1c63e2034f94d8a5b11f265b73ba33", "owner_roles": ["Release"], "trust_root_refs": ["reviewed-git-commit"]},
+    {"action": "step-security/harden-runner", "commit": "e14015d583714f6e62063499dc959a02595150a1", "owner_roles": ["Security"], "trust_root_refs": ["reviewed-git-commit"]}
+  ],
+  "local_workflows": ["./.github/workflows/canonical-verification.yml"]
+}

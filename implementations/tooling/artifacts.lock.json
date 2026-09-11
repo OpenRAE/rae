@@ -1,0 +1,385 @@
+{
+  "schema_version": "raes-development-artifact-lock/v1",
+  "lock_revision": "2026-09-06",
+  "artifacts": [
+    {
+      "artifact_id": "conftest",
+      "artifact_class": "generic-cli",
+      "version": "0.68.0",
+      "owner": "Tooling",
+      "consumers": ["repository-policy"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "Apache-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/open-policy-agent/conftest",
+        "release": "v0.68.0",
+        "asset": "conftest_{version}_{system}_{architecture}.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://github.com/open-policy-agent/conftest/releases/download/v0.68.0/conftest_0.68.0_Linux_x86_64.tar.gz"],
+          "raw_manifest": [{"path": "conftest_0.68.0_Linux_x86_64.tar.gz", "sha256": "6b17eb541b1f9389aa05df651f42ee899609c96802609977a9ef2479e37611b3", "size": 21437596}],
+          "installed_manifest": [{"path": "conftest", "sha256": "86f5b0d3503175e3de73165610340bce95e9171ecf171a0297d4e34b418b7939", "size": 71049400, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": ["https://github.com/open-policy-agent/conftest/releases/download/v0.68.0/conftest_0.68.0_Linux_arm64.tar.gz"],
+          "raw_manifest": [{"path": "conftest_0.68.0_Linux_arm64.tar.gz", "sha256": "9ee790b04dbddd0322e659cc658ae44ad0ec83d4e17381209be911ed34d7bd88", "size": 19419029}],
+          "installed_manifest": [{"path": "conftest", "sha256": "6da7d9e395611aa983ee03348999d41bcbfbf4a0d16bfd07eadd15425d710d3f", "size": 66584760, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-arm64"]
+        },
+        {
+          "platform_id": "macos-x86_64",
+          "source_urls": ["https://github.com/open-policy-agent/conftest/releases/download/v0.68.0/conftest_0.68.0_Darwin_x86_64.tar.gz"],
+          "raw_manifest": [{"path": "conftest_0.68.0_Darwin_x86_64.tar.gz", "sha256": "c7b27ddefc23a63f50c19a50f316b33306098f8e0943c219864fb7feece26570", "size": 22055485}],
+          "installed_manifest": [{"path": "conftest", "sha256": "8dde2524dd532a3d850169fd0c133fbdbf20cf4034115557afb50d92aaafeab6", "size": 73332496, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-x86_64"]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "source_urls": ["https://github.com/open-policy-agent/conftest/releases/download/v0.68.0/conftest_0.68.0_Darwin_arm64.tar.gz"],
+          "raw_manifest": [{"path": "conftest_0.68.0_Darwin_arm64.tar.gz", "sha256": "b310f79dc838e8cdbc582935e1507c0db70ac22dd5d7d93eb17487c126743807", "size": 20565866}],
+          "installed_manifest": [{"path": "conftest", "sha256": "574fa65462fce2de02c7309d7aca8369f8e51e879b20b293477cdf1e1b9b2fd7", "size": 69335730, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-arm64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "gitleaks",
+      "artifact_class": "generic-cli",
+      "version": "8.30.1",
+      "owner": "Security",
+      "consumers": ["hygiene", "pre-commit"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "MIT", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/gitleaks/gitleaks",
+        "release": "v8.30.1",
+        "asset": "gitleaks_{version}_{system}_{architecture}.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz"],
+          "raw_manifest": [{"path": "gitleaks_8.30.1_linux_x64.tar.gz", "sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb", "size": 8230402}],
+          "installed_manifest": [{"path": "gitleaks", "sha256": "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509", "size": 21958840, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": ["https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_arm64.tar.gz"],
+          "raw_manifest": [{"path": "gitleaks_8.30.1_linux_arm64.tar.gz", "sha256": "e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080", "size": 7601421}],
+          "installed_manifest": [{"path": "gitleaks", "sha256": "00e91bbe655bd7c47753e8cfe61cb76ea1a5d7e7702fe161ee40102b46b3823b", "size": 20775096, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-arm64"]
+        },
+        {
+          "platform_id": "macos-x86_64",
+          "source_urls": ["https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_x64.tar.gz"],
+          "raw_manifest": [{"path": "gitleaks_8.30.1_darwin_x64.tar.gz", "sha256": "dfe101a4db2255fc85120ac7f3d25e4342c3c20cf749f2c20a18081af1952709", "size": 8359235}],
+          "installed_manifest": [{"path": "gitleaks", "sha256": "cee01fea7173f1b779dff188e1c26ecbcb4027d394acc573b23aaf0be260e291", "size": 22398576, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-x86_64"]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "source_urls": ["https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_arm64.tar.gz"],
+          "raw_manifest": [{"path": "gitleaks_8.30.1_darwin_arm64.tar.gz", "sha256": "b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5", "size": 7897593}],
+          "installed_manifest": [{"path": "gitleaks", "sha256": "ba52fb1bfabbcde42f032afad3d6e0b19dff8ed105229a16e7caa338bbc0e84f", "size": 21324882, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-arm64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "vale",
+      "artifact_class": "generic-cli",
+      "version": "3.15.2",
+      "owner": "Docs",
+      "consumers": ["documentation-style"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "MIT", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/vale-cli/vale",
+        "release": "v3.15.2",
+        "asset": "vale_{version}_{system}_{architecture}.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_Linux_64-bit.tar.gz"],
+          "raw_manifest": [{"path": "vale_3.15.2_Linux_64-bit.tar.gz", "sha256": "fc72e64454d6bd7af91905d4faebbf411bae3eec17bb572f4101311212bc0d9e", "size": 10706862}],
+          "installed_manifest": [{"path": "vale", "sha256": "6a4421e5d85eced6ffba42a9d9f2c6e8dff44e4470e9fe1da58e8a93d8db53fb", "size": 40770272, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": ["https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_Linux_arm64.tar.gz"],
+          "raw_manifest": [{"path": "vale_3.15.2_Linux_arm64.tar.gz", "sha256": "e8240a3304e2c07b0476d30423f241a80296865cf6d2b78b128fb7e4e14cbb69", "size": 9976528}],
+          "installed_manifest": [{"path": "vale", "sha256": "6da7d9cadfb0258d7f82d16665b59d19a8a2814b8aa4c5cc129b39cee10d5a0c", "size": 39528832, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-arm64"]
+        },
+        {
+          "platform_id": "macos-x86_64",
+          "source_urls": ["https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_macOS_64-bit.tar.gz"],
+          "raw_manifest": [{"path": "vale_3.15.2_macOS_64-bit.tar.gz", "sha256": "5d56b292f1612758f6d9e8d735dd739aec4e475830d0ba8c1e0ef7d8f08fa198", "size": 10721173}],
+          "installed_manifest": [{"path": "vale", "sha256": "666f407823b567cce1f71df3b7edd311c6de4ac68a2cf8a03e5cbde77dd07f6b", "size": 40833432, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-x86_64"]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "source_urls": ["https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_macOS_arm64.tar.gz"],
+          "raw_manifest": [{"path": "vale_3.15.2_macOS_arm64.tar.gz", "sha256": "d3f613ff9226935ace08895fc8557206f309cdbd3a81881d86b6ab5b8b408757", "size": 10282217}],
+          "installed_manifest": [{"path": "vale", "sha256": "57d1f12dbec6e0b45d3f8f4a4cf9098e4d49b68bf929bd84e6594e18b76b4f9c", "size": 39975938, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-arm64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "osv-scanner",
+      "artifact_class": "generic-cli",
+      "version": "2.4.0",
+      "owner": "Security",
+      "consumers": ["supply-chain-policy"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "Apache-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/google/osv-scanner",
+        "release": "v2.4.0",
+        "asset": "osv-scanner_{system}_{architecture}",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_linux_amd64"],
+          "raw_manifest": [{"path": "osv-scanner_linux_amd64", "sha256": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0", "size": 56676514}],
+          "installed_manifest": [{"path": "osv-scanner", "sha256": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0", "size": 56676514, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_linux_arm64"],
+          "raw_manifest": [{"path": "osv-scanner_linux_arm64", "sha256": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9", "size": 52756642}],
+          "installed_manifest": [{"path": "osv-scanner", "sha256": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9", "size": 52756642, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-linux-arm64"]
+        },
+        {
+          "platform_id": "macos-x86_64",
+          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_amd64"],
+          "raw_manifest": [{"path": "osv-scanner_darwin_amd64", "sha256": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66", "size": 57832640}],
+          "installed_manifest": [{"path": "osv-scanner", "sha256": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66", "size": 57832640, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-x86_64"]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64"],
+          "raw_manifest": [{"path": "osv-scanner_darwin_arm64", "sha256": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d", "size": 54304354}],
+          "installed_manifest": [{"path": "osv-scanner", "sha256": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d", "size": 54304354, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["public-macos-arm64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "isabelle",
+      "artifact_class": "native-tool",
+      "version": "2025-2",
+      "owner": "Proof",
+      "consumers": ["participant-opacity-proof"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "LicenseRef-Isabelle-Distribution", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://isabelle.in.tum.de",
+        "release": "Isabelle2025-2",
+        "asset": "Isabelle2025-2_linux.tar.gz",
+        "locator_refs": ["official-isabelle-release", "official-isabelle-cambridge-mirror"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2_linux.tar.gz",
+            "https://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle2025-2_linux.tar.gz"
+          ],
+          "raw_manifest": [{"path": "Isabelle2025-2_linux.tar.gz", "sha256": "a20a507bc7c1270d8be96a9f3fbec06345387789d2dc2c4d3df6260d47bfb33c", "size": 1228480874}],
+          "installed_manifest": [{"path": "Isabelle2025-2/bin/isabelle", "sha256": "9fee030dddf4a6cb14e4e701d4885e6d12f67381e486ff6ce5d16af171ddedbc", "size": 1058, "executable": true}],
+          "dependencies": [],
+          "profile_ids": ["proof-linux-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "attack-enterprise-tactics-snapshot",
+      "artifact_class": "source-snapshot",
+      "version": "v19.1",
+      "owner": "Semantics",
+      "consumers": ["offensive-behavior-vocabulary"],
+      "trust_root_refs": ["ACT-609-source-digest"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "LicenseRef-MITRE-ATTACK", "redistribution": "allowed", "review_ref": "ACT-609"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["source-snapshot-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/mitre-attack/attack-stix-data",
+        "release": "v19.1",
+        "asset": "enterprise-attack-19.1.json",
+        "locator_refs": ["official-source-snapshot"]
+      },
+      "platforms": [{
+        "platform_id": "source-any",
+        "source_urls": ["https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json"],
+        "raw_manifest": [{"path": "enterprise-attack-19.1.json", "sha256": "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3", "size": 53277393}],
+        "installed_manifest": [{"path": "contracts/concept-authority/attack-enterprise-tactics-source-v1.json", "sha256": "4438bd586874650390c483966efc6ecf8b72f79f5b588e14d0959c173139b60e", "size": 13010}],
+        "dependencies": [],
+        "profile_ids": ["source-snapshot"]
+      }]
+    },
+    {
+      "artifact_id": "atlas-tactics-snapshot",
+      "artifact_class": "source-snapshot",
+      "version": "2026.06",
+      "owner": "Semantics",
+      "consumers": ["ai-offensive-behavior-vocabulary"],
+      "trust_root_refs": ["ACT-609-source-digest"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "Apache-2.0", "redistribution": "allowed", "review_ref": "ACT-609"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["source-snapshot-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/mitre-atlas/atlas-data",
+        "release": "v2026.06",
+        "asset": "ATLAS-2026.06.yaml",
+        "locator_refs": ["official-source-snapshot"]
+      },
+      "platforms": [{
+        "platform_id": "source-any",
+        "source_urls": ["https://github.com/mitre-atlas/atlas-data/releases/download/v2026.06/ATLAS-2026.06.yaml"],
+        "raw_manifest": [{"path": "ATLAS-2026.06.yaml", "sha256": "b771de8b1489564b2838a709c7429849a9575dbd94073928817fe1a21661e70a", "size": 625790}],
+        "installed_manifest": [{"path": "contracts/concept-authority/atlas-tactics-source-v1.json", "sha256": "04ad740b60ebe4581644776c4314e318e37d6b40ab165cdb896ef537033ac2de", "size": 16788}],
+        "dependencies": [],
+        "profile_ids": ["source-snapshot"]
+      }]
+    },
+    {
+      "artifact_id": "nist-csf-defensive-categories-snapshot",
+      "artifact_class": "source-snapshot",
+      "version": "2.0",
+      "owner": "Semantics",
+      "consumers": ["defensive-behavior-vocabulary"],
+      "trust_root_refs": ["ACT-610-source-digest"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "LicenseRef-NIST-Public-Domain", "redistribution": "allowed", "review_ref": "ACT-610"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["source-snapshot-integrity-v1"],
+      "source": {
+        "repository": "https://www.nist.gov/publications/nist-cybersecurity-framework-csf-20",
+        "release": "2.0",
+        "asset": "nist-csf-2.0-core.xlsx",
+        "locator_refs": ["official-source-snapshot"]
+      },
+      "platforms": [{
+        "platform_id": "source-any",
+        "source_urls": ["https://csrc.nist.gov/extensions/nudp/services/json/csf/download?"],
+        "raw_manifest": [{"path": "nist-csf-2.0-core.xlsx", "sha256": "58457421a0236111ba8be863f411ba0122de3fefe66ae95faf58a9f2f91699f2", "size": 107518}],
+        "installed_manifest": [{"path": "contracts/concept-authority/nist-csf-defensive-categories-source-v1.json", "sha256": "39b4d621070674707d129980b97e3c35acf8815eea6ea69da10dbf3618c70d02", "size": 3241}],
+        "dependencies": [],
+        "profile_ids": ["source-snapshot"]
+      }]
+    },
+    {
+      "artifact_id": "w3c-activitystreams-activity-types-snapshot",
+      "artifact_class": "source-snapshot",
+      "version": "REC-activitystreams-vocabulary-20170523",
+      "owner": "Semantics",
+      "consumers": ["autonomous-behavior-vocabulary"],
+      "trust_root_refs": ["ACT-611-source-digest"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "W3C-20150513", "redistribution": "allowed", "review_ref": "ACT-611"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["source-snapshot-integrity-v1"],
+      "source": {
+        "repository": "https://www.w3.org/TR/activitystreams-vocabulary/",
+        "release": "REC-activitystreams-vocabulary-20170523",
+        "asset": "REC-activitystreams-vocabulary-20170523.html",
+        "locator_refs": ["official-source-snapshot"]
+      },
+      "platforms": [{
+        "platform_id": "source-any",
+        "source_urls": ["https://www.w3.org/TR/2017/REC-activitystreams-vocabulary-20170523/"],
+        "raw_manifest": [{"path": "REC-activitystreams-vocabulary-20170523.html", "sha256": "1418443392160f4bb23dffb5727f5216d1f56d3430377dc67d364016521401db", "size": 390703}],
+        "installed_manifest": [{"path": "contracts/concept-authority/w3c-activitystreams-activity-types-source-v1.json", "sha256": "0e3be78efd1bd471a13b6ded48e982545390376550d5d94a2aa15ac45701787a", "size": 4657}],
+        "dependencies": [],
+        "profile_ids": ["source-snapshot"]
+      }]
+    },
+    {
+      "artifact_id": "fipa-communicative-acts-snapshot",
+      "artifact_class": "source-snapshot",
+      "version": "SC00037J-2002-12-03",
+      "owner": "Semantics",
+      "consumers": ["autonomous-behavior-vocabulary"],
+      "trust_root_refs": ["ACT-611-source-digest"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "LicenseRef-FIPA-Specification", "redistribution": "restricted", "review_ref": "ACT-611"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["source-snapshot-integrity-v1"],
+      "source": {
+        "repository": "https://www.fipa.org/repository/aclspecs.html",
+        "release": "SC00037J-2002-12-03",
+        "asset": "SC00037J.pdf",
+        "locator_refs": ["official-source-snapshot"]
+      },
+      "platforms": [{
+        "platform_id": "source-any",
+        "source_urls": ["https://www.fipa.org/specs/fipa00037/SC00037J.pdf"],
+        "raw_manifest": [{"path": "SC00037J.pdf", "sha256": "90b3277247ef7e7f614ba4c0d58fb2b86aa53ff69036d27a731c09a26c605227", "size": 271342}],
+        "installed_manifest": [{"path": "contracts/concept-authority/fipa-communicative-acts-source-v1.json", "sha256": "648c572a926a2cbd4c9e84008f29fff48aea60f5afd7de1ddbe186758805441d", "size": 2410}],
+        "dependencies": [],
+        "profile_ids": ["source-snapshot"]
+      }]
+    }
+  ]
+}

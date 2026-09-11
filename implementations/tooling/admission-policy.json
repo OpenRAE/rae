@@ -1,0 +1,35 @@
+{
+  "schema_version": "raes-development-admission-policy/v1",
+  "policy_revision": "2026-09-06",
+  "policies": [
+    {
+      "policy_id": "artifact-integrity-v1",
+      "subject": "artifact",
+      "status": "active",
+      "accepted_evidence": ["raw-sha256", "installed-sha256", "exact-size", "absent-signature-review", "reviewed-consumer-reference"],
+      "reviewer_roles": ["Security", "Tooling"]
+    },
+    {
+      "policy_id": "source-snapshot-integrity-v1",
+      "subject": "source-snapshot",
+      "status": "active",
+      "accepted_evidence": ["raw-sha256", "installed-sha256", "exact-size", "checked-in-byte-sha256", "incumbent-source-digest", "absent-signature-review"],
+      "reviewer_roles": ["Security", "Semantics"]
+    },
+    {
+      "policy_id": "action-source-v1",
+      "subject": "action",
+      "status": "active",
+      "accepted_evidence": ["git-commit-sha", "reviewed-workflow-reference"],
+      "reviewer_roles": ["Security", "Tooling"]
+    },
+    {
+      "policy_id": "oci-input-v1",
+      "subject": "oci-image",
+      "status": "active",
+      "accepted_evidence": ["oci-index-digest", "reviewed-consumer-reference"],
+      "reviewer_roles": ["Backend", "Security"]
+    }
+  ],
+  "denied_digests": []
+}

@@ -2,9 +2,10 @@
 
 ## Status
 
-proposed
+accepted
 
-Accepted together with ADR-106 only after maintainer approval under #1168.
+Accepted with ADR-106 by the maintainer through merged PR #1229 for issue
+#1168.
 
 ## Date
 
@@ -121,3 +122,9 @@ atomic transaction across PyPI and GitHub is claimed. Immutable distribution,
 quarantine, revocation and recovery are specified in the
 [architecture](../package-artifacts/architecture.md) and
 [operations and acceptance plan](../package-artifacts/operations.md).
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-06 | #1229 | Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest. |

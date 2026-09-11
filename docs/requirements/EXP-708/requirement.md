@@ -25,3 +25,7 @@ Requirement inventory expansion. Raw captured evidence must be modeled explicitl
 - DOCUMENTS → SPEC `specs/formal/experiment-core/README.md` (Experiment Core Formal Specification)
 - TESTS → TEST `implementations/python/tests/test_runtime_contracts.py` (Experiment evidence record conformance and rejection tests)
 - IMPLEMENTS → GITHUB_ISSUE `88` (Experiment evidence & measures (EXP-707, EXP-708, EXP-709, EXP-715))
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_run.py` (Structural task/run validation separated from evidence satisfaction claims)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_conditions.py` (Condition matching excludes unsupported evidence-id claims)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/evidence_satisfaction.py` (Content-backed emitted evidence satisfaction validation)
+- TESTS → TEST `implementations/python/tests/test_issue_1112_capture_admission.py` (Evidence record, artifact byte, digest, and field proof coverage)

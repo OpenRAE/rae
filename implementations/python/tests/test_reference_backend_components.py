@@ -66,6 +66,7 @@ def _control_plane():
 
 def test_orchestrator_start_records_workflow_result_and_history():
     target, control_plane, execution_plan = _control_plane()
+    control_plane.register_planner_produced_plan(execution_plan)
     control_plane.submit_provisioning(execution_plan.provisioning)
     control_plane.submit_evaluation(execution_plan.evaluation)
 
@@ -79,6 +80,7 @@ def test_orchestrator_start_records_workflow_result_and_history():
 
 def test_evaluator_start_records_results_and_history():
     target, control_plane, execution_plan = _control_plane()
+    control_plane.register_planner_produced_plan(execution_plan)
     control_plane.submit_provisioning(execution_plan.provisioning)
 
     receipt = control_plane.submit_evaluation(execution_plan.evaluation)

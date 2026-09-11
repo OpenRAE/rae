@@ -13,7 +13,6 @@ _SECTION_FIELDS = [
     "infrastructure",
     "features",
     "conditions",
-    "vulnerabilities",
     "entities",
     "injects",
     "events",
@@ -212,7 +211,6 @@ def runtime_model_summary(model: Any) -> dict[str, Any]:
             "features": len(model.feature_templates),
             "conditions": len(model.condition_templates),
             "injects": len(model.inject_templates),
-            "vulnerabilities": len(model.vulnerability_templates),
         },
         "metadata": {
             "entities": len(model.entity_specs),

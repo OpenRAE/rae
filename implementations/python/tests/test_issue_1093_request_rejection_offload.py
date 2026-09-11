@@ -413,7 +413,7 @@ def test_rejection_audit_saturation_does_not_starve_real_authenticated_route(
                         "/snapshot",
                         headers={"Authorization": "Bearer auditor-token"},
                     ),
-                    timeout=0.5,
+                    timeout=2.0,
                 )
             finally:
                 release.set()

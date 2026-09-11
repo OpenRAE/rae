@@ -15,6 +15,7 @@ from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import RuntimeDomain
 
+from ..capture_admission import capture_admission_diagnostics
 from ..compiler.time_model import time_model_contract_model
 from ..models import ExecutionPlan, RuntimeModel, RuntimeSnapshot
 from ..semantics.realization import (
@@ -139,6 +140,7 @@ def plan(
         *_validate_manifest(effective_model, manifest),
         *_time_model_diagnostics(effective_model, manifest),
         *_participant_execution_diagnostics(effective_model, manifest),
+        *capture_admission_diagnostics(effective_model.capture_demands, manifest.observation),
         *realization_support_diagnostics(
             effective_requirements,
             manifest,

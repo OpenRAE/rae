@@ -10,6 +10,7 @@ from raes.semantics.domain_topology import (
 )
 from raes.value_parsing import is_variable_ref
 
+from ..capture_admission import compile_scenario_capture_demands
 from ..models import (
     Diagnostic,
     RuntimeModel,
@@ -91,7 +92,6 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
         feature_templates,
         condition_templates,
         inject_templates,
-        vulnerability_templates,
     ) = _compile_templates(scenario)
     entity_specs, agent_specs, relationship_specs = _metadata_specs(scenario)
     time_model = compile_time_model(scenario)
@@ -138,12 +138,12 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
         feature_templates=feature_templates,
         condition_templates=condition_templates,
         inject_templates=inject_templates,
-        vulnerability_templates=vulnerability_templates,
         entity_specs=entity_specs,
         agent_specs=agent_specs,
         relationship_specs=relationship_specs,
         time_model=time_model,
         capability_constraints=_compile_capability_constraints(scenario),
+        capture_demands=compile_scenario_capture_demands(scenario),
         networks=networks,
         node_deployments=node_deployments,
         feature_bindings=feature_bindings,

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 from dataclasses import dataclass, fields, replace
 from functools import cache
@@ -32,7 +34,9 @@ from raes_conformance.necessity_validation import (
 )
 from raes_contracts.contracts import (
     BehavioralClaimBindingModel,
+    ExperimentCaptureSpecModel,
     ExperimentEvidenceRecordModel,
+    ExperimentRunEvidenceInputs,
     ExperimentRunModel,
     ExperimentTaskModel,
     PropositionTruthResultModel,
@@ -46,6 +50,10 @@ _DIGEST_C = "sha256:" + "c" * 64
 _DIGEST_D = "sha256:" + "d" * 64
 _PROPOSITION = "evaluation.proposition.service-compromised"
 _ASSERTION = "evaluation.assertion.service-compromised"
+_EVIDENCE_BYTES = (
+    _REPO_ROOT
+    / "contracts/fixtures/control-plane/participant-behavior-history-event-stream-v1/valid/terminal-observation.json"
+).read_bytes()
 
 
 @cache
@@ -84,6 +92,9 @@ def _artifacts(role: str) -> tuple[ExperimentTaskModel, ExperimentRunModel, Expe
     for disclosure in run_payload["realized_form_disclosures"]:
         for reference in disclosure["evidence_refs"]:
             reference["ref_id"] = evidence_id
+    artifact = run_payload["evidence_artifacts"][0]
+    artifact["checksum"] = {"algorithm": "sha256", "value": hashlib.sha256(_EVIDENCE_BYTES).hexdigest()}
+    artifact["size_bytes"] = len(_EVIDENCE_BYTES)
     run = ExperimentRunModel.model_validate(run_payload)
 
     evidence_payload = json.loads(
@@ -94,8 +105,28 @@ def _artifacts(role: str) -> tuple[ExperimentTaskModel, ExperimentRunModel, Expe
     evidence_payload["evidence_record_id"] = evidence_id
     evidence_payload["run_ref"].update(ref_id=run_id, ref_version=run.run_version)
     evidence_payload["task_ref"].update(ref_id=task_id, ref_version=task.task_version)
+    evidence_payload["capture_requirement_ref"] = "auth-log-evidence"
+    evidence_payload["raw_content"] = {
+        "content_uri": run.evidence_artifacts[0].uri,
+        "content_checksum": run.evidence_artifacts[0].checksum.model_dump(mode="json"),
+    }
     evidence = ExperimentEvidenceRecordModel.model_validate(evidence_payload)
     return task, run, evidence
+
+
+def _evidence_inputs(record: ExperimentEvidenceRecordModel) -> ExperimentRunEvidenceInputs:
+    payload = json.loads(
+        (_REPO_ROOT / "contracts/fixtures/experiment-core/experiment-capture-spec-v1/valid/reference.json").read_text()
+    )
+    requirement = next(iter(payload["capture_requirements"].values()))
+    requirement["requirement_id"] = "auth-log-evidence"
+    payload["capture_requirements"] = {"auth-log-evidence": requirement}
+    capture_spec = ExperimentCaptureSpecModel.model_validate(payload)
+    return ExperimentRunEvidenceInputs(
+        capture_specs={capture_spec.capture_spec_id: capture_spec},
+        evidence_records={record.evidence_record_id: record},
+        artifact_readers={"auth-log-evidence": io.BytesIO(_EVIDENCE_BYTES)},
+    )
 
 
 def _run_ref(run: ExperimentRunModel) -> str:
@@ -359,6 +390,8 @@ def _evidence(
             baseline_run=baseline_run,
             counterfactual_task=counterfactual_task,
             counterfactual_run=counterfactual_run,
+            baseline_evidence=_evidence_inputs(baseline_record),
+            counterfactual_evidence=_evidence_inputs(counterfactual_record),
         ),
         evidence_records=(baseline_record, counterfactual_record),
         verification_records=NecessityVerificationRecords(
@@ -716,7 +749,7 @@ def test_assembler_requires_truth_evidence_in_run_traceability() -> None:
         ),
     )
 
-    with pytest.raises(ValueError, match="truth evidence must resolve through its exact run"):
+    with pytest.raises(ValueError, match="task/run validation failed"):
         _evidence(
             case=case,
             baseline_task_override=baseline_task,

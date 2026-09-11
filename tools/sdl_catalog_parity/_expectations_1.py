@@ -76,12 +76,6 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         _DANGLING_ROLE,
         _NODE_VALIDATOR,
     ),
-    "nodes.*.vulnerabilities[]": (
-        "vulnerabilities",
-        _SEMANTIC,
-        _DANGLING,
-        _NODE_VALIDATOR,
-    ),
     "nodes.*.roles.*.entities[]": (
         "entities",
         _SEMANTIC,
@@ -128,18 +122,6 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         "features",
         _SEMANTIC,
         _DANGLING_CYCLIC,
-        _SECTION_VALIDATOR,
-    ),
-    "features.*.vulnerabilities[]": (
-        "vulnerabilities",
-        _SEMANTIC,
-        _DANGLING,
-        _SECTION_VALIDATOR,
-    ),
-    "entities.*.vulnerabilities[]": (
-        "vulnerabilities",
-        _SEMANTIC,
-        _DANGLING,
         _SECTION_VALIDATOR,
     ),
     "entities.*.events[]": ("events", _SEMANTIC, _DANGLING, _SECTION_VALIDATOR),

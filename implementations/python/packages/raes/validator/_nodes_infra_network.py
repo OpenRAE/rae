@@ -22,11 +22,6 @@ class _NodesInfraNetworkMixin:
             self._verify_node_ref_role_map(name, node, node.features, self._s.features, kind="feature")
             self._verify_node_ref_role_map(name, node, node.conditions, self._s.conditions, kind="condition")
             self._verify_node_ref_role_map(name, node, node.injects, self._s.injects, kind="inject")
-            for vuln_name in node.vulnerabilities:
-                if self._is_unresolved_var(vuln_name):
-                    continue
-                if vuln_name not in self._s.vulnerabilities:
-                    self._err(f"Node '{name}' references undefined vulnerability '{vuln_name}'")
             self._verify_node_operating_system(name, node)
             self._verify_node_architecture(name, node)
 

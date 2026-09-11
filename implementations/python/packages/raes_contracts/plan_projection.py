@@ -121,25 +121,20 @@ def provisioning_plan_digest(plan: ProvisioningPlan) -> str:
 
 
 def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str:
-    """Return the immutable digest for any published runtime plan artifact."""
+    """Return one domain-tagged digest for an exact planner-produced artifact."""
 
     if isinstance(plan, ProvisioningPlan):
-        model = provisioning_plan_model(plan)
         domain = "provisioning"
+        model = provisioning_plan_model(plan)
     elif isinstance(plan, OrchestrationPlan):
-        model = orchestration_plan_model(plan)
         domain = "orchestration"
+        model = orchestration_plan_model(plan)
     elif isinstance(plan, EvaluationPlan):
-        model = evaluation_plan_model(plan)
         domain = "evaluation"
+        model = evaluation_plan_model(plan)
     else:
-        raise TypeError("runtime plan digest requires a typed runtime plan")
-    return canonical_json_digest(
-        {
-            "runtime_domain": domain,
-            "plan": model.model_dump(mode="json", exclude_none=True),
-        }
-    )
+        raise TypeError("unsupported runtime plan type")
+    return canonical_json_digest({"domain": domain, "plan": model.model_dump(mode="json", exclude_none=True)})
 
 
 def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:

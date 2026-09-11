@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 
 from .base import _canonical_digest
 from .experiment_apparatus import ExperimentApparatusComponentModel
@@ -119,16 +119,6 @@ def _condition_reference_matches_measurement_channel(
     return _reference_in_collection(run.apparatus_context.measurement_channels, requirement)
 
 
-def _condition_reference_matches_evidence(run: ExperimentRunModel, requirement: ExperimentReferenceModel) -> bool:
-    return any(
-        artifact.artifact_id == requirement.ref_id
-        or any(
-            _reference_satisfies_requirement(satisfied_ref, requirement) for satisfied_ref in artifact.satisfies_refs
-        )
-        for artifact in run.evidence_artifacts
-    )
-
-
 def _condition_reference_matches_default_refs(
     run: ExperimentRunModel,
     requirement: ExperimentReferenceModel,
@@ -154,11 +144,16 @@ _CONDITION_REFERENCE_HANDLERS_BY_REF_KIND: dict[
     "profile": _condition_reference_matches_profile_or_capability,
     "capability": _condition_reference_matches_profile_or_capability,
     "measurement-channel": _condition_reference_matches_measurement_channel,
-    "evidence": _condition_reference_matches_evidence,
 }
 
 
-def _run_satisfies_condition_reference(run: ExperimentRunModel, requirement: ExperimentReferenceModel) -> bool:
+def _run_satisfies_condition_reference(
+    run: ExperimentRunModel,
+    requirement: ExperimentReferenceModel,
+    validated_evidence_refs: Collection[ExperimentReferenceModel],
+) -> bool:
+    if requirement.ref_kind == "evidence":
+        return _reference_in_collection(list(validated_evidence_refs), requirement)
     handler = _CONDITION_REFERENCE_HANDLERS_BY_REF_KIND.get(
         requirement.ref_kind, _condition_reference_matches_default_refs
     )
@@ -218,12 +213,13 @@ def _condition_assignment_run_criteria_signature(
 def _run_satisfies_condition_assignment(
     run: ExperimentRunModel,
     assignment: ExperimentConditionAssignmentModel,
+    validated_evidence_refs: Collection[ExperimentReferenceModel] = (),
 ) -> list[str]:
     missing: list[str] = []
     missing.extend(
         _format_reference(reference)
         for reference in assignment.required_refs
-        if not _run_satisfies_condition_reference(run, reference)
+        if not _run_satisfies_condition_reference(run, reference, validated_evidence_refs)
     )
     run_parameters = [*run.parameter_set, *run.apparatus_context.configuration_parameters]
     missing.extend(

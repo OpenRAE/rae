@@ -28,9 +28,9 @@ from raes_contracts.contracts import (
     RaesSemanticInvariantProfileReferenceModel,
     schema_bundle,
     validate_experiment_apparatus_context_against_manifests,
-    validate_experiment_run_against_task,
     validate_experiment_run_archival_datetimes,
-    validate_experiment_study_against_tasks_and_runs,
+    validate_experiment_run_structure_against_task,
+    validate_experiment_study_structure_against_tasks_and_runs,
     validate_raes_semantic_invariant_annotations,
 )
 from raes_contracts.contracts import bundle as contract_bundle
@@ -332,7 +332,9 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
     assert "ended-at-not-before-started-at" in _invariant_ids(run_schema)
     assert "result-evidence-ref-resolves" in _invariant_ids(run_schema)
     task_run_invariant = _invariant_by_id(run_schema, "task-run-protocol-binding-valid")
-    assert task_run_invariant["validator"] == "raes_contracts.contracts.validate_experiment_run_against_task"
+    assert task_run_invariant["validator"] == (
+        "raes_contracts.contracts.validate_experiment_run_structure_against_task"
+    )
     assert task_run_invariant["inputs"] == [
         {"contract_id": "experiment-task-v1", "instance_path": "#"},
         {"contract_id": "experiment-run-v1", "instance_path": "#"},
@@ -1200,40 +1202,25 @@ def test_experiment_core_validates_task_run_protocol_binding():
     task = ExperimentTaskModel.model_validate(task_payload)
     run = ExperimentRunModel.model_validate(run_payload)
 
-    validate_experiment_run_against_task(task, run)
+    validate_experiment_run_structure_against_task(task, run)
 
     undeclared_metric = deepcopy(run_payload)
     undeclared_metric["result_summaries"]["foothold-achieved-result"]["metric_id"] = "undeclared-metric"
     with pytest.raises(ValueError, match="metric_id"):
-        validate_experiment_run_against_task(task, ExperimentRunModel.model_validate(undeclared_metric))
-
-    missing_task_observation = deepcopy(run_payload)
-    missing_task_observation["evidence_artifacts"][0]["satisfies_refs"] = []
-    with pytest.raises(ValueError, match="observation requirements"):
-        validate_experiment_run_against_task(task, ExperimentRunModel.model_validate(missing_task_observation))
-
-    digest_bound_task = deepcopy(task_payload)
-    digest_bound_task["evaluation_protocol"]["observation_requirements"][0]["ref_digest"] = (
-        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-    )
-    digest_bound_task["evaluation_protocol"]["observation_requirements"][0]["ref_path"] = (
-        "runs/run-techvault-001/evaluation-history.json"
-    )
-    validate_experiment_run_against_task(ExperimentTaskModel.model_validate(digest_bound_task), run)
+        validate_experiment_run_structure_against_task(task, ExperimentRunModel.model_validate(undeclared_metric))
 
     snapshot_task_without_digest = deepcopy(task_payload)
     del snapshot_task_without_digest["scenario_ref"]["ref_digest"]
-    validate_experiment_run_against_task(ExperimentTaskModel.model_validate(snapshot_task_without_digest), run)
+    validate_experiment_run_structure_against_task(
+        ExperimentTaskModel.model_validate(snapshot_task_without_digest), run
+    )
 
-    uppercase_digest_task = deepcopy(digest_bound_task)
+    uppercase_digest_task = deepcopy(task_payload)
     uppercase_digest_task["scenario_ref"]["ref_digest"] = (
         "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
     )
     uppercase_digest_task["apparatus_constraints"]["required_manifest_refs"][0]["ref_digest"] = (
         "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-    )
-    uppercase_digest_task["evaluation_protocol"]["observation_requirements"][0]["ref_digest"] = (
-        "sha256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
     )
     uppercase_digest_run_payload = deepcopy(run_payload)
     uppercase_digest_run_payload["apparatus_context"]["components"]["processor"]["manifest_ref"]["ref_digest"] = (
@@ -1245,43 +1232,22 @@ def test_experiment_core_validates_task_run_protocol_binding():
     uppercase_digest_run_payload["apparatus_context"]["selected_manifests"][0]["ref_digest"] = (
         "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     )
-    validate_experiment_run_against_task(
+    validate_experiment_run_structure_against_task(
         ExperimentTaskModel.model_validate(uppercase_digest_task),
         ExperimentRunModel.model_validate(uppercase_digest_run_payload),
     )
 
-    mismatched_observation_digest = deepcopy(digest_bound_task)
-    mismatched_observation_digest["evaluation_protocol"]["observation_requirements"][0]["ref_digest"] = (
-        "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-    )
-    with pytest.raises(ValueError, match="observation requirements"):
-        validate_experiment_run_against_task(ExperimentTaskModel.model_validate(mismatched_observation_digest), run)
-
-    mismatched_metric_evidence_path = deepcopy(task_payload)
-    mismatched_metric_evidence_path["evaluation_protocol"]["metric_definitions"]["foothold-achieved"][
-        "evidence_requirements"
-    ][0] = {
-        "ref_kind": "evidence",
-        "ref_id": "evaluation-history",
-        "ref_path": "runs/run-techvault-001/different-history.json",
-    }
-    with pytest.raises(ValueError, match="metric evidence requirements"):
-        validate_experiment_run_against_task(
-            ExperimentTaskModel.model_validate(mismatched_metric_evidence_path),
-            run,
-        )
-
     wrong_task_version = deepcopy(run_payload)
     wrong_task_version["task_ref"]["ref_version"] = "2.0.0"
     with pytest.raises(ValueError, match="task_ref"):
-        validate_experiment_run_against_task(task, ExperimentRunModel.model_validate(wrong_task_version))
+        validate_experiment_run_structure_against_task(task, ExperimentRunModel.model_validate(wrong_task_version))
 
     generic_scenario_task = deepcopy(task_payload)
     generic_scenario_task["scenario_ref"] = {"ref_kind": "scenario", "ref_id": "scenario-techvault"}
     mismatched_scenario_run = deepcopy(run_payload)
     mismatched_scenario_run["scenario_snapshot_ref"]["ref_id"] = "different-scenario"
     with pytest.raises(ValueError, match="scenario_snapshot_ref"):
-        validate_experiment_run_against_task(
+        validate_experiment_run_structure_against_task(
             ExperimentTaskModel.model_validate(generic_scenario_task),
             ExperimentRunModel.model_validate(mismatched_scenario_run),
         )
@@ -1297,7 +1263,7 @@ def test_experiment_core_validates_task_run_protocol_binding():
     disallowed_processor["apparatus_context"]["selected_manifests"][0]["ref_id"] = "different-processor"
     disallowed_processor["apparatus_context"]["selected_manifests"][0]["subject_ref"]["ref_id"] = "different-processor"
     with pytest.raises(ValueError, match="allowed_processor_refs"):
-        validate_experiment_run_against_task(task, ExperimentRunModel.model_validate(disallowed_processor))
+        validate_experiment_run_structure_against_task(task, ExperimentRunModel.model_validate(disallowed_processor))
 
     unsupported_processor_digest = deepcopy(task_payload)
     unsupported_processor_digest["apparatus_constraints"]["allowed_processor_refs"][0]["ref_digest"] = (
@@ -1325,7 +1291,9 @@ def test_experiment_core_validates_task_run_protocol_binding():
         }
     )
     with pytest.raises(ValueError, match="required_manifest_refs"):
-        validate_experiment_run_against_task(ExperimentTaskModel.model_validate(task_with_extra_manifest), run)
+        validate_experiment_run_structure_against_task(
+            ExperimentTaskModel.model_validate(task_with_extra_manifest), run
+        )
 
     missing_capability = deepcopy(run_payload)
     missing_capability["apparatus_context"]["compatibility_declarations"] = [
@@ -1336,7 +1304,7 @@ def test_experiment_core_validates_task_run_protocol_binding():
         }
     ]
     with pytest.raises(ValueError, match="required_capabilities"):
-        validate_experiment_run_against_task(task, ExperimentRunModel.model_validate(missing_capability))
+        validate_experiment_run_structure_against_task(task, ExperimentRunModel.model_validate(missing_capability))
 
 
 def test_experiment_core_validates_study_analysis_metrics_against_task_protocols():
@@ -1344,14 +1312,14 @@ def test_experiment_core_validates_study_analysis_metrics_against_task_protocols
     run = ExperimentRunModel.model_validate(_experiment_fixture("experiment-run-v1"))
     study = ExperimentStudyModel.model_validate(_experiment_fixture("experiment-study-v1"))
 
-    validate_experiment_study_against_tasks_and_runs(study, [task], [run])
+    validate_experiment_study_structure_against_tasks_and_runs(study, [task], [run])
 
     ungrounded_metric_payload = _experiment_fixture("experiment-study-v1")
     ungrounded_metric_payload["analysis_plan"]["metrics"] = ["undeclared-study-metric"]
     ungrounded_metric_payload["analysis_plan"]["primary_metric"] = "undeclared-study-metric"
     ungrounded_metric_study = ExperimentStudyModel.model_validate(ungrounded_metric_payload)
     with pytest.raises(ValueError, match="included task protocols"):
-        validate_experiment_study_against_tasks_and_runs(ungrounded_metric_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(ungrounded_metric_study, [task], [run])
 
     task_with_unreported_metric_payload = _experiment_fixture("experiment-task-v1")
     task_with_unreported_metric_payload["evaluation_protocol"]["metric_definitions"]["exfiltration-achieved"] = (
@@ -1366,7 +1334,7 @@ def test_experiment_core_validates_study_analysis_metrics_against_task_protocols
     study_with_unreported_metric_payload["analysis_plan"]["primary_metric"] = "exfiltration-achieved"
     study_with_unreported_metric = ExperimentStudyModel.model_validate(study_with_unreported_metric_payload)
     with pytest.raises(ValueError, match="included evaluation runs"):
-        validate_experiment_study_against_tasks_and_runs(
+        validate_experiment_study_structure_against_tasks_and_runs(
             study_with_unreported_metric, [task_with_unreported_metric], [run]
         )
 
@@ -1376,7 +1344,7 @@ def test_experiment_core_validates_study_analysis_metrics_against_task_protocols
     missing_result["value_status"] = "missing"
     missing_result.pop("value")
     run_with_explicit_missing_payload["result_summaries"]["exfiltration-achieved-result"] = missing_result
-    validate_experiment_study_against_tasks_and_runs(
+    validate_experiment_study_structure_against_tasks_and_runs(
         study_with_unreported_metric,
         [task_with_unreported_metric],
         [ExperimentRunModel.model_validate(run_with_explicit_missing_payload)],
@@ -1384,7 +1352,7 @@ def test_experiment_core_validates_study_analysis_metrics_against_task_protocols
 
     missing_task_artifact = ExperimentStudyModel.model_validate(_experiment_fixture("experiment-study-v1"))
     with pytest.raises(ValueError, match="task membership"):
-        validate_experiment_study_against_tasks_and_runs(missing_task_artifact, [], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(missing_task_artifact, [], [run])
 
 
 def test_experiment_core_validates_study_run_allocation_against_evaluation_members():
@@ -1393,7 +1361,7 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     study_payload = _experiment_fixture("experiment-study-v1")
     study = ExperimentStudyModel.model_validate(study_payload)
 
-    validate_experiment_study_against_tasks_and_runs(study, [task], [run])
+    validate_experiment_study_structure_against_tasks_and_runs(study, [task], [run])
 
     provenance_mismatch_run_payload = _experiment_fixture("experiment-run-v1")
     provenance_mismatch_run_payload["participant_implementation_provenance"]["participant_implementations"][0][
@@ -1424,13 +1392,13 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     }
     provenance_mismatch_run = ExperimentRunModel.model_validate(provenance_mismatch_run_payload)
     with pytest.raises(ValueError, match="condition assignments"):
-        validate_experiment_study_against_tasks_and_runs(study, [task], [provenance_mismatch_run])
+        validate_experiment_study_structure_against_tasks_and_runs(study, [task], [provenance_mismatch_run])
 
     no_evaluation_run_payload = deepcopy(study_payload)
     del no_evaluation_run_payload["membership"]["run-001"]
     no_evaluation_run_study = ExperimentStudyModel.model_validate(no_evaluation_run_payload)
     with pytest.raises(ValueError, match="evaluation-run membership"):
-        validate_experiment_study_against_tasks_and_runs(no_evaluation_run_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(no_evaluation_run_study, [task], [run])
 
     run_membership_with_digest = deepcopy(study_payload)
     run_membership_with_digest["membership"]["run-001"]["target_ref"]["ref_digest"] = (
@@ -1442,19 +1410,19 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     del ungrouped_run_payload["membership"]["run-001"]["grouping"]
     ungrouped_run_study = ExperimentStudyModel.model_validate(ungrouped_run_payload)
     with pytest.raises(ValueError, match="evaluation-run membership groupings"):
-        validate_experiment_study_against_tasks_and_runs(ungrouped_run_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(ungrouped_run_study, [task], [run])
 
     undeclared_group_payload = deepcopy(study_payload)
     undeclared_group_payload["membership"]["run-001"]["grouping"] = "candidate"
     undeclared_group_study = ExperimentStudyModel.model_validate(undeclared_group_payload)
     with pytest.raises(ValueError, match="compared_conditions"):
-        validate_experiment_study_against_tasks_and_runs(undeclared_group_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(undeclared_group_study, [task], [run])
 
     under_target_payload = deepcopy(study_payload)
     under_target_payload["run_allocation"]["target_runs_per_condition"] = 2
     under_target_study = ExperimentStudyModel.model_validate(under_target_payload)
     with pytest.raises(ValueError, match="target_runs_per_condition"):
-        validate_experiment_study_against_tasks_and_runs(under_target_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(under_target_study, [task], [run])
 
     collection_with_allocation_payload = deepcopy(study_payload)
     collection_with_allocation_payload["study_kind"] = "collection"
@@ -1462,7 +1430,7 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     del collection_with_allocation_payload["membership"]["run-001"]["grouping"]
     collection_with_allocation = ExperimentStudyModel.model_validate(collection_with_allocation_payload)
     with pytest.raises(ValueError, match="run_allocation requires evaluation-run membership groupings"):
-        validate_experiment_study_against_tasks_and_runs(collection_with_allocation, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(collection_with_allocation, [task], [run])
 
     duplicate_condition_payload = deepcopy(study_payload)
     duplicate_condition_payload["run_allocation"]["compared_conditions"].append("baseline")
@@ -1617,7 +1585,7 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     ] = "candidate-policy"
     unsatisfied_condition_study = ExperimentStudyModel.model_validate(unsatisfied_condition_payload)
     with pytest.raises(ValueError, match="condition assignments"):
-        validate_experiment_study_against_tasks_and_runs(unsatisfied_condition_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(unsatisfied_condition_study, [task], [run])
 
     overlapping_condition_payload = deepcopy(study_payload)
     overlapping_condition_payload["factors"]["participant-policy"]["levels"].append("candidate")
@@ -1646,7 +1614,7 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     overlapping_condition_payload["membership"]["run-001"]["grouping"] = "candidate"
     overlapping_condition_study = ExperimentStudyModel.model_validate(overlapping_condition_payload)
     with pytest.raises(ValueError, match="exactly one condition"):
-        validate_experiment_study_against_tasks_and_runs(overlapping_condition_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(overlapping_condition_study, [task], [run])
 
     duplicate_run_condition_payload = deepcopy(study_payload)
     duplicate_run_condition_payload["factors"]["participant-policy"]["levels"].append("candidate")
@@ -1669,7 +1637,7 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     duplicate_run_condition_payload["membership"]["run-001-candidate"]["grouping"] = "candidate"
     duplicate_run_condition_study = ExperimentStudyModel.model_validate(duplicate_run_condition_payload)
     with pytest.raises(ValueError, match="same run"):
-        validate_experiment_study_against_tasks_and_runs(duplicate_run_condition_study, [task], [run])
+        validate_experiment_study_structure_against_tasks_and_runs(duplicate_run_condition_study, [task], [run])
 
     invalidated_run_payload = _experiment_fixture("experiment-run-v1")
     invalidated_run_payload["run_status"] = "invalidated"
@@ -1678,7 +1646,7 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
         "reason": "Apparatus drift invalidated the run for study analysis.",
     }
     with pytest.raises(ValueError, match="invalidated"):
-        validate_experiment_study_against_tasks_and_runs(
+        validate_experiment_study_structure_against_tasks_and_runs(
             study,
             [task],
             [ExperimentRunModel.model_validate(invalidated_run_payload)],
@@ -1689,7 +1657,7 @@ def test_experiment_core_validates_study_run_allocation_against_evaluation_membe
     del collection_analysis_payload["run_allocation"]
     collection_analysis_study = ExperimentStudyModel.model_validate(collection_analysis_payload)
     with pytest.raises(ValueError, match="invalidated"):
-        validate_experiment_study_against_tasks_and_runs(
+        validate_experiment_study_structure_against_tasks_and_runs(
             collection_analysis_study,
             [task],
             [ExperimentRunModel.model_validate(invalidated_run_payload)],

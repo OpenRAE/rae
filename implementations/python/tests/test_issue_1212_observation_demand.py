@@ -32,7 +32,7 @@ from raes_contracts.observation_demand import (
     realization_description_report,
 )
 from raes_contracts.plan_projection import provisioning_plan_digest, provisioning_plan_model, runtime_plan_digest
-from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
+from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_observation import compute_substrate_readback_addresses
 from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.planner import plan
@@ -1170,9 +1170,11 @@ def test_authored_demand_executes_protected_collection_and_retention_in_control_
         integrity_providers={"digest": lambda _key, _values: "sha256:protected"},
     )
     target = _runtime_target(create_stub_target(), runtime)
-    provisioning = RuntimeManager(target).plan(scenario).provisioning
+    execution_plan = RuntimeManager(target).plan(scenario)
+    provisioning = execution_plan.provisioning
     store = InMemoryControlPlaneStore()
     control_plane = RuntimeControlPlane(target, store=store)
+    control_plane.register_planner_produced_plan(execution_plan)
 
     receipt = control_plane.submit_provisioning(provisioning)
     execution = control_plane.observation_execution(receipt.operation_id)
@@ -1359,6 +1361,7 @@ def test_control_plane_persists_no_placeholder_for_an_unsupported_optional_selec
 
     store = InMemoryControlPlaneStore()
     control_plane = RuntimeControlPlane(target, store=store)
+    control_plane.register_planner_produced_plan(execution)
     receipt = control_plane.submit_provisioning(execution.provisioning)
     result = control_plane.observation_execution(receipt.operation_id)
 
@@ -1486,8 +1489,10 @@ def test_authored_realization_description_reports_only_achieved_basis() -> None:
     assert manager_result.success
     assert manager_result.details["realized_form_disclosures"][0]["realized_value_summary"] == '"Kali"'
     control_plane = RuntimeControlPlane(target)
+    execution_plan = RuntimeManager(target).plan(scenario)
+    control_plane.register_planner_produced_plan(execution_plan)
 
-    receipt = control_plane.submit_provisioning(RuntimeManager(target).plan(scenario).provisioning)
+    receipt = control_plane.submit_provisioning(execution_plan.provisioning)
     execution = control_plane.observation_execution(receipt.operation_id)
 
     assert control_plane.get_operation(receipt.operation_id).state.value == "succeeded"
@@ -1539,7 +1544,7 @@ def test_backend_does_not_persist_unrequested_realization_observations() -> None
             - field_pointer: /nodes/kali
               concern: compute-substrate
               posture: exact
-              domain: {kind: exact, value: operating-system-container}
+              domain: {kind: exact, value: "x-openrae:in-process-emulation"}
         nodes:
           kali:
             type: compute
@@ -1567,7 +1572,8 @@ def test_backend_does_not_persist_unrequested_realization_observations() -> None
     )
     assert substrate_requirement.verification_scope is None
     assert substrate_requirement.required_observation_strength is None
-    provisioning = plan(model, target.manifest).provisioning
+    execution_plan = plan(model, target.manifest)
+    provisioning = execution_plan.provisioning
     assert (
         compute_substrate_readback_addresses(
             plan=provisioning,
@@ -1577,6 +1583,7 @@ def test_backend_does_not_persist_unrequested_realization_observations() -> None
         == ()
     )
     control_plane = RuntimeControlPlane(target)
+    control_plane.register_planner_produced_plan(execution_plan)
 
     receipt = control_plane.submit_provisioning(provisioning)
 
@@ -1594,7 +1601,7 @@ def test_native_realization_readback_is_not_reused_as_unprotected_retention() ->
             - field_pointer: /nodes/kali
               concern: compute-substrate
               posture: exact
-              domain: {kind: exact, value: operating-system-container}
+              domain: {kind: exact, value: "x-openrae:in-process-emulation"}
         nodes:
           kali:
             type: compute
@@ -1620,9 +1627,11 @@ def test_native_realization_readback_is_not_reused_as_unprotected_retention() ->
         target_scopes=("/nodes/kali",),
     ).effective
     target = create_stub_target()
-    provisioning = RuntimeManager(target).plan(scenario).provisioning
+    execution_plan = RuntimeManager(target).plan(scenario)
+    provisioning = execution_plan.provisioning
     provisioning = replace(provisioning, observation_demands=demands)
     control_plane = RuntimeControlPlane(target)
+    control_plane.register_planner_produced_plan(replace(execution_plan, provisioning=provisioning))
 
     receipt = control_plane.submit_provisioning(provisioning)
 
@@ -1781,15 +1790,19 @@ def test_more_specific_effective_policy_blocks_broad_describer_side_effects() ->
     assert control_plane.observation_execution(receipt.operation_id).realized_form_disclosures == ()
 
 
-def test_planner_authorization_digest_is_domain_separated() -> None:
-    orchestration = OrchestrationPlan()
-    evaluation = EvaluationPlan()
+def test_planner_authorization_digest_is_domain_separated_and_registers_all_phases() -> None:
+    authorization_plan = plan(
+        compile_scenario_runtime_model(parse_sdl("name: domain-separated-authorization")),
+        create_stub_manifest(),
+    )
+    orchestration = authorization_plan.orchestration
+    evaluation = authorization_plan.evaluation
 
     assert runtime_plan_digest(orchestration) != runtime_plan_digest(evaluation)
     control_plane = RuntimeControlPlane(create_stub_target())
-    control_plane.register_planner_produced_plan(orchestration)
+    control_plane.register_planner_produced_plan(authorization_plan)
     assert control_plane.is_planner_authorized_plan(orchestration)
-    assert not control_plane.is_planner_authorized_plan(evaluation)
+    assert control_plane.is_planner_authorized_plan(evaluation)
 
 
 def test_observation_demand_is_in_the_published_schema_bundle() -> None:

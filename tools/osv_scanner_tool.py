@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import platform
 import stat
 import subprocess
 import tempfile
@@ -23,15 +22,6 @@ OSV_FINDINGS_EXIT_CODE = 1
 _MAX_BINARY_BYTES = 256 * 1024 * 1024
 _DOWNLOAD_TIMEOUT_SECONDS = 60
 
-OSV_SCANNER_SHA256 = {
-    "2.4.0": {
-        "osv-scanner_darwin_amd64": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66",
-        "osv-scanner_darwin_arm64": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d",
-        "osv-scanner_linux_amd64": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0",
-        "osv-scanner_linux_arm64": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9",
-    }
-}
-
 
 class OSVScanOutcome(StrEnum):
     CLEAN = "clean"
@@ -46,34 +36,6 @@ def classify_osv_exit_code(exit_code: int) -> OSVScanOutcome:
     if exit_code == OSV_FINDINGS_EXIT_CODE:
         return OSVScanOutcome.FINDINGS
     return OSVScanOutcome.SCANNER_ERROR
-
-
-def _release_base_url(version: str = OSV_SCANNER_VERSION) -> str:
-    return f"https://github.com/google/osv-scanner/releases/download/v{version}"
-
-
-def _release_asset_name() -> str:
-    system = platform.system()
-    machine = platform.machine().lower()
-    arch_map = {
-        "x86_64": "amd64",
-        "amd64": "amd64",
-        "arm64": "arm64",
-        "aarch64": "arm64",
-    }
-    platform_map = {
-        "Linux": "linux",
-        "Darwin": "darwin",
-    }
-    arch = arch_map.get(machine)
-    platform_name = platform_map.get(system)
-    if arch is None:
-        raise RuntimeError(f"unsupported osv-scanner architecture: {machine}")
-    if platform_name is None:
-        raise RuntimeError(f"unsupported osv-scanner platform: {system}")
-    # OSV-Scanner publishes plain, per-platform binaries (no archive), e.g.
-    # `osv-scanner_linux_amd64`.
-    return f"osv-scanner_{platform_name}_{arch}"
 
 
 def osv_scanner_binary_path(repo_root: Path = REPO_ROOT, *, version: str = OSV_SCANNER_VERSION) -> Path:
@@ -130,7 +92,7 @@ def _safe_cache_parent(repo_root: Path, binary_path: Path) -> Path:
     return current
 
 
-def _validated_cache_hit(binary_path: Path, expected_checksum: str) -> bool:
+def _validated_cache_hit(binary_path: Path, expected_checksum: str, expected_size: int | None = None) -> bool:
     try:
         mode = binary_path.lstat().st_mode
     except FileNotFoundError:
@@ -148,7 +110,12 @@ def _validated_cache_hit(binary_path: Path, expected_checksum: str) -> bool:
         final_mode = binary_path.lstat().st_mode
     except OSError as exc:
         raise RuntimeError(f"failed to validate cached osv-scanner at {binary_path}") from exc
-    valid = stat.S_ISREG(final_mode) and actual_checksum == expected_checksum and bool(final_mode & stat.S_IXUSR)
+    valid = (
+        stat.S_ISREG(final_mode)
+        and actual_checksum == expected_checksum
+        and (expected_size is None or binary_path.stat().st_size == expected_size)
+        and bool(final_mode & stat.S_IXUSR)
+    )
     if not valid:
         binary_path.unlink()
     return valid
@@ -178,22 +145,27 @@ def _install_binary(binary_path: Path, binary_bytes: bytes) -> None:
 
 
 def ensure_osv_scanner(repo_root: Path = REPO_ROOT, *, version: str = OSV_SCANNER_VERSION) -> Path:
-    asset_name = _release_asset_name()
-    expected_checksum = OSV_SCANNER_SHA256.get(version, {}).get(asset_name)
-    if expected_checksum is None:
-        raise RuntimeError(f"no repository-pinned checksum for osv-scanner asset {asset_name}")
+    from tools.tooling_policy_gate import host_platform_id, load_tooling_artifact_selection
+
+    platform_id = host_platform_id()
+    selection = load_tooling_artifact_selection(
+        artifact_id="osv-scanner",
+        version=version,
+        platform_id=platform_id,
+        profile_id=f"public-{platform_id}",
+    )
+    if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1 or len(selection.installed_manifest) != 1:
+        raise RuntimeError("osv-scanner lock selection must contain one source, raw asset, and installed binary")
+    raw = selection.raw_manifest[0]
+    installed = selection.installed_manifest[0]
+    asset_name = raw.path
     requested_path = osv_scanner_binary_path(repo_root, version=version)
     binary_path = _safe_cache_parent(repo_root, requested_path) / requested_path.name
-    if _validated_cache_hit(binary_path, expected_checksum):
+    if _validated_cache_hit(binary_path, installed.sha256, installed.size):
         return binary_path
 
-    base_url = _release_base_url(version)
-    asset_url = f"{base_url}/{asset_name}"
-    if not asset_url.startswith("https://github.com/google/osv-scanner/releases/download/"):
-        raise RuntimeError(f"unsafe osv-scanner release URL: {asset_url}")
-
     binary_bytes = download_bytes(
-        asset_url,
+        selection.source_urls[0],
         description="osv-scanner",
         timeout_seconds=_DOWNLOAD_TIMEOUT_SECONDS,
         max_bytes=_MAX_BINARY_BYTES,
@@ -202,10 +174,10 @@ def ensure_osv_scanner(repo_root: Path = REPO_ROOT, *, version: str = OSV_SCANNE
         raise RuntimeError(f"osv-scanner asset {asset_name} exceeds the download limit")
 
     actual_checksum = sha256(binary_bytes).hexdigest()
-    if actual_checksum != expected_checksum:
-        raise RuntimeError(
-            f"osv-scanner checksum mismatch for {asset_name}: expected {expected_checksum}, got {actual_checksum}"
-        )
+    if len(binary_bytes) != raw.size or actual_checksum != raw.sha256:
+        raise RuntimeError(f"osv-scanner checksum or size mismatch for locked asset {asset_name}")
+    if len(binary_bytes) != installed.size or actual_checksum != installed.sha256:
+        raise RuntimeError("osv-scanner installed binary differs from the reviewed lock manifest")
 
     _install_binary(binary_path, binary_bytes)
 

@@ -24,7 +24,6 @@ from tools.sdl_catalog_parity._paths import (
     _STRUCTURAL_SEMANTIC,
     _SWITCH_BACKED,
     _TOOL_AFFORDANCE_VALIDATOR,
-    _UNKNOWN_VOCABULARY,
 )
 
 EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
@@ -376,24 +375,6 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         _SEMANTIC,
         "fatal dangling, ambiguous, or silent handoff",
         _MIXED_CONTROL_VALIDATOR,
-    ),
-    "behavior_specifications.*.ai_offensive_behavior_refs[]": (
-        "vocabulary:ai_offensive_behavior",
-        _SEMANTIC,
-        _UNKNOWN_VOCABULARY,
-        _BEHAVIOR_MODEL,
-    ),
-    "behavior_specifications.*.defensive_behavior_refs[]": (
-        "vocabulary:defensive_behavior",
-        _SEMANTIC,
-        _UNKNOWN_VOCABULARY,
-        _BEHAVIOR_MODEL,
-    ),
-    "behavior_specifications.*.offensive_behavior_refs[]": (
-        "vocabulary:offensive_behavior",
-        _SEMANTIC,
-        _UNKNOWN_VOCABULARY,
-        _BEHAVIOR_MODEL,
     ),
     "behavior_specifications.*.realization_profile_ref": (
         "opaque:realization_profile",

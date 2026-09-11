@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "01382e1b671f2312ac74fe90317f23fdf87bee1eac95987a537d771253233182",
+  "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3",
   "last_change": {
-    "summary": "Added the scoped observation-demand authoring carrier for issue #1212.",
-    "content_hash": "01382e1b671f2312ac74fe90317f23fdf87bee1eac95987a537d771253233182"
+    "summary": "Added scoped observation-demand authoring while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3"
   }
 }

@@ -29,6 +29,25 @@ def runtime_owned(
     return guarded
 
 
+def store_authoritative_state(
+    method: Callable[Concatenate[object, _P], _R],
+) -> Callable[Concatenate[object, _P], _R]:
+    """Rebuild derived runtime state while holding the mutation authority."""
+
+    @wraps(method)
+    def guarded(control_plane: object, *args: _P.args, **kwargs: _P.kwargs) -> _R:
+        lock = getattr(control_plane, "_operation_lock", None)
+        reload_state = getattr(control_plane, "_reload_derived_state_if_unpinned", None)
+        if lock is None or not callable(reload_state):
+            return method(control_plane, *args, **kwargs)
+        with lock:
+            reload_state()
+            return method(control_plane, *args, **kwargs)
+
+    guarded.__store_authoritative_state__ = True
+    return guarded
+
+
 class RuntimeLifecycleMixin:
     """Drain admitted calls before releasing process-scoped authority."""
 
@@ -136,4 +155,4 @@ class RuntimeLifecycleMixin:
             assert_owner()
 
 
-__all__ = ("RuntimeLifecycleMixin", "runtime_owned")
+__all__ = ("RuntimeLifecycleMixin", "runtime_owned", "store_authoritative_state")

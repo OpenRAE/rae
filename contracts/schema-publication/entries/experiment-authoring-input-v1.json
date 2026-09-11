@@ -2,9 +2,9 @@
   "contract_id": "experiment-authoring-input-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "a81e009f6cd981b41711b207bdfc59ad1709b3f1c7c0961df817f77ce3017604",
+  "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92",
   "last_change": {
-    "summary": "Added the scoped observation-demand carrier to run policy for issue #1212.",
-    "content_hash": "a81e009f6cd981b41711b207bdfc59ad1709b3f1c7c0961df817f77ce3017604"
+    "summary": "Added scoped observation demand and content-validated evidence bindings for issues #1212 and #1112.",
+    "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92"
   }
 }

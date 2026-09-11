@@ -1,8 +1,9 @@
 # Developer package and artifact management
 
 This is the design set for [issue #1168](https://github.com/OpenRAE/rae/issues/1168)
-and [milestone 69](https://github.com/OpenRAE/rae/milestone/69). It is proposed
-for maintainer acceptance. It does not claim that its migration is implemented.
+and [milestone 69](https://github.com/OpenRAE/rae/milestone/69). Merged PR #1229
+records maintainer acceptance. This design does not claim that its migration is
+implemented.
 
 Read the documents in this order:
 
@@ -16,7 +17,7 @@ Read the documents in this order:
 
 The inventory was taken at `5d2f738f`, the `dev` tip on 2026-09-05. GitHub issue
 and PR states were read that day. Existing code is evidence of current
-behavior; statements using “must” describe the proposed target. Acceptance of
+behavior; statements using “must” describe the accepted target. Acceptance of
 the design and completion of the implementation program are separate events.
 
 The design concerns repository development, verification and publication.

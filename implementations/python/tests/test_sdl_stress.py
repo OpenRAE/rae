@@ -47,8 +47,6 @@ nodes:
       apache-svc: admin
     conditions:
       service-check: admin
-    vulnerabilities:
-      - sqli-vuln
   deb-server:
     type: compute
     source:
@@ -125,13 +123,6 @@ propositions:
 assertions:
   service-ready: {proposition: service-ready, role: precondition, polarity: positive}
 
-vulnerabilities:
-  sqli-vuln:
-    name: SQL Injection
-    description: SQLi in login form
-    technical: true
-    class: CWE-89
-
 entities:
   blue-team:
     name: Blue Team
@@ -202,17 +193,12 @@ nodes:
     resources:
       ram: 1 gib
       cpu: 1
-    vulnerabilities:
-      - ssh-brute
-      - ms17-010
   internal:
     type: compute
     source: ubuntu-internal
     resources:
       ram: 1 gib
       cpu: 1
-    vulnerabilities:
-      - ms17-010
   defender:
     type: compute
     source: velociraptor-server
@@ -263,18 +249,6 @@ features:
   velociraptor-server:
     type: Service
     source: velociraptor
-
-vulnerabilities:
-  ssh-brute:
-    name: SSH Brute Force
-    description: Weak SSH credentials on gateway
-    technical: true
-    class: CWE-521
-  ms17-010:
-    name: EternalBlue (MS17-010)
-    description: SMB remote code execution
-    technical: true
-    class: CWE-119
 
 entities:
   red-agent:
@@ -327,17 +301,14 @@ nodes:
     type: compute
     source: gateway
     resources: {ram: 1 gib, cpu: 1}
-    vulnerabilities: [eternal-blue, bluekeep]
   enterprise1:
     type: compute
     source: internal-server
     resources: {ram: 1 gib, cpu: 1}
-    vulnerabilities: [eternal-blue, http-rfi]
   enterprise2:
     type: compute
     source: internal-server
     resources: {ram: 1 gib, cpu: 1}
-    vulnerabilities: [haraka-rce, ftp-traversal]
   defender:
     type: compute
     source: velociraptor-server
@@ -382,33 +353,6 @@ infrastructure:
   op-host0: {count: 1, links: [operational-net]}
   op-host1: {count: 1, links: [operational-net]}
   op-host2: {count: 1, links: [operational-net]}
-
-vulnerabilities:
-  eternal-blue:
-    name: EternalBlue
-    description: MS17-010 SMB RCE
-    technical: true
-    class: CWE-119
-  bluekeep:
-    name: BlueKeep
-    description: CVE-2019-0708 RDP RCE
-    technical: true
-    class: CWE-416
-  http-rfi:
-    name: HTTP Remote File Inclusion
-    description: RFI via web application
-    technical: true
-    class: CWE-98
-  haraka-rce:
-    name: Haraka SMTP RCE
-    description: RCE via malformed SMTP
-    technical: true
-    class: CWE-78
-  ftp-traversal:
-    name: FTP Directory Traversal
-    description: Path traversal in FTP server
-    technical: true
-    class: CWE-22
 
 entities:
   red:
@@ -471,18 +415,10 @@ nodes:
     os_distribution: windows-client
     os_version: "10"
     resources: {ram: 4 gib, cpu: 2}
-    vulnerabilities: [lsass-access]
 
 infrastructure:
   lab-net: {count: 1, properties: {cidr: 10.0.0.0/24, gateway: 10.0.0.1}}
   target: {count: 1, links: [lab-net]}
-
-vulnerabilities:
-  lsass-access:
-    name: "LSASS Memory Access"
-    description: "Local admin can dump LSASS process memory"
-    technical: true
-    class: CWE-522
 
 entities:
   pentester: {name: Penetration Tester, role: Red}
@@ -523,7 +459,6 @@ nodes:
       php-app: www
     conditions:
       http-alive: www
-    vulnerabilities: [sqli-web, lfi-web]
     roles:
       www: www-data
   database:
@@ -590,17 +525,6 @@ conditions:
     command: "mysqladmin ping -u root"
     interval: 15
 
-vulnerabilities:
-  sqli-web:
-    name: SQL Injection
-    description: SQLi in PHP application login
-    technical: true
-    class: CWE-89
-  lfi-web:
-    name: Local File Inclusion
-    description: LFI via path traversal in file parameter
-    technical: true
-    class: CWE-98
 """
 
 
@@ -621,7 +545,6 @@ nodes:
     type: compute
     source: ubuntu-ctf
     resources: {ram: 2 gib, cpu: 2}
-    vulnerabilities: [weak-ssh, exposed-backup, suid-binary]
   scoreboard:
     type: compute
     source: ctfd-server
@@ -637,23 +560,6 @@ infrastructure:
   scoreboard:
     count: 1
     links: [training-net]
-
-vulnerabilities:
-  weak-ssh:
-    name: Weak SSH Password
-    description: SSH service with default credentials
-    technical: false
-    class: CWE-521
-  exposed-backup:
-    name: Exposed Backup File
-    description: Database backup accessible via web
-    technical: true
-    class: CWE-538
-  suid-binary:
-    name: SUID Binary Exploit
-    description: Custom SUID binary with buffer overflow
-    technical: true
-    class: CWE-120
 
 entities:
   trainers:
@@ -703,9 +609,6 @@ nodes:
       vulnerable-api: www
     conditions:
       web-health: www
-    vulnerabilities:
-      - api-idor
-      - sudo-miscfg
     roles:
       www: www-data
       user: htb-user
@@ -735,17 +638,6 @@ conditions:
     command: "curl -sf http://localhost:80/ || exit 1"
     interval: 15
 
-vulnerabilities:
-  api-idor:
-    name: API IDOR
-    description: Insecure Direct Object Reference in REST API
-    technical: true
-    class: CWE-639
-  sudo-miscfg:
-    name: Sudo Misconfiguration
-    description: User can run vim as root without password
-    technical: true
-    class: CWE-269
 """
 
 
@@ -771,32 +663,27 @@ nodes:
     source: windows-server-2022
     resources: {ram: 4 gib, cpu: 2}
     features: {ad-forest-root: admin}
-    vulnerabilities: [as-rep-roast, gpp-passwords]
     roles: {admin: Administrator}
   dc02:
     type: compute
     source: windows-server-2022
     resources: {ram: 4 gib, cpu: 2}
     features: {ad-child-domain: admin}
-    vulnerabilities: [unconstrained-deleg]
     roles: {admin: Administrator}
   exchange:
     type: compute
     source: windows-server-2019
     resources: {ram: 8 gib, cpu: 4}
     features: {exchange-server: admin}
-    vulnerabilities: [proxylogon]
     roles: {admin: Administrator}
   fileserver:
     type: compute
     source: windows-server-2022
     resources: {ram: 2 gib, cpu: 1}
-    vulnerabilities: [open-smb-shares]
   ws01:
     type: compute
     source: windows-10-enterprise
     resources: {ram: 4 gib, cpu: 2}
-    vulnerabilities: [local-admin-reuse]
   ws02:
     type: compute
     source: windows-10-enterprise
@@ -851,37 +738,6 @@ conditions:
     command: "ss -tlnp | grep ':22' || exit 1"
     interval: 15
 
-vulnerabilities:
-  as-rep-roast:
-    name: AS-REP Roasting
-    description: Accounts without Kerberos pre-authentication
-    technical: true
-    class: CWE-287
-  gpp-passwords:
-    name: GPP Passwords
-    description: Passwords in Group Policy Preferences
-    technical: true
-    class: CWE-312
-  unconstrained-deleg:
-    name: Unconstrained Delegation
-    description: Computer with unconstrained delegation enabled
-    technical: true
-    class: CWE-250
-  proxylogon:
-    name: ProxyLogon
-    description: CVE-2021-26855 Exchange Server SSRF
-    technical: true
-    class: CWE-918
-  open-smb-shares:
-    name: Open SMB Shares
-    description: Sensitive data on world-readable shares
-    technical: false
-    class: CWE-732
-  local-admin-reuse:
-    name: Local Admin Password Reuse
-    description: Same local admin password across workstations
-    technical: false
-    class: CWE-521
 """
 
 
@@ -916,7 +772,6 @@ nodes:
     source: nodejs-app
     resources: {ram: 2 gib, cpu: 2}
     features: {node-app: app-svc}
-    vulnerabilities: [ssrf-vuln]
     roles: {app-svc: node}
   app-server-2:
     type: compute
@@ -930,7 +785,6 @@ nodes:
     resources: {ram: 4 gib, cpu: 2}
     features: {postgres-db: dba}
     conditions: {pg-health: dba}
-    vulnerabilities: [weak-rds-creds]
     roles:
       dba: postgres
   onprem-dc:
@@ -938,7 +792,6 @@ nodes:
     source: windows-server-2019
     resources: {ram: 4 gib, cpu: 2}
     description: On-premises domain controller
-    vulnerabilities: [zerologon]
   onprem-workstation:
     type: compute
     source: windows-10
@@ -974,22 +827,6 @@ conditions:
     command: "pg_isready"
     interval: 10
 
-vulnerabilities:
-  ssrf-vuln:
-    name: SSRF to Metadata Service
-    description: SSRF allowing access to cloud metadata (169.254.169.254)
-    technical: true
-    class: CWE-918
-  weak-rds-creds:
-    name: Weak Database Credentials
-    description: Default RDS master password
-    technical: false
-    class: CWE-521
-  zerologon:
-    name: Zerologon (CVE-2020-1472)
-    description: Netlogon privilege escalation
-    technical: true
-    class: CWE-330
 """
 
 
@@ -1031,7 +868,6 @@ nodes:
       - port: 587
         protocol: tcp
         name: submission
-    vulnerabilities: [proxylogon]
     asset_value:
       confidentiality: high
       integrity: high
@@ -1086,13 +922,6 @@ features:
   ad-ds:
     type: Service
     source: adds-forest-root
-
-vulnerabilities:
-  proxylogon:
-    name: ProxyLogon (CVE-2021-26855)
-    description: Exchange Server SSRF leading to RCE
-    technical: true
-    class: CWE-918
 
 identity_domains:
   techvault:
@@ -1208,7 +1037,7 @@ nodes:
   op-net: {type: Switch}
   user0: {type: compute, os: linux, resources: {ram: 1 gib, cpu: 1}}
   user1: {type: compute, os: linux, resources: {ram: 1 gib, cpu: 1}}
-  enterprise0: {type: compute, os: linux, resources: {ram: 1 gib, cpu: 1}, vulnerabilities: [eternalblue]}
+  enterprise0: {type: compute, os: linux, resources: {ram: 1 gib, cpu: 1}}
   enterprise1: {type: compute, os: linux, resources: {ram: 1 gib, cpu: 1}}
   defender: {type: compute, os: linux, resources: {ram: 2 gib, cpu: 2}, features: {velociraptor: velo-admin}, roles: {velo-admin: ubuntu}}
   op-server0: {type: compute, os: linux, resources: {ram: 1 gib, cpu: 1}}
@@ -1226,9 +1055,6 @@ infrastructure:
 
 features:
   velociraptor: {type: Service, source: velociraptor-server}
-
-vulnerabilities:
-  eternalblue: {name: EternalBlue, description: MS17-010, technical: true, class: CWE-119}
 
 conditions:
   enterprise0-compromised:
@@ -1535,18 +1361,6 @@ relationships:
       protocol: SAML
       idp_type: on-premises
 
-vulnerabilities:
-  kerberoast:
-    name: Kerberoastable SPN
-    description: "Service account with weak password and SPN"
-    technical: true
-    class: CWE-916
-  gpp-passwords:
-    name: GPP Passwords
-    description: "Credentials in Group Policy Preferences"
-    technical: true
-    class: CWE-312
-
 entities:
   red-team: {name: Red Team, role: Red}
   blue-team: {name: Blue Team, role: Blue}
@@ -1639,10 +1453,9 @@ def test_scenario_parses_and_validates(label, yaml_str):
     has_features = bool(scenario.features)
     has_stories = bool(scenario.stories)
     has_entities = bool(scenario.entities)
-    has_vulns = bool(scenario.vulnerabilities)
     has_objectives = bool(scenario.objectives)
     has_content = bool(scenario.content)
-    assert any([has_nodes, has_features, has_stories, has_entities, has_vulns, has_objectives, has_content]), (
+    assert any([has_nodes, has_features, has_stories, has_entities, has_objectives, has_content]), (
         f"{label} parsed but has no content"
     )
 
@@ -1660,11 +1473,6 @@ def test_scenario_topology_integrity(label, yaml_str):
     for node_name, node in scenario.nodes.items():
         for feat_name in node.features:
             assert feat_name in scenario.features, f"{label}: node '{node_name}' refs missing feature '{feat_name}'"
-
-    # Every vulnerability reference should exist
-    for node_name, node in scenario.nodes.items():
-        for vuln_name in node.vulnerabilities:
-            assert vuln_name in scenario.vulnerabilities, f"{label}: node '{node_name}' refs missing vuln '{vuln_name}'"
 
 
 def test_objectives_are_exercised_in_stress_suite():

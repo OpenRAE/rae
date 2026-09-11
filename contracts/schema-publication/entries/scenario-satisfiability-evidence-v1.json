@@ -2,9 +2,9 @@
   "contract_id": "scenario-satisfiability-evidence-v1",
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft",
-  "content_hash": "d4e2851c5e069465ea7b3a1b6cd72884b025cae7c184ae6fdc6f7ce1c06985f1",
+  "content_hash": "995ac88a10e61b754b7d730848775ccdd0d9bd168b49b6fb822cdf5caa3aa37b",
   "last_change": {
-    "summary": "Embedded the scoped SDL observation-demand carrier for issue #1212.",
-    "content_hash": "d4e2851c5e069465ea7b3a1b6cd72884b025cae7c184ae6fdc6f7ce1c06985f1"
+    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "995ac88a10e61b754b7d730848775ccdd0d9bd168b49b6fb822cdf5caa3aa37b"
   }
 }

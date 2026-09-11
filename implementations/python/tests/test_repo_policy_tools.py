@@ -63,7 +63,7 @@ from tools.check_adr_immutability import (
 from tools.check_generated_schemas import _extra_published_schema_paths
 from tools.check_json_artifacts import ValidationTarget, collect_validation_targets, should_run_full_validation
 from tools.check_schema_publication import schema_content_hash, validate_schema_publication_manifest
-from tools.gitleaks_tool import _checksums_asset_name, _release_asset_name, gitleaks_binary_path
+from tools.gitleaks_tool import gitleaks_binary_path
 from tools.parallel_verification import VerificationLane, run_verification_lanes
 from tools.policy.common import PolicyFailure
 from tools.policy.conftest_tool import run_conftest_policy
@@ -2839,47 +2839,10 @@ def test_json_validation_batches_by_schema_and_runs_batches_concurrently(
     )
 
 
-def test_gitleaks_release_asset_names_match_platform_conventions(monkeypatch) -> None:
-    monkeypatch.setattr("platform.system", lambda: "Linux")
-    monkeypatch.setattr("platform.machine", lambda: "x86_64")
-
-    assert _release_asset_name("8.30.1") == "gitleaks_8.30.1_linux_x64.tar.gz"
-    assert _checksums_asset_name("8.30.1") == "gitleaks_8.30.1_checksums.txt"
-
-
 def test_gitleaks_binary_path_uses_repo_local_cache(tmp_path: Path) -> None:
     assert gitleaks_binary_path(tmp_path, version="8.30.1") == (
         tmp_path / ".cache" / "raes-sdl" / "tooling" / "gitleaks" / "8.30.1" / "gitleaks"
     )
-
-
-@pytest.mark.parametrize(
-    ("system", "machine", "expected"),
-    [
-        ("Linux", "x86_64", "osv-scanner_linux_amd64"),
-        ("Linux", "aarch64", "osv-scanner_linux_arm64"),
-        ("Darwin", "arm64", "osv-scanner_darwin_arm64"),
-    ],
-)
-def test_osv_scanner_release_asset_names_match_platform_conventions(
-    monkeypatch: pytest.MonkeyPatch, system: str, machine: str, expected: str
-) -> None:
-    monkeypatch.setattr("platform.system", lambda: system)
-    monkeypatch.setattr("platform.machine", lambda: machine)
-
-    # OSV-Scanner ships plain per-platform binaries, not archives.
-    assert osv_scanner_tool._release_asset_name() == expected
-
-
-@pytest.mark.parametrize("system", ["Windows", "Plan9"])
-def test_osv_scanner_release_asset_name_rejects_unsupported_platform(
-    monkeypatch: pytest.MonkeyPatch, system: str
-) -> None:
-    monkeypatch.setattr("platform.system", lambda: system)
-    monkeypatch.setattr("platform.machine", lambda: "x86_64")
-
-    with pytest.raises(RuntimeError, match="unsupported osv-scanner platform"):
-        osv_scanner_tool._release_asset_name()
 
 
 def test_osv_scanner_binary_path_uses_repo_local_cache(tmp_path: Path) -> None:
@@ -2888,24 +2851,26 @@ def test_osv_scanner_binary_path_uses_repo_local_cache(tmp_path: Path) -> None:
     )
 
 
-def test_osv_scanner_checksums_are_repository_pinned_for_every_admitted_asset() -> None:
-    assert osv_scanner_tool.OSV_SCANNER_SHA256["2.4.0"] == {
-        "osv-scanner_darwin_amd64": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66",
-        "osv-scanner_darwin_arm64": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d",
-        "osv-scanner_linux_amd64": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0",
-        "osv-scanner_linux_arm64": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9",
-    }
-
-
 def _pin_fake_osv_download(monkeypatch: pytest.MonkeyPatch, payload: bytes) -> None:
-    asset = "osv-scanner_darwin_arm64"
-    monkeypatch.setattr(osv_scanner_tool.platform, "system", lambda: "Darwin")
-    monkeypatch.setattr(osv_scanner_tool.platform, "machine", lambda: "arm64")
-    monkeypatch.setattr(
-        osv_scanner_tool,
-        "OSV_SCANNER_SHA256",
-        {"2.4.0": {asset: osv_scanner_tool.sha256(payload).hexdigest()}},
-    )
+    digest = osv_scanner_tool.sha256(payload).hexdigest()
+
+    def selection(**kwargs: object) -> object:
+        if kwargs.get("version") != "2.4.0":
+            raise RuntimeError("no reviewed lock selection")
+        return types.SimpleNamespace(
+            artifact_id="osv-scanner",
+            version="2.4.0",
+            platform_id="macos-arm64",
+            profile_id="public-macos-arm64",
+            repository="https://github.com/google/osv-scanner",
+            release="v2.4.0",
+            source_urls=("https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64",),
+            raw_manifest=(types.SimpleNamespace(path="osv-scanner_darwin_arm64", sha256=digest, size=len(payload)),),
+            installed_manifest=(types.SimpleNamespace(path="osv-scanner", sha256=digest, size=len(payload)),),
+        )
+
+    monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "macos-arm64")
+    monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
 
 
 def test_osv_scanner_valid_cache_hit_rehashes_without_network(
@@ -3108,20 +3073,21 @@ def test_osv_scanner_download_has_a_finite_timeout(monkeypatch: pytest.MonkeyPat
     }
 
 
-def test_osv_scanner_download_rejects_an_untrusted_release_url(
+def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    payload = b"reviewed-scanner"
-    _pin_fake_osv_download(monkeypatch, payload)
-    monkeypatch.setattr(osv_scanner_tool, "_release_base_url", lambda _version: "file:///tmp")
+    def reject_selection(**_kwargs: object) -> object:
+        raise RuntimeError("policy rejected unsafe source URL")
+
+    monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_selection)
     monkeypatch.setattr(
         osv_scanner_tool,
         "download_bytes",
         lambda _url, **_kwargs: pytest.fail("unsafe URL reached the network client"),
     )
 
-    with pytest.raises(RuntimeError, match="unsafe osv-scanner release URL"):
+    with pytest.raises(RuntimeError, match="policy rejected unsafe source URL"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3145,11 +3111,11 @@ def test_osv_scanner_unpinned_version_and_download_mismatch_fail_closed(
 ) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
-    with pytest.raises(RuntimeError, match="no repository-pinned checksum"):
+    with pytest.raises(RuntimeError, match="no reviewed lock selection"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path, version="9.9.9")
 
     monkeypatch.setattr(osv_scanner_tool, "download_bytes", lambda _url, **_kwargs: b"different")
-    with pytest.raises(RuntimeError, match="checksum mismatch"):
+    with pytest.raises(RuntimeError, match="checksum or size mismatch"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
     assert not osv_scanner_tool.osv_scanner_binary_path(tmp_path).exists()
 

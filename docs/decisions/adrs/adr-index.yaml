@@ -17,6 +17,9 @@ adrs:
       - date: 2026-07-11
         ref: "#721"
         summary: "Replaced implicit case-insensitive field parsing with strict sdl-yaml/v1, explicit diagnosed migration, an honest normalized-authoring-object schema boundary, and RFC 8785 semantic identity."
+      - date: 2026-09-09
+        ref: "#989"
+        summary: "Replace native vulnerability and classification sections with generic external concept bindings, preserving native execution semantics, explicit migration, and ordinary participant disclosure."
   - id: ADR-002
     path: docs/decisions/adrs/adr-002-declarative-sdl-objectives.md
     pin: 70db360e393dd0a02b0bed7aaa668a68ed6961eda0f9246905a536b9c6cba82c
@@ -523,6 +526,20 @@ adrs:
       - date: 2026-09-03
         ref: "#1151"
         summary: "Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation."
+  - id: ADR-106
+    path: docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md
+    pin: bc78a9a4b25f90572532084f1a4f5a254e969b21089b3c04a6876f84ee86536a
+    amendments:
+      - date: 2026-09-06
+        ref: "#1229"
+        summary: "Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest."
+  - id: ADR-107
+    path: docs/decisions/adrs/adr-107-artifact-promotion-and-release-admission.md
+    pin: 49c94a185d5bc012a246f3bffee067a9a043fa8ab662332f1d1354acdc97fb47
+    amendments:
+      - date: 2026-09-06
+        ref: "#1229"
+        summary: "Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
     pin: d734bb660e153dc6d97c1cbdc5d1079cc837d77d5874da84bd8e8d788c7edf80

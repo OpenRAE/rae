@@ -11,6 +11,7 @@ from raes import SDLInstantiationError, parse_sdl
 from raes_backend_protocols.capabilities import (
     BackendManifest,
     EvaluatorCapabilities,
+    ObservationCaptureOffer,
     OperatingSystemCompatibility,
     OrchestratorCapabilities,
     ProvisionerCapabilities,
@@ -123,11 +124,57 @@ def _limited_backend_manifest(
 
 def _os_capable_stub_manifest() -> BackendManifest:
     base = create_stub_manifest()
-    return _limited_backend_manifest(
+    assert base.observation is not None
+    observation = replace(
+        base.observation,
+        capture_offers=(
+            ObservationCaptureOffer(
+                offer_id="satcom-objective-truth-evidence",
+                offer_version="1.0.0",
+                output_contract="experiment-evidence-record-v1",
+                field_selectors=("",),
+                artifact_roles=frozenset({"proposition_truth_evidence"}),
+                media_types=frozenset({"application/json"}),
+                capture_kind="log",
+                source_classes=frozenset({"sdl-evidence-requirement"}),
+                source_refs=frozenset(
+                    {
+                        "nodes.customer-portal",
+                        "nodes.ci-runner",
+                        "nodes.telemetry-broker",
+                        "nodes.artifact-registry",
+                        "nodes.edge-gateway-east",
+                    }
+                ),
+                scopes=frozenset({"authored objective, event, workflow, and participant assertion evaluation"}),
+                channel_kinds=frozenset({"backend-log"}),
+                channel_refs=frozenset(),
+                window_kinds=frozenset({"assertion_evaluation"}),
+                integrity_modes=frozenset({"checksum"}),
+                sensitivity="plain",
+                availability="available",
+                fidelity="complete",
+                disclosure="redacted",
+                redaction_policy="redact_secrets",
+                retention_policy_refs=frozenset({"study_lifetime"}),
+                export_policy="not-required",
+            ),
+        ),
+    )
+    limited = _limited_backend_manifest(
         name="os-capable-stub",
         provisioner=base.provisioner,
         orchestrator=base.orchestrator,
         evaluator=base.evaluator,
+    )
+    return replace(
+        limited,
+        supported_contract_versions=(
+            limited.supported_contract_versions
+            | observation.supported_evidence_contracts
+            | frozenset(offer.output_contract for offer in observation.capture_offers)
+        ),
+        capabilities=replace(limited.capabilities, observation=observation),
     )
 
 

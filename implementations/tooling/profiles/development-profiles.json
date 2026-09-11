@@ -1,0 +1,84 @@
+{
+  "schema_version": "raes-development-profiles/v1",
+  "profiles": [
+    {
+      "profile_id": "public-linux-x86_64",
+      "contexts": ["public-contributor", "maintainer", "release"],
+      "platform": {
+        "canonical_id": "linux-x86_64",
+        "aliases": ["Linux-amd64", "Linux-x86_64", "linux-amd64", "linux-x86_64"]
+      },
+      "locator_classes": [
+        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
+      ],
+      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+    },
+    {
+      "profile_id": "public-linux-arm64",
+      "contexts": ["public-contributor", "maintainer"],
+      "platform": {
+        "canonical_id": "linux-arm64",
+        "aliases": ["Linux-aarch64", "Linux-arm64", "linux-aarch64", "linux-arm64"]
+      },
+      "locator_classes": [
+        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
+      ],
+      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+    },
+    {
+      "profile_id": "public-macos-x86_64",
+      "contexts": ["public-contributor", "maintainer"],
+      "platform": {
+        "canonical_id": "macos-x86_64",
+        "aliases": ["Darwin-amd64", "Darwin-x86_64", "macOS-amd64", "macos-x86_64"]
+      },
+      "locator_classes": [
+        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
+      ],
+      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+    },
+    {
+      "profile_id": "public-macos-arm64",
+      "contexts": ["public-contributor", "maintainer"],
+      "platform": {
+        "canonical_id": "macos-arm64",
+        "aliases": ["Darwin-aarch64", "Darwin-arm64", "macOS-arm64", "macos-arm64"]
+      },
+      "locator_classes": [
+        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
+      ],
+      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+    },
+    {
+      "profile_id": "proof-linux-x86_64",
+      "contexts": ["public-contributor", "maintainer", "release", "self-hosted"],
+      "platform": {
+        "canonical_id": "linux-x86_64",
+        "aliases": ["Linux-amd64", "Linux-x86_64", "linux-amd64", "linux-x86_64"]
+      },
+      "locator_classes": [
+        {"locator_id": "official-isabelle-release", "kind": "official-https", "trust_root_ref": "system-ca"},
+        {"locator_id": "official-isabelle-cambridge-mirror", "kind": "official-https", "trust_root_ref": "system-ca"}
+      ],
+      "supported_artifact_ids": ["isabelle"]
+    },
+    {
+      "profile_id": "source-snapshot",
+      "contexts": ["public-contributor", "maintainer", "release", "self-hosted"],
+      "platform": {
+        "canonical_id": "source-any",
+        "aliases": ["source-any"]
+      },
+      "locator_classes": [
+        {"locator_id": "official-source-snapshot", "kind": "official-https", "trust_root_ref": "system-ca"}
+      ],
+      "supported_artifact_ids": [
+        "atlas-tactics-snapshot",
+        "attack-enterprise-tactics-snapshot",
+        "fipa-communicative-acts-snapshot",
+        "nist-csf-defensive-categories-snapshot",
+        "w3c-activitystreams-activity-types-snapshot"
+      ]
+    }
+  ]
+}

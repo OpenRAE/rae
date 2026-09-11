@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from dataclasses import replace
 from datetime import UTC, datetime
 
@@ -22,6 +23,8 @@ def _utc_now() -> str:
 def reconcile_interrupted_operations(
     store_commits: ControlPlaneStoreCommitAdapter,
     operations: dict[str, ControlPlaneOperationRecord],
+    *,
+    operation_ids: Collection[str] | None = None,
 ) -> dict[str, ControlPlaneOperationRecord]:
     """Seal orphaned non-terminal records without replaying backend effects."""
 
@@ -29,7 +32,8 @@ def reconcile_interrupted_operations(
     interrupted = tuple(
         _interrupted_record(record, recovered_at)
         for record in operations.values()
-        if record.status.state in {OperationState.ACCEPTED, OperationState.RUNNING}
+        if (operation_ids is None or record.receipt.operation_id in operation_ids)
+        and record.status.state in {OperationState.ACCEPTED, OperationState.RUNNING}
     )
     if not interrupted:
         return operations
