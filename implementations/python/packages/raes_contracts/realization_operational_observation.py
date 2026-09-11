@@ -134,19 +134,34 @@ def _native_compute_substrate_observation_valid(
 ) -> bool:
     from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
-    return bool(
-        isinstance(envelope, BackendRealizationEnvelopeModel)
-        and isinstance(observation.value, str)
-        and observation.concern is RealizationConcern.COMPUTE_SUBSTRATE
-        and isinstance(observation.source, ObservationStrength)
-        and observation.source is not ObservationStrength.NONE
-        and observation.envelope_digest == envelope.digest
-        and observation.configuration_digest == envelope.configuration.configuration_digest
-        and isinstance(observation.observer_version, str)
-        and observation.observer_version.strip()
-        and isinstance(observation.sequence, int)
+    if not isinstance(envelope, BackendRealizationEnvelopeModel):
+        return False
+    return _native_observation_shape_valid(observation) and _native_observation_binding_valid(observation, envelope)
+
+
+def _native_observation_shape_valid(observation: object) -> bool:
+    valid_source = (
+        isinstance(observation.source, ObservationStrength) and observation.source is not ObservationStrength.NONE
+    )
+    valid_version = isinstance(observation.observer_version, str) and bool(observation.observer_version.strip())
+    valid_sequence = (
+        isinstance(observation.sequence, int)
         and not isinstance(observation.sequence, bool)
         and observation.sequence >= 0
+    )
+    return bool(
+        isinstance(observation.value, str)
+        and observation.concern is RealizationConcern.COMPUTE_SUBSTRATE
+        and valid_source
+        and valid_version
+        and valid_sequence
+    )
+
+
+def _native_observation_binding_valid(observation: object, envelope: object) -> bool:
+    return bool(
+        observation.envelope_digest == envelope.digest
+        and observation.configuration_digest == envelope.configuration.configuration_digest
         and observation.binding_verified is True
     )
 

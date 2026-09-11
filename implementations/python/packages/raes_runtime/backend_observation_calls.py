@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from copy import deepcopy
+from dataclasses import dataclass
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
@@ -19,47 +20,60 @@ from .observation_execution import (
 from .observation_results import PreparedObservationExecution
 
 
+@dataclass(frozen=True)
+class _ObservationApplyRequest:
+    address: str
+    snapshot: RuntimeSnapshot
+    plan: object
+    manifest: BackendManifest | None
+    runtime: ObservationRuntime | None
+    durable_lifecycle_available: bool = False
+    operation_id: str | None = None
+
+
+@dataclass(frozen=True)
+class _RuntimePlanApplyRequest:
+    address: str
+    execute_observation: bool = True
+    realization: _RealizationApplyContext | None = None
+    information_state_context_resolver: ParticipantInformationStateContextResolver | None = None
+
+
 def _call_backend_apply_with_observation(
     method: Callable[..., object],
     *args: object,
-    address: str,
-    snapshot: RuntimeSnapshot,
-    observation_plan: object,
-    observation_manifest: BackendManifest | None,
-    observation_runtime: ObservationRuntime | None,
-    durable_lifecycle_available: bool = False,
+    request: _ObservationApplyRequest,
     realization: _RealizationApplyContext | None = None,
-    operation_id: str | None = None,
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
 ) -> tuple[ApplyResult, PreparedObservationExecution | None]:
     """Apply backend work and observation policy behind one state boundary."""
 
     admission = observation_submission_diagnostic(
-        observation_plan,
-        observation_manifest,
-        observation_runtime,
-        durable_lifecycle_available=durable_lifecycle_available,
+        request.plan,
+        request.manifest,
+        request.runtime,
+        durable_lifecycle_available=request.durable_lifecycle_available,
     )
     if admission is not None:
-        return ApplyResult(success=False, snapshot=deepcopy(snapshot), diagnostics=[admission]), None
+        return ApplyResult(success=False, snapshot=deepcopy(request.snapshot), diagnostics=[admission]), None
     result = _call_backend_apply(
         method,
         *args,
-        address=address,
-        snapshot=snapshot,
+        address=request.address,
+        snapshot=request.snapshot,
         realization=realization,
-        operation_id=operation_id,
+        operation_id=request.operation_id,
         information_state_context_resolver=information_state_context_resolver,
     )
     execution = None
     if result.success:
         execution, diagnostic = execute_plan_observation_demand(
-            observation_plan,
+            request.plan,
             result.snapshot,
-            observation_manifest,
-            observation_runtime,
-            durable_lifecycle_available=durable_lifecycle_available,
-            operation_id=operation_id,
+            request.manifest,
+            request.runtime,
+            durable_lifecycle_available=request.durable_lifecycle_available,
+            operation_id=request.operation_id,
         )
         if diagnostic is not None:
             result = ApplyResult(
@@ -92,34 +106,38 @@ def _apply_runtime_plan_with_observation(
     plan: object,
     snapshot: RuntimeSnapshot,
     *,
-    address: str,
-    execute_observation: bool = True,
-    realization: _RealizationApplyContext | None = None,
-    information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
+    request: _RuntimePlanApplyRequest,
 ) -> ApplyResult:
-    if not execute_observation:
+    if not request.execute_observation:
         return _call_backend_apply(
             method,
             plan,
             snapshot,
-            address=address,
+            address=request.address,
             snapshot=snapshot,
-            realization=realization,
-            information_state_context_resolver=information_state_context_resolver,
+            realization=request.realization,
+            information_state_context_resolver=request.information_state_context_resolver,
         )
     result, _execution = _call_backend_apply_with_observation(
         method,
         plan,
         snapshot,
-        address=address,
-        snapshot=snapshot,
-        observation_plan=plan,
-        observation_manifest=target.manifest,
-        observation_runtime=target.observation_runtime,
-        realization=realization,
-        information_state_context_resolver=information_state_context_resolver,
+        request=_ObservationApplyRequest(
+            address=request.address,
+            snapshot=snapshot,
+            plan=plan,
+            manifest=target.manifest,
+            runtime=target.observation_runtime,
+        ),
+        realization=request.realization,
+        information_state_context_resolver=request.information_state_context_resolver,
     )
     return result
 
 
-__all__ = ["_apply_runtime_plan_with_observation", "_call_backend_apply_with_observation"]
+__all__ = [
+    "_ObservationApplyRequest",
+    "_RuntimePlanApplyRequest",
+    "_apply_runtime_plan_with_observation",
+    "_call_backend_apply_with_observation",
+]

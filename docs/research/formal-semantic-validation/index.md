@@ -54,12 +54,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   from release 3.0.0 are recorded. They include changed source/model/graph
   identities and a populated realization-designation record in the satisfiable
   witness; they are not asserted to be representation-only changes.
-- [`bundles/retest-v4.json`](bundles/retest-v4.json) is current release 5.0.0.
+- [`bundles/retest-v4.json`](bundles/retest-v4.json) preserves release 5.0.0.
   It retains the v2 protocol, corpus, and production evidence while binding
   [`execution-snapshot-v4.json`](execution-snapshot-v4.json) and
   [`analysis-v4.json`](analysis-v4.json). The scoped-observation carrier changes
   alter the two compile-control digests; both deviations are recorded against
   release 4.0.0 without broadening the preregistered claims.
+- [`bundles/retest-v5.json`](bundles/retest-v5.json) is current release 6.0.0.
+  It binds [`execution-snapshot-v5.json`](execution-snapshot-v5.json) and
+  [`analysis-v5.json`](analysis-v5.json) to the final scoped-observation source
+  state. The behavior-preserving remediation replays without result drift from
+  release 5.0.0.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -104,7 +109,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 5.0.0, rejects unsupported future
+Current validation requires explicit release 6.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

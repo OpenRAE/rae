@@ -22,7 +22,7 @@ from raes_contracts.runtime_state import (
 )
 
 from .backend_calls import _call_backend_apply, _RealizationApplyContext
-from .backend_observation_calls import _call_backend_apply_with_observation
+from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import ControlPlaneOperationRecord
 
@@ -311,13 +311,15 @@ def _execute_operation_locked(
         request.method,
         request.plan,
         snapshot,
-        address=request.address,
-        snapshot=snapshot,
-        observation_plan=request.plan,
-        observation_manifest=control_plane._target.manifest,
-        observation_runtime=control_plane._target.observation_runtime,
-        durable_lifecycle_available=control_plane._store_commits.crash_atomic,
-        operation_id=operation_id,
+        request=_ObservationApplyRequest(
+            address=request.address,
+            snapshot=snapshot,
+            plan=request.plan,
+            manifest=control_plane._target.manifest,
+            runtime=control_plane._target.observation_runtime,
+            durable_lifecycle_available=control_plane._store_commits.crash_atomic,
+            operation_id=operation_id,
+        ),
         realization=(
             _RealizationApplyContext(
                 plan=request.plan,

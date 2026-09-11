@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from dataclasses import dataclass
 
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage, ObservationSelector
@@ -21,20 +22,13 @@ class ObservationSelectorPattern:
     max_items: int | None = None
 
     def __post_init__(self) -> None:
-        if self.data_kind not in {"field", "stream", "artifact"}:
-            raise ValueError("observation selector pattern data_kind is invalid")
-        if not self.names or any(not name.strip() for name in self.names):
-            raise ValueError("observation selector pattern names must be non-empty")
-        if self.semantic_scope_prefix and not self.semantic_scope_prefix.startswith("/"):
-            raise ValueError("observation selector pattern scope prefix must be a semantic address")
-        if any(not prefix.strip() for prefix in self.component_ref_prefixes):
-            raise ValueError("observation selector pattern component prefixes must be non-empty")
-        if any(not window.strip() for window in self.window_refs):
-            raise ValueError("observation selector pattern window references must be non-empty")
-        if any(not profile.strip() for profile in self.coverage_profiles):
-            raise ValueError("observation selector pattern coverage profiles must be non-empty")
-        if self.max_items is not None and self.max_items < 1:
-            raise ValueError("observation selector pattern max_items must be positive")
+        _require_valid_data_kind(self.data_kind)
+        _require_selector_names(self.names)
+        _require_semantic_scope_prefix(self.semantic_scope_prefix)
+        _require_non_blank_values(self.component_ref_prefixes, "component prefixes")
+        _require_non_blank_values(self.window_refs, "window references")
+        _require_non_blank_values(self.coverage_profiles, "coverage profiles")
+        _require_positive_max_items(self.max_items)
 
     def matches(self, selector: ObservationSelector) -> bool:
         """Return whether one concrete normalized selector belongs to this family."""
@@ -116,6 +110,31 @@ def _coverage_matches(selector: ObservationSelector, pattern: ObservationSelecto
         and selector.max_items is not None
         and selector.max_items <= pattern.max_items
     )
+
+
+def _require_valid_data_kind(data_kind: str) -> None:
+    if data_kind not in {"field", "stream", "artifact"}:
+        raise ValueError("observation selector pattern data_kind is invalid")
+
+
+def _require_selector_names(names: Collection[str]) -> None:
+    if not names or any(not name.strip() for name in names):
+        raise ValueError("observation selector pattern names must be non-empty")
+
+
+def _require_non_blank_values(values: Collection[str], label: str) -> None:
+    if any(not value.strip() for value in values):
+        raise ValueError(f"observation selector pattern {label} must be non-empty")
+
+
+def _require_semantic_scope_prefix(prefix: str) -> None:
+    if prefix and not prefix.startswith("/"):
+        raise ValueError("observation selector pattern scope prefix must be a semantic address")
+
+
+def _require_positive_max_items(max_items: int | None) -> None:
+    if max_items is not None and max_items < 1:
+        raise ValueError("observation selector pattern max_items must be positive")
 
 
 __all__ = [

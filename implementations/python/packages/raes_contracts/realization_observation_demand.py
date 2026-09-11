@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from raes_contracts.observation_demand import (
+    EffectiveObservationDemand,
     ObservationDemandMode,
     ObservationLifecycleDecision,
     ObservationPurpose,
@@ -28,37 +29,73 @@ def compute_substrate_demand_applies(plan: object, constraint: object, *, stage:
         semantic_scope = semantic_scope[1:]
     concern = str(getattr(constraint, "concern", "") or getattr(constraint, "requirement_kind", "") or "")
     address = str(getattr(constraint, "address", "") or "")
-    applicable = tuple(
+    applicable = _applicable_demands(plan, semantic_scope)
+    return any(
+        _demand_selects_constraint(
+            demand,
+            applicable,
+            stage=stage,
+            semantic_scope=semantic_scope,
+            address=address,
+            concern=concern,
+        )
+        for demand in applicable
+    )
+
+
+def _applicable_demands(plan: object, semantic_scope: str) -> tuple[EffectiveObservationDemand, ...]:
+    return tuple(
         demand
         for demand in getattr(plan, "observation_demands", ())
         if semantic_address_contains(demand.scope, semantic_scope)
     )
-    for demand in applicable:
-        if demand.purpose is ObservationPurpose.REALIZATION_DESCRIPTION:
-            # Descriptions and their retention belong to the reporting adapter,
-            # not the native observation/realization validation channel.
-            continue
-        if any(
-            candidate.purpose is demand.purpose and candidate.scope.count("/") > demand.scope.count("/")
-            for candidate in applicable
-        ):
-            continue
-        if demand.purpose is ObservationPurpose.OPERATIONAL and stage != "collection":
-            continue
-        if demand.mode not in {
-            ObservationDemandMode.SELECTED,
-            ObservationDemandMode.EXHAUSTIVE,
-            ObservationDemandMode.OPERATIONAL_ONLY,
-        }:
-            continue
-        if getattr(demand, stage) is not ObservationLifecycleDecision.REQUIRE:
-            continue
-        for selector in demand.selectors:
-            if observation_field_selector_matches(
-                selector, semantic_scope=semantic_scope, address=address, names={concern}
-            ):
-                return True
-    return False
+
+
+def _demand_selects_constraint(
+    demand: EffectiveObservationDemand,
+    applicable: tuple[EffectiveObservationDemand, ...],
+    *,
+    stage: str,
+    semantic_scope: str,
+    address: str,
+    concern: str,
+) -> bool:
+    if not _demand_lifecycle_applies(demand, applicable, stage):
+        return False
+    return any(
+        observation_field_selector_matches(
+            selector,
+            semantic_scope=semantic_scope,
+            address=address,
+            names={concern},
+        )
+        for selector in demand.selectors
+    )
+
+
+def _demand_lifecycle_applies(
+    demand: EffectiveObservationDemand,
+    applicable: tuple[EffectiveObservationDemand, ...],
+    stage: str,
+) -> bool:
+    selecting_modes = {
+        ObservationDemandMode.SELECTED,
+        ObservationDemandMode.EXHAUSTIVE,
+        ObservationDemandMode.OPERATIONAL_ONLY,
+    }
+    narrower_policy_exists = any(
+        candidate.purpose is demand.purpose and candidate.scope.count("/") > demand.scope.count("/")
+        for candidate in applicable
+    )
+    description = demand.purpose is ObservationPurpose.REALIZATION_DESCRIPTION
+    invalid_operational_stage = demand.purpose is ObservationPurpose.OPERATIONAL and stage != "collection"
+    return bool(
+        not description
+        and not narrower_policy_exists
+        and not invalid_operational_stage
+        and demand.mode in selecting_modes
+        and getattr(demand, stage) is ObservationLifecycleDecision.REQUIRE
+    )
 
 
 def observation_field_selector_matches(selector: object, *, semantic_scope: str, address: str, names: set[str]) -> bool:

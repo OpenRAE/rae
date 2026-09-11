@@ -157,38 +157,9 @@ class ObservationDemandRule(ContractModel):
 
     @model_validator(mode="after")
     def _validate_rule(self) -> ObservationDemandRule:
-        if len(self.prohibited_stages) != len(set(self.prohibited_stages)):
-            raise ValueError("observation demand prohibited_stages must be unique")
-        if (
-            not any(
-                value is not None
-                for value in (
-                    self.mode,
-                    self.selector,
-                    self.collection,
-                    self.retention,
-                    self.export,
-                    self.basis,
-                    self.redaction,
-                    self.integrity,
-                )
-            )
-            and not self.prohibited_stages
-        ):
-            raise ValueError("observation demand rule must declare at least one policy axis")
-        if self.mode in {ObservationDemandMode.SELECTED, ObservationDemandMode.EXHAUSTIVE} and self.selector is None:
-            raise ValueError("selected and exhaustive observation demand require a selector")
-        if self.mode is ObservationDemandMode.EXHAUSTIVE and (
-            self.selector is None or self.selector.coverage_profile is None
-        ):
-            raise ValueError("exhaustive observation demand requires named finite coverage")
-        if (
-            self.purpose is ObservationPurpose.EXPERIMENTAL
-            and self.mode in {ObservationDemandMode.SELECTED, ObservationDemandMode.EXHAUSTIVE}
-            and (self.redaction is None or self.integrity is None)
-        ):
-            raise ValueError("selected experimental demand requires redaction and integrity policy")
-        return self
+        from .observation_demand_validation import validate_observation_demand_rule
+
+        return validate_observation_demand_rule(self)
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
@@ -298,34 +269,9 @@ class EffectiveObservationDemand(ContractModel):
 
     @model_validator(mode="after")
     def _validate_normal_form(self) -> EffectiveObservationDemand:
-        if self.mode is ObservationDemandMode.INHERIT:
-            raise ValueError("effective observation demand cannot retain inherited mode")
-        decisions = (self.collection, self.retention, self.export)
-        if any(
-            value in {ObservationLifecycleDecision.INHERIT, ObservationLifecycleDecision.FORBID} for value in decisions
-        ):
-            raise ValueError("effective observation demand must contain concrete lifecycle decisions")
-        if self.mode is ObservationDemandMode.NONE and (
-            self.selectors or any(value is ObservationLifecycleDecision.REQUIRE for value in decisions)
-        ):
-            raise ValueError("none observation demand cannot select or process data")
-        if self.mode in {ObservationDemandMode.SELECTED, ObservationDemandMode.EXHAUSTIVE} and not self.selectors:
-            raise ValueError("selecting observation demand requires selectors")
-        if self.mode is ObservationDemandMode.EXHAUSTIVE and any(
-            selector.coverage_profile is None or selector.max_items is None for selector in self.selectors
-        ):
-            raise ValueError("exhaustive observation demand requires named finite coverage")
-        if any(value is ObservationLifecycleDecision.REQUIRE for value in (self.retention, self.export)) and (
-            self.collection is not ObservationLifecycleDecision.REQUIRE
-        ):
-            raise ValueError("retention and export require collection")
-        if self.mode is ObservationDemandMode.OPERATIONAL_ONLY and (
-            self.purpose is not ObservationPurpose.OPERATIONAL
-            or self.retention is ObservationLifecycleDecision.REQUIRE
-            or self.export is ObservationLifecycleDecision.REQUIRE
-        ):
-            raise ValueError("operational-only demand cannot become retained or exported study data")
-        return self
+        from .observation_demand_validation import validate_effective_observation_demand
+
+        return validate_effective_observation_demand(self)
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
@@ -372,36 +318,6 @@ def normalize_observation_demands(
     from .observation_demand_resolution import resolve_observation_demands
 
     return resolve_observation_demands(document, target_scopes=target_scopes, limits=limits)
-
-
-def _validate_lifecycle_plan(
-    resolution: ObservationDemandResolution,
-    supported: frozenset[str],
-) -> None:
-    if not resolution.is_valid:
-        raise ValueError("invalid-observation-demand")
-    for demand in resolution.effective:
-        stages = set(demand.prohibited_stages)
-        decisions = {
-            ObservationLifecycleStage.COLLECTION: demand.collection,
-            ObservationLifecycleStage.RETENTION: demand.retention,
-            ObservationLifecycleStage.EXPORT: demand.export,
-        }
-        if any(
-            decision is ObservationLifecycleDecision.REQUIRE and stage in stages
-            for stage, decision in decisions.items()
-        ):
-            raise ValueError("required-prohibited-conflict")
-        if demand.collection is ObservationLifecycleDecision.REQUIRE:
-            for selector in demand.selectors:
-                if selector.key not in supported and demand.required:
-                    raise ValueError("unsupported-required-observation")
-                if demand.required and observation_selector_has_more_specific_policy(
-                    resolution.effective,
-                    demand,
-                    selector,
-                ):
-                    raise ValueError("required-observation-overlaps-more-specific-policy")
 
 
 def observation_selector_has_more_specific_policy(

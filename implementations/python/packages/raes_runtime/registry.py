@@ -18,11 +18,15 @@ from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 
 from . import time_coordinator as _time_coordinator
 from .observation_execution import ObservationRuntime
-from .observation_native import backend_selection_observation_runtime as backend_selection_observation_runtime
+from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
 
 ReferenceTimeRuntime = _time_coordinator.ReferenceTimeRuntime
 _TIME_CLOCK_PROBE = "time.clock.probe"
+
+
+def backend_selection_observation_runtime(manifest: BackendManifest) -> ObservationRuntime:
+    return _backend_selection_observation_runtime(manifest)
 
 
 @dataclass(frozen=True)

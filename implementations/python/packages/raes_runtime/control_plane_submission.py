@@ -66,15 +66,20 @@ def _submitted_plan_diagnostics(
         observation_runtime,
         durable_lifecycle_available=durable_lifecycle_available,
     )
-    if demand_diagnostic is not None:
-        return [demand_diagnostic]
-    for operation in plan.operations:
-        diagnostic = _submitted_operation_diagnostic(operation, domain, snapshot, admitted)
-        if diagnostic is not None:
-            return [diagnostic]
-    if domain is RuntimeDomain.PROVISIONING and isinstance(plan, ProvisioningPlan):
-        return _provisioning_submission_diagnostics(plan, snapshot, manifest)
-    return []
+    diagnostics = [demand_diagnostic] if demand_diagnostic is not None else []
+    if not diagnostics:
+        operation_diagnostic = next(
+            (
+                diagnostic
+                for operation in plan.operations
+                if (diagnostic := _submitted_operation_diagnostic(operation, domain, snapshot, admitted)) is not None
+            ),
+            None,
+        )
+        diagnostics = [operation_diagnostic] if operation_diagnostic is not None else []
+    if not diagnostics and domain is RuntimeDomain.PROVISIONING and isinstance(plan, ProvisioningPlan):
+        diagnostics = _provisioning_submission_diagnostics(plan, snapshot, manifest)
+    return diagnostics
 
 
 def _provisioning_submission_diagnostics(

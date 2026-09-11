@@ -88,7 +88,6 @@ def _participant_execution_diagnostics(
 
 
 def _observation_owner(
-    provisioning: object,
     evaluation: object,
     orchestration: object,
 ) -> RuntimeDomain:
@@ -200,7 +199,7 @@ def plan(
         provisioning=provisioning,
         orchestration=orchestration,
         evaluation=evaluation,
-        observation_owner=_observation_owner(provisioning, evaluation, orchestration),
+        observation_owner=_observation_owner(evaluation, orchestration),
         diagnostics=diagnostics,
         artifact_availability=artifact_availability or ArtifactAvailabilityContext(),
     )

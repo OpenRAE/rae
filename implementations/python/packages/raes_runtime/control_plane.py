@@ -1,9 +1,5 @@
 """Reference async-style control plane over runtime targets.
-
-This is a repo-owned, schema-oriented façade that exposes runtime execution as
-submitted operations over plain-data-compatible envelopes. The current
-implementation completes operations eagerly, but the contract surface matches an
-async control plane so non-Python runtimes can evolve behind the same API.
+Expose schema-oriented runtime execution as eagerly completed operations over an async-compatible API.
 """
 
 from __future__ import annotations

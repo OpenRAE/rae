@@ -18,7 +18,7 @@ from raes_processor.planner import plan, snapshot_delete_order
 
 from .apply_failure import maybe_synthesize_failure, rollback_services
 from .backend_calls import _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
-from .backend_observation_calls import _apply_runtime_plan_with_observation
+from .backend_observation_calls import _apply_runtime_plan_with_observation, _RuntimePlanApplyRequest
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 from .manager_plan_admission import runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
@@ -165,15 +165,17 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
             self._target.provisioner.apply,
             execution_plan.provisioning,
             state.working_snapshot,
-            address="runtime.apply.provisioning",
-            execute_observation=execution_plan.observation_owner is RuntimeDomain.PROVISIONING,
-            realization=_RealizationApplyContext(
-                requirements=execution_plan.model.realization_requirements,
-                plan=execution_plan.provisioning,
-                manifest=execution_plan.manifest,
-                artifact_availability=execution_plan.artifact_availability,
+            request=_RuntimePlanApplyRequest(
+                address="runtime.apply.provisioning",
+                execute_observation=execution_plan.observation_owner is RuntimeDomain.PROVISIONING,
+                realization=_RealizationApplyContext(
+                    requirements=execution_plan.model.realization_requirements,
+                    plan=execution_plan.provisioning,
+                    manifest=execution_plan.manifest,
+                    artifact_availability=execution_plan.artifact_availability,
+                ),
+                information_state_context_resolver=self._information_state_context_resolver,
             ),
-            information_state_context_resolver=self._information_state_context_resolver,
         )
         self._record_phase_result(state, provision_result)
         if not provision_result.success:
@@ -197,9 +199,11 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 self._target.evaluator.start,
                 execution_plan.evaluation,
                 state.working_snapshot,
-                address=_APPLY_EVALUATOR_ADDRESS,
-                execute_observation=execution_plan.observation_owner is RuntimeDomain.EVALUATION,
-                information_state_context_resolver=self._information_state_context_resolver,
+                request=_RuntimePlanApplyRequest(
+                    address=_APPLY_EVALUATOR_ADDRESS,
+                    execute_observation=execution_plan.observation_owner is RuntimeDomain.EVALUATION,
+                    information_state_context_resolver=self._information_state_context_resolver,
+                ),
             )
             self._record_phase_result(state, evaluation_result)
             if evaluation_result.success:
@@ -231,9 +235,11 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 self._target.orchestrator.start,
                 execution_plan.orchestration,
                 state.working_snapshot,
-                address=_APPLY_ORCHESTRATOR_ADDRESS,
-                execute_observation=execution_plan.observation_owner is RuntimeDomain.ORCHESTRATION,
-                information_state_context_resolver=self._information_state_context_resolver,
+                request=_RuntimePlanApplyRequest(
+                    address=_APPLY_ORCHESTRATOR_ADDRESS,
+                    execute_observation=execution_plan.observation_owner is RuntimeDomain.ORCHESTRATION,
+                    information_state_context_resolver=self._information_state_context_resolver,
+                ),
             )
             self._record_phase_result(state, orchestration_result)
             if not orchestration_result.success:

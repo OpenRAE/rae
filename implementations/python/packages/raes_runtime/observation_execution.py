@@ -11,8 +11,6 @@ from raes_contracts.observation_demand import (
     AchievedObservationValue,
     EffectiveObservationDemand,
     ObservationBasis,
-    ObservationDemandResolution,
-    ObservationLifecycleDecision,
     ObservationLifecycleItem,
     ObservationLifecycleStage,
     ObservationPurpose,
@@ -23,6 +21,15 @@ from raes_contracts.observation_demand import (
 )
 from raes_contracts.runtime_state import RuntimeSnapshot
 
+from .observation_admission import (
+    admitted_observation_resolution as _admitted_resolution,
+)
+from .observation_admission import (
+    capability_for_observation_selector as _capability_for,
+)
+from .observation_admission import (
+    observation_submission_diagnostic as observation_submission_diagnostic,
+)
 from .observation_capabilities import (
     ObservationRuntimeCapability,
     ObservationSelectorPattern,
@@ -40,6 +47,7 @@ Describer = Callable[[ObservationSelector, Plan, RuntimeSnapshot], AchievedObser
 Redactor = Callable[[tuple[object, ...]], tuple[object, ...]]
 IntegrityProvider = Callable[[str, tuple[object, ...]], str]
 EvidenceVerifier = Callable[[ObservationSelector, AchievedObservationValue, Plan, RuntimeSnapshot], bool]
+_OBSERVATION_ADDRESS = "runtime.observation-demand"
 
 
 class ObservationRuntime(Protocol):
@@ -85,9 +93,7 @@ class ConfiguredObservationRuntime:
         integrity_providers: Mapping[str, IntegrityProvider] | None = None,
         evidence_verifier: EvidenceVerifier | None = None,
     ) -> None:
-        keys = [capability.capability_id for capability in capabilities]
-        if len(keys) != len(set(keys)):
-            raise ValueError("observation runtime capabilities must have unique stable identities")
+        _require_unique_capability_ids(capabilities)
         self._capabilities = capabilities
         self._producers = dict(producers or {})
         self._describers = dict(describers or {})
@@ -95,21 +101,14 @@ class ConfiguredObservationRuntime:
         self._integrity_providers = dict(integrity_providers or {})
         self._evidence_verifier = evidence_verifier
         for capability in capabilities:
-            if (
-                ObservationLifecycleStage.COLLECTION in capability.stages
-                and capability.capability_id not in self._producers
-            ):
-                raise ValueError("collection capability requires a family producer")
-            if capability.bases and capability.capability_id not in self._describers:
-                raise ValueError("reporting-basis capability requires a family describer")
-            if not capability.redaction_policies.issubset(self._redactors):
-                raise ValueError("redaction capability requires trusted policy implementations")
-            if not capability.integrity_policies.issubset(self._integrity_providers):
-                raise ValueError("integrity capability requires trusted policy implementations")
-            if capability.bases.intersection({ObservationBasis.OBSERVED, ObservationBasis.INDEPENDENTLY_VERIFIED}) and (
-                evidence_verifier is None
-            ):
-                raise ValueError("observed reporting capability requires a trusted evidence verifier")
+            _validate_capability_callbacks(
+                capability,
+                producers=self._producers,
+                describers=self._describers,
+                redactors=self._redactors,
+                integrity_providers=self._integrity_providers,
+                evidence_verifier=evidence_verifier,
+            )
 
     @property
     def capabilities(self) -> tuple[ObservationRuntimeCapability, ...]:
@@ -160,71 +159,33 @@ class ConfiguredObservationRuntime:
         return bool(self._evidence_verifier is not None and self._evidence_verifier(selector, achieved, plan, snapshot))
 
 
-def observation_submission_diagnostic(
-    plan: object,
-    manifest: BackendManifest | None,
-    runtime: ObservationRuntime | None,
-    *,
-    durable_lifecycle_available: bool,
-) -> Diagnostic | None:
-    """Reject required demand lacking exact executable backend support."""
+def _require_unique_capability_ids(capabilities: tuple[ObservationRuntimeCapability, ...]) -> None:
+    keys = [capability.capability_id for capability in capabilities]
+    if len(keys) != len(set(keys)):
+        raise ValueError("observation runtime capabilities must have unique stable identities")
 
-    demands = tuple(getattr(plan, "observation_demands", ()))
-    for demand in demands:
-        conflict = _demand_conflict(demand)
-        if conflict is not None:
-            return conflict
-        if demand.export is ObservationLifecycleDecision.REQUIRE:
-            return Diagnostic(
-                code="observation.export-runtime-unavailable",
-                domain="runtime",
-                address=demand.scope or "runtime.observation-demand",
-                message="This runtime has no governed export delivery owner; export cannot be requested.",
-            )
-        executable_selectors = tuple(
-            selector
-            for selector in demand.selectors
-            if not observation_selector_has_more_specific_policy(demands, demand, selector)
-            and (capability := _capability_for(runtime, selector)) is not None
-            and _capability_admits(demand, capability, manifest)
-        )
-        if (
-            not durable_lifecycle_available
-            and executable_selectors
-            and any(decision is ObservationLifecycleDecision.REQUIRE for decision in (demand.retention, demand.export))
-        ):
-            return Diagnostic(
-                code="observation.durable-lifecycle-owner-unavailable",
-                domain="runtime",
-                address=demand.scope or "runtime.observation-demand",
-                message="Retention and export require a durable operation lifecycle owner.",
-            )
-        if not demand.required:
-            continue
-        for selector in demand.selectors:
-            if observation_selector_has_more_specific_policy(demands, demand, selector):
-                return Diagnostic(
-                    code="observation.required-selector-partitioned",
-                    domain="runtime",
-                    address=demand.scope or "runtime.observation-demand",
-                    message="Required broad selector overlaps a more-specific effective policy.",
-                )
-            capability = _capability_for(runtime, selector)
-            if capability is None or not _capability_admits(demand, capability, manifest):
-                return Diagnostic(
-                    code="observation.unsupported-required-selector",
-                    domain="runtime",
-                    address=demand.scope or "runtime.observation-demand",
-                    message=f"Backend cannot execute required observation selector '{selector.key}'.",
-                )
-        if demand.selectors and getattr(plan, "actionable_operations", ()):
-            return Diagnostic(
-                code="observation.required-execution-atomicity-unavailable",
-                domain="runtime",
-                address=demand.scope or "runtime.observation-demand",
-                message="Required observations cannot accompany backend mutation without a compensating execution owner.",
-            )
-    return None
+
+def _validate_capability_callbacks(
+    capability: ObservationRuntimeCapability,
+    *,
+    producers: Mapping[str, Producer],
+    describers: Mapping[str, Describer],
+    redactors: Mapping[str, Redactor],
+    integrity_providers: Mapping[str, IntegrityProvider],
+    evidence_verifier: EvidenceVerifier | None,
+) -> None:
+    capability_id = capability.capability_id
+    if ObservationLifecycleStage.COLLECTION in capability.stages and capability_id not in producers:
+        raise ValueError("collection capability requires a family producer")
+    if capability.bases and capability_id not in describers:
+        raise ValueError("reporting-basis capability requires a family describer")
+    if not capability.redaction_policies.issubset(redactors):
+        raise ValueError("redaction capability requires trusted policy implementations")
+    if not capability.integrity_policies.issubset(integrity_providers):
+        raise ValueError("integrity capability requires trusted policy implementations")
+    evidence_bases = {ObservationBasis.OBSERVED, ObservationBasis.INDEPENDENTLY_VERIFIED}
+    if capability.bases.intersection(evidence_bases) and evidence_verifier is None:
+        raise ValueError("observed reporting capability requires a trusted evidence verifier")
 
 
 def execute_plan_observation_demand(
@@ -246,10 +207,18 @@ def execute_plan_observation_demand(
         runtime,
         durable_lifecycle_available=durable_lifecycle_available,
     )
-    if diagnostic is not None:
+    if diagnostic is not None or runtime is None:
         return None, diagnostic
-    if runtime is None:
-        return None, None
+    return _execute_admitted_plan_observation(plan, snapshot, manifest, runtime, operation_id)
+
+
+def _execute_admitted_plan_observation(
+    plan: object,
+    snapshot: RuntimeSnapshot,
+    manifest: BackendManifest | None,
+    runtime: ObservationRuntime,
+    operation_id: str | None,
+) -> tuple[PreparedObservationExecution | None, Diagnostic | None]:
     resolution = _admitted_resolution(plan, manifest, runtime)
     selectors = {
         selector.key: selector
@@ -300,120 +269,17 @@ def execute_plan_observation_demand(
         return None, Diagnostic(
             code="observation.runtime-contract-invalid",
             domain="runtime",
-            address="runtime.observation-demand",
+            address=_OBSERVATION_ADDRESS,
             message="Observation runtime did not satisfy the admitted selector contract.",
         )
     except Exception as exc:
         return None, Diagnostic(
             code="observation.runtime-adapter-failed",
             domain="runtime",
-            address="runtime.observation-demand",
+            address=_OBSERVATION_ADDRESS,
             message=f"Observation runtime adapter did not complete ({type(exc).__name__}).",
         )
     return execution, None
-
-
-def _demand_conflict(demand: EffectiveObservationDemand) -> Diagnostic | None:
-    decisions = {
-        ObservationLifecycleStage.COLLECTION: demand.collection,
-        ObservationLifecycleStage.RETENTION: demand.retention,
-        ObservationLifecycleStage.EXPORT: demand.export,
-    }
-    conflict = next(
-        (
-            stage
-            for stage, decision in decisions.items()
-            if decision is ObservationLifecycleDecision.REQUIRE and stage in demand.prohibited_stages
-        ),
-        None,
-    )
-    if conflict is not None:
-        return Diagnostic(
-            code="observation.required-prohibited-conflict",
-            domain="runtime",
-            address=demand.scope or "runtime.observation-demand",
-            message=f"Required observation stage '{conflict.value}' is prohibited at this scope.",
-        )
-    if demand.purpose is ObservationPurpose.OPERATIONAL and any(
-        decision is ObservationLifecycleDecision.REQUIRE
-        for stage, decision in decisions.items()
-        if stage is not ObservationLifecycleStage.COLLECTION
-    ):
-        return Diagnostic(
-            code="observation.operational-persistence-conflict",
-            domain="runtime",
-            address=demand.scope or "runtime.observation-demand",
-            message="Operational-only inputs cannot be retained or exported as study data.",
-        )
-    return None
-
-
-def _capability_for(
-    runtime: ObservationRuntime | None,
-    selector: ObservationSelector,
-) -> ObservationRuntimeCapability | None:
-    if runtime is None:
-        return None
-    return resolve_observation_runtime_capability(runtime.capabilities, selector)
-
-
-def _capability_admits(
-    demand: EffectiveObservationDemand,
-    capability: ObservationRuntimeCapability,
-    manifest: BackendManifest | None,
-) -> bool:
-    observation = None if manifest is None else manifest.observation
-    required_stages = {
-        stage
-        for stage, decision in (
-            (ObservationLifecycleStage.COLLECTION, demand.collection),
-            (ObservationLifecycleStage.RETENTION, demand.retention),
-            (ObservationLifecycleStage.EXPORT, demand.export),
-        )
-        if decision is ObservationLifecycleDecision.REQUIRE
-    }
-    if demand.purpose is ObservationPurpose.REALIZATION_DESCRIPTION:
-        required_stages.discard(ObservationLifecycleStage.COLLECTION)
-    basis_ok = demand.purpose is not ObservationPurpose.REALIZATION_DESCRIPTION or any(
-        _basis_satisfies(achieved, demand.basis) for achieved in capability.bases
-    )
-    if observation is None:
-        return bool(
-            manifest is not None
-            and demand.purpose is ObservationPurpose.REALIZATION_DESCRIPTION
-            and demand.basis is ObservationBasis.BACKEND_SELECTED
-            and capability.bases == frozenset({ObservationBasis.BACKEND_SELECTED})
-            and required_stages.issubset(capability.stages)
-            and (demand.redaction in {None, "none"} or demand.redaction in capability.redaction_policies)
-            and (demand.integrity in {None, "none"} or demand.integrity in capability.integrity_policies)
-        )
-    return bool(
-        capability.capture_kind in observation.supported_capture_kinds
-        and capability.channel_kind in observation.supported_channel_kinds
-        and required_stages.issubset(capability.stages)
-        and basis_ok
-        and (
-            demand.redaction is None
-            or demand.redaction == "none"
-            or observation.supports_redaction
-            and demand.redaction in capability.redaction_policies
-        )
-        and (
-            demand.integrity is None
-            or demand.integrity == "none"
-            or demand.integrity in observation.supported_sealing_modes
-            and demand.integrity in capability.integrity_policies
-        )
-    )
-
-
-def _basis_satisfies(achieved: ObservationBasis, requested: ObservationBasis) -> bool:
-    strength = {
-        ObservationBasis.BACKEND_SELECTED: 0,
-        ObservationBasis.OBSERVED: 1,
-        ObservationBasis.INDEPENDENTLY_VERIFIED: 2,
-    }
-    return achieved in strength and requested in strength and strength[achieved] >= strength[requested]
 
 
 def _protect_description(
@@ -431,26 +297,6 @@ def _protect_description(
         achieved.evidence_ref,
         protected.integrity_ref,
     )
-
-
-def _admitted_resolution(
-    plan: object,
-    manifest: BackendManifest | None,
-    runtime: ObservationRuntime,
-) -> ObservationDemandResolution:
-    effective = []
-    for demand in plan.observation_demands:
-        selectors = tuple(
-            selector
-            for selector in demand.selectors
-            if (capability := _capability_for(runtime, selector)) is not None
-            and _capability_admits(demand, capability, manifest)
-        )
-        if selectors:
-            effective.append(demand.model_copy(update={"selectors": selectors}))
-        elif not demand.selectors:
-            effective.append(demand)
-    return ObservationDemandResolution(tuple(effective))
 
 
 __all__ = [

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from .diagnostics import Diagnostic
 from .observation_demand import (
@@ -17,15 +18,26 @@ from .observation_demand import (
     ObservationPurpose,
     ObservationSelector,
 )
+from .observation_demand_scope import (
+    clipped_observation_selector as _clipped_selector,
+)
+from .observation_demand_scope import (
+    observation_axis_winner as _axis_winner,
+)
+from .observation_demand_scope import (
+    observation_rule_depth as _depth,
+)
+from .observation_demand_scope import (
+    partition_descendant_observation_policies as _partition_descendant_policies,
+)
+from .observation_demand_scope import (
+    selector_lifecycle_overlap_conflicts as _lifecycle_overlap_conflicts,
+)
 from .realization_structure import RealizationConstraintLimits, semantic_address_contains
 
 
 def _scope_applies(parent: str, child: str) -> bool:
     return semantic_address_contains(parent, child)
-
-
-def _depth(rule: ObservationDemandRule) -> int:
-    return rule.scope.count("/")
 
 
 def _default_mode(purpose: ObservationPurpose) -> ObservationDemandMode:
@@ -91,49 +103,42 @@ def _selector_rules(rules: Sequence[ObservationDemandRule]) -> tuple[Observation
     return tuple(sorted(selected, key=lambda rule: (rule.authority_ref, rule.rule_id)))
 
 
-def _clipped_selector(selector: ObservationSelector, scope: str) -> ObservationSelector | None:
-    if semantic_address_contains(selector.semantic_scope, scope):
-        selected_scope = scope
-    elif semantic_address_contains(scope, selector.semantic_scope):
-        selected_scope = selector.semantic_scope
-    else:
-        return None
-    if any(semantic_address_contains(excluded, selected_scope) for excluded in selector.excluded_scopes):
-        return None
-    return selector.model_copy(
-        update={
-            "semantic_scope": selected_scope,
-            "excluded_scopes": tuple(
-                excluded for excluded in selector.excluded_scopes if semantic_address_contains(selected_scope, excluded)
-            ),
-        }
-    )
-
-
 def _policy_rules(
     applicable: Sequence[ObservationDemandRule],
     selected: ObservationDemandRule,
 ) -> tuple[ObservationDemandRule, ...]:
     """Keep selector policies local; selectorless authority rules govern the scope."""
 
-    return tuple(
-        rule
-        for rule in applicable
-        if rule is selected
-        or rule.authority_ref == selected.authority_ref
-        and (
-            rule.selector is None
-            or not rule.required
-            and rule.scope != selected.scope
-            and semantic_address_contains(rule.scope, selected.scope)
-        )
-        or rule.selector is None
-        and (
-            rule.required
-            or rule.prohibited_stages
-            or ObservationLifecycleDecision.FORBID in (rule.collection, rule.retention, rule.export)
-        )
+    return tuple(rule for rule in applicable if _rule_applies_to_selected_policy(rule, selected))
+
+
+def _rule_applies_to_selected_policy(rule: ObservationDemandRule, selected: ObservationDemandRule) -> bool:
+    if rule is selected:
+        return True
+    same_authority = rule.authority_ref == selected.authority_ref
+    inherited_authority_policy = (
+        rule.selector is None
+        or not rule.required
+        and rule.scope != selected.scope
+        and semantic_address_contains(rule.scope, selected.scope)
     )
+    independent_constraint = rule.selector is None and (
+        rule.required
+        or bool(rule.prohibited_stages)
+        or ObservationLifecycleDecision.FORBID in (rule.collection, rule.retention, rule.export)
+    )
+    return same_authority and inherited_authority_policy or independent_constraint
+
+
+@dataclass(frozen=True)
+class _ResolvedPolicyAxes:
+    collection: ObservationLifecycleDecision
+    retention: ObservationLifecycleDecision
+    export: ObservationLifecycleDecision
+    basis: ObservationBasis
+    redaction: str | None
+    integrity: str | None
+    origins: dict[str, str]
 
 
 def _effective_for(
@@ -144,86 +149,123 @@ def _effective_for(
     selected: ObservationDemandRule | None = None,
 ) -> EffectiveObservationDemand:
     applicable = tuple(rule for rule in rules if rule.purpose is purpose and _scope_applies(rule.scope, scope))
-    default_mode = (
-        ObservationDemandMode.SELECTED
-        if selected is not None and purpose is not ObservationPurpose.OPERATIONAL
-        else _default_mode(purpose)
-    )
+    default_mode = _selected_default_mode(selected, purpose)
     mode, mode_origin = _axis(applicable, "mode", default_mode, diagnostics, scope)
-    effective_rules = applicable
-    if mode is ObservationDemandMode.NONE:
-        mode_winner = _axis_winner(applicable, "mode")
-        if mode_winner is not None:
-            effective_rules = tuple(rule for rule in applicable if _depth(rule) >= _depth(mode_winner))
-    selector = (
-        _clipped_selector(selected.selector, scope)
-        if selected is not None and selected in effective_rules and selected.selector is not None
-        else None
-    )
+    effective_rules = _rules_at_effective_mode_depth(applicable, mode)
+    selector = _effective_selector(selected, effective_rules, scope)
     selectors = (selector,) if selector is not None else ()
-    default_collection = (
-        ObservationLifecycleDecision.REQUIRE
-        if purpose is not ObservationPurpose.REALIZATION_DESCRIPTION
-        and mode
-        in {ObservationDemandMode.SELECTED, ObservationDemandMode.EXHAUSTIVE, ObservationDemandMode.OPERATIONAL_ONLY}
-        and selectors
-        else ObservationLifecycleDecision.DISABLE
+    axes = _resolve_policy_axes(
+        effective_rules,
+        purpose=purpose,
+        mode=mode,
+        has_selectors=bool(selectors),
+        diagnostics=diagnostics,
+        scope=scope,
     )
-    collection, collection_origin = _axis(effective_rules, "collection", default_collection, diagnostics, scope)
-    retention, retention_origin = _axis(
-        effective_rules, "retention", ObservationLifecycleDecision.DISABLE, diagnostics, scope
+    mode, selectors, axes = _normalize_effective_axes(
+        mode,
+        selectors,
+        axes,
+        applicable=applicable,
+        diagnostics=diagnostics,
+        scope=scope,
     )
-    export, export_origin = _axis(effective_rules, "export", ObservationLifecycleDecision.DISABLE, diagnostics, scope)
-    basis, basis_origin = _axis(effective_rules, "basis", _default_basis(purpose), diagnostics, scope)
-    redaction, redaction_origin = _axis(effective_rules, "redaction", None, diagnostics, scope)
-    integrity, integrity_origin = _axis(effective_rules, "integrity", None, diagnostics, scope)
-    prohibited = tuple(
-        sorted(
-            {
-                *(stage for rule in applicable for stage in rule.prohibited_stages),
-                *(
-                    stage
-                    for rule in applicable
-                    for stage, decision in (
-                        (ObservationLifecycleStage.COLLECTION, rule.collection),
-                        (ObservationLifecycleStage.RETENTION, rule.retention),
-                        (ObservationLifecycleStage.EXPORT, rule.export),
-                    )
-                    if decision is ObservationLifecycleDecision.FORBID
-                ),
-            },
-            key=lambda stage: stage.value,
-        )
-    )
-    if mode is ObservationDemandMode.NONE:
-        if selectors or any(value is ObservationLifecycleDecision.REQUIRE for value in (collection, retention, export)):
-            diagnostics.append(_conflict(scope, "mode/lifecycle", applicable))
-        selectors = ()
-        collection = retention = export = ObservationLifecycleDecision.DISABLE
-    elif mode in {ObservationDemandMode.SELECTED, ObservationDemandMode.EXHAUSTIVE} and not selectors:
-        diagnostics.append(_conflict(scope, "mode/selectors", applicable))
-        mode = ObservationDemandMode.NONE
-        collection = retention = export = ObservationLifecycleDecision.DISABLE
-    if retention is ObservationLifecycleDecision.REQUIRE or export is ObservationLifecycleDecision.REQUIRE:
-        if collection is not ObservationLifecycleDecision.REQUIRE:
-            diagnostics.append(_conflict(scope, "collection/lifecycle", applicable))
-            retention = export = ObservationLifecycleDecision.DISABLE
     return EffectiveObservationDemand(
         scope=scope,
         purpose=purpose,
         mode=mode,
         selectors=selectors,
-        collection=collection,
-        retention=retention,
-        export=export,
-        basis=basis,
-        prohibited_stages=prohibited,
-        redaction=redaction,
-        integrity=integrity,
+        collection=axes.collection,
+        retention=axes.retention,
+        export=axes.export,
+        basis=axes.basis,
+        prohibited_stages=_prohibited_stages(applicable),
+        redaction=axes.redaction,
+        integrity=axes.integrity,
         required=any(rule.required for rule in applicable),
         origins={
             **({"selector": selected.rule_id, "authority": selected.authority_ref} if selected is not None else {}),
             "mode": mode_origin,
+            **axes.origins,
+        },
+    )
+
+
+def _selected_default_mode(
+    selected: ObservationDemandRule | None,
+    purpose: ObservationPurpose,
+) -> ObservationDemandMode:
+    if selected is not None and purpose is not ObservationPurpose.OPERATIONAL:
+        return ObservationDemandMode.SELECTED
+    return _default_mode(purpose)
+
+
+def _rules_at_effective_mode_depth(
+    applicable: tuple[ObservationDemandRule, ...],
+    mode: object,
+) -> tuple[ObservationDemandRule, ...]:
+    if mode is not ObservationDemandMode.NONE:
+        return applicable
+    winner = _axis_winner(applicable, "mode")
+    if winner is None:
+        return applicable
+    return tuple(rule for rule in applicable if _depth(rule) >= _depth(winner))
+
+
+def _effective_selector(
+    selected: ObservationDemandRule | None,
+    effective_rules: tuple[ObservationDemandRule, ...],
+    scope: str,
+) -> ObservationSelector | None:
+    if selected is None or selected not in effective_rules or selected.selector is None:
+        return None
+    return _clipped_selector(selected.selector, scope)
+
+
+def _default_collection(
+    purpose: ObservationPurpose,
+    mode: object,
+    has_selectors: bool,
+) -> ObservationLifecycleDecision:
+    collecting_mode = mode in {
+        ObservationDemandMode.SELECTED,
+        ObservationDemandMode.EXHAUSTIVE,
+        ObservationDemandMode.OPERATIONAL_ONLY,
+    }
+    if purpose is not ObservationPurpose.REALIZATION_DESCRIPTION and collecting_mode and has_selectors:
+        return ObservationLifecycleDecision.REQUIRE
+    return ObservationLifecycleDecision.DISABLE
+
+
+def _resolve_policy_axes(
+    rules: tuple[ObservationDemandRule, ...],
+    *,
+    purpose: ObservationPurpose,
+    mode: object,
+    has_selectors: bool,
+    diagnostics: list[Diagnostic],
+    scope: str,
+) -> _ResolvedPolicyAxes:
+    collection, collection_origin = _axis(
+        rules,
+        "collection",
+        _default_collection(purpose, mode, has_selectors),
+        diagnostics,
+        scope,
+    )
+    retention, retention_origin = _axis(rules, "retention", ObservationLifecycleDecision.DISABLE, diagnostics, scope)
+    export, export_origin = _axis(rules, "export", ObservationLifecycleDecision.DISABLE, diagnostics, scope)
+    basis, basis_origin = _axis(rules, "basis", _default_basis(purpose), diagnostics, scope)
+    redaction, redaction_origin = _axis(rules, "redaction", None, diagnostics, scope)
+    integrity, integrity_origin = _axis(rules, "integrity", None, diagnostics, scope)
+    return _ResolvedPolicyAxes(
+        collection=collection,
+        retention=retention,
+        export=export,
+        basis=basis,
+        redaction=redaction,
+        integrity=integrity,
+        origins={
             "collection": collection_origin,
             "retention": retention_origin,
             "export": export_origin,
@@ -234,51 +276,59 @@ def _effective_for(
     )
 
 
-def _axis_winner(rules: Sequence[ObservationDemandRule], axis: str) -> ObservationDemandRule | None:
-    declared = [
-        rule
+def _disabled_lifecycle_axes(axes: _ResolvedPolicyAxes) -> _ResolvedPolicyAxes:
+    return _ResolvedPolicyAxes(
+        collection=ObservationLifecycleDecision.DISABLE,
+        retention=ObservationLifecycleDecision.DISABLE,
+        export=ObservationLifecycleDecision.DISABLE,
+        basis=axes.basis,
+        redaction=axes.redaction,
+        integrity=axes.integrity,
+        origins=axes.origins,
+    )
+
+
+def _normalize_effective_axes(
+    mode: object,
+    selectors: tuple[ObservationSelector, ...],
+    axes: _ResolvedPolicyAxes,
+    *,
+    applicable: tuple[ObservationDemandRule, ...],
+    diagnostics: list[Diagnostic],
+    scope: str,
+) -> tuple[object, tuple[ObservationSelector, ...], _ResolvedPolicyAxes]:
+    lifecycle = (axes.collection, axes.retention, axes.export)
+    if mode is ObservationDemandMode.NONE:
+        if selectors or ObservationLifecycleDecision.REQUIRE in lifecycle:
+            diagnostics.append(_conflict(scope, "mode/lifecycle", applicable))
+        selectors = ()
+        axes = _disabled_lifecycle_axes(axes)
+    elif mode in {ObservationDemandMode.SELECTED, ObservationDemandMode.EXHAUSTIVE} and not selectors:
+        diagnostics.append(_conflict(scope, "mode/selectors", applicable))
+        mode = ObservationDemandMode.NONE
+        axes = _disabled_lifecycle_axes(axes)
+    elif ObservationLifecycleDecision.REQUIRE in (axes.retention, axes.export) and (
+        axes.collection is not ObservationLifecycleDecision.REQUIRE
+    ):
+        diagnostics.append(_conflict(scope, "collection/lifecycle", applicable))
+        axes = _disabled_lifecycle_axes(axes)
+    return mode, selectors, axes
+
+
+def _prohibited_stages(rules: Sequence[ObservationDemandRule]) -> tuple[ObservationLifecycleStage, ...]:
+    prohibited = {stage for rule in rules for stage in rule.prohibited_stages}
+    decisions = (
+        (ObservationLifecycleStage.COLLECTION, "collection"),
+        (ObservationLifecycleStage.RETENTION, "retention"),
+        (ObservationLifecycleStage.EXPORT, "export"),
+    )
+    prohibited.update(
+        stage
         for rule in rules
-        if getattr(rule, axis) is not None
-        and getattr(getattr(rule, axis), "value", getattr(rule, axis)) not in {"inherit", "forbid"}
-    ]
-    if not declared:
-        return None
-    mandatory = [rule for rule in declared if rule.required]
-    candidates = mandatory or [rule for rule in declared if _depth(rule) == max(map(_depth, declared))]
-    return min(candidates, key=lambda rule: (rule.authority_ref, rule.rule_id))
-
-
-def _partition_descendant_policies(
-    demands: tuple[EffectiveObservationDemand, ...],
-) -> tuple[EffectiveObservationDemand, ...]:
-    partitioned = []
-    for demand in demands:
-        selectors = []
-        for selector in demand.selectors:
-            if any(
-                candidate.purpose is demand.purpose
-                and candidate.scope != demand.scope
-                and candidate.scope == selector.semantic_scope
-                for candidate in demands
-            ):
-                # This narrower effective scope owns the entire selector region.
-                continue
-            descendant_scopes = {
-                candidate.scope
-                for candidate in demands
-                if candidate is not demand
-                and candidate.purpose is demand.purpose
-                and candidate.scope != selector.semantic_scope
-                and semantic_address_contains(selector.semantic_scope, candidate.scope)
-            }
-            selectors.append(
-                selector.model_copy(
-                    update={"excluded_scopes": tuple(sorted({*selector.excluded_scopes, *descendant_scopes}))}
-                )
-            )
-        if selectors or not demand.selectors:
-            partitioned.append(demand.model_copy(update={"selectors": tuple(selectors)}))
-    return tuple(partitioned)
+        for stage, axis in decisions
+        if getattr(rule, axis) is ObservationLifecycleDecision.FORBID
+    )
+    return tuple(sorted(prohibited, key=lambda stage: stage.value))
 
 
 def _scope_demands(
@@ -312,41 +362,6 @@ def _scope_demands(
             ):
                 diagnostics.append(_conflict(scope, "overlapping-selector/lifecycle", selected))
     return effective
-
-
-def _lifecycle_overlap_conflicts(
-    left: EffectiveObservationDemand,
-    right: EffectiveObservationDemand,
-    left_rules: Sequence[ObservationDemandRule],
-    right_rules: Sequence[ObservationDemandRule],
-) -> bool:
-    """Selector-local prohibitions still constrain other uses of the same data."""
-
-    if not any(_selectors_overlap(a, b) for a in left.selectors for b in right.selectors):
-        return False
-    for stage in ObservationLifecycleStage:
-        left_decision, right_decision = getattr(left, stage.value), getattr(right, stage.value)
-        if left_decision is ObservationLifecycleDecision.REQUIRE and stage in right.prohibited_stages:
-            return True
-        if right_decision is ObservationLifecycleDecision.REQUIRE and stage in left.prohibited_stages:
-            return True
-        if left.required and right.required and left_decision is not right_decision:
-            disabled_rules = left_rules if left_decision is ObservationLifecycleDecision.DISABLE else right_rules
-            if _axis_winner(disabled_rules, stage.value) is not None:
-                return True
-    return False
-
-
-def _selectors_overlap(left: ObservationSelector, right: ObservationSelector) -> bool:
-    if left.data_kind != right.data_kind or not set(left.names).intersection(right.names):
-        return False
-    if left.component_refs and right.component_refs and not set(left.component_refs).intersection(right.component_refs):
-        return False
-    # Distinct named windows are not proof of disjoint time intervals.
-    return (
-        _clipped_selector(left, right.semantic_scope) is not None
-        and _clipped_selector(right, left.semantic_scope) is not None
-    )
 
 
 def resolve_observation_demands(

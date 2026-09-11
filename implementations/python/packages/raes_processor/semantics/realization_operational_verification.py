@@ -28,17 +28,18 @@ def operational_verification_requirement(
 ) -> tuple[RealizationVerificationScope | None, ObservationStrength | None]:
     """Return the non-retained runtime verification floor for one concern."""
 
-    if concern_kind in _OPERATING_SYSTEM_KINDS:
-        return (
-            (RealizationVerificationScope.PRESENCE, ObservationStrength.GUEST_OBSERVED)
-            if authored_value
-            else (None, None)
-        )
-    if concern_kind == "forwarding-agents":
-        return _forwarding_agent_scope(authored_value), ObservationStrength.DAEMON_OBSERVED
-    if concern_kind in _GUEST_CONFIGURATION_KINDS:
-        return RealizationVerificationScope.CONFIGURATION, ObservationStrength.GUEST_OBSERVED
-    return None, None
+    scope: RealizationVerificationScope | None = None
+    strength: ObservationStrength | None = None
+    if concern_kind in _OPERATING_SYSTEM_KINDS and authored_value:
+        scope = RealizationVerificationScope.PRESENCE
+        strength = ObservationStrength.GUEST_OBSERVED
+    elif concern_kind == "forwarding-agents":
+        scope = _forwarding_agent_scope(authored_value)
+        strength = ObservationStrength.DAEMON_OBSERVED
+    elif concern_kind in _GUEST_CONFIGURATION_KINDS:
+        scope = RealizationVerificationScope.CONFIGURATION
+        strength = ObservationStrength.GUEST_OBSERVED
+    return scope, strength
 
 
 def _forwarding_agent_scope(value: object) -> RealizationVerificationScope:

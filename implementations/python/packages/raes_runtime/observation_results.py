@@ -83,26 +83,26 @@ def _item_metadata(item: ObservationLifecycleItem) -> ObservationLifecycleItem:
 def observation_execution_from_payload(payload: object) -> ObservationExecution | None:
     """Recover public observation results from one committed operation payload."""
 
-    if not isinstance(payload, dict) or payload.get("schema_version") != "observation-operation-result/v1":
-        return None
-    lifecycle = payload.get("lifecycle")
-    disclosures = payload.get("realized_form_disclosures")
-    if not isinstance(lifecycle, dict) or not isinstance(disclosures, list):
-        return None
-    try:
-        return ObservationExecution(
-            lifecycle=ObservationLifecycleResult(
-                collected=_metadata_items(lifecycle.get("collected")),
-                retained=_metadata_items(lifecycle.get("retained")),
-                exported=_metadata_items(lifecycle.get("exported")),
-                operational_count=int(lifecycle.get("operational_count", 0)),
-            ),
-            realized_form_disclosures=tuple(
-                ExperimentRealizedFormDisclosureModel.model_validate(item) for item in disclosures
-            ),
-        )
-    except (TypeError, ValueError):
-        return None
+    execution = None
+    if isinstance(payload, dict) and payload.get("schema_version") == "observation-operation-result/v1":
+        lifecycle = payload.get("lifecycle")
+        disclosures = payload.get("realized_form_disclosures")
+        if isinstance(lifecycle, dict) and isinstance(disclosures, list):
+            try:
+                execution = ObservationExecution(
+                    lifecycle=ObservationLifecycleResult(
+                        collected=_metadata_items(lifecycle.get("collected")),
+                        retained=_metadata_items(lifecycle.get("retained")),
+                        exported=_metadata_items(lifecycle.get("exported")),
+                        operational_count=int(lifecycle.get("operational_count", 0)),
+                    ),
+                    realized_form_disclosures=tuple(
+                        ExperimentRealizedFormDisclosureModel.model_validate(item) for item in disclosures
+                    ),
+                )
+            except (TypeError, ValueError):
+                execution = None
+    return execution
 
 
 def _metadata_items(value: object) -> tuple[ObservationLifecycleItem, ...]:

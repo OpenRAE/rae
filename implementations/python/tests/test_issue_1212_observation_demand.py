@@ -352,9 +352,10 @@ def test_unsupported_or_prohibited_required_work_fails_before_any_producer() -> 
             integrity="checksum",
         )
     )
+    unsupported_resolution = normalize_observation_demands(unsupported, target_scopes=("/links/red",))
     with pytest.raises(ValueError, match="unsupported-required-observation"):
         execute_observation_lifecycle(
-            normalize_observation_demands(unsupported, target_scopes=("/links/red",)),
+            unsupported_resolution,
             producers={packets.key: lambda: called.append("called") or ()},
             supported=frozenset(),
         )
@@ -380,9 +381,10 @@ def test_unsupported_or_prohibited_required_work_fails_before_any_producer() -> 
             integrity="checksum",
         ),
     )
+    conflict_resolution = normalize_observation_demands(conflict, target_scopes=("/links/red",))
     with pytest.raises(ValueError, match="required-prohibited-conflict"):
         execute_observation_lifecycle(
-            normalize_observation_demands(conflict, target_scopes=("/links/red",)),
+            conflict_resolution,
             producers={packets.key: lambda: called.append("called") or ()},
             supported=frozenset({packets.key}),
         )
@@ -493,23 +495,23 @@ def test_strong_reporting_basis_requires_trusted_evidence_bound_to_the_selected_
 
 def test_runtime_rejects_strong_reporting_capability_without_trusted_evidence_verifier() -> None:
     selector = _selector("/nodes/kali", "os_distribution", kind="field")
+    capability = _runtime_capability(
+        selector,
+        stages=frozenset(),
+        bases=frozenset({ObservationBasis.INDEPENDENTLY_VERIFIED}),
+    )
+    describers = {
+        _runtime_capability_id(selector): lambda _selector, _plan, _snapshot: AchievedObservationValue(
+            "Kali",
+            ObservationBasis.INDEPENDENTLY_VERIFIED,
+            evidence_ref="evidence:invented",
+        )
+    }
 
     with pytest.raises(ValueError, match="trusted evidence verifier"):
         ConfiguredObservationRuntime(
-            capabilities=(
-                _runtime_capability(
-                    selector,
-                    stages=frozenset(),
-                    bases=frozenset({ObservationBasis.INDEPENDENTLY_VERIFIED}),
-                ),
-            ),
-            describers={
-                _runtime_capability_id(selector): lambda _selector, _plan, _snapshot: AchievedObservationValue(
-                    "Kali",
-                    ObservationBasis.INDEPENDENTLY_VERIFIED,
-                    evidence_ref="evidence:invented",
-                )
-            },
+            capabilities=(capability,),
+            describers=describers,
         )
 
 
@@ -1264,7 +1266,8 @@ def test_required_observation_rejects_mutation_and_read_only_failure_is_terminal
     status = control_plane.get_operation(receipt.operation_id)
 
     assert receipt.accepted
-    assert status is not None and status.state.value == "failed"
+    assert status is not None
+    assert status.state.value == "failed"
     assert any(diagnostic.code == "observation.runtime-adapter-failed" for diagnostic in status.diagnostics)
     assert control_plane.snapshot.entries == {}
     assert status.changed_addresses == []
