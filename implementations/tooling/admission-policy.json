@@ -1,12 +1,12 @@
 {
   "schema_version": "raes-development-admission-policy/v1",
-  "policy_revision": "2026-09-06",
+  "policy_revision": "2026-09-07",
   "policies": [
     {
       "policy_id": "artifact-integrity-v1",
       "subject": "artifact",
       "status": "active",
-      "accepted_evidence": ["raw-sha256", "installed-sha256", "exact-size", "absent-signature-review", "reviewed-consumer-reference"],
+      "accepted_evidence": ["raw-sha256", "installed-sha256", "installed-runtime-identity", "exact-size", "absent-signature-review", "reviewed-consumer-reference"],
       "reviewer_roles": ["Security", "Tooling"]
     },
     {

@@ -1,0 +1,132 @@
+name: Bootstrap qualification
+
+on:
+  pull_request:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generic-tool-platforms:
+    name: ${{ matrix.profile }} T02/T08 (arm64 T12)
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu, no_binary_package: ""}
+          - {profile: public-linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, no_binary_package: ""}
+          - {profile: public-macos-x86_64, runner: macos-15-intel, target: x86_64-apple-darwin, no_binary_package: z3-solver}
+          - {profile: public-macos-arm64, runner: macos-15, target: aarch64-apple-darwin, no_binary_package: ""}
+    env:
+      UV_PYTHON: "3.14.7"
+      UV_PYTHON_PLATFORM: ${{ matrix.target }}
+      UV_NO_BINARY_PACKAGE: ${{ matrix.no_binary_package }}
+      RAES_EXPECTED_PYTHON: "3.14"
+      RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      UV_CACHE_DIR: ${{ github.workspace }}/.qualification-cache/uv
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14.7"
+      - name: Install exact uv payload
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          version: "0.12.4"
+          enable-cache: false
+      - name: Install frozen qualification environment
+        run: uv sync --project implementations/python --all-extras --frozen
+      - name: Validate reviewed bootstrap policy
+        env:
+          RAES_REQUIREMENT_UID: GOV-913
+        run: implementations/python/.venv/bin/python tools/check_tooling_artifact_policy.py
+      - name: Exercise supported Python wheel and ABI closure
+        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s python-compatibility
+      - name: Build the credential-free target payload kit
+        id: kit
+        run: |
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile generic-tools
+          mkdir -p .qualification-kit/bin .qualification-kit/python .qualification-kit/.cache/raes-sdl
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-fetch \
+            "${{ matrix.profile }}" .qualification-kit --artifact-id cpython-3.14 --artifact-id uv \
+            --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
+          cp "$(command -v uv)" .qualification-kit/bin/uv
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-install-python \
+            "${{ matrix.profile }}" .qualification-kit --python-artifact-id cpython-3.14
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-copy-tree \
+            .qualification-cache/uv .qualification-kit/uv-cache
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-copy-tree \
+            .cache/raes-sdl/tooling .qualification-kit/.cache/raes-sdl/tooling
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-manifest \
+            "${{ matrix.profile }}" .qualification-kit --python-artifact-id cpython-3.14 \
+            > .qualification-kit/offline-kit-manifest.json
+          manifest_sha256="$(implementations/python/.venv/bin/python -m tools.bootstrap_profile \
+            offline-kit-manifest-digest .qualification-kit/offline-kit-manifest.json)"
+          echo "manifest_sha256=${manifest_sha256}" >> "$GITHUB_OUTPUT"
+          tar -cf bootstrap-offline-kit.tar .qualification-kit
+      - name: Restore and exercise the payload kit without network fallback
+        run: |
+          rm -rf .qualification-kit .qualification-cache/uv .cache/raes-sdl/tooling .qualification-restored .qualification-runtime-cache
+          mkdir .qualification-restored
+          tar -xf bootstrap-offline-kit.tar -C .qualification-restored --strip-components=1
+          restored_root="${{ github.workspace }}/.qualification-restored"
+          restored_python="$(find "${restored_root}/python" -path '*/bin/python3.14' -print)"
+          test -n "${restored_python}"
+          cp -R "${restored_root}/uv-cache" .qualification-runtime-cache
+          export UV_PYTHON="${restored_python}"
+          export PATH="${restored_root}/bin:/usr/bin:/bin"
+          export UV_CACHE_DIR="${{ github.workspace }}/.qualification-runtime-cache"
+          export UV_PYTHON_INSTALL_DIR="${restored_root}/python"
+          export UV_PYTHON_DOWNLOADS=never
+          export UV_OFFLINE=1
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-verify \
+            "${{ matrix.profile }}" "${restored_root}" --python-artifact-id cpython-3.14 \
+            --trusted-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}"
+          rm -rf implementations/python/.venv
+          "${restored_root}/bin/uv" sync --project implementations/python --all-extras --frozen \
+            --python "${restored_python}"
+          "${restored_root}/bin/uv" tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s python-compatibility
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile record-case T02 "${{ github.sha }}" noxfile.py \
+            --artifact-id cpython-3.14 --artifact-id uv --artifact-id conftest --artifact-id gitleaks \
+            --artifact-id osv-scanner --artifact-id vale > t02-result.json
+          if [ "${{ matrix.profile }}" = public-linux-arm64 ] || [ "${{ matrix.profile }}" = public-macos-arm64 ]; then
+            implementations/python/.venv/bin/python -m tools.bootstrap_profile record-case T12 "${{ github.sha }}" \
+              tools/bootstrap_profile.py --artifact-id cpython-3.14 --artifact-id uv --artifact-id conftest \
+              --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale > t12-result.json
+          fi
+      - name: Exercise maintained curl behavior
+        run: |
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile inspect-profile "${{ matrix.profile }}"
+          implementations/python/.venv/bin/python -m pytest -q \
+            implementations/python/tests/test_issue_1217_bootstrap_profiles.py -m integration -k real_curl
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile record-case T08 "${{ github.sha }}" \
+            implementations/python/tests/test_issue_1217_bootstrap_profiles.py > t08-result.json
+      - name: Record exact measured profile evidence
+        run: |
+          mkdir .qualification-evidence-root
+          tar -xf bootstrap-offline-kit.tar -C .qualification-evidence-root --strip-components=1
+          case_results=(--case-result t02-result.json --case-result t08-result.json)
+          if [ -f t12-result.json ]; then
+            case_results+=(--case-result t12-result.json)
+          fi
+          implementations/python/.venv/bin/python -m tools.bootstrap_profile qualification-evidence \
+            "${{ matrix.profile }}" "${{ github.sha }}" \
+            "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
+            --python-artifact-id cpython-3.14 "${case_results[@]}" \
+            --offline-kit-root .qualification-evidence-root --offline-kit bootstrap-offline-kit.tar \
+            --offline-kit-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}" \
+            > bootstrap-qualification.json
+      - name: Retain bounded qualification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bootstrap-${{ matrix.profile }}-${{ github.sha }}
+          path: |
+            bootstrap-qualification.json
+            bootstrap-offline-kit.tar
+          if-no-files-found: error

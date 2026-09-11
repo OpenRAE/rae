@@ -2,6 +2,60 @@
   "schema_version": "raes-development-selector-bindings/v1",
   "bindings": [
     {
+      "binding_id": "cpython-3.11-workflow-payload",
+      "artifact_id": "cpython-3.11",
+      "authority_field": "version",
+      "consumers": [{"path": ".github/workflows/ci.yml", "template": "{feature: \"3.11\", payload: \"{selector}\"}"}]
+    },
+    {
+      "binding_id": "cpython-3.12-workflow-payload",
+      "artifact_id": "cpython-3.12",
+      "authority_field": "version",
+      "consumers": [
+        {"path": ".github/workflows/ci.yml", "template": "{feature: \"3.12\", payload: \"{selector}\"}"},
+        {"path": ".github/workflows/canonical-verification.yml", "template": "python-version: \"{selector}\""},
+        {"path": ".github/workflows/docs.yml", "template": "python-version: \"{selector}\""},
+        {"path": ".github/workflows/pr-body-policy.yml", "template": "python-version: \"{selector}\""},
+        {"path": ".github/workflows/pr-title-lint.yml", "template": "python-version: \"{selector}\""},
+        {"path": ".github/workflows/post-merge-closing-issue-audit.yml", "template": "python-version: \"{selector}\""},
+        {"path": ".github/workflows/release-please.yml", "template": "python-version: \"{selector}\""}
+      ]
+    },
+    {
+      "binding_id": "cpython-3.13-workflow-payload",
+      "artifact_id": "cpython-3.13",
+      "authority_field": "version",
+      "consumers": [{"path": ".github/workflows/ci.yml", "template": "{feature: \"3.13\", payload: \"{selector}\"}"}]
+    },
+    {
+      "binding_id": "cpython-3.14-workflow-payload",
+      "artifact_id": "cpython-3.14",
+      "authority_field": "version",
+      "consumers": [
+        {"path": ".github/workflows/ci.yml", "template": "{feature: \"3.14\", payload: \"{selector}\"}"},
+        {"path": ".github/workflows/bootstrap-qualification.yml", "template": "python-version: \"{selector}\""}
+      ]
+    },
+    {
+      "binding_id": "cpython-3.14t-workflow-payload",
+      "artifact_id": "cpython-3.14t",
+      "authority_field": "version",
+      "consumers": [{"path": ".github/workflows/python-free-threaded-preview.yml", "template": "python-version: {selector}t"}]
+    },
+    {
+      "binding_id": "uv-workflow-payload",
+      "artifact_id": "uv",
+      "authority_field": "version",
+      "consumers": [
+        {"path": ".github/workflows/ci.yml", "template": "version: \"{selector}\""},
+        {"path": ".github/workflows/canonical-verification.yml", "template": "version: \"{selector}\""},
+        {"path": ".github/workflows/bootstrap-qualification.yml", "template": "version: \"{selector}\""},
+        {"path": ".github/workflows/docs.yml", "template": "version: \"{selector}\""},
+        {"path": ".github/workflows/release-please.yml", "template": "version: \"{selector}\""},
+        {"path": ".github/workflows/python-free-threaded-preview.yml", "template": "version: \"{selector}\""}
+      ]
+    },
+    {
       "binding_id": "conftest-tool-version",
       "artifact_id": "conftest",
       "authority_field": "version",

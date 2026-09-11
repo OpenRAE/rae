@@ -150,7 +150,9 @@ def _runtime_selection_failures(
     locked_ids = {
         artifact.get("artifact_id")
         for artifact in as_list(lock.get("artifacts"))
-        if isinstance(artifact, Mapping) and isinstance(artifact.get("artifact_id"), str)
+        if isinstance(artifact, Mapping)
+        and isinstance(artifact.get("artifact_id"), str)
+        and artifact.get("artifact_class") != "bootstrap"
     }
     declared, failures = _runtime_declarations(bindings)
     observed, observation_failures = _runtime_observations(tracked_paths, python_scans)

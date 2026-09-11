@@ -37,7 +37,13 @@ def _profiles(
             continue
         profile_id = profile["profile_id"]
         if profile_id in profiles:
-            failures.append(failure("tooling-profile-duplicate", "duplicate development profile", PROFILES_PATH))
+            failures.append(
+                failure(
+                    "tooling-profile-duplicate",
+                    "duplicate development profile",
+                    PROFILES_PATH,
+                )
+            )
         profiles[profile_id] = profile
         canonical = as_mapping(profile.get("platform")).get("canonical_id")
         aliases = string_set(as_mapping(profile.get("platform")).get("aliases"))
@@ -64,7 +70,13 @@ def _policies(
             continue
         policy_id = policy["policy_id"]
         if policy_id in policies:
-            failures.append(failure("tooling-policy-duplicate", "duplicate admission policy id", ADMISSION_POLICY_PATH))
+            failures.append(
+                failure(
+                    "tooling-policy-duplicate",
+                    "duplicate admission policy id",
+                    ADMISSION_POLICY_PATH,
+                )
+            )
         policies[policy_id] = policy
     return policies, failures
 
@@ -78,7 +90,11 @@ def _artifact_metadata_failures(artifact_id: str, artifact: Mapping[str, Any]) -
     source = as_mapping(artifact.get("source"))
     if _is_mutable(artifact.get("version")):
         failures.append(
-            failure("tooling-mutable-selector", f"{artifact_id} uses a mutable version", ARTIFACT_LOCK_PATH)
+            failure(
+                "tooling-mutable-selector",
+                f"{artifact_id} uses a mutable version",
+                ARTIFACT_LOCK_PATH,
+            )
         )
     if _is_mutable(source.get("release")):
         failures.append(
@@ -116,7 +132,15 @@ def _artifact_policy_failures(
 ) -> list[PolicyFailure]:
     artifact_class = artifact.get("artifact_class")
     subjects = {"artifact"}
-    evidence = {"raw-sha256", "installed-sha256", "exact-size"}
+    evidence = {"raw-sha256", "exact-size"}
+    evidence.add(
+        "installed-runtime-identity"
+        if any(
+            isinstance(platform, Mapping) and isinstance(platform.get("installed_identity"), Mapping)
+            for platform in as_list(artifact.get("platforms"))
+        )
+        else "installed-sha256"
+    )
     if artifact_class == "source-snapshot":
         subjects = {"source-snapshot"}
         evidence.update({"checked-in-byte-sha256", "incumbent-source-digest"})
@@ -157,16 +181,30 @@ def _profile_link_failures(
 ) -> list[PolicyFailure]:
     profile = profiles.get(profile_id)
     if profile is None:
-        return [failure("tooling-profile-missing", f"{artifact_id} names an unknown profile", ARTIFACT_LOCK_PATH)]
+        return [
+            failure(
+                "tooling-profile-missing",
+                f"{artifact_id} names an unknown profile",
+                ARTIFACT_LOCK_PATH,
+            )
+        ]
     failures: list[PolicyFailure] = []
     canonical = as_mapping(profile.get("platform")).get("canonical_id")
     if not isinstance(canonical, str) or normalize_platform_id(canonical) != canonical_platform:
         failures.append(
-            failure("tooling-profile-platform", f"{artifact_id} profile platform does not match", ARTIFACT_LOCK_PATH)
+            failure(
+                "tooling-profile-platform",
+                f"{artifact_id} profile platform does not match",
+                ARTIFACT_LOCK_PATH,
+            )
         )
     if artifact_id not in string_set(profile.get("supported_artifact_ids")):
         failures.append(
-            failure("tooling-profile-support", f"{artifact_id} is not admitted by its profile", ARTIFACT_LOCK_PATH)
+            failure(
+                "tooling-profile-support",
+                f"{artifact_id} is not admitted by its profile",
+                ARTIFACT_LOCK_PATH,
+            )
         )
     locator_ids = {
         locator.get("locator_id")
@@ -250,7 +288,13 @@ def _manifest_entry_failures(
             )
         )
     if isinstance(digest, str) and digest in denied_digests:
-        failures.append(failure("tooling-digest-denied", f"{artifact_id} uses a denied digest", ARTIFACT_LOCK_PATH))
+        failures.append(
+            failure(
+                "tooling-digest-denied",
+                f"{artifact_id} uses a denied digest",
+                ARTIFACT_LOCK_PATH,
+            )
+        )
     if artifact_class == "source-snapshot" and manifest_name == "installed_manifest":
         failures.extend(_snapshot_manifest_failures(repo_root, relative_path, digest, entry.get("size")))
     return failures
@@ -260,6 +304,7 @@ def _manifest_failures(
     repo_root: Path,
     artifact_id: str,
     artifact_class: object,
+    artifact_version: object,
     platform: Mapping[str, Any],
     denied_digests: set[str],
 ) -> list[PolicyFailure]:
@@ -276,6 +321,176 @@ def _manifest_failures(
                     denied_digests,
                 )
             )
+    installed_identity = as_mapping(platform.get("installed_identity"))
+    if installed_identity:
+        if installed_identity.get("version") != artifact_version:
+            failures.append(
+                failure(
+                    "tooling-installed-identity-version",
+                    f"{artifact_id} installed identity differs from its locked version",
+                    ARTIFACT_LOCK_PATH,
+                )
+            )
+        target = installed_identity.get("target")
+        if not isinstance(target, str) or not target:
+            failures.append(
+                failure(
+                    "tooling-installed-identity-target",
+                    f"{artifact_id} lacks an installed target",
+                    ARTIFACT_LOCK_PATH,
+                )
+            )
+    return failures
+
+
+def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy failure independently.
+    document: Mapping[str, Any],
+    artifacts: Mapping[str, Mapping[str, Any]],
+) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
+    hosts: dict[str, Mapping[str, Any]] = {}
+    evidence: dict[str, Mapping[str, Any]] = {}
+    for value in as_list(document.get("qualification_records")):
+        record = as_mapping(value)
+        evidence_id = record.get("evidence_id")
+        if not isinstance(evidence_id, str):
+            continue
+        if evidence_id in evidence:
+            failures.append(
+                failure(
+                    "tooling-host-evidence-duplicate",
+                    "duplicate host qualification record",
+                    PROFILES_PATH,
+                )
+            )
+        evidence[evidence_id] = record
+    for value in as_list(document.get("host_profiles")):
+        host = as_mapping(value)
+        host_id = host.get("host_profile_id")
+        if not isinstance(host_id, str):
+            continue
+        if host_id in hosts:
+            failures.append(
+                failure(
+                    "tooling-host-profile-duplicate",
+                    "duplicate host profile",
+                    PROFILES_PATH,
+                )
+            )
+        hosts[host_id] = host
+        payload_ids = string_set(host.get("bootstrap_payload_ids"))
+        missing_artifacts = payload_ids - artifacts.keys()
+        missing_artifacts.update(string_set(as_mapping(host.get("offline_kit")).get("artifact_ids")) - artifacts.keys())
+        if missing_artifacts:
+            failures.append(
+                failure(
+                    "tooling-host-artifact",
+                    f"{host_id} references unknown bootstrap payloads",
+                    PROFILES_PATH,
+                )
+            )
+        platform_id = host.get("platform_id")
+        base_family = str(host.get("base_image_identity", ""))
+        if base_family.startswith("github-hosted-runner:"):
+            family_parts = base_family.split(":")
+            expected_arch = "X64" if str(platform_id).endswith("x86_64") else "ARM64"
+            expected_os_prefix = "ubuntu" if str(platform_id).startswith("linux-") else "macos"
+            family_matches = (
+                len(family_parts) == 3
+                and family_parts[1].startswith(expected_os_prefix)
+                and family_parts[2] == expected_arch
+                and host.get("native_repository_identity")
+                == f"github-hosted-runner-package-set:{family_parts[1]}:{family_parts[2]}"
+            )
+            if not family_matches:
+                failures.append(
+                    failure(
+                        "tooling-host-runner-family",
+                        f"{host_id} hosted-runner family does not match its canonical platform",
+                        PROFILES_PATH,
+                    )
+                )
+        for artifact_id in sorted(payload_ids & artifacts.keys()):
+            platform_matches = [
+                platform
+                for value in as_list(artifacts[artifact_id].get("platforms"))
+                if (platform := as_mapping(value))
+                and normalize_platform_id(str(platform.get("platform_id", "")))
+                == normalize_platform_id(str(platform_id))
+            ]
+            host_scoped_matches = [
+                platform
+                for platform in platform_matches
+                if not string_set(platform.get("host_profile_ids"))
+                or host_id in string_set(platform.get("host_profile_ids"))
+            ]
+            if not host_scoped_matches:
+                failures.append(
+                    failure(
+                        "tooling-host-artifact-platform",
+                        f"{host_id} has no qualified {artifact_id} payload for its platform",
+                        PROFILES_PATH,
+                    )
+                )
+        proof_support = host.get("proof_support")
+        if proof_support == "linux-x86_64-required" and platform_id != "linux-x86_64":
+            failures.append(
+                failure(
+                    "tooling-host-proof-platform",
+                    "native proof support is limited to Linux x86_64",
+                    PROFILES_PATH,
+                )
+            )
+        if proof_support == "linux-x86_64-required" and not {
+            "bubblewrap",
+            "fontconfig",
+            "fonts",
+            "locale-c-utf-8",
+        } <= string_set(host.get("required_capability_ids")):
+            failures.append(
+                failure(
+                    "tooling-host-proof-capability",
+                    "proof host omits required isolation capabilities",
+                    PROFILES_PATH,
+                )
+            )
+        for evidence_id in string_set(host.get("qualification_record_ids")):
+            record = evidence.get(evidence_id)
+            if record is None or record.get("host_profile_id") != host_id:
+                failures.append(
+                    failure(
+                        "tooling-host-evidence-reference",
+                        f"{host_id} references mismatched evidence",
+                        PROFILES_PATH,
+                    )
+                )
+    for evidence_id, record in evidence.items():
+        if record.get("host_profile_id") not in hosts:
+            failures.append(
+                failure(
+                    "tooling-host-evidence-host",
+                    f"{evidence_id} names an unknown host profile",
+                    PROFILES_PATH,
+                )
+            )
+            continue
+        host = hosts[str(record["host_profile_id"])]
+        if (
+            str(host.get("base_image_identity", "")).startswith("github-hosted-runner:")
+            and record.get("outcome") == "passed"
+            and (
+                not str(record.get("base_image_identity", "")).startswith("github-runner:")
+                or not str(record.get("native_repository_identity", "")).startswith("github-runner-package-set:")
+            )
+        ):
+            failures.append(
+                failure(
+                    "tooling-host-evidence-observation",
+                    f"{evidence_id} passed without exact observed hosted-runner identities",
+                    PROFILES_PATH,
+                )
+            )
+    failures.extend(walk_forbidden_keys(document, path=PROFILES_PATH))
     return failures
 
 
@@ -308,6 +523,7 @@ def _platform_failures(
             repo_root,
             artifact_id,
             artifact.get("artifact_class"),
+            artifact.get("version"),
             platform,
             denied_digests,
         )
@@ -377,7 +593,7 @@ def _artifact_platform_failures(
     artifact: Mapping[str, Any],
     profiles: Mapping[str, Mapping[str, Any]],
     denied_digests: set[str],
-    identities: set[tuple[str, str]],
+    identities: set[tuple[str, str, str]],
     dependency_graph: dict[str, set[str]],
 ) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
@@ -386,12 +602,17 @@ def _artifact_platform_failures(
         platform_id = platform.get("platform_id")
         if not isinstance(platform_id, str):
             continue
-        identity = (artifact_id, normalize_platform_id(platform_id))
+        distribution_id = platform.get("distribution_id")
+        identity = (
+            artifact_id,
+            normalize_platform_id(platform_id),
+            distribution_id if isinstance(distribution_id, str) else "",
+        )
         if identity in identities:
             failures.append(
                 failure(
                     "tooling-artifact-identity-duplicate",
-                    f"duplicate canonical artifact/platform identity for {artifact_id}",
+                    f"duplicate canonical artifact/platform/distribution identity for {artifact_id}",
                     ARTIFACT_LOCK_PATH,
                 )
             )
@@ -409,19 +630,32 @@ def artifact_failures(repo_root: Path, documents: Mapping[str, dict[str, Any]]) 
         return []
     profiles, profile_failures = _profiles(documents.get(PROFILES_PATH) or {})
     policies, admission_failures = _policies(documents.get(ADMISSION_POLICY_PATH) or {})
-    failures = [*walk_forbidden_keys(lock), *profile_failures, *admission_failures]
+    failures = [
+        *walk_forbidden_keys(lock, path=ARTIFACT_LOCK_PATH),
+        *profile_failures,
+        *admission_failures,
+        *walk_forbidden_keys(documents.get(ADMISSION_POLICY_PATH) or {}, path=ADMISSION_POLICY_PATH),
+    ]
     denied_digests = string_set((documents.get(ADMISSION_POLICY_PATH) or {}).get("denied_digests"))
     artifact_ids: list[str] = []
     dependency_graph: dict[str, set[str]] = {}
-    identities: set[tuple[str, str]] = set()
+    identities: set[tuple[str, str, str]] = set()
+    artifacts: dict[str, Mapping[str, Any]] = {}
     for artifact_value in as_list(lock.get("artifacts")):
         artifact = as_mapping(artifact_value)
         artifact_id = artifact.get("artifact_id")
         if not isinstance(artifact_id, str):
             continue
         if artifact_id in artifact_ids:
-            failures.append(failure("tooling-artifact-duplicate", "duplicate artifact id", ARTIFACT_LOCK_PATH))
+            failures.append(
+                failure(
+                    "tooling-artifact-duplicate",
+                    "duplicate artifact id",
+                    ARTIFACT_LOCK_PATH,
+                )
+            )
         artifact_ids.append(artifact_id)
+        artifacts[artifact_id] = artifact
         dependency_graph.setdefault(artifact_id, set())
         failures.extend(_artifact_metadata_failures(artifact_id, artifact))
         failures.extend(_artifact_policy_failures(artifact_id, artifact, policies))
@@ -438,4 +672,5 @@ def artifact_failures(repo_root: Path, documents: Mapping[str, dict[str, Any]]) 
         )
     known_artifacts = set(artifact_ids)
     failures.extend(_graph_failures(known_artifacts, dependency_graph, profiles))
+    failures.extend(_host_profile_failures(documents.get(PROFILES_PATH) or {}, artifacts))
     return failures

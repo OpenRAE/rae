@@ -32,6 +32,8 @@ from tools.check_tooling_artifact_policy import (
     evaluate_tooling_artifact_policy,
     normalize_platform_id,
     select_tooling_artifact,
+    select_tooling_host_profile,
+    tooling_policy_sha256,
 )
 from tools.policy import conftest_tool
 from tools.tooling_policy_gate import LockedArtifactSelection, LockedManifestEntry
@@ -113,7 +115,7 @@ def _seed_policy(root: Path) -> Path:
         root,
         PROFILES_PATH,
         {
-            "schema_version": "raes-development-profiles/v1",
+            "schema_version": "raes-development-profiles/v2",
             "profiles": [
                 {
                     "profile_id": "public-linux-x86_64",
@@ -130,6 +132,48 @@ def _seed_policy(root: Path) -> Path:
                         }
                     ],
                     "supported_artifact_ids": ["tool-a"],
+                }
+            ],
+            "host_profiles": [
+                {
+                    "host_profile_id": "fixture-linux-x86_64",
+                    "platform_id": "linux-x86_64",
+                    "contexts": ["public-contributor"],
+                    "native_family": "ubuntu-apt",
+                    "base_image_identity": "fixture-image:1",
+                    "native_repository_identity": "fixture-repository:1",
+                    "trust_root_refs": ["fixture-root"],
+                    "credential_refs": [],
+                    "bootstrap_payload_ids": ["tool-a"],
+                    "required_capability_ids": ["git"],
+                    "proof_support": "unsupported",
+                    "host_security_control_changes": "prohibited",
+                    "offline_kit": {
+                        "kit_id": "fixture-kit",
+                        "credential_free": True,
+                        "network_fallback": "prohibited",
+                        "artifact_ids": ["tool-a"],
+                        "host_prerequisite_package_ids": ["git"],
+                        "host_trust_root_refs": ["fixture-root"],
+                    },
+                    "qualification_record_ids": ["fixture-evidence"],
+                }
+            ],
+            "qualification_records": [
+                {
+                    "evidence_id": "fixture-evidence",
+                    "host_profile_id": "fixture-linux-x86_64",
+                    "test_case_ids": ["T01"],
+                    "implementation_revision": "a" * 40,
+                    "observed_at": "2026-09-07T00:00:00Z",
+                    "context": "fixture",
+                    "outcome": "passed",
+                    "base_image_identity": "fixture-image:1",
+                    "native_repository_identity": "fixture-repository:1",
+                    "policy_sha256": _SHA_A,
+                    "capability_results": [{"capability_id": "git", "outcome": "passed", "observed_identity": "git:1"}],
+                    "evidence_location": "fixture:evidence",
+                    "evidence_sha256": _SHA_B,
                 }
             ],
         },
@@ -224,6 +268,9 @@ def _seed_policy(root: Path) -> Path:
             "acquisition_paths": [],
         },
     )
+    profiles = _load(root, PROFILES_PATH)
+    profiles["qualification_records"][0]["policy_sha256"] = tooling_policy_sha256(root)
+    _write_json(root, PROFILES_PATH, profiles)
     return root
 
 
@@ -253,6 +300,26 @@ def test_seeded_policy_has_no_failures(tmp_path: Path) -> None:
         )
         == []
     )
+
+
+def test_policy_digest_binds_host_policy_and_every_authority(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    original = tooling_policy_sha256(root)
+    profiles = _load(root, PROFILES_PATH)
+    profiles["host_profiles"][0]["required_capability_ids"].append("sha256")
+    _write_json(root, PROFILES_PATH, profiles)
+    assert tooling_policy_sha256(root) != original
+    assert "tooling-host-evidence-policy" in _failures(root)
+
+
+def test_policy_digest_excludes_qualification_result_records(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    original = tooling_policy_sha256(root)
+    profiles = _load(root, PROFILES_PATH)
+    profiles["qualification_records"][0]["policy_sha256"] = "f" * 64
+    profiles["qualification_records"][0]["evidence_sha256"] = "e" * 64
+    _write_json(root, PROFILES_PATH, profiles)
+    assert tooling_policy_sha256(root) == original
 
 
 def test_python_discovery_parses_each_tracked_source_once(
@@ -300,6 +367,39 @@ def test_selection_launcher_uses_frozen_uv_without_a_project_venv(
     assert tooling_policy_gate._VALIDATOR_TIMEOUT_SECONDS == 180
 
 
+def test_host_selection_launcher_rejects_an_unbound_validator_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = {
+        "host_profile": {
+            "host_profile_id": "host-a",
+            "platform_id": "linux-x86_64",
+            "bootstrap_payload_ids": ["uv"],
+        },
+        "artifacts": [
+            {
+                "artifact_id": "uv",
+                "artifact_class": "bootstrap",
+                "version": "1.0.0",
+                "source": {"repository": "https://example.invalid", "release": "v1.0.0"},
+                "platform": {
+                    "platform_id": "linux-x86_64",
+                    "host_profile_ids": ["host-a"],
+                    "source_urls": ["https://example.invalid/uv"],
+                    "raw_manifest": [{"path": "uv.tar.gz", "sha256": _SHA_A, "size": 1}],
+                    "installed_manifest": [{"path": "uv", "sha256": _SHA_A, "size": 1}],
+                },
+            }
+        ],
+        "policy_sha256": _SHA_A,
+    }
+    monkeypatch.setattr(tooling_policy_gate, "_frozen_validator_command", lambda _root: ["validator"])
+    monkeypatch.setattr(tooling_policy_gate, "_validator_host_stdout", lambda *_args, **_kwargs: json.dumps(response))
+    assert tooling_policy_gate.load_tooling_host_profile_selection("host-a") == response
+    response["artifacts"].append({"artifact_id": "uv"})
+    with pytest.raises(RuntimeError, match="invalid host selection response"):
+        tooling_policy_gate.load_tooling_host_profile_selection("host-a")
+
+
+@pytest.mark.integration
 def test_repository_discovery_uses_only_git_tracked_paths(tmp_path: Path) -> None:
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     (tmp_path / "tracked.py").write_text("pass\n", encoding="utf-8")
@@ -369,7 +469,7 @@ def test_artifact_contract_rejects_incomplete_or_executable_records(
 
 @pytest.mark.parametrize(
     "manifest_path",
-    ["/tmp/tool-a", "../tool-a", "nested/../tool-a", r"C:\\tool-a", r"nested\\tool-a"],
+    ["/absolute/tool-a", "../tool-a", "nested/../tool-a", r"C:\\tool-a", r"nested\\tool-a"],
 )
 def test_manifest_paths_must_be_normalized_portable_relative_paths(
     tmp_path: Path,
@@ -443,6 +543,45 @@ def test_duplicate_profiles_and_cross_platform_aliases_are_rejected(tmp_path: Pa
     _write_json(root, PROFILES_PATH, profiles)
     failures = _failures(root)
     assert {"tooling-profile-alias", "tooling-profile-duplicate"} <= failures
+
+
+def test_host_profiles_fail_closed_on_unknown_payload_evidence_and_proof_platform(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    profiles = _load(root, PROFILES_PATH)
+    host = profiles["host_profiles"][0]
+    host["bootstrap_payload_ids"] = ["missing-payload"]
+    host["qualification_record_ids"] = ["missing-evidence"]
+    host["platform_id"] = "macos-arm64"
+    host["proof_support"] = "linux-x86_64-required"
+    _write_json(root, PROFILES_PATH, profiles)
+    failures = _failures(root)
+    assert {
+        "tooling-host-artifact",
+        "tooling-host-evidence-reference",
+        "tooling-host-proof-platform",
+        "tooling-host-proof-capability",
+    } <= failures
+
+
+def test_bootstrap_installed_identity_must_match_locked_version(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    artifact = lock["artifacts"][0]
+    artifact["artifact_class"] = "bootstrap"
+    artifact["support_level"] = "blocking"
+    platform = artifact["platforms"][0]
+    platform.pop("installed_manifest")
+    platform["installed_identity"] = {
+        "implementation": "fixture",
+        "version": "2.0.0",
+        "abi": "native",
+        "target": "linux-x86_64",
+    }
+    admission = _load(root, "implementations/tooling/admission-policy.json")
+    admission["policies"][0]["accepted_evidence"].append("installed-runtime-identity")
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+    _write_json(root, "implementations/tooling/admission-policy.json", admission)
+    assert "tooling-installed-identity-version" in _failures(root)
 
 
 def test_profile_must_admit_the_artifact_locator(tmp_path: Path) -> None:
@@ -721,6 +860,22 @@ def test_exact_lock_selection_normalizes_platform_alias_and_rejects_wrong_versio
             platform_id="linux-x86_64",
             profile_id="public-linux-x86_64",
         )
+
+
+@pytest.mark.integration
+def test_exact_host_selection_runs_the_canonical_policy_boundary() -> None:
+    selection = select_tooling_host_profile(REPO_ROOT, host_profile_id="public-macos-arm64")
+    assert selection["host_profile"]["platform_id"] == "macos-arm64"
+    assert {item["artifact_id"] for item in selection["artifacts"]} == {
+        "conftest",
+        "cpython-3.14",
+        "gitleaks",
+        "osv-scanner",
+        "uv",
+        "vale",
+    }
+    assert len(selection["policy_sha256"]) == 64
+    assert selection["policy_sha256"] == tooling_policy_sha256(REPO_ROOT)
 
 
 def test_source_snapshot_byte_drift_is_rejected(tmp_path: Path) -> None:

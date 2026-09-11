@@ -14,6 +14,7 @@ from pathlib import Path, PurePosixPath
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _VALIDATOR_TIMEOUT_SECONDS = 180
 _INVALID_SELECTION_RESPONSE = "development artifact policy failed before acquisition: invalid selection response"
+_INVALID_HOST_RESPONSE = "development artifact policy failed before acquisition: invalid host selection response"
 
 
 @dataclass(frozen=True)
@@ -166,13 +167,33 @@ def _validator_stdout(
     return proc.stdout
 
 
-def _selection_document(payload: str) -> dict[str, object]:
+def _validator_host_stdout(validator_command: list[str], *, host_profile_id: str) -> str:
+    try:
+        proc = subprocess.run(
+            [*validator_command, "--select-host-profile", host_profile_id],
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=_VALIDATOR_TIMEOUT_SECONDS,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(
+            "development artifact policy failed before acquisition: the frozen project validator could not complete"
+        ) from exc
+    if proc.returncode != 0:
+        details = proc.stderr.strip() or "the frozen project validator rejected the host selection"
+        raise RuntimeError(f"development artifact policy failed before acquisition:\n{details}")
+    return proc.stdout
+
+
+def _selection_document(payload: str, invalid_response: str = _INVALID_SELECTION_RESPONSE) -> dict[str, object]:
     try:
         selection = json.loads(payload)
     except (json.JSONDecodeError, UnicodeError) as exc:
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE) from exc
+        raise RuntimeError(invalid_response) from exc
     if not isinstance(selection, dict):
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE)
+        raise RuntimeError(invalid_response)
     return selection
 
 
@@ -213,7 +234,12 @@ def _selection_is_valid(
     platform_id: str,
     profile_id: str,
 ) -> bool:
-    identity = (selection.artifact_id, selection.version, selection.platform_id, selection.profile_id)
+    identity = (
+        selection.artifact_id,
+        selection.version,
+        selection.platform_id,
+        selection.profile_id,
+    )
     expected_identity = (artifact_id, version, platform_id, profile_id)
     scalar_values = (
         selection.platform_id,
@@ -265,3 +291,82 @@ def load_tooling_artifact_selection(
     ):
         raise RuntimeError(_INVALID_SELECTION_RESPONSE)
     return result
+
+
+def load_tooling_host_profile_selection(  # NOSONAR -- closed response validation is deliberately explicit.
+    host_profile_id: str,
+) -> dict[str, object]:
+    """Load one schema- and semantics-validated host/bootstrap selection."""
+
+    payload = _validator_host_stdout(_frozen_validator_command(REPO_ROOT), host_profile_id=host_profile_id)
+    selection = _selection_document(payload, _INVALID_HOST_RESPONSE)
+    host = selection.get("host_profile")
+    artifacts = selection.get("artifacts")
+    policy_sha256 = selection.get("policy_sha256")
+    if (
+        not isinstance(host, dict)
+        or host.get("host_profile_id") != host_profile_id
+        or not isinstance(artifacts, list)
+        or not artifacts
+        or not all(isinstance(item, dict) for item in artifacts)
+        or not isinstance(policy_sha256, str)
+        or re.fullmatch(r"[0-9a-f]{64}", policy_sha256) is None
+    ):
+        raise RuntimeError(_INVALID_HOST_RESPONSE)
+    expected_ids = host.get("bootstrap_payload_ids")
+    selected_ids = [item.get("artifact_id") for item in artifacts]
+    if (
+        not isinstance(expected_ids, list)
+        or not all(isinstance(value, str) and value for value in expected_ids)
+        or not all(isinstance(value, str) and value for value in selected_ids)
+        or sorted(expected_ids) != sorted(selected_ids)
+        or len(set(selected_ids)) != len(selected_ids)
+    ):
+        raise RuntimeError(_INVALID_HOST_RESPONSE)
+    try:
+        for artifact in artifacts:
+            source = artifact["source"]
+            platform_data = artifact["platform"]
+            if not isinstance(source, dict) or not isinstance(platform_data, dict):
+                raise TypeError
+            raw_values = platform_data["raw_manifest"]
+            installed_values = platform_data.get("installed_manifest", [])
+            source_urls = platform_data["source_urls"]
+            host_profile_ids = platform_data.get("host_profile_ids", [])
+            if (
+                not isinstance(raw_values, list)
+                or not isinstance(installed_values, list)
+                or not isinstance(source_urls, list)
+                or not source_urls
+                or not all(isinstance(value, str) and value for value in source_urls)
+                or not isinstance(host_profile_ids, list)
+                or not all(isinstance(value, str) and value for value in host_profile_ids)
+            ):
+                raise TypeError
+            raw_manifest = tuple(_locked_manifest_entry(item) for item in raw_values)
+            installed_manifest = tuple(_locked_manifest_entry(item) for item in installed_values)
+            installed_identity = platform_data.get("installed_identity")
+            scalar_values = (
+                artifact["artifact_id"],
+                artifact["artifact_class"],
+                artifact["version"],
+                source["repository"],
+                source["release"],
+                platform_data["platform_id"],
+                *source_urls,
+            )
+            if (
+                platform_data["platform_id"] != host.get("platform_id")
+                or (host_profile_ids and host_profile_id not in host_profile_ids)
+                or not raw_manifest
+                or not (
+                    installed_manifest
+                    or isinstance(installed_identity, dict)
+                    and installed_identity.get("version") == artifact["version"]
+                )
+                or not all(isinstance(value, str) and value for value in scalar_values)
+            ):
+                raise TypeError
+    except (KeyError, TypeError, RuntimeError):
+        raise RuntimeError(_INVALID_HOST_RESPONSE) from None
+    return selection

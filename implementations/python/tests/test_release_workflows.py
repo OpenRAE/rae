@@ -297,15 +297,15 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "verify" in workflow["jobs"]["sonar"]["needs"]
 
     interpreters = workflow["jobs"]["interpreters"]
-    assert interpreters["strategy"]["matrix"]["python-version"] == [
-        "3.11",
-        "3.12",
-        "3.13",
-        "3.14",
+    assert interpreters["strategy"]["matrix"]["python"] == [
+        {"feature": "3.11", "payload": "3.11.16"},
+        {"feature": "3.12", "payload": "3.12.14"},
+        {"feature": "3.13", "payload": "3.13.15"},
+        {"feature": "3.14", "payload": "3.14.7"},
     ]
     assert interpreters["env"] == {
-        "UV_PYTHON": "${{ matrix.python-version }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python-version }}",
+        "UV_PYTHON": "${{ matrix.python.payload }}",
+        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
     }
     compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]
@@ -519,6 +519,7 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     assert "needs.publish-github.result == 'success'" in sync["if"]
 
 
+@pytest.mark.integration
 def test_pre_pypi_identity_revalidation_dereferences_annotated_tag(tmp_path: Path) -> None:
     result = _run_pypi_identity_revalidation(
         tmp_path,
@@ -531,6 +532,7 @@ def test_pre_pypi_identity_revalidation_dereferences_annotated_tag(tmp_path: Pat
     assert "Revalidated Release 1234, v3.4.5" in result.stdout
 
 
+@pytest.mark.integration
 def test_pre_pypi_identity_revalidation_rejects_replaced_release(tmp_path: Path) -> None:
     result = _run_pypi_identity_revalidation(
         tmp_path,
@@ -542,6 +544,7 @@ def test_pre_pypi_identity_revalidation_rejects_replaced_release(tmp_path: Path)
     assert "Release object changed: expected id 1234, got 9999" in result.stderr
 
 
+@pytest.mark.integration
 def test_pre_pypi_identity_revalidation_rejects_moved_tag(tmp_path: Path) -> None:
     result = _run_pypi_identity_revalidation(
         tmp_path,
@@ -553,6 +556,7 @@ def test_pre_pypi_identity_revalidation_rejects_moved_tag(tmp_path: Path) -> Non
     assert f"Release tag moved: expected {'a' * 40}, got {'c' * 40}" in result.stderr
 
 
+@pytest.mark.integration
 def test_github_finalization_revalidates_release_object_after_attachment(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -567,6 +571,7 @@ def test_github_finalization_revalidates_release_object_after_attachment(tmp_pat
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["upload"]
 
 
+@pytest.mark.integration
 def test_github_finalization_rejects_moved_tag_before_attachment(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -579,6 +584,7 @@ def test_github_finalization_rejects_moved_tag_before_attachment(tmp_path: Path)
     assert not (tmp_path / "gh-calls.log").exists()
 
 
+@pytest.mark.integration
 def test_github_finalization_rejects_tampered_finalization_response(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -597,6 +603,7 @@ def test_github_finalization_rejects_tampered_finalization_response(tmp_path: Pa
     ]
 
 
+@pytest.mark.integration
 def test_github_finalization_uses_bound_id_and_accepts_verified_response(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -611,6 +618,7 @@ def test_github_finalization_uses_bound_id_and_accepts_verified_response(tmp_pat
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["upload", "patch"]
 
 
+@pytest.mark.integration
 def test_github_finalization_accepts_matching_already_public_retry(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -625,6 +633,7 @@ def test_github_finalization_accepts_matching_already_public_retry(tmp_path: Pat
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["download"]
 
 
+@pytest.mark.integration
 def test_github_finalization_rejects_mismatched_already_public_assets(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,

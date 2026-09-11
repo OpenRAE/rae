@@ -208,3 +208,37 @@ Native client failure tests may use a controlled test server or a commodity
 fault-injection proxy. Test fixture protocol handling is not a production
 acquisition implementation. Maintain a few meaningful end-to-end cases against
 the actual clients; mocks of argv alone cannot prove the profile's behavior.
+
+### Issue #1217 bootstrap qualification evidence
+
+The v2 profile authority and `bootstrap-qualification.yml` bind T01, T02, T03,
+T08 and T12 to exact host, payload and policy identities. Checked-in records
+distinguish `passed`, `failed`, `unsupported` and `not-run`; a profile is not
+activated from a pending record. Pull-request qualification retains its bounded
+evidence artifact under the exact delivery SHA.
+
+- T01/T03: the blocking CI matrix selects the locked CPython 3.11.16, 3.12.14,
+  3.13.15 and 3.14.7 payloads independently of the pinned setup-action commit,
+  asserts the exact runtime feature line, installs the frozen closure, and runs
+  clean wheel/sdist smokes. The proof-bearing Ubuntu 22.04 lane remains separate.
+- T02/T12: the qualification matrix executes the existing lock-selected
+  Conftest, Gitleaks, OSV-Scanner and Vale binaries on the four canonical Linux
+  and macOS architectures. It exports the target-specific uv and installed-tool
+  caches, restores them after deleting the working copies, repeats the frozen
+  sync with uv's offline mode, and selects generic binaries through a
+  digest-checking path that has no acquisition fallback. The payload kit also
+  carries lock-verified raw CPython and uv objects, its own uv executable and a
+  managed CPython installation; every restored entry is bound by the kit
+  manifest. Linux arm64 and macOS arm64 record the clean target-specific restore
+  as T12. Native packages and trust roots are explicit reviewed host
+  prerequisites rather than falsely described as archive contents.
+- T08: `test_issue_1217_bootstrap_profiles.py` runs the selected curl process
+  against a controlled TLS fixture with 429/503 retries, disconnect, TLS
+  rejection, HTTPS-only redirect, transfer deadline and unknown-length oversized
+  responses. The production qualification argv disables curlrc,
+  insecure/trusted redirect modes and outer retries and applies native
+  retry/redirect/time/size bounds plus a subprocess wall deadline.
+- Host policy and setup: `tools/bootstrap_profile.py` uses fixed argv, closed
+  stdin, a minimal environment, sanitized reason codes and explicit native
+  setup planning. It never invokes `sudo`, shell evaluation, repository/key installation,
+  pipe-to-shell acquisition or host-security reconfiguration.

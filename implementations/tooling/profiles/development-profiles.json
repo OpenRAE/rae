@@ -1,77 +1,49 @@
 {
-  "schema_version": "raes-development-profiles/v1",
+  "schema_version": "raes-development-profiles/v2",
   "profiles": [
     {
       "profile_id": "public-linux-x86_64",
       "contexts": ["public-contributor", "maintainer", "release"],
-      "platform": {
-        "canonical_id": "linux-x86_64",
-        "aliases": ["Linux-amd64", "Linux-x86_64", "linux-amd64", "linux-x86_64"]
-      },
-      "locator_classes": [
-        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
-      ],
-      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+      "platform": {"canonical_id": "linux-x86_64", "aliases": ["Linux-amd64", "Linux-x86_64", "linux-amd64", "linux-x86_64"]},
+      "locator_classes": [{"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}],
+      "supported_artifact_ids": ["conftest", "cpython-3.11", "cpython-3.12", "cpython-3.13", "cpython-3.14", "cpython-3.14t", "gitleaks", "osv-scanner", "uv", "vale"]
     },
     {
       "profile_id": "public-linux-arm64",
       "contexts": ["public-contributor", "maintainer"],
-      "platform": {
-        "canonical_id": "linux-arm64",
-        "aliases": ["Linux-aarch64", "Linux-arm64", "linux-aarch64", "linux-arm64"]
-      },
-      "locator_classes": [
-        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
-      ],
-      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+      "platform": {"canonical_id": "linux-arm64", "aliases": ["Linux-aarch64", "Linux-arm64", "linux-aarch64", "linux-arm64"]},
+      "locator_classes": [{"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}],
+      "supported_artifact_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"]
     },
     {
       "profile_id": "public-macos-x86_64",
       "contexts": ["public-contributor", "maintainer"],
-      "platform": {
-        "canonical_id": "macos-x86_64",
-        "aliases": ["Darwin-amd64", "Darwin-x86_64", "macOS-amd64", "macos-x86_64"]
-      },
-      "locator_classes": [
-        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
-      ],
-      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+      "platform": {"canonical_id": "macos-x86_64", "aliases": ["Darwin-amd64", "Darwin-x86_64", "macOS-amd64", "macos-x86_64"]},
+      "locator_classes": [{"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}],
+      "supported_artifact_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"]
     },
     {
       "profile_id": "public-macos-arm64",
       "contexts": ["public-contributor", "maintainer"],
-      "platform": {
-        "canonical_id": "macos-arm64",
-        "aliases": ["Darwin-aarch64", "Darwin-arm64", "macOS-arm64", "macos-arm64"]
-      },
-      "locator_classes": [
-        {"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}
-      ],
-      "supported_artifact_ids": ["conftest", "gitleaks", "osv-scanner", "vale"]
+      "platform": {"canonical_id": "macos-arm64", "aliases": ["Darwin-aarch64", "Darwin-arm64", "macOS-arm64", "macos-arm64"]},
+      "locator_classes": [{"locator_id": "official-github-release", "kind": "official-https", "trust_root_ref": "system-ca"}],
+      "supported_artifact_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"]
     },
     {
       "profile_id": "proof-linux-x86_64",
       "contexts": ["public-contributor", "maintainer", "release", "self-hosted"],
-      "platform": {
-        "canonical_id": "linux-x86_64",
-        "aliases": ["Linux-amd64", "Linux-x86_64", "linux-amd64", "linux-x86_64"]
-      },
+      "platform": {"canonical_id": "linux-x86_64", "aliases": ["Linux-amd64", "Linux-x86_64", "linux-amd64", "linux-x86_64"]},
       "locator_classes": [
         {"locator_id": "official-isabelle-release", "kind": "official-https", "trust_root_ref": "system-ca"},
         {"locator_id": "official-isabelle-cambridge-mirror", "kind": "official-https", "trust_root_ref": "system-ca"}
       ],
-      "supported_artifact_ids": ["isabelle"]
+      "supported_artifact_ids": ["isabelle", "uv"]
     },
     {
       "profile_id": "source-snapshot",
       "contexts": ["public-contributor", "maintainer", "release", "self-hosted"],
-      "platform": {
-        "canonical_id": "source-any",
-        "aliases": ["source-any"]
-      },
-      "locator_classes": [
-        {"locator_id": "official-source-snapshot", "kind": "official-https", "trust_root_ref": "system-ca"}
-      ],
+      "platform": {"canonical_id": "source-any", "aliases": ["source-any"]},
+      "locator_classes": [{"locator_id": "official-source-snapshot", "kind": "official-https", "trust_root_ref": "system-ca"}],
       "supported_artifact_ids": [
         "atlas-tactics-snapshot",
         "attack-enterprise-tactics-snapshot",
@@ -79,6 +51,210 @@
         "nist-csf-defensive-categories-snapshot",
         "w3c-activitystreams-activity-types-snapshot"
       ]
+    }
+  ],
+  "host_profiles": [
+    {
+      "host_profile_id": "public-ubuntu-24.04-x86_64",
+      "platform_id": "linux-x86_64",
+      "contexts": ["public-contributor", "maintainer", "release"],
+      "native_family": "ubuntu-apt",
+      "base_image_identity": "github-hosted-runner:ubuntu24:X64",
+      "native_repository_identity": "github-hosted-runner-package-set:ubuntu24:X64",
+      "trust_root_refs": ["ubuntu-archive-keyring", "github-runner-image-release"],
+      "credential_refs": [],
+      "bootstrap_payload_ids": ["conftest", "cpython-3.11", "cpython-3.12", "cpython-3.13", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+      "required_capability_ids": ["base-image", "native-repository", "git", "ca-roots", "sha256", "curl-unknown-length-max-filesize", "uv", "cpython", "gh-cli", "generic-tools"],
+      "optional_capability_ids": ["container-cli", "container-daemon", "libvirt-client", "libvirt-daemon", "qemu", "kvm-access"],
+      "proof_support": "unsupported",
+      "host_security_control_changes": "prohibited",
+      "offline_kit": {
+        "kit_id": "ubuntu-24.04-x86_64-bootstrap",
+        "credential_free": true,
+        "network_fallback": "prohibited",
+        "artifact_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+        "host_prerequisite_package_ids": ["git", "ca-certificates", "coreutils", "curl", "gh"],
+        "host_trust_root_refs": ["ubuntu-archive-keyring", "github-runner-image-release"]
+      },
+      "qualification_record_ids": ["ubuntu-24.04-x86_64-t02-t03-t08"]
+    },
+    {
+      "host_profile_id": "public-linux-arm64",
+      "platform_id": "linux-arm64",
+      "contexts": ["public-contributor", "maintainer", "offline"],
+      "native_family": "ubuntu-apt",
+      "base_image_identity": "github-hosted-runner:ubuntu24-arm64:ARM64",
+      "native_repository_identity": "github-hosted-runner-package-set:ubuntu24-arm64:ARM64",
+      "trust_root_refs": ["ubuntu-archive-keyring", "github-runner-image-release"],
+      "credential_refs": [],
+      "bootstrap_payload_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+      "required_capability_ids": ["base-image", "native-repository", "git", "ca-roots", "sha256", "curl-unknown-length-max-filesize", "uv", "cpython", "gh-cli", "generic-tools"],
+      "optional_capability_ids": ["container-cli", "container-daemon", "libvirt-client", "libvirt-daemon", "qemu", "kvm-access"],
+      "proof_support": "unsupported",
+      "host_security_control_changes": "prohibited",
+      "offline_kit": {
+        "kit_id": "linux-arm64-bootstrap",
+        "credential_free": true,
+        "network_fallback": "prohibited",
+        "artifact_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+        "host_prerequisite_package_ids": ["git", "ca-certificates", "coreutils", "curl", "gh"],
+        "host_trust_root_refs": ["ubuntu-archive-keyring", "github-runner-image-release"]
+      },
+      "qualification_record_ids": ["linux-arm64-t02-t08-t12"]
+    },
+    {
+      "host_profile_id": "public-macos-x86_64",
+      "platform_id": "macos-x86_64",
+      "contexts": ["public-contributor", "maintainer", "offline"],
+      "native_family": "macos-brew",
+      "base_image_identity": "github-hosted-runner:macos15:X64",
+      "native_repository_identity": "github-hosted-runner-package-set:macos15:X64",
+      "trust_root_refs": ["apple-system-roots", "github-runner-image-release", "homebrew-bottle-attestation"],
+      "credential_refs": [],
+      "bootstrap_payload_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+      "required_capability_ids": ["base-image", "native-repository", "git", "ca-roots", "sha256", "curl-unknown-length-max-filesize", "uv", "cpython", "gh-cli", "generic-tools"],
+      "optional_capability_ids": ["container-cli", "container-daemon"],
+      "proof_support": "unsupported",
+      "host_security_control_changes": "prohibited",
+      "offline_kit": {
+        "kit_id": "macos-x86_64-bootstrap",
+        "credential_free": true,
+        "network_fallback": "prohibited",
+        "artifact_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+        "host_prerequisite_package_ids": ["git", "ca-certificates", "coreutils", "curl", "gh"],
+        "host_trust_root_refs": ["apple-system-roots", "homebrew-bottle-attestation"]
+      },
+      "qualification_record_ids": ["macos-x86_64-t02-t08"]
+    },
+    {
+      "host_profile_id": "public-macos-arm64",
+      "platform_id": "macos-arm64",
+      "contexts": ["public-contributor", "maintainer", "offline"],
+      "native_family": "macos-brew",
+      "base_image_identity": "github-hosted-runner:macos15:ARM64",
+      "native_repository_identity": "github-hosted-runner-package-set:macos15:ARM64",
+      "trust_root_refs": ["apple-system-roots", "github-runner-image-release", "homebrew-bottle-attestation"],
+      "credential_refs": [],
+      "bootstrap_payload_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+      "required_capability_ids": ["base-image", "native-repository", "git", "ca-roots", "sha256", "curl-unknown-length-max-filesize", "uv", "cpython", "gh-cli", "generic-tools"],
+      "optional_capability_ids": ["container-cli", "container-daemon"],
+      "proof_support": "unsupported",
+      "host_security_control_changes": "prohibited",
+      "offline_kit": {
+        "kit_id": "macos-arm64-bootstrap",
+        "credential_free": true,
+        "network_fallback": "prohibited",
+        "artifact_ids": ["conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"],
+        "host_prerequisite_package_ids": ["git", "ca-certificates", "coreutils", "curl", "gh"],
+        "host_trust_root_refs": ["apple-system-roots", "homebrew-bottle-attestation"]
+      },
+      "qualification_record_ids": ["macos-arm64-t02-t08-t12"]
+    },
+    {
+      "host_profile_id": "proof-ubuntu-22.04-x86_64",
+      "platform_id": "linux-x86_64",
+      "contexts": ["public-contributor", "maintainer", "release", "self-hosted", "offline"],
+      "native_family": "ubuntu-apt",
+      "base_image_identity": "github-hosted-runner:ubuntu22:X64",
+      "native_repository_identity": "github-hosted-runner-package-set:ubuntu22:X64",
+      "trust_root_refs": ["ubuntu-archive-keyring", "github-runner-image-release"],
+      "credential_refs": [],
+      "bootstrap_payload_ids": ["cpython-3.12", "isabelle", "uv"],
+      "required_capability_ids": ["base-image", "native-repository", "git", "ca-roots", "sha256", "bubblewrap", "fontconfig", "fonts", "locale-c-utf-8"],
+      "optional_capability_ids": ["container-cli", "container-daemon", "libvirt-client", "libvirt-daemon", "qemu", "kvm-access"],
+      "proof_support": "linux-x86_64-required",
+      "host_security_control_changes": "prohibited",
+      "offline_kit": {
+        "kit_id": "proof-ubuntu-22.04-x86_64-bootstrap",
+        "credential_free": true,
+        "network_fallback": "prohibited",
+        "artifact_ids": ["cpython-3.12", "isabelle", "uv"],
+        "host_prerequisite_package_ids": ["git", "ca-certificates", "coreutils", "bubblewrap", "fontconfig", "fonts-dejavu-core"],
+        "host_trust_root_refs": ["ubuntu-archive-keyring", "github-runner-image-release"]
+      },
+      "qualification_record_ids": ["proof-ubuntu-22.04-x86_64-t01"]
+    }
+  ],
+  "qualification_records": [
+    {
+      "evidence_id": "ubuntu-24.04-x86_64-t02-t03-t08",
+      "host_profile_id": "public-ubuntu-24.04-x86_64",
+      "test_case_ids": ["T02", "T03", "T08"],
+      "implementation_revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "observed_at": "2026-09-07T00:00:00Z",
+      "context": "qualification workflow definition pending execution on the delivery revision",
+      "outcome": "not-run",
+      "base_image_identity": "unobserved",
+      "native_repository_identity": "unobserved",
+      "policy_sha256": "51199c43a75a71c644172d5092bf8eb1e4fc2fd8dafe1fbd7dde9706bfcc479a",
+      "capability_results": [{"capability_id": "qualification-workflow", "outcome": "not-run", "observed_identity": "delivery-revision", "reason_code": "awaiting-delivery-revision"}],
+      "limitations": ["Reviewed profile declaration is not execution evidence until the delivery workflow records a result."],
+      "evidence_location": "github-actions:bootstrap-qualification",
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
+    },
+    {
+      "evidence_id": "linux-arm64-t02-t08-t12",
+      "host_profile_id": "public-linux-arm64",
+      "test_case_ids": ["T02", "T08", "T12"],
+      "implementation_revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "observed_at": "2026-09-07T00:00:00Z",
+      "context": "qualification workflow definition pending execution on the delivery revision",
+      "outcome": "not-run",
+      "base_image_identity": "unobserved",
+      "native_repository_identity": "unobserved",
+      "policy_sha256": "51199c43a75a71c644172d5092bf8eb1e4fc2fd8dafe1fbd7dde9706bfcc479a",
+      "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "linux-arm64", "reason_code": "proof-requires-linux-x86_64"}],
+      "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
+      "evidence_location": "github-actions:bootstrap-qualification",
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
+    },
+    {
+      "evidence_id": "macos-x86_64-t02-t08",
+      "host_profile_id": "public-macos-x86_64",
+      "test_case_ids": ["T02", "T08"],
+      "implementation_revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "observed_at": "2026-09-07T00:00:00Z",
+      "context": "qualification workflow definition pending execution on the delivery revision",
+      "outcome": "not-run",
+      "base_image_identity": "unobserved",
+      "native_repository_identity": "unobserved",
+      "policy_sha256": "51199c43a75a71c644172d5092bf8eb1e4fc2fd8dafe1fbd7dde9706bfcc479a",
+      "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "macos-x86_64", "reason_code": "proof-requires-linux-x86_64"}],
+      "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
+      "evidence_location": "github-actions:bootstrap-qualification",
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
+    },
+    {
+      "evidence_id": "macos-arm64-t02-t08-t12",
+      "host_profile_id": "public-macos-arm64",
+      "test_case_ids": ["T02", "T08", "T12"],
+      "implementation_revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "observed_at": "2026-09-07T00:00:00Z",
+      "context": "qualification workflow definition pending execution on the delivery revision",
+      "outcome": "not-run",
+      "base_image_identity": "unobserved",
+      "native_repository_identity": "unobserved",
+      "policy_sha256": "51199c43a75a71c644172d5092bf8eb1e4fc2fd8dafe1fbd7dde9706bfcc479a",
+      "capability_results": [{"capability_id": "native-proof", "outcome": "unsupported", "observed_identity": "macos-arm64", "reason_code": "proof-requires-linux-x86_64"}],
+      "limitations": ["Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."],
+      "evidence_location": "github-actions:bootstrap-qualification",
+      "evidence_sha256": "0ae0d8c12c5b1f626f09fd5538ace0c954a273f782804eb3b7c1931862ec7326"
+    },
+    {
+      "evidence_id": "proof-ubuntu-22.04-x86_64-t01",
+      "host_profile_id": "proof-ubuntu-22.04-x86_64",
+      "test_case_ids": ["T01"],
+      "implementation_revision": "a717cc2295ba6e67cd1723613171b93bba07bef5",
+      "observed_at": "2026-09-07T00:00:00Z",
+      "context": "proof-host evidence recording pending execution on the delivery revision",
+      "outcome": "not-run",
+      "base_image_identity": "unobserved",
+      "native_repository_identity": "unobserved",
+      "policy_sha256": "51199c43a75a71c644172d5092bf8eb1e4fc2fd8dafe1fbd7dde9706bfcc479a",
+      "capability_results": [{"capability_id": "qualification-workflow", "outcome": "not-run", "observed_identity": "delivery-revision", "reason_code": "awaiting-delivery-revision"}],
+      "limitations": ["The existing proof gate passed on the base revision; exact host-capability evidence begins with the delivery workflow."],
+      "evidence_location": ".github/workflows/canonical-verification.yml",
+      "evidence_sha256": "fd56802e1094e00f45cc628a46169e6d45fdf38ea2d8919c156fe310c7573f18"
     }
   ]
 }

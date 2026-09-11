@@ -38,7 +38,7 @@ concurrency:
 jobs:
   release-please:
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write        # create/maintain the release PR, tag, and Release
       pull-requests: write   # maintain the release PR
@@ -62,7 +62,7 @@ jobs:
       && needs.release-please.result == 'success'
       && needs.release-please.outputs.release_created == 'true')
       || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write       # draft Releases are visible only to push-capable tokens
     outputs:
@@ -179,7 +179,7 @@ jobs:
       always()
       && needs.resolve-release.result == 'success'
       && needs.verify-release.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -204,10 +204,12 @@ jobs:
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
 
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          version: "0.12.4"
 
       - name: Require real-container release integration
         env:
@@ -239,7 +241,7 @@ jobs:
       && needs.resolve-release.result == 'success'
       && needs.verify-release.result == 'success'
       && needs.integration-docker-release.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -261,10 +263,12 @@ jobs:
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
 
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          version: "0.12.4"
 
       - name: Build the corpus-bundled wheel + sdist
         run: uv build --out-dir dist implementations/python
@@ -432,7 +436,7 @@ jobs:
       && needs.verify-release.result == 'success'
       && needs.integration-docker-release.result == 'success'
       && needs.build-release.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: pypi
     permissions:
       contents: write   # revalidate the still-draft Release after environment approval
@@ -551,7 +555,7 @@ jobs:
       && needs.verify-release.result == 'success'
       && needs.build-release.result == 'success'
       && needs.publish-pypi.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
@@ -718,7 +722,7 @@ jobs:
     if: >-
       needs.release-please.outputs.release_created == 'true'
       && needs.publish-github.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pull-requests: write

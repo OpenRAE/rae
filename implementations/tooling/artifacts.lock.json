@@ -1,6 +1,6 @@
 {
   "schema_version": "raes-development-artifact-lock/v1",
-  "lock_revision": "2026-09-06",
+  "lock_revision": "2026-09-07",
   "artifacts": [
     {
       "artifact_id": "conftest",
@@ -240,7 +240,14 @@
             "https://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle2025-2_linux.tar.gz"
           ],
           "raw_manifest": [{"path": "Isabelle2025-2_linux.tar.gz", "sha256": "a20a507bc7c1270d8be96a9f3fbec06345387789d2dc2c4d3df6260d47bfb33c", "size": 1228480874}],
-          "installed_manifest": [{"path": "Isabelle2025-2/bin/isabelle", "sha256": "9fee030dddf4a6cb14e4e701d4885e6d12f67381e486ff6ce5d16af171ddedbc", "size": 1058, "executable": true}],
+          "installed_manifest": [
+            {
+              "path": "Isabelle2025-2/bin/isabelle",
+              "sha256": "9fee030dddf4a6cb14e4e701d4885e6d12f67381e486ff6ce5d16af171ddedbc",
+              "size": 1058,
+              "executable": true
+            }
+          ],
           "dependencies": [],
           "profile_ids": ["proof-linux-x86_64"]
         }
@@ -264,14 +271,22 @@
         "asset": "enterprise-attack-19.1.json",
         "locator_refs": ["official-source-snapshot"]
       },
-      "platforms": [{
-        "platform_id": "source-any",
-        "source_urls": ["https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json"],
-        "raw_manifest": [{"path": "enterprise-attack-19.1.json", "sha256": "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3", "size": 53277393}],
-        "installed_manifest": [{"path": "contracts/concept-authority/attack-enterprise-tactics-source-v1.json", "sha256": "4438bd586874650390c483966efc6ecf8b72f79f5b588e14d0959c173139b60e", "size": 13010}],
-        "dependencies": [],
-        "profile_ids": ["source-snapshot"]
-      }]
+      "platforms": [
+        {
+          "platform_id": "source-any",
+          "source_urls": ["https://raw.githubusercontent.com/mitre-attack/attack-stix-data/v19.1/enterprise-attack/enterprise-attack-19.1.json"],
+          "raw_manifest": [{"path": "enterprise-attack-19.1.json", "sha256": "bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3", "size": 53277393}],
+          "installed_manifest": [
+            {
+              "path": "contracts/concept-authority/attack-enterprise-tactics-source-v1.json",
+              "sha256": "4438bd586874650390c483966efc6ecf8b72f79f5b588e14d0959c173139b60e",
+              "size": 13010
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": ["source-snapshot"]
+        }
+      ]
     },
     {
       "artifact_id": "atlas-tactics-snapshot",
@@ -291,14 +306,22 @@
         "asset": "ATLAS-2026.06.yaml",
         "locator_refs": ["official-source-snapshot"]
       },
-      "platforms": [{
-        "platform_id": "source-any",
-        "source_urls": ["https://github.com/mitre-atlas/atlas-data/releases/download/v2026.06/ATLAS-2026.06.yaml"],
-        "raw_manifest": [{"path": "ATLAS-2026.06.yaml", "sha256": "b771de8b1489564b2838a709c7429849a9575dbd94073928817fe1a21661e70a", "size": 625790}],
-        "installed_manifest": [{"path": "contracts/concept-authority/atlas-tactics-source-v1.json", "sha256": "04ad740b60ebe4581644776c4314e318e37d6b40ab165cdb896ef537033ac2de", "size": 16788}],
-        "dependencies": [],
-        "profile_ids": ["source-snapshot"]
-      }]
+      "platforms": [
+        {
+          "platform_id": "source-any",
+          "source_urls": ["https://github.com/mitre-atlas/atlas-data/releases/download/v2026.06/ATLAS-2026.06.yaml"],
+          "raw_manifest": [{"path": "ATLAS-2026.06.yaml", "sha256": "b771de8b1489564b2838a709c7429849a9575dbd94073928817fe1a21661e70a", "size": 625790}],
+          "installed_manifest": [
+            {
+              "path": "contracts/concept-authority/atlas-tactics-source-v1.json",
+              "sha256": "04ad740b60ebe4581644776c4314e318e37d6b40ab165cdb896ef537033ac2de",
+              "size": 16788
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": ["source-snapshot"]
+        }
+      ]
     },
     {
       "artifact_id": "nist-csf-defensive-categories-snapshot",
@@ -318,14 +341,22 @@
         "asset": "nist-csf-2.0-core.xlsx",
         "locator_refs": ["official-source-snapshot"]
       },
-      "platforms": [{
-        "platform_id": "source-any",
-        "source_urls": ["https://csrc.nist.gov/extensions/nudp/services/json/csf/download?"],
-        "raw_manifest": [{"path": "nist-csf-2.0-core.xlsx", "sha256": "58457421a0236111ba8be863f411ba0122de3fefe66ae95faf58a9f2f91699f2", "size": 107518}],
-        "installed_manifest": [{"path": "contracts/concept-authority/nist-csf-defensive-categories-source-v1.json", "sha256": "39b4d621070674707d129980b97e3c35acf8815eea6ea69da10dbf3618c70d02", "size": 3241}],
-        "dependencies": [],
-        "profile_ids": ["source-snapshot"]
-      }]
+      "platforms": [
+        {
+          "platform_id": "source-any",
+          "source_urls": ["https://csrc.nist.gov/extensions/nudp/services/json/csf/download?"],
+          "raw_manifest": [{"path": "nist-csf-2.0-core.xlsx", "sha256": "58457421a0236111ba8be863f411ba0122de3fefe66ae95faf58a9f2f91699f2", "size": 107518}],
+          "installed_manifest": [
+            {
+              "path": "contracts/concept-authority/nist-csf-defensive-categories-source-v1.json",
+              "sha256": "39b4d621070674707d129980b97e3c35acf8815eea6ea69da10dbf3618c70d02",
+              "size": 3241
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": ["source-snapshot"]
+        }
+      ]
     },
     {
       "artifact_id": "w3c-activitystreams-activity-types-snapshot",
@@ -345,14 +376,28 @@
         "asset": "REC-activitystreams-vocabulary-20170523.html",
         "locator_refs": ["official-source-snapshot"]
       },
-      "platforms": [{
-        "platform_id": "source-any",
-        "source_urls": ["https://www.w3.org/TR/2017/REC-activitystreams-vocabulary-20170523/"],
-        "raw_manifest": [{"path": "REC-activitystreams-vocabulary-20170523.html", "sha256": "1418443392160f4bb23dffb5727f5216d1f56d3430377dc67d364016521401db", "size": 390703}],
-        "installed_manifest": [{"path": "contracts/concept-authority/w3c-activitystreams-activity-types-source-v1.json", "sha256": "0e3be78efd1bd471a13b6ded48e982545390376550d5d94a2aa15ac45701787a", "size": 4657}],
-        "dependencies": [],
-        "profile_ids": ["source-snapshot"]
-      }]
+      "platforms": [
+        {
+          "platform_id": "source-any",
+          "source_urls": ["https://www.w3.org/TR/2017/REC-activitystreams-vocabulary-20170523/"],
+          "raw_manifest": [
+            {
+              "path": "REC-activitystreams-vocabulary-20170523.html",
+              "sha256": "1418443392160f4bb23dffb5727f5216d1f56d3430377dc67d364016521401db",
+              "size": 390703
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "contracts/concept-authority/w3c-activitystreams-activity-types-source-v1.json",
+              "sha256": "0e3be78efd1bd471a13b6ded48e982545390376550d5d94a2aa15ac45701787a",
+              "size": 4657
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": ["source-snapshot"]
+        }
+      ]
     },
     {
       "artifact_id": "fipa-communicative-acts-snapshot",
@@ -372,14 +417,281 @@
         "asset": "SC00037J.pdf",
         "locator_refs": ["official-source-snapshot"]
       },
-      "platforms": [{
-        "platform_id": "source-any",
-        "source_urls": ["https://www.fipa.org/specs/fipa00037/SC00037J.pdf"],
-        "raw_manifest": [{"path": "SC00037J.pdf", "sha256": "90b3277247ef7e7f614ba4c0d58fb2b86aa53ff69036d27a731c09a26c605227", "size": 271342}],
-        "installed_manifest": [{"path": "contracts/concept-authority/fipa-communicative-acts-source-v1.json", "sha256": "648c572a926a2cbd4c9e84008f29fff48aea60f5afd7de1ddbe186758805441d", "size": 2410}],
-        "dependencies": [],
-        "profile_ids": ["source-snapshot"]
-      }]
+      "platforms": [
+        {
+          "platform_id": "source-any",
+          "source_urls": ["https://www.fipa.org/specs/fipa00037/SC00037J.pdf"],
+          "raw_manifest": [{"path": "SC00037J.pdf", "sha256": "90b3277247ef7e7f614ba4c0d58fb2b86aa53ff69036d27a731c09a26c605227", "size": 271342}],
+          "installed_manifest": [
+            {
+              "path": "contracts/concept-authority/fipa-communicative-acts-source-v1.json",
+              "sha256": "648c572a926a2cbd4c9e84008f29fff48aea60f5afd7de1ddbe186758805441d",
+              "size": 2410
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": ["source-snapshot"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "cpython-3.11",
+      "artifact_class": "bootstrap",
+      "version": "3.11.16",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": ["python-compatibility", "bootstrap"],
+      "trust_root_refs": ["actions-python-versions-reviewed-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/actions/python-versions",
+        "release": "3.11.16-31661435402",
+        "asset": "python-3.11.16-{distribution}-{architecture}.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "distribution_id": "ubuntu-24.04",
+          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.11.16-31661435402/python-3.11.16-linux-24.04-x64.tar.gz"],
+          "raw_manifest": [{"path": "python-3.11.16-linux-24.04-x64.tar.gz", "sha256": "07b61e35f30861939ff95314297921de8f57cd48f85bb18d777651b3ea45f2ee", "size": 92555692}],
+          "installed_identity": {"implementation": "CPython", "version": "3.11.16", "abi": "cp311", "target": "x86_64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "cpython-3.12",
+      "artifact_class": "bootstrap",
+      "version": "3.12.14",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": ["python-compatibility", "bootstrap"],
+      "trust_root_refs": ["actions-python-versions-reviewed-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/actions/python-versions",
+        "release": "3.12.14-31661455385",
+        "asset": "python-3.12.14-{distribution}-{architecture}.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "distribution_id": "ubuntu-22.04",
+          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-22.04-x64.tar.gz"],
+          "raw_manifest": [{"path": "python-3.12.14-linux-22.04-x64.tar.gz", "sha256": "e13bd8ab6ca32627711d5611d96737c0e8e84bb37cd3505a76ed9779adefc76e", "size": 95851350}],
+          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["proof-ubuntu-22.04-x86_64"]
+        },
+        {
+          "platform_id": "linux-x86_64",
+          "distribution_id": "ubuntu-24.04",
+          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-24.04-x64.tar.gz"],
+          "raw_manifest": [{"path": "python-3.12.14-linux-24.04-x64.tar.gz", "sha256": "5a03168292516f6dd6dcf630f4bf5369b108abd7c699a7e1db37f1e622257fff", "size": 95088884}],
+          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "cpython-3.13",
+      "artifact_class": "bootstrap",
+      "version": "3.13.15",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": ["python-compatibility", "bootstrap"],
+      "trust_root_refs": ["actions-python-versions-reviewed-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/actions/python-versions",
+        "release": "3.13.15-31064747964",
+        "asset": "python-3.13.15-{distribution}-{architecture}.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "distribution_id": "ubuntu-24.04",
+          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.13.15-31064747964/python-3.13.15-linux-24.04-x64.tar.gz"],
+          "raw_manifest": [{"path": "python-3.13.15-linux-24.04-x64.tar.gz", "sha256": "4e544242f8a4ef647a6f511b67f9b00eefc9ef366644e3c40a27a6eff709ae2b", "size": 102312718}],
+          "installed_identity": {"implementation": "CPython", "version": "3.13.15", "abi": "cp313", "target": "x86_64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "cpython-3.14",
+      "artifact_class": "bootstrap",
+      "version": "3.14.7",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": ["python-compatibility", "bootstrap"],
+      "trust_root_refs": ["astral-python-build-standalone-reviewed-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/astral-sh/python-build-standalone",
+        "release": "20260807",
+        "asset": "cpython-3.14.7+20260807-{target}-install_only_stripped.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "distribution_id": "ubuntu-24.04",
+          "source_urls": ["https://releases.astral.sh/github/python-build-standalone/releases/download/20260807/cpython-3.14.7%2B20260807-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"],
+          "raw_manifest": [{"path": "cpython-3.14.7+20260807-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz", "sha256": "a2478d654ed51d443bae21ec20ad927f116b4f5aae4094ab74918a6aa38f0575", "size": 35940499}],
+          "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "distribution_id": "ubuntu-24.04",
+          "source_urls": ["https://releases.astral.sh/github/python-build-standalone/releases/download/20260807/cpython-3.14.7%2B20260807-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"],
+          "raw_manifest": [{"path": "cpython-3.14.7+20260807-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz", "sha256": "4dba8d7e06199f841a9d6b54e4eb58d446a5c20c65085a916190dd0162c6e93b", "size": 30243151}],
+          "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "aarch64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-arm64"],
+          "host_profile_ids": ["public-linux-arm64"]
+        },
+        {
+          "platform_id": "macos-x86_64",
+          "distribution_id": "macos-15",
+          "source_urls": ["https://releases.astral.sh/github/python-build-standalone/releases/download/20260807/cpython-3.14.7%2B20260807-x86_64-apple-darwin-install_only_stripped.tar.gz"],
+          "raw_manifest": [{"path": "cpython-3.14.7+20260807-x86_64-apple-darwin-install_only_stripped.tar.gz", "sha256": "9964e2d618ebea03be8ea3e65ab0ecc0f2b030ce203345b8f92654641fd4de66", "size": 26601297}],
+          "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-apple-darwin"},
+          "dependencies": [],
+          "profile_ids": ["public-macos-x86_64"],
+          "host_profile_ids": ["public-macos-x86_64"]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "distribution_id": "macos-15",
+          "source_urls": ["https://releases.astral.sh/github/python-build-standalone/releases/download/20260807/cpython-3.14.7%2B20260807-aarch64-apple-darwin-install_only_stripped.tar.gz"],
+          "raw_manifest": [{"path": "cpython-3.14.7+20260807-aarch64-apple-darwin-install_only_stripped.tar.gz", "sha256": "532645be202d3df8510ab318ca5faed92060a694c8327144e14fa81f31af0f6d", "size": 26499186}],
+          "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "aarch64-apple-darwin"},
+          "dependencies": [],
+          "profile_ids": ["public-macos-arm64"],
+          "host_profile_ids": ["public-macos-arm64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "cpython-3.14t",
+      "artifact_class": "bootstrap",
+      "version": "3.14.7",
+      "support_level": "advisory",
+      "owner": "Tooling",
+      "consumers": ["python-free-threaded-preview"],
+      "trust_root_refs": ["actions-python-versions-reviewed-release"],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/actions/python-versions",
+        "release": "3.14.7-31064857500",
+        "asset": "python-3.14.7-{distribution}-{architecture}.tar.gz",
+        "locator_refs": ["official-github-release"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "distribution_id": "ubuntu-24.04",
+          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.14.7-31064857500/python-3.14.7-linux-24.04-x64-freethreaded.tar.gz"],
+          "raw_manifest": [
+            {
+              "path": "python-3.14.7-linux-24.04-x64-freethreaded.tar.gz",
+              "sha256": "55ccc4be658791cf9709227e8d42cfb5e201ff3a84e4c1644748c7483d89dcbd",
+              "size": 112793768
+            }
+          ],
+          "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314t", "target": "x86_64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "uv",
+      "artifact_class": "bootstrap",
+      "version": "0.12.4",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": ["bootstrap", "python-environment", "workflow-setup"],
+      "trust_root_refs": ["astral-uv-reviewed-release"],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {"spdx": "Apache-2.0 OR MIT", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {"repository": "https://github.com/astral-sh/uv", "release": "0.12.4", "asset": "uv-{target}.tar.gz", "locator_refs": ["official-github-release"]},
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-x86_64-unknown-linux-gnu.tar.gz"],
+          "raw_manifest": [{"path": "uv-x86_64-unknown-linux-gnu.tar.gz", "sha256": "c8c60f47e6f88d18dbf6f33d7279fb1fbf7ae76631768152cf5578c3d65729b4", "size": 22913818}],
+          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64"]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-aarch64-unknown-linux-gnu.tar.gz"],
+          "raw_manifest": [{"path": "uv-aarch64-unknown-linux-gnu.tar.gz", "sha256": "49d881b3403187e1f1789720881e77e4251ad4259d86c4844862657d2a35d13f", "size": 21476892}],
+          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "aarch64-unknown-linux-gnu"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-arm64"],
+          "host_profile_ids": ["public-linux-arm64"]
+        },
+        {
+          "platform_id": "macos-x86_64",
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-x86_64-apple-darwin.tar.gz"],
+          "raw_manifest": [{"path": "uv-x86_64-apple-darwin.tar.gz", "sha256": "e603f1eb634ca97a2a125539b983891f53235e901511ed10c32c08c86e253ecd", "size": 20796751}],
+          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-apple-darwin"},
+          "dependencies": [],
+          "profile_ids": ["public-macos-x86_64"],
+          "host_profile_ids": ["public-macos-x86_64"]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-aarch64-apple-darwin.tar.gz"],
+          "raw_manifest": [{"path": "uv-aarch64-apple-darwin.tar.gz", "sha256": "99a913b606194867b43086404412c1afe079547fee72ecfb6af7e7b0dd54b0c6", "size": 18632192}],
+          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "aarch64-apple-darwin"},
+          "dependencies": [],
+          "profile_ids": ["public-macos-arm64"],
+          "host_profile_ids": ["public-macos-arm64"]
+        }
+      ]
     }
   ]
 }
