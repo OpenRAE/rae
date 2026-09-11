@@ -221,6 +221,104 @@ def test_curl_qualification_uses_fixed_hardened_argv() -> None:
     assert argv[argv.index("--max-filesize") : argv.index("--max-filesize") + 2] == ["--max-filesize", "1024"]
 
 
+@pytest.mark.parametrize(
+    ("url", "max_bytes", "max_time_seconds", "message"),
+    [
+        ("http://example.test", 1, 30, "credential-free HTTPS"),
+        ("https://example.test", 0, 30, "size limit"),
+        ("https://example.test", 1, 31, "deadline"),
+    ],
+)
+def test_curl_qualification_rejects_invalid_bounds(
+    url: str,
+    max_bytes: int,
+    max_time_seconds: int,
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        bootstrap_profile.curl_qualification_argv(
+            Path("/usr/bin/curl"),
+            url,
+            Path("qualification-output"),
+            ca_cert=None,
+            max_bytes=max_bytes,
+            max_time_seconds=max_time_seconds,
+        )
+
+
+@pytest.mark.parametrize(
+    ("returncode", "expected_reason"),
+    [
+        (63, "curl-size-limit-enforced"),
+        (60, "curl-tls-rejected"),
+        (28, "curl-transfer-deadline"),
+        (1, "curl-transfer-failed"),
+        (0, "curl-transfer-qualified"),
+    ],
+)
+def test_curl_qualification_classifies_transfer_outcomes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    returncode: int,
+    expected_reason: str,
+) -> None:
+    responses = iter(
+        [
+            SimpleNamespace(returncode=0, stdout="curl 8.4.0", stderr=""),
+            SimpleNamespace(returncode=0, stdout="curl 8.4.0", stderr=""),
+            SimpleNamespace(returncode=returncode, stdout="", stderr=""),
+        ]
+    )
+    monkeypatch.setattr(bootstrap_profile.subprocess, "run", lambda *args, **kwargs: next(responses))
+    output = tmp_path / "payload"
+    output.write_bytes(b"ok")
+    result = bootstrap_profile.run_curl_qualification(
+        Path("/usr/bin/curl"),
+        "https://example.test/payload",
+        output,
+        ca_cert=None,
+        max_bytes=10,
+    )
+    assert result["reason_code"] == expected_reason
+    assert result["outcome"] == ("passed" if returncode in {0, 63} else "failed")
+
+
+@pytest.mark.parametrize(
+    ("failure", "expected_reason"),
+    [
+        (subprocess.TimeoutExpired("curl", 30), "curl-wall-deadline"),
+        (OSError("unavailable"), "curl-unavailable"),
+    ],
+)
+def test_curl_qualification_sanitizes_transfer_exceptions(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    failure: Exception,
+    expected_reason: str,
+) -> None:
+    calls = 0
+
+    def fake_run(*args: object, **kwargs: object) -> SimpleNamespace:
+        nonlocal calls
+        calls += 1
+        if calls == 3:
+            raise failure
+        return SimpleNamespace(returncode=0, stdout="curl 8.4.0", stderr="")
+
+    monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
+    output = tmp_path / "payload"
+    output.write_bytes(b"partial")
+    result = bootstrap_profile.run_curl_qualification(
+        Path("/usr/bin/curl"),
+        "https://example.test/payload",
+        output,
+        ca_cert=None,
+        max_bytes=10,
+    )
+    assert result == {"outcome": "failed", "reason_code": expected_reason}
+    assert not output.exists()
+
+
 def test_host_inspection_uses_closed_stdin_minimal_environment_and_sanitized_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -248,6 +346,54 @@ def test_host_inspection_uses_closed_stdin_minimal_environment_and_sanitized_fai
     assert kwargs["timeout"] == bootstrap_profile.PROBE_TIMEOUT_SECONDS
     assert kwargs["env"] == {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
     assert "should-not-leak" not in json.dumps(result)
+
+
+def test_native_client_results_cover_reviewed_linux_and_macos_capabilities(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        bootstrap_profile,
+        "observe_executable",
+        lambda capability_id, *args, **kwargs: {"capability_id": capability_id, "outcome": "passed"},
+    )
+    monkeypatch.setattr(bootstrap_profile, "_sha256", lambda _path: "a" * 64)
+    linux_capabilities = {
+        "git",
+        "curl-unknown-length-max-filesize",
+        "sha256",
+        "gh-cli",
+        "ca-roots",
+        "bubblewrap",
+        "fontconfig",
+        "fonts",
+        "locale-c-utf-8",
+    }
+    linux = bootstrap_profile._native_client_results(
+        {"platform_id": "linux-x86_64", "required_capability_ids": linux_capabilities}
+    )
+    assert {result["capability_id"] for result in linux} == linux_capabilities
+    macos = bootstrap_profile._native_client_results(
+        {
+            "platform_id": "macos-x86_64",
+            "required_capability_ids": {"git", "curl-unknown-length-max-filesize", "sha256", "gh-cli"},
+        }
+    )
+    assert {result["capability_id"] for result in macos} == {
+        "git",
+        "curl-unknown-length-max-filesize",
+        "sha256",
+        "gh-cli",
+    }
+
+    def unavailable(_path: Path) -> str:
+        raise OSError("unavailable")
+
+    monkeypatch.setattr(bootstrap_profile, "_sha256", unavailable)
+    assert bootstrap_profile._file_identity_result("fonts", Path("missing"), "font-unavailable") == {
+        "capability_id": "fonts",
+        "outcome": "failed",
+        "reason_code": "font-unavailable",
+    }
 
 
 def test_native_setup_refuses_mutable_repository_execution() -> None:
@@ -483,6 +629,104 @@ def test_case_results_are_bound_to_the_exact_harness_and_revision(tmp_path: Path
     path.write_text(json.dumps(result), encoding="utf-8")
     with pytest.raises(ValueError, match="does not match"):
         bootstrap_profile._load_case_results(REPO_ROOT, (path,), "b" * 40)
+
+
+def test_bootstrap_cli_parser_and_dispatch_cover_every_operation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        bootstrap_profile.sys,
+        "argv",
+        ["bootstrap_profile.py", "proof-support", "linux-x86_64"],
+    )
+    parsed = bootstrap_profile._parse_args()
+    assert parsed.operation == "proof-support"
+    assert parsed.platform_id == "linux-x86_64"
+
+    case_path = tmp_path / "case.json"
+    archive_path = tmp_path / "kit.tar"
+    manifest_path = tmp_path / "manifest.json"
+    source_root = tmp_path / "source"
+    destination_root = tmp_path / "destination"
+    operations = iter(
+        [
+            SimpleNamespace(operation="setup-plan", host_profile_id="host"),
+            SimpleNamespace(operation="inspect-profile", host_profile_id="host"),
+            SimpleNamespace(operation="generic-tools"),
+            SimpleNamespace(
+                operation="qualification-evidence",
+                host_profile_id="host",
+                implementation_revision="a" * 40,
+                evidence_location="evidence",
+                python_artifact_id="cpython-3.14",
+                case_result=[case_path],
+                offline_kit_root=tmp_path,
+                offline_kit=archive_path,
+                offline_kit_manifest_sha256="b" * 64,
+            ),
+            SimpleNamespace(
+                operation="record-case",
+                test_case_id="T02",
+                implementation_revision="a" * 40,
+                harness_path="noxfile.py",
+                artifact_id=["uv"],
+            ),
+            SimpleNamespace(
+                operation="offline-kit-manifest",
+                host_profile_id="host",
+                kit_root=tmp_path,
+                python_artifact_id="cpython-3.14",
+            ),
+            SimpleNamespace(
+                operation="offline-kit-fetch",
+                host_profile_id="host",
+                kit_root=tmp_path,
+                artifact_id=["uv"],
+            ),
+            SimpleNamespace(operation="offline-kit-manifest-digest", manifest_path=manifest_path),
+            SimpleNamespace(
+                operation="offline-kit-copy-tree",
+                source_root=source_root,
+                destination_root=destination_root,
+            ),
+            SimpleNamespace(
+                operation="offline-kit-install-python",
+                host_profile_id="host",
+                kit_root=tmp_path,
+                python_artifact_id="cpython-3.14",
+            ),
+            SimpleNamespace(
+                operation="offline-kit-verify",
+                host_profile_id="host",
+                kit_root=tmp_path,
+                python_artifact_id="cpython-3.14",
+                trusted_manifest_sha256="b" * 64,
+            ),
+            SimpleNamespace(operation="proof-support", platform_id="linux-x86_64"),
+        ]
+    )
+    monkeypatch.setattr(bootstrap_profile, "_parse_args", lambda: next(operations))
+    monkeypatch.setattr(bootstrap_profile, "_load_host_selection", lambda _host: ({}, {}, "digest"))
+    monkeypatch.setattr(bootstrap_profile, "native_setup_plan", lambda _host: {"outcome": "not-run"})
+    monkeypatch.setattr(bootstrap_profile, "_native_client_results", lambda _host: [{"outcome": "passed"}])
+    monkeypatch.setattr(bootstrap_profile, "qualify_generic_tools", lambda: {"outcome": "passed"})
+    monkeypatch.setattr(
+        bootstrap_profile, "build_qualification_evidence", lambda *args, **kwargs: {"outcome": "passed"}
+    )
+    monkeypatch.setattr(bootstrap_profile, "record_case_result", lambda *args: {"test_case_id": "T02"})
+    monkeypatch.setattr(bootstrap_profile, "build_offline_kit_manifest", lambda *args, **kwargs: {"entries": []})
+    monkeypatch.setattr(bootstrap_profile, "fetch_offline_kit_payloads", lambda *args: {"artifact_ids": ["uv"]})
+    monkeypatch.setattr(bootstrap_profile, "_load_offline_kit_manifest", lambda _path: {})
+    monkeypatch.setattr(bootstrap_profile, "_sha256", lambda _path: "0" * 64)
+    monkeypatch.setattr(bootstrap_profile, "copy_relocatable_tree", lambda *_args: None)
+    monkeypatch.setattr(bootstrap_profile, "install_offline_python_payload", lambda *args: {"outcome": "passed"})
+    monkeypatch.setattr(bootstrap_profile, "verify_offline_kit", lambda *args, **kwargs: {"outcome": "passed"})
+    monkeypatch.setattr(bootstrap_profile, "proof_support_outcome", lambda _platform: "required")
+
+    assert [bootstrap_profile.main() for _ in range(12)] == [0] * 12
+    assert len(capsys.readouterr().out.splitlines()) == 11
 
 
 def test_offline_tool_selection_verifies_imported_bytes_without_acquisition(tmp_path: Path) -> None:
