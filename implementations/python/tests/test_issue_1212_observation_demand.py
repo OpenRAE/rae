@@ -382,11 +382,13 @@ def test_unsupported_or_prohibited_required_work_fails_before_any_producer() -> 
         ),
     )
     conflict_resolution = normalize_observation_demands(conflict, target_scopes=("/links/red",))
+    conflict_producers = {packets.key: lambda: called.append("called") or ()}
+    supported_packets = frozenset({packets.key})
     with pytest.raises(ValueError, match="required-prohibited-conflict"):
         execute_observation_lifecycle(
             conflict_resolution,
-            producers={packets.key: lambda: called.append("called") or ()},
-            supported=frozenset({packets.key}),
+            producers=conflict_producers,
+            supported=supported_packets,
         )
     assert called == []
 
