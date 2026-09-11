@@ -290,6 +290,17 @@ syntax, one extractor that emits the same normalized shape. It must not require
 an action-specific validator, another action schema, duplicated platform table,
 workflow-name conditionals, or an executable plugin escape hatch.
 
+## Development-branch synchronization
+
+The pre-PR synchronization with `dev` at
+`8e6dbb742fb98d50bb16a55c47f941abd49ff58d` incorporated the maintained-client
+acquisition boundary from #1137. Its new canonical-verification handoff is part
+of the action-admission surface: the producer job disables checkout credential
+persistence and setup-uv caching, uploads only the locked local inputs, and the
+proof job consumes that same-run artifact. Both jobs and all five new or moved
+action occurrences are admitted by the v2 workflow/use-site records, and the
+qualification records bind the combined tooling-policy hash.
+
 ## Gotchas and anti-patterns
 
 - Do not equate an action commit, release tag/comment, bundled action source,
