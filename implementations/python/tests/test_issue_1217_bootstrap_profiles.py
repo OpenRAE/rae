@@ -348,6 +348,55 @@ def test_host_inspection_uses_closed_stdin_minimal_environment_and_sanitized_fai
     assert "should-not-leak" not in json.dumps(result)
 
 
+@pytest.mark.parametrize("mode", ["exception", "oversized", "version-mismatch"])
+def test_host_inspection_sanitizes_probe_failures(
+    monkeypatch: pytest.MonkeyPatch,
+    mode: str,
+) -> None:
+    def fake_run(*args: object, **kwargs: object) -> SimpleNamespace:
+        if mode == "exception":
+            raise OSError("private detail")
+        output = "x" * (bootstrap_profile.MAX_PROBE_OUTPUT_BYTES + 1) if mode == "oversized" else "wrong 1.0"
+        return SimpleNamespace(returncode=0, stdout=output, stderr="")
+
+    monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
+    result = bootstrap_profile.inspect_executable("git", Path("/usr/bin/git"), ("--version",), expected_version="git 2")
+    assert result["outcome"] == "failed"
+    assert "private detail" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("mode", ["preflight", "version-exception", "inadequate-version"])
+def test_curl_qualification_rejects_preflight_failures(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    mode: str,
+) -> None:
+    if mode == "preflight":
+        monkeypatch.setattr(bootstrap_profile, "inspect_executable", lambda *args, **kwargs: {"outcome": "failed"})
+    else:
+        monkeypatch.setattr(
+            bootstrap_profile,
+            "inspect_executable",
+            lambda *args, **kwargs: {"outcome": "passed"},
+        )
+
+        def fake_run(*args: object, **kwargs: object) -> SimpleNamespace:
+            if mode == "version-exception":
+                raise OSError("private detail")
+            return SimpleNamespace(returncode=0, stdout="curl 8.3.0", stderr="")
+
+        monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
+    result = bootstrap_profile.run_curl_qualification(
+        Path("/usr/bin/curl"),
+        "https://example.test/payload",
+        tmp_path / "payload",
+        ca_cert=None,
+        max_bytes=10,
+    )
+    assert result["outcome"] == "failed"
+    assert "private detail" not in json.dumps(result)
+
+
 def test_native_client_results_cover_reviewed_linux_and_macos_capabilities(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -394,6 +443,54 @@ def test_native_client_results_cover_reviewed_linux_and_macos_capabilities(
         "outcome": "failed",
         "reason_code": "font-unavailable",
     }
+
+
+def test_observe_executable_records_versions_and_sanitizes_exceptions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        bootstrap_profile.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="tool 2.3.4", stderr=""),
+    )
+    assert bootstrap_profile.observe_executable(
+        "tool", Path("/usr/bin/tool"), ("--version",), minimum_version=(2, 0, 0)
+    ) == {"capability_id": "tool", "outcome": "passed", "version": "2.3.4"}
+
+    def unavailable(*args: object, **kwargs: object) -> SimpleNamespace:
+        raise OSError("private detail")
+
+    monkeypatch.setattr(bootstrap_profile.subprocess, "run", unavailable)
+    result = bootstrap_profile.observe_executable("tool", Path("/usr/bin/tool"), ("--version",))
+    assert result["reason_code"] == "native-client-unavailable"
+    assert "private detail" not in json.dumps(result)
+
+
+@pytest.mark.parametrize(
+    ("returncode", "stdout", "minimum_version", "expected_reason"),
+    [
+        (1, "tool 2.3.4", None, "native-client-exit"),
+        (0, "x" * (bootstrap_profile.MAX_PROBE_OUTPUT_BYTES + 1), None, "native-client-output-limit"),
+        (0, "no version", None, "native-client-version"),
+        (0, "tool 1.0.0", (2, 0, 0), "native-client-version"),
+    ],
+)
+def test_observe_executable_rejects_invalid_results(
+    monkeypatch: pytest.MonkeyPatch,
+    returncode: int,
+    stdout: str,
+    minimum_version: tuple[int, int, int] | None,
+    expected_reason: str,
+) -> None:
+    monkeypatch.setattr(
+        bootstrap_profile.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=returncode, stdout=stdout, stderr=""),
+    )
+    result = bootstrap_profile.observe_executable(
+        "tool", Path("/usr/bin/tool"), ("--version",), minimum_version=minimum_version
+    )
+    assert result["reason_code"] == expected_reason
 
 
 def test_native_setup_refuses_mutable_repository_execution() -> None:
