@@ -14,6 +14,8 @@ from tools import bootstrap_profile, gitleaks_tool, osv_scanner_tool, vale_tool
 from tools import maintained_client_acquisition as acquisition
 from tools.policy import conftest_tool
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
 
 def _expected(payload: bytes) -> SimpleNamespace:
     return SimpleNamespace(
@@ -239,6 +241,88 @@ def test_network_output_must_match_the_locked_raw_identity(
 
 def test_bootstrap_qualification_uses_the_shared_curl_argv_builder() -> None:
     assert bootstrap_profile.curl_qualification_argv is acquisition.curl_transfer_argv
+
+
+def test_generic_tool_local_input_root_routes_each_locked_raw_object(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    local_input_root = tmp_path / "local-inputs"
+    local_input_root.mkdir()
+    raw_paths = {
+        "conftest": "conftest.tar.gz",
+        "gitleaks": "gitleaks.tar.gz",
+        "osv-scanner": "osv-scanner",
+        "vale": "vale.tar.gz",
+    }
+    observed: dict[str, Path | None] = {}
+
+    monkeypatch.setattr(
+        "tools.tooling_policy_gate.host_platform_id",
+        lambda: "linux-x86_64",
+    )
+    monkeypatch.setattr(
+        bootstrap_profile,
+        "_load_host_selection",
+        lambda profile_id: (
+            {},
+            {
+                artifact_id: {
+                    "version": version,
+                    "platform": {"raw_manifest": [{"path": raw_paths[artifact_id]}]},
+                }
+                for artifact_id, version in {
+                    "conftest": "0.68.0",
+                    "gitleaks": "8.30.1",
+                    "osv-scanner": "2.4.0",
+                    "vale": "3.15.2",
+                }.items()
+            },
+            "policy-digest",
+        ),
+    )
+
+    for module, artifact_id in (
+        (conftest_tool, "conftest"),
+        (gitleaks_tool, "gitleaks"),
+        (osv_scanner_tool, "osv-scanner"),
+        (vale_tool, "vale"),
+    ):
+        binary = tmp_path / f"installed-{artifact_id}"
+
+        def ensure(*, local_input: Path | None = None, artifact_id: str = artifact_id, binary: Path = binary) -> Path:
+            observed[artifact_id] = local_input
+            return binary
+
+        monkeypatch.setattr(module, f"ensure_{artifact_id.replace('-', '_')}", ensure)
+
+    selections = bootstrap_profile._default_generic_tool_selections(local_input_root)
+
+    assert [item[0] for item in selections] == ["conftest", "gitleaks", "osv-scanner", "vale"]
+    assert observed == {
+        artifact_id: local_input_root / "archives" / artifact_id / raw_path
+        for artifact_id, raw_path in raw_paths.items()
+    }
+
+
+def test_canonical_proof_job_consumes_same_run_locked_generic_tool_inputs() -> None:
+    import yaml
+
+    workflow_path = REPO_ROOT / ".github/workflows/canonical-verification.yml"
+    workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+    prepare = workflow["jobs"]["generic-tool-local-inputs"]
+    verify = workflow["jobs"]["verify"]
+    workflow_text = workflow_path.read_text(encoding="utf-8")
+
+    assert prepare["runs-on"] == "ubuntu-24.04"
+    assert verify["runs-on"] == "ubuntu-22.04"
+    assert verify["needs"] == "generic-tool-local-inputs"
+    assert "offline-kit-fetch" in workflow_text
+    assert "--artifact-id conftest" in workflow_text
+    assert "--artifact-id gitleaks" in workflow_text
+    assert "--artifact-id osv-scanner" in workflow_text
+    assert "--artifact-id vale" in workflow_text
+    assert "generic-tools --local-input-root .canonical-tool-inputs" in workflow_text
 
 
 def test_bootstrap_qualification_maps_size_enforcement_without_changing_production_semantics(

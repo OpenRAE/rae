@@ -288,7 +288,9 @@ def proof_support_outcome(platform_id: str) -> str:
     return "required" if platform_id == "linux-x86_64" else "unsupported"
 
 
-def _default_generic_tool_selections() -> tuple[tuple[str, Path, tuple[str, ...], str], ...]:
+def _default_generic_tool_selections(
+    local_input_root: Path | None = None,
+) -> tuple[tuple[str, Path, tuple[str, ...], str], ...]:
     from tools.gitleaks_tool import ensure_gitleaks
     from tools.osv_scanner_tool import ensure_osv_scanner
     from tools.policy.conftest_tool import ensure_conftest
@@ -298,13 +300,67 @@ def _default_generic_tool_selections() -> tuple[tuple[str, Path, tuple[str, ...]
         OSV_SCANNER_VERSION,
         VALE_VERSION,
     )
+    from tools.tooling_policy_gate import host_platform_id
     from tools.vale_tool import ensure_vale
 
+    if local_input_root is not None and (not local_input_root.is_dir() or local_input_root.is_symlink()):
+        raise ValueError("generic-tool local input root must be a regular directory")
+
+    local_artifacts: dict[str, dict[str, object]] = {}
+    if local_input_root is not None:
+        platform_id = host_platform_id()
+        host_profile_id = {
+            "linux-x86_64": "public-ubuntu-24.04-x86_64",
+            "linux-arm64": "public-linux-arm64",
+            "macos-x86_64": "public-macos-x86_64",
+            "macos-arm64": "public-macos-arm64",
+        }.get(platform_id)
+        if host_profile_id is None:
+            raise RuntimeError("generic-tool local inputs do not support this host platform")
+        _host, local_artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
+
+    def local_input(artifact_id: str, version: str) -> Path | None:
+        if local_input_root is None:
+            return None
+        artifact = local_artifacts.get(artifact_id)
+        if artifact is None or artifact.get("version") != version:
+            raise RuntimeError(f"{artifact_id} is not selected by the reviewed host profile")
+        platform = artifact.get("platform")
+        if not isinstance(platform, dict):
+            raise RuntimeError(f"{artifact_id} host selection has an invalid platform")
+        raw_manifest = platform.get("raw_manifest")
+        if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
+            raise RuntimeError(f"{artifact_id} lock selection must contain one raw asset")
+        raw = raw_manifest[0]
+        if not isinstance(raw, dict) or not isinstance(raw.get("path"), str):
+            raise RuntimeError(f"{artifact_id} lock selection has an invalid raw asset")
+        return local_input_root / "archives" / artifact_id / raw["path"]
+
     return (
-        ("conftest", ensure_conftest(), ("--version",), CONTFEST_VERSION),
-        ("gitleaks", ensure_gitleaks(), ("version",), GITLEAKS_VERSION),
-        ("osv-scanner", ensure_osv_scanner(), ("--version",), OSV_SCANNER_VERSION),
-        ("vale", ensure_vale(), ("--version",), VALE_VERSION),
+        (
+            "conftest",
+            ensure_conftest(local_input=local_input("conftest", CONTFEST_VERSION)),
+            ("--version",),
+            CONTFEST_VERSION,
+        ),
+        (
+            "gitleaks",
+            ensure_gitleaks(local_input=local_input("gitleaks", GITLEAKS_VERSION)),
+            ("version",),
+            GITLEAKS_VERSION,
+        ),
+        (
+            "osv-scanner",
+            ensure_osv_scanner(local_input=local_input("osv-scanner", OSV_SCANNER_VERSION)),
+            ("--version",),
+            OSV_SCANNER_VERSION,
+        ),
+        (
+            "vale",
+            ensure_vale(local_input=local_input("vale", VALE_VERSION)),
+            ("--version",),
+            VALE_VERSION,
+        ),
     )
 
 
@@ -347,10 +403,13 @@ def _offline_generic_tool_selections(
 def qualify_generic_tools(
     *,
     selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None,
+    local_input_root: Path | None = None,
 ) -> dict[str, object]:
     """Execute every selected generic tool and return bounded logical evidence."""
 
-    selected = tuple(selections) if selections is not None else _default_generic_tool_selections()
+    if selections is not None and local_input_root is not None:
+        raise ValueError("generic-tool selections and local input root are mutually exclusive")
+    selected = tuple(selections) if selections is not None else _default_generic_tool_selections(local_input_root)
     results: list[dict[str, str]] = []
     with tempfile.TemporaryDirectory(prefix="raes-generic-tool-probe-") as probe_root:
         probe_environment = {
@@ -1142,7 +1201,8 @@ def _parse_args() -> argparse.Namespace:
     setup.add_argument("host_profile_id")
     inspect = subparsers.add_parser("inspect-profile", help="run the reviewed read-only host probes")
     inspect.add_argument("host_profile_id")
-    subparsers.add_parser("generic-tools", help="execute the four locked generic tools")
+    generic = subparsers.add_parser("generic-tools", help="execute the four locked generic tools")
+    generic.add_argument("--local-input-root", type=Path)
     evidence = subparsers.add_parser("qualification-evidence", help="execute tools and emit host-bound evidence")
     evidence.add_argument("host_profile_id")
     evidence.add_argument("implementation_revision")
@@ -1195,7 +1255,12 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
         print(json.dumps(result, sort_keys=True))
         return 0 if all(item["outcome"] == "passed" for item in result) else 1
     elif args.operation == "generic-tools":
-        result = qualify_generic_tools()
+        local_input_root = getattr(args, "local_input_root", None)
+        result = (
+            qualify_generic_tools(local_input_root=local_input_root)
+            if local_input_root is not None
+            else qualify_generic_tools()
+        )
         print(json.dumps(result, sort_keys=True))
         return 0 if result["outcome"] == "passed" else 1
     elif args.operation == "qualification-evidence":
