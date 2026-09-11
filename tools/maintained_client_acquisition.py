@@ -97,6 +97,7 @@ def _remove_output(output: Path, reason_code: str) -> dict[str, str]:
 
 
 def _curl_preflight_failure(executable: Path) -> str | None:
+    failure: str | None = None
     try:
         completed = subprocess.run(
             [str(executable), "--version"],
@@ -108,13 +109,14 @@ def _curl_preflight_failure(executable: Path) -> str | None:
             env=dict(_CLIENT_ENV),
         )
     except (OSError, subprocess.SubprocessError):
-        return "curl-unavailable"
-    observed = f"{completed.stdout}\n{completed.stderr}"
-    if completed.returncode != 0:
-        return "curl-unavailable"
-    if len(observed.encode("utf-8")) > MAX_PROBE_OUTPUT_BYTES or not curl_version_is_supported(completed.stdout):
-        return "curl-version-inadequate"
-    return None
+        failure = "curl-unavailable"
+    if failure is None:
+        observed = f"{completed.stdout}\n{completed.stderr}"
+        if completed.returncode != 0:
+            failure = "curl-unavailable"
+        elif len(observed.encode("utf-8")) > MAX_PROBE_OUTPUT_BYTES or not curl_version_is_supported(completed.stdout):
+            failure = "curl-version-inadequate"
+    return failure
 
 
 def _curl_is_supported(executable: Path) -> bool:

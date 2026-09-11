@@ -204,12 +204,13 @@ def test_invalid_local_input_is_terminal_without_network_fallback(
         "run_curl_transfer",
         lambda *_args, **_kwargs: pytest.fail("network fallback used after invalid local input"),
     )
+    expected = _expected(expected_payload)
 
     with pytest.raises(RuntimeError, match="conftest local input failed locked identity validation") as raised:
         acquisition.acquire_locked_bytes(
             artifact_id="conftest",
             source_url="https://example.test/conftest",
-            expected=_expected(expected_payload),
+            expected=expected,
             local_input=local_input,
         )
     assert str(local_input) not in str(raised.value)
@@ -230,12 +231,13 @@ def test_network_output_must_match_the_locked_raw_identity(
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
     monkeypatch.setattr(acquisition, "run_curl_transfer", transfer)
+    expected = _expected(expected_payload)
 
     with pytest.raises(RuntimeError, match="vale acquired bytes differ from the reviewed lock"):
         acquisition.acquire_locked_bytes(
             artifact_id="vale",
             source_url="https://example.test/vale",
-            expected=_expected(expected_payload),
+            expected=expected,
         )
 
 
@@ -483,12 +485,14 @@ def test_vale_bounds_the_selected_member_read_by_the_locked_installed_size(
             return Stream()
 
     monkeypatch.setattr(vale_tool.tarfile, "open", lambda *_args, **_kwargs: Archive())
+    expected_sha256 = hashlib.sha256(b"any").hexdigest()
+    vale_path = tmp_path / "vale"
 
     with pytest.raises(RuntimeError, match="size differs from the reviewed lock manifest"):
         vale_tool._extract_binary(
             b"archive",
-            tmp_path / "vale",
+            vale_path,
             expected_size=3,
-            expected_sha256=hashlib.sha256(b"any").hexdigest(),
+            expected_sha256=expected_sha256,
         )
     assert observed == [4]

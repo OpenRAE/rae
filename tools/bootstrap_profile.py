@@ -41,6 +41,12 @@ _MINIMUM_CURL = (8, 4, 0)
 _OBSERVED_VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})(?:[.](\d{1,10}))?")
 _PROBE_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
 _SYSTEM_CURL = maintained_client_acquisition.SYSTEM_CURL
+_GENERIC_TOOL_HOST_PROFILES = {
+    "linux-x86_64": "public-ubuntu-24.04-x86_64",
+    "linux-arm64": "public-linux-arm64",
+    "macos-x86_64": "public-macos-x86_64",
+    "macos-arm64": "public-macos-arm64",
+}
 curl_qualification_argv = maintained_client_acquisition.curl_transfer_argv
 curl_version_is_supported = maintained_client_acquisition.curl_version_is_supported
 
@@ -288,6 +294,44 @@ def proof_support_outcome(platform_id: str) -> str:
     return "required" if platform_id == "linux-x86_64" else "unsupported"
 
 
+def _generic_tool_local_artifacts(local_input_root: Path | None) -> dict[str, dict[str, object]]:
+    if local_input_root is None:
+        return {}
+    if not local_input_root.is_dir() or local_input_root.is_symlink():
+        raise ValueError("generic-tool local input root must be a regular directory")
+
+    from tools.tooling_policy_gate import host_platform_id
+
+    host_profile_id = _GENERIC_TOOL_HOST_PROFILES.get(host_platform_id())
+    if host_profile_id is None:
+        raise RuntimeError("generic-tool local inputs do not support this host platform")
+    _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
+    return artifacts
+
+
+def _generic_tool_local_input(
+    local_input_root: Path | None,
+    local_artifacts: dict[str, dict[str, object]],
+    artifact_id: str,
+    version: str,
+) -> Path | None:
+    if local_input_root is None:
+        return None
+    artifact = local_artifacts.get(artifact_id)
+    if artifact is None or artifact.get("version") != version:
+        raise RuntimeError(f"{artifact_id} is not selected by the reviewed host profile")
+    platform = artifact.get("platform")
+    if not isinstance(platform, dict):
+        raise RuntimeError(f"{artifact_id} host selection has an invalid platform")
+    raw_manifest = platform.get("raw_manifest")
+    if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
+        raise RuntimeError(f"{artifact_id} lock selection must contain one raw asset")
+    raw = raw_manifest[0]
+    if not isinstance(raw, dict) or not isinstance(raw.get("path"), str):
+        raise RuntimeError(f"{artifact_id} lock selection has an invalid raw asset")
+    return local_input_root / "archives" / artifact_id / raw["path"]
+
+
 def _default_generic_tool_selections(
     local_input_root: Path | None = None,
 ) -> tuple[tuple[str, Path, tuple[str, ...], str], ...]:
@@ -300,41 +344,12 @@ def _default_generic_tool_selections(
         OSV_SCANNER_VERSION,
         VALE_VERSION,
     )
-    from tools.tooling_policy_gate import host_platform_id
     from tools.vale_tool import ensure_vale
 
-    if local_input_root is not None and (not local_input_root.is_dir() or local_input_root.is_symlink()):
-        raise ValueError("generic-tool local input root must be a regular directory")
-
-    local_artifacts: dict[str, dict[str, object]] = {}
-    if local_input_root is not None:
-        platform_id = host_platform_id()
-        host_profile_id = {
-            "linux-x86_64": "public-ubuntu-24.04-x86_64",
-            "linux-arm64": "public-linux-arm64",
-            "macos-x86_64": "public-macos-x86_64",
-            "macos-arm64": "public-macos-arm64",
-        }.get(platform_id)
-        if host_profile_id is None:
-            raise RuntimeError("generic-tool local inputs do not support this host platform")
-        _host, local_artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
+    local_artifacts = _generic_tool_local_artifacts(local_input_root)
 
     def local_input(artifact_id: str, version: str) -> Path | None:
-        if local_input_root is None:
-            return None
-        artifact = local_artifacts.get(artifact_id)
-        if artifact is None or artifact.get("version") != version:
-            raise RuntimeError(f"{artifact_id} is not selected by the reviewed host profile")
-        platform = artifact.get("platform")
-        if not isinstance(platform, dict):
-            raise RuntimeError(f"{artifact_id} host selection has an invalid platform")
-        raw_manifest = platform.get("raw_manifest")
-        if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
-            raise RuntimeError(f"{artifact_id} lock selection must contain one raw asset")
-        raw = raw_manifest[0]
-        if not isinstance(raw, dict) or not isinstance(raw.get("path"), str):
-            raise RuntimeError(f"{artifact_id} lock selection has an invalid raw asset")
-        return local_input_root / "archives" / artifact_id / raw["path"]
+        return _generic_tool_local_input(local_input_root, local_artifacts, artifact_id, version)
 
     return (
         (
