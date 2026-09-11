@@ -25,8 +25,18 @@ from raes_contracts.contracts import (
     ParticipantHistoryViewModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.plan_projection import evaluation_plan_model, orchestration_plan_model, provisioning_plan_model
-from raes_contracts.planning import ChangeAction, OrchestrationOp, OrchestrationPlan, ProvisioningPlan
+from raes_contracts.observation_demand import (
+    ObservationDemandDocument,
+    ObservationDemandRule,
+    ObservationSelector,
+    normalize_observation_demands,
+)
+from raes_contracts.plan_projection import (
+    evaluation_plan_model,
+    orchestration_plan_model,
+    provisioning_plan_model,
+)
+from raes_contracts.planning import ChangeAction, EvaluationPlan, OrchestrationOp, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import (
     ExplicitnessClass,
     ExplicitnessProvenance,
@@ -954,6 +964,76 @@ nodes:
     assert response.status_code == 403
     assert response.json() == {"detail": "provisioning plan is not planner-authorized"}
     assert control_plane.snapshot.entries == {}
+
+
+@pytest.mark.parametrize(
+    ("path", "plan_model", "expected_detail"),
+    [
+        (
+            "/operations/provisioning",
+            lambda demands: provisioning_plan_model(ProvisioningPlan(observation_demands=demands)),
+            "provisioning plan is not planner-authorized",
+        ),
+        (
+            "/operations/orchestration",
+            lambda demands: orchestration_plan_model(OrchestrationPlan(observation_demands=demands)),
+            "orchestration plan is not planner-authorized",
+        ),
+        (
+            "/operations/evaluation",
+            lambda demands: evaluation_plan_model(EvaluationPlan(observation_demands=demands)),
+            "evaluation plan is not planner-authorized",
+        ),
+    ],
+)
+def test_generic_operation_principal_cannot_mint_observation_policy(
+    path: str,
+    plan_model: object,
+    expected_detail: str,
+) -> None:
+    selector = ObservationSelector(
+        semantic_scope="/nodes/kali",
+        data_kind="stream",
+        names=("trace",),
+    )
+    resolution = normalize_observation_demands(
+        ObservationDemandDocument(
+            schema_version="observation-demand/v1",
+            document_id="api-forgery",
+            scope_profile="recursive-realization-constraint/v1",
+            rules=(
+                ObservationDemandRule(
+                    rule_id="trace",
+                    scope="/nodes/kali",
+                    purpose="experimental",
+                    mode="selected",
+                    selector=selector,
+                    collection="require",
+                    export="require",
+                    redaction="redact-sensitive",
+                    integrity="digest",
+                ),
+            ),
+        ),
+        target_scopes=("/nodes/kali",),
+    )
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+    model = plan_model(resolution.effective)
+
+    with TestClient(app) as client:
+        response = client.post(
+            path,
+            json=model.model_dump(mode="json", exclude_none=True),
+            headers={
+                "x-raes-client-verified": "true",
+                "x-raes-client-identity": "backend-service",
+            },
+        )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == expected_detail
 
 
 def test_authenticated_snapshot_preserves_realization_governing_scope_from_store(tmp_path: Path):

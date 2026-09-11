@@ -17,6 +17,7 @@ from ..models import (
 )
 from .evaluation import _compile_assertions, _compile_condition_bindings, _compile_propositions
 from .objectives import _compile_objectives
+from .observation_demands import compile_observation_demands
 from .orchestration import (
     _compile_events,
     _compile_inject_bindings,
@@ -77,7 +78,7 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
         if isinstance(scenario, InstantiatedScenario)
         else instantiate_scenario(scenario)
     )
-    build_declaration_index(scenario)
+    declaration_index = build_declaration_index(scenario)
     diagnostics: list[Diagnostic] = []
     domain_analysis = analyze_domain_topology(
         identity_domains=scenario.identity_domains,
@@ -130,6 +131,7 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
     objectives = _compile_objectives(scenario, assertions, diagnostics)
     workflows = _compile_workflows(scenario, assertions, diagnostics)
     realization_requirements, realization_authority = _compile_realization(scenario, domain_analysis)
+    observation_demands = compile_observation_demands(scenario, declaration_index=declaration_index)
 
     return RuntimeModel(
         scenario_name=scenario.name,
@@ -171,4 +173,5 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
         realization_requirements=realization_requirements,
         realization_authority=realization_authority,
         realization_instance=scenario,
+        observation_demands=observation_demands,
     )

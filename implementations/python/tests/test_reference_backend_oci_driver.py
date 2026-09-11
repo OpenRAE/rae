@@ -62,6 +62,21 @@ def _driver(recorder: _Recorder) -> OciDeploymentDriver:
     )
 
 
+def test_realization_does_not_invoke_optional_substrate_probe(monkeypatch):
+    driver = _driver(_Recorder(stdout="owned-id\n"))
+
+    def unexpected_probe(*_args, **_kwargs):
+        pytest.fail("substrate readback must be selected through observe")
+
+    monkeypatch.setattr(driver, "_substrate_observations", unexpected_probe)
+    result = driver.realize(
+        networks=(),
+        containers=(ContainerSpec(address="provision.node.web", name="web", image_ref="img"),),
+    )
+    assert not result.diagnostics
+    assert result.observations == ()
+
+
 def test_container_spec_preserves_legacy_positional_labels_argument():
     labels = {"environment": "test"}
 

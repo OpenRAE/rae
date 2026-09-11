@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 from raes_backend_protocols.capabilities import BackendManifest, OperatingSystemCompatibility
-from raes_runtime.registry import BackendRegistry, RuntimeTarget, RuntimeTargetComponents
+from raes_runtime.registry import (
+    BackendRegistry,
+    RuntimeTarget,
+    RuntimeTargetComponents,
+    backend_selection_observation_runtime,
+)
 
 from .driver import LibvirtDriver
 from .drivers.libvirt import LibvirtDeploymentDriver
@@ -36,6 +41,7 @@ def create_libvirt_components(
             realization_envelope=manifest.realization_envelope.identity,
         ),
         participant_runtime=participant_runtime,
+        observation_runtime=backend_selection_observation_runtime(manifest),
     )
 
 
@@ -54,6 +60,7 @@ def create_libvirt_target(**config: Any) -> RuntimeTarget:
         orchestrator=components.orchestrator,
         evaluator=components.evaluator,
         participant_runtime=components.participant_runtime,
+        observation_runtime=components.observation_runtime,
     )
 
 

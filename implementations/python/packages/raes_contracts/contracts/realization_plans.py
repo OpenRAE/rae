@@ -12,6 +12,7 @@ from ..addressing import CompiledAddress
 from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
 from ..compute_substrate import validate_compute_substrate_constraint
+from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
     RealizationAuthorityMode,
     RealizationResolutionSource,
@@ -202,6 +203,7 @@ class ProvisioningPlanModel(ContractModel):
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     realization_constraints: list[PlannedRealizationConstraintModel] = Field(default_factory=list)
     operation_id: NonEmptyString | None = None
+    observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _validate_operation_addresses(self) -> ProvisioningPlanModel:
@@ -226,6 +228,7 @@ class OrchestrationPlanModel(ContractModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     startup_order: list[CompiledAddress] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
+    observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _validate_operation_addresses(self) -> OrchestrationPlanModel:
@@ -239,6 +242,7 @@ class EvaluationPlanModel(ContractModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     startup_order: list[CompiledAddress] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
+    observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _validate_operation_addresses(self) -> EvaluationPlanModel:

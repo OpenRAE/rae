@@ -2,9 +2,9 @@
   "contract_id": "scenario-satisfiability-evidence-v1",
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft",
-  "content_hash": "ac676a4fd25db93a3c8b1ac936994824210a2a7356700b82130d2c8ff3adfc97",
+  "content_hash": "995ac88a10e61b754b7d730848775ccdd0d9bd168b49b6fb822cdf5caa3aa37b",
   "last_change": {
-    "summary": "Removed native classification fields in favor of external concept bindings (issue #989), retaining explicit evidence output-contract and field demand terms (issue #1112).",
-    "content_hash": "ac676a4fd25db93a3c8b1ac936994824210a2a7356700b82130d2c8ff3adfc97"
+    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "995ac88a10e61b754b7d730848775ccdd0d9bd168b49b6fb822cdf5caa3aa37b"
   }
 }

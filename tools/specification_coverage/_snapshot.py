@@ -334,6 +334,29 @@ def _occurrence_entry_failures(
             )
 
 
+def _validate_current_source_state(
+    repo_root: Path,
+    snapshot: dict[str, object],
+    failures: list[PolicyFailure],
+    path: str,
+    *,
+    replay_current: bool,
+) -> None:
+    if not replay_current:
+        return
+    failures.extend(validate_current_deviations(repo_root, snapshot))
+    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=True))
+    state = snapshot.get("source_state")
+    if not isinstance(state, dict) or state.get("base_revision") != snapshot.get("raes_revision"):
+        failures.append(
+            _failure(
+                "research-evidence-source-state",
+                "base revision must join source identity",
+                path,
+            )
+        )
+
+
 def _validate_snapshot(
     repo_root: Path,
     protocol: dict[str, object],
@@ -344,10 +367,11 @@ def _validate_snapshot(
     replay_current: bool = True,
 ) -> None:
     path = _EXECUTION_SNAPSHOT_PATH
+    current_shape = replay_current or "source_state" in snapshot
     if not _exact_keys(
         snapshot,
         (_SNAPSHOT_KEYS - {_HISTORICAL_REVISION_FIELD}) | {"raes_revision", "source_state", "baseline"}
-        if replay_current
+        if current_shape
         else _SNAPSHOT_KEYS,
         failures,
         rule_id="specification-coverage-snapshot-shape",
@@ -356,12 +380,7 @@ def _validate_snapshot(
     ):
         return
     _snapshot_join_failures(repo_root, protocol, snapshot, failures, path)
-    if replay_current:
-        failures.extend(validate_current_deviations(repo_root, snapshot))
-        failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=True))
-        state = snapshot.get("source_state")
-        if not isinstance(state, dict) or state.get("base_revision") != snapshot.get("raes_revision"):
-            failures.append(_failure("research-evidence-source-state", "base revision must join source identity", path))
+    _validate_current_source_state(repo_root, snapshot, failures, path, replay_current=replay_current)
     _validate_implementation_surfaces(repo_root, snapshot, failures, replay_current=replay_current)
 
     artifacts_by_id, executed = _validate_artifacts(repo_root, snapshot, failures, replay_current=replay_current)

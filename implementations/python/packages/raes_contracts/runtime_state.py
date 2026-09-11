@@ -177,9 +177,15 @@ class ApplyResult:
     diagnostics: list[Diagnostic] = field(default_factory=list)
     changed_addresses: list[str] = field(default_factory=list)
     details: dict[str, Any] = field(default_factory=dict)
+    # Transient verification input. Snapshot/store/API codecs never serialize it.
+    operational_realization_observations: tuple[RealizationObservationDisclosure, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_changed_addresses(self.changed_addresses)
+        if not isinstance(self.operational_realization_observations, tuple) or any(
+            not isinstance(item, RealizationObservationDisclosure) for item in self.operational_realization_observations
+        ):
+            raise TypeError("operational realization observations must be a tuple of typed disclosures")
 
 
 @dataclass(frozen=True)

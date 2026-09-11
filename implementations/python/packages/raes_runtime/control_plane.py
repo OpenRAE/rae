@@ -1,9 +1,5 @@
 """Reference async-style control plane over runtime targets.
-
-This is a repo-owned, schema-oriented façade that exposes runtime execution as
-submitted operations over plain-data-compatible envelopes. The current
-implementation completes operations eagerly, but the contract surface matches an
-async control plane so non-Python runtimes can evolve behind the same API.
+Expose schema-oriented runtime execution as eagerly completed operations over an async-compatible API.
 """
 
 from __future__ import annotations
@@ -55,6 +51,8 @@ from .control_plane_store import (
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import _submitted_plan_diagnostics
 from .control_plane_workflow_control import WorkflowControlMixin
+from .observation_execution import ObservationExecution
+from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
 from .participant_crossing_mediation import (
@@ -276,6 +274,8 @@ class RuntimeControlPlane(
             RuntimeDomain.PROVISIONING,
             self._snapshot,
             self._target.manifest,
+            self._target.observation_runtime,
+            durable_lifecycle_available=self._store_commits.crash_atomic,
         )
         if not diagnostics:
             diagnostics.extend(self._plan_authorization_diagnostics(plan))
@@ -353,7 +353,14 @@ class RuntimeControlPlane(
                 context=context,
             )
         else:
-            diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.ORCHESTRATION, self._snapshot)
+            diagnostics = _submitted_plan_diagnostics(
+                plan,
+                RuntimeDomain.ORCHESTRATION,
+                self._snapshot,
+                self._target.manifest,
+                self._target.observation_runtime,
+                durable_lifecycle_available=self._store_commits.crash_atomic,
+            )
             if not diagnostics:
                 diagnostics.extend(self._plan_authorization_diagnostics(plan))
             if diagnostics:
@@ -427,7 +434,14 @@ class RuntimeControlPlane(
                 context=context,
             )
         else:
-            diagnostics = _submitted_plan_diagnostics(plan, RuntimeDomain.EVALUATION, self._snapshot)
+            diagnostics = _submitted_plan_diagnostics(
+                plan,
+                RuntimeDomain.EVALUATION,
+                self._snapshot,
+                self._target.manifest,
+                self._target.observation_runtime,
+                durable_lifecycle_available=self._store_commits.crash_atomic,
+            )
             if not diagnostics:
                 diagnostics.extend(self._plan_authorization_diagnostics(plan))
             if diagnostics:
@@ -463,6 +477,15 @@ class RuntimeControlPlane(
             self._operations = self._store.load_records()
             record = self._operations.get(operation_id)
         return None if record is None else record.status
+
+    @runtime_owned
+    def observation_execution(self, operation_id: str) -> ObservationExecution | None:
+        """Return committed metadata and explicitly retained descriptions."""
+
+        self._assert_runtime_owner()
+        with self._operation_lock:
+            record = self._operations.get(operation_id)
+        return observation_execution_from_payload(None if record is None else record.result_payload)
 
     @runtime_owned
     def get_snapshot(self) -> RuntimeSnapshotEnvelope:

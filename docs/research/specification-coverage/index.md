@@ -32,19 +32,23 @@ this run does not repair them.
   status.
 
 - [`execution-snapshot-v2.json`](execution-snapshot-v2.json) and
-  [`analysis-v2.json`](analysis-v2.json) are the current release 2.0.0, with
+  [`analysis-v2.json`](analysis-v2.json) preserve release 2.0.0.
+- [`execution-snapshot-v3.json`](execution-snapshot-v3.json) and
+  [`analysis-v3.json`](analysis-v3.json) preserve release 3.0.0.
+- [`execution-snapshot-v4.json`](execution-snapshot-v4.json) and
+  [`analysis-v4.json`](analysis-v4.json) are the current release 4.0.0, with
   exact current artifact pins, package digests, and source-state provenance.
   The original protocol and missing-concept denominator remain unchanged.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
-exact archived source bytes, without executing current code. The six source
+exact archived source bytes, without executing current code. The ten source
 archives in `historical-artifacts/` are content-addressed JSON envelopes with
 base64-encoded original bytes and the Git revision from which those bytes were
 recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 2.0.0 and rejects duplicate or unsupported
+Current validation requires release 4.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

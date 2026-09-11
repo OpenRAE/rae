@@ -92,7 +92,6 @@ class LibvirtDeploymentDriver:
         diagnostics: list[Diagnostic] = []
         network_handles: list[NetworkHandle] = []
         domain_handles: list[DomainHandle] = []
-        observations: list[RealizationObservation] = []
         # Addresses this call newly created (no owned object pre-existed). Only
         # these are rolled back on failure — never a pre-existing resource an
         # UPDATE converged, whose destruction would contradict the baseline
@@ -112,7 +111,6 @@ class LibvirtDeploymentDriver:
             domains,
             created_domains,
             domain_handles,
-            observations,
             diagnostics,
         )
 
@@ -128,7 +126,6 @@ class LibvirtDeploymentDriver:
         return DriverResult(
             networks=tuple(network_handles),
             domains=tuple(domain_handles),
-            observations=tuple(observations),
         )
 
     @staticmethod

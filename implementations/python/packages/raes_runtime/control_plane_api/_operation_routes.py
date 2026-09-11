@@ -106,7 +106,7 @@ def _register_provisioning_submission_route(
             control_plane.is_planner_authorized_plan,
             submitted_plan,
         )
-        if submitted_plan.operations and not planner_authorized:
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not planner_authorized:
             await calls.run(
                 control_plane.record_audit,
                 action="submit_provisioning",
@@ -146,10 +146,12 @@ def _register_orchestration_submission_route(
         plan: OrchestrationPlanModel,
         identity: _MutatingIdentity,
     ) -> OperationReceiptModel:
-        calls = _control_plane_calls(request)
         submitted_plan = _orchestration_plan(plan)
-        planner_authorized = await calls.run(control_plane.is_planner_authorized_plan, submitted_plan)
-        if submitted_plan.operations and not planner_authorized:
+        calls = _control_plane_calls(request)
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not await calls.run(
+            control_plane.is_planner_authorized_plan,
+            submitted_plan,
+        ):
             await calls.run(
                 control_plane.record_audit,
                 action="submit_orchestration",
@@ -189,10 +191,12 @@ def _register_evaluation_submission_route(
         plan: EvaluationPlanModel,
         identity: _MutatingIdentity,
     ) -> OperationReceiptModel:
-        calls = _control_plane_calls(request)
         submitted_plan = _evaluation_plan(plan)
-        planner_authorized = await calls.run(control_plane.is_planner_authorized_plan, submitted_plan)
-        if submitted_plan.operations and not planner_authorized:
+        calls = _control_plane_calls(request)
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not await calls.run(
+            control_plane.is_planner_authorized_plan,
+            submitted_plan,
+        ):
             await calls.run(
                 control_plane.record_audit,
                 action="submit_evaluation",

@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "4f686fcb195f55507a88a30b876f33d3a7f41b4e1869c91049a95fc20b8e23e4",
+  "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3",
   "last_change": {
-    "summary": "Removed native classification fields in favor of external concept bindings (issue #989), retaining explicit evidence output-contract and field demand terms (issue #1112).",
-    "content_hash": "4f686fcb195f55507a88a30b876f33d3a7f41b4e1869c91049a95fc20b8e23e4"
+    "summary": "Added scoped observation-demand authoring while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3"
   }
 }

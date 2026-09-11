@@ -2,9 +2,9 @@
   "contract_id": "provisioning-plan-v1",
   "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
   "stability": "draft",
-  "content_hash": "a625dafd3e57bb8ded36fde153fa03139b855069adcec7da5373edd0fadeb56e",
+  "content_hash": "7f4e82186b7221a0ae6f71e61b2d01818984bd22a498743e0b6819e47d411089",
   "last_change": {
-    "summary": "Preserve exact leaves, required keyed members and scoped additions with optional value-free structural authority; unsupported readers reject the closed extension (issue #1200).",
-    "content_hash": "a625dafd3e57bb8ded36fde153fa03139b855069adcec7da5373edd0fadeb56e"
+    "summary": "Carried normalized scoped observation demand through provisioning plans for issue #1212.",
+    "content_hash": "7f4e82186b7221a0ae6f71e61b2d01818984bd22a498743e0b6819e47d411089"
   }
 }

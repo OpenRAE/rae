@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-snapshot-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "1130dedbaef3651237a9e07b8d3ed7f8c61d8da46bb94fa0dceee29842ec74f8",
+  "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c",
   "last_change": {
-    "summary": "Removed native classification fields in favor of external concept bindings (issue #989), retaining explicit evidence output-contract and field demand terms (issue #1112).",
-    "content_hash": "1130dedbaef3651237a9e07b8d3ed7f8c61d8da46bb94fa0dceee29842ec74f8"
+    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c"
   }
 }

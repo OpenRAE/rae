@@ -109,11 +109,18 @@ def _sdl_capture_demand(name: str, requirement: EvidenceRequirement) -> CaptureD
 
 
 def compile_scenario_capture_demands(scenario: ScenarioContent) -> tuple[CaptureDemand, ...]:
-    """Compile only explicit SDL evidence requirements into stable demand."""
+    """Compile mandatory SDL evidence requirements into stable capture demand.
+
+    A scoped observation rule owns whether its selected observation is a
+    mandatory capability-admission obligation.  Requirements without that
+    newer policy carrier retain the historical required-capture behavior.
+    """
 
     return tuple(
         _sdl_capture_demand(name, scenario.evidence_requirements[name])
         for name in sorted(scenario.evidence_requirements)
+        if scenario.evidence_requirements[name].observation_demand is None
+        or scenario.evidence_requirements[name].observation_demand.required
     )
 
 

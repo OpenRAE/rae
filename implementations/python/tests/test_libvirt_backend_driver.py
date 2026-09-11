@@ -148,9 +148,14 @@ def _uuid_from_xml(xml: str) -> str:
     return match.group(1) if match else ""
 
 
-def test_libvirt_driver_realize_defines_networks_and_domains_with_safe_names():
+def test_libvirt_driver_realize_defines_networks_and_domains_with_safe_names(monkeypatch):
     connection = _FakeConnection()
     driver = LibvirtDeploymentDriver(connection=connection, name_prefix="raes-test")
+
+    def unexpected_readback(*_args, **_kwargs):
+        pytest.fail("realization must not collect an unrequested substrate observation")
+
+    monkeypatch.setattr(driver, "_compute_substrate_observation", unexpected_readback)
 
     result = driver.realize(
         networks=(NetworkSpec(address="provision.network.lan", name="lan<>"),),
@@ -167,6 +172,7 @@ def test_libvirt_driver_realize_defines_networks_and_domains_with_safe_names():
     )
 
     assert not result.diagnostics
+    assert result.observations == ()
     network_name = _runtime_name("provision.network.lan")
     domain_name = _runtime_name("provision.node.web")
     assert network_name in connection.network_xml[0]

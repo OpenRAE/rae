@@ -495,13 +495,22 @@ def test_parallel_graph_executes_success_and_reports_all_failures(
         nox_graph,
         "run_verification_lanes",
         lambda *_args, **_kwargs: [
-            types.SimpleNamespace(name="unit-tests", returncode=2, output="failed", duration_s=0.01),
+            types.SimpleNamespace(
+                name="unit-tests",
+                returncode=2,
+                output="FAILED tests/test_runtime.py::test_atomic_commit - AssertionError\n",
+                duration_s=0.01,
+            ),
             types.SimpleNamespace(name="contracts", returncode=3, output="", duration_s=0.02),
         ],
     )
     failure_reporter = ImmediateReporter()
     with pytest.raises(RuntimeError, match=r"unit-tests \(exit 2\), contracts \(exit 3\)"):
         nox_graph._run_parallel_verification(session, failure_reporter, include_policy=False)
+    assert any(
+        "failure summary unit-tests: FAILED tests/test_runtime.py::test_atomic_commit" in message
+        for message in session.messages
+    )
 
 
 def test_change_selected_graph_routes_plans_and_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:

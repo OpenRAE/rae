@@ -9,6 +9,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..observation_demand import ObservationDemandRule
 from ..versions import EXPERIMENT_CAPTURE_SPEC_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
 from .experiment_artifacts import (
@@ -111,6 +112,7 @@ class ExperimentCaptureRequirementModel(ContractModel):
     retention_policy: NonEmptyString | None = None
     loss_disclosure_required: bool = True
     notes: list[NonEmptyString] = Field(default_factory=list)
+    observation_demand: ObservationDemandRule | None = None
 
     @model_validator(mode="after")
     def _validate_capture_requirement(self) -> ExperimentCaptureRequirementModel:

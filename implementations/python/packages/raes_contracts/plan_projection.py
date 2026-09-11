@@ -110,6 +110,7 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
             for item in plan.realization_constraints
         ],
         operation_id=plan.operation_id,
+        observation_demands=list(plan.observation_demands),
     )
 
 
@@ -143,6 +144,7 @@ def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
+        observation_demands=list(plan.observation_demands),
     )
 
 
@@ -153,4 +155,5 @@ def evaluation_plan_model(plan: EvaluationPlan) -> EvaluationPlanModel:
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
+        observation_demands=list(plan.observation_demands),
     )

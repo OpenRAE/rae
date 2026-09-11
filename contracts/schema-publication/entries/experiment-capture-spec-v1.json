@@ -2,9 +2,9 @@
   "contract_id": "experiment-capture-spec-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-capture-spec-v1.json",
   "stability": "draft",
-  "content_hash": "8c424f575cc71764b3b979297317cb02214ffaf724a36d9b9806c8752d5c31f0",
+  "content_hash": "c9deceefe7d25b9058b08c971c4e4ebe2436e794ec7eda52cdaf7233d3d25a6d",
   "last_change": {
-    "summary": "Required output-contract identities, field selectors, unique windows, and governed redaction policy for capture demands in issue #1112.",
-    "content_hash": "8c424f575cc71764b3b979297317cb02214ffaf724a36d9b9806c8752d5c31f0"
+    "summary": "Added scoped demand semantics and governed output, selector, window, and redaction terms for issues #1212 and #1112.",
+    "content_hash": "c9deceefe7d25b9058b08c971c4e4ebe2436e794ec7eda52cdaf7233d3d25a6d"
   }
 }

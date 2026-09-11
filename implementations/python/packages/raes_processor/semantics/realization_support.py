@@ -16,6 +16,7 @@ from .realization_apparatus_defaults import (
     ApparatusRealizationDefaultResolver,
     effective_realization_explicitness,
 )
+from .realization_concerns import realization_concern_descriptor
 from .realization_observation_admission import has_required_observation_support
 from .realization_process_limits import process_resource_limit_support_diagnostic
 from .realization_requirement import CompiledRealizationRequirement
@@ -120,9 +121,11 @@ def _exact_support_diagnostic(
     requirement: CompiledRealizationRequirement,
     declarations: list[RealizationSupportDeclaration],
 ) -> Diagnostic | None:
-    requires_concern_specific_support = (
-        requirement.verification_scope is not None
-        and requirement.requirement_kind not in {"compute-substrate", "os-family", "os-distribution", "os-version"}
+    descriptor = realization_concern_descriptor(requirement.requirement_kind)
+    requires_concern_specific_support = bool(
+        descriptor is not None
+        and descriptor.authored_path[:1] == ("runtime",)
+        and requirement.requirement_kind != "process-resource-limits"
     )
     exact_declarations = [
         declaration

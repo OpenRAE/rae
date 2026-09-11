@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
+from raes import parse_sdl
 from raes_backend_libvirt.driver import (
     DomainHandle,
     DriverResult,
@@ -17,6 +20,7 @@ from raes_contracts.realization_envelope import ObservationStrength, Realization
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import LocalControlPlaneStore
+from raes_runtime.manager import RuntimeManager
 from realization_authority_fixtures import complete_test_realization_authority
 
 
@@ -353,16 +357,23 @@ def test_failed_techvault_admission_preserves_persisted_runtime_snapshot(tmp_pat
     )
     store = LocalControlPlaneStore(tmp_path / "control-plane")
     store.save_snapshot(baseline, expected_revision=store.load_snapshot_state().revision)
-    control_plane = RuntimeControlPlane(create_libvirt_target(driver=driver), store=store)
+    target = create_libvirt_target(driver=driver)
+    control_plane = RuntimeControlPlane(target, store=store)
     invalid = _node_resource(services=[{"name": "api", "port": 8443, "protocol": "tcp"}])
+    invalid_plan = _plan(invalid)
+    authorization_plan = RuntimeManager(target, initial_snapshot=baseline).plan(
+        parse_sdl("name: techvault-admission-authorization")
+    )
+    control_plane.register_planner_produced_plan(replace(authorization_plan, provisioning=invalid_plan))
 
-    receipt = control_plane.submit_provisioning(_plan(invalid))
+    receipt = control_plane.submit_provisioning(invalid_plan)
     status = control_plane.get_operation(receipt.operation_id)
     control_plane.close()
     restarted = RuntimeControlPlane(create_libvirt_target(driver=driver), store=store)
 
-    assert receipt.accepted is False
-    assert status is None
+    assert receipt.accepted is True
+    assert status is not None and status.state.value == "failed"
+    assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["libvirt-backend.techvault.service-unsupported"]
     assert restarted.snapshot == baseline
     assert driver.realize_calls == []
     restarted.close()

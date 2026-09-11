@@ -13,6 +13,7 @@ from raes_backend_protocols.domain_topology import domain_topology_plan_diagnost
 from raes_backend_protocols.service_materialization import service_materialization_plan_diagnostics
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.planning import RuntimeDomain
 
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.time_model import time_model_contract_model
@@ -86,6 +87,19 @@ def _participant_execution_diagnostics(
     return diagnostics
 
 
+def _observation_owner(
+    evaluation: object,
+    orchestration: object,
+) -> RuntimeDomain:
+    """Choose the last actionable backend phase as the single observation owner."""
+
+    if orchestration.actionable_operations:
+        return RuntimeDomain.ORCHESTRATION
+    if evaluation.actionable_operations:
+        return RuntimeDomain.EVALUATION
+    return RuntimeDomain.PROVISIONING
+
+
 def plan(
     model: RuntimeModel,
     manifest: BackendManifest,
@@ -156,6 +170,7 @@ def plan(
         manifest,
         effective_requirements,
         resolved_authority,
+        effective_model.observation_demands,
     )
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,
@@ -172,8 +187,8 @@ def plan(
     )
     diagnostics.extend(topology_diagnostics)
     provisioning.diagnostics.extend(topology_diagnostics)
-    orchestration = _build_orchestration_plan(resources, actions, deleted_entries)
-    evaluation = _build_evaluation_plan(resources, actions, deleted_entries)
+    orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
+    evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
 
     return ExecutionPlan(
         target_name=target_name,
@@ -184,6 +199,7 @@ def plan(
         provisioning=provisioning,
         orchestration=orchestration,
         evaluation=evaluation,
+        observation_owner=_observation_owner(evaluation, orchestration),
         diagnostics=diagnostics,
         artifact_availability=artifact_availability or ArtifactAvailabilityContext(),
     )

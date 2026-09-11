@@ -10,6 +10,7 @@ import re
 from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.observation_demand import ObservationDemandRule
 
 from ._base import SDLModel, parse_enum_or_var
 from .runtime_filesystem import RuntimeSensitivityClassification
@@ -129,6 +130,7 @@ class EvidenceRequirement(SDLModel):
     output_contract: str = ""
     field_selectors: list[str] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
+    observation_demand: ObservationDemandRule | None = None
 
     @field_validator(
         "source_refs",

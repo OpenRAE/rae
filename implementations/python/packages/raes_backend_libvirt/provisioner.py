@@ -15,6 +15,8 @@ from raes_contracts.realization_observation import (
     compute_substrate_readback_addresses,
     missing_compute_substrate_readbacks,
 )
+from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
+from raes_contracts.realization_operational_observation import invoke_native_readback
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 
 from ._payload import NETWORK_RESOURCE_TYPE, NODE_RESOURCE_TYPE
@@ -115,7 +117,7 @@ class LibvirtProvisioner:
             return ApplyResult(success=False, snapshot=snapshot, diagnostics=diagnostics)
 
         reconciliation = _reconcile_snapshot(plan, snapshot)
-        driver_diagnostics, observations = self._drive(
+        driver_diagnostics, observations, readback_diagnostics = self._drive(
             plan,
             realization,
             reconciliation.delete_networks,
@@ -123,6 +125,9 @@ class LibvirtProvisioner:
             previous=snapshot.realization_observations,
         )
         diagnostics.extend(driver_diagnostics)
+        if _has_error(diagnostics):
+            return ApplyResult(success=False, snapshot=snapshot, diagnostics=diagnostics)
+        diagnostics.extend(readback_diagnostics)
         diagnostics.extend(
             _driver_confirmation_diagnostic(address, code=UNCONFIRMED_OBSERVATION_CODE)
             for address in missing_compute_substrate_readbacks(
@@ -133,24 +138,28 @@ class LibvirtProvisioner:
             )
         )
 
-        if _has_error(diagnostics):
-            return ApplyResult(success=False, snapshot=snapshot, diagnostics=diagnostics)
-
-        observation_disclosures = bind_compute_substrate_observations(
-            plan=plan,
-            observations=observations,
-            envelope=self._backend_realization_envelope,
-            previous=snapshot.realization_observations,
+        success = not _has_error(diagnostics)
+        observation_disclosures = (
+            bind_compute_substrate_observations(
+                plan=plan,
+                observations=observations,
+                envelope=self._backend_realization_envelope,
+                previous=snapshot.realization_observations,
+                selected_addresses=set(compute_substrate_collection_addresses(plan=plan)),
+            )
+            if success
+            else ()
         )
         return ApplyResult(
-            success=True,
+            success=success,
             snapshot=snapshot.with_entries(
                 reconciliation.entries,
-                realization_observations=observation_disclosures,
+                realization_observations=(),
                 realization_envelope=self._realization_envelope,
             ),
             diagnostics=diagnostics,
             changed_addresses=reconciliation.changed_addresses,
+            operational_realization_observations=observation_disclosures,
         )
 
     def _drive(
@@ -161,28 +170,29 @@ class LibvirtProvisioner:
         delete_domains: list[str],
         *,
         previous: tuple[RealizationObservationDisclosure, ...],
-    ) -> tuple[list[Diagnostic], tuple[RealizationObservation, ...]]:
+    ) -> tuple[list[Diagnostic], tuple[RealizationObservation, ...], list[Diagnostic]]:
         active = self._active_addresses(plan, realization)
         networks = tuple(spec for spec in realization.networks if spec.address in active)
         domains = tuple(spec for spec in realization.domains if spec.address in active)
         diagnostics, observations = self._realize_active(networks, domains)
-        readback = (
-            set(
-                compute_substrate_readback_addresses(
-                    plan=plan,
-                    envelope=self._backend_realization_envelope,
-                    previous=previous,
-                )
+        diagnostics.extend(self._delete_targets(delete_networks, delete_domains))
+        if _has_error(diagnostics):
+            return diagnostics, observations, []
+        readback = set(
+            compute_substrate_readback_addresses(
+                plan=plan,
+                envelope=self._backend_realization_envelope,
+                previous=previous,
             )
-            - active
         )
         readback_domains = tuple(spec for spec in realization.domains if spec.address in readback)
+        readback_diagnostics = []
         if readback_domains:
-            result = self._driver.observe(domains=readback_domains)
-            diagnostics.extend(result.diagnostics)
-            observations = (*observations, *result.observations)
-        diagnostics.extend(self._delete_targets(delete_networks, delete_domains))
-        return diagnostics, observations
+            readback_diagnostics, readback_observations = invoke_native_readback(
+                lambda: self._driver.observe(domains=readback_domains),
+            )
+            observations = (*observations, *readback_observations)
+        return diagnostics, observations, readback_diagnostics
 
     @staticmethod
     def _active_addresses(plan: ProvisioningPlan, realization: Realization) -> set[str]:

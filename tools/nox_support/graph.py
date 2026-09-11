@@ -117,6 +117,43 @@ def _verification_lane_workers(*, cpu_count: int, lane_count: int) -> int:
     return min(lane_count, 4, max(1, cpu_count // 2))
 
 
+def _failure_summary(output: str) -> str:
+    summary_lines = [line.strip() for line in output.splitlines() if line.startswith(("FAILED ", "ERROR "))]
+    if not summary_lines:
+        summary_lines = [line.strip() for line in output.splitlines() if line.strip()][-1:]
+    summary = " | ".join(summary_lines[:3])
+    return summary if len(summary) <= 600 else f"{summary[:599]}…"
+
+
+def _execute_verification_lanes(
+    session: nox.Session,
+    lanes: tuple[VerificationLane, ...],
+    lane_workers: int,
+) -> None:
+    results = run_verification_lanes(
+        lanes,
+        nox_python=Path(sys.executable),
+        noxfile=REPO_ROOT / "noxfile.py",
+        repo_root=REPO_ROOT,
+        base_env={
+            VERIFY_PROJECT_SYNCED_ENV: str(os.getpid()),
+            "PYTHONUNBUFFERED": "1",
+        },
+        max_workers=lane_workers,
+    )
+    failures = [result for result in results if result.returncode != 0]
+    for result in failures:
+        session.log(f"[verify] failure summary {result.name}: {_failure_summary(result.output)}")
+    for result in results:
+        state = "PASS" if result.returncode == 0 else "FAIL"
+        session.log(f"[verify] lane {result.name}: {state} ({result.duration_s:.2f}s)")
+        if result.output:
+            print(result.output, end="" if result.output.endswith("\n") else "\n")
+    if failures:
+        failed = ", ".join(f"{result.name} (exit {result.returncode})" for result in failures)
+        raise RuntimeError(f"parallel verification lanes failed: {failed}")
+
+
 def _run_parallel_verification(
     session: nox.Session,
     reporter: SessionReporter,
@@ -150,37 +187,9 @@ def _run_parallel_verification(
             cpu_count=available_cpus,
             lane_count=len(lanes),
         )
-        results = []
-
-        def _execute_lanes() -> None:
-            results.extend(
-                run_verification_lanes(
-                    lanes,
-                    nox_python=Path(sys.executable),
-                    noxfile=REPO_ROOT / "noxfile.py",
-                    repo_root=REPO_ROOT,
-                    base_env={
-                        VERIFY_PROJECT_SYNCED_ENV: str(os.getpid()),
-                        "PYTHONUNBUFFERED": "1",
-                    },
-                    max_workers=lane_workers,
-                )
-            )
-            for result in results:
-                session.log(
-                    f"[verify] lane {result.name}: "
-                    f"{'PASS' if result.returncode == 0 else 'FAIL'} ({result.duration_s:.2f}s)"
-                )
-                if result.output:
-                    print(result.output, end="" if result.output.endswith("\n") else "\n")
-            failures = [result for result in results if result.returncode != 0]
-            if failures:
-                failed = ", ".join(f"{result.name} (exit {result.returncode})" for result in failures)
-                raise RuntimeError(f"parallel verification lanes failed: {failed}")
-
         reporter.run(
             "verify / isolated deterministic lanes",
-            _execute_lanes,
+            lambda: _execute_verification_lanes(session, lanes, lane_workers),
             detail=(
                 "unit, integration, contracts, static, proof, docs-local :: "
                 f"{lane_workers} lane workers on {available_cpus} CPUs"

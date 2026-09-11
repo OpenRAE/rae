@@ -34,6 +34,8 @@ from raes_processor.planner import (
     realization_authority_diagnostics,
 )
 
+from .observation_execution import ObservationRuntime, observation_submission_diagnostic
+
 _STATEFUL_ADMISSION_BY_RESOURCE_TYPE = {
     "generated-artifact": (
         "supports_generated_artifacts",
@@ -53,15 +55,31 @@ def _submitted_plan_diagnostics(
     domain: RuntimeDomain,
     snapshot: RuntimeSnapshot,
     manifest: BackendManifest | None = None,
+    observation_runtime: ObservationRuntime | None = None,
+    *,
+    durable_lifecycle_available: bool = True,
 ) -> list[Diagnostic]:
     admitted = set(snapshot.entries) | {operation.address for operation in plan.operations}
-    for operation in plan.operations:
-        diagnostic = _submitted_operation_diagnostic(operation, domain, snapshot, admitted)
-        if diagnostic is not None:
-            return [diagnostic]
-    if domain is RuntimeDomain.PROVISIONING and isinstance(plan, ProvisioningPlan):
-        return _provisioning_submission_diagnostics(plan, snapshot, manifest)
-    return []
+    demand_diagnostic = observation_submission_diagnostic(
+        plan,
+        manifest,
+        observation_runtime,
+        durable_lifecycle_available=durable_lifecycle_available,
+    )
+    diagnostics = [demand_diagnostic] if demand_diagnostic is not None else []
+    if not diagnostics:
+        operation_diagnostic = next(
+            (
+                diagnostic
+                for operation in plan.operations
+                if (diagnostic := _submitted_operation_diagnostic(operation, domain, snapshot, admitted)) is not None
+            ),
+            None,
+        )
+        diagnostics = [operation_diagnostic] if operation_diagnostic is not None else []
+    if not diagnostics and domain is RuntimeDomain.PROVISIONING and isinstance(plan, ProvisioningPlan):
+        diagnostics = _provisioning_submission_diagnostics(plan, snapshot, manifest)
+    return diagnostics
 
 
 def _provisioning_submission_diagnostics(

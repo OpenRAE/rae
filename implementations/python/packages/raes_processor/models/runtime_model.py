@@ -9,7 +9,8 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
-from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+from raes_contracts.observation_demand import EffectiveObservationDemand
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
@@ -153,6 +154,7 @@ class RuntimeModel:
     # portable ProvisioningPlan authority collection.
     realization_authority: tuple[CompiledRealizationAuthority, ...] = ()
     realization_instance: InstantiatedScenario | None = None
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
 
     def __post_init__(self) -> None:
         owners: dict[str, str] = {}
@@ -216,6 +218,7 @@ class ExecutionPlan:
     provisioning: ProvisioningPlan
     orchestration: OrchestrationPlan
     evaluation: EvaluationPlan
+    observation_owner: RuntimeDomain
     diagnostics: list[Diagnostic] = field(default_factory=list)
     artifact_availability: ArtifactAvailabilityContext = field(
         default_factory=ArtifactAvailabilityContext,

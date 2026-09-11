@@ -1,0 +1,22 @@
+{
+  "contract_id": "observation-demand-v1",
+  "schema_version": "observation-demand/v1",
+  "document_id": "unbounded",
+  "scope_profile": "recursive-realization-constraint/v1",
+  "rules": [
+    {
+      "rule_id": "everything",
+      "scope": "/nodes/kali",
+      "purpose": "experimental",
+      "mode": "exhaustive",
+      "selector": {
+        "semantic_scope": "/nodes/kali",
+        "data_kind": "stream",
+        "names": ["trace"]
+      },
+      "collection": "require",
+      "redaction": "redact-sensitive",
+      "integrity": "checksum"
+    }
+  ]
+}

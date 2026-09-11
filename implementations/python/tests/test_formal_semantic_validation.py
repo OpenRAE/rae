@@ -49,6 +49,8 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "2.0.0",
         "3.0.0",
         "4.0.0",
+        "5.0.0",
+        "6.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -56,20 +58,10 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
 
-    assert release.manifest["revision"] == "4.0.0"
+    assert release.manifest["revision"] == "6.0.0"
     assert protocol["revision"] == corpus["revision"] == "2.0.0"
-    assert snapshot["baseline"]["release_revision"] == "3.0.0"
-    assert {item["case_id"] for item in snapshot["deviations"]} == {
-        "schema-valid-control",
-        "semantic-resolved-objective",
-        "workflow-reachable-control",
-        "compile-repeatability-control",
-        "compile-non-vacuity-control",
-        "finite-domain-satisfiable-v2",
-        "finite-domain-unsatisfiable-v2",
-        "typed-exploit-path-valid-v2",
-        "typed-exploit-path-invalid-v2",
-    }
+    assert snapshot["baseline"]["release_revision"] == "5.0.0"
+    assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
 
@@ -142,21 +134,31 @@ def test_classification_replay_drift_is_not_accepted_by_a_digest_pair(case_id, r
 
 
 def test_retest_gate_requires_explicit_baseline_drift_disposition() -> None:
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
-    snapshot = deepcopy(snapshot)
+    release = next(item for item in load_release_bundles(REPO_ROOT) if item.manifest["revision"] == "5.0.0")
+    protocol, corpus, snapshot, analysis = (
+        deepcopy(release.protocol),
+        deepcopy(release.corpus),
+        deepcopy(release.snapshot),
+        deepcopy(release.analysis),
+    )
     snapshot["deviations"] = snapshot["deviations"][1:]
 
-    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
+    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
 
     assert "formal-validation-baseline-drift" in _rule_ids(failures)
 
 
 def test_retest_gate_rejects_stale_baseline_observation_value() -> None:
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
-    snapshot = deepcopy(snapshot)
+    release = next(item for item in load_release_bundles(REPO_ROOT) if item.manifest["revision"] == "5.0.0")
+    protocol, corpus, snapshot, analysis = (
+        deepcopy(release.protocol),
+        deepcopy(release.corpus),
+        deepcopy(release.snapshot),
+        deepcopy(release.analysis),
+    )
     snapshot["deviations"][0]["baseline"]["result_digest"] = "0" * 64
 
-    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
+    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
 
     assert "formal-validation-baseline-drift" in _rule_ids(failures)
 

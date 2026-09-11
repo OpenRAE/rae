@@ -231,6 +231,37 @@ def test_matching_capture_offer_admits_and_precise_installation_does_not_create_
     assert not [diagnostic for diagnostic in no_capture_plan.diagnostics if diagnostic.domain == "capture"]
 
 
+def test_scoped_observation_requiredness_controls_capture_admission() -> None:
+    scenario = _capture_scenario()
+    payload = scenario.model_dump(mode="python", by_alias=True)
+    payload["evidence_requirements"]["attacker-action-log"]["observation_demand"] = {
+        "rule_id": "attacker-action-log",
+        "scope": "/nodes/vm",
+        "purpose": "experimental",
+        "mode": "selected",
+        "selector": {
+            "semantic_scope": "/nodes/vm",
+            "data_kind": "stream",
+            "names": ["participant-actions"],
+        },
+        "collection": "require",
+        "redaction": "none",
+        "integrity": "checksum",
+        "required": False,
+    }
+    optional = scenario.__class__.model_validate(payload)
+
+    optional_plan = plan(compile_runtime_model(optional), _manifest_with_offers())
+    assert not [diagnostic for diagnostic in optional_plan.diagnostics if diagnostic.domain == "capture"]
+
+    payload["evidence_requirements"]["attacker-action-log"]["observation_demand"]["required"] = True
+    mandatory = scenario.__class__.model_validate(payload)
+    mandatory_plan = plan(compile_runtime_model(mandatory), _manifest_with_offers())
+    assert [diagnostic.code for diagnostic in mandatory_plan.diagnostics if diagnostic.domain == "capture"] == [
+        "capture.offer-missing"
+    ]
+
+
 def test_sdl_capture_spec_references_fail_closed_when_the_payload_is_unavailable() -> None:
     scenario = _capture_scenario()
     payload = scenario.model_dump(mode="python", by_alias=True)

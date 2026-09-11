@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from raes.observation_scope import resolve_observation_scope
 from raes.runtime_forwarding_agent import RuntimeForwardingAgentOwnershipRole
 
 
@@ -14,7 +15,26 @@ class _EvidenceRequirementsMixin:
             self._verify_evidence_requirement_refs(requirement.channel_refs, owner_label, "channel_ref")
             self._verify_evidence_requirement_ref(requirement.trigger_ref, owner_label, "trigger_ref")
             self._verify_evidence_requirement_ref(requirement.boundary_ref, owner_label, "boundary_ref")
+            demand = requirement.observation_demand
+            if demand is not None:
+                self._verify_observation_scope(demand.scope, owner_label, "observation_demand.scope")
+                if demand.selector is not None:
+                    for excluded in demand.selector.excluded_scopes:
+                        self._verify_observation_scope(excluded, owner_label, "observation_demand.selector.exclusion")
+                    self._verify_observation_scope(
+                        demand.selector.semantic_scope,
+                        owner_label,
+                        "observation_demand.selector.semantic_scope",
+                    )
+                    self._verify_evidence_requirement_refs(
+                        list(demand.selector.component_refs), owner_label, "observation_demand.selector.component_ref"
+                    )
         self._verify_forwarding_agent_evidence_roles()
+
+    def _verify_observation_scope(self, pointer: str, owner_label: str, field_label: str) -> None:
+        found, _value = resolve_observation_scope(self._s, pointer)
+        if not found:
+            self._err(f"{owner_label} {field_label} '{pointer}' does not resolve to a stable SDL semantic scope")
 
     def _verify_forwarding_agent_evidence_roles(self) -> None:
         agents = self._forwarding_agents_by_address()

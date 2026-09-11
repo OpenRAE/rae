@@ -10,6 +10,7 @@ from raes.canonical import InstantiatedScenarioSnapshot
 from raes.scenario import InstantiatedScenario, Scenario
 
 from raes_contracts.artifact_requirements import ArtifactRequirementContractModel
+from raes_contracts.observation_demand import ObservationDemandDocument
 
 from . import semantic_profiles, semantic_projection
 from .admitted_trial_plan import AdmittedTrialPlanModel
@@ -146,6 +147,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),
         "realization-envelope-v1": BackendRealizationEnvelopeModel.model_json_schema(),
         "recursive-realization-constraint-v1": RealizationConstraintDocument.model_json_schema(),
+        "observation-demand-v1": ObservationDemandDocument.model_json_schema(),
         "processor-manifest-v2": ProcessorManifestV2Model.model_json_schema(),
         "participant-implementation-manifest-v1": ParticipantImplementationManifestModel.model_json_schema(),
         "participant-implementation-provenance-v1": ParticipantImplementationProvenanceModel.model_json_schema(),

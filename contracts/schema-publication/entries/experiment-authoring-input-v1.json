@@ -2,9 +2,9 @@
   "contract_id": "experiment-authoring-input-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "355f35aedab431868fd12cbcee3bd182bc49b2d3adba4e37b3f020daabdbcb61",
+  "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92",
   "last_change": {
-    "summary": "Allowed study condition assignments to require content-validated evidence bindings for issue #1112.",
-    "content_hash": "355f35aedab431868fd12cbcee3bd182bc49b2d3adba4e37b3f020daabdbcb61"
+    "summary": "Added scoped observation demand and content-validated evidence bindings for issues #1212 and #1112.",
+    "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92"
   }
 }

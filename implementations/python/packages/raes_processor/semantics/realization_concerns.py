@@ -5,8 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 
-from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
-
 from .realization_concern_observations import (
     validate_capability_policy_observation,
     validate_environment_observation,
@@ -47,8 +45,6 @@ class RealizationConcernDescriptor:
     projector: Callable[[object, bool], object] | None = None
     sanitizer: Callable[[object, bool], object] | None = None
     observed_validator: Callable[[object], None] | None = None
-    verification_scope: Callable[[object], RealizationVerificationScope | None] | None = None
-    observation_strength: ObservationStrength | None = None
     non_stateful_mounts_only: bool = False
     explicitness_excluded_fields: frozenset[str] = RUNTIME_NON_REALIZATION_FIELDS
     collection_identity_fields: tuple[str, ...] = ()
@@ -79,16 +75,6 @@ class RealizationConcernDescriptor:
         projector = self.sanitizer or self.projector
         return projector(value, observed) if projector is not None else value
 
-    def required_verification_scope(self, value: object) -> RealizationVerificationScope | None:
-        """Return the authored inventory scope that must be corroborated."""
-
-        return self.verification_scope(value) if self.verification_scope is not None else None
-
-    def required_observation_strength(self) -> ObservationStrength | None:
-        """Return the minimum independent evidence strength for this concern."""
-
-        return self.observation_strength
-
 
 @dataclass(frozen=True)
 class RegisteredRealizationConcern:
@@ -107,22 +93,6 @@ def _mount_source_kind(item: object) -> object:
     return getattr(source_kind, "value", source_kind)
 
 
-def _forwarding_agent_verification_scope(value: object) -> RealizationVerificationScope:
-    """Classify identity-only inventory separately from authored configuration."""
-
-    for agent in value if isinstance(value, list) else ():
-        for field_name in ("sources", "transforms", "ship_targets", "reload_channels", "settings"):
-            field_value = agent.get(field_name) if isinstance(agent, Mapping) else getattr(agent, field_name, None)
-            if field_value:
-                return RealizationVerificationScope.CONFIGURATION
-        buffer_policy = (
-            agent.get("buffer_policy") if isinstance(agent, Mapping) else getattr(agent, "buffer_policy", None)
-        )
-        if buffer_policy is not None:
-            return RealizationVerificationScope.CONFIGURATION
-    return RealizationVerificationScope.PRESENCE
-
-
 _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
     RealizationConcernDescriptor(
         section="nodes",
@@ -135,24 +105,18 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         authored_path=("os",),
         concern_kind="os-family",
         payload_path=("os_family",),
-        verification_scope=lambda value: RealizationVerificationScope.PRESENCE if value else None,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     RealizationConcernDescriptor(
         section="nodes",
         authored_path=("os_distribution",),
         concern_kind="os-distribution",
         payload_path=("os_distribution",),
-        verification_scope=lambda value: RealizationVerificationScope.PRESENCE if value else None,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     RealizationConcernDescriptor(
         section="nodes",
         authored_path=("os_version",),
         concern_kind="os-version",
         payload_path=("os_version",),
-        verification_scope=lambda value: RealizationVerificationScope.PRESENCE if value else None,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -173,8 +137,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "environment"),
         projector=project_environment,
         observed_validator=validate_environment_observation,
-        verification_scope=lambda _value: RealizationVerificationScope.CONFIGURATION,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -184,8 +146,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         projector=project_mounts,
         sanitizer=sanitize_mount_observation,
         observed_validator=validate_mounts_observation,
-        verification_scope=lambda _value: RealizationVerificationScope.CONFIGURATION,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
         non_stateful_mounts_only=True,
     ),
     RealizationConcernDescriptor(
@@ -195,8 +155,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "linux_capabilities"),
         projector=project_capability_policy,
         observed_validator=validate_capability_policy_observation,
-        verification_scope=lambda _value: RealizationVerificationScope.CONFIGURATION,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -212,8 +170,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         ),
         projector=project_process_resource_limits,
         observed_validator=validate_process_resource_limits_observation,
-        verification_scope=lambda _value: RealizationVerificationScope.CONFIGURATION,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -222,8 +178,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "network", "published_ports"),
         projector=project_published_ports,
         observed_validator=validate_published_ports_observation,
-        verification_scope=lambda _value: RealizationVerificationScope.CONFIGURATION,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -232,8 +186,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "forwarding_agents"),
         projector=project_forwarding_agents,
         observed_validator=validate_forwarding_agents_observation,
-        verification_scope=_forwarding_agent_verification_scope,
-        observation_strength=ObservationStrength.DAEMON_OBSERVED,
         explicitness_excluded_fields=RUNTIME_NON_REALIZATION_FIELDS | {"ownership_role"},
     ),
     RealizationConcernDescriptor(
@@ -243,8 +195,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "service_listeners"),
         projector=project_service_listeners,
         observed_validator=validate_service_listeners_observation,
-        verification_scope=lambda _value: RealizationVerificationScope.CONFIGURATION,
-        observation_strength=ObservationStrength.GUEST_OBSERVED,
     ),
     *(
         RealizationConcernDescriptor(
@@ -258,8 +208,6 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
                 excluded_fields=profile.excluded_fields,
                 sort_scalar_sequence=profile.sort_scalar_sequence,
             ),
-            verification_scope=lambda _value: RealizationVerificationScope.CONFIGURATION,
-            observation_strength=ObservationStrength.GUEST_OBSERVED,
             explicitness_excluded_fields=RUNTIME_NON_REALIZATION_FIELDS | profile.excluded_fields,
             collection_identity_fields=profile.collection_identity_fields,
         )
