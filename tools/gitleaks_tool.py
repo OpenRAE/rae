@@ -8,7 +8,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tools.http_download import download_bytes
+from tools.maintained_client_acquisition import acquire_locked_bytes
 from tools.tool_versions import GITLEAKS_VERSION
 
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ def _install_locked_binary(
             extracted_stream = archive.extractfile(member)
             if extracted_stream is None:
                 raise RuntimeError("gitleaks installed archive member cannot be read")
-            extracted_bytes = extracted_stream.read()
+            extracted_bytes = extracted_stream.read(installed.size + 1)
         if len(extracted_bytes) != installed.size or sha256(extracted_bytes).hexdigest() != installed.sha256:
             raise RuntimeError("gitleaks installed binary differs from the reviewed lock manifest")
         extracted = Path(tmpdir) / "locked-gitleaks-binary"
@@ -58,7 +58,12 @@ def _install_locked_binary(
         shutil.move(extracted, binary_path)
 
 
-def ensure_gitleaks(repo_root: Path = REPO_ROOT, *, version: str = GITLEAKS_VERSION) -> Path:
+def ensure_gitleaks(
+    repo_root: Path = REPO_ROOT,
+    *,
+    version: str = GITLEAKS_VERSION,
+    local_input: Path | None = None,
+) -> Path:
     from tools.tooling_policy_gate import (
         host_platform_id,
         load_tooling_artifact_selection,
@@ -82,11 +87,12 @@ def ensure_gitleaks(repo_root: Path = REPO_ROOT, *, version: str = GITLEAKS_VERS
         return binary_path
     binary_path.unlink(missing_ok=True)
 
-    asset_name = raw.path
-    archive_bytes = download_bytes(selection.source_urls[0], description="gitleaks")
-    actual_checksum = sha256(archive_bytes).hexdigest()
-    if len(archive_bytes) != raw.size or actual_checksum != raw.sha256:
-        raise RuntimeError(f"gitleaks checksum or size mismatch for locked asset {asset_name}")
+    archive_bytes = acquire_locked_bytes(
+        artifact_id="gitleaks",
+        source_url=selection.source_urls[0],
+        expected=raw,
+        local_input=local_input,
+    )
 
     _install_locked_binary(archive_bytes, installed, binary_path)
     return binary_path

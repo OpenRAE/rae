@@ -29,7 +29,7 @@ def _baseline_snapshot(repo_root: Path, baseline: object) -> dict[str, object]:
 
 def validate_current_deviations(repo_root: Path, snapshot: dict[str, object]) -> list[PolicyFailure]:
     """Retain every artifact and require an exact disposition for each changed pin."""
-    path = "docs/research/specification-coverage/execution-snapshot-v4.json"
+    path = "docs/research/specification-coverage/execution-snapshot-v5.json"
     try:
         baseline = _baseline_snapshot(repo_root, snapshot.get("baseline"))
         old = {item["path"]: item for item in baseline["artifacts"]}

@@ -1022,6 +1022,39 @@
     },
     {
       "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
       "job": "verify",
       "runner": "ubuntu-22.04",
       "host_profile_ids": [
@@ -1825,6 +1858,134 @@
       ]
     },
     {
+      "use_id": "canonical-verification/generic-tool-local-inputs/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/generic-tool-local-inputs/actions/setup-python",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/generic-tool-local-inputs/install-uv",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/generic-tool-local-inputs/carry-locked-generic-tool-inputs-to-the-proof-host",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "Carry locked generic-tool inputs to the proof host",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
+        "path": ".canonical-tool-inputs",
+        "if-no-files-found": "error",
+        "include-hidden-files": true,
+        "retention-days": 1
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
       "use_id": "canonical-verification/verify/install-uv",
       "workflow": ".github/workflows/canonical-verification.yml",
       "job": "verify",
@@ -1848,6 +2009,40 @@
       "cache_role": "none",
       "artifact_role": "none",
       "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/verify/receive-locked-generic-tool-inputs",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "verify",
+      "step": "Receive locked generic-tool inputs",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
+        "path": ".canonical-tool-inputs"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "actions-cache-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
       "trust_classes": [
         "manual",
         "protected-branch",

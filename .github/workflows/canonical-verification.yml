@@ -26,10 +26,41 @@ permissions:
   contents: read
 
 jobs:
+  generic-tool-local-inputs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
+      - name: Fetch locked generic-tool inputs with the qualified client
+        run: |
+          mkdir .canonical-tool-inputs
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile offline-kit-fetch \
+            public-ubuntu-24.04-x86_64 .canonical-tool-inputs \
+            --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
+      - name: Carry locked generic-tool inputs to the proof host
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+
   verify:
     # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor.
     # Keep the proof-bearing job on 22.04 so Bubblewrap enforces the sandbox
     # without disabling a host security control on the runner.
+    needs: generic-tool-local-inputs
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -79,6 +110,17 @@ jobs:
         with:
           enable-cache: false
           version: "0.12.4"
+
+      - name: Receive locked generic-tool inputs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+
+      - name: Install locked generic tools from local inputs
+        run: >-
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
 
       - name: Restore pinned Isabelle archive
         # Untrusted PR and manual-release refs may consume this cache but must

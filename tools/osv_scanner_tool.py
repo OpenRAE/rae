@@ -8,7 +8,7 @@ from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path
 
-from tools.http_download import download_bytes
+from tools.maintained_client_acquisition import acquire_locked_bytes
 from tools.tool_versions import OSV_SCANNER_VERSION
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -20,7 +20,6 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 OSV_CLEAN_EXIT_CODE = 0
 OSV_FINDINGS_EXIT_CODE = 1
 _MAX_BINARY_BYTES = 256 * 1024 * 1024
-_DOWNLOAD_TIMEOUT_SECONDS = 60
 
 
 class OSVScanOutcome(StrEnum):
@@ -144,7 +143,12 @@ def _install_binary(binary_path: Path, binary_bytes: bytes) -> None:
         temporary_path.unlink(missing_ok=True)
 
 
-def ensure_osv_scanner(repo_root: Path = REPO_ROOT, *, version: str = OSV_SCANNER_VERSION) -> Path:
+def ensure_osv_scanner(
+    repo_root: Path = REPO_ROOT,
+    *,
+    version: str = OSV_SCANNER_VERSION,
+    local_input: Path | None = None,
+) -> Path:
     from tools.tooling_policy_gate import host_platform_id, load_tooling_artifact_selection
 
     platform_id = host_platform_id()
@@ -158,24 +162,18 @@ def ensure_osv_scanner(repo_root: Path = REPO_ROOT, *, version: str = OSV_SCANNE
         raise RuntimeError("osv-scanner lock selection must contain one source, raw asset, and installed binary")
     raw = selection.raw_manifest[0]
     installed = selection.installed_manifest[0]
-    asset_name = raw.path
     requested_path = osv_scanner_binary_path(repo_root, version=version)
     binary_path = _safe_cache_parent(repo_root, requested_path) / requested_path.name
     if _validated_cache_hit(binary_path, installed.sha256, installed.size):
         return binary_path
 
-    binary_bytes = download_bytes(
-        selection.source_urls[0],
-        description="osv-scanner",
-        timeout_seconds=_DOWNLOAD_TIMEOUT_SECONDS,
-        max_bytes=_MAX_BINARY_BYTES,
+    binary_bytes = acquire_locked_bytes(
+        artifact_id="osv-scanner",
+        source_url=selection.source_urls[0],
+        expected=raw,
+        local_input=local_input,
     )
-    if len(binary_bytes) > _MAX_BINARY_BYTES:
-        raise RuntimeError(f"osv-scanner asset {asset_name} exceeds the download limit")
-
     actual_checksum = sha256(binary_bytes).hexdigest()
-    if len(binary_bytes) != raw.size or actual_checksum != raw.sha256:
-        raise RuntimeError(f"osv-scanner checksum or size mismatch for locked asset {asset_name}")
     if len(binary_bytes) != installed.size or actual_checksum != installed.sha256:
         raise RuntimeError("osv-scanner installed binary differs from the reviewed lock manifest")
 

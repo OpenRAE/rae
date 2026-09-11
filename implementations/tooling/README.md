@@ -111,6 +111,11 @@ must use an admitted client from its reviewed image or offline kit and otherwise
 fails. The proof profile remains useful on Ubuntu 22.04 because it keeps curl
 outside that profile's admitted capabilities and preserves Bubblewrap network
 isolation, fonts/fontconfig and `C.UTF-8` as hard prerequisites.
+Canonical verification therefore fetches the four generic-tool raw objects in
+a same-run Ubuntu 24.04 preparation job, carries only those lock-verified bytes
+to the proof job, and admits them through each installer's explicit local-input
+path. The Ubuntu 22.04 proof host never treats its stock curl as a generic-tool
+acquisition capability.
 
 `bootstrap-qualification.yml` executes the four locked generic tools on Linux
 x86_64/arm64 and macOS x86_64/arm64, runs the maintained curl against controlled
