@@ -47,7 +47,7 @@ class _NodesInfraNetworkMixin:
         """
         node_architecture = node.architecture
         runtime = node.runtime
-        packages = runtime.packages if runtime is not None else []
+        packages = runtime.exact_package_requirements() if runtime is not None else []
         for package in packages:
             package_architecture = package.architecture
             if not package_architecture or self._is_unresolved_var(package_architecture):

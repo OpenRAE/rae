@@ -17,10 +17,7 @@ from ._models import (
     RealizationCollectionProfile,
     RealizationConstraintDocument,
     RealizationConstraintLimits,
-    RealizationDelegatedValue,
-    RealizationDomainValue,
     RealizationKeyedCollectionConstraint,
-    RealizationKnowledgeValue,
     RealizationLiteral,
     RealizationOrigin,
     RealizationPresence,
@@ -31,7 +28,7 @@ from ._models import (
     RecursiveRealizationStructure,
     identity_key,
 )
-from ._normalization_overlays import validated_leaf_override
+from ._normalization_overlays import is_scalar_constraint, validated_leaf_override
 from ._normalization_scopes import normalize_scope_identities
 
 
@@ -44,6 +41,7 @@ class RealizationNormalizationMetadata:
     origins: Mapping[str, RealizationOrigin | str] = field(default_factory=dict)
     leaf_constraints: Mapping[str, RecursiveRealizationStructure] = field(default_factory=dict)
     optional_fields: frozenset[str] = frozenset()
+    member_presence: Mapping[str, RealizationPresence] = field(default_factory=dict)
 
 
 def normalize_realization_literal(
@@ -128,15 +126,20 @@ def _normalize_document(
     origins = metadata.origins
     leaf_constraints = metadata.leaf_constraints
     optional_fields = metadata.optional_fields
-    if max(len(optional_fields), len(leaf_constraints)) > budget.limits.max_members:
+    if max(len(optional_fields), len(leaf_constraints), len(metadata.member_presence)) > budget.limits.max_members:
         return build_failure(
             RealizationRelationStatus.LIMIT_EXCEEDED, "", "Normalization metadata exceeded max_members."
         )
     metadata_paths = {**dict.fromkeys(optional_fields, "optional"), **dict.fromkeys(leaf_constraints, "constraint")}
+    metadata_paths.update(dict.fromkeys(metadata.member_presence, "presence"))
     violation = admit_normalization_metadata((), (), metadata_paths, budget)
     if violation is not None:
         return build_failure(RealizationRelationStatus.LIMIT_EXCEEDED, violation.pointer, violation.message)
-    context = _NormalizationContext(budget, origins, profiles, leaf_constraints, optional_fields)
+    try:
+        presences = {path: RealizationPresence(value) for path, value in metadata.member_presence.items()}
+    except (TypeError, ValueError):
+        return build_failure(RealizationRelationStatus.INVALID, "", "Normalization presence is invalid.")
+    context = _NormalizationContext(budget, origins, profiles, leaf_constraints, optional_fields, presences)
     normalized, result = _normalize_literal_node(value, (), (), context)
     if result is None and metadata_paths.keys() - context.visited:
         result = build_failure(
@@ -174,6 +177,7 @@ class _NormalizationContext:
     collection_profiles: Mapping[str, RealizationCollectionProfile]
     leaf_constraints: Mapping[str, RecursiveRealizationStructure] = field(default_factory=dict)
     optional_fields: frozenset[str] = frozenset()
+    member_presence: Mapping[str, RealizationPresence] = field(default_factory=dict)
     visited: set[str] = field(default_factory=set)
 
 
@@ -212,10 +216,7 @@ def _normalize_literal_node(
         context.visited.add(source_pointer)
         override = context.leaf_constraints.get(source_pointer)
         if override is not None:
-            if isinstance(value, (dict, list)) or not isinstance(
-                override,
-                (RealizationDelegatedValue, RealizationDomainValue, RealizationKnowledgeValue, RealizationLiteral),
-            ):
+            if isinstance(value, (dict, list)) or not is_scalar_constraint(override):
                 failure = build_failure(
                     RealizationRelationStatus.INVALID, current_pointer, "A leaf constraint must address a scalar value."
                 )
@@ -229,6 +230,10 @@ def _normalize_literal_node(
             normalized, failure = _normalize_scalar(value, current_pointer, context.budget, origin)
         if normalized is not None and source_pointer in context.optional_fields:
             normalized = normalized.model_copy(update={"presence": RealizationPresence.OPTIONAL})
+        if normalized is not None and source_pointer in context.member_presence:
+            normalized = normalized.model_copy(
+                update={"presence": RealizationPresence(context.member_presence[source_pointer])}
+            )
     return normalized, failure
 
 

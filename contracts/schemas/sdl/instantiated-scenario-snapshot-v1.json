@@ -3738,6 +3738,220 @@
       "title": "DockerfileInstructionKind",
       "type": "string"
     },
+    "DomainProfileCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact immutable definition coordinate.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Authority",
+          "type": "string"
+        },
+        "definition_digest": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 253,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "profile_id": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "title": "DomainProfileCoordinateModel",
+      "type": "object"
+    },
+    "DomainProfileDefinitionModel": {
+      "additionalProperties": false,
+      "description": "Immutable standard-or-private definition using the shared contract.",
+      "properties": {
+        "allowed_contexts": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Contexts",
+          "type": "array"
+        },
+        "coordinate": {
+          "$ref": "#/$defs/DomainProfileCoordinateModel"
+        },
+        "profile_schema": {
+          "$ref": "#/$defs/DomainProfileSchemaModel"
+        },
+        "schema_version": {
+          "const": "domain-profile-definition/v1",
+          "default": "domain-profile-definition/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "semantic_contract": {
+          "$ref": "#/$defs/DomainProfileSemanticContractModel"
+        }
+      },
+      "required": [
+        "coordinate",
+        "profile_schema",
+        "semantic_contract",
+        "allowed_contexts"
+      ],
+      "title": "DomainProfileDefinitionModel",
+      "type": "object"
+    },
+    "DomainProfileSchemaModel": {
+      "additionalProperties": false,
+      "description": "Pinned inert JSON Schema carried by a profile definition.",
+      "properties": {
+        "dialect": {
+          "const": "https://json-schema.org/draft/2020-12/schema",
+          "default": "https://json-schema.org/draft/2020-12/schema",
+          "title": "Dialect",
+          "type": "string"
+        },
+        "required_vocabularies": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Required Vocabularies",
+          "type": "array"
+        },
+        "revision": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "schema_digest": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Schema Digest",
+          "type": "string"
+        },
+        "schema_document": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Schema Document",
+          "type": "object"
+        },
+        "schema_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Schema Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_id",
+        "revision",
+        "schema_digest",
+        "schema_document"
+      ],
+      "title": "DomainProfileSchemaModel",
+      "type": "object"
+    },
+    "DomainProfileSemanticContractModel": {
+      "additionalProperties": false,
+      "description": "Exact identity of pre-installed semantic behavior, never executable data.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Authority",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authority",
+        "contract_id",
+        "revision",
+        "digest"
+      ],
+      "title": "DomainProfileSemanticContractModel",
+      "type": "object"
+    },
     "EndpointPersona": {
       "description": "Scenario function of a compute endpoint, separate from login/participant roles.",
       "enum": [
@@ -11629,6 +11843,16 @@
       "title": "RealizationDesignationRecord",
       "type": "object"
     },
+    "RealizationPresence": {
+      "description": "Whether the addressed member must, may, or must not exist.",
+      "enum": [
+        "required",
+        "optional",
+        "forbidden"
+      ],
+      "title": "RealizationPresence",
+      "type": "string"
+    },
     "RecordDomain": {
       "additionalProperties": false,
       "description": "Product structure: each declared field references another named domain.\n\n``extra`` controls undeclared fields: ``False`` (closed) rejects any field not\nnamed in ``fields``; ``True`` (open) admits them. Field values reference domain\nnames resolved against the envelope's ``domains`` map, keeping the structure\nacyclic and free of inline recursion.",
@@ -14158,6 +14382,17 @@
           },
           "title": "Processes",
           "type": "array"
+        },
+        "repository_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSoftwareRepositoryState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "scheduled_jobs": {
           "items": {
@@ -26405,6 +26640,17 @@
           "title": "Name",
           "type": "string"
         },
+        "package": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimePackage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "package_manager": {
           "default": "",
           "not": {
@@ -26421,6 +26667,17 @@
           "title": "Package Name",
           "type": "string"
         },
+        "package_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSoftwarePackageReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "package_version": {
           "default": "",
           "not": {
@@ -26428,6 +26685,21 @@
           },
           "title": "Package Version",
           "type": "string"
+        },
+        "package_version_constraint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionDomain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
         },
         "provenance": {
           "anyOf": [
@@ -26452,6 +26724,35 @@
           "title": "Purl",
           "type": "string"
         },
+        "refinements": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSoftwareComponentRefinement"
+          },
+          "maxItems": 256,
+          "title": "Refinements",
+          "type": "array"
+        },
+        "repository_refs": {
+          "items": {
+            "allOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                }
+              }
+            ],
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Repository Refs",
+          "type": "array"
+        },
         "version": {
           "default": "",
           "not": {
@@ -26459,6 +26760,17 @@
           },
           "title": "Version",
           "type": "string"
+        },
+        "version_constraint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionDomain"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -26508,6 +26820,51 @@
       "title": "RuntimeSoftwareComponentProvenance",
       "type": "string"
     },
+    "RuntimeSoftwareComponentRefinement": {
+      "additionalProperties": false,
+      "description": "A component's acquisition or application/package correspondence constraint.",
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/DomainProfileDefinitionModel"
+        },
+        "profile_value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "purpose": {
+          "enum": [
+            "acquisition",
+            "version-correspondence"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        },
+        "refinement_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Refinement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "title": "RuntimeSoftwareComponentRefinement",
+      "type": "object"
+    },
     "RuntimeSoftwareComponentType": {
       "description": "Portable type for a software component required on a runtime node.",
       "enum": [
@@ -26527,6 +26884,256 @@
       ],
       "title": "RuntimeSoftwareComponentType",
       "type": "string"
+    },
+    "RuntimeSoftwarePackageReference": {
+      "additionalProperties": false,
+      "description": "Explicit correspondence to a package row; no identity is inferred.",
+      "properties": {
+        "architecture": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:x86_64|aarch64|amd64|x64|x86-64|arm64|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})?$",
+          "title": "Architecture",
+          "type": "string"
+        },
+        "manager": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Manager",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "manager",
+        "name"
+      ],
+      "title": "RuntimeSoftwarePackageReference",
+      "type": "object"
+    },
+    "RuntimeSoftwareRepository": {
+      "additionalProperties": false,
+      "description": "A stable final-state repository identity shared by software requirements.",
+      "properties": {
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        },
+        "refinements": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSoftwareRepositoryRefinement"
+          },
+          "maxItems": 256,
+          "title": "Refinements",
+          "type": "array"
+        },
+        "repository_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Repository Id",
+          "type": "string"
+        },
+        "trust_ref": {
+          "anyOf": [
+            {
+              "allOf": [
+                {
+                  "not": {
+                    "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                  }
+                }
+              ],
+              "maxLength": 64,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^a-z0-9_-]"
+              },
+              "pattern": "^[a-z0-9]",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trust Ref"
+        }
+      },
+      "required": [
+        "repository_id"
+      ],
+      "title": "RuntimeSoftwareRepository",
+      "type": "object"
+    },
+    "RuntimeSoftwareRepositoryRefinement": {
+      "additionalProperties": false,
+      "description": "A final-state constraint attached to a shared repository identity.",
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/DomainProfileDefinitionModel"
+        },
+        "profile_value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "purpose": {
+          "const": "repository-state",
+          "title": "Purpose",
+          "type": "string"
+        },
+        "refinement_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Refinement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "title": "RuntimeSoftwareRepositoryRefinement",
+      "type": "object"
+    },
+    "RuntimeSoftwareRepositoryState": {
+      "additionalProperties": false,
+      "description": "Bounded shared repository and trust identities, not an installation route.",
+      "properties": {
+        "repositories": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSoftwareRepository"
+          },
+          "maxItems": 256,
+          "title": "Repositories",
+          "type": "array"
+        },
+        "trust_bindings": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSoftwareTrustBinding"
+          },
+          "maxItems": 256,
+          "title": "Trust Bindings",
+          "type": "array"
+        }
+      },
+      "title": "RuntimeSoftwareRepositoryState",
+      "type": "object"
+    },
+    "RuntimeSoftwareTrustBinding": {
+      "additionalProperties": false,
+      "description": "An author-owned trust identity; concrete trust semantics require a profile.",
+      "properties": {
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        },
+        "refinements": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSoftwareTrustRefinement"
+          },
+          "maxItems": 256,
+          "title": "Refinements",
+          "type": "array"
+        },
+        "trust_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Trust Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trust_id"
+      ],
+      "title": "RuntimeSoftwareTrustBinding",
+      "type": "object"
+    },
+    "RuntimeSoftwareTrustRefinement": {
+      "additionalProperties": false,
+      "description": "A final-state constraint attached to a shared trust identity.",
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/DomainProfileDefinitionModel"
+        },
+        "profile_value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "purpose": {
+          "const": "repository-trust",
+          "title": "Purpose",
+          "type": "string"
+        },
+        "refinement_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Refinement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "title": "RuntimeSoftwareTrustRefinement",
+      "type": "object"
     },
     "RuntimeSshServer": {
       "additionalProperties": false,
@@ -28774,6 +29381,98 @@
       ],
       "title": "TruthCompositionMode",
       "type": "string"
+    },
+    "VersionDomain": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "lower": {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            }
+          },
+          "required": [
+            "lower"
+          ]
+        },
+        {
+          "properties": {
+            "upper": {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            }
+          },
+          "required": [
+            "upper"
+          ]
+        }
+      ],
+      "description": "An optional one-sided or bounded restriction; exact SDL strings stay exact.\n\nComparison equality is relation-owned. This never asserts correspondence\nbetween an application version and a distribution package version.",
+      "properties": {
+        "kind": {
+          "const": "version",
+          "default": "version",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lower": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lower"
+        },
+        "lower_closed": {
+          "default": true,
+          "title": "Lower Closed",
+          "type": "boolean"
+        },
+        "relation": {
+          "$ref": "#/$defs/DomainProfileSemanticContractModel"
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upper"
+        },
+        "upper_closed": {
+          "default": true,
+          "title": "Upper Closed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "relation"
+      ],
+      "title": "VersionDomain",
+      "type": "object"
     },
     "VolumeAccessMode": {
       "enum": [

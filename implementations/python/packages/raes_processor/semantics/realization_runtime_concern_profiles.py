@@ -160,7 +160,13 @@ RUNTIME_CONCERN_PROFILES: tuple[RuntimeConcernProfile, ...] = (
         excluded=("sub_state", "result", "exit_code", "status_text", "main_pid"),
     ),
     _profile("packages", "runtime-packages", identity=("manager", "name")),
-    _profile("software_components", "runtime-software-components"),
+    _profile("repository_state", "runtime-repository-state", excluded=("presence", "refinements")),
+    _profile(
+        "software_components",
+        "runtime-software-components",
+        identity=("component_id",),
+        excluded=("presence", "version_constraint", "package_version_constraint", "refinements"),
+    ),
     _profile("dependency_manifests", "runtime-dependency-manifests"),
 )
 

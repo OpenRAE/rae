@@ -8,6 +8,8 @@ from enum import Enum
 
 from pydantic_core import to_jsonable_python
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
+from raes.runtime_software import RuntimeSoftwareComponent
+from raes.runtime_software_repositories import RuntimeSoftwareRepository, RuntimeSoftwareTrustBinding
 from raes.scenario import InstantiatedScenario
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.canonical import jsonable_fallback
@@ -19,6 +21,7 @@ from raes_contracts.realization_structure import (
     RealizationDomainValue,
     RealizationNormalizationMetadata,
     RealizationOrigin,
+    RealizationPresence,
     RealizationRelationStatus,
     RealizationScope,
     RealizationStructure,
@@ -31,10 +34,12 @@ from raes_contracts.vocabulary import Closure
 
 from ..semantics.realization_concerns import RegisteredRealizationConcern
 from ..semantics.realization_specialized_projection import source_occurrences, specialized_collection_identity
+from ..semantics.software_identity import package_collection_identity
 from .realization_authority_posture import designated_registered_posture
 from .realization_scalar_sets import bind_scalar_set_choices
 from .realization_structure import compile_realization_structure
 from .realization_value_domains import compiled_architecture_value_domain
+from .software_constraints import software_leaf_constraint
 
 
 class _PendingRecursiveClosure(Exception):
@@ -141,6 +146,7 @@ class _SourceMetadata:
     optional_fields: set[str] = field(default_factory=set)
     leaf_constraints: dict[str, RecursiveRealizationStructure] = field(default_factory=dict)
     collection_profiles: list[RealizationCollectionProfile] = field(default_factory=list)
+    member_presence: dict[str, RealizationPresence] = field(default_factory=dict)
 
     @property
     def profile(self) -> str:
@@ -179,6 +185,8 @@ class _SourceMetadata:
         """Walk one projected record, retaining its source pointer alignment."""
 
         self.scopes.append(RealizationScope(field_pointer=pointer, closure=self.closure(source_pointer)))
+        if isinstance(source, (RuntimeSoftwareComponent, RuntimeSoftwareRepository, RuntimeSoftwareTrustBinding)):
+            self.member_presence[pointer] = source.presence
         scalar_alias = set(projected) == {"_identity", "value"} and not isinstance(source, (dict, list))
         for key, child in projected.items():
             source_key = key.removesuffix("_present").removesuffix("_commitment")
@@ -192,6 +200,21 @@ class _SourceMetadata:
                 f"{path}.{source_key}",
                 f"{source_pointer}/{_escape(source_key)}",
             )
+        if isinstance(source, RuntimeSoftwareComponent):
+            self._collect_software_constraints(source, pointer, path)
+
+    def _collect_software_constraints(self, source: RuntimeSoftwareComponent, pointer: str, path: str) -> None:
+        runtime = self.scenario.nodes[self.registered.declaration_name].runtime
+        linked = runtime.resolved_software_package(source) if source.package_ref is not None else None
+        for key in ("version", "package_version", "package_name", "package_manager"):
+            constraint = software_leaf_constraint(
+                source, key, authored_exact=f"{path}.{key}" in self.records, linked_package=linked
+            )
+            if constraint is not None:
+                child_pointer = f"{pointer}/{key}"
+                self.leaf_constraints[child_pointer] = constraint
+                self.optional_fields.discard(child_pointer)
+                self.origins[child_pointer] = constraint.origin
 
     def _collection_identity(self, pointer: str) -> tuple[str, ...]:
         """Name the identity fields one projected collection level carries."""
@@ -208,6 +231,8 @@ class _SourceMetadata:
         closure = self.closure(source_pointer)
         self.scopes.append(RealizationScope(field_pointer=pointer, closure=closure))
         identity = self._collection_identity(pointer)
+        if not pointer and self.registered.descriptor.concern_kind == "runtime-packages":
+            identity = package_collection_identity(projected)
         if identity:
             self.collection_profiles.append(
                 RealizationCollectionProfile(
@@ -319,6 +344,7 @@ def compile_recursive_realization_constraint(
                 origins=metadata.origins,
                 leaf_constraints=metadata.leaf_constraints,
                 optional_fields=frozenset(metadata.optional_fields),
+                member_presence=metadata.member_presence,
             ),
         )
         if built.status is not RealizationRelationStatus.CONFORMANT:

@@ -2,9 +2,9 @@
   "contract_id": "experiment-authoring-input-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92",
+  "content_hash": "cefc43e4d82438ec1ab3c55f84211221ebcfad41c19804335546e3c8466862e1",
   "last_change": {
-    "summary": "Added scoped observation demand and content-validated evidence bindings for issues #1212 and #1112.",
-    "content_hash": "622f11dec095deee90e7bf1885b71c58cc1b111a53ca6d7483b58ee1b5f54f92"
+    "summary": "Updated shared scalar-union ordering after software-contract imports; accepted scalar values are unchanged (#1205).",
+    "content_hash": "cefc43e4d82438ec1ab3c55f84211221ebcfad41c19804335546e3c8466862e1"
   }
 }

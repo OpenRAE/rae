@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..bounded_domains import scalar_in_domain
 from ..canonical import canonical_json_digest
+from ..software_versions import VersionDomain, version_membership
 from ._build import RealizationConstraintBuildResult, build_failure
 from ._common import RealizationRelationResult, RelationBudget, json_equal, relation_result
 from ._limits import admit_constraint_document
@@ -21,6 +22,12 @@ from ._models import (
 )
 
 _EXACT_OUTSIDE_DOMAIN = "Exact value is outside the conjoined domain."
+
+
+def _domain_membership(value: object, domain: RealizationDomainValue) -> str:
+    if isinstance(domain.domain, VersionDomain):
+        return version_membership(value, domain.domain)
+    return "conformant" if scalar_in_domain(value, domain.domain) else "nonconformant"
 
 
 def compose_realization_constraints(
@@ -184,9 +191,10 @@ def _compose_literal_and_domain(
     presence: RealizationPresence,
 ) -> tuple[RecursiveRealizationStructure | None, str | None] | None:
     result = None
-    if not scalar_in_domain(literal.value, domain.domain):
+    membership = _domain_membership(literal.value, domain)
+    if membership == "nonconformant":
         result = (None, _EXACT_OUTSIDE_DOMAIN)
-    elif literal.origin is domain.origin:
+    elif membership == "conformant" and literal.origin is domain.origin:
         result = (literal.model_copy(update={"presence": presence}), None)
     return result
 
@@ -224,8 +232,9 @@ def _canonical_exact_conflict(
         for constraint in constraints:
             if isinstance(constraint, RealizationLiteral) and not json_equal(exact.value, constraint.value):
                 conflict = "Exact typed constraints conflict."
-            elif isinstance(constraint, RealizationDomainValue) and not scalar_in_domain(
-                exact.value, constraint.domain
+            elif (
+                isinstance(constraint, RealizationDomainValue)
+                and _domain_membership(exact.value, constraint) == "nonconformant"
             ):
                 conflict = _EXACT_OUTSIDE_DOMAIN
             if conflict is not None:
@@ -238,7 +247,11 @@ def _remove_redundant_domains(
     exact: RealizationLiteral,
 ) -> list[RecursiveRealizationStructure]:
     return [
-        node for node in constraints if not isinstance(node, RealizationDomainValue) or node.origin is not exact.origin
+        node
+        for node in constraints
+        if not isinstance(node, RealizationDomainValue)
+        or node.origin is not exact.origin
+        or _domain_membership(exact.value, node) != "conformant"
     ]
 
 

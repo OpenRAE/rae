@@ -1,0 +1,88 @@
+{
+  "analysis_id": "raes-standardized-specification-coverage-issue-1205-v8",
+  "backend_leakage": [],
+  "claim": {
+    "allowed_evidence": [
+      "pinned source metadata and bounded paraphrases",
+      "production parser, semantic, instantiation, admission, compiler, contract, and profile results",
+      "exact artifact digests and typed pointers",
+      "documented missing-concept and backend-specific dispositions"
+    ],
+    "claim_id": "raes-standardized-configurable-specification-coverage",
+    "disallowed_evidence": [
+      "field-count or schema breadth alone",
+      "the existing scenario stress corpus as the representative request corpus",
+      "free-form metadata as typed coverage",
+      "backend-private interpretation",
+      "post-hoc removal or repair of falsifying concepts"
+    ],
+    "evidence_artifacts": [
+      "docs/research/specification-coverage/protocol-v1.json",
+      "docs/research/specification-coverage/execution-snapshot-v8.json",
+      "docs/research/specification-coverage/analysis-v8.json"
+    ],
+    "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
+    "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
+    "objective_pass_criteria": "Every load-bearing concept passes at every owning stage, backend-specific mechanics stay outside core SDL, and no requested concept is silently lost.",
+    "statement": "RAES provides a standardized configurable portable specification surface for the preregistered representative cyber-agent evaluation environment requirements without backend vocabulary in core SDL.",
+    "threats_to_validity": [
+      "The representative corpus contains four source strata and sixteen atomic concepts rather than every cyber-range requirement.",
+      "The reference processor and repository fixtures are not independent backend implementations.",
+      "No live range, simulator federation, or participant execution was part of this offline specification-coverage test."
+    ]
+  },
+  "classification_counts": {
+    "deliberately-backend-specific": 1,
+    "directly-expressible": 10,
+    "missing": 3,
+    "profile-or-manifest-constraint": 2
+  },
+  "evidence_status": "partial",
+  "execution_status": "complete",
+  "generated_at": "2026-09-12",
+  "limitations": [
+    "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
+    "The three missing concepts are evidence, not implementation tasks within this snapshot.",
+    "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation."
+  ],
+  "load_bearing_results": {
+    "failed": 0,
+    "missing": 0,
+    "passed": 10,
+    "total": 10
+  },
+  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem.",
+  "protocol_revision": "1.0.0",
+  "request_results": [
+    {
+      "concept_count": 6,
+      "failed_stage_count": 0,
+      "missing_count": 0,
+      "request_id": "survey-representative-range",
+      "status": "demonstrated"
+    },
+    {
+      "concept_count": 5,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "cyborg-participant-evaluation",
+      "status": "partial"
+    },
+    {
+      "concept_count": 3,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "vsdl-configurable-infrastructure",
+      "status": "partial"
+    },
+    {
+      "concept_count": 2,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "cyber-dem-federation",
+      "status": "partial"
+    }
+  ],
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1205-v8",
+  "snapshot_sha256": "9c6c5d538684a48ff9be13c0053ff4bf224ce1cc0ea382af0c824186d60f23a9"
+}

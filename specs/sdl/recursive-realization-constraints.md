@@ -8,7 +8,8 @@ backend and observation boundaries. Issue #1204 adopts this contract at the
 existing compiler, authenticated plan and runtime result boundaries; see
 [backend preparation](backend-realization-preparation.md) and
 [plan-level profiles](plan-realization-profiles.md). Public SDL profile
-attachment syntax is not part of that adoption.
+attachment syntax is not part of that adoption. Issue #1205 adds the bounded
+[software refinement adapter](software-requirements.md) and named version domains.
 
 ## 1. Purpose and authority
 
@@ -95,7 +96,10 @@ a set-member identity.
 
 `domain` reuses the bounded-domain algebra. The recursive revision adds an
 explicit `null` domain without changing older contracts that reference the
-non-null `DomainDescriptor`. Strict JSON equality applies: `true` is not `1`.
+non-null `DomainDescriptor`. It also admits the explicitly identified `version`
+predicate specified in [software requirements](software-requirements.md#2-version-constraints),
+without changing legacy capability-envelope domain unions. Strict JSON equality
+applies: `true` is not `1`.
 
 `definition-reference` resolves only within the document's closed definition
 map. Definitions MUST be acyclic and resolution is hop-bounded. Missing or

@@ -1,0 +1,140 @@
+{
+  "analysis_id": "issue-1205-analysis-v9",
+  "claim": {
+    "allowed_evidence": [
+      "production parser and semantic-validator results",
+      "canonical compiled digests",
+      "participant contract regression tests",
+      "pinned protocol, corpus, and execution snapshot"
+    ],
+    "claim_id": "asr-530-formal-semantic-validation-retest",
+    "disallowed_evidence": [
+      "schema success as semantic proof",
+      "workflow reachability as network or exploit reachability",
+      "FM labels as gate outcomes",
+      "attribution as counterfactual proof",
+      "formal prose or maintainer confidence alone"
+    ],
+    "evidence_artifacts": [
+      "docs/research/formal-semantic-validation/protocol-v2.json",
+      "docs/research/formal-semantic-validation/corpus/manifest-v2.json",
+      "docs/research/formal-semantic-validation/execution-snapshot-v9.json",
+      "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v3.json",
+      "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v3.json",
+      "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v3.json",
+      "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v3.json"
+    ],
+    "falsification_protocol": "Replay every retained and new case through its production entrypoint, require complete digest and evidence joins, execute participant fixtures, and derive status from the recorded outcomes.",
+    "objective_fail_criteria": "A supported negative passes, a positive fails, an observation drifts, a required participant case is missing, or weaker evidence is promoted to solver, exploit-path, runtime-stability, or counterfactual assurance.",
+    "objective_pass_criteria": "Every claim class has positive and negative cases, all supported cases reproduce the frozen outcome, every participant obligation has passing positive and negative fixtures, and unsupported classes remain untested.",
+    "statement": "At the recorded source-state digest, the retained RAES controls have the bounded statuses recorded here; historical releases are integrity evidence, not current replay evidence.",
+    "threats_to_validity": [
+      "The issue-specific corpus is intentionally small and does not enumerate every validator invariant.",
+      "The participant fixtures exercise reference production contracts and tests, not every independent backend realization.",
+      "The replay gate runs on one Python reference configuration and one pinned RAES revision.",
+      "Unsupported solver-level classes have protocol cases but no executable observations."
+    ]
+  },
+  "claim_results": [
+    {
+      "case_count": 2,
+      "claim_class_id": "schema-validity",
+      "evidence_status": "demonstrated",
+      "limitations": [
+        "Bounded to the named source/model structural controls."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 4,
+      "claim_class_id": "semantic-consistency",
+      "evidence_status": "partial",
+      "limitations": [
+        "Partial coverage of named static semantics and participant obligations, not universal consistency."
+      ],
+      "matching_case_count": 4,
+      "participant_obligation_count": 7,
+      "replayable_case_count": 4,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 2,
+      "claim_class_id": "graph-reachability",
+      "evidence_status": "partial",
+      "limitations": [
+        "Partial workflow control-flow reachability only; not network, service, or exploit reachability."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 4,
+      "claim_class_id": "constraint-satisfiability",
+      "evidence_status": "demonstrated",
+      "limitations": [
+        "Demonstrated only for raes-finite-domain-satisfiability-v1 and its pinned solver configuration."
+      ],
+      "matching_case_count": 4,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 2
+    },
+    {
+      "case_count": 4,
+      "claim_class_id": "exploit-path-validity",
+      "evidence_status": "demonstrated",
+      "limitations": [
+        "Demonstrated only for the admitted snapshot, typed graph, query, semantics, and bounded search profile."
+      ],
+      "matching_case_count": 4,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 2
+    },
+    {
+      "case_count": 2,
+      "claim_class_id": "determinism-stability",
+      "evidence_status": "partial",
+      "limitations": [
+        "Partial parse-to-compile repeatability only; runtime and backend determinism are untested."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 2,
+      "unsupported_case_count": 0
+    },
+    {
+      "case_count": 2,
+      "claim_class_id": "counterfactual-necessity",
+      "evidence_status": "untested",
+      "limitations": [
+        "Untested because no governed intervention or ablation entrypoint ran."
+      ],
+      "matching_case_count": 2,
+      "participant_obligation_count": 0,
+      "replayable_case_count": 0,
+      "unsupported_case_count": 2
+    }
+  ],
+  "corpus_revision": "2.0.0",
+  "evidence_status": "partial",
+  "execution_id": "issue-1205-execution-v9",
+  "generated_at": "2026-09-12",
+  "limitations": [
+    "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
+    "The subset-minimal unsatisfiable core is not a universal proof certificate.",
+    "Exploit-path results are limited to the admitted snapshot, normalized graph, query, transition semantics, and bounded search profile.",
+    "A valid path is not backend execution and an invalid path is not real-world non-exploitability.",
+    "The production exploit-path JSON loader permits duplicate keys; the research loader rejects them without claiming stronger production behavior.",
+    "Participant replay inherits the host environment and is not described as hermetic.",
+    "Counterfactual necessity remains untested.",
+    "Scoped observation demand is not a claim class in this preregistration and is not promoted to demonstrated by this retest."
+  ],
+  "plain_language_outcome": "The pinned RAES revision replays every retained v1 control and demonstrates the bounded finite-domain satisfiability and typed exploit-path claims with complete production evidence. Semantic, workflow, and compile-stability claims remain partial, and counterfactual necessity remains untested.",
+  "protocol_revision": "2.0.0"
+}

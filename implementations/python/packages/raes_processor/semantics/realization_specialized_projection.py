@@ -98,6 +98,10 @@ def recursive_forwarding(value: object, observed: bool = False) -> object:
 def _specialized_identity_key(kind: str, field: str) -> str | None:
     """Name the identity field one concern assigns to a nested collection."""
 
+    if kind == "runtime-software-components" and field == "repository_refs":
+        return "_identity"
+    if kind == "runtime-repository-state":
+        return {"repositories": "repository_id", "trust_bindings": "trust_id"}.get(field)
     if kind == "linux-capabilities" and field in _CAPABILITY_IDENTITY_FIELDS:
         return "_identity"
     if kind == "runtime-mounts" and field == "options":

@@ -1,10 +1,10 @@
 {
+  "content_hash": "e97ad375641f1fea28a56029e6df17fbb7114cdec70c758be3b951c78dbd6c7b",
   "contract_id": "sdl-authoring-input-v1",
-  "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
-  "stability": "draft",
-  "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3",
   "last_change": {
-    "summary": "Added scoped observation-demand authoring while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
-    "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3"
-  }
+    "content_hash": "e97ad375641f1fea28a56029e6df17fbb7114cdec70c758be3b951c78dbd6c7b",
+    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner."
+  },
+  "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+  "stability": "draft"
 }

@@ -2,9 +2,9 @@
   "contract_id": "admitted-trial-plan-v1",
   "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
   "stability": "draft",
-  "content_hash": "c8e6c4c2fb6ee71aaef42c2fc0dc1e60d89424606ef470ed95e94af758a1cf78",
+  "content_hash": "8e5fec95418e586dec6a373bee54aa1b35cee922e791ed62dfb6b1f0f16df7b9",
   "last_change": {
-    "summary": "Pinned exact capture-specification inputs into admitted trial plans for issue #1112.",
-    "content_hash": "c8e6c4c2fb6ee71aaef42c2fc0dc1e60d89424606ef470ed95e94af758a1cf78"
+    "summary": "Updated shared scalar-union ordering after software-contract imports; accepted scalar values are unchanged (#1205).",
+    "content_hash": "8e5fec95418e586dec6a373bee54aa1b35cee922e791ed62dfb6b1f0f16df7b9"
   }
 }

@@ -92,8 +92,31 @@ remains evidence/provenance input rather than the normative schema.
   must add semantic validation and module-reference support together, rather
   than publishing dangling string conventions.
 
+## Software requirement refinements (issue #1205)
+
+`runtime.software_components` remains the canonical component owner. It now
+accepts independent presence and named version predicates, the existing exact
+package model as a refinement, explicit package-row correspondence, and optional
+pinned domain-profile constraints. `runtime.packages` remains a compatibility
+shorthand with its original exact-package and APT final-state meaning. Shared
+repository/trust state has one node-local identity owner; transient acquisition
+uses the existing plan-profile host. Neither surface authorizes acquisition.
+
+The normative boundary is
+[software requirements](../../../specs/sdl/software-requirements.md).
+The [remediation brief](../issue-1205-software-outcomes-remediation.md) records
+the adjacent-surface audit, lineage, primary version-ordering sources and
+alternatives. Adding manager-specific options to the old APT union, duplicating
+software inventory, and putting semantics in source labels were rejected.
+No product-specific backend adapter, downstream scenario dependency, installer
+or implicit observation obligation is introduced. Backend realization,
+declared service behavior and separately requested reporting retain their own
+owners. Unsupported execution support is refused, not inferred from a profile
+definition or a successfully parsed package.
+
 ## Amendments
 
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-07-13 | #417 | Clarified that authored software components describe required final state; scanner, SBOM, filesystem, and process-inspection capture methods remain evidence provenance and are no longer accepted as component provenance values in SDL. |
+| 2026-09-12 | #1205 | Adopted generic software refinements, exact-package compatibility, shared final repository/trust identity and independent acquisition/reporting boundaries. |
