@@ -86,7 +86,9 @@ def _committed_value(
     }
 
 
-def project_environment(value: object, observed: bool = False) -> object:
+def project_environment(value: object, observed: bool = False) -> list[dict[str, object]]:
+    """Project authored runtime environment entries into their sorted records."""
+
     _require_observation_mode(observed)
     projected: list[dict[str, object]] = []
     for item in _sequence(value, label="runtime environment"):

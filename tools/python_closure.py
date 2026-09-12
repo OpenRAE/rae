@@ -12,27 +12,12 @@ from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 
 from tools.python_closure_profiles import (
-    PROFILES_PATH as PROFILES_PATH,
-)
-from tools.python_closure_profiles import (
-    REPO_ROOT as REPO_ROOT,
-)
-from tools.python_closure_profiles import (
-    TOOL_PROJECT as TOOL_PROJECT,
-)
-from tools.python_closure_profiles import (
-    PythonClosureProfile as PythonClosureProfile,
-)
-from tools.python_closure_profiles import (
+    REPO_ROOT,
+    PythonClosureProfile,
     assert_runtime_matches_profile,
+    closure_environment,
     load_python_closure_profile,
     load_wheelhouse_manifest,
-)
-from tools.python_closure_profiles import (
-    closure_environment as closure_environment,
-)
-from tools.python_closure_profiles import (
-    frozen_tool_command as frozen_tool_command,
 )
 from tools.python_closure_wheelhouse import (
     candidate_digest,
@@ -328,8 +313,9 @@ def _dispatch(args: argparse.Namespace) -> None:
         verify_wheelhouse(admitted, load_wheelhouse_manifest(profile))
 
 
-def main(argv: Iterable[str] | None = None) -> None:
+def main(argv: Iterable[str] | None = None) -> int:
     _dispatch(parse_args(argv))
+    return 0
 
 
 if __name__ == "__main__":

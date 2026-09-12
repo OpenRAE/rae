@@ -824,3 +824,31 @@ def test_exact_runtime_gate_rejects_a_different_non_redacted_command_selector() 
 
     assert [diagnostic.code for diagnostic in diagnostics] == ["runtime.backend-contract-invalid"]
     assert provenance == ()
+
+
+def test_prepared_node_demands_project_typed_authored_process_limits() -> None:
+    from raes_processor.planner.prepared_node_support import _process_limit_demands
+
+    limit = RuntimeProcessResourceLimit.model_validate(_exact_limit())
+    demands = _process_limit_demands("process-resource-limits", [limit])
+
+    assert [(demand.resource, demand.soft, demand.hard) for demand in demands] == [
+        (limit.resource, limit.soft, limit.hard)
+    ]
+    assert demands[0].scope.value == limit.scope.value
+    assert demands[0].identity_digest
+
+
+@pytest.mark.parametrize(
+    ("value", "message"),
+    [
+        ({"resource": "open_file_descriptors"}, "typed collection"),
+        ("open_file_descriptors", "typed collection"),
+        ([_exact_limit()], "typed runtime limit records"),
+    ],
+)
+def test_prepared_node_demands_refuse_an_untyped_authored_collection(value: object, message: str) -> None:
+    from raes_processor.planner.prepared_node_support import _process_limit_demands
+
+    with pytest.raises(ValueError, match=message):
+        _process_limit_demands("process-resource-limits", value)
