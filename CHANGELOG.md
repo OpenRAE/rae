@@ -8,6 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [4.0.0](https://github.com/OpenRAE/rae/compare/v3.5.0...v4.0.0) (2026-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **sdl:** externalize domain classifications into generic bindings ([#1243](https://github.com/OpenRAE/rae/issues/1243))
+
+### Features
+
+* add scoped observation demand policy ([#1245](https://github.com/OpenRAE/rae/issues/1245)) ([4914612](https://github.com/OpenRAE/rae/commit/4914612d108f06ff9db2eb69a14449a830a20848))
+* add typed domain profile contracts ([#1232](https://github.com/OpenRAE/rae/issues/1232)) ([4169a94](https://github.com/OpenRAE/rae/commit/4169a94a84ab71cbb9920c789622248fa5bc1211))
+* **realization:** admit prepared completions and validate delivered state ([#1251](https://github.com/OpenRAE/rae/issues/1251)) ([6e8c198](https://github.com/OpenRAE/rae/commit/6e8c198a5df07173b573b9caee8a87dc6d35262a))
+* **runtime:** define control-plane operation lifecycle contract ([#1235](https://github.com/OpenRAE/rae/issues/1235)) ([190b305](https://github.com/OpenRAE/rae/commit/190b305f900cbff582b0bb941ef3b5a557b3e119))
+* **runtime:** enforce capture admission and evidence proof ([#1239](https://github.com/OpenRAE/rae/issues/1239)) ([68d25df](https://github.com/OpenRAE/rae/commit/68d25df06a33a0f60224c7e0aa6fe8026fbe4a58))
+* **sdl:** add recursive realization constraint normal form ([#1233](https://github.com/OpenRAE/rae/issues/1233)) ([161221b](https://github.com/OpenRAE/rae/commit/161221b4e2b4e0e2f8ba3968aaf9114adf58a6a9))
+* **sdl:** externalize domain classifications into generic bindings ([#1243](https://github.com/OpenRAE/rae/issues/1243)) ([476df8c](https://github.com/OpenRAE/rae/commit/476df8cd7e76b3bf9bae485cfd62f1e3c955b463))
+
+
+### Bug Fixes
+
+* preserve exact constraints in mixed runtime realization ([#1214](https://github.com/OpenRAE/rae/issues/1214)) ([5d2f738](https://github.com/OpenRAE/rae/commit/5d2f738fb137760480a3ef9b2eae023f5df1c65b))
+* **quality:** clear control-plane Sonar findings ([#1252](https://github.com/OpenRAE/rae/issues/1252)) ([956a266](https://github.com/OpenRAE/rae/commit/956a266f775485e3599195fc058e6f4af858b2ca))
+* **quality:** clear the dev new-code violations blocking the Sonar gate ([#1255](https://github.com/OpenRAE/rae/issues/1255)) ([c899612](https://github.com/OpenRAE/rae/commit/c899612298f8d061e4e864c9b67b6fde2b913da0))
+* **quality:** clear the dev-to-main promotion Sonar violations ([#1260](https://github.com/OpenRAE/rae/issues/1260)) ([106b195](https://github.com/OpenRAE/rae/commit/106b195e3dc0048a647e845876e8eaefe08e3d1b))
+* **runtime:** add snapshot revision compare-and-swap ([#1240](https://github.com/OpenRAE/rae/issues/1240)) ([f834682](https://github.com/OpenRAE/rae/commit/f8346828bde8ddce0db4c273d76bc439ac650134))
+* **runtime:** make local operation state transactional and durable ([#1136](https://github.com/OpenRAE/rae/issues/1136)) ([ca26076](https://github.com/OpenRAE/rae/commit/ca26076cf275c9c6adff3afe3d157e4b45c09a50))
+* **runtime:** seal reconciled operations after uncertain commits ([#1231](https://github.com/OpenRAE/rae/issues/1231)) ([fb4cb4b](https://github.com/OpenRAE/rae/commit/fb4cb4b7002305e7062bc51f1eda77c5852b2642))
+* **runtime:** unify control-plane mutation commits ([#1248](https://github.com/OpenRAE/rae/issues/1248)) ([d67d320](https://github.com/OpenRAE/rae/commit/d67d320559f2f91cd991a9511052db1085e0b9c4))
+* **tooling:** use maintained client for tool acquisition ([#1246](https://github.com/OpenRAE/rae/issues/1246)) ([8e6dbb7](https://github.com/OpenRAE/rae/commit/8e6dbb742fb98d50bb16a55c47f941abd49ff58d))
+
+
+### Documentation
+
+* define modular participant control and governed effects ([#1234](https://github.com/OpenRAE/rae/issues/1234)) ([ebb70a3](https://github.com/OpenRAE/rae/commit/ebb70a34b8e7d1cc8964c443841ae57e12ed1014)), closes [#1068](https://github.com/OpenRAE/rae/issues/1068)
+* define recursive partial-description semantics ([#1215](https://github.com/OpenRAE/rae/issues/1215)) ([8dc823b](https://github.com/OpenRAE/rae/commit/8dc823bab555f4f04ec83a0eec38d6101c2adfed))
+* **sdl:** document progressive specification design review ([#1213](https://github.com/OpenRAE/rae/issues/1213)) ([164dd14](https://github.com/OpenRAE/rae/commit/164dd140731a20506690140b7133d526257a1156))
+* **sdl:** record issue 1198 design review and remediation plan ([164dd14](https://github.com/OpenRAE/rae/commit/164dd140731a20506690140b7133d526257a1156))
+* **tooling:** define package and artifact management architecture ([#1229](https://github.com/OpenRAE/rae/issues/1229)) ([c3b30c6](https://github.com/OpenRAE/rae/commit/c3b30c6caf7d99afb66675e42290ae1ff15f6b24))
+
 ## [3.5.0](https://github.com/OpenRAE/rae/compare/v3.4.0...v3.5.0) (2026-09-04)
 
 
