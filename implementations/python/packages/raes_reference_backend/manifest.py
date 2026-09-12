@@ -53,7 +53,10 @@ from .envelopes import ReferenceDriverMode, load_reference_realization_envelope
 
 REFERENCE_BACKEND_NAME = "reference-emulation"
 REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(
-    contract_id for contract_id in BACKEND_SUPPORTED_CONTRACT_IDS if contract_id != "experiment-binding-descriptors-v1"
+    contract_id
+    for contract_id in BACKEND_SUPPORTED_CONTRACT_IDS
+    if contract_id
+    not in {"experiment-binding-descriptors-v1", "backend-realization-preparation-v1", "plan-realization-profiles-v1"}
 )
 _TIME_DEDICATED_CONTRACT_VERSIONS = frozenset({"time-model-v1", "time-runtime-state-v1", "realized-time-model-v1"})
 
@@ -343,13 +346,27 @@ def create_reference_backend_manifest(*, with_time: bool = False, **config) -> B
         str(config.get("driver_mode") or getattr(driver, "driver_mode", ReferenceDriverMode.IN_PROCESS_EMULATION.value))
     )
     envelope = load_reference_realization_envelope(mode)
+    profile_contracts = frozenset()
+    profile_digest = None
+    if config.get("domain_profile_context") is not None:
+        from raes_contracts.realization_profiles import profile_context_digest
+
+        from .profile_preparation import reference_profile_configuration
+
+        reference_profile_configuration(config["domain_profile_context"], config.get("profile_choices", {}))
+        profile_contracts = frozenset({"backend-realization-preparation-v1", "plan-realization-profiles-v1"})
+        profile_digest = profile_context_digest(config["domain_profile_context"])
     return BackendManifest(
         name=REFERENCE_BACKEND_NAME,
         version=_current_backend_version(),
+        domain_profile_context_digest=profile_digest,
         supported_contract_versions=(
-            REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS
-            if with_time
-            else REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS - _TIME_DEDICATED_CONTRACT_VERSIONS
+            profile_contracts
+            | (
+                REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS
+                if with_time
+                else REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS - _TIME_DEDICATED_CONTRACT_VERSIONS
+            )
         ),
         compatible_processors=frozenset({"raes-reference-processor"}),
         concept_bindings=_concept_bindings(with_time=with_time),

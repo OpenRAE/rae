@@ -163,7 +163,7 @@ def materialize_realization_authority(
     diagnostics: list[Diagnostic] = []
     for authority in model.realization_authority:
         requirement = _matching_requirement(model.realization_requirements, authority)
-        if requirement is not None and requirement.structure_error:
+        if requirement is not None and (requirement.structure_error or requirement.recursive_pending):
             diagnostics.append(_unsafe_bound_diagnostic(authority))
             continue
         try:
@@ -182,7 +182,11 @@ def materialize_realization_authority(
             if mode is RealizationAuthorityMode.CONSTRAINED
             else ()
         )
-        if mode is RealizationAuthorityMode.CONSTRAINED and not bounds:
+        if (
+            mode is RealizationAuthorityMode.CONSTRAINED
+            and not bounds
+            and (requirement is None or requirement.constraint_document is None)
+        ):
             diagnostics.append(_unsafe_bound_diagnostic(authority))
             continue
         resolved.append(
@@ -200,6 +204,8 @@ def materialize_realization_authority(
                 verification_scope=authority.verification_scope,
                 required_observation_strength=authority.required_observation_strength,
                 structure=requirement.structure if requirement is not None else None,
+                constraint_document=requirement.constraint_document if requirement is not None else None,
+                constraint_binding=requirement.constraint_binding if requirement is not None else None,
             )
         )
     return tuple(resolved), diagnostics

@@ -19,7 +19,7 @@ from raes_contracts.participant_concurrency import (
     iter_participant_concurrency_transition_violations,
 )
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
-from raes_runtime.backend_calls import _call_backend_apply
+from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.participant_result_contracts import participant_runtime_state_contract_diagnostics
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -784,10 +784,26 @@ def test_backend_apply_rejects_rewriting_joint_action_records() -> None:
         base_snapshot,
         address="runtime.control-plane.concurrent-participants",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(effect_owners=frozenset({"participant"})),
     )
 
     assert result.success is False
     assert any("joint_action_records must be append-only" in item.message for item in result.diagnostics)
+
+
+def test_backend_apply_accounts_for_participant_addresses_not_disclosure_record_ids() -> None:
+    payload = _snapshot_payload()
+    candidate = RuntimeSnapshot(**{key: value for key, value in payload.items() if key != "schema_version"})
+    previous = RuntimeSnapshot()
+    result = _call_backend_apply(
+        lambda *_: ApplyResult(True, candidate, changed_addresses=[PARTICIPANT_RED, PARTICIPANT_BLUE, STATE_ADDRESS]),
+        previous,
+        address="runtime.control-plane.concurrent-participants",
+        snapshot=previous,
+        realization=_RealizationApplyContext(effect_owners=frozenset({"participant"})),
+    )
+    assert result.success, result.diagnostics
+    assert result.snapshot.joint_action_records == candidate.joint_action_records
 
 
 def test_participant_concurrency_transition_validator_rejects_rewriting_records() -> None:

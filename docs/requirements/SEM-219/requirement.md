@@ -20,6 +20,17 @@ Primary-source refresh shows that tool-using participants need shared semantics 
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `1204` (Preserve participant constraint and effect authority at backend boundaries)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_behaviors.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_effect_transitions.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_effect_authority.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_execution_control_boundary.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_targeted_effects.py`
+- TESTS → TEST `implementations/python/tests/test_issue_898_participant_execution_control.py`
+- TESTS → TEST `implementations/python/tests/test_issue_899_participant_resource_budgets.py`
+
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-083-participant-tool-decision-surface-and-exposure-semantics.md` (ADR-083 participant tool, decision-surface, and exposure semantics)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-119-sem-219-220-226-participant-decision-surface-preflight.md` (Issue 119 participant decision-surface architecture preflight)
 - DOCUMENTS → DOCUMENTATION `docs/explain/reference/shared-semantic-integrity.md` (Shared semantic integrity mapping for SEM-219/SEM-220/SEM-226)

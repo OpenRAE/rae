@@ -9,7 +9,7 @@ from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint
-from raes_contracts.realization_structure import RealizationStructure
+from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
 if TYPE_CHECKING:
@@ -39,10 +39,19 @@ class CompiledRealizationRequirement:
     value_constraints: tuple[RealizationValueConstraint, ...] = ()
     process_resource_limits: tuple[ProcessResourceLimitDemand, ...] = ()
     structure: RealizationStructure | None = None
+    constraint_document: RealizationConstraintDocument | None = None
+    constraint_binding: str | None = None
     structure_error: bool = False
+    recursive_pending: bool = False
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)
+        if self.structure is not None and self.constraint_document is not None:
+            raise ValueError("realization requirement cannot carry two independently editable structures")
+        if (self.constraint_document is None) != (self.constraint_binding is None):
+            raise ValueError("recursive authority requires its source binding")
+        if self.recursive_pending and (self.structure is not None or self.constraint_document is not None):
+            raise ValueError("pending recursive authority cannot carry an executable structure")
         self._validate_authority_metadata()
         self._validate_requirement_metadata()
 

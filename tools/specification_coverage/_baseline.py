@@ -12,7 +12,10 @@ _BASELINE_PATH = (
 
 
 def _baseline_snapshot(repo_root: Path, baseline: object) -> dict[str, object]:
-    if not isinstance(baseline, dict) or set(baseline) != {"release_sha256", "release_revision"}:
+    if not isinstance(baseline, dict) or set(baseline) != {
+        "release_sha256",
+        "release_revision",
+    }:
         raise ValueError("current coverage capture requires an exact baseline")
     if baseline["release_revision"] != "1.1.0":
         raise ValueError("current coverage capture must retain baseline 1.1.0")
@@ -29,7 +32,7 @@ def _baseline_snapshot(repo_root: Path, baseline: object) -> dict[str, object]:
 
 def validate_current_deviations(repo_root: Path, snapshot: dict[str, object]) -> list[PolicyFailure]:
     """Retain every artifact and require an exact disposition for each changed pin."""
-    path = "docs/research/specification-coverage/execution-snapshot-v5.json"
+    path = "docs/research/specification-coverage/execution-snapshot-v7.json"
     try:
         baseline = _baseline_snapshot(repo_root, snapshot.get("baseline"))
         old = {item["path"]: item for item in baseline["artifacts"]}
@@ -61,7 +64,12 @@ def _deviation_artifact(
     new: dict[str, dict[str, object]],
     changed: set[str],
 ) -> str:
-    if not isinstance(item, dict) or set(item) != {"artifact_path", "baseline_sha256", "retest_sha256", "rationale"}:
+    if not isinstance(item, dict) or set(item) != {
+        "artifact_path",
+        "baseline_sha256",
+        "retest_sha256",
+        "rationale",
+    }:
         raise ValueError("invalid source deviation shape")
     artifact = item["artifact_path"]
     if (

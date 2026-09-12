@@ -37,6 +37,8 @@ PROCESSOR_SUPPORTED_CONTRACT_IDS = (
 # profiles, processor manifests, and authoring-side request artifacts are
 # separate authority surfaces and do not belong in this declaration field.
 BACKEND_SUPPORTED_CONTRACT_IDS = (
+    "plan-realization-profiles-v1",
+    "backend-realization-preparation-v1",
     "backend-manifest-v2",
     "artifact-requirement-v1",
     "experiment-binding-descriptors-v1",

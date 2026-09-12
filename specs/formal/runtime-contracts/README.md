@@ -8,6 +8,9 @@ This directory holds the formal artifacts for portable runtime result contracts.
 - typed workflow step execution state
 - typed evaluator result envelopes
 - typed evaluator history streams
+- shared [backend result admission](backend-result-admission.md), including
+  resource identity, domain and target ownership, transition accounting, and
+  trusted-predecessor preservation (ASR-532)
 - backend participant capability declarations
 - manager-side validation of backend workflow results
 - manager-side validation of backend evaluator results

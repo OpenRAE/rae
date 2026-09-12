@@ -124,12 +124,14 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         ParticipantOpacityModelCheckInputModel,
     )
     from ..provenance import SDLLineageLedgerModel
+    from ..realization_profiles import PlanProfileAuthority
     from ..satisfiability import ScenarioSatisfiabilityEvidenceModel
     from ..scientific_completeness import (
         ScientificCompletenessAssessmentModel,
         ScientificCompletenessTaxonomyModel,
     )
     from ..validation_profiles import ValidationProfileCatalogModel
+    from .backend_preparation import BackendPreparationResponseModel
 
     return {
         "raes-semantic-invariants-v1": _raes_semantic_invariant_profile_schema_for_bundle(),
@@ -147,6 +149,8 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),
         "realization-envelope-v1": BackendRealizationEnvelopeModel.model_json_schema(),
         "recursive-realization-constraint-v1": RealizationConstraintDocument.model_json_schema(),
+        "backend-realization-preparation-v1": BackendPreparationResponseModel.model_json_schema(),
+        "plan-realization-profiles-v1": PlanProfileAuthority.model_json_schema(),
         "observation-demand-v1": ObservationDemandDocument.model_json_schema(),
         "processor-manifest-v2": ProcessorManifestV2Model.model_json_schema(),
         "participant-implementation-manifest-v1": ParticipantImplementationManifestModel.model_json_schema(),

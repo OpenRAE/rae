@@ -26,6 +26,11 @@ from raes_contracts.realization_operational_observation import invoke_native_rea
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 
 from .driver import ContainerSpec, DeploymentDriver, NetworkSpec
+from .profile_preparation import (
+    prepare_reference_profiles,
+    reference_profile_configuration,
+    reference_profile_diagnostics,
+)
 from .realization import (
     NETWORK_RESOURCE_TYPE,
     NODE_RESOURCE_TYPE,
@@ -41,19 +46,33 @@ class ReferenceProvisioner:
         self,
         driver: DeploymentDriver,
         realization_envelope: BackendRealizationEnvelopeModel | None = None,
+        *,
+        domain_profile_context=None,
+        profile_choices=None,
     ) -> None:
         self._driver = driver
         self._realization_envelope = realization_envelope
+        self.domain_profile_context, self._profile_choices = reference_profile_configuration(
+            domain_profile_context, profile_choices or {}
+        )
 
-    @staticmethod
-    def validate(plan: ProvisioningPlan) -> list[Diagnostic]:
+    def validate(self, plan: ProvisioningPlan) -> list[Diagnostic]:
         realization = interpret_provisioning_plan(plan)
-        return list(realization.diagnostics)
+        return [*realization.diagnostics, *reference_profile_diagnostics(plan, self.domain_profile_context)]
+
+    def prepare(self, plan: ProvisioningPlan, snapshot: RuntimeSnapshot):
+        return prepare_reference_profiles(plan, snapshot, self.domain_profile_context, self._profile_choices)
+
+    def validate_profiles(self, plan: ProvisioningPlan) -> list[Diagnostic]:
+        return reference_profile_diagnostics(plan, self.domain_profile_context)
 
     def apply(self, plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> ApplyResult:
         failure = self._realization_envelope_mismatch(plan, snapshot)
         realization = interpret_provisioning_plan(plan)
-        diagnostics: list[Diagnostic] = list(realization.diagnostics)
+        diagnostics: list[Diagnostic] = [
+            *realization.diagnostics,
+            *reference_profile_diagnostics(plan, self.domain_profile_context),
+        ]
         if failure is None and any(diag.is_error for diag in diagnostics):
             failure = ApplyResult(success=False, snapshot=snapshot, diagnostics=diagnostics)
         if failure is not None:
@@ -263,6 +282,7 @@ def _project_snapshot_operation(
         ordering_dependencies=operation.ordering_dependencies,
         refresh_dependencies=operation.refresh_dependencies,
         status=status,
+        profile_bindings=getattr(operation, "profile_bindings", ()),
     )
     if operation.action != ChangeAction.UNCHANGED:
         changed_addresses.append(operation.address)

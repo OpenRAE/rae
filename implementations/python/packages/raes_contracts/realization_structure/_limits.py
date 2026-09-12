@@ -49,8 +49,8 @@ def _admit_metadata(
         violation = LimitViolation(pointer(path), "Constraint metadata exceeded max_depth.")
     elif spent := _spend_operation(budget, path, "Constraint metadata admission"):
         violation = spent
-    elif isinstance(value, str) and len(value.encode("utf-8")) > budget.limits.max_scalar_bytes:
-        violation = LimitViolation(pointer(path), "Constraint metadata exceeded max_scalar_bytes.")
+    elif exhausted := budget.spend_scalar(value):
+        violation = LimitViolation(pointer(path), f"Constraint metadata exceeded {exhausted}.")
     elif isinstance(value, dict):
         violation = _admit_metadata_mapping(value, path, depth, budget)
     elif isinstance(value, (list, tuple)):

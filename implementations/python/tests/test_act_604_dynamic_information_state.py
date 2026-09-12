@@ -21,7 +21,7 @@ from raes_contracts.contracts import (
     validate_participant_information_state_context,
 )
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, RuntimeSnapshotEnvelope
-from raes_runtime.backend_calls import _call_backend_apply
+from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.control_plane_api_models import _snapshot_model
 from raes_runtime.control_plane_store import (
     _require_expected_history_heads,
@@ -805,6 +805,9 @@ def test_information_state_history_is_append_only_across_backend_apply() -> None
         base_snapshot,
         address="runtime.participant-information-state",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({participant})
+        ),
     )
 
     assert result.success is False
@@ -899,6 +902,9 @@ def test_backend_ingestion_rejects_unresolved_or_forged_new_information_state() 
         RuntimeSnapshot(),
         address="runtime.participant-information-state",
         snapshot=RuntimeSnapshot(),
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({participant})
+        ),
     )
 
     def _forged_resolver(
@@ -914,6 +920,9 @@ def test_backend_ingestion_rejects_unresolved_or_forged_new_information_state() 
         address="runtime.participant-information-state",
         snapshot=RuntimeSnapshot(),
         information_state_context_resolver=_forged_resolver,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({participant})
+        ),
     )
     accepted = _call_backend_apply(
         _backend_apply,
@@ -922,6 +931,9 @@ def test_backend_ingestion_rejects_unresolved_or_forged_new_information_state() 
         address="runtime.participant-information-state",
         snapshot=RuntimeSnapshot(),
         information_state_context_resolver=_context_resolver,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({participant})
+        ),
     )
 
     assert without_context.success is False

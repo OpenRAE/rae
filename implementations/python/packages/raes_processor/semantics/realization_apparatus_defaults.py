@@ -73,7 +73,7 @@ def resolve_apparatus_realization_defaults(
     return {
         _realization_requirement_identity(requirement): resolver(requirement, manifest)
         for requirement in requirements
-        if requirement.delegated
+        if requirement.delegated or requirement.recursive_pending
     }
 
 

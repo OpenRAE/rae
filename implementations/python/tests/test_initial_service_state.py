@@ -38,6 +38,9 @@ def _direct_provisioning_plan(model, manifest: BackendManifest, operation: Provi
         realization_authority=tuple(
             authority for authority in planned.realization_authority if authority.address == operation.address
         ),
+        realization_constraints=[
+            constraint for constraint in planned.realization_constraints if constraint.address == operation.address
+        ],
     )
 
 

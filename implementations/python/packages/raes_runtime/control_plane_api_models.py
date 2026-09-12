@@ -78,6 +78,8 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
     from raes_contracts.planning import PlannedRealizationConstraint
 
     return ProvisioningPlan(
+        preparation=model.preparation,
+        profile_authority=model.profile_authority,
         operations=[
             ProvisionOp(
                 action=ChangeAction(str(op.action)),
@@ -86,6 +88,7 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
                 payload=dict(op.payload),
                 ordering_dependencies=tuple(op.ordering_dependencies),
                 refresh_dependencies=tuple(op.refresh_dependencies),
+                profile_bindings=op.profile_bindings,
             )
             for op in model.operations
         ],
@@ -112,6 +115,8 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
                 verification_scope=entry.verification_scope,
                 required_observation_strength=entry.required_observation_strength,
                 structure=entry.structure,
+                constraint_document=entry.constraint_document,
+                constraint_binding=entry.constraint_binding,
             )
             for entry in model.realization_authority
         ),

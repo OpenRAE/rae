@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TypedDict, TypeVar, Unpack
 
@@ -53,6 +54,7 @@ class _BackendManifestOptions(TypedDict, total=False):
     cleanup: CleanupCapabilities | None
     time: TimeCapabilities | None
     realization_envelope: BackendRealizationEnvelopeModel | None
+    domain_profile_context_digest: str | None
 
 
 @dataclass(frozen=True, init=False)
@@ -67,6 +69,7 @@ class BackendManifest:
     constraints: dict[str, str]
     capabilities: BackendCapabilitySet
     realization_envelope: BackendRealizationEnvelopeModel | None
+    domain_profile_context_digest: str | None
 
     def __init__(self, **options: Unpack[_BackendManifestOptions]) -> None:
         _reject_unknown_options(options)
@@ -90,6 +93,12 @@ class BackendManifest:
         object.__setattr__(self, "constraints", {} if constraints is None else dict(constraints))
         object.__setattr__(self, "capabilities", capabilities)
         object.__setattr__(self, "realization_envelope", realization_envelope)
+        profile_digest = options.get("domain_profile_context_digest")
+        if profile_digest is not None and (
+            not isinstance(profile_digest, str) or not re.fullmatch(r"sha256:[a-f0-9]{64}", profile_digest)
+        ):
+            raise ValueError("Invalid domain profile context digest")
+        object.__setattr__(self, "domain_profile_context_digest", profile_digest)
 
     @property
     def name(self) -> str:

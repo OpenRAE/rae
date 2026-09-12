@@ -2,9 +2,10 @@
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
-from .backend_calls import _call_backend_apply
+from .backend_calls import _call_backend_apply, _RealizationApplyContext
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 
 
@@ -24,7 +25,7 @@ def maybe_synthesize_failure(
 
 def rollback_services(
     snapshot: RuntimeSnapshot,
-    services: list[tuple[str, object]],
+    services: list[tuple[str, object, RuntimeDomain]],
     *,
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
 ) -> ApplyResult:
@@ -34,12 +35,13 @@ def rollback_services(
     diagnostics: list[Diagnostic] = []
     changed_addresses: list[str] = []
     success = True
-    for address, service in services:
+    for address, service, domain in services:
         stop_result = _call_backend_apply(
             service.stop,
             working_snapshot,
             address=address,
             snapshot=working_snapshot,
+            realization=_RealizationApplyContext(stop_domain=domain),
             information_state_context_resolver=information_state_context_resolver,
         )
         diagnostics.extend(stop_result.diagnostics)

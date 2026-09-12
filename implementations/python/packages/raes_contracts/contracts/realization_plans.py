@@ -11,7 +11,8 @@ from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from ..addressing import CompiledAddress
 from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
-from ..compute_substrate import validate_compute_substrate_constraint
+from ..compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
+from ..domain_profiles import DomainProfileBindingModel
 from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
     RealizationAuthorityMode,
@@ -19,7 +20,9 @@ from ..planning import (
     RuntimeDomain,
     require_plan_operation_identity,
 )
-from ..realization_structure import RealizationStructure
+from ..realization_preparation import RealizationPreparationAuthority
+from ..realization_profiles import PlanProfileAuthority
+from ..realization_structure import RealizationConstraintDocument, RealizationStructure
 from ..versions import RUNTIME_SNAPSHOT_SCHEMA_VERSION
 from ..vocabulary import ObservationStrength, RealizationVerificationScope
 from .base import ContractModel, NonEmptyString
@@ -52,6 +55,7 @@ from .participant_runtime import (
     ParticipantEpisodeStateModel,
 )
 from .realization_observation_validation import validate_realization_observation_disclosure
+from .snapshot_entry import SnapshotEntryModel as SnapshotEntryModel
 from .time_model import TimeRuntimeStateModel
 
 
@@ -62,6 +66,9 @@ class PlanOperationModel(ContractModel):
     payload: dict[str, Any] = Field(default_factory=dict)
     ordering_dependencies: list[CompiledAddress] = Field(default_factory=list)
     refresh_dependencies: list[CompiledAddress] = Field(default_factory=list)
+    profile_bindings: tuple[DomainProfileBindingModel, ...] = Field(
+        default=(), max_length=256, exclude_if=lambda value: not value
+    )
 
 
 def _require_unique_operation_addresses(operations: list[PlanOperationModel]) -> None:
@@ -73,6 +80,8 @@ def _require_unique_operation_addresses(operations: list[PlanOperationModel]) ->
 def _require_operation_identities(operations: list[PlanOperationModel], domain: RuntimeDomain) -> None:
     for operation in operations:
         require_plan_operation_identity(domain, operation.address, operation.resource_type)
+        if domain is not RuntimeDomain.PROVISIONING and operation.profile_bindings:
+            raise ValueError("Only provisioning operations can host profile bindings")
 
 
 def _require_startup_order_addresses(
@@ -123,16 +132,41 @@ class RealizationAuthorityBoundModel(ContractModel):
 
 
 class ResolvedRealizationAuthorityModel(ContractModel):
-    """Published value-free realization authority for one plan concern."""
+    """Published value-safe realization authority for one plan concern."""
 
     model_config = ConfigDict(
         json_schema_extra={
             "allOf": [
                 {
+                    "if": {
+                        "properties": {"constraint_document": {"type": "object"}},
+                        "required": ["constraint_document"],
+                    },
+                    "then": {
+                        "required": ["constraint_binding"],
+                        "properties": {"constraint_binding": {"type": "string"}, "structure": {"type": "null"}},
+                    },
+                },
+                {
+                    "if": {
+                        "properties": {"constraint_binding": {"type": "string"}},
+                        "required": ["constraint_binding"],
+                    },
+                    "then": {
+                        "required": ["constraint_document"],
+                        "properties": {"constraint_document": {"type": "object"}},
+                    },
+                },
+                {
                     "if": {"properties": {"mode": {"const": "constrained"}}, "required": ["mode"]},
                     "then": {
-                        "properties": {"bounds": {"minItems": 1}},
-                        "required": ["bounds"],
+                        "anyOf": [
+                            {"properties": {"bounds": {"minItems": 1}}, "required": ["bounds"]},
+                            {
+                                "properties": {"constraint_document": {"type": "object"}},
+                                "required": ["constraint_document"],
+                            },
+                        ],
                     },
                 },
                 {
@@ -173,10 +207,20 @@ class ResolvedRealizationAuthorityModel(ContractModel):
     verification_scope: RealizationVerificationScope | None = None
     required_observation_strength: ObservationStrength | None = None
     structure: RealizationStructure | None = Field(default=None, exclude_if=lambda value: value is None)
+    constraint_document: RealizationConstraintDocument | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    constraint_binding: str | None = Field(
+        default=None, pattern=r"^sha256:[a-f0-9]{64}$", exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def _validate_mode_bounds(self) -> ResolvedRealizationAuthorityModel:
-        if self.mode is RealizationAuthorityMode.CONSTRAINED and not self.bounds:
+        if self.structure is not None and self.constraint_document is not None:
+            raise ValueError("realization authority cannot carry two independently editable structures")
+        if (self.constraint_document is None) != (self.constraint_binding is None):
+            raise ValueError("recursive authority requires its source binding")
+        if self.mode is RealizationAuthorityMode.CONSTRAINED and not self.bounds and self.constraint_document is None:
             raise ValueError("constrained realization authority requires typed bounds")
         if self.mode is not RealizationAuthorityMode.CONSTRAINED and self.bounds:
             raise ValueError("only constrained realization authority may carry typed bounds")
@@ -204,14 +248,17 @@ class ProvisioningPlanModel(ContractModel):
     realization_constraints: list[PlannedRealizationConstraintModel] = Field(default_factory=list)
     operation_id: NonEmptyString | None = None
     observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
+    preparation: RealizationPreparationAuthority | None = Field(default=None, exclude_if=lambda value: value is None)
+    profile_authority: PlanProfileAuthority | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def _validate_operation_addresses(self) -> ProvisioningPlanModel:
         _require_unique_operation_addresses(self.operations)
         _require_operation_identities(self.operations, RuntimeDomain.PROVISIONING)
-        identities = [(item.address, item.concern) for item in self.realization_constraints]
-        if len(identities) != len(set(identities)):
-            raise ValueError("Provisioning plan realization constraints must identify unique concerns")
+        validate_planned_substrate_targets(
+            ((item.address, item.concern) for item in self.realization_constraints),
+            (op.address for op in self.operations if op.action != "delete" and op.resource_type == "node"),
+        )
         authority_keys = [(entry.address, entry.requirement_kind) for entry in self.realization_authority]
         if len(authority_keys) != len(set(authority_keys)):
             raise ValueError("Provisioning plan realization authority must identify unique concerns")
@@ -250,16 +297,6 @@ class EvaluationPlanModel(ContractModel):
         _require_operation_identities(self.operations, RuntimeDomain.EVALUATION)
         _require_startup_order_addresses(self.operations, self.startup_order)
         return self
-
-
-class SnapshotEntryModel(ContractModel):
-    address: CompiledAddress
-    domain: str
-    resource_type: str
-    payload: dict[str, Any] = Field(default_factory=dict)
-    ordering_dependencies: list[CompiledAddress] = Field(default_factory=list)
-    refresh_dependencies: list[CompiledAddress] = Field(default_factory=list)
-    status: str = "ready"
 
 
 class RealizationProvenanceEntryModel(ContractModel):

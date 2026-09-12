@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from inspect import Signature, signature
+from inspect import signature
 from typing import Any
 
 from raes_backend_protocols.capabilities import BackendManifest
@@ -15,8 +15,10 @@ from raes_backend_protocols.protocols import (
 )
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
 
 from . import time_coordinator as _time_coordinator
+from .backend_profiles import validate_profile_target
 from .observation_execution import ObservationRuntime
 from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
@@ -68,16 +70,12 @@ def _require_invokable_method(
     try:
         method_signature.bind(*invocation_args)
     except TypeError as exc:
-        rendered_signature = _render_signature(method_signature)
+        rendered_signature = str(method_signature)
         raise ValueError(
             "registry.target-contract-mismatch: "
             f"{label}.{method_name}{rendered_signature} is incompatible with "
             f"the runtime call shape for {label}.{method_name}."
         ) from exc
-
-
-def _render_signature(method_signature: Signature) -> str:
-    return str(method_signature)
 
 
 def _validate_runtime_target_shape(
@@ -94,6 +92,7 @@ def _validate_runtime_target_shape(
         raise ValueError("RuntimeTarget requires an explicit manifest.")
     if provisioner is None:
         raise ValueError("RuntimeTarget requires a provisioner.")
+    validate_profile_target(manifest, provisioner)
     _validate_optional_component_presence(
         manifest,
         orchestrator=orchestrator,
@@ -115,7 +114,12 @@ def _validate_runtime_target_shape(
     sample_snapshot = object()
     sample_request = object()
     sample_admission_request = sample_participant_action_admission_request()
-    _validate_provisioner_methods(provisioner, sample_plan, sample_snapshot)
+    _validate_provisioner_methods(
+        provisioner,
+        sample_plan,
+        sample_snapshot,
+        preparation=BACKEND_PREPARATION_CONTRACT in manifest.supported_contract_versions,
+    )
     _validate_orchestrator_methods(orchestrator, sample_plan, sample_snapshot)
     _validate_evaluator_methods(evaluator, sample_plan, sample_snapshot)
     _validate_participant_runtime_methods(
@@ -161,19 +165,14 @@ def _validate_provisioner_methods(
     provisioner: Provisioner,
     sample_plan: object,
     sample_snapshot: object,
+    *,
+    preparation: bool = False,
 ) -> None:
-    _require_invokable_method(
-        provisioner,
-        label="provisioner",
-        method_name="validate",
-        invocation_args=(sample_plan,),
-    )
-    _require_invokable_method(
-        provisioner,
-        label="provisioner",
-        method_name="apply",
-        invocation_args=(sample_plan, sample_snapshot),
-    )
+    methods = {"validate": (sample_plan,), "apply": (sample_plan, sample_snapshot)}
+    if preparation:
+        methods["prepare"] = (sample_plan, sample_snapshot)
+    for name, args in methods.items():
+        _require_invokable_method(provisioner, label="provisioner", method_name=name, invocation_args=args)
 
 
 def _validate_orchestrator_methods(

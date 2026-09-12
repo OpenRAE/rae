@@ -13,6 +13,7 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .backend_calls import _call_backend_apply
+from .participant_effect_authority import participant_effect_authority
 
 
 def _failure(
@@ -171,6 +172,7 @@ def backend_execution_control_method(
             snapshot,
             address=f"runtime.participant-execution.{request.execution_scope_ref}.{request.action}",
             snapshot=snapshot,
+            realization=participant_effect_authority(request, snapshot),
             information_state_context_resolver=information_state_context_resolver,
         )
         return _validate_observed_result(request, snapshot, result)
