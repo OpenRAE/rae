@@ -15,6 +15,8 @@ _EXACT_SCHEMA_DIRECTORIES = (
         "associated-artifact-manifest-v1": "associated-artifacts",
         "runtime-snapshot-v1": "snapshots",
         "recursive-realization-constraint-v1": "realization-constraints",
+        "backend-realization-preparation-v1": "plans",
+        "plan-realization-profiles-v1": "plans",
     }
     | dict.fromkeys(
         {

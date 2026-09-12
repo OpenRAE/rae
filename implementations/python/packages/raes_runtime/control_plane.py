@@ -305,7 +305,7 @@ class RuntimeControlPlane(
                 plan=plan,
                 address="runtime.control-plane.provisioning",
                 diagnostics=[],
-                validation_method=self._target.provisioner.validate,
+                validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
                 base_snapshot=base_snapshot,
                 idempotency_key=idempotency_key,
                 request_fingerprint=context.request_commitment,

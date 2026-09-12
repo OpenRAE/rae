@@ -180,6 +180,8 @@ class StubOrchestrator:
         changed_addresses: list[str] = []
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         for op in plan.operations:
+            if op.action == ChangeAction.UNCHANGED:
+                continue
             if op.action == ChangeAction.DELETE:
                 entries.pop(op.address, None)
                 results.pop(op.address, None)

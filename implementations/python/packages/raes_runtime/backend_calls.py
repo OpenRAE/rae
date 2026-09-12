@@ -2,19 +2,20 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import replace
+from dataclasses import is_dataclass, replace
 
-from raes_contracts.addressing import require_compiled_address
+from pydantic import BaseModel
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.contracts.time_model import validate_time_runtime_transition
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
+    prepared_delivery_violation,
     realization_authority_disclosure,
     realization_disclosure,
     sanitize_plan_realization_snapshot,
+    sanitize_prepared_node_snapshot,
     sanitize_realization_snapshot,
 )
 
@@ -25,14 +26,18 @@ from .backend_account_credentials import (
 )
 from .backend_call_contracts import (
     _apply_result_contract_violation,
-    _diagnostics_iterable_violation,
-    _diagnostics_values_violation,
+    _materialize_diagnostics,
 )
+from .backend_effect_transitions import backend_effect_transition_diagnostics
+from .backend_entry_transitions import backend_entry_transition_diagnostics
+from .backend_input_contracts import backend_input_violation
+from .backend_preparation import prepare_backend_invocation
 from .backend_realization_authority import (
     _apply_authority_diagnostics,
     _bind_submitted_plan,
     _RealizationApplyContext,
 )
+from .backend_snapshot_contracts import snapshot_address_contract_diagnostics, snapshot_carrier_addresses
 from .diagnostics import _failure_diagnostic
 from .evaluation_result_contracts import evaluation_result_contract_diagnostics
 from .participant_result_contracts import (
@@ -50,19 +55,16 @@ def _call_backend_diagnostics(
     *args: object,
     address: str,
 ) -> list[Diagnostic]:
+    if invalid := backend_input_violation(args):
+        return [_backend_contract_invalid(address, invalid)]
     try:
-        result = method(*args)
+        result = method(*(_isolated_argument(argument) for argument in args))
     except Exception as exc:
         diagnostics = [_backend_call_failed(address, exc)]
     else:
-        invalid_message = _diagnostics_iterable_violation(result, address)
+        diagnostics, invalid_message = _materialize_diagnostics(result, address)
         if invalid_message is not None:
             diagnostics = [_backend_contract_invalid(address, invalid_message)]
-        else:
-            diagnostics = list(result)
-            invalid_message = _diagnostics_values_violation(diagnostics, address)
-            if invalid_message is not None:
-                diagnostics = [_backend_contract_invalid(address, invalid_message)]
     if plan_arguments_have_account_credentials(args):
         diagnostics = value_free_backend_diagnostics(diagnostics)
     return diagnostics
@@ -76,8 +78,13 @@ def _call_backend_apply(
     realization: _RealizationApplyContext | None = None,
     operation_id: str | None = None,
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
+    service_dependencies: tuple[object, ...] = (),
 ) -> ApplyResult:
     realization_context = realization or _RealizationApplyContext()
+    if invalid := backend_input_violation(
+        (*args, snapshot), authority=realization_context, service_dependencies=service_dependencies
+    ):
+        return _failed_apply_result(snapshot, _backend_contract_invalid(address, invalid))
     args, realization_context = _bind_submitted_plan(args, realization_context, operation_id)
     baseline_snapshot = deepcopy(snapshot)
     authority_diagnostics = _apply_authority_diagnostics(realization_context, address)
@@ -87,15 +94,23 @@ def _call_backend_apply(
             snapshot=baseline_snapshot,
             diagnostics=authority_diagnostics,
         )
-    return _invoke_backend_apply(
+    args, realization_context, diagnostics = prepare_backend_invocation(
+        method, args, baseline_snapshot, realization_context
+    )
+    if args is None:
+        return ApplyResult(False, baseline_snapshot, diagnostics=diagnostics)
+    result = _invoke_backend_apply(
         method,
         args,
         address=address,
         snapshot=snapshot,
         baseline_snapshot=baseline_snapshot,
-        realization=realization_context,
+        realization=deepcopy(realization_context),
         information_state_context_resolver=information_state_context_resolver,
+        service_dependencies=service_dependencies,
     )
+    result.diagnostics = [*diagnostics, *result.diagnostics]
+    return result
 
 
 def _invoke_backend_apply(
@@ -107,9 +122,12 @@ def _invoke_backend_apply(
     baseline_snapshot: RuntimeSnapshot,
     realization: _RealizationApplyContext,
     information_state_context_resolver: ParticipantInformationStateContextResolver | None,
+    service_dependencies: tuple[object, ...],
 ) -> ApplyResult:
     backend_snapshot = deepcopy(snapshot)
-    backend_args = tuple(backend_snapshot if arg is snapshot else arg for arg in args)
+    backend_args = tuple(
+        backend_snapshot if arg is snapshot else _isolated_argument(arg, service_dependencies) for arg in args
+    )
     try:
         result = method(*backend_args)
     except (TypeError, ValueError):
@@ -119,13 +137,29 @@ def _invoke_backend_apply(
         )
     except Exception as exc:
         return _failed_apply_result(baseline_snapshot, _backend_call_failed(address, exc))
-    return _finalize_backend_apply(
-        result,
-        address=address,
-        baseline_snapshot=baseline_snapshot,
-        realization=realization,
-        information_state_context_resolver=information_state_context_resolver,
-    )
+    try:
+        return _finalize_backend_apply(
+            result,
+            address=address,
+            baseline_snapshot=baseline_snapshot,
+            realization=realization,
+            information_state_context_resolver=information_state_context_resolver,
+        )
+    except Exception:
+        return _failed_apply_result(
+            baseline_snapshot,
+            _backend_contract_invalid(address, "Backend returned an apply result that could not be validated."),
+        )
+
+
+def _isolated_argument(argument: object, service_dependencies: tuple[object, ...] = ()) -> object:
+    """Isolate value carriers, retaining injected service dependency identity."""
+
+    if any(argument is service for service in service_dependencies):
+        return argument
+    if is_dataclass(argument) or isinstance(argument, (BaseModel, dict, list, tuple)):
+        return deepcopy(argument)
+    return argument
 
 
 def _finalize_backend_apply(
@@ -169,12 +203,38 @@ def _finalize_backend_apply(
                 result,
                 address=address,
                 baseline_snapshot=baseline_snapshot,
-                realization_requirements=realization.requirements,
-                realization_plan=realization.plan,
+                realization=realization,
             )
-            if realization_provenance and finalized.success:
+            if result.success and not finalized.success:
+                return deepcopy(finalized)
+            if realization.completion_plan is not None:
+                finalized = _with_snapshot(
+                    finalized, sanitize_prepared_node_snapshot(realization.completion_plan, finalized.snapshot)
+                )
+            invalid = _apply_result_contract_violation(finalized, address)
+            if invalid:
+                final_diagnostics = [_backend_contract_invalid(address, invalid)]
+            else:
+                # Reuse the admitted transient observations to validate the safe
+                # values. This performs no collection and does not retain them.
+                validation_projection = replace(
+                    finalized,
+                    snapshot=replace(
+                        finalized.snapshot, realization_observations=result.snapshot.realization_observations
+                    ),
+                    operational_realization_observations=result.operational_realization_observations,
+                )
+                final_diagnostics, realization_provenance = _post_apply_contract_result(
+                    validation_projection,
+                    baseline_snapshot,
+                    realization,
+                    information_state_context_resolver=information_state_context_resolver,
+                )
+            if final_diagnostics:
+                finalized = ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
+            elif realization_provenance and finalized.success:
                 finalized = _with_realization_provenance(finalized, realization_provenance)
-    return finalized
+    return deepcopy(finalized)
 
 
 def _post_apply_contract_result(
@@ -198,9 +258,14 @@ def _post_apply_contract_result(
     diagnostics = _backend_snapshot_contract_diagnostics(
         result,
         baseline_snapshot,
+        realization=realization,
         information_state_context_resolver=information_state_context_resolver,
     )
     provenance: tuple[RealizationProvenanceEntry, ...] = ()
+    if not diagnostics and result.success and realization.completion_plan is not None:
+        violation = prepared_delivery_violation(realization.completion_plan, result.snapshot)
+        if violation:
+            diagnostics = [_backend_contract_invalid("runtime.preparation", violation)]
     if not diagnostics and realization.plan is not None:
         # Failed apply results are cleanup inventory, not observation-success
         # claims. Still check materialization authority and sanitize the snapshot;
@@ -229,11 +294,16 @@ def _backend_snapshot_contract_diagnostics(
     result: ApplyResult,
     baseline_snapshot: RuntimeSnapshot,
     *,
+    realization: _RealizationApplyContext,
     information_state_context_resolver: ParticipantInformationStateContextResolver | None,
 ) -> list[Diagnostic]:
-    diagnostics = _snapshot_address_contract_diagnostics(result.snapshot)
+    diagnostics = snapshot_address_contract_diagnostics(result.snapshot)
     if not diagnostics:
         diagnostics = _changed_address_transition_diagnostics(result, baseline_snapshot)
+    if not diagnostics:
+        diagnostics = backend_entry_transition_diagnostics(result, baseline_snapshot, realization.operation_plan)
+    if not diagnostics:
+        diagnostics = backend_effect_transition_diagnostics(result, baseline_snapshot, realization)
     if not diagnostics:
         diagnostics = _snapshot_contract_diagnostics(
             result.snapshot,
@@ -250,16 +320,28 @@ def _sanitize_backend_realization(
     *,
     address: str,
     baseline_snapshot: RuntimeSnapshot,
-    realization_requirements: tuple[CompiledRealizationRequirement, ...],
-    realization_plan: ProvisioningPlan | None,
+    realization: _RealizationApplyContext,
 ) -> ApplyResult:
     sanitized = result
+    realization_plan, realization_requirements = realization.plan, realization.requirements
+    if realization_plan is not None:
+        try:
+            sanitized = sanitize_account_credential_result(
+                sanitized, realization.completion_plan or realization_plan, baseline_snapshot
+            )
+        except ValueError:
+            return _failed_apply_result(
+                baseline_snapshot,
+                _backend_contract_invalid(
+                    address, "Backend returned credential material outside its canonical material node."
+                ),
+            )
     if realization_plan is not None and (realization_plan.realization_authority or realization_requirements):
         try:
             safe_snapshot = (
-                sanitize_plan_realization_snapshot(realization_plan, result.snapshot)
+                sanitize_plan_realization_snapshot(realization_plan, sanitized.snapshot)
                 if realization_plan.realization_authority
-                else sanitize_realization_snapshot(realization_requirements, result.snapshot)
+                else sanitize_realization_snapshot(realization_requirements, sanitized.snapshot)
             )
         except (TypeError, ValueError):
             return _failed_apply_result(
@@ -269,7 +351,7 @@ def _sanitize_backend_realization(
                     "Backend returned an invalid realization concern observation.",
                 ),
             )
-        sanitized = _with_snapshot(result, safe_snapshot)
+        sanitized = _with_snapshot(sanitized, safe_snapshot)
     if realization_plan is not None:
         sanitized = _with_snapshot(
             sanitized,
@@ -278,17 +360,7 @@ def _sanitize_backend_realization(
                 realization_observations=(),
             ),
         )
-        try:
-            sanitized = sanitize_account_credential_result(sanitized, realization_plan, baseline_snapshot)
-        except ValueError:
-            return _failed_apply_result(
-                baseline_snapshot,
-                _backend_contract_invalid(
-                    address,
-                    "Backend returned credential material outside its canonical material node.",
-                ),
-            )
-    return sanitized
+    return replace(sanitized, operational_realization_observations=())
 
 
 def _supplemental_realization_requirements(
@@ -301,6 +373,9 @@ def _supplemental_realization_requirements(
     plan_identities = {
         (entry.address, entry.field_path, entry.requirement_kind) for entry in realization.plan.realization_authority
     }
+    plan_identities.update(
+        (entry.address, entry.field_path, entry.concern) for entry in realization.plan.realization_constraints
+    )
     return tuple(
         requirement
         for requirement in realization.requirements
@@ -312,13 +387,7 @@ def _with_snapshot(
     result: ApplyResult,
     snapshot: RuntimeSnapshot,
 ) -> ApplyResult:
-    return ApplyResult(
-        success=result.success,
-        snapshot=snapshot,
-        diagnostics=result.diagnostics,
-        changed_addresses=result.changed_addresses,
-        details=result.details,
-    )
+    return replace(result, snapshot=snapshot)
 
 
 def _with_realization_provenance(
@@ -327,15 +396,12 @@ def _with_realization_provenance(
 ) -> ApplyResult:
     """Attach the SEM-218 provenance ledger to a successful apply's snapshot."""
 
-    return ApplyResult(
-        success=result.success,
+    return replace(
+        result,
         snapshot=result.snapshot.with_entries(
             dict(result.snapshot.entries),
             realization_provenance=provenance,
         ),
-        diagnostics=result.diagnostics,
-        changed_addresses=result.changed_addresses,
-        details=result.details,
     )
 
 
@@ -380,33 +446,11 @@ def _snapshot_contract_diagnostics(
     return diagnostics
 
 
-def _snapshot_address_contract_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagnostic]:
-    for map_key, entry in snapshot.entries.items():
-        try:
-            require_compiled_address(map_key, field_name="snapshot map key")
-            require_compiled_address(entry.address)
-        except ValueError:
-            return [
-                _backend_contract_invalid(
-                    "runtime.snapshot",
-                    "Backend snapshot contains a non-canonical resource address.",
-                )
-            ]
-        if map_key != entry.address:
-            return [
-                _backend_contract_invalid(
-                    "runtime.snapshot",
-                    "Backend snapshot map key does not equal its embedded address.",
-                )
-            ]
-    return []
-
-
 def _changed_address_transition_diagnostics(
     result: ApplyResult,
     baseline_snapshot: RuntimeSnapshot,
 ) -> list[Diagnostic]:
-    admitted = _snapshot_carrier_addresses(baseline_snapshot) | _snapshot_carrier_addresses(result.snapshot)
+    admitted = snapshot_carrier_addresses(baseline_snapshot) | snapshot_carrier_addresses(result.snapshot)
     if set(result.changed_addresses) - admitted:
         return [
             _backend_contract_invalid(
@@ -417,33 +461,6 @@ def _changed_address_transition_diagnostics(
     return []
 
 
-def _snapshot_carrier_addresses(snapshot: RuntimeSnapshot) -> set[str]:
-    carriers = (
-        snapshot.entries,
-        snapshot.orchestration_results,
-        snapshot.orchestration_history,
-        snapshot.evaluation_results,
-        snapshot.evaluation_history,
-        snapshot.proposition_truth_results,
-        snapshot.participant_episode_results,
-        snapshot.participant_episode_history,
-        snapshot.participant_behavior_history,
-        snapshot.participant_control_history,
-        snapshot.participant_crossing_history,
-        snapshot.information_state_history,
-        snapshot.participant_autonomous_execution_states,
-        snapshot.participant_execution_services,
-        snapshot.shared_state_records,
-        snapshot.shared_state_history,
-        snapshot.joint_action_records,
-        snapshot.time_management_contexts,
-    )
-    addresses = {str(address) for carrier in carriers for address in carrier}
-    if snapshot.time_model_state is not None:
-        addresses.update(snapshot.time_model_state.clocks)
-    return addresses
-
-
 def _snapshot_transition_contract_diagnostics(
     previous_snapshot: RuntimeSnapshot,
     next_snapshot: RuntimeSnapshot,
@@ -451,11 +468,11 @@ def _snapshot_transition_contract_diagnostics(
     diagnostics = participant_runtime_history_transition_diagnostics(previous_snapshot, next_snapshot)
     try:
         validate_time_runtime_transition(previous_snapshot.time_model_state, next_snapshot.time_model_state)
-    except ValueError as exc:
+    except ValueError:
         diagnostics.append(
             _backend_contract_invalid(
                 "runtime.snapshot.time-model-state",
-                str(exc),
+                "Backend returned an invalid shared-time transition.",
             )
         )
     return diagnostics

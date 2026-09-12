@@ -285,6 +285,27 @@ def _feasible_domains(feasible: set[_OperatingSystemChoice]) -> FeasibleOperatin
     )
 
 
+def operating_system_choice_supported(
+    provisioner: ProvisionerCapabilities, family: str, distribution: str, version: str
+) -> bool:
+    """Check one selected tuple against coupled rows without combining leaf sets."""
+
+    if any(value in {"unknown", "other"} for value in (family, distribution, version)):
+        return False
+    if family and family not in provisioner.supported_os_families:
+        return False
+    if not distribution and not version:
+        return bool(family)
+    return bool(
+        _intersect_operating_system_domains(
+            provisioner,
+            family_domain=(family,) if family else None,
+            distribution_domain=(distribution,) if distribution else None,
+            version_domain=(version,) if version else None,
+        )
+    )
+
+
 def validate_node_operating_system(
     model: RuntimeModel,
     node: NodeRuntime,

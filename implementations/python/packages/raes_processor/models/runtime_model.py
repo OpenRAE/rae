@@ -11,6 +11,7 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
+from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
@@ -155,6 +156,7 @@ class RuntimeModel:
     realization_authority: tuple[CompiledRealizationAuthority, ...] = ()
     realization_instance: InstantiatedScenario | None = None
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
+    profile_authority: PlanProfileAuthority | None = None
 
     def __post_init__(self) -> None:
         owners: dict[str, str] = {}

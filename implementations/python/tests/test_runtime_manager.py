@@ -213,7 +213,11 @@ class FailingProvisioner(RecordingProvisioner):
         )
         observed = StubProvisioner(load_stub_realization_envelope()).apply(plan, snapshot).snapshot
         next_snapshot = observed.with_entries(next_snapshot.entries)
-        return ApplyResult(success=False, snapshot=next_snapshot)
+        return ApplyResult(
+            success=False,
+            snapshot=next_snapshot,
+            changed_addresses=[operation.address for operation in plan.operations[:1]],
+        )
 
 
 class RecordingOrchestrator:
@@ -278,6 +282,7 @@ class RecordingOrchestrator:
             ]
         return ApplyResult(
             success=True,
+            changed_addresses=[op.address for op in plan.actionable_operations],
             snapshot=next_snapshot.with_entries(
                 next_snapshot.entries,
                 orchestration_results=self._results,
@@ -309,6 +314,7 @@ class RecordingOrchestrator:
                 orchestration_results={},
                 orchestration_history={},
             ),
+            changed_addresses=sorted(snapshot.entries.keys() - entries.keys()),
         )
 
 
@@ -322,7 +328,9 @@ class FailingStartOrchestrator(RecordingOrchestrator):
             plan.operations,
             status="partial",
         )
-        return ApplyResult(success=False, snapshot=next_snapshot)
+        return ApplyResult(
+            success=False, snapshot=next_snapshot, changed_addresses=[op.address for op in plan.actionable_operations]
+        )
 
 
 class FailingStopOrchestrator(RecordingOrchestrator):
@@ -359,6 +367,7 @@ class InvalidWorkflowResultsOrchestrator(RecordingOrchestrator):
         }
         return ApplyResult(
             success=True,
+            changed_addresses=[op.address for op in plan.actionable_operations],
             snapshot=next_snapshot.with_entries(
                 next_snapshot.entries,
                 orchestration_results=self._results,
@@ -373,6 +382,7 @@ class InvalidWorkflowSchemaVersionOrchestrator(RecordingOrchestrator):
         self._results[workflow_address]["state_schema_version"] = "workflow-step-state/v999"
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -393,6 +403,7 @@ class MissingWorkflowFieldsOrchestrator(RecordingOrchestrator):
         step_payload.pop("attempts", None)
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -412,6 +423,7 @@ class InvalidWorkflowLifecycleOrchestrator(RecordingOrchestrator):
         step_payload["lifecycle"] = "done"
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -433,6 +445,7 @@ class InvalidWorkflowOutcomeOrchestrator(RecordingOrchestrator):
         step_payload["attempts"] = 1
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -454,6 +467,7 @@ class InvalidWorkflowAttemptCountOrchestrator(RecordingOrchestrator):
         step_payload["attempts"] = 2
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -473,6 +487,7 @@ class InvalidWorkflowPendingOutcomeOrchestrator(RecordingOrchestrator):
         step_payload["outcome"] = "succeeded"
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -490,6 +505,7 @@ class MissingObservableWorkflowStepOrchestrator(RecordingOrchestrator):
         steps.pop(step_name, None)
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -517,6 +533,7 @@ class ResultContractOnlyOrchestrator(RecordingOrchestrator):
             )
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 entries,
                 orchestration_results=self._results,
@@ -538,6 +555,7 @@ class InvalidWorkflowCallHistoryOrchestrator(RecordingOrchestrator):
         )
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -554,6 +572,7 @@ class InvalidWorkflowCompensationOrchestrator(RecordingOrchestrator):
         self._results[workflow_address]["compensation_started_at"] = self._history[workflow_address][0]["timestamp"]
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 orchestration_results=self._results,
@@ -635,6 +654,7 @@ class RecordingEvaluator:
             ]
         return ApplyResult(
             success=True,
+            changed_addresses=[op.address for op in plan.actionable_operations],
             snapshot=next_snapshot.with_entries(
                 next_snapshot.entries,
                 evaluation_results=self._results,
@@ -666,6 +686,7 @@ class RecordingEvaluator:
                 evaluation_results={},
                 evaluation_history={},
             ),
+            changed_addresses=sorted(snapshot.entries.keys() - entries.keys()),
         )
 
 
@@ -681,6 +702,7 @@ class FailingStartEvaluator(RecordingEvaluator):
         )
         return ApplyResult(
             success=False,
+            changed_addresses=[op.address for op in plan.actionable_operations],
             snapshot=next_snapshot.with_entries(
                 next_snapshot.entries,
                 evaluation_results={
@@ -709,6 +731,7 @@ class InvalidEvaluatorSchemaVersionEvaluator(RecordingEvaluator):
         self._results[address]["state_schema_version"] = "evaluation-result-state/v999"
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 evaluation_results=self._results,
@@ -725,6 +748,7 @@ class MissingEvaluatorFieldsEvaluator(RecordingEvaluator):
         self._results[address].pop("status", None)
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 evaluation_results=self._results,
@@ -749,6 +773,7 @@ class InvalidEvaluatorReadyPayloadEvaluator(RecordingEvaluator):
         self._results[passed_address].pop("max_score", None)
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 evaluation_results=self._results,
@@ -764,6 +789,7 @@ class MissingEvaluatorHistoryEvaluator(RecordingEvaluator):
         self._history.pop(address, None)
         return ApplyResult(
             success=True,
+            changed_addresses=result.changed_addresses,
             snapshot=result.snapshot.with_entries(
                 result.snapshot.entries,
                 evaluation_results=self._results,

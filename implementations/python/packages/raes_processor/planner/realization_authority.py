@@ -16,6 +16,7 @@ from raes_contracts.planning import (
     planned_realization_authority,
 )
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
+from raes_contracts.realization_structure import evaluate_realization_constraint, realization_constraint_binding
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
 from raes_contracts.vocabulary import ProcessResourceLimitKind, ProcessResourceLimitScope
 
@@ -33,6 +34,7 @@ from ..semantics.realization_concerns import (
 )
 from ..semantics.realization_runtime_evaluation import evaluate_registered_realization
 from .realization_authority_materialization import materialize_realization_authority
+from .realization_constraint_views import planned_constraint_admission, planned_constraint_disclosure
 
 
 def _payload_pointer(path: tuple[str, ...]) -> str:
@@ -161,7 +163,10 @@ def _manifest_authority_diagnostic(
         except (TypeError, ValueError):
             diagnostic = _invalid_runtime_view_diagnostic(plan)
         else:
-            support_diagnostics = realization_support_diagnostics(requirements, manifest)
+            support_diagnostics = [
+                *realization_support_diagnostics(requirements, manifest),
+                *planned_constraint_admission(plan, manifest),
+            ]
             diagnostic = support_diagnostics[0] if support_diagnostics else None
     return diagnostic
 
@@ -175,11 +180,38 @@ def realization_authority_diagnostics(
     expected = _expected_realization_authority(plan)
     diagnostic = _authority_inventory_diagnostic(plan, expected)
     if diagnostic is None:
+        diagnostic = _recursive_binding_diagnostic(plan)
+    if diagnostic is None:
         selection_diagnostics = planned_realization_selection_diagnostics(plan)
         diagnostic = selection_diagnostics[0] if selection_diagnostics else None
     if diagnostic is None and manifest is not None:
         diagnostic = _manifest_authority_diagnostic(plan, manifest)
     return [diagnostic] if diagnostic is not None else []
+
+
+def _recursive_binding_diagnostic(plan: ProvisioningPlan) -> Diagnostic | None:
+    operations = {operation.address: operation for operation in plan.operations}
+    for authority in plan.realization_authority:
+        if authority.constraint_document is None:
+            continue
+        operation = operations.get(authority.address)
+        try:
+            selected = _pointer_value(getattr(operation, "payload", None), authority.payload_pointer)
+            projected = project_realization_concern(authority.requirement_kind, selected, recursive=True)
+            binding = realization_constraint_binding(authority.constraint_document, projected)
+            valid = binding == authority.constraint_binding
+            if valid and authority.mode is not RealizationAuthorityMode.OPEN:
+                valid = evaluate_realization_constraint(authority.constraint_document, projected).conformant
+        except (TypeError, ValueError, AttributeError):
+            valid = False
+        if not valid:
+            return Diagnostic(
+                code="realization.authority-selection-invalid",
+                domain=authority.domain,
+                address=authority.address,
+                message="Recursive authority is not bound to the submitted source projection.",
+            )
+    return None
 
 
 def _explicitness(mode: RealizationAuthorityMode) -> ExplicitnessClass:
@@ -234,6 +266,8 @@ def _compiled_runtime_view(
         value_constraints=value_constraints,
         process_resource_limits=process_resource_limits,
         structure=authority.structure,
+        constraint_document=authority.constraint_document,
+        constraint_binding=authority.constraint_binding,
     )
 
 
@@ -426,6 +460,11 @@ def realization_authority_disclosure(
             diagnostics.append(diagnostic)
         if entry is not None:
             provenance.append(entry)
+    constraint_diagnostics, constraint_provenance = planned_constraint_disclosure(
+        declared_plan, returned_snapshot, manifest
+    )
+    diagnostics.extend(constraint_diagnostics)
+    provenance.extend(constraint_provenance)
     return diagnostics, tuple(provenance)
 
 

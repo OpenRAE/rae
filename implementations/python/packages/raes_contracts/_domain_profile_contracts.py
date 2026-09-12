@@ -5,12 +5,19 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated, Any, Literal
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    SerializationInfo,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+    model_validator,
+)
 from pydantic import JsonValue as PydanticJsonValue
 
+from ._base import ContractModel, NonEmptyString, PrefixedDigestString
+from ._domain_profile_schema_identity import _validate_inert_uri, _validate_schema_vocabularies
 from .canonical import JsonValue, canonical_json_digest
-from .contracts.base import ContractModel, NonEmptyString, PrefixedDigestString
-from .uri_safety import validate_safe_absolute_uri
 from .versions import (
     DOMAIN_PROFILE_ADMISSION_POLICY_SCHEMA_VERSION,
     DOMAIN_PROFILE_BINDING_SCHEMA_VERSION,
@@ -30,34 +37,6 @@ DomainProfileRevision = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9._+
 
 class _FrozenContractModel(ContractModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-
-
-def _validate_inert_uri(value: str, *, field_name: str) -> str:
-    validate_safe_absolute_uri(
-        value,
-        field_name=field_name,
-        forbidden_schemes={"data", "file"},
-        forbid_fragment=True,
-    )
-    return value
-
-
-def _validate_schema_vocabularies(
-    schema_document: dict[str, PydanticJsonValue],
-    required_vocabularies: tuple[str, ...],
-) -> None:
-    if required_vocabularies != tuple(sorted(set(required_vocabularies))):
-        raise ValueError("domain profile required vocabularies must be sorted and unique")
-    for vocabulary in required_vocabularies:
-        _validate_inert_uri(vocabulary, field_name="domain profile required schema vocabulary")
-    declared = schema_document.get("$vocabulary", {})
-    if not isinstance(declared, dict) or any(
-        not isinstance(uri, str) or not isinstance(required, bool) for uri, required in declared.items()
-    ):
-        raise ValueError("domain profile schema $vocabulary must map URI strings to booleans")
-    declared_required = tuple(sorted(uri for uri, required in declared.items() if required))
-    if declared_required != required_vocabularies:
-        raise ValueError("domain profile required vocabularies must match required $vocabulary entries")
 
 
 class DomainProfileIdentityModel(_FrozenContractModel):
@@ -390,6 +369,19 @@ class DomainProfileBindingModel(_FrozenContractModel):
     value: PydanticJsonValue
     provenance: DomainProfileBindingProvenanceModel
     children: tuple[DomainProfileBindingModel, ...] = ()
+
+    @model_serializer(mode="wrap")
+    def _retain_explicit_null(
+        self, handler: SerializerFunctionWrapHandler, info: SerializationInfo
+    ) -> dict[str, object]:
+        result = handler(self)
+        if (
+            self.value is None
+            and not (info.exclude and "value" in info.exclude)
+            and (info.include is None or "value" in info.include)
+        ):
+            result["value"] = None
+        return result
 
     @model_validator(mode="after")
     def _validate_child_ids(self) -> DomainProfileBindingModel:

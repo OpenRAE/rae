@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Protocol, cast
 
 from jsonschema.protocols import Validator
+from referencing.exceptions import Unresolvable
 
 from ._domain_profile_contracts import (
     DomainProfileAdmissionOutcome,
@@ -16,6 +17,7 @@ from ._domain_profile_contracts import (
     DomainProfileLimitsModel,
     DomainProfileSupportDeclarationModel,
 )
+from ._domain_profile_schema_registry import profile_schema_registry
 from .json_ingress import parse_bounded_json_object
 
 SAFE_DOMAIN_PROFILE_SCHEMA_KEYWORDS = tuple(
@@ -245,16 +247,13 @@ def _resolve_local_schema_reference(root: dict[str, object], reference: str) -> 
             DomainProfileAdmissionOutcome.SCHEMA_INVALID,
             "domain profile schemas may use only local JSON Pointer references",
         )
-    current: object = root
-    for raw_segment in reference[2:].split("/"):
-        segment = raw_segment.replace("~1", "/").replace("~0", "~")
-        if not isinstance(current, dict) or segment not in current:
-            raise _ProfileAdmissionError(
-                DomainProfileAdmissionOutcome.SCHEMA_INVALID,
-                "domain profile schema contains an unresolved local reference",
-            )
-        current = current[segment]
-    return current
+    try:
+        return profile_schema_registry(root).resolver(str(root["$id"])).lookup(reference).contents
+    except Unresolvable as exc:
+        raise _ProfileAdmissionError(
+            DomainProfileAdmissionOutcome.SCHEMA_INVALID,
+            "domain profile schema contains an unresolved local reference",
+        ) from exc
 
 
 @dataclass(slots=True)
@@ -385,10 +384,25 @@ def _inspect_schema(
             DomainProfileAdmissionOutcome.SCHEMA_INVALID,
             "domain profile schema contains a non-schema child",
         )
+    if schema is not inspection.root and ("$id" in schema or "$schema" in schema):
+        raise _ProfileAdmissionError(
+            DomainProfileAdmissionOutcome.SCHEMA_INVALID,
+            "domain profile resource identities and dialects are root-only",
+        )
     for keyword, value in schema.items():
         _validate_schema_keyword(keyword, value)
         inspection.used_keywords.add(keyword)
         _inspect_schema_child(keyword, value, inspection, depth, active_references)
+
+
+def _has_validation_error(validator: Validator, value: object) -> bool:
+    try:
+        return next(validator.iter_errors(value), None) is not None
+    except Unresolvable as exc:
+        raise _ProfileAdmissionError(
+            DomainProfileAdmissionOutcome.SCHEMA_INVALID,
+            "domain profile schema reference cannot be resolved locally",
+        ) from exc
 
 
 def _validate_structural_value(
@@ -441,14 +455,17 @@ def _validate_structural_value(
     schema_validator = budgeted_validator(
         schema=Draft202012Validator.META_SCHEMA,
         format_checker=Draft202012Validator.FORMAT_CHECKER,
+        registry=profile_schema_registry(),
     )
-    if next(schema_validator.iter_errors(profile_schema.schema_document), None) is not None:
+    if _has_validation_error(schema_validator, profile_schema.schema_document):
         raise _ProfileAdmissionError(
             DomainProfileAdmissionOutcome.SCHEMA_INVALID,
             "domain profile schema failed Draft 2020-12 validation",
         )
-    validator = budgeted_validator(profile_schema.schema_document)
-    if next(validator.iter_errors(binding.value), None) is not None:
+    validator = budgeted_validator(
+        profile_schema.schema_document, registry=profile_schema_registry(profile_schema.schema_document)
+    )
+    if _has_validation_error(validator, binding.value):
         raise _ProfileAdmissionError(
             DomainProfileAdmissionOutcome.VALUE_INVALID,
             "domain profile value failed structural validation",

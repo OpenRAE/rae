@@ -29,6 +29,8 @@ class ReferenceEvaluator:
         history = {address: list(events) for address, events in snapshot.evaluation_history.items()}
         now = _now_iso()
         for op in plan.operations:
+            if op.action == ChangeAction.UNCHANGED:
+                continue
             if op.action == ChangeAction.DELETE:
                 entries.pop(op.address, None)
                 results.pop(op.address, None)

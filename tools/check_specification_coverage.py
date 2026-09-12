@@ -25,7 +25,10 @@ from tools.policy.common import (
     load_bounded_json_object,
     safe_repo_path,
 )
-from tools.specification_coverage._analysis import _validate_analysis, recompute_analysis
+from tools.specification_coverage._analysis import (
+    _validate_analysis,
+    recompute_analysis,
+)
 from tools.specification_coverage._keys import (
     _MANIFEST_KEYS,
     _MAX_FILE_BYTES,
@@ -91,15 +94,17 @@ def load_bundles(
         max_bytes=_MAX_FILE_BYTES,
     )
     current_path = current_release_path(records)
-    if dict(records)[current_path].get("revision") != "5.0.0" or {record.get("revision") for _, record in records} != {
+    if dict(records)[current_path].get("revision") != "7.0.0" or {record.get("revision") for _, record in records} != {
         "1.0.0",
         "1.1.0",
         "2.0.0",
         "3.0.0",
         "4.0.0",
         "5.0.0",
+        "6.0.0",
+        "7.0.0",
     }:
-        raise ValueError("coverage evidence requires the explicit current 5.0.0 release and supported history")
+        raise ValueError("coverage evidence requires the explicit current 7.0.0 release and supported history")
     bundles = []
     for manifest_path, manifest in records:
         bundles.append(_load_bundle_record(repo_root, manifest_path, manifest))
@@ -138,13 +143,16 @@ def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
         return [_failure("specification-coverage-bundle-invalid", str(exc), MANIFEST_PATH)]
     failures: list[PolicyFailure] = []
     for manifest, protocol, snapshot, analysis in bundles:
-        validator = validate_bundle if manifest.get("revision") == "5.0.0" else validate_historical_bundle
+        validator = validate_bundle if manifest.get("revision") == "7.0.0" else validate_historical_bundle
         failures.extend(validator(repo_root, protocol, snapshot, analysis))
     return failures
 
 
 def validate_historical_bundle(
-    repo_root: Path, protocol: dict[str, object], snapshot: dict[str, object], analysis: dict[str, object]
+    repo_root: Path,
+    protocol: dict[str, object],
+    snapshot: dict[str, object],
+    analysis: dict[str, object],
 ) -> list[PolicyFailure]:
     """Validate frozen archive integrity and recorded joins, not current replay."""
     failures: list[PolicyFailure] = []

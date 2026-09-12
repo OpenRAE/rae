@@ -826,13 +826,14 @@ def test_control_plane_exposes_authenticated_generation_bound_execution_control(
     assert readback.json()["readiness"] == "ready"
 
 
-def test_control_plane_rejects_synthetic_lifecycle_readback() -> None:
+@pytest.mark.parametrize("report_change", [False, True])
+def test_control_plane_rejects_synthetic_lifecycle_readback(report_change) -> None:
     class _SyntheticControlRuntime(_NativeParticipantRuntime):
         def control_execution(self, request, snapshot):
             return ApplyResult(
                 success=True,
                 snapshot=snapshot,
-                changed_addresses=[request.execution_scope_ref],
+                changed_addresses=[request.execution_scope_ref] if report_change else [],
             )
 
     scope = "participant.autonomous-execution.green-activity"
@@ -854,7 +855,10 @@ def test_control_plane_rejects_synthetic_lifecycle_readback() -> None:
 
     assert status is not None
     assert status.state.value == "failed"
-    assert status.diagnostics[0].code == ("runtime.participant-execution-readback-invalid")
+    assert status.diagnostics[0].code == (
+        "runtime.backend-contract-invalid" if report_change else "runtime.participant-execution-readback-invalid"
+    )
+    assert control_plane.snapshot == snapshot
 
 
 def test_live_conformance_conditionally_proves_autonomous_action_and_lifecycle() -> None:

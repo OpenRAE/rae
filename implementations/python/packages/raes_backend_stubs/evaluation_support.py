@@ -64,6 +64,8 @@ def apply_evaluation_operation(
 ) -> None:
     """Apply one evaluation plan operation to mutable stub state."""
 
+    if op.action == ChangeAction.UNCHANGED:
+        return
     if op.action == ChangeAction.DELETE:
         entries.pop(op.address, None)
         results.pop(op.address, None)

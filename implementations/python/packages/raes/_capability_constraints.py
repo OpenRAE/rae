@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
+from pydantic import BaseModel
+
 from ._base import extract_variable_name
 from .nodes import Node
 from .phase_contracts import CapabilityConstraint
@@ -107,7 +109,55 @@ def _node_capability_constraints(
             variables=variables,
         )
     )
+    existing = {constraint.field_pointer for constraint in constraints}
+    constraints.extend(
+        constraint
+        for constraint in _runtime_scalar_constraints(
+            node.runtime,
+            pointer=f"{node_pointer}/runtime",
+            variables=variables,
+        )
+        if constraint.field_pointer not in existing
+    )
     return constraints
+
+
+def _runtime_scalar_constraints(
+    value: object, *, pointer: str, variables: Mapping[str, Variable]
+) -> list[CapabilityConstraint]:
+    """Retain public typed scalar domains, never classification-governed raw alternatives.
+
+    Classified records require their owning safe projection before a domain can
+    be published. Until that projection is representable, compilation rejects
+    the missing bound; retaining raw alternatives here would bypass that owner.
+    """
+
+    if isinstance(value, BaseModel):
+        fields = type(value).model_fields
+        if any(name.endswith(("classification", "sensitivity")) for name in fields):
+            return []
+        if getattr(value, "command_redacted", False):
+            return []
+        children = (
+            (name, getattr(value, name))
+            for name, info in fields.items()
+            if not isinstance(info.json_schema_extra, dict)
+            or info.json_schema_extra.get("x-raes-realization-dimension") is not False
+        )
+    elif isinstance(value, Mapping):
+        children = value.items()
+    elif isinstance(value, (list, tuple)):
+        children = enumerate(value)
+    else:
+        constraint = _finite_domain_constraint(field_pointer=pointer, value=value, variables=variables)
+        return [constraint] if constraint is not None else []
+    return [
+        constraint
+        for name, child in children
+        for constraint in _runtime_scalar_constraints(
+            child, pointer=f"{pointer}/{_json_pointer_segment(str(name))}", variables=variables
+        )
+    ]
 
 
 def capture_capability_constraints(

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ._build import RealizationConstraintBuildResult, build_failure
 from ._common import RelationBudget, actual_identity, pointer
-from ._limits import admit_normalization_metadata
+from ._limits import admit_constraint_document, admit_normalization_metadata
 from ._models import (
     DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     DEFAULT_UNDEFINED_REALIZATION_CLOSURE,
@@ -17,9 +17,13 @@ from ._models import (
     RealizationCollectionProfile,
     RealizationConstraintDocument,
     RealizationConstraintLimits,
+    RealizationDelegatedValue,
+    RealizationDomainValue,
     RealizationKeyedCollectionConstraint,
+    RealizationKnowledgeValue,
     RealizationLiteral,
     RealizationOrigin,
+    RealizationPresence,
     RealizationRecordConstraint,
     RealizationRelationStatus,
     RealizationScope,
@@ -27,6 +31,7 @@ from ._models import (
     RecursiveRealizationStructure,
     identity_key,
 )
+from ._normalization_overlays import validated_leaf_override
 from ._normalization_scopes import normalize_scope_identities
 
 
@@ -38,13 +43,18 @@ def normalize_realization_literal(
     scopes: tuple[RealizationScope, ...] = (),
     collection_profiles: tuple[RealizationCollectionProfile, ...] = (),
     origins: Mapping[str, RealizationOrigin | str] | None = None,
+    leaf_constraints: Mapping[str, RecursiveRealizationStructure] | None = None,
+    optional_fields: frozenset[str] = frozenset(),
     limits: RealizationConstraintLimits = DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
 ) -> RealizationConstraintBuildResult:
     """Lower ordinary JSON literals without requiring wrappers around scalars."""
 
     budget = RelationBudget(limits)
     origins = origins or {}
+    leaf_constraints = leaf_constraints or {}
     result = _normalization_metadata_failure(scopes, collection_profiles, origins, budget)
+    if result is not None:
+        return result
     profiles, profile_failure = _collection_profile_map(collection_profiles)
     result = result or profile_failure
     normalized_scopes: tuple[RealizationScope, ...] = ()
@@ -59,6 +69,8 @@ def normalize_realization_literal(
             origins,
             profiles,
             budget,
+            leaf_constraints,
+            optional_fields,
         )
     return result
 
@@ -106,8 +118,23 @@ def _normalize_document(
     origins: Mapping[str, RealizationOrigin | str],
     profiles: Mapping[str, RealizationCollectionProfile],
     budget: RelationBudget,
+    leaf_constraints: Mapping[str, RecursiveRealizationStructure],
+    optional_fields: frozenset[str],
 ) -> RealizationConstraintBuildResult:
-    normalized, result = normalize_literal_node(value, (), (), budget, origins, profiles)
+    if max(len(optional_fields), len(leaf_constraints)) > budget.limits.max_members:
+        return build_failure(
+            RealizationRelationStatus.LIMIT_EXCEEDED, "", "Normalization metadata exceeded max_members."
+        )
+    metadata_paths = {**dict.fromkeys(optional_fields, "optional"), **dict.fromkeys(leaf_constraints, "constraint")}
+    violation = admit_normalization_metadata((), (), metadata_paths, budget)
+    if violation is not None:
+        return build_failure(RealizationRelationStatus.LIMIT_EXCEEDED, violation.pointer, violation.message)
+    context = _NormalizationContext(budget, origins, profiles, leaf_constraints, optional_fields)
+    normalized, result = _normalize_literal_node(value, (), (), context)
+    if result is None and metadata_paths.keys() - context.visited:
+        result = build_failure(
+            RealizationRelationStatus.INVALID, "", "Normalization metadata does not resolve a source value."
+        )
     if result is None:
         assert normalized is not None
         document = RealizationConstraintDocument(
@@ -116,7 +143,12 @@ def _normalize_document(
             scopes=normalized_scopes,
             root=normalized,
         )
-        result = RealizationConstraintBuildResult(RealizationRelationStatus.CONFORMANT, document)
+        violation = admit_constraint_document(document, RelationBudget(budget.limits))
+        result = (
+            build_failure(RealizationRelationStatus.LIMIT_EXCEEDED, violation.pointer, violation.message)
+            if violation is not None
+            else RealizationConstraintBuildResult(RealizationRelationStatus.CONFORMANT, document)
+        )
     assert result is not None
     return result
 
@@ -133,6 +165,9 @@ class _NormalizationContext:
     budget: RelationBudget
     origins: Mapping[str, RealizationOrigin | str]
     collection_profiles: Mapping[str, RealizationCollectionProfile]
+    leaf_constraints: Mapping[str, RecursiveRealizationStructure] = field(default_factory=dict)
+    optional_fields: frozenset[str] = frozenset()
+    visited: set[str] = field(default_factory=set)
 
 
 def normalize_literal_node(
@@ -166,12 +201,27 @@ def _normalize_literal_node(
         )
     if failure is None:
         origin = _normalization_origin(context.origins, source_path)
-        if isinstance(value, dict):
+        source_pointer = pointer(source_path)
+        context.visited.add(source_pointer)
+        override = context.leaf_constraints.get(source_pointer)
+        if override is not None:
+            if isinstance(value, (dict, list)) or not isinstance(
+                override,
+                (RealizationDelegatedValue, RealizationDomainValue, RealizationKnowledgeValue, RealizationLiteral),
+            ):
+                failure = build_failure(
+                    RealizationRelationStatus.INVALID, current_pointer, "A leaf constraint must address a scalar value."
+                )
+            else:
+                normalized, failure = validated_leaf_override(override, origin, context.budget.limits)
+        elif isinstance(value, dict):
             normalized, failure = _normalize_record(value, semantic_path, source_path, context, origin)
         elif isinstance(value, list):
             normalized, failure = _normalize_collection(value, semantic_path, source_path, context, origin)
         else:
             normalized, failure = _normalize_scalar(value, current_pointer, context.budget, origin)
+        if normalized is not None and source_pointer in context.optional_fields:
+            normalized = normalized.model_copy(update={"presence": RealizationPresence.OPTIONAL})
     return normalized, failure
 
 

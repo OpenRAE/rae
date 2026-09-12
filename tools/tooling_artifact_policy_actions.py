@@ -33,6 +33,9 @@ from tools.tooling_artifact_policy_common import (
 )
 
 DEPENDABOT_PATH = ".github/dependabot.yml"
+_GITHUB_EVENT_NAME = "github.event_name"
+_GITHUB_PR_HEAD_REPOSITORY = "github.event.pull_request.head.repo.full_name"
+_GITHUB_REF = "github.ref"
 _SECRET_DOT_RE = re.compile(r"\bsecrets\.([A-Za-z_][A-Za-z0-9_]*)\b")
 _SECRET_BRACKET_RE = re.compile(r"\bsecrets\s*\[\s*(['\"])([A-Za-z_][A-Za-z0-9_]*)\1\s*\]")
 _SECRET_CONTEXT_RE = re.compile(r"\bsecrets\b", re.IGNORECASE)
@@ -253,10 +256,10 @@ def _generic_trust_contexts(
     return {
         "untrusted-pr": [
             {
-                "github.event_name": event_name,
-                "github.ref": reference,
+                _GITHUB_EVENT_NAME: event_name,
+                _GITHUB_REF: reference,
                 "github.repository": repository,
-                "github.event.pull_request.head.repo.full_name": "gc/fork",
+                _GITHUB_PR_HEAD_REPOSITORY: "gc/fork",
                 "github.actor": actor,
             }
             for event_name in pull_request_events
@@ -265,21 +268,21 @@ def _generic_trust_contexts(
         ],
         "same-repository-pr": [
             {
-                "github.event_name": event_name,
-                "github.ref": reference,
+                _GITHUB_EVENT_NAME: event_name,
+                _GITHUB_REF: reference,
                 "github.repository": repository,
-                "github.event.pull_request.head.repo.full_name": repository,
+                _GITHUB_PR_HEAD_REPOSITORY: repository,
                 "github.actor": actor,
             }
             for event_name in pull_request_events
             for reference in (pull_request_refs if event_name == "pull_request" else all_refs)
             for actor in repository_actors
         ],
-        "untrusted-ref": [{"github.event_name": "push", "github.ref": reference} for reference in unprotected],
-        "protected-branch": [{"github.event_name": "push", "github.ref": reference} for reference in protected],
-        "manual": [{"github.event_name": "workflow_dispatch", "github.ref": reference} for reference in all_refs],
-        "scheduled": [{"github.event_name": "schedule", "github.ref": protected[0]}],
-        "reusable": [{"github.event_name": "workflow_call", "github.ref": protected[0]}],
+        "untrusted-ref": [{_GITHUB_EVENT_NAME: "push", _GITHUB_REF: reference} for reference in unprotected],
+        "protected-branch": [{_GITHUB_EVENT_NAME: "push", _GITHUB_REF: reference} for reference in protected],
+        "manual": [{_GITHUB_EVENT_NAME: "workflow_dispatch", _GITHUB_REF: reference} for reference in all_refs],
+        "scheduled": [{_GITHUB_EVENT_NAME: "schedule", _GITHUB_REF: protected[0]}],
+        "reusable": [{_GITHUB_EVENT_NAME: "workflow_call", _GITHUB_REF: protected[0]}],
     }
 
 
@@ -293,9 +296,7 @@ def _filter_trust_classes(
     if expression is None:
         return classes, False
     candidate_classes = set(classes)
-    if "untrusted-pr" in candidate_classes and (
-        "github.event.pull_request.head.repo.full_name" in _condition_variables(expression)
-    ):
+    if "untrusted-pr" in candidate_classes and (_GITHUB_PR_HEAD_REPOSITORY in _condition_variables(expression)):
         candidate_classes.add("same-repository-pr")
     contexts = _generic_trust_contexts(protected_refs, expression, trigger_names)
     return {
@@ -941,7 +942,7 @@ def _condition_proves_protected_manual(condition: object, protected_refs: set[st
         expression,
         {"workflow_dispatch"},
     )["manual"]
-    unprotected = [context for context in contexts if context["github.ref"] not in effective_protected_refs]
+    unprotected = [context for context in contexts if context[_GITHUB_REF] not in effective_protected_refs]
     return all(True not in _condition_values(expression, context) for context in unprotected)
 
 

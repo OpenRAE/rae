@@ -2,7 +2,22 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from .bounded_domains import DomainDescriptor, EnumDomain, ExactDomain, GovernedReferenceDomain
+
+
+def validate_planned_substrate_targets(
+    identities: Iterable[tuple[str, str]],
+    live_node_addresses: Iterable[str],
+) -> None:
+    """Bind every portable substrate constraint to one live node operation."""
+
+    selected = tuple(identities)
+    if len(selected) != len(set(selected)):
+        raise ValueError("Provisioning plan realization constraints must identify unique concerns")
+    if {address for address, _ in selected} - set(live_node_addresses):
+        raise ValueError("Provisioning plan realization constraints must reference non-delete node operations")
 
 
 def validate_compute_substrate_constraint(

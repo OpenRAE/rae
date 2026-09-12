@@ -131,6 +131,7 @@
     {"path": "implementations/python/packages/raes_reference_backend/drivers/oci.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 1},
     {"path": "implementations/python/tests/test_corpus_packaging.py", "inventory_id": "I03", "disposition": "governed", "site_count": 1},
     {"path": "implementations/python/tests/test_identity_cutover_policy.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": "implementations/python/tests/test_issue_1204_repository_governance.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "implementations/python/tests/test_reference_backend_docker_integration.py", "inventory_id": "I11", "disposition": "governed", "site_count": 2},
     {"path": "implementations/python/tests/test_satisfiability_cli.py", "inventory_id": "D01", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "implementations/python/tests/test_verification_plan.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},

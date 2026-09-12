@@ -17,7 +17,11 @@ from raes_contracts.apparatus import (
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
-from raes_contracts.realization_structure import structure_matches
+from raes_contracts.realization_structure import (
+    RealizationRelationStatus,
+    evaluate_realization_constraint,
+    structure_matches,
+)
 from raes_contracts.runtime_state import (
     RealizationObservationDisclosure,
     RealizationProvenanceEntry,
@@ -44,6 +48,7 @@ from .realization_runtime_common import (
     silent_approximation_diagnostic,
 )
 from .realization_snapshot_sanitization import invalid_observation_diagnostic
+from .realization_specialized_projection import native_process_limit_projection
 
 if TYPE_CHECKING:
     from .realization import CompiledRealizationRequirement
@@ -90,7 +95,11 @@ def _evaluate_non_compute_registered_realization(
         )
     if requirement.structure_error:
         result = silent_approximation_diagnostic(requirement), None
-    elif requirement.explicitness is ExplicitnessClass.OPEN and requirement.structure is None:
+    elif (
+        requirement.explicitness is ExplicitnessClass.OPEN
+        and requirement.structure is None
+        and requirement.constraint_document is None
+    ):
         result = _evaluate_open_realization(requirement, realized_value, returned_snapshot, manifest)
     else:
         result = _evaluate_declared_realization(
@@ -157,6 +166,7 @@ def _project_declared_realization(
         projection = project_realization_concern(
             requirement.requirement_kind,
             declared_value,
+            recursive=requirement.constraint_document is not None,
         )
     except (TypeError, ValueError):
         projection = MISSING_CONCERN_VALUE
@@ -195,6 +205,11 @@ def _projected_constraints_rejected(
     realized_projection: object,
     honoured: bool,
 ) -> bool:
+    if requirement.constraint_document is not None:
+        return (
+            evaluate_realization_constraint(requirement.constraint_document, realized_projection).status
+            is not RealizationRelationStatus.CONFORMANT
+        )
     if requirement.structure is not None and not structure_matches(
         requirement.structure, declared_projection, realized_projection
     ):
@@ -302,6 +317,9 @@ def _process_limit_realization_result(
     if requirement.requirement_kind != "process-resource-limits":
         result = (None, None)
     else:
+        if requirement.constraint_document is not None:
+            declared_projection = native_process_limit_projection(declared_projection)
+            realized_projection = native_process_limit_projection(realized_projection)
         apparatus = _process_limit_apparatus_diagnostic(requirement, realized_projection, manifest)
         if apparatus is not None:
             result = (apparatus, None)

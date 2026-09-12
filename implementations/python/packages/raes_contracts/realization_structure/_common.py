@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, is_dataclass
+from enum import Enum
+
+from pydantic import BaseModel
 
 from ..diagnostics import Diagnostic
 from ._models import (
+    DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     RealizationClosure,
     RealizationClosurePosture,
     RealizationConstraintDocument,
@@ -19,9 +23,32 @@ from ._models import (
 @dataclass
 class RelationBudget:
     limits: RealizationConstraintLimits
+    python_carriers: bool = False
     nodes: int = 0
     operations: int = 0
     identity_checks: int = 0
+    scalar_bytes: int = 0
+
+    def spend_scalar(self, value: object) -> str | None:
+        if isinstance(value, str) and len(value) > self.limits.max_scalar_bytes:
+            return "max_scalar_bytes"
+        try:
+            text_bytes = len(value.encode("utf-8")) if isinstance(value, str) else 0
+        except UnicodeError:
+            return "invalid_utf8"
+        size = (
+            text_bytes
+            if isinstance(value, str)
+            else max(1, (value.bit_length() + 7) // 8)
+            if type(value) is int
+            else 8
+            if type(value) in (float, bool, type(None))
+            else 0
+        )
+        if size > self.limits.max_scalar_bytes:
+            return "max_scalar_bytes"
+        self.scalar_bytes += size
+        return "max_total_scalar_bytes" if self.scalar_bytes > self.limits.max_total_scalar_bytes else None
 
     def spend_node(self, depth: int) -> str | None:
         self.nodes += 1
@@ -161,11 +188,13 @@ def _bounded_scalar_failure(
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
     failure = None
-    if isinstance(value, str) and len(value.encode("utf-8")) > budget.limits.max_scalar_bytes:
+    if exhausted := budget.spend_scalar(value):
         failure = relation_result(
-            RealizationRelationStatus.LIMIT_EXCEEDED,
+            RealizationRelationStatus.INVALID
+            if exhausted == "invalid_utf8"
+            else RealizationRelationStatus.LIMIT_EXCEEDED,
             current_pointer,
-            "Realization value validation exceeded max_scalar_bytes.",
+            f"Realization value validation exceeded {exhausted}.",
         )
     elif isinstance(value, float) and not math.isfinite(value):
         failure = relation_result(
@@ -179,7 +208,9 @@ def _bounded_scalar_failure(
             current_pointer,
             "Realization value validation exceeded the integer-size limit.",
         )
-    elif type(value) not in (str, int, float, bool, type(None), dict, list):
+    elif type(value) not in (str, int, float, bool, type(None), dict, list) and not (
+        budget.python_carriers and isinstance(value, tuple)
+    ):
         failure = relation_result(
             RealizationRelationStatus.INVALID,
             current_pointer,
@@ -189,7 +220,7 @@ def _bounded_scalar_failure(
 
 
 def _bounded_container_failure(
-    value: dict[object, object] | list[object],
+    value: dict[object, object] | list[object] | tuple[object, ...],
     path: tuple[str, ...],
     depth: int,
     budget: RelationBudget,
@@ -212,7 +243,10 @@ def _bounded_container_failure(
                     "Realization record keys must be strings.",
                 )
             else:
-                failure = validate_bounded_value(child, (*path, str(key)), depth + 1, budget)
+                if isinstance(value, dict):
+                    failure = _bounded_scalar_failure(key, current_pointer, budget)
+                if failure is None:
+                    failure = validate_bounded_value(child, (*path, str(key)), depth + 1, budget)
             if failure is not None:
                 break
     return failure
@@ -226,14 +260,59 @@ def validate_bounded_value(
 ) -> RealizationRelationResult | None:
     current_pointer = pointer(path)
     failure = None
+    if budget.python_carriers and isinstance(value, Enum):
+        value = value.value
     if exhausted := budget.spend_node(depth):
         failure = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
             current_pointer,
             f"Realization value validation exceeded {exhausted}.",
         )
+    if failure is None and budget.python_carriers:
+        value, failure = _python_record_values(value, current_pointer, budget)
     if failure is None:
         failure = _bounded_scalar_failure(value, current_pointer, budget)
-    if failure is None and isinstance(value, (dict, list)):
+    if failure is None and (isinstance(value, (dict, list)) or budget.python_carriers and isinstance(value, tuple)):
         failure = _bounded_container_failure(value, path, depth, budget)
     return failure
+
+
+def _python_record_values(
+    value: object, current_pointer: str, budget: RelationBudget
+) -> tuple[object, RealizationRelationResult | None]:
+    """Visit DTO fields without invoking serialization or recursively copying."""
+
+    if isinstance(value, BaseModel):
+        names = type(value).model_fields
+        extra = value.model_extra or {}
+    elif is_dataclass(value) and not isinstance(value, type):
+        names = tuple(field.name for field in fields(value))
+        extra = {}
+    else:
+        return value, None
+    if len(names) + len(extra) > budget.limits.max_members:
+        return value, relation_result(
+            RealizationRelationStatus.LIMIT_EXCEEDED,
+            current_pointer,
+            "Realization value validation exceeded max_members.",
+        )
+    return {**{name: getattr(value, name) for name in names}, **extra}, None
+
+
+def validate_realization_value(
+    value: object,
+    *,
+    limits: RealizationConstraintLimits = DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
+    python_carriers: bool = False,
+) -> RealizationRelationResult:
+    """Admit a finite JSON value before copying, projecting or comparing it.
+
+    This uses the evaluator's existing value admission without creating a
+    constraint tree or treating shape validity as realization permission.
+    Internal runtime DTOs may opt into dataclass/model/tuple/enum carriers that
+    their existing portable codecs serialize as JSON objects/arrays/scalars. The relation itself stays
+    strict JSON; this option does not change equality or conformance.
+    """
+
+    failure = validate_bounded_value(value, (), 0, RelationBudget(limits, python_carriers=python_carriers))
+    return failure if failure is not None else RealizationRelationResult(RealizationRelationStatus.CONFORMANT)
