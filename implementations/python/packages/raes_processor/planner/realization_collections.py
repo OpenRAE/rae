@@ -1,6 +1,7 @@
 """Compile enclosing portable node membership through the shared normalizer."""
 
 from dataclasses import replace
+from typing import cast
 
 from raes.identifiers import QualifiedName
 from raes.realization_designation import resolve_realization_designation
@@ -101,7 +102,7 @@ def retain_open_collection_nodes(plan: ProvisioningPlan) -> ProvisioningPlan:
             ).conformant:
                 continue
         kept.append(operation)
-    return replace(plan, operations=kept)
+    return cast("ProvisioningPlan", replace(plan, operations=kept))
 
 
 def prepared_node_collection_binding_violation(plan: ProvisioningPlan) -> str | None:

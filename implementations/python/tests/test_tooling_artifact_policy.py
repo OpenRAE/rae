@@ -2770,3 +2770,13 @@ def test_tooling_policy_cli_emits_a_validated_selection(
 
     assert result == 0
     assert json.loads(capsys.readouterr().out) == selected
+
+
+def test_python_closure_main_reports_success_after_showing_a_manifest(capsysbinary: pytest.CaptureFixture) -> None:
+    from tools.python_closure import load_python_closure_profile, main
+
+    profile_id = "public-linux-x86_64-cp314-tools"
+    profile = load_python_closure_profile(REPO_ROOT, profile_id)
+
+    assert main(["manifest-show", "--profile", profile_id]) == 0
+    assert capsysbinary.readouterr().out == profile.wheelhouse_manifest.read_bytes()
