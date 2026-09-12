@@ -1,5 +1,7 @@
 """Validate leaf metadata before it becomes executable recursive authority."""
 
+from collections.abc import Mapping
+
 from pydantic import TypeAdapter
 
 from ._build import RealizationConstraintBuildResult, build_failure
@@ -12,11 +14,21 @@ from ._models import (
     RealizationKnowledgeValue,
     RealizationLiteral,
     RealizationOrigin,
+    RealizationPresence,
     RealizationRelationStatus,
     RecursiveRealizationStructure,
 )
 
 _LEAF_ADAPTER = TypeAdapter(RecursiveRealizationStructure)
+
+
+def validated_member_presences(
+    values: Mapping[str, RealizationPresence],
+) -> tuple[dict[str, RealizationPresence], RealizationConstraintBuildResult | None]:
+    try:
+        return {path: RealizationPresence(value) for path, value in values.items()}, None
+    except (TypeError, ValueError):
+        return {}, build_failure(RealizationRelationStatus.INVALID, "", "Normalization presence is invalid.")
 
 
 def is_scalar_constraint(constraint: RecursiveRealizationStructure) -> bool:

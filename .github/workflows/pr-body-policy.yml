@@ -35,12 +35,17 @@ jobs:
           validator=tools/check_pr_body.py
           base_digest=$(sha256sum "$validator" | cut -d ' ' -f 1)
           # Explicit legacy-to-requirement-aware migration. Fetch only this
-          # immutable blob, never a branch path or PR-head executable. Both pins
+          # immutable bundle, never a branch path or PR-head executable. The pins
           # are review-protected workflow policy, independent of event input.
           if [ "$base_digest" = c3be7b261802eb2359714974778933cd4b7ef92e7b69a88f6bbd68b309a9d228 ]; then
-            validator="$RUNNER_TEMP/pr-body-validator.py"
-            gh api "repos/$GITHUB_REPOSITORY/git/blobs/fbfd79761f531d970766d001ba750c83dbe7770b" \
+            bundle=$(mktemp -d "$RUNNER_TEMP/pr-body-policy.XXXXXX")
+            mkdir "$bundle/tools"
+            validator="$bundle/tools/check_pr_body.py"
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/bd3aa73b2bbca623c8806c8883f08509a3c36a05" \
               --jq .content | base64 --decode > "$validator"
-            echo "94207f785993226d1784ac1340b95a2810fb9582e1411ab7180730f3b58088e1  $validator" | sha256sum --check --strict
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/2060ea8ea5bc8e3f9ee42d3707c1882f9990c052" \
+              --jq .content | base64 --decode > "$bundle/tools/pr_body_issue_scope.py"
+            echo "715222ca14ffa6636f62ab06bfb1b30cd5a0e76e9a303fb602e309fe987a4e41  $validator" | sha256sum --check --strict
+            echo "271afe45e06d3d99a245f586ca0f797eae36de9ede7a6a6ee547d34e939af9a3  $bundle/tools/pr_body_issue_scope.py" | sha256sum --check --strict
           fi
-          python -I "$validator"
+          python -I -S "$validator"

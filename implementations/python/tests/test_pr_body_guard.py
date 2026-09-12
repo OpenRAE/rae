@@ -17,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 import tools.check_pr_body as pr_body  # noqa: E402
+import tools.pr_body_issue_scope as issue_scope  # noqa: E402
 from tools.check_pr_body import (  # noqa: E402
     RULE_ISSUES,
     RULE_SECTION,
@@ -72,7 +73,7 @@ def test_requirement_backed_refs_pass_through_real_issue_lookup(monkeypatch: pyt
         def open(self, *_args, **_kwargs) -> io.StringIO:
             return io.StringIO(json.dumps({"state": "open", "body": "## Requirements\n- SEM-218"}))
 
-    monkeypatch.setattr(pr_body.urllib.request, "build_opener", lambda *_args: Opener())
+    monkeypatch.setattr(issue_scope.urllib.request, "build_opener", lambda *_args: Opener())
     lookup = pr_body.GitHubIssueLookup("OpenRAE/rae", "test-token")
     body = _body().replace("Closes #123", "Refs #123")
     assert validate_pr_body(body, lookup) == []
@@ -83,7 +84,7 @@ def test_requirement_backed_closing_is_rejected(monkeypatch: pytest.MonkeyPatch)
         def open(self, *_args, **_kwargs) -> io.StringIO:
             return io.StringIO(json.dumps({"state": "open", "body": "## Requirements\n- SEM-218"}))
 
-    monkeypatch.setattr(pr_body.urllib.request, "build_opener", lambda *_args: Opener())
+    monkeypatch.setattr(issue_scope.urllib.request, "build_opener", lambda *_args: Opener())
     lookup = pr_body.GitHubIssueLookup("OpenRAE/rae", "test-token")
     assert RULE_ISSUES in {item.rule_id for item in validate_pr_body(_body(), lookup)}
 
@@ -114,6 +115,11 @@ def test_all_closing_aliases_are_rejected_for_requirement_backed_work(
     keyword: str, separator: str, target: str
 ) -> None:
     body = _body().replace("Closes #123", "Refs #123") + f"\n## Notes\n{keyword}{separator}{target}\n"
+    assert validate_pr_body(body, lambda _number: IssueFacts(True, True, ("SEM-218",)))
+
+
+def test_prose_keyword_cannot_hide_a_later_closing_reference() -> None:
+    body = _body().replace("Closes #123", "Refs #123") + "\n## Notes\nWe fix tracking; this closes #123.\n"
     assert validate_pr_body(body, lambda _number: IssueFacts(True, True, ("SEM-218",)))
 
 
@@ -169,7 +175,7 @@ def test_missing_or_malformed_issue_body_cannot_be_treated_as_requirement_free(
         def open(self, *_args, **_kwargs) -> io.StringIO:
             return io.StringIO(json.dumps(payload))
 
-    monkeypatch.setattr(pr_body.urllib.request, "build_opener", lambda *_args: Opener())
+    monkeypatch.setattr(issue_scope.urllib.request, "build_opener", lambda *_args: Opener())
     lookup = pr_body.GitHubIssueLookup("OpenRAE/rae", "test-token")
     assert validate_pr_body(_body(), lookup)
 
@@ -353,7 +359,7 @@ def test_lookup_failures_and_http_shapes_fail_closed(monkeypatch: pytest.MonkeyP
 
     def use_payload(payload: str) -> None:
         monkeypatch.setattr(
-            pr_body.urllib.request,
+            issue_scope.urllib.request,
             "build_opener",
             lambda *_args, **_kwargs: FakeOpener(payload),
         )

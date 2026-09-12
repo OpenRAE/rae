@@ -71,8 +71,9 @@ def test_application_constraint_does_not_constrain_distribution_package_version(
         }
     )
     assert component.package_version == "4.12.0-1"
+    invalid = {**component.model_dump(), "version": "6.0.0"}
     with pytest.raises(ValidationError, match="version.*constraint"):
-        RuntimeSoftwareComponent.model_validate({**component.model_dump(), "version": "6.0.0"})
+        RuntimeSoftwareComponent.model_validate(invalid)
 
 
 def test_recursive_relation_retains_unknown_comparison_as_unsupported():

@@ -65,7 +65,8 @@ def _software_refinements(scenario: InstantiatedScenario) -> Iterator[_Attachmen
                     yield _Attachment(
                         node_name,
                         f"{id_field}:{getattr(item, id_field)}",
-                        f"/nodes/{_escape(node_name)}/runtime/{path}/{index}/refinements/{refinement_index}/profile_value",
+                        f"/nodes/{_escape(node_name)}/runtime/{path}/{index}"
+                        f"/refinements/{refinement_index}/profile_value",
                         refinement,
                     )
 
@@ -96,7 +97,7 @@ def _value_metadata(scenario: InstantiatedScenario, attachment: _Attachment) -> 
                 ),
             )
         )
-        children = value.items() if isinstance(value, dict) else enumerate(value) if isinstance(value, list) else ()
+        children = value.items() if isinstance(value, dict) else enumerate(value)
         pending.extend((f"{pointer}/{_escape(str(key))}", child) for key, child in children)
     return RealizationNormalizationMetadata(scopes=tuple(scopes))
 

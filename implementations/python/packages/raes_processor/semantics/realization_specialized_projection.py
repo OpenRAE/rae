@@ -99,14 +99,16 @@ def _specialized_identity_key(kind: str, field: str) -> str | None:
     """Name the identity field one concern assigns to a nested collection."""
 
     if kind == "runtime-software-components" and field == "repository_refs":
-        return "_identity"
-    if kind == "runtime-repository-state":
-        return {"repositories": "repository_id", "trust_bindings": "trust_id"}.get(field)
-    if kind == "linux-capabilities" and field in _CAPABILITY_IDENTITY_FIELDS:
-        return "_identity"
-    if kind == "runtime-mounts" and field == "options":
-        return "_identity"
-    return _FORWARDING_IDENTITY_KEYS.get(field) if kind == "forwarding-agents" else None
+        key = "_identity"
+    elif kind == "runtime-repository-state":
+        key = {"repositories": "repository_id", "trust_bindings": "trust_id"}.get(field)
+    elif (kind == "linux-capabilities" and field in _CAPABILITY_IDENTITY_FIELDS) or (
+        kind == "runtime-mounts" and field == "options"
+    ):
+        key = "_identity"
+    else:
+        key = _FORWARDING_IDENTITY_KEYS.get(field) if kind == "forwarding-agents" else None
+    return key
 
 
 def specialized_collection_identity(kind: str, pointer: str) -> tuple[str, ...]:

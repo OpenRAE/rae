@@ -25,9 +25,9 @@ if TYPE_CHECKING:
     from .realization_structure import RealizationConstraintDocument
 
 _AUTHORITY = "https://openrae.org/semantics/versions"
-_TRIPLET = re.compile(r"(?:0|[1-9][0-9]{0,8})(?:\.(?:0|[1-9][0-9]{0,8})){2}\Z", re.ASCII)
-_DEBIAN = re.compile(r"(?:[0-9]+:)?[0-9][A-Za-z0-9.+~]*(?:-[A-Za-z0-9.+~\-]*[A-Za-z0-9.+~])?\Z", re.ASCII)
-_RPM = re.compile(r"(?:[0-9]+:)?[A-Za-z0-9][A-Za-z0-9.+_~^]*(?:-[A-Za-z0-9.+_~^]+)?\Z", re.ASCII)
+_TRIPLET = re.compile(r"(?:0|[1-9]\d{0,8})(?:\.(?:0|[1-9]\d{0,8})){2}\Z", re.ASCII)
+_DEBIAN = re.compile(r"(?:\d+:)?\d[A-Za-z0-9.+~]*(?:-[A-Za-z0-9.+~\-]*[A-Za-z0-9.+~])?\Z", re.ASCII)
+_RPM = re.compile(r"(?:\d+:)?[A-Za-z0-9][A-Za-z0-9.+_~^]*(?:-[A-Za-z0-9.+_~^]+)?\Z", re.ASCII)
 VersionMembership = Literal["conformant", "nonconformant", "unresolved", "unsupported"]
 
 
@@ -98,9 +98,20 @@ class VersionDomain(ContractModel):
                 raise ValueError("Version constraint endpoint is incomparable under its relation")
             if self.lower is not None and self.upper is not None:
                 ordering = compare(self.lower, self.upper)
-                if ordering > 0 or ordering == 0 and not (self.lower_closed and self.upper_closed):
+                if not _satisfies_bound(-ordering, self.lower_closed and self.upper_closed):
                     raise ValueError("Version constraint has an empty interval")
         return self
+
+
+def _satisfies_bound(ordering: int, closed: bool) -> bool:
+    """Admit a point above a lower bound (or below a reversed upper bound)."""
+    return ordering > 0 or ordering == 0 and closed
+
+
+def _within_bounds(value: str, domain: VersionDomain, compare: Callable) -> bool:
+    lower = 1 if domain.lower is None else compare(value, domain.lower)
+    upper = -1 if domain.upper is None else compare(value, domain.upper)
+    return _satisfies_bound(lower, domain.lower_closed) and _satisfies_bound(-upper, domain.upper_closed)
 
 
 def version_membership(value: object, domain: VersionDomain) -> VersionMembership:
@@ -112,9 +123,7 @@ def version_membership(value: object, domain: VersionDomain) -> VersionMembershi
     pattern, compare = entry
     if not isinstance(value, str) or len(value) > 256 or pattern.fullmatch(value) is None:
         return "unresolved"
-    lower = 1 if domain.lower is None else compare(value, domain.lower)
-    upper = -1 if domain.upper is None else compare(value, domain.upper)
-    admitted = (lower > 0 or lower == 0 and domain.lower_closed) and (upper < 0 or upper == 0 and domain.upper_closed)
+    admitted = _within_bounds(value, domain, compare)
     return "conformant" if admitted else "nonconformant"
 
 

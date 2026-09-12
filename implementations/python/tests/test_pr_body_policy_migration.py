@@ -18,7 +18,13 @@ LEGACY_DIGEST = "c3be7b261802eb2359714974778933cd4b7ef92e7b69a88f6bbd68b309a9d22
 
 
 def _run_boundary(
-    tmp_path: Path, *, tamper: bool = False, legacy: bool = True, missing: bool = False, fetch_fails: bool = False
+    tmp_path: Path,
+    *,
+    tamper: str = "",
+    legacy: bool = True,
+    missing: bool = False,
+    fetch_fails: bool = False,
+    current: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     workflow = yaml.safe_load((ROOT / ".github/workflows/pr-body-policy.yml").read_text())
     step = next(
@@ -31,17 +37,22 @@ def _run_boundary(
     (tmp_path / "tools").mkdir()
     if not missing:
         (tmp_path / "tools/check_pr_body.py").write_bytes(legacy_bytes if legacy else b"raise SystemExit(23)\n")
-    candidate = (ROOT / "tools/check_pr_body.py").read_bytes()
-    blob_id = hashlib.sha1(f"blob {len(candidate)}\0".encode() + candidate, usedforsecurity=False).hexdigest()
-    if tamper:
-        candidate = b"from pathlib import Path\nPath('executed-untrusted-code').touch()\n"
+    blobs = {}
+    for name, selection in (("check_pr_body.py", "validator"), ("pr_body_issue_scope.py", "scope")):
+        candidate = (ROOT / "tools" / name).read_bytes()
+        if current:
+            (tmp_path / "tools" / name).write_bytes(candidate)
+        blob_id = hashlib.sha1(f"blob {len(candidate)}\0".encode() + candidate, usedforsecurity=False).hexdigest()
+        if tamper == selection:
+            candidate = b"from pathlib import Path\nPath('executed-untrusted-code').touch()\n"
+        blobs[f"repos/OpenRAE/rae/git/blobs/{blob_id}"] = base64.b64encode(candidate).decode()
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     fake_gh = fake_bin / "gh"
     fake_gh.write_text(
-        f"#!{sys.executable}\nimport os, sys\n"
-        f"assert sys.argv[1:] == ['api', 'repos/OpenRAE/rae/git/blobs/{blob_id}', '--jq', '.content']\n"
-        "sys.exit(1) if os.environ['FETCH_FAILS'] == '1' else print(os.environ['BLOB_CONTENT'])\n"
+        f"#!{sys.executable}\nimport json, os, sys\n"
+        "assert sys.argv[1] == 'api' and sys.argv[3:] == ['--jq', '.content']\n"
+        "sys.exit(1) if os.environ['FETCH_FAILS'] == '1' else print(json.loads(os.environ['BLOBS'])[sys.argv[2]])\n"
     )
     fake_gh.chmod(0o700)
     # Use the running test interpreter without relying on host python aliases.
@@ -55,7 +66,7 @@ def _run_boundary(
         "GITHUB_EVENT_PATH": str(event),
         "GITHUB_REPOSITORY": "OpenRAE/rae",
         "GH_TOKEN": "fixture-only",
-        "BLOB_CONTENT": base64.b64encode(candidate).decode(),
+        "BLOBS": json.dumps(blobs),
         "FETCH_FAILS": "1" if fetch_fails else "0",
     }
     return subprocess.run(
@@ -74,8 +85,9 @@ def test_exact_pinned_migration_executes_replacement(tmp_path: Path) -> None:
     assert "exempt trusted automation" in result.stdout
 
 
-def test_tampered_replacement_is_never_executed(tmp_path: Path) -> None:
-    result = _run_boundary(tmp_path, tamper=True)
+@pytest.mark.parametrize("tamper", ["validator", "scope"])
+def test_tampered_replacement_is_never_executed(tmp_path: Path, tamper: str) -> None:
+    result = _run_boundary(tmp_path, tamper=tamper)
     assert result.returncode != 0
     assert not (tmp_path / "executed-untrusted-code").exists()
 
@@ -83,6 +95,12 @@ def test_tampered_replacement_is_never_executed(tmp_path: Path) -> None:
 def test_unknown_base_still_executes_only_its_own_validator(tmp_path: Path) -> None:
     result = _run_boundary(tmp_path, legacy=False)
     assert result.returncode == 23
+
+
+def test_migrated_base_needs_no_download(tmp_path: Path) -> None:
+    result = _run_boundary(tmp_path, current=True, fetch_fails=True)
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "exempt trusted automation" in result.stdout
 
 
 @pytest.mark.parametrize("options", [{"missing": True}, {"fetch_fails": True}])

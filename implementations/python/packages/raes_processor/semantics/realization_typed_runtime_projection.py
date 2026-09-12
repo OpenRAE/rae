@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
@@ -233,6 +234,51 @@ def _project_typed_runtime_value(
     return projected
 
 
+@dataclass(frozen=True)
+class _ProjectionOptions:
+    excluded_fields: frozenset[str] = frozenset()
+    sort_scalar_sequence: bool = False
+    preserve_sequence_order: bool = False
+    scalar_identity_fields: tuple[str, ...] = ()
+
+
+_DEFAULT_PROJECTION_OPTIONS = _ProjectionOptions()
+
+
+def _project_with_options(
+    value: object,
+    observed: bool = False,
+    *,
+    adapter: TypeAdapter[object],
+    concern_kind: str,
+    options: _ProjectionOptions = _DEFAULT_PROJECTION_OPTIONS,
+) -> object:
+    """Project one typed runtime surface into a closed, value-safe form."""
+
+    _require_observation_mode(observed)
+    normalized = validate_typed_runtime_observation(value, adapter=adapter)
+    projected = _project_typed_runtime_value(
+        normalized,
+        concern_kind=concern_kind,
+        excluded_fields=options.excluded_fields,
+        observed=observed,
+        preserve_sequence_order=options.preserve_sequence_order,
+    )
+    if options.sort_scalar_sequence and not options.preserve_sequence_order and isinstance(projected, list):
+        projected = sorted(projected, key=lambda item: (type(item).__name__, repr(item)))
+    # Installed concern metadata selects comparison-only scalar sets. These
+    # aliases must never enter the native snapshot sanitizer's projection.
+    if options.scalar_identity_fields:
+        for record in projected:
+            for field in options.scalar_identity_fields:
+                record[field] = [{"_identity": value, "value": value} for value in record[field]]
+    elif concern_kind == "runtime-software-components":
+        # Native values stay strings, with stable order for reconciliation.
+        for record in projected:
+            record["repository_refs"] = sorted(record["repository_refs"])
+    return projected
+
+
 def project_typed_runtime_concern(
     value: object,
     observed: bool = False,
@@ -242,32 +288,20 @@ def project_typed_runtime_concern(
     excluded_fields: frozenset[str] = frozenset(),
     sort_scalar_sequence: bool = False,
     preserve_sequence_order: bool = False,
-    scalar_identity_fields: tuple[str, ...] = (),
 ) -> object:
-    """Project one typed runtime surface into a closed, value-safe form."""
+    """Project a typed runtime surface while retaining the public call contract."""
 
-    _require_observation_mode(observed)
-    normalized = validate_typed_runtime_observation(value, adapter=adapter)
-    projected = _project_typed_runtime_value(
-        normalized,
+    return _project_with_options(
+        value,
+        observed,
+        adapter=adapter,
         concern_kind=concern_kind,
-        excluded_fields=excluded_fields,
-        observed=observed,
-        preserve_sequence_order=preserve_sequence_order,
+        options=_ProjectionOptions(
+            excluded_fields=excluded_fields,
+            sort_scalar_sequence=sort_scalar_sequence,
+            preserve_sequence_order=preserve_sequence_order,
+        ),
     )
-    if sort_scalar_sequence and not preserve_sequence_order and isinstance(projected, list):
-        projected = sorted(projected, key=lambda item: (type(item).__name__, repr(item)))
-    # Installed concern metadata selects comparison-only scalar sets. These
-    # aliases must never enter the native snapshot sanitizer's projection.
-    if scalar_identity_fields:
-        for record in projected:
-            for field in scalar_identity_fields:
-                record[field] = [{"_identity": value, "value": value} for value in record[field]]
-    elif concern_kind == "runtime-software-components":
-        # Native values stay strings, with stable order for reconciliation.
-        for record in projected:
-            record["repository_refs"] = sorted(record["repository_refs"])
-    return projected
 
 
 def typed_runtime_projector(
@@ -282,13 +316,15 @@ def typed_runtime_projector(
     """Bind a closed Pydantic annotation to a reusable concern projector."""
 
     return partial(
-        project_typed_runtime_concern,
+        _project_with_options,
         adapter=TypeAdapter(annotation),
         concern_kind=concern_kind,
-        excluded_fields=excluded_fields,
-        sort_scalar_sequence=sort_scalar_sequence,
-        preserve_sequence_order=preserve_sequence_order,
-        scalar_identity_fields=scalar_identity_fields,
+        options=_ProjectionOptions(
+            excluded_fields=excluded_fields,
+            sort_scalar_sequence=sort_scalar_sequence,
+            preserve_sequence_order=preserve_sequence_order,
+            scalar_identity_fields=scalar_identity_fields,
+        ),
     )
 
 

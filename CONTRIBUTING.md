@@ -28,11 +28,11 @@ be `Issue tracking` or the workflow renderer's `Related Issues`; the former
 
 The body guard normally executes the validator from the PR's base revision.
 The requirement-aware policy migration admits exactly one legacy validator
-digest and one pinned replacement Git blob, with an independent SHA-256 check
-before execution. This lets the introducing PR be validated without executing
+digest and a pinned two-file validator bundle, with an independent SHA-256 check
+of each Git blob before execution. This lets the introducing PR be validated without executing
 PR-head code or bypassing policy. Once the replacement lands on `dev`, the
 legacy digest no longer matches and the normal base-validator path applies.
-Changing this migration pin is an explicit, reviewable workflow trust change.
+Changing these migration pins is an explicit, reviewable workflow trust change.
 
 ## Set up the repository
 

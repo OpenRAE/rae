@@ -62,26 +62,50 @@ def _realization_support_diagnostic(
     declarations = [
         declaration for declaration in manifest.realization_support if declaration.domain == requirement.domain
     ]
+    diagnostic = _specialized_support_diagnostic(requirement, declarations, explicitness, manifest)
+    if diagnostic is not None or requirement.requirement_kind == "process-resource-limits":
+        return diagnostic
+    return _explicitness_support_diagnostic(requirement, declarations, explicitness)
+
+
+def _version_support_diagnostic(
+    requirement: CompiledRealizationRequirement,
+    declarations: list[RealizationSupportDeclaration],
+) -> Diagnostic | None:
     if requirement.constraint_document is not None and has_version_constraints(requirement.constraint_document):
-        diagnostic = _constraint_support_diagnostic(requirement, declarations)
-        if diagnostic is not None:
-            return diagnostic
-    if requirement.requirement_kind == "process-resource-limits":
-        process_diagnostic = process_resource_limit_support_diagnostic(
-            requirement, declarations, explicitness, manifest.realization_envelope
-        )
-        if process_diagnostic is not None:
-            return process_diagnostic
-    if isinstance(requirement.structure, (RealizationCollection, RealizationRecord)) or (
+        return _constraint_support_diagnostic(requirement, declarations)
+    return None
+
+
+def _structured_requirement(requirement: CompiledRealizationRequirement) -> bool:
+    return isinstance(requirement.structure, (RealizationCollection, RealizationRecord)) or (
         requirement.constraint_document is not None
         and requirement.constraint_document.root.kind in {"recursive-record", "keyed-collection", "sequence"}
-    ):
-        exact_diagnostic = _exact_support_diagnostic(requirement, declarations)
-        if exact_diagnostic is not None:
-            return exact_diagnostic
-    if requirement.requirement_kind == "process-resource-limits":
-        diagnostic = None
-    elif explicitness is ExplicitnessClass.OPEN:
+    )
+
+
+def _specialized_support_diagnostic(
+    requirement: CompiledRealizationRequirement,
+    declarations: list[RealizationSupportDeclaration],
+    explicitness: ExplicitnessClass,
+    manifest: BackendManifest,
+) -> Diagnostic | None:
+    diagnostic = _version_support_diagnostic(requirement, declarations)
+    if diagnostic is None and requirement.requirement_kind == "process-resource-limits":
+        diagnostic = process_resource_limit_support_diagnostic(
+            requirement, declarations, explicitness, manifest.realization_envelope
+        )
+    if diagnostic is None and _structured_requirement(requirement):
+        diagnostic = _exact_support_diagnostic(requirement, declarations)
+    return diagnostic
+
+
+def _explicitness_support_diagnostic(
+    requirement: CompiledRealizationRequirement,
+    declarations: list[RealizationSupportDeclaration],
+    explicitness: ExplicitnessClass,
+) -> Diagnostic | None:
+    if explicitness is ExplicitnessClass.OPEN:
         diagnostic = _open_support_diagnostic(requirement, declarations)
     elif explicitness is ExplicitnessClass.EXACT:
         diagnostic = _exact_support_diagnostic(requirement, declarations)

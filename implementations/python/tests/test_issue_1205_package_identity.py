@@ -126,18 +126,11 @@ def test_positive_exact_package_still_requires_compatible_node_architecture(lega
             ]
         }
     )
+    payload = yaml.safe_dump(
+        {
+            "name": "presence",
+            "nodes": {"host": {"type": "compute", "architecture": "aarch64", "runtime": runtime}},
+        }
+    )
     with pytest.raises(SDLError, match="incompatible"):
-        parse_sdl(
-            yaml.safe_dump(
-                {
-                    "name": "presence",
-                    "nodes": {
-                        "host": {
-                            "type": "compute",
-                            "architecture": "aarch64",
-                            "runtime": runtime,
-                        }
-                    },
-                }
-            )
-        )
+        parse_sdl(payload)

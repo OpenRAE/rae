@@ -139,7 +139,7 @@
     {"path": "tools/check_attack_tactic_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
     {"path": "tools/check_autonomous_behavior_vocabularies.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
     {"path": "tools/check_nist_csf_defensive_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
-    {"path": "tools/check_pr_body.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
+    {"path": "tools/pr_body_issue_scope.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
     {"path": "tools/formal_semantic_validation/_production.py", "inventory_id": "D01", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/isabelle_tool.py", "inventory_id": "I09", "disposition": "governed", "site_count": 3},
     {"path": "tools/check_json_artifacts.py", "inventory_id": "I02", "disposition": "governed", "site_count": 1},

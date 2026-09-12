@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[3]
         "docs/research/formal-semantic-validation/execution-snapshot-v9.json",
         "implementations/python/uv.lock",
         "implementations/tooling/python/smoke/linux-arm64-cp314.txt",
+        "implementations/tooling/inventory-coverage.json",
     ],
 )
 def test_software_semantics_can_update_its_contract_and_evidence_owners(path):

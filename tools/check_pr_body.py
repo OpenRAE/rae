@@ -13,12 +13,16 @@ import json
 import os
 import re
 import sys
-import urllib.error
-import urllib.request
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+# Resolve only the script's own base-owned bundle, including under python -I.
+if not __package__:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from tools.pr_body_issue_scope import GitHubIssueLookup, IssueFacts, requirement_uids  # noqa: E402
 
 RULE_SECTION = "required-section"
 RULE_SUMMARY = "plain-language-summary"
@@ -36,15 +40,6 @@ _EVIDENCE_HINT = re.compile(
     r"nox|pytest|ruff|mypy|manual(?:ly)?|not run|not applicable|build|smoke)\b)",
     re.IGNORECASE,
 )
-
-
-@dataclass(frozen=True)
-class IssueFacts:
-    """Issue identity, lifecycle and authoritative requirement scope."""
-
-    exists: bool
-    is_open: bool
-    requirement_uids: tuple[str, ...] = ()
 
 
 IssueLookup = Callable[[int], IssueFacts]
@@ -146,42 +141,6 @@ def closing_issue_numbers(body: str) -> tuple[int, ...]:
     """Return unique standalone ``Closes #N`` references in source order."""
 
     return _issue_numbers(body, "Closes")
-
-
-def _requirement_lines(body: str) -> Iterator[str]:
-    """Select the first level 2–4 Requirements section, including subheadings."""
-    level: int | None = None
-    for line in body.splitlines():
-        heading = re.fullmatch(r"(#{1,6})\s(.+)", line)
-        if heading:
-            depth = len(heading[1])
-            if level is not None and depth <= level:
-                break
-            if level is None and 2 <= depth <= 4 and heading[2].strip().casefold() == "requirements":
-                level = depth
-            continue
-        if level is not None:
-            yield line
-
-
-def _leading_uids(line: str) -> Iterator[str]:
-    bullet = re.fullmatch(r"\s*[-*+]\s+(\S.*)", line)
-    if not bullet:
-        return
-    for token in re.split(r"[\s,;]+", bullet[1]):
-        uid = token.lstrip("`[(").rstrip("`)].:")
-        if len(uid) > 50 or not re.fullmatch(r"[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-[A-Z0-9]*[0-9]", uid):
-            break
-        yield uid
-
-
-def requirement_uids(body: str) -> tuple[str, ...]:
-    """Read authoritative issue scope using the delivery workflow convention.
-
-    A same-or-higher heading ends the first Requirements section; only the
-    leading UID run of each bullet declares scope. This is not a PR claim.
-    """
-    return tuple(dict.fromkeys(uid for line in _requirement_lines(body) for uid in _leading_uids(line)))
 
 
 def no_issue_reasons(body: str) -> tuple[str, ...]:
@@ -322,10 +281,10 @@ def _validate_closing_routes(body: str, content: str) -> list[BodyViolation]:
     tracking_lines = {line.strip() for line in content.splitlines()}
     violations: list[BodyViolation] = []
     for line in body.splitlines():
-        closing = re.search(
-            r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\b[:\s]+(?:https://github\.com/|[\w.-]+/[\w.-]+#|#)[0-9\w]",
-            line,
-            re.IGNORECASE,
+        keywords = re.finditer(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\b[:\s]+", line, re.IGNORECASE)
+        closing = any(
+            re.match(r"(?:https://github\.com/|[\w.-]+/[\w.-]+#|#)\w", line[keyword.end() :], re.IGNORECASE)
+            for keyword in keywords
         )
         if closing and (not closing_issue_numbers(line) or line.strip() not in tracking_lines):
             violations.append(
@@ -359,52 +318,6 @@ def validate_pr_body(body: str, issue_lookup: IssueLookup) -> list[BodyViolation
     violations.extend(_validate_issues(sections, issue_lookup, cleaned))
     violations.extend(_validate_verification(sections))
     return violations
-
-
-class GitHubIssueLookup:
-    """Read-only lookup for issues in exactly one GitHub repository."""
-
-    def __init__(self, repository: str, token: str) -> None:
-        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
-            raise ValueError("GITHUB_REPOSITORY must have owner/repository form")
-        if not token:
-            raise ValueError("GH_TOKEN is required to verify closing issues")
-        self._repository = repository
-        self._token = token
-
-    def __call__(self, number: int) -> IssueFacts:
-        request = urllib.request.Request(
-            f"https://api.github.com/repos/{self._repository}/issues/{number}",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {self._token}",
-                "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "OpenRAE-pr-body-guard",
-            },
-        )
-        try:
-            opener = urllib.request.build_opener(urllib.request.HTTPSHandler())
-            with opener.open(request, timeout=15) as response:
-                payload = json.load(response)
-        except urllib.error.HTTPError as exc:
-            if exc.code == 404:
-                return IssueFacts(False, False)
-            raise RuntimeError(f"GitHub returned HTTP {exc.code}") from exc
-        if (
-            not isinstance(payload, dict)
-            or "body" not in payload
-            or payload["body"] is not None
-            and not isinstance(payload["body"], str)
-        ):
-            raise RuntimeError("GitHub returned a malformed issue response")
-        # Pull requests also appear through the issues endpoint and cannot be
-        # used to satisfy an issue-closing requirement.
-        exists = "pull_request" not in payload
-        return IssueFacts(
-            exists,
-            exists and payload.get("state") == "open",
-            requirement_uids(payload["body"] or ""),
-        )
 
 
 def _read_json_object(path: Path, description: str) -> dict[str, Any]:
