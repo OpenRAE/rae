@@ -6,14 +6,14 @@ repos:
     hooks:
       - id: nox-pre-commit
         name: nox pre-commit gate
-        entry: bash -c 'unset $(git rev-parse --local-env-vars); uv tool run --from "nox[uv]==2026.4.10" nox -f noxfile.py -s hook-pre-commit -- "$@"' --
+        entry: bash -c 'unset $(git rev-parse --local-env-vars); uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hook-pre-commit -- "$@"' --
         language: system
         pass_filenames: true
         require_serial: true
         stages: [pre-commit]
       - id: nox-pre-push
         name: nox pre-push verify
-        entry: bash -c 'unset $(git rev-parse --local-env-vars); uv tool run --from "nox[uv]==2026.4.10" nox -f noxfile.py -s hook-pre-push'
+        entry: bash -c 'unset $(git rev-parse --local-env-vars); uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hook-pre-push'
         language: system
         pass_filenames: false
         require_serial: true

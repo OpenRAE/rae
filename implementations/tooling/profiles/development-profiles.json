@@ -206,6 +206,204 @@
       ]
     }
   ],
+  "python_package_contexts": [
+    {
+      "context_id": "python-public",
+      "mode": "public",
+      "locator_ref": "pypi-simple",
+      "namespace_mapping": [{"namespace": "*", "locator_ref": "pypi-simple"}],
+      "credential_refs": [],
+      "public_fallback": "prohibited"
+    },
+    {
+      "context_id": "python-enterprise-mirror-only",
+      "mode": "mirror-only",
+      "locator_ref": "enterprise-python-simple",
+      "namespace_mapping": [{"namespace": "*", "locator_ref": "enterprise-python-simple"}],
+      "credential_refs": ["credential-ref:enterprise/python/read"],
+      "public_fallback": "prohibited"
+    },
+    {
+      "context_id": "python-offline",
+      "mode": "offline",
+      "locator_ref": "verified-wheelhouse",
+      "namespace_mapping": [],
+      "credential_refs": [],
+      "public_fallback": "prohibited"
+    }
+  ],
+  "python_closure_profiles": [
+    {
+      "python_closure_profile_id": "public-linux-x86_64-cp311-all-extras",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build", "wheel-smoke", "sdist-smoke", "compatibility"],
+      "host_profile_id": "public-ubuntu-24.04-x86_64",
+      "python": {"implementation": "cpython", "version": "3.11", "abi": "cp311", "platform": "x86_64-unknown-linux-gnu"},
+      "project_extras": ["dev", "docs"],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/linux-x86_64-cp311.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-x86_64-cp311.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-linux-x86_64-cp312-all-extras",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build", "wheel-smoke", "sdist-smoke", "compatibility", "docs"],
+      "host_profile_id": "public-ubuntu-24.04-x86_64",
+      "python": {"implementation": "cpython", "version": "3.12", "abi": "cp312", "platform": "x86_64-unknown-linux-gnu"},
+      "project_extras": ["dev", "docs"],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/linux-x86_64-cp312.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-x86_64-cp312.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-linux-x86_64-cp313-all-extras",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build", "wheel-smoke", "sdist-smoke", "compatibility"],
+      "host_profile_id": "public-ubuntu-24.04-x86_64",
+      "python": {"implementation": "cpython", "version": "3.13", "abi": "cp313", "platform": "x86_64-unknown-linux-gnu"},
+      "project_extras": ["dev", "docs"],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/linux-x86_64-cp313.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-x86_64-cp313.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-linux-x86_64-cp314-all-extras",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build", "wheel-smoke", "sdist-smoke", "compatibility"],
+      "host_profile_id": "public-ubuntu-24.04-x86_64",
+      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "x86_64-unknown-linux-gnu"},
+      "project_extras": ["dev", "docs"],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/linux-x86_64-cp314.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-x86_64-cp314.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-linux-arm64-cp314-all-extras",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build", "wheel-smoke", "sdist-smoke", "compatibility"],
+      "host_profile_id": "public-linux-arm64",
+      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "aarch64-unknown-linux-gnu"},
+      "project_extras": ["dev", "docs"],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/linux-arm64-cp314.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/linux-arm64-cp314.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-macos-arm64-cp314-all-extras",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build", "wheel-smoke", "sdist-smoke", "compatibility"],
+      "host_profile_id": "public-macos-arm64",
+      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "aarch64-apple-darwin"},
+      "project_extras": ["dev", "docs"],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/macos-arm64-cp314.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/macos-arm64-cp314.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-linux-x86_64-cp314-tools",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build"],
+      "host_profile_id": "public-ubuntu-24.04-x86_64",
+      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "x86_64-unknown-linux-gnu"},
+      "project_extras": [],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/tools-linux-x86_64-cp314.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/tools-linux-x86_64-cp314.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-linux-arm64-cp314-tools",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build"],
+      "host_profile_id": "public-linux-arm64",
+      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "aarch64-unknown-linux-gnu"},
+      "project_extras": [],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/tools-linux-arm64-cp314.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/tools-linux-arm64-cp314.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-macos-x86_64-cp314-tools",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build"],
+      "host_profile_id": "public-macos-x86_64",
+      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "x86_64-apple-darwin"},
+      "project_extras": [],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/tools-macos-x86_64-cp314.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/tools-macos-x86_64-cp314.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    },
+    {
+      "python_closure_profile_id": "public-macos-arm64-cp314-tools",
+      "owner_roles": ["Tooling", "Release"],
+      "purposes": ["tool", "build"],
+      "host_profile_id": "public-macos-arm64",
+      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "aarch64-apple-darwin"},
+      "project_extras": [],
+      "tool_groups": ["default", "build"],
+      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
+      "project_lock": "implementations/python/uv.lock",
+      "tool_lock": "implementations/tooling/python/uv.lock",
+      "build_constraints": "implementations/tooling/python/build-constraints.txt",
+      "smoke_requirements": "implementations/tooling/python/smoke/tools-macos-arm64-cp314.txt",
+      "wheelhouse_manifest": "implementations/tooling/python/smoke/tools-macos-arm64-cp314.wheelhouse-manifest.json",
+      "source_build_disposition": "wheels-only",
+      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
+    }
+  ],
   "host_profiles": [
     {
       "host_profile_id": "public-ubuntu-24.04-x86_64",
@@ -587,7 +785,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "2b31b83ec58e309acb759e41edc33205cf8824a35b3623df0641ede688078ff5",
+      "policy_sha256": "b344519a20a5335cded86c44149d4805ee235cf290b87ec621e44066eed2c876",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -617,7 +815,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "2b31b83ec58e309acb759e41edc33205cf8824a35b3623df0641ede688078ff5",
+      "policy_sha256": "b344519a20a5335cded86c44149d4805ee235cf290b87ec621e44066eed2c876",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -646,7 +844,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "2b31b83ec58e309acb759e41edc33205cf8824a35b3623df0641ede688078ff5",
+      "policy_sha256": "b344519a20a5335cded86c44149d4805ee235cf290b87ec621e44066eed2c876",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -676,7 +874,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "2b31b83ec58e309acb759e41edc33205cf8824a35b3623df0641ede688078ff5",
+      "policy_sha256": "b344519a20a5335cded86c44149d4805ee235cf290b87ec621e44066eed2c876",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -704,7 +902,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "2b31b83ec58e309acb759e41edc33205cf8824a35b3623df0641ede688078ff5",
+      "policy_sha256": "b344519a20a5335cded86c44149d4805ee235cf290b87ec621e44066eed2c876",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",

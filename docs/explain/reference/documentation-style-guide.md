@@ -96,7 +96,7 @@ positioning, contract, schema, example, and link checks keep those
 responsibilities. Run the complete documentation gate with:
 
 ```shell
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s docs
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs
 ```
 
 ## Required Stance

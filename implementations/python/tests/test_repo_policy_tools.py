@@ -675,10 +675,17 @@ def _exercise_python_compatibility(
     *,
     build_artifacts: bool,
     smoke_only: bool = False,
-) -> tuple[list[tuple[str, ...]], list[tuple[str, ...]], list[str]]:
+    configured_wheelhouse: bool = False,
+) -> tuple[
+    list[tuple[str, ...]],
+    list[tuple[str, ...]],
+    list[nox_runner.StageResult],
+    list[object],
+]:
     commands: list[tuple[str, ...]] = []
     pytest_calls: list[tuple[str, ...]] = []
     logs: list[str] = []
+    sync_calls: list[object] = []
 
     class FakeSession:
         def __init__(self) -> None:
@@ -693,17 +700,22 @@ def _exercise_python_compatibility(
         if command[:2] != ("uv", "build"):
             return
         output_dir = Path(command[command.index("--out-dir") + 1])
-        output_dir.mkdir(parents=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
         if build_artifacts:
             (output_dir / "raes-3.3.0-py3-none-any.whl").write_bytes(b"wheel")
             (output_dir / "raes-3.3.0.tar.gz").write_bytes(b"sdist")
 
     monkeypatch.setenv(nox_config.EXPECTED_PYTHON_ENV, "3.14")
     monkeypatch.setenv("UV_PYTHON", "cpython-3.14")
-    monkeypatch.setenv(nox_config.EXPECT_FREE_THREADED_ENV, "1")
+    monkeypatch.setenv(nox_config.EXPECT_FREE_THREADED_ENV, "0")
     monkeypatch.setenv(nox_config.PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV, "1" if smoke_only else "0")
+    monkeypatch.setenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, "public-linux-x86_64-cp314-all-extras")
+    if configured_wheelhouse:
+        monkeypatch.setenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, "/verified-wheelhouse")
+    else:
+        monkeypatch.delenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, raising=False)
     monkeypatch.setattr(nox_test_lanes, "_run", fake_run)
-    monkeypatch.setattr(nox_test_lanes, "_sync_project", lambda _session: None)
+    monkeypatch.setattr(nox_test_lanes, "_sync_project", sync_calls.append)
     monkeypatch.setattr(
         nox_test_lanes,
         "_run_pytest",
@@ -711,51 +723,124 @@ def _exercise_python_compatibility(
     )
     reporter = nox_runner.SessionReporter(FakeSession(), "python-compatibility")
     nox_test_lanes._run_python_compatibility(reporter.session, reporter)
-    return commands, pytest_calls, [result.name for result in reporter.results]
+    return commands, pytest_calls, reporter.results, sync_calls
 
 
 def test_python_compatibility_graph_builds_and_checks_clean_distribution(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    commands, pytest_calls, stages = _exercise_python_compatibility(
+    commands, pytest_calls, results, sync_calls = _exercise_python_compatibility(
         monkeypatch,
         build_artifacts=True,
     )
+    stages = [result.name for result in results]
 
     assert stages == [
         "python compatibility / frozen sync",
         "python compatibility / exact runtime",
         "python compatibility / hermetic tests",
         "python compatibility / build distributions",
-        "python compatibility / create clean environment",
-        "python compatibility / install wheel",
-        "python compatibility / installed metadata and imports",
-        "python compatibility / installed CLI version",
-        "python compatibility / installed CLI help",
+        "python compatibility / build wheel from sdist",
+        "python compatibility / materialize dependency wheelhouse",
+        "python compatibility / install direct wheel",
+        "python compatibility / direct wheel metadata and imports",
+        "python compatibility / direct wheel CLI version",
+        "python compatibility / direct wheel CLI help",
+        "python compatibility / install sdist-built wheel",
+        "python compatibility / sdist-built wheel metadata and imports",
+        "python compatibility / sdist-built wheel CLI version",
+        "python compatibility / sdist-built wheel CLI help",
     ]
+    assert len(sync_calls) == 1
     assert pytest_calls == [("-q",)]
     runtime_command = next(command for command in commands if command[:2] == ("uv", "run"))
-    assert runtime_command[-2:] == ("3.14", "1")
+    assert runtime_command[-2:] == ("3.14", "0")
     build_command = next(command for command in commands if command[:2] == ("uv", "build"))
     assert build_command[build_command.index("--python") :][:2] == ("--python", "cpython-3.14")
-    installed_python = next(command for command in commands if command and command[0].endswith("/bin/python"))
+    assert "--build-constraints" in build_command
+    assert "--require-hashes" in build_command
+    installed_python = next(
+        command
+        for command in commands
+        if command and "/installed-" in command[0] and command[0].endswith("/bin/python")
+    )
     assert installed_python[-1] == "3.14"
     assert any(command and command[0].endswith("/bin/raes") and command[-1] == "--version" for command in commands)
     assert nox_config.PROJECT_ROOT.as_posix() in build_command
+    install_command = next(command for command in commands if "tools.python_closure" in command and "smoke" in command)
+    assert "--offline" in install_command
+    assert "--wheelhouse" in install_command
 
 
 def test_python_compatibility_smoke_omits_redundant_hermetic_suite(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    _commands, pytest_calls, stages = _exercise_python_compatibility(
+    _commands, pytest_calls, results, _sync_calls = _exercise_python_compatibility(
         monkeypatch,
         build_artifacts=True,
         smoke_only=True,
     )
+    stages = [result.name for result in results]
 
     assert "python compatibility / hermetic tests" not in stages
-    assert "python compatibility / installed metadata and imports" in stages
+    assert "python compatibility / direct wheel metadata and imports" in stages
     assert pytest_calls == []
+
+
+def test_offline_python_compatibility_reuses_only_a_verified_raw_wheelhouse(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands, _pytest_calls, results, sync_calls = _exercise_python_compatibility(
+        monkeypatch,
+        build_artifacts=True,
+        smoke_only=True,
+        configured_wheelhouse=True,
+    )
+    stages = [result.name for result in results]
+
+    assert "python compatibility / wheelhouse-verify dependency wheelhouse" in stages
+    frozen_sync = next(result for result in results if result.name == "python compatibility / frozen sync")
+    assert frozen_sync.status == "SKIP"
+    assert sync_calls == []
+    runtime_command = next(command for command in commands if command and command[0] == "cpython-3.14")
+    assert runtime_command[-2:] == ("3.14", "0")
+    assert all(command[:2] != ("uv", "run") for command in commands)
+    closure_commands = [command for command in commands if "tools.python_closure" in command]
+    assert any("wheelhouse-verify" in command for command in closure_commands)
+    assert all("materialize" not in command for command in closure_commands)
+    assert all("/verified-wheelhouse" in command for command in closure_commands)
+
+
+def test_python_compatibility_rejects_restored_wheelhouse_outside_smoke_execution(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, "/verified-wheelhouse")
+    reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
+
+    with pytest.raises(RuntimeError, match="valid only for compatibility smoke execution"):
+        nox_test_lanes._compatibility_runtime_stages(
+            reporter.session,
+            reporter,
+            selector="cpython-3.14",
+            expected="3.14",
+            expect_free_threaded=False,
+            smoke_only=False,
+        )
+
+
+def test_python_compatibility_distribution_requires_reviewed_closure_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, raising=False)
+    reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
+
+    with pytest.raises(RuntimeError, match="must select a reviewed closure profile"):
+        nox_test_lanes._compatibility_distribution_stages(
+            reporter.session,
+            reporter,
+            selector="cpython-3.14",
+            expected="3.14",
+        )
 
 
 @pytest.mark.parametrize(
@@ -776,6 +861,19 @@ def test_python_compatibility_rejects_unsupported_or_missing_interpreter_selecti
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
     with pytest.raises(RuntimeError, match=message):
+        nox_test_lanes._run_python_compatibility(reporter.session, reporter)
+
+
+def test_python_compatibility_rejects_profile_for_another_interpreter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(nox_config.EXPECTED_PYTHON_ENV, "3.14")
+    monkeypatch.setenv("UV_PYTHON", "cpython-3.14")
+    monkeypatch.setenv(nox_config.EXPECT_FREE_THREADED_ENV, "0")
+    monkeypatch.setenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, "public-linux-x86_64-cp313-all-extras")
+    reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
+
+    with pytest.raises(RuntimeError, match="must match the selected interpreter"):
         nox_test_lanes._run_python_compatibility(reporter.session, reporter)
 
 
@@ -823,6 +921,7 @@ def test_coverage_configuration_measures_branches_and_repository_python() -> Non
         "*/.cache/*",
         "*/docs/*",
         "*/implementations/python/.venv/*",
+        "*/implementations/tooling/python/.venv/*",
         "*/implementations/python/tests/*",
     }
     assert report["include_namespace_packages"] is True

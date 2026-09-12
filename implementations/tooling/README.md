@@ -3,9 +3,9 @@
 This directory is the reviewed, declarative authority for development artifact
 identity, supported platforms, admission rules, GitHub Action sources, selector
 bindings, host/bootstrap profiles, qualification records and inventory coverage.
-It is internal tooling policy, not an SDL contract and not a second Python
-dependency resolver; `implementations/python/uv.lock` remains the Python
-resolution authority.
+It is internal tooling policy, not an SDL contract. The project lock remains
+the runtime/development/docs resolution authority; `python/uv.lock` separately
+owns the complete verification-tool and build-backend graph.
 
 Run the deterministic offline validator before acquiring a governed artifact:
 
@@ -34,10 +34,52 @@ they can become trusted inputs.
 
 Artifact and policy changes require independent review by the owner roles named
 in each record. Native acquisition remains delegated to the owning client:
-`uv` for Python, platform package managers for native packages, Docker or Podman
-for OCI images, and the reviewed generic-client migration for release archives.
+`uv` and the frozen Python tooling client for Python, platform package managers
+for native packages, Docker or Podman for OCI images, and the reviewed
+generic-client migration for release archives.
 Never add credentials, executable hooks, shell fragments, mutable selectors or
 unauthenticated-signature claims to these files.
+
+## Python tool, build, and smoke closures
+
+`python/pyproject.toml` and `python/uv.lock` pin Nox, pre-commit, Ruff,
+check-jsonschema, pytest, the reviewed uv 0.12.4 executable package, the
+cryptography fixture dependency used by T08, and every transitive tool
+dependency. The separate `build` group pins Hatchling.
+`python/build-constraints.txt` is the generated, hash-complete isolated-build
+projection. Target-specific requirements and raw wheel manifests under
+`python/smoke/` are generated from the project or tool lock and checked
+byte-for-byte by the tooling policy gate. Tool manifests include both the
+default tool graph and the build group so a fresh offline cache can create the
+tool environment and isolated build environment from the same verified raw
+wheelhouse.
+
+Regenerate and verify those projections with the frozen tooling environment:
+
+```bash
+uv run --project implementations/tooling/python --frozen --no-default-groups python tools/generate_python_closures.py
+uv run --project implementations/tooling/python --frozen --no-default-groups python tools/generate_python_closures.py --check
+```
+
+Callers select a closed `python_closure_profile_id`; they do not supply package
+lists, index arguments, or environment overlays. Public, enterprise
+mirror-only, and offline contexts are distinct. Mirror policy stores only a
+credential reference and accepts one credential-free HTTPS locator through
+`RAES_PYTHON_MIRROR_URL`; public fallback is prohibited. Offline installation
+first verifies that the wheelhouse contains exactly the named regular files at
+the recorded sizes and SHA-256 digests.
+
+The supported project closure tuples are Linux x86_64 on CPython 3.11–3.14,
+Linux arm64 on CPython 3.14, and macOS arm64 on CPython 3.14. macOS x86_64 has a
+tool-and-build closure, including the reviewed universal cryptography wheel for
+the T08 fixture, but no project all-extras closure: the current project lock has
+no compatible cryptography wheel, and ambient source fallback is not admitted.
+A new tuple requires a lock/export/profile update and qualification evidence.
+
+These locks make dependency selection repeatable. They do not claim that wheel
+builds are byte-for-byte reproducible across host SDKs, compilers, operating
+systems, or build times. Candidate wheel and sdist builds therefore run outside
+the checkout and are recorded by digest.
 
 ## GitHub Action admission
 
@@ -121,11 +163,12 @@ acquisition capability.
 x86_64/arm64 and macOS x86_64/arm64, runs the maintained curl against controlled
 TLS, redirect, retry, disconnect, deadline and unknown-length size fixtures,
 exports exact raw uv/CPython objects plus an installed managed interpreter, uv,
-the frozen dependency cache and the four generic tools. It measures every kit
-entry, deletes the seeded copies, restores the target-specific archive, verifies
-the raw and installed identities, disables uv downloads and network fallback,
-then repeats the frozen Python and tool checks. Linux arm64 and macOS arm64 bind
-that clean restore to T12; all four platforms bind their tool/ABI run to T02.
+target-specific raw Python wheelhouses and the four generic tools. It measures
+every kit entry, deletes the seeded copies, restores the target-specific
+archive, verifies raw and installed identities, disables uv downloads and
+network fallback, recreates environments from the verified wheels, then repeats
+the frozen Python and tool checks. Linux arm64 and macOS arm64 bind that clean
+restore to T12; all four platforms bind their tool/ABI run to T02.
 Native packages and trust roots remain reviewed base-image prerequisites. The
 workflow retains the bounded result and payload-kit artifacts under the exact
 workflow commit. Public profiles contain no credential reference; enterprise

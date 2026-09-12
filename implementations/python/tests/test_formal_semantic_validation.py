@@ -53,6 +53,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "6.0.0",
         "7.0.0",
         "8.0.0",
+        "9.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -60,15 +61,22 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
 
-    assert release.manifest["revision"] == "8.0.0"
+    assert release.manifest["revision"] == "9.0.0"
     assert protocol["revision"] == corpus["revision"] == "2.0.0"
+    assert snapshot["baseline"]["release_revision"] == "8.0.0"
+    assert snapshot["deviations"] == []
+    assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
+
+
+def test_recursive_realization_capture_retains_exact_compiler_deviations() -> None:
+    release = next(item for item in load_release_bundles(REPO_ROOT) if item.manifest["revision"] == "8.0.0")
+    snapshot = release.snapshot
     assert snapshot["baseline"]["release_revision"] == "7.0.0"
     assert len(snapshot["deviations"]) == 2
     assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
     assert all(
         item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
     )
-    assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
 
 def test_historical_release_validation_does_not_replay_current_code(

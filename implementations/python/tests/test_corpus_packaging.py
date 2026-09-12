@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -60,10 +61,34 @@ def _sanitized_runtime_env(home: Path) -> dict[str, str]:
     return {"PATH": os.environ.get("PATH", ""), "HOME": str(home)}
 
 
+def _current_python_closure_profile() -> str:
+    abi = f"cp{sys.version_info.major}{sys.version_info.minor}"
+    machine = platform.machine().lower()
+    if sys.platform.startswith("linux") and machine in {"amd64", "x86_64"}:
+        return f"public-linux-x86_64-{abi}-all-extras"
+    if sys.platform.startswith("linux") and machine in {"aarch64", "arm64"} and abi == "cp314":
+        return "public-linux-arm64-cp314-all-extras"
+    if sys.platform == "darwin" and machine in {"aarch64", "arm64"} and abi == "cp314":
+        return "public-macos-arm64-cp314-all-extras"
+    pytest.skip("installed corpus smoke has no reviewed closure for this interpreter/platform tuple")
+
+
 @pytest.fixture(scope="module")
 def built_wheel(tmp_path_factory: pytest.TempPathFactory) -> Path:
     out_dir = tmp_path_factory.mktemp("wheel")
-    result = _run([_UV, "build", "--wheel", "--out-dir", str(out_dir)], cwd=PROJECT_ROOT)
+    result = _run(
+        [
+            _UV,
+            "build",
+            "--wheel",
+            "--build-constraints",
+            str(REPO_ROOT / "implementations" / "tooling" / "python" / "build-constraints.txt"),
+            "--require-hashes",
+            "--out-dir",
+            str(out_dir),
+        ],
+        cwd=PROJECT_ROOT,
+    )
     assert result.returncode == 0, f"wheel build failed:\n{result.stdout}\n{result.stderr}"
     wheels = list(out_dir.glob("raes-*.whl"))
     assert len(wheels) == 1, f"expected exactly one wheel, found {wheels}"
@@ -73,14 +98,26 @@ def built_wheel(tmp_path_factory: pytest.TempPathFactory) -> Path:
 @pytest.fixture(scope="module")
 def installed_python(built_wheel: Path, tmp_path_factory: pytest.TempPathFactory) -> Path:
     venv_dir = tmp_path_factory.mktemp("venv")
-    create = _run([_UV, "venv", str(venv_dir)])
-    assert create.returncode == 0, f"venv create failed:\n{create.stdout}\n{create.stderr}"
     py = (
         venv_dir
         / ("Scripts" if sys.platform == "win32" else "bin")
         / ("python.exe" if sys.platform == "win32" else "python")
     )
-    install = _run([_UV, "pip", "install", "--python", str(py), str(built_wheel)])
+    install = _run(
+        [
+            sys.executable,
+            "-m",
+            "tools.python_closure",
+            "smoke",
+            "--profile",
+            _current_python_closure_profile(),
+            "--candidate",
+            str(built_wheel),
+            "--environment",
+            str(venv_dir),
+        ],
+        cwd=REPO_ROOT,
+    )
     assert install.returncode == 0, f"wheel install failed:\n{install.stdout}\n{install.stderr}"
     # The throwaway venv must not contain the source-tree corpus.
     assert not (venv_dir / "contracts").exists()

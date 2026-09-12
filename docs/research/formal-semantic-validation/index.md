@@ -70,13 +70,19 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v6.json`](analysis-v6.json) to the tooling-policy configuration
   change. Every retained observation replays without result drift from release
   6.0.0.
-- [`bundles/retest-v7.json`](bundles/retest-v7.json) is current release 8.0.0.
+- [`bundles/retest-v7.json`](bundles/retest-v7.json) preserves release 8.0.0.
   It binds [`execution-snapshot-v7.json`](execution-snapshot-v7.json) and
   [`analysis-v7.json`](analysis-v7.json) to the issue-1204 recursive realization
   source state after integration with the unified control-plane mutation
   lifecycle. Two compiler result digests change from the pinned release
   7.0.0 baseline; the replayed stability and distinguishability outcomes do not.
   The original protocol and unsupported claims remain unchanged.
+- [`bundles/retest-v8.json`](bundles/retest-v8.json) is current release 9.0.0.
+  It binds [`execution-snapshot-v8.json`](execution-snapshot-v8.json) and
+  [`analysis-v8.json`](analysis-v8.json) to the integrated Python dependency
+  closures. Retained observations replay without drift from release 8.0.0.
+  Previously pinned baseline captures retain their exact bytes; the new source
+  identity is recorded here rather than repinning historical evidence.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -121,7 +127,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 8.0.0, rejects unsupported future
+Current validation requires explicit release 9.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

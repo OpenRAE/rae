@@ -34,12 +34,17 @@ from tools.tooling_artifact_policy_common import (
     SELECTOR_BINDINGS_PATH,
     as_list,
     failure,
+    is_regular_repo_file,
     load_documents,
     normalize_platform_id,
     string_set,
 )
 from tools.tooling_artifact_policy_discovery import tracked_python_scans
 from tools.tooling_artifact_policy_inventory import inventory_failures
+from tools.tooling_artifact_policy_python import (
+    PYTHON_AUTHORITY_PATHS,
+    python_closure_failures,
+)
 from tools.tooling_artifact_policy_selectors import selector_failures
 
 __all__ = [
@@ -95,11 +100,22 @@ def evaluate_tooling_artifact_policy(
     documents, failures = load_documents(repo_root)
     paths, path_failures = _resolved_paths(repo_root, tracked_paths)
     failures.extend(path_failures)
+    if tracked_paths is None:
+        coverage = documents.get(INVENTORY_COVERAGE_PATH, {})
+        declared_candidates = {
+            str(item["path"])
+            for item in as_list(coverage.get("acquisition_paths"))
+            if isinstance(item, Mapping)
+            and isinstance(item.get("path"), str)
+            and is_regular_repo_file(repo_root, item["path"])
+        }
+        paths = sorted(set(paths) | declared_candidates)
     python_scans = tracked_python_scans(repo_root, paths)
     failures.extend(artifact_failures(repo_root, documents))
     failures.extend(action_failures(repo_root, documents, paths))
     failures.extend(selector_failures(repo_root, documents, paths, python_scans))
     failures.extend(inventory_failures(repo_root, documents, paths, python_scans))
+    failures.extend(python_closure_failures(repo_root, documents, paths))
     if all(path in documents for path in POLICY_SCHEMAS):
         expected_policy_sha256 = tooling_policy_sha256(repo_root)
         profiles = documents[PROFILES_PATH]
@@ -130,6 +146,16 @@ def tooling_policy_sha256(repo_root: Path) -> str:
         digest.update(path_bytes)
         digest.update(len(encoded).to_bytes(8, "big"))
         digest.update(encoded)
+    for relative_path in PYTHON_AUTHORITY_PATHS:
+        path = repo_root / relative_path
+        if not path.is_file() or path.is_symlink():
+            continue
+        payload = path.read_bytes()
+        path_bytes = relative_path.encode()
+        digest.update(len(path_bytes).to_bytes(8, "big"))
+        digest.update(path_bytes)
+        digest.update(len(payload).to_bytes(8, "big"))
+        digest.update(payload)
     return digest.hexdigest()
 
 
