@@ -232,7 +232,7 @@ def parse_runtime_enum_or_var(value: Any, enum_cls: type[Enum], *, field_name: s
     return parsed
 
 
-def _parse_runtime_extension(value: Any, enum_cls: type[Enum], *, field_name: str):
+def _parse_runtime_extension(value: object, enum_cls: type[Enum], *, field_name: str) -> Enum | str | None:
     """Admit a private identity only through the field's governed vocabulary."""
     # The contracts facade also exposes SDL-shaped DTOs. Resolve its catalog
     # after model construction, as the incumbent account vocabulary does.
