@@ -35,7 +35,7 @@ def _register_workflow_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="cancel_workflow",
@@ -59,7 +59,7 @@ def _register_workflow_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="reconcile_workflow_timeouts",

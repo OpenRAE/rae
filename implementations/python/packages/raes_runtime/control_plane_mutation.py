@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from collections.abc import AsyncIterator, Callable, Iterator
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager, contextmanager, nullcontext
 from contextvars import ContextVar
 from dataclasses import dataclass
 from threading import Condition, Lock, get_ident, local
@@ -237,11 +237,15 @@ def control_plane_mutation(control_plane: object, kind: OperationKind) -> Iterat
 
     authority = getattr(control_plane, "_mutation_authority", None)
     mutation = getattr(authority, "mutation", None)
-    if callable(mutation):
-        with mutation(kind):
-            yield
-        return
-    yield
+    mutation_context = mutation(kind) if callable(mutation) else nullcontext()
+    with mutation_context:
+        if callable(mutation):
+            assert_owner = getattr(control_plane, "_assert_runtime_owner", None)
+            if getattr(control_plane, "_durability_poisoned", False):
+                raise RuntimeError("runtime control plane requires restart after a durability reconciliation failure")
+            if callable(assert_owner):
+                assert_owner()
+        yield
 
 
 def _complete_waiter(future: asyncio.Future[None]) -> None:
@@ -256,16 +260,15 @@ def external_control_plane_call(control_plane: object) -> Iterator[None]:
     authority = getattr(control_plane, "_mutation_authority", None)
     owns_current_thread = getattr(authority, "owns_current_thread", None)
     external_call = getattr(authority, "external_call", None)
-    if callable(owns_current_thread) and owns_current_thread() and callable(external_call):
-        with external_call():
-            yield
-        return
     admission_call = getattr(authority, "admission_call", None)
-    if callable(admission_call):
-        with admission_call():
-            yield
-        return
-    yield
+    if callable(owns_current_thread) and owns_current_thread() and callable(external_call):
+        call_context = external_call()
+    elif callable(admission_call):
+        call_context = admission_call()
+    else:
+        call_context = nullcontext()
+    with call_context:
+        yield
 
 
 __all__ = (

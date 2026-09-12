@@ -1,11 +1,17 @@
 # Issue 1181 Unified Control-Plane Mutations Preflight
 
-Date: 2026-09-11
+Date: 2026-09-12
 
 Issue: #1181. Parent decision: ADR-104. Work package: CP-2. Issue #1151
 and the issue body are the design and delivery authority; this note narrows the
 implementation boundary and does not create a second architecture or an
 implementation plan.
+
+Checkout review: the mutation authority, atomic store adapter, strict audit
+codec, recovery-writer removal, and CP-2 acceptance suite already exist. Build
+on those incumbents; their presence does not establish completion of API-404
+or the remaining ADR-104 profile work. The handoff requirements below are
+review obligations, not claims that every failure boundary is already tested.
 
 ## Decision
 
@@ -28,9 +34,9 @@ start another control-plane mutation. `_operation_lock` and
 `_participant_control_lock` are subordinate bookkeeping or cache guards and
 must not form independent consistency domains or wrap backend work. The HTTP
 `_ControlPlaneCallExecutor` remains the bounded, event-loop-safe
-admission/offload owner, but it must reserve or await the core authority without
-parking a worker thread and without holding its current async serialization lock
-through backend work.
+admission/offload owner. Its existing asynchronous reservation must await the
+core authority without parking a worker thread; do not restore an independent
+HTTP serialization lock around backend work.
 
 The P1 process-lifetime `RuntimeOwnerLease` remains held. It is store ownership
 admission/fencing required by ADR-104, not a per-operation critical section;
@@ -117,15 +123,16 @@ preconditions, not another mutation authority and not substitutes for the
 whole-snapshot state-cut check.
 
 No runtime path may terminalize an operation through `save_record()` alone.
-`ControlPlaneStoreCommitAdapter`'s ordered `save_snapshot()`/`save_record()`
-fallback cannot meet the issue contract and cannot remain a mutation-capable
-profile. A provider lacking the complete atomic claim and terminal capability
-must fail capability admission (or be explicitly outside mutable
+`ControlPlaneStoreCommitAdapter` has removed the ordered
+`save_snapshot()`/`save_record()` fallback; do not restore it as a
+mutation-capable profile. A provider lacking the complete atomic claim and
+terminal capability must fail capability admission (or be explicitly outside mutable
 control-plane guarantees); compatibility and consumer guidance must follow the
 repository's evolution/deprecation policy rather than silently weakening CP-2.
 
-Startup/error reconciliation is also a terminal writer. The current
-record-only `reconcile_interrupted_records()` path cannot remain a bypass. CP-2
+Startup/error reconciliation would also be a terminal writer. The removed
+record-only `reconcile_interrupted_records()` path must stay removed;
+`control_plane_recovery.py` is a compatibility tombstone. CP-2
 does not need to implement CP-3 effect classification, but it must ensure that
 an uncertain commit is first read back as one authoritative cut: a complete
 terminal triple may be published, while a remaining `RUNNING` operation stays
@@ -134,6 +141,10 @@ a record-only write, infer backend success, or replay the backend.
 
 ## Canonical incumbents
 
+- `RuntimeMutationAuthority`, `control_plane_mutation()`, `mutation_entry()`,
+  `external_control_plane_call()`, and `SubordinateMutationGate` in
+  `raes_runtime/control_plane_mutation.py` own the existing permit, admission
+  probe, callback guard, and subordinate entry conventions.
 - `OperationState`, `OperationKind`, `OperationAdmissionContext`, the closed
   transition matrix, terminal diagnostic helpers, and published operation
   carriers from CP-1 own lifecycle vocabulary. Do not create a parallel
@@ -210,6 +221,18 @@ a record-only write, infer backend success, or replay the backend.
   the HTTP composition shape, and `require_single_worker_configuration()`
   remains the worker-count environment gate (`WEB_CONCURRENCY` and
   `UVICORN_WORKERS`); neither is a place to configure mutation semantics.
+  For plans passing through CP-2, retain `control_plane_plan_diagnostics()`
+  and its planner-authority, account-credential, generated-artifact,
+  service-materialization, domain-topology, and observation-demand gates.
+  `raes/runtime_environment.py::RuntimeEnvironmentVariable` owns environment
+  value/value-source exclusions and observed-value redaction;
+  `raes_processor/planner/stateful_admission.py` owns generated-artifact
+  admission. These are scenario payload contracts, not service credential
+  configuration. Preserve them through the existing carriers; do not flatten
+  bindings into strings, resolve secrets into durable context, or introduce a
+  token-bearing subprocess command or argv. Account sanitization remains in
+  `backend_account_credentials.py` and canonical
+  `raes_contracts.account_credentials`.
 - **Persistence and OS exposure:** the SQLite provider retains owner-only
   directory/database permissions, symlink/non-regular-file rejection,
   identity-pinned opens, WAL and full-synchronous admission, integrity and
@@ -224,9 +247,14 @@ a record-only write, infer backend success, or replay the backend.
   `str(exception)`; backend/provider text and expected/current internal values
   remain redacted. A caller disconnect or timeout never reports or records that
   the worker or backend effect was cancelled. In particular, the current
-  per-route `detail=str(exc)` conversions and
-  `_resynchronize_after_store_error()` note containing a reconciliation
-  exception `repr` are not safe templates for this path.
+  per-route `detail=str(exc)` conversions are not safe templates for this
+  path. `_resynchronize_after_store_error()` now uses a constant safe note;
+  preserve it. The redacted handlers in `control_plane_api/_operation_routes.py`
+  must still produce their coarse envelope if their secondary audit attempt
+  fails because the runtime is poisoned or the store is unavailable. The
+  rejection middleware's `_LOGGER.exception()` is also not a safe template for
+  logging provider failures: exception chains can disclose paths and values
+  despite a constant message. Do not copy raw request paths into new audit fields.
 - **Observability:** terminal audit is created by the trusted core and committed
   once, not appended post hoc by each HTTP route. Optional logs use bounded,
   value-free operation id/kind/phase/outcome fields and do not duplicate the
@@ -253,6 +281,58 @@ validated candidate outcome without adding another lock, claim flow, terminal
 save sequence, audit writer, or public schema. A future P3 coordination/fencing
 provider composes beneath the same seam; it does not turn the in-process permit
 into a distributed lock.
+
+## Ownership and failure handoffs
+
+- `_ControlPlaneCallExecutor.mutate()` probes a core call and invokes it again
+  after reservation. Pre-permit admission must therefore be repeatable and
+  must not claim, invoke a backend, append crossing history, or emit an accepted
+  lifecycle audit. Re-evaluate state-dependent authorization, base revision,
+  participant heads, and idempotency after acquiring the permit. A completed
+  denial uses the existing single denial path and does not enter the second pass.
+- A direct caller can pass `_runtime_call()` and then wait behind another
+  mutation. After permit acquisition, recheck durability health and lease
+  ownership before claiming or invoking; a prior mutation may have poisoned
+  the runtime while this caller waited. Preserve `RuntimeLifecycleMixin`'s
+  draining semantics for already-admitted calls during close, while refusing
+  new admission. Poison is not an ordinary draining close.
+- Cancellation before reservation grant must remove the waiter; after worker
+  dispatch, logical ownership must survive until that worker actually exits.
+  Verify both ASGI cancellation and direct task cancellation at the grant and
+  dispatch boundaries; a threadpool call continuing in a thread alone does not
+  prove the awaiting task retains its reservation. Backends still own bounded
+  I/O timeouts. A hung backend must not be bypassed by granting another permit.
+- Reservation context and thread-local callback guards are internal authority,
+  not delegation credentials. Extension callbacks must not spawn and join a
+  nested control-plane mutation, or copy reservation context into another
+  task/thread to share the permit. Same-thread re-entry rejection alone does
+  not establish safety against those patterns; this is a trusted in-process
+  extension boundary, not isolation from malicious Python code.
+- Every exit after `RUNNING` needs an authoritative disposition, including
+  failed CAS after an effect, interrupted extension work, and failure in
+  `_publish_committed_state()` after a successful transaction. Reloading a
+  snapshot alone does not resolve an external effect. Read back the complete
+  committed outcome under ownership, or preserve the claim and fail closed;
+  neither retry the backend nor admit a successor from an unresolved cut.
+  Terminal persistence retry is distinct from client idempotent submission;
+  neither can use a redacted commitment as proof of equal secret values.
+
+The existing test owners are `test_issue_1181_unified_control_plane_mutations.py`
+(authority and atomic outcomes), `test_issue_1092_control_plane_crash_consistency.py`
+(durability and ownership), `test_issue_1180_snapshot_revision_cas.py` (stale
+cuts), and `test_issue_1093_request_rejection_offload.py` (bounded HTTP rejection).
+Extend those boundaries with deterministic interleavings; entry decorators,
+signature inspection, and structural design tests do not prove behavioral
+store capability, crash atomicity, or the handoffs above.
+
+Review evidence (2026-09-12): the initial preflight run timed out in
+`test_http_mutation_waits_for_core_authority_without_occupying_worker`. A
+follow-up isolated run before remediation passed, and the focused responsiveness
+and cancellation pair then passed in five consecutive fresh-process runs after
+remediation. The executor now shields dispatched mutation work and retains its
+logical reservation through caller cancellation until the worker actually
+exits; `test_cancelled_http_mutation_retains_reservation_until_worker_exits`
+locks that handoff. The wider CP-2 and tooling-policy suites also pass.
 
 ## Verification boundary
 
