@@ -17,9 +17,7 @@ class RepositoryRequirementError(ValueError):
 
 
 class _RequirementLoader(yaml.SafeLoader):
-    def construct_mapping(
-        self, node: yaml.MappingNode, deep: bool = False
-    ) -> dict[object, object]:
+    def construct_mapping(self, node: yaml.MappingNode, deep: bool = False) -> dict[object, object]:
         keys = [key.value for key, _ in node.value if isinstance(key, yaml.ScalarNode)]
         if len(keys) != len(node.value) or len(keys) != len(set(keys)):
             raise yaml.YAMLError("Requirement metadata keys must be unique scalars.")
@@ -51,9 +49,7 @@ class RepositoryRequirementClient:
 
     def _load(self, uid: str) -> tuple[dict[str, object], list[dict[str, object]]]:
         if not isinstance(uid, str) or _UID.fullmatch(uid) is None:
-            raise RepositoryRequirementError(
-                "Requirement identity is not a canonical UID."
-            )
+            raise RepositoryRequirementError("Requirement identity is not a canonical UID.")
         if uid in self._records:
             return self._records[uid]
         path = self.root / uid / "requirement.md"
@@ -61,22 +57,16 @@ class RepositoryRequirementClient:
             # Do not follow a substituted directory or file outside its exact
             # authority location, including a symlink to otherwise readable data.
             if path.resolve() != path or path.stat().st_size > _MAX_REQUIREMENT_BYTES:
-                raise RepositoryRequirementError(
-                    "Requirement source is not its bounded canonical file."
-                )
+                raise RepositoryRequirementError("Requirement source is not its bounded canonical file.")
             with path.open("rb") as source:
                 raw = source.read(_MAX_REQUIREMENT_BYTES + 1)
             if len(raw) > _MAX_REQUIREMENT_BYTES:
-                raise RepositoryRequirementError(
-                    "Requirement source exceeds its bounded file size."
-                )
+                raise RepositoryRequirementError("Requirement source exceeds its bounded file size.")
             document = raw.decode("utf-8")
             frontmatter, body = self._split(document)
             metadata = _metadata(frontmatter)
             if not isinstance(metadata, dict) or metadata.get("id") != uid:
-                raise RepositoryRequirementError(
-                    "Requirement metadata does not match its canonical identity."
-                )
+                raise RepositoryRequirementError("Requirement metadata does not match its canonical identity.")
             status = metadata.get("status")
             if not isinstance(status, str) or status not in {
                 "DRAFT",
@@ -84,15 +74,11 @@ class RepositoryRequirementClient:
                 "DEPRECATED",
                 "ARCHIVED",
             }:
-                raise RepositoryRequirementError(
-                    "Requirement metadata has no valid governed status."
-                )
+                raise RepositoryRequirementError("Requirement metadata has no valid governed status.")
             requirement = {"id": uid, "uid": uid, "status": status}
             traceability = self._traceability(body)
         except (OSError, UnicodeError, yaml.YAMLError, RecursionError) as exc:
-            raise RepositoryRequirementError(
-                "Requirement authority cannot be read and validated."
-            ) from exc
+            raise RepositoryRequirementError("Requirement authority cannot be read and validated.") from exc
         self._records[uid] = requirement, traceability
         return requirement, traceability
 
@@ -100,15 +86,11 @@ class RepositoryRequirementClient:
     def _split(document: str) -> tuple[str, str]:
         lines = document.splitlines()
         if not lines or lines[0] != "---":
-            raise RepositoryRequirementError(
-                "Requirement source has no YAML frontmatter."
-            )
+            raise RepositoryRequirementError("Requirement source has no YAML frontmatter.")
         try:
             end = lines.index("---", 1)
         except ValueError as exc:
-            raise RepositoryRequirementError(
-                "Requirement frontmatter is not terminated."
-            ) from exc
+            raise RepositoryRequirementError("Requirement frontmatter is not terminated.") from exc
         return "\n".join(lines[1:end]), "\n".join(lines[end + 1 :])
 
     @staticmethod
@@ -122,9 +104,7 @@ class RepositoryRequirementClient:
                 continue
             match = _TRACE.fullmatch(line)
             if match is None:
-                raise RepositoryRequirementError(
-                    "Requirement traceability contains an invalid link record."
-                )
+                raise RepositoryRequirementError("Requirement traceability contains an invalid link record.")
             link_type, artifact_type, artifact_identifier = match.groups()
             links.append(
                 {

@@ -15,6 +15,16 @@ from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from .backend_snapshot_contracts import snapshot_shape_violation
 
 _MAX_DIAGNOSTICS = 1024
+_MAX_DETAILS_BYTES = 65536
+
+
+def _bounded_diagnostics(result: object) -> list[Diagnostic]:
+    """Drain one diagnostics iterable under its bound, refusing an overlong one."""
+
+    diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
+    if len(diagnostics) > _MAX_DIAGNOSTICS:
+        raise ValueError("Backend returned too many diagnostics.")
+    return diagnostics
 
 
 def _materialize_diagnostics(result: object, address: str) -> tuple[list[Diagnostic], str | None]:
@@ -22,12 +32,11 @@ def _materialize_diagnostics(result: object, address: str) -> tuple[list[Diagnos
     if message:
         return [], message
     try:
-        diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
-        if len(diagnostics) > _MAX_DIAGNOSTICS:
-            return [], "Backend returned too many diagnostics."
-        return diagnostics, _diagnostics_values_violation(diagnostics, address)
-    except Exception:
-        return [], "Backend returned a diagnostics iterable that could not be validated."
+        diagnostics = _bounded_diagnostics(result)
+    except Exception as exc:
+        overlong = isinstance(exc, ValueError) and str(exc) == "Backend returned too many diagnostics."
+        return [], str(exc) if overlong else "Backend returned a diagnostics iterable that could not be validated."
+    return diagnostics, _diagnostics_values_violation(diagnostics, address)
 
 
 def _diagnostics_iterable_violation(result: object, address: str) -> str | None:
@@ -108,11 +117,19 @@ def _apply_result_changed_addresses_violation(result: ApplyResult, address: str)
     return message
 
 
+def _details_payload_violation(details: dict[str, object]) -> str | None:
+    """Bound one apply-result detail record before it becomes runtime state."""
+
+    if not validate_realization_value(details).conformant:
+        return "Backend returned invalid or excessive apply-result details."
+    oversized = len(json.dumps(details, allow_nan=False).encode("utf-8")) > _MAX_DETAILS_BYTES
+    return "Backend returned excessive apply-result details." if oversized else None
+
+
 def _apply_result_details_violation(result: ApplyResult, address: str) -> str | None:
-    if isinstance(result.details, dict):
-        if not validate_realization_value(result.details).conformant:
-            return "Backend returned invalid or excessive apply-result details."
-        if len(json.dumps(result.details, allow_nan=False).encode("utf-8")) > 65536:
-            return "Backend returned excessive apply-result details."
-        return None
-    return f"Backend method '{address}' returned ApplyResult.details as {type(result.details).__name__}; expected dict."
+    if not isinstance(result.details, dict):
+        return (
+            f"Backend method '{address}' returned ApplyResult.details as "
+            f"{type(result.details).__name__}; expected dict."
+        )
+    return _details_payload_violation(result.details)

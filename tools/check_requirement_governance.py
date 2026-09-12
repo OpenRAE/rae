@@ -251,6 +251,12 @@ def evaluate_configured_governance(
             require_governance=True,
             as_json=as_json,
         )
+    return _evaluate_repository_governance(effective_paths, uid, as_json=as_json)
+
+
+def _evaluate_repository_governance(effective_paths: list[str], uid: str, *, as_json: bool) -> int:
+    """Evaluate governance from the pinned repository records, never over HTTP."""
+
     try:
         failures = evaluate_requirement_governance(
             REPO_ROOT,

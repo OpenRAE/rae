@@ -111,6 +111,26 @@ def prepared_node_collection_binding_violation(plan: ProvisioningPlan) -> str | 
     return None
 
 
+def _collection_membership_violation(
+    authority: object, selected: ProvisioningPlan, previous: RuntimeSnapshot
+) -> str | None:
+    """Check the selected membership plus retained predecessors against the authority."""
+
+    submitted = {operation.address for operation in selected.operations}
+    retained = [
+        ProvisionOp(ChangeAction.UNCHANGED, entry.address, entry.resource_type, entry.payload)
+        for entry in previous.entries.values()
+        if entry.domain == RuntimeDomain.PROVISIONING and entry.address not in submitted
+    ]
+    conformant = evaluate_realization_constraint(
+        authority.constraint_document,
+        node_collection_members(
+            [*selected.operations, *retained], namespaces=authority.constraint_document.root.fields
+        ),
+    ).conformant
+    return None if conformant else "Backend preparation does not satisfy enclosing node collection authority."
+
+
 def prepared_node_collection_violation(
     original: ProvisioningPlan, selected: ProvisioningPlan, previous: RuntimeSnapshot
 ) -> str | None:
@@ -123,20 +143,6 @@ def prepared_node_collection_violation(
         return "Backend preparation has no enclosing collection authority." if extra else None
     if any(operation.resource_type not in {"node", "network"} for operation in extra):
         return "Backend preparation exceeded its portable node collection universe."
-    invalid_binding = prepared_node_collection_binding_violation(original)
-    if invalid_binding:
-        return invalid_binding
-    submitted = {operation.address for operation in selected.operations}
-    retained = [
-        ProvisionOp(ChangeAction.UNCHANGED, entry.address, entry.resource_type, entry.payload)
-        for entry in previous.entries.values()
-        if entry.domain == RuntimeDomain.PROVISIONING and entry.address not in submitted
-    ]
-    if not evaluate_realization_constraint(
-        authority.constraint_document,
-        node_collection_members(
-            [*selected.operations, *retained], namespaces=authority.constraint_document.root.fields
-        ),
-    ).conformant:
-        return "Backend preparation does not satisfy enclosing node collection authority."
-    return None
+    return prepared_node_collection_binding_violation(original) or _collection_membership_violation(
+        authority, selected, previous
+    )

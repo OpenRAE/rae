@@ -96,14 +96,17 @@ def _require_startup_order_addresses(
         raise ValueError("Plan startup_order must reference admitted operation addresses")
 
 
+_SHA256_PATTERN = r"^sha256:[a-f0-9]{64}$"
+
+
 class RealizationEnvelopeIdentityModel(ContractModel):
     """Immutable realization-envelope identity carried across runtime contracts."""
 
     contract_id: Literal["realization-envelope-v1"] = "realization-envelope-v1"
     envelope_id: NonEmptyString
     schema_version: Literal["realization-envelope/v1"] = "realization-envelope/v1"
-    digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
-    configuration_digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
+    digest: Annotated[str, Field(pattern=_SHA256_PATTERN)]
+    configuration_digest: Annotated[str, Field(pattern=_SHA256_PATTERN)]
 
 
 class PlannedRealizationConstraintModel(ContractModel):
@@ -128,7 +131,7 @@ class RealizationAuthorityBoundModel(ContractModel):
 
     value_pointer: Annotated[str, Field(pattern=r"^(?:/(?:[^~/]|~[01])*)*$")]
     domain: DomainDescriptor
-    identity_digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")] | None = None
+    identity_digest: Annotated[str, Field(pattern=_SHA256_PATTERN)] | None = None
 
 
 class ResolvedRealizationAuthorityModel(ContractModel):
@@ -211,7 +214,7 @@ class ResolvedRealizationAuthorityModel(ContractModel):
         default=None, exclude_if=lambda value: value is None
     )
     constraint_binding: str | None = Field(
-        default=None, pattern=r"^sha256:[a-f0-9]{64}$", exclude_if=lambda value: value is None
+        default=None, pattern=_SHA256_PATTERN, exclude_if=lambda value: value is None
     )
 
     @model_validator(mode="after")
@@ -220,24 +223,32 @@ class ResolvedRealizationAuthorityModel(ContractModel):
             raise ValueError("realization authority cannot carry two independently editable structures")
         if (self.constraint_document is None) != (self.constraint_binding is None):
             raise ValueError("recursive authority requires its source binding")
-        if self.mode is RealizationAuthorityMode.CONSTRAINED and not self.bounds and self.constraint_document is None:
-            raise ValueError("constrained realization authority requires typed bounds")
-        if self.mode is not RealizationAuthorityMode.CONSTRAINED and self.bounds:
-            raise ValueError("only constrained realization authority may carry typed bounds")
-        if (
-            self.source is RealizationResolutionSource.LEGACY_DEFAULT
-            and self.mode is not RealizationAuthorityMode.CLOSED
-        ):
-            raise ValueError("legacy realization default must resolve closed")
-        if self.source is RealizationResolutionSource.APPARATUS_DEFAULT and self.mode not in {
-            RealizationAuthorityMode.CLOSED,
-            RealizationAuthorityMode.OPEN,
-        }:
-            raise ValueError("apparatus realization default must resolve open or closed")
+        self._require_mode_bounds()
+        self._require_resolution_source()
         bound_keys = [(bound.identity_digest, bound.value_pointer) for bound in self.bounds]
         if len(bound_keys) != len(set(bound_keys)):
             raise ValueError("realization authority bounds must identify unique value leaves")
         return self
+
+    def _require_mode_bounds(self) -> None:
+        """Only constrained authority carries typed bounds, and it must carry some."""
+
+        constrained = self.mode is RealizationAuthorityMode.CONSTRAINED
+        if constrained and not self.bounds and self.constraint_document is None:
+            raise ValueError("constrained realization authority requires typed bounds")
+        if not constrained and self.bounds:
+            raise ValueError("only constrained realization authority may carry typed bounds")
+
+    def _require_resolution_source(self) -> None:
+        """Each default resolution source admits only its own authority modes."""
+
+        if self.source is RealizationResolutionSource.LEGACY_DEFAULT and (
+            self.mode is not RealizationAuthorityMode.CLOSED
+        ):
+            raise ValueError("legacy realization default must resolve closed")
+        apparatus_modes = {RealizationAuthorityMode.CLOSED, RealizationAuthorityMode.OPEN}
+        if self.source is RealizationResolutionSource.APPARATUS_DEFAULT and self.mode not in apparatus_modes:
+            raise ValueError("apparatus realization default must resolve open or closed")
 
 
 class ProvisioningPlanModel(ContractModel):
@@ -334,8 +345,8 @@ class RealizationObservationDisclosureModel(ContractModel):
     observed_value: NonEmptyString | None = None
     operating_system: ObservedOperatingSystemIdentityModel | None = None
     operation_id: NonEmptyString | None = None
-    envelope_digest: str | None = Field(default=None, pattern=r"^sha256:[a-f0-9]{64}$")
-    configuration_digest: str | None = Field(default=None, pattern=r"^sha256:[a-f0-9]{64}$")
+    envelope_digest: str | None = Field(default=None, pattern=_SHA256_PATTERN)
+    configuration_digest: str | None = Field(default=None, pattern=_SHA256_PATTERN)
     observer_version: NonEmptyString | None = None
     sequence: int | None = Field(default=None, ge=0)
     binding_verified: bool = False
