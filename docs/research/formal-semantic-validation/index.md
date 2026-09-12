@@ -135,8 +135,11 @@ code. Only the current release supports a current-code claim.
 
 The current capture's `source_state` records a base Git commit, the modified
 checkout state, and a deterministic digest of all reference-package Python
-sources plus `pyproject.toml` and `uv.lock`. The base commit is not represented
-as the exact clean capture revision. Validation recomputes the implementation
+sources plus `pyproject.toml` and `uv.lock`. Source profile
+`python-reference-source/v2` binds the Release Please version literal in
+`raes/_version.py` as a placeholder, so a release version bump does not change
+the digest; `v1` captures remain valid only as historical records. The base
+commit is not represented as the exact clean capture revision. Validation recomputes the implementation
 digest. A changed implementation requires a new explicitly supported release,
 not rewriting history or extending a digest allowlist. Classification migration
 is not a claim class in the retained preregistration and is not promoted to

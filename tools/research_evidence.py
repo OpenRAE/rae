@@ -11,7 +11,17 @@ from pathlib import Path
 from tools.evidence_bundle_index import revision_key
 from tools.policy.common import PolicyFailure, safe_repo_path
 
-SOURCE_PROFILE = "python-reference-source/v1"
+# v2 binds the Release Please version literal as a placeholder, so a release
+# commit does not change the identity of the source it releases. v1 captures
+# hashed the literal and stay valid only as historical records.
+SOURCE_PROFILE = "python-reference-source/v2"
+HISTORICAL_SOURCE_PROFILES = frozenset({"python-reference-source/v1", SOURCE_PROFILE})
+RELEASE_MANAGED_VERSION_SOURCE = "implementations/python/packages/raes/_version.py"
+_RELEASE_VERSION_MARKER = "x-release-please-version"
+_RELEASE_VERSION_LINE = re.compile(
+    r'^(__version__ = ")[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?("  # x-release-please-version)$',
+    re.MULTILINE,
+)
 _SOURCE_KEYS = {"profile", "base_revision", "checkout_state", "implementation_digest"}
 
 
@@ -21,6 +31,18 @@ def _source_size(path: Path, total: int) -> int:
     if size > 2 * 1024 * 1024 or total > 128 * 1024 * 1024:
         raise ValueError("implementation source budget exceeded")
     return total
+
+
+def _source_bytes(path: Path, relative: str) -> bytes:
+    """Return the bytes a source pin binds; only the release version literal is abstracted."""
+    content = path.read_bytes()
+    if relative != RELEASE_MANAGED_VERSION_SOURCE:
+        return content
+    text = content.decode("utf-8")
+    normalized, replaced = _RELEASE_VERSION_LINE.subn(r"\g<1>release-managed\g<2>", text)
+    if replaced != 1 or text.count(_RELEASE_VERSION_MARKER) != 1:
+        raise ValueError("release-managed version source must carry exactly one marked version literal")
+    return normalized.encode("utf-8")
 
 
 def surface_digest(repo_root: Path, relative: str) -> str:
@@ -37,7 +59,8 @@ def surface_digest(repo_root: Path, relative: str) -> str:
         total = _source_size(path, total)
         if len(pins) >= 10000:
             raise ValueError("implementation source budget exceeded")
-        pins.append([path.relative_to(root).as_posix(), hashlib.sha256(path.read_bytes()).hexdigest()])
+        source = _source_bytes(path, path.relative_to(repo_root).as_posix())
+        pins.append([path.relative_to(root).as_posix(), hashlib.sha256(source).hexdigest()])
     if not pins:
         raise ValueError("empty implementation surface")
     return hashlib.sha256(json.dumps(pins, separators=(",", ":")).encode()).hexdigest()
@@ -70,16 +93,17 @@ def implementation_digest(repo_root: Path) -> str:
         if resolved is None or not resolved.is_file() or path.is_symlink():
             raise ValueError("unsafe reference implementation source")
         total = _source_size(resolved, total)
-        pins.append([relative, hashlib.sha256(resolved.read_bytes()).hexdigest()])
+        pins.append([relative, hashlib.sha256(_source_bytes(resolved, relative)).hexdigest()])
     encoded = json.dumps(pins, ensure_ascii=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _source_identity_valid(state: object) -> bool:
+def _source_identity_valid(state: object, profiles: frozenset[str]) -> bool:
     return (
         isinstance(state, Mapping)
         and set(state) == _SOURCE_KEYS
-        and state.get("profile") == SOURCE_PROFILE
+        and isinstance(state.get("profile"), str)
+        and state.get("profile") in profiles
         and isinstance(state.get("checkout_state"), str)
         and state.get("checkout_state") in {"clean", "modified"}
         and isinstance(state.get("base_revision"), str)
@@ -91,7 +115,7 @@ def _source_identity_valid(state: object) -> bool:
 
 def source_state_failures(repo_root: Path, state: object, path: str, *, current: bool) -> list[PolicyFailure]:
     """Historical source identity is retained; a current capture binds live code."""
-    valid = _source_identity_valid(state)
+    valid = _source_identity_valid(state, frozenset({SOURCE_PROFILE}) if current else HISTORICAL_SOURCE_PROFILES)
     if valid and current:
         try:
             valid = state["implementation_digest"] == implementation_digest(repo_root)

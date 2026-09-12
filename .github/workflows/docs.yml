@@ -2,12 +2,21 @@ name: Docs
 
 # Validate the curated public docs on pull requests and publish that same output
 # to GitHub Pages from main.
+#
+# Pull requests that change only Release Please-managed files (the release PR
+# and the main->dev back-merge PR) do not rebuild the docs (#1266). The push to
+# main is not filtered: the published docs render the release version, so the
+# release commit must still redeploy them.
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main, dev]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
   workflow_dispatch:
 
 concurrency:

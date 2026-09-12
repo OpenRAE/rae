@@ -1,5 +1,6 @@
 """Behavioral regressions for current replay and historical evidence retention."""
 
+import re
 from copy import deepcopy
 from pathlib import Path
 
@@ -342,3 +343,95 @@ def test_classification_retirement_has_a_recorded_adr_001_amendment():
     assert "#989" in amendment_refs(content)
     assert "#989" in {item["ref"] for item in entry["amendments"]}
     assert entry["pin"] == hashlib.sha256(canonical_content(content).encode()).hexdigest()
+
+
+def _release_managed_source_tree(tmp_path: Path, version_source: str) -> Path:
+    from tools.research_evidence import RELEASE_MANAGED_VERSION_SOURCE
+
+    python = tmp_path / "implementations/python"
+    (python / "packages/raes").mkdir(parents=True)
+    (python / "pyproject.toml").write_text('[project]\nname = "raes"\n', encoding="utf-8")
+    (python / "uv.lock").write_text("version = 1\n", encoding="utf-8")
+    (python / "packages/raes/__init__.py").write_text("from raes._version import __version__\n", encoding="utf-8")
+    (tmp_path / RELEASE_MANAGED_VERSION_SOURCE).write_text(version_source, encoding="utf-8")
+    return tmp_path
+
+
+def _released_version_source(version: str) -> str:
+    from tools.research_evidence import RELEASE_MANAGED_VERSION_SOURCE
+
+    current = (ROOT / RELEASE_MANAGED_VERSION_SOURCE).read_text(encoding="utf-8")
+    released, count = re.subn(r'(__version__ = ")[^"]+(")', rf"\g<1>{version}\g<2>", current)
+    assert count == 1
+    return released
+
+
+def _source_digests(root: Path) -> tuple[str, str]:
+    from tools.research_evidence import implementation_digest, surface_digest
+
+    return implementation_digest(root), surface_digest(root, "implementations/python/packages/raes")
+
+
+def test_release_version_bump_does_not_change_source_identity(tmp_path):
+    before = _source_digests(_release_managed_source_tree(tmp_path / "before", _released_version_source("3.5.0")))
+    after = _source_digests(_release_managed_source_tree(tmp_path / "after", _released_version_source("4.0.0")))
+
+    assert before == after
+
+
+def test_release_managed_source_still_binds_everything_but_the_version_literal(tmp_path):
+    released = _released_version_source("4.0.0")
+    baseline = _source_digests(_release_managed_source_tree(tmp_path / "baseline", released))
+    changed = _source_digests(_release_managed_source_tree(tmp_path / "changed", released + "RELEASE_HOOK = True\n"))
+
+    assert baseline[0] != changed[0]
+    assert baseline[1] != changed[1]
+
+
+@pytest.mark.parametrize(
+    "version_source",
+    [
+        '__version__ = "4.0.0"\n',
+        '__version__ = "4.0.0"  # x-release-please-version\nOTHER = "1.0.0"  # x-release-please-version\n',
+        '__version__ = __import__("os").getenv("V")  # x-release-please-version\n',
+    ],
+)
+def test_malformed_release_managed_source_fails_closed(tmp_path, version_source):
+    from tools.research_evidence import implementation_digest, source_state_failures, surface_digest
+
+    root = _release_managed_source_tree(tmp_path, version_source)
+    with pytest.raises(ValueError, match="release-managed version source"):
+        implementation_digest(root)
+    with pytest.raises(ValueError, match="release-managed version source"):
+        surface_digest(root, "implementations/python/packages/raes")
+    state = {
+        "profile": "python-reference-source/v2",
+        "base_revision": "0" * 40,
+        "checkout_state": "clean",
+        "implementation_digest": "0" * 64,
+    }
+    assert source_state_failures(root, state, "capture.json", current=True)
+
+
+def test_release_managed_version_source_is_the_file_release_please_rewrites():
+    import json
+
+    from tools.research_evidence import RELEASE_MANAGED_VERSION_SOURCE
+
+    config = json.loads((ROOT / "release-please-config.json").read_text(encoding="utf-8"))
+    extra_files = config["packages"]["."]["extra-files"]
+    assert extra_files == [{"type": "generic", "path": RELEASE_MANAGED_VERSION_SOURCE}]
+
+
+def test_current_capture_requires_the_release_stable_source_profile():
+    from tools.formal_semantic_validation._loading import load_retest_bundle
+    from tools.research_evidence import SOURCE_PROFILE, source_state_failures
+
+    _, _, _, snapshot, _ = load_retest_bundle(ROOT)
+    state = deepcopy(snapshot["source_state"])
+    assert state["profile"] == SOURCE_PROFILE == "python-reference-source/v2"
+    assert source_state_failures(ROOT, state, "capture.json", current=True) == []
+
+    state["profile"] = "python-reference-source/v1"
+    assert source_state_failures(ROOT, state, "capture.json", current=True)
+    assert source_state_failures(ROOT, state, "capture.json", current=False) == []

@@ -14,9 +14,11 @@ name: Release Please
 # collisions. The version literal is in the dedicated RAES package version file;
 # `raes.__version__` derives from the installed distribution metadata.
 #
-# Caveat: the release PR is opened by GITHUB_TOKEN, so required CI checks do not
-# auto-run on it. Exact-SHA verification below is therefore the non-bypassable
-# publication gate even when a maintainer admin-merges that PR.
+# The release PR, the main->dev back-merge PR, and their merge pushes change only
+# Release Please-managed files, so check workflows deliberately do not trigger on
+# them (#1266): everything they would check already passed on the dev->main
+# promotion. Exact-SHA verification below is the non-bypassable publication gate
+# for the release commit, and a maintainer admin-merges the release PR.
 # First release + PyPI setup: docs/explain/releasing.md.
 on:
   push:
@@ -751,8 +753,9 @@ jobs:
   # After a release is cut, the version bump + CHANGELOG land on `main`, so `dev`
   # falls one release commit behind. Open a back-merge PR so `dev` is resynced.
   # `main` is ahead of `dev` only by the release commit (a fast-forward). This
-  # job cannot auto-merge it: `dev` requires status checks that a bot-opened PR
-  # does not trigger, and repo auto-merge is off — merge it yourself (admin
+  # job cannot auto-merge it: the PR changes only Release Please-managed files,
+  # so `dev`'s check workflows do not trigger on it (#1266) and its required
+  # checks never report, and repo auto-merge is off — merge it yourself (admin
   # override; enforce_admins is false).
   sync-dev:
     needs: [release-please, publish-github]
@@ -782,4 +785,4 @@ jobs:
           fi
           gh pr create --repo "${GITHUB_REPOSITORY}" --base dev --head main \
             --title "chore: back-merge ${TAG} into dev" \
-            --body "Automated back-merge of the ${TAG} release commit (version bump + CHANGELOG) from \`main\` into \`dev\`, so \`dev\` stays in sync. \`main\` is ahead of \`dev\` only by the release commit (fast-forward). \`dev\`'s required checks do not run on this bot-opened PR — merge it directly (admin)."
+            --body "Automated back-merge of the ${TAG} release commit (version bump + CHANGELOG) from \`main\` into \`dev\`, so \`dev\` stays in sync. \`main\` is ahead of \`dev\` only by the release commit (fast-forward). It changes only Release Please-managed files, so \`dev\`'s check workflows do not trigger on it — merge it directly (admin)."
