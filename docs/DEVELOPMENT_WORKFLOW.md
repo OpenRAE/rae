@@ -16,7 +16,7 @@ uv sync --project implementations/python --all-extras --frozen
 The full pull-request gate is:
 
 ```shell
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
 ```
 
 Use `verify-changed` while you work. It selects a fail-closed subset from the
@@ -27,7 +27,7 @@ The docs session checks the curated source boundary, the RAES Vale style,
 warning-strict Sphinx HTML, generated route and search inventories, and links:
 
 ```shell
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s docs
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs
 ```
 
 ## Respect package boundaries
@@ -42,7 +42,7 @@ or duplicating compiler behavior in `raes_cli`.
 Run the repository policy session after changing a cross-package import:
 
 ```shell
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s policy
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s policy
 ```
 
 ## Release model

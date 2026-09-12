@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
@@ -19,6 +20,8 @@ from tools.nox_support.config import (
     PUBLIC_DOCS_ENTRYPOINTS,
     PUBLIC_DOCS_EXAMPLE_TESTS,
     PUBLIC_DOCS_ROOT,
+    PYTHON_CLOSURE_PROFILE_ENV,
+    PYTHON_CLOSURE_WHEELHOUSE_ENV,
     PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV,
     REPO_ROOT,
 )
@@ -120,6 +123,26 @@ def _compatibility_runtime_stages(
     expect_free_threaded: bool,
     smoke_only: bool,
 ) -> None:
+    restored_wheelhouse = os.environ.get(PYTHON_CLOSURE_WHEELHOUSE_ENV, "")
+    if restored_wheelhouse:
+        if not smoke_only:
+            raise RuntimeError("a restored offline closure is valid only for compatibility smoke execution")
+        reporter.skip(
+            "python compatibility / frozen sync",
+            "the verified restored wheelhouse is exercised by both installed-distribution smokes",
+        )
+        reporter.run(
+            "python compatibility / exact runtime",
+            lambda: _run(
+                session,
+                selector,
+                "-c",
+                _RUNTIME_ASSERTION,
+                expected,
+                "1" if expect_free_threaded else "0",
+            ),
+        )
+        return
     reporter.run(
         "python compatibility / frozen sync",
         lambda: _sync_project(session),
@@ -160,65 +183,124 @@ def _compatibility_distribution_stages(
     with tempfile.TemporaryDirectory(prefix="raes-python-compatibility-") as temporary_dir:
         root = Path(temporary_dir)
         dist_dir = root / "dist"
-        environment_dir = root / "installed"
+        configured_wheelhouse = os.environ.get(PYTHON_CLOSURE_WHEELHOUSE_ENV, "")
+        wheelhouse = Path(configured_wheelhouse) if configured_wheelhouse else root / "wheelhouse"
+        direct_environment = root / "installed-direct"
+        sdist_environment = root / "installed-from-sdist"
+        profile_id = os.environ.get(PYTHON_CLOSURE_PROFILE_ENV, "")
+        if not profile_id:
+            raise RuntimeError(f"{PYTHON_CLOSURE_PROFILE_ENV} must select a reviewed closure profile")
 
         reporter.run(
             "python compatibility / build distributions",
-            lambda: _run(
-                session,
-                "uv",
-                "build",
-                "--python",
-                selector,
-                "--out-dir",
-                str(dist_dir),
-                str(PROJECT_ROOT),
+            lambda: (
+                _run(
+                    session,
+                    "uv",
+                    "build",
+                    "--wheel",
+                    "--python",
+                    selector,
+                    "--build-constraints",
+                    str(REPO_ROOT / "implementations/tooling/python/build-constraints.txt"),
+                    "--require-hashes",
+                    "--out-dir",
+                    str(dist_dir),
+                    str(PROJECT_ROOT),
+                ),
+                _run(
+                    session,
+                    "uv",
+                    "build",
+                    "--sdist",
+                    "--python",
+                    selector,
+                    "--build-constraints",
+                    str(REPO_ROOT / "implementations/tooling/python/build-constraints.txt"),
+                    "--require-hashes",
+                    "--out-dir",
+                    str(dist_dir),
+                    str(PROJECT_ROOT),
+                ),
             ),
         )
         wheels = sorted(dist_dir.glob("raes-*.whl"))
         source_distributions = sorted(dist_dir.glob("raes-*.tar.gz"))
         if len(wheels) != 1 or len(source_distributions) != 1:
             raise RuntimeError("compatibility build must produce exactly one wheel and one source distribution")
-
         reporter.run(
-            "python compatibility / create clean environment",
+            "python compatibility / build wheel from sdist",
             lambda: _run(
                 session,
                 "uv",
-                "venv",
-                "--no-project",
+                "build",
+                "--wheel",
                 "--python",
                 selector,
-                str(environment_dir),
+                "--build-constraints",
+                str(REPO_ROOT / "implementations/tooling/python/build-constraints.txt"),
+                "--require-hashes",
+                "--out-dir",
+                str(dist_dir / "from-sdist"),
+                str(source_distributions[0]),
             ),
         )
-        scripts_dir = environment_dir / ("Scripts" if os.name == "nt" else "bin")
-        python = scripts_dir / ("python.exe" if os.name == "nt" else "python")
-        raes = scripts_dir / ("raes.exe" if os.name == "nt" else "raes")
+        sdist_wheels = sorted((dist_dir / "from-sdist").glob("raes-*.whl"))
+        if len(sdist_wheels) != 1:
+            raise RuntimeError("compatibility sdist build must produce exactly one wheel")
+        wheelhouse_operation = "wheelhouse-verify" if configured_wheelhouse else "materialize"
         reporter.run(
-            "python compatibility / install wheel",
+            f"python compatibility / {wheelhouse_operation} dependency wheelhouse",
             lambda: _run(
                 session,
-                "uv",
-                "pip",
-                "install",
-                "--python",
-                str(python),
-                str(wheels[0]),
+                sys.executable,
+                "-m",
+                "tools.python_closure",
+                wheelhouse_operation,
+                "--profile",
+                profile_id,
+                "--wheelhouse",
+                str(wheelhouse),
             ),
         )
-        reporter.run(
-            "python compatibility / installed metadata and imports",
-            lambda: _run(session, str(python), "-c", _INSTALLED_ASSERTION, expected),
-        )
-        reporter.run(
-            "python compatibility / installed CLI version",
-            lambda: _run(session, str(raes), "--version"),
-        )
-        reporter.run(
-            "python compatibility / installed CLI help",
-            lambda: _run(session, str(raes), "--help"),
-        )
+        for label, candidate, environment_dir in (
+            ("direct wheel", wheels[0], direct_environment),
+            ("sdist-built wheel", sdist_wheels[0], sdist_environment),
+        ):
+            reporter.run(
+                f"python compatibility / install {label}",
+                lambda candidate=candidate, environment_dir=environment_dir: _run(
+                    session,
+                    sys.executable,
+                    "-m",
+                    "tools.python_closure",
+                    "smoke",
+                    "--profile",
+                    profile_id,
+                    "--candidate",
+                    str(candidate),
+                    "--environment",
+                    str(environment_dir),
+                    "--wheelhouse",
+                    str(wheelhouse),
+                    "--offline",
+                ),
+            )
+            scripts_dir = environment_dir / ("Scripts" if os.name == "nt" else "bin")
+            python = scripts_dir / ("python.exe" if os.name == "nt" else "python")
+            raes = scripts_dir / ("raes.exe" if os.name == "nt" else "raes")
+            reporter.run(
+                f"python compatibility / {label} metadata and imports",
+                lambda python=python: _run(session, str(python), "-c", _INSTALLED_ASSERTION, expected),
+            )
+            reporter.run(
+                f"python compatibility / {label} CLI version",
+                lambda raes=raes: _run(session, str(raes), "--version"),
+            )
+            reporter.run(
+                f"python compatibility / {label} CLI help",
+                lambda raes=raes: _run(session, str(raes), "--help"),
+            )
 
 
 def _run_python_compatibility(session: nox.Session, reporter: SessionReporter) -> None:
@@ -229,6 +311,9 @@ def _run_python_compatibility(session: nox.Session, reporter: SessionReporter) -
     if not selector:
         raise RuntimeError("UV_PYTHON must select the interpreter under test")
     expect_free_threaded = os.environ.get(EXPECT_FREE_THREADED_ENV) == "1"
+    profile_id = os.environ.get(PYTHON_CLOSURE_PROFILE_ENV, "")
+    if not expect_free_threaded and f"cp{expected.replace('.', '')}" not in profile_id:
+        raise RuntimeError(f"{PYTHON_CLOSURE_PROFILE_ENV} must match the selected interpreter")
     smoke_only_value = os.environ.get(PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV, "0")
     if smoke_only_value not in {"0", "1"}:
         raise RuntimeError(f"{PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV} must be 0 or 1")
@@ -244,6 +329,12 @@ def _run_python_compatibility(session: nox.Session, reporter: SessionReporter) -
         expect_free_threaded=expect_free_threaded,
         smoke_only=smoke_only_value == "1",
     )
+    if expect_free_threaded:
+        reporter.skip(
+            "python compatibility / distribution closure",
+            "the free-threaded interpreter is an advisory preview, not a release closure target",
+        )
+        return
     _compatibility_distribution_stages(session, reporter, selector=selector, expected=expected)
 
 

@@ -2,10 +2,10 @@ schema_version: 1
 project: aces-sdl
 github_repo: OpenRAE/rae
 workflow:
-  test_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify
-  completion_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify-completion
-  lint_command: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s lint
-  format_command: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s hygiene
+  test_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
+  completion_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-completion
+  lint_command: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s lint
+  format_command: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hygiene
   policy_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" make policy
   precommit_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" pre-commit run
   codex_review:

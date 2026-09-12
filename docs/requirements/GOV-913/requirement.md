@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-09-11T00:00:00.000000Z
+updated_at: 2026-09-12T00:00:00.000000Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -33,7 +33,7 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CONFIG `noxfile.py` (Explicit OSV findings and scanner-error enforcement)
 - IMPLEMENTS → CODE_FILE `tools/osv_scanner_tool.py` (OSV result classification)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1098-gov-913-supply-chain-security-preflight.md` (Dependency vulnerability and gating preflight)
-- TESTS → TEST `implementations/python/tests/test_repo_policy_tools.py` (Dependency-floor and OSV gate regression tests)
+- TESTS → TEST `implementations/python/tests/test_repo_policy_tools.py` (Dependency-floor, OSV gate, and Nox dependency-closure regressions)
 - DOCUMENTS → GITHUB_ISSUE `1106` (Cached OSV-Scanner integrity validation)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1106-gov-913-osv-cache-integrity.md` (Repository pin and atomic cache decision)
 - IMPLEMENTS → CODE_FILE `tools/osv_scanner_tool.py` (Per-use cache type, mode, and digest validation)
@@ -64,7 +64,7 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CODE_FILE `tools/tooling_policy_gate.py` (Dependency-free fail-before-acquisition launcher)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/package-artifacts/operations.md` (T22 and T23 policy-gate evidence)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1216-development-artifact-lock-policy-preflight.md` (Artifact-lock implementation preflight)
-- TESTS → TEST `implementations/python/tests/test_tooling_artifact_policy.py` (Artifact identity, drift, coverage and fail-before-acquisition regressions)
+- TESTS → TEST `implementations/python/tests/test_tooling_artifact_policy.py` (Artifact identity, drift, closure projection, bootstrap integrity, coverage, and fail-before-acquisition regressions)
 - IMPLEMENTS → GITHUB_ISSUE `1217` (Qualify maintained bootstrap clients and host profiles)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1217-bootstrap-clients-host-profiles-preflight.md` (Bootstrap-client and host-profile qualification preflight)
 - IMPLEMENTS → CONFIG `.github/workflows/bootstrap-qualification.yml` (Cross-platform bootstrap qualification and offline restoration workflow)
@@ -72,6 +72,17 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CONFIG `implementations/tooling/profiles/development-profiles.json` (Qualified host identities and capability closures)
 - IMPLEMENTS → CONFIG `implementations/tooling/schemas/profiles.schema.json` (Qualification evidence and host-profile contract)
 - TESTS → TEST `implementations/python/tests/test_issue_1217_bootstrap_profiles.py` (Bootstrap profile, payload identity, curl, and offline-kit regressions)
+- IMPLEMENTS → GITHUB_ISSUE `1218` (Lock Python tool, isolated-build, project, and smoke dependency closures)
+- IMPLEMENTS → CONFIG `implementations/tooling/python/pyproject.toml` (Reviewed Python tool and build dependency authority)
+- IMPLEMENTS → CONFIG `implementations/tooling/python/uv.lock` (Frozen Python tool and build resolution)
+- IMPLEMENTS → CONFIG `implementations/tooling/python/build-constraints.txt` (Hash-complete isolated-build constraints)
+- IMPLEMENTS → CODE_FILE `tools/generate_python_closures.py` (Deterministic lock-to-profile closure projections)
+- IMPLEMENTS → CODE_FILE `tools/python_closure.py` (Fixed-argv build, wheelhouse, and installed-distribution closure client)
+- IMPLEMENTS → CODE_FILE `tools/tooling_artifact_policy_python.py` (Python closure authority and drift policy)
+- IMPLEMENTS → CODE_FILE `tools/nox_support/test_lanes.py` (Compatibility build and installed-distribution smoke orchestration)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1218-python-tool-build-smoke-closure-preflight.md` (Python dependency-closure architecture guardrails)
+- TESTS → TEST `implementations/python/tests/test_corpus_packaging.py` (Constrained wheel and sdist-to-wheel packaging regressions)
+- TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Frozen release build and offline smoke workflow regressions)
 - IMPLEMENTS → GITHUB_ISSUE `839` (Admit third-party action inputs and finish Scorecard evidence)
 - IMPLEMENTS → CONFIG `implementations/tooling/actions-policy.json` (Exact action-source, transitive-input, workflow-job, and use-site admission)
 - IMPLEMENTS → CONFIG `implementations/tooling/artifacts.lock.json` (Pinned Sonar scanner and Scorecard OCI payload identities)
