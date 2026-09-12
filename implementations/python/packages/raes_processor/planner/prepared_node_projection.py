@@ -12,6 +12,7 @@ from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp
 from raes_contracts.realization_structure import (
     RealizationClosure,
+    RealizationNormalizationMetadata,
     RealizationOrigin,
     RealizationRelationStatus,
     evaluate_realization_constraint,
@@ -63,7 +64,9 @@ def prepared_node_document(payload: Mapping[str, Any]) -> object:
         selected,
         semantic_profile=_PROFILE,
         default_closure=RealizationClosure(posture="closed", universe="portable-node-value", profile=_PROFILE),
-        origins=_backend_origins(selected),
+        metadata=RealizationNormalizationMetadata(
+            origins=_backend_origins(selected),
+        ),
     )
     if built.status is not RealizationRelationStatus.CONFORMANT:
         raise ValueError("prepared node cannot be represented by a bounded recursive completion")

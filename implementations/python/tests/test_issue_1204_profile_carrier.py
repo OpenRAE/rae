@@ -13,6 +13,7 @@ from raes_contracts.domain_profiles import (
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationDomainValue,
+    RealizationNormalizationMetadata,
     normalize_realization_literal,
     realization_constraint_binding,
 )
@@ -43,7 +44,11 @@ def _profiles(namespace="com.example.private"):
         binding.value,
         semantic_profile=definition.coordinate.definition_digest,
         default_closure=RealizationClosure(posture="closed", universe="profile-value", profile="test/v1"),
-        leaf_constraints={"/name": RealizationDomainValue(kind="domain", domain=EnumDomain(values=["blue", "green"]))},
+        metadata=RealizationNormalizationMetadata(
+            leaf_constraints={
+                "/name": RealizationDomainValue(kind="domain", domain=EnumDomain(values=["blue", "green"]))
+            },
+        ),
     ).document
     authority = PlanProfileAuthority(
         definitions=(_admitted(definition),),

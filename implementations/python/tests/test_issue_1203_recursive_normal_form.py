@@ -28,6 +28,7 @@ from raes_contracts.realization_structure import (
     RealizationKeyedCollectionConstraint,
     RealizationKnowledgeValue,
     RealizationLiteral,
+    RealizationNormalizationMetadata,
     RealizationRecord,
     RealizationRecordConstraint,
     RealizationRelationStatus,
@@ -433,15 +434,17 @@ def test_limits_admit_optional_constraints_and_profiled_identity_work() -> None:
         {"packages": [{"id": "a"}, {"id": "b"}]},
         semantic_profile="x-example:recursive/v1",
         default_closure=_closed(),
-        collection_profiles=(
-            RealizationCollectionProfile(
-                field_pointer="/packages",
-                collection_kind="packages",
-                identity_fields=("id",),
-                closure=_closed(),
+        limits=RealizationConstraintLimits(max_identity_checks=1),
+        metadata=RealizationNormalizationMetadata(
+            collection_profiles=(
+                RealizationCollectionProfile(
+                    field_pointer="/packages",
+                    collection_kind="packages",
+                    identity_fields=("id",),
+                    closure=_closed(),
+                ),
             ),
         ),
-        limits=RealizationConstraintLimits(max_identity_checks=1),
     )
     assert normalized.status is RealizationRelationStatus.LIMIT_EXCEEDED
 
@@ -574,7 +577,9 @@ def test_literal_normalization_preserves_null_empty_and_origin_round_trip() -> N
         {"null": None, "empty-record": {}, "empty-sequence": [], "defaulted": 3},
         semantic_profile="x-example:recursive/v1",
         default_closure=_closed(),
-        origins={"/defaulted": "default"},
+        metadata=RealizationNormalizationMetadata(
+            origins={"/defaulted": "default"},
+        ),
     )
     assert normalized.status is RealizationRelationStatus.CONFORMANT
     assert normalized.document is not None
@@ -606,17 +611,19 @@ def test_profile_driven_literal_normalization_uses_stable_collection_identity() 
         },
         semantic_profile="x-example:recursive/v1",
         default_closure=_closed(),
-        scopes=(
-            RealizationScope(
-                field_pointer="/packages",
-                closure=RealizationClosure(
-                    posture="open",
-                    universe="software-component-fields/v1",
-                    profile="x-example:recursive/v1",
+        metadata=RealizationNormalizationMetadata(
+            scopes=(
+                RealizationScope(
+                    field_pointer="/packages",
+                    closure=RealizationClosure(
+                        posture="open",
+                        universe="software-component-fields/v1",
+                        profile="x-example:recursive/v1",
+                    ),
                 ),
             ),
+            collection_profiles=(collection,),
         ),
-        collection_profiles=(collection,),
     )
     assert normalized.document is not None
     packages = normalized.document.root.fields["packages"]
@@ -641,22 +648,24 @@ def test_positional_author_scope_normalizes_to_semantic_member_identity() -> Non
         },
         semantic_profile=profile,
         default_closure=_closed(),
-        scopes=(
-            RealizationScope(
-                field_pointer="/packages",
-                closure=RealizationClosure(posture="open", universe="software-fields/v1", profile=profile),
+        metadata=RealizationNormalizationMetadata(
+            scopes=(
+                RealizationScope(
+                    field_pointer="/packages",
+                    closure=RealizationClosure(posture="open", universe="software-fields/v1", profile=profile),
+                ),
+                RealizationScope(
+                    field_pointer="/packages/0",
+                    closure=RealizationClosure(posture="closed", universe="software-fields/v1", profile=profile),
+                ),
             ),
-            RealizationScope(
-                field_pointer="/packages/0",
-                closure=RealizationClosure(posture="closed", universe="software-fields/v1", profile=profile),
-            ),
-        ),
-        collection_profiles=(
-            RealizationCollectionProfile(
-                field_pointer="/packages",
-                collection_kind="runtime-packages",
-                identity_fields=("manager", "name"),
-                closure=RealizationClosure(posture="closed", universe="modeled-software/v1", profile=profile),
+            collection_profiles=(
+                RealizationCollectionProfile(
+                    field_pointer="/packages",
+                    collection_kind="runtime-packages",
+                    identity_fields=("manager", "name"),
+                    closure=RealizationClosure(posture="closed", universe="modeled-software/v1", profile=profile),
+                ),
             ),
         ),
     )
@@ -694,20 +703,22 @@ def test_nested_keyed_metadata_uses_source_addresses_and_semantic_output_address
         value,
         semantic_profile=profile,
         default_closure=_closed(),
-        origins={"/nodes/0/version": "backend"},
-        scopes=(RealizationScope(field_pointer="/nodes/0/packages/0", closure=_closed()),),
-        collection_profiles=(
-            RealizationCollectionProfile(
-                field_pointer="/nodes",
-                collection_kind="nodes",
-                identity_fields=("name",),
-                closure=_closed(),
-            ),
-            RealizationCollectionProfile(
-                field_pointer="/nodes/0/packages",
-                collection_kind="runtime-packages",
-                identity_fields=("manager", "name"),
-                closure=_closed(),
+        metadata=RealizationNormalizationMetadata(
+            origins={"/nodes/0/version": "backend"},
+            scopes=(RealizationScope(field_pointer="/nodes/0/packages/0", closure=_closed()),),
+            collection_profiles=(
+                RealizationCollectionProfile(
+                    field_pointer="/nodes",
+                    collection_kind="nodes",
+                    identity_fields=("name",),
+                    closure=_closed(),
+                ),
+                RealizationCollectionProfile(
+                    field_pointer="/nodes/0/packages",
+                    collection_kind="runtime-packages",
+                    identity_fields=("manager", "name"),
+                    closure=_closed(),
+                ),
             ),
         ),
     )

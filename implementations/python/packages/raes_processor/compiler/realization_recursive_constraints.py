@@ -17,6 +17,7 @@ from raes_contracts.realization_structure import (
     RealizationConstraintDocument,
     RealizationDelegatedValue,
     RealizationDomainValue,
+    RealizationNormalizationMetadata,
     RealizationOrigin,
     RealizationRelationStatus,
     RealizationScope,
@@ -312,11 +313,13 @@ def compile_recursive_realization_constraint(
             projected,
             semantic_profile=metadata.profile,
             default_closure=closure,
-            scopes=tuple(metadata.scopes),
-            collection_profiles=tuple(metadata.collection_profiles),
-            origins=metadata.origins,
-            leaf_constraints=metadata.leaf_constraints,
-            optional_fields=frozenset(metadata.optional_fields),
+            metadata=RealizationNormalizationMetadata(
+                scopes=tuple(metadata.scopes),
+                collection_profiles=tuple(metadata.collection_profiles),
+                origins=metadata.origins,
+                leaf_constraints=metadata.leaf_constraints,
+                optional_fields=frozenset(metadata.optional_fields),
+            ),
         )
         if built.status is not RealizationRelationStatus.CONFORMANT:
             raise ValueError("recursive normalization could not preserve the source authority")

@@ -109,6 +109,54 @@ def _domain_profile_schema_bundle() -> dict[str, dict[str, Any]]:
     }
 
 
+def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
+    """Experiment, trial, time, and runtime-plan contract schemas."""
+
+    from ..provenance import SDLLineageLedgerModel
+    from ..scientific_completeness import (
+        ScientificCompletenessAssessmentModel,
+        ScientificCompletenessTaxonomyModel,
+    )
+    from ..validation_profiles import ValidationProfileCatalogModel
+
+    return {
+        "experiment-apparatus-context-v1": ExperimentApparatusContextModel.model_json_schema(),
+        "experiment-authoring-input-v1": ExperimentSpecModel.model_json_schema(),
+        "experiment-binding-descriptors-v1": ExperimentBindingDescriptorSetModel.model_json_schema(),
+        "experiment-capture-spec-v1": ExperimentCaptureSpecModel.model_json_schema(),
+        "experiment-derived-measure-v1": ExperimentDerivedMeasureModel.model_json_schema(),
+        "experiment-evidence-record-v1": ExperimentEvidenceRecordModel.model_json_schema(),
+        "experiment-run-v1": ExperimentRunModel.model_json_schema(),
+        "experiment-study-v1": ExperimentStudyModel.model_json_schema(),
+        "experiment-task-v1": ExperimentTaskModel.model_json_schema(),
+        "admitted-trial-plan-v1": AdmittedTrialPlanModel.model_json_schema(),
+        "trial-cleanup-plan-v1": TrialCleanupPlanModel.model_json_schema(),
+        "trial-cleanup-receipt-v1": TrialCleanupReceiptModel.model_json_schema(),
+        "scheduler-isolation-proof-v1": SchedulerIsolationProofModel.model_json_schema(),
+        "batch-execution-receipt-v1": BatchExecutionReceiptModel.model_json_schema(),
+        "time-model-v1": TimeModelDeclarationModel.model_json_schema(),
+        "time-runtime-state-v1": TimeRuntimeStateModel.model_json_schema(),
+        "realized-time-model-v1": RealizedTimeModelProvenanceModel.model_json_schema(),
+        "provisioning-plan-v1": ProvisioningPlanModel.model_json_schema(),
+        "orchestration-plan-v1": OrchestrationPlanModel.model_json_schema(),
+        "evaluation-plan-v1": EvaluationPlanModel.model_json_schema(),
+        "runtime-snapshot-v1": RuntimeSnapshotEnvelopeModel.model_json_schema(),
+        "workflow-result-envelope-v1": WorkflowExecutionStateModel.model_json_schema(),
+        "workflow-history-event-stream-v1": _event_stream_schema(
+            "WorkflowHistoryEventStream",
+            WorkflowHistoryEventModel.model_json_schema(),
+        ),
+        "workflow-cancellation-request-v1": WorkflowCancellationRequestModel.model_json_schema(),
+        "evaluation-result-envelope-v1": EvaluationResultStateModel.model_json_schema(),
+        "proposition-truth-result-v1": PropositionTruthResultModel.model_json_schema(),
+        "sdl-lineage-ledger-v1": SDLLineageLedgerModel.model_json_schema(),
+        "scientific-completeness-taxonomy-v1": ScientificCompletenessTaxonomyModel.model_json_schema(),
+        "scientific-completeness-assessment-v1": ScientificCompletenessAssessmentModel.model_json_schema(),
+        "validation-profile-catalog-v1": ValidationProfileCatalogModel.model_json_schema(),
+        "validation-basis-disclosure-v1": ValidationBasisDisclosureDocumentModel.model_json_schema(),
+    }
+
+
 def _core_schema_bundle() -> dict[str, dict[str, Any]]:
     from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
     from raes_contracts.realization_structure import RealizationConstraintDocument
@@ -123,14 +171,8 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         ParticipantOpacityModelCheckEvidenceModel,
         ParticipantOpacityModelCheckInputModel,
     )
-    from ..provenance import SDLLineageLedgerModel
     from ..realization_profiles import PlanProfileAuthority
     from ..satisfiability import ScenarioSatisfiabilityEvidenceModel
-    from ..scientific_completeness import (
-        ScientificCompletenessAssessmentModel,
-        ScientificCompletenessTaxonomyModel,
-    )
-    from ..validation_profiles import ValidationProfileCatalogModel
     from .backend_preparation import BackendPreparationResponseModel
 
     return {
@@ -180,40 +222,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         ),
         "participant-boundary-flow-policy-v1": ParticipantBoundaryFlowPolicyProfileModel.model_json_schema(),
         "random-stream-vector-v1": RandomStreamVectorModel.model_json_schema(),
-        "experiment-apparatus-context-v1": ExperimentApparatusContextModel.model_json_schema(),
-        "experiment-authoring-input-v1": ExperimentSpecModel.model_json_schema(),
-        "experiment-binding-descriptors-v1": ExperimentBindingDescriptorSetModel.model_json_schema(),
-        "experiment-capture-spec-v1": ExperimentCaptureSpecModel.model_json_schema(),
-        "experiment-derived-measure-v1": ExperimentDerivedMeasureModel.model_json_schema(),
-        "experiment-evidence-record-v1": ExperimentEvidenceRecordModel.model_json_schema(),
-        "experiment-run-v1": ExperimentRunModel.model_json_schema(),
-        "experiment-study-v1": ExperimentStudyModel.model_json_schema(),
-        "experiment-task-v1": ExperimentTaskModel.model_json_schema(),
-        "admitted-trial-plan-v1": AdmittedTrialPlanModel.model_json_schema(),
-        "trial-cleanup-plan-v1": TrialCleanupPlanModel.model_json_schema(),
-        "trial-cleanup-receipt-v1": TrialCleanupReceiptModel.model_json_schema(),
-        "scheduler-isolation-proof-v1": SchedulerIsolationProofModel.model_json_schema(),
-        "batch-execution-receipt-v1": BatchExecutionReceiptModel.model_json_schema(),
-        "time-model-v1": TimeModelDeclarationModel.model_json_schema(),
-        "time-runtime-state-v1": TimeRuntimeStateModel.model_json_schema(),
-        "realized-time-model-v1": RealizedTimeModelProvenanceModel.model_json_schema(),
-        "provisioning-plan-v1": ProvisioningPlanModel.model_json_schema(),
-        "orchestration-plan-v1": OrchestrationPlanModel.model_json_schema(),
-        "evaluation-plan-v1": EvaluationPlanModel.model_json_schema(),
-        "runtime-snapshot-v1": RuntimeSnapshotEnvelopeModel.model_json_schema(),
-        "workflow-result-envelope-v1": WorkflowExecutionStateModel.model_json_schema(),
-        "workflow-history-event-stream-v1": _event_stream_schema(
-            "WorkflowHistoryEventStream",
-            WorkflowHistoryEventModel.model_json_schema(),
-        ),
-        "workflow-cancellation-request-v1": WorkflowCancellationRequestModel.model_json_schema(),
-        "evaluation-result-envelope-v1": EvaluationResultStateModel.model_json_schema(),
-        "proposition-truth-result-v1": PropositionTruthResultModel.model_json_schema(),
-        "sdl-lineage-ledger-v1": SDLLineageLedgerModel.model_json_schema(),
-        "scientific-completeness-taxonomy-v1": ScientificCompletenessTaxonomyModel.model_json_schema(),
-        "scientific-completeness-assessment-v1": ScientificCompletenessAssessmentModel.model_json_schema(),
-        "validation-profile-catalog-v1": ValidationProfileCatalogModel.model_json_schema(),
-        "validation-basis-disclosure-v1": ValidationBasisDisclosureDocumentModel.model_json_schema(),
+        **_experiment_schema_bundle(),
     }
 
 

@@ -13,6 +13,7 @@ from raes_contracts.realization_collections import (
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
+    RealizationNormalizationMetadata,
     RealizationRelationStatus,
     evaluate_realization_constraint,
     normalize_realization_literal,
@@ -56,18 +57,20 @@ def planned_node_collection(model: RuntimeModel, plan: ProvisioningPlan) -> Prep
         members,
         semantic_profile=PORTABLE_NODE_COLLECTION_PROFILE,
         default_closure=closure,
-        collection_profiles=tuple(
-            RealizationCollectionProfile(
-                field_pointer=f"/{namespace}",
-                collection_kind="portable-node",
-                identity_fields=("address",),
-                closure=RealizationClosure(
-                    posture="open" if resolution.closure is Closure.OPEN_WORLD else "closed",
-                    universe="portable-node",
-                    profile=PORTABLE_NODE_COLLECTION_PROFILE,
-                ),
-            )
-            for namespace, resolution in resolutions.items()
+        metadata=RealizationNormalizationMetadata(
+            collection_profiles=tuple(
+                RealizationCollectionProfile(
+                    field_pointer=f"/{namespace}",
+                    collection_kind="portable-node",
+                    identity_fields=("address",),
+                    closure=RealizationClosure(
+                        posture="open" if resolution.closure is Closure.OPEN_WORLD else "closed",
+                        universe="portable-node",
+                        profile=PORTABLE_NODE_COLLECTION_PROFILE,
+                    ),
+                )
+                for namespace, resolution in resolutions.items()
+            ),
         ),
     )
     if built.status is not RealizationRelationStatus.CONFORMANT:

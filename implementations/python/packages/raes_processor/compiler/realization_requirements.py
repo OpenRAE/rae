@@ -5,21 +5,14 @@ from dataclasses import replace
 
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
 from raes.nodes import NodeType
-from raes.runtime_resource_limits import (
-    RuntimeProcessResourceLimit,
-    process_resource_limit_identity_digest,
-)
 from raes.scenario import InstantiatedScenario
 from raes.semantics.domain_topology import DomainTopologyAnalysis
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
-from raes_contracts.vocabulary import ProcessResourceLimitScope
 
 from ..semantics.realization import (
     REALIZATION_DOMAIN,
     CompiledRealizationAuthority,
     CompiledRealizationRequirement,
-    ProcessResourceLimitDemand,
-    RealizationValueConstraint,
     registered_realization_concern_descriptors,
 )
 from ..semantics.realization_concerns import CONCERN_PAYLOAD_PATH, RegisteredRealizationConcern
@@ -40,9 +33,9 @@ from .addresses import (
 from .realization_authority_posture import designated_registered_posture, explicit_registered_posture
 from .realization_compute_substrate import append_compute_substrate_requirements
 from .realization_concern_binding import realization_requirement_address
+from .realization_concern_bounds import _concern_structure, _concern_value_bounds, _ConcernStructure
 from .realization_concern_explicitness import semantic_explicitness_record
-from .realization_recursive_constraints import compile_registered_constraint
-from .realization_value_domains import compiled_os_value_domain, nested_authored_value
+from .realization_value_domains import nested_authored_value
 
 
 def _append_source_artifact_requirement(
@@ -276,26 +269,11 @@ def _compiled_registered_realization(
         field_path=registered.field_path,
         excluded_fields=descriptor.explicitness_excluded_fields,
     )
-    declarations = getattr(scenario, section_name)
     authored_value = nested_authored_value(
-        declarations[declaration_name],
+        getattr(scenario, section_name)[declaration_name],
         descriptor.authored_path,
     )
-    value_constraints: tuple[RealizationValueConstraint, ...] = ()
-    process_resource_limits: tuple[ProcessResourceLimitDemand, ...] = ()
-    value_domain = None
-    constraint_provenance = None
-    if descriptor.concern_kind == "process-resource-limits":
-        value_constraints, process_resource_limits = _compiled_process_resource_limits(
-            scenario,
-            field_pointer=field_pointer,
-            authored_value=authored_value,
-        )
-    elif descriptor.concern_kind in {"os-family", "os-distribution", "os-version"}:
-        value_domain, constraint_provenance = compiled_os_value_domain(
-            scenario,
-            field_pointer=field_pointer,
-        )
+    bounds = _concern_value_bounds(scenario, descriptor, field_pointer=field_pointer, authored_value=authored_value)
     if record is not None and not descriptor.includes_authored_value(authored_value):
         return None, None
     posture = (
@@ -312,24 +290,20 @@ def _compiled_registered_realization(
         section_name=section_name,
         declaration_name=declaration_name,
     )
-    structure = None
-    constraint_document = None
-    constraint_binding = None
-    structure_error = False
-    recursive_pending = False
-    if record is not None:
-        structure, constraint_document, constraint_binding, structure_error, root_open, recursive_pending = (
-            compile_registered_constraint(
-                scenario,
-                registered,
-                explicitness,
-                authored_value=authored_value,
-                field_pointer=field_pointer,
-                value_domain=value_domain,
-            )
+    compiled = (
+        _ConcernStructure()
+        if record is None
+        else _concern_structure(
+            scenario,
+            registered,
+            explicitness,
+            authored_value=authored_value,
+            field_pointer=field_pointer,
+            value_domain=bounds.value_domain,
         )
-        if root_open and (structure is not None or constraint_document is not None):
-            posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
+    )
+    if compiled.root_open and (compiled.structure is not None or compiled.constraint_document is not None):
+        posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
     verification_scope, observation_strength = operational_verification_requirement(
         descriptor.concern_kind, authored_value
     )
@@ -360,60 +334,17 @@ def _compiled_registered_realization(
         delegated=posture.delegated,
         verification_scope=verification_scope,
         required_observation_strength=observation_strength,
-        value_domain=value_domain,
-        constraint_provenance=constraint_provenance,
-        value_constraints=value_constraints,
-        process_resource_limits=process_resource_limits,
-        structure=structure,
-        constraint_document=constraint_document,
-        constraint_binding=constraint_binding,
-        structure_error=structure_error,
-        recursive_pending=recursive_pending,
+        value_domain=bounds.value_domain,
+        constraint_provenance=bounds.constraint_provenance,
+        value_constraints=bounds.value_constraints,
+        process_resource_limits=bounds.process_resource_limits,
+        structure=compiled.structure,
+        constraint_document=compiled.constraint_document,
+        constraint_binding=compiled.constraint_binding,
+        structure_error=compiled.structure_error,
+        recursive_pending=compiled.recursive_pending,
     )
     return requirement, authority
-
-
-def _compiled_process_resource_limits(
-    scenario: InstantiatedScenario,
-    *,
-    field_pointer: str,
-    authored_value: object,
-) -> tuple[tuple[RealizationValueConstraint, ...], tuple[ProcessResourceLimitDemand, ...]]:
-    limits = tuple(authored_value) if isinstance(authored_value, list) else ()
-    typed_limits = tuple(
-        value if isinstance(value, RuntimeProcessResourceLimit) else RuntimeProcessResourceLimit.model_validate(value)
-        for value in limits
-    )
-    constraints: list[RealizationValueConstraint] = []
-    prefix = f"{field_pointer}/"
-    for constraint in scenario.instantiation_provenance.capability_constraints:
-        if not constraint.field_pointer.startswith(prefix):
-            continue
-        suffix = constraint.field_pointer.removeprefix(prefix).split("/")
-        if len(suffix) != 2 or not suffix[0].isdigit() or suffix[1] not in {"soft", "hard"}:
-            continue
-        index = int(suffix[0])
-        if index >= len(typed_limits):
-            continue
-        constraints.append(
-            RealizationValueConstraint(
-                identity_digest=process_resource_limit_identity_digest(typed_limits[index]),
-                leaf=suffix[1],
-                parameter=constraint.parameter,
-                allowed_values=constraint.allowed_values,
-            )
-        )
-    demands = tuple(
-        ProcessResourceLimitDemand(
-            identity_digest=process_resource_limit_identity_digest(value),
-            resource=value.resource,
-            scope=ProcessResourceLimitScope(value.scope.value),
-            soft=value.soft,
-            hard=value.hard,
-        )
-        for value in typed_limits
-    )
-    return tuple(constraints), demands
 
 
 def _compile_realization(

@@ -42,6 +42,18 @@ def profile_resources(
         or profile_context_digest(context) != manifest.domain_profile_context_digest
     ):
         return resources, [diagnostic]
+    return _retained_profile_resources(authority, resources, snapshot, context, diagnostic)
+
+
+def _retained_profile_resources(
+    authority: object,
+    resources: Mapping[str, object],
+    snapshot: Mapping[str, object],
+    context: DomainProfileResolutionContextModel | None,
+    diagnostic: Diagnostic,
+) -> tuple[Mapping[str, object], list[Diagnostic]]:
+    """Retain a still-admitted backend choice, or report the unsupported authority."""
+
     try:
         by_address = {}
         for binding in authority.bindings:
