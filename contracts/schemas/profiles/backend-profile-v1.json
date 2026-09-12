@@ -12,6 +12,8 @@
     "required_contracts": {
       "items": {
         "enum": [
+          "plan-realization-profiles-v1",
+          "backend-realization-preparation-v1",
           "backend-manifest-v2",
           "artifact-requirement-v1",
           "experiment-binding-descriptors-v1",

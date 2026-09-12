@@ -121,7 +121,7 @@ def _target(envelope: BackendRealizationEnvelopeModel | None = None) -> RuntimeT
     return RuntimeTarget(
         name="libvirt-qemu",
         manifest=_manifest_with_envelope(selected),
-        provisioner=StubProvisioner(),
+        provisioner=StubProvisioner(realization_envelope=selected),
     )
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from threading import RLock
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_processor.models import ExecutionPlan
@@ -62,7 +63,7 @@ class RuntimePlanAuthorizationMixin:
         self,
         plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
     ) -> list[Diagnostic]:
-        if not plan.operations or self.is_planner_authorized_plan(plan):
+        if (not plan.operations and not plan_can_mutate(plan)) or self.is_planner_authorized_plan(plan):
             return []
         return [
             Diagnostic(

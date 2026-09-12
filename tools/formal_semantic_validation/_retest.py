@@ -15,7 +15,9 @@ from tools.formal_semantic_validation._replay import (
     _replay_observation_matches,
     replay_case,
 )
-from tools.formal_semantic_validation._retest_participants import _validate_retest_participant_observations
+from tools.formal_semantic_validation._retest_participants import (
+    _validate_retest_participant_observations,
+)
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
@@ -63,7 +65,11 @@ def _validate_retest_snapshot(
     if not _closed_object(
         snapshot,
         _SNAPSHOT_V2_KEYS
-        | ({"source_state"} if release.manifest.get("revision") in {"4.0.0", "5.0.0", "6.0.0", "7.0.0"} else set()),
+        | (
+            {"source_state"}
+            if release.manifest.get("revision") in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}
+            else set()
+        ),
         rule_id="formal-validation-snapshot-shape",
         label="retest snapshot",
         failures=failures,
@@ -80,14 +86,25 @@ def _validate_retest_snapshot(
     expected_release_paths = _retest_observation_failures(
         scope, (release_artifacts_by_path, commands_by_id), failures, path
     )
-    if release.manifest.get("revision") in {"4.0.0", "5.0.0", "6.0.0", "7.0.0"}:
+    if release.manifest.get("revision") in {
+        "4.0.0",
+        "5.0.0",
+        "6.0.0",
+        "7.0.0",
+        "8.0.0",
+        "9.0.0",
+    }:
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
     _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)
     _validate_retest_participant_observations(protocol, snapshot, failures, path)
 
 
 def _validate_release_selection(
-    scope: _RetestScope, command_ids: set[object], expected_paths: set[str], failures: list[PolicyFailure], path: str
+    scope: _RetestScope,
+    command_ids: set[object],
+    expected_paths: set[str],
+    failures: list[PolicyFailure],
+    path: str,
 ) -> None:
     required_commands = {
         case_id
@@ -117,7 +134,9 @@ def _validate_release_selection(
         )
 
 
-def _retained_fixture_paths(cases_by_id: Mapping[str, Mapping[str, object]]) -> set[str]:
+def _retained_fixture_paths(
+    cases_by_id: Mapping[str, Mapping[str, object]],
+) -> set[str]:
     return {
         value
         for case in cases_by_id.values()
@@ -324,12 +343,20 @@ def _validate_retest_observation(
             )
             expected_paths.update(
                 value
-                for value in (case.get("fixture_path"), observation.get("evidence_artifact_path"))
+                for value in (
+                    case.get("fixture_path"),
+                    observation.get("evidence_artifact_path"),
+                )
                 if isinstance(value, str)
             )
         else:
             _validate_retained_retest_observation(
-                scope.repo_root, case, observation, failures, path, replay_current=scope.replay_current
+                scope.repo_root,
+                case,
+                observation,
+                failures,
+                path,
+                replay_current=scope.replay_current,
             )
     return expected_paths
 
@@ -404,7 +431,11 @@ def _validate_retained_retest_observation(
     if not replay_current:
         if not _historical_observation_matches(case, observation):
             failures.append(
-                _failure("formal-validation-replay-drift", "historical outcome differs from its control", path)
+                _failure(
+                    "formal-validation-replay-drift",
+                    "historical outcome differs from its control",
+                    path,
+                )
             )
         return
     try:

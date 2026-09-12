@@ -109,6 +109,7 @@ def _authoritative_snapshot(plan: ProvisioningPlan, value: object) -> RuntimeSna
     payload = deepcopy(operation.payload)
     payload["spec"]["node"]["runtime"]["environment"] = value
     return RuntimeSnapshot(
+        realization_envelope=plan.realization_envelope,
         entries={
             _ADDRESS: SnapshotEntry(
                 address=_ADDRESS,
@@ -311,7 +312,7 @@ def test_backend_boundary_persists_only_the_safe_projection() -> None:
     ]
     plan, manifest = _authoritative_environment_plan()
 
-    def backend() -> ApplyResult:
+    def backend(_request, _previous) -> ApplyResult:
         return ApplyResult(
             success=True,
             snapshot=_authoritative_snapshot(plan, observed),
@@ -320,6 +321,8 @@ def test_backend_boundary_persists_only_the_safe_projection() -> None:
 
     result = _call_backend_apply(
         backend,
+        plan,
+        RuntimeSnapshot(),
         address="runtime.provision.node.worker",
         snapshot=RuntimeSnapshot(),
         realization=_RealizationApplyContext(plan=plan, manifest=manifest),
@@ -345,8 +348,10 @@ def test_backend_boundary_rejects_unknown_observation_fields() -> None:
     ]
     observed = [{**declared[0], "backend_extra": "do-not-persist"}]
     plan, manifest = _authoritative_environment_plan()
+    calls = []
 
-    def backend() -> ApplyResult:
+    def backend(_request, _previous) -> ApplyResult:
+        calls.append(True)
         return ApplyResult(
             success=True,
             snapshot=_authoritative_snapshot(plan, observed),
@@ -356,12 +361,15 @@ def test_backend_boundary_rejects_unknown_observation_fields() -> None:
     baseline = RuntimeSnapshot()
     result = _call_backend_apply(
         backend,
+        plan,
+        baseline,
         address="runtime.provision.node.worker",
         snapshot=baseline,
         realization=_RealizationApplyContext(plan=plan, manifest=manifest),
     )
 
     assert result.success is False
+    assert calls == [True]
     assert result.snapshot == baseline
     assert [diagnostic.code for diagnostic in result.diagnostics] == ["runtime.backend-contract-invalid"]
     assert "do-not-persist" not in result.diagnostics[0].message

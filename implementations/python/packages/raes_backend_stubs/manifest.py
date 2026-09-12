@@ -54,6 +54,8 @@ from raes_contracts.vocabulary import (
 )
 
 REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(BACKEND_SUPPORTED_CONTRACT_IDS) - {
+    "backend-realization-preparation-v1",
+    "plan-realization-profiles-v1",
     "experiment-binding-descriptors-v1",
     "realization-envelope-v1",
 }

@@ -16,6 +16,7 @@ from raes_contracts.observation_demand import (
     ObservationSelector,
     observation_selector_has_more_specific_policy,
 )
+from raes_contracts.plan_effects import plan_can_mutate
 
 from .observation_capabilities import ObservationRuntimeCapability, resolve_observation_runtime_capability
 
@@ -75,7 +76,7 @@ def _demand_submission_diagnostic(
         diagnostic = _durable_lifecycle_diagnostic(demand, executable_selectors, durable_lifecycle_available)
     if diagnostic is None and demand.required:
         diagnostic = _required_selector_diagnostic(demand, demands, manifest, runtime)
-    if diagnostic is None and demand.required and demand.selectors and getattr(plan, "actionable_operations", ()):
+    if diagnostic is None and demand.required and demand.selectors and plan_can_mutate(plan):
         diagnostic = _atomicity_unavailable_diagnostic(demand)
     return diagnostic
 

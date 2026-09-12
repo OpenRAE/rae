@@ -10,6 +10,7 @@ from typing import Annotated, Literal
 from pydantic import Field, model_validator
 
 from raes_contracts._base import ContractModel, NonEmptyString
+from raes_contracts._base import PrefixedDigestString as PrefixedDigestString
 
 BehavioralRelationId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9-]*$")]
 
@@ -163,18 +164,6 @@ CalendarDateString = Annotated[str, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")]
 
 
 HexDigestString = Annotated[str, Field(min_length=1, pattern=r"^[A-Fa-f0-9]+$")]
-
-
-PrefixedDigestString = Annotated[
-    str,
-    Field(
-        min_length=1,
-        pattern=(
-            r"^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|"
-            r"sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
-        ),
-    ),
-]
 
 
 NonNegativeInteger = Annotated[int, Field(ge=0)]

@@ -16,7 +16,7 @@ from raes_contracts.participant_shared_state import (
     iter_participant_shared_state_snapshot_violations,
 )
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
-from raes_runtime.backend_calls import _call_backend_apply
+from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from raes_runtime.control_plane_security import (
@@ -286,6 +286,9 @@ def test_backend_apply_rejects_shared_state_in_metadata() -> None:
         base_snapshot,
         address="runtime.control-plane.shared-state",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({STATE_ADDRESS})
+        ),
     )
 
     assert result.success is False
@@ -317,6 +320,9 @@ def test_backend_apply_rejects_shared_state_history_rewrite() -> None:
         base_snapshot,
         address="runtime.control-plane.shared-state",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({STATE_ADDRESS})
+        ),
     )
 
     assert result.success is False

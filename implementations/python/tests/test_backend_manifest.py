@@ -49,7 +49,13 @@ V2_INVALID_DIR = FIXTURES_ROOT / "backend-manifest" / "backend-manifest-v2" / "i
 EXPECTED_SUPPORTED_CONTRACT_VERSIONS_V2 = [
     contract_id
     for contract_id in BACKEND_SUPPORTED_CONTRACT_IDS
-    if contract_id not in {"experiment-binding-descriptors-v1", "realization-envelope-v1"}
+    if contract_id
+    not in {
+        "experiment-binding-descriptors-v1",
+        "realization-envelope-v1",
+        "backend-realization-preparation-v1",
+        "plan-realization-profiles-v1",
+    }
 ]
 
 

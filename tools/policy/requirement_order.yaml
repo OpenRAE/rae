@@ -1,4 +1,5 @@
 project: raes-sdl
+requirement_source: repository
 
 phases:
   - id: gov-concept-authority
@@ -32,6 +33,11 @@ phases:
       - RUN-313
       - RUN-314
       - RUN-315
+    blocked_until:
+      - runtime-core
+  - id: runtime-result-integrity
+    requirements:
+      - ASR-532
     blocked_until:
       - runtime-core
   - id: modular-control-semantics

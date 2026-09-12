@@ -62,6 +62,11 @@ def _restore_presence_marker(
 
 
 def _restore_committed_mapping(value: Mapping[str, Any]) -> dict[str, object]:
+    if "source_present" in value or "options_present" in value:
+        # Mount presence belongs to the existing mount contract, not the
+        # committed-value protocol. Preserve its admitted public values.
+        validate_mounts_observation([value])
+        return {key: item for key, item in value.items() if key not in {"source_present", "options_present"}}
     restored = {
         key: _restore_committed_runtime_fields(item)
         for key, item in value.items()
@@ -113,9 +118,15 @@ def _overlay_committed_runtime_fields(normalized: object, original: object) -> o
 def validate_typed_runtime_observation(value: object, *, adapter: TypeAdapter[object]) -> object:
     """Validate and normalize a raw or value-free observation through its SDL type."""
 
-    validated = adapter.validate_python(_restore_committed_runtime_fields(value))
+    validated = typed_runtime_observation_shape(value, adapter=adapter)
     normalized = adapter.dump_python(validated, mode="json")
     return _overlay_committed_runtime_fields(normalized, value)
+
+
+def typed_runtime_observation_shape(value: object, *, adapter: TypeAdapter[object]) -> object:
+    """Recover owner-defined presence rules without treating restored blanks as observed values."""
+
+    return adapter.validate_python(_restore_committed_runtime_fields(value))
 
 
 def _validate_safe_committed_record(
@@ -209,6 +220,14 @@ def validate_mounts_observation(value: object) -> None:
             candidate.pop("source_present")
             candidate.pop("options_present")
         validated = RuntimeMount.model_validate(candidate)
+        if "source_present" in record:
+            for name in ("source", "options"):
+                present = (
+                    bool(getattr(validated, name))
+                    or _enum_value(getattr(validated, f"{name}_sensitivity")) in _PROTECTED
+                )
+                if record[f"{name}_present"] is not present:
+                    raise ValueError("runtime mount presence contradicts its typed value or sensitivity")
         if _enum_value(validated.source_kind) not in {"bind", "tmpfs", "volume", "image"}:
             raise ValueError("runtime mount observation uses an unsupported source kind")
 
