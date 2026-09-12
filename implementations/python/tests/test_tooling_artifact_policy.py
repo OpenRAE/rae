@@ -21,7 +21,7 @@ from tools import (
     gitleaks_tool,
     isabelle_tool,
     osv_scanner_tool,
-    tooling_artifact_policy_actions,
+    tooling_artifact_policy_runners,
     tooling_policy_gate,
     vale_tool,
 )
@@ -546,7 +546,7 @@ def test_bootstrap_wheelhouse_verification_runs_without_site_packages(tmp_path: 
         ("lock", "lock identity is stale"),
         ("requirements", "requirements identity is stale"),
         ("profile", "profile identity is wrong"),
-        ("symlink", "must be a regular file"),
+        ("symlink", "must not be a symbolic link"),
     ],
 )
 def test_bootstrap_wheelhouse_verification_rejects_stale_or_untrusted_identity(
@@ -579,6 +579,34 @@ def test_bootstrap_wheelhouse_verification_rejects_stale_or_untrusted_identity(
 
     with pytest.raises(ValueError, match=message):
         verify_bootstrap_wheelhouse(root, profile_id, wheelhouse, snapshot_path)
+
+
+def test_bootstrap_verification_refuses_a_kit_split_across_roots(tmp_path: Path) -> None:
+    from tools.python_closure import verify_bootstrap_wheelhouse
+
+    root, profile_id, wheelhouse, snapshot_path, _manifest_path, _lock_path, _requirements_path = (
+        _seed_bootstrap_wheelhouse_fixture(tmp_path)
+    )
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    relocated = elsewhere / snapshot_path.name
+    relocated.write_bytes(snapshot_path.read_bytes())
+
+    with pytest.raises(ValueError, match="must share one kit root"):
+        verify_bootstrap_wheelhouse(root, profile_id, wheelhouse, relocated)
+
+
+def test_bootstrap_verification_refuses_a_symlinked_operator_path(tmp_path: Path) -> None:
+    from tools.python_closure import verify_bootstrap_wheelhouse
+
+    root, profile_id, wheelhouse, snapshot_path, _manifest_path, _lock_path, _requirements_path = (
+        _seed_bootstrap_wheelhouse_fixture(tmp_path)
+    )
+    linked = root / "linked-wheelhouse"
+    linked.symlink_to(wheelhouse, target_is_directory=True)
+
+    with pytest.raises(ValueError, match="must not be a symbolic link"):
+        verify_bootstrap_wheelhouse(root, profile_id, linked, snapshot_path)
 
 
 def test_python_closure_anchors_relative_paths_before_temporary_cwd(
@@ -1706,14 +1734,14 @@ def test_oversized_matrix_is_rejected_before_cartesian_materialization(
     def unexpected_product(*_args: object, **_kwargs: object) -> object:
         raise AssertionError("oversized matrix must be rejected before product expansion")
 
-    monkeypatch.setattr(tooling_artifact_policy_actions, "product", unexpected_product)
+    monkeypatch.setattr(tooling_artifact_policy_runners, "product", unexpected_product)
     job = {
         "strategy": {
             "matrix": {f"axis-{index}": [False, True] for index in range(9)},
         },
     }
 
-    rows, invalid = tooling_artifact_policy_actions._matrix_rows(job)
+    rows, invalid = tooling_artifact_policy_runners.matrix_rows(job)
 
     assert invalid is True
     assert rows == []
@@ -1723,12 +1751,12 @@ def test_invalid_matrix_rows_are_not_processed_as_runner_contexts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        tooling_artifact_policy_actions,
-        "_matrix_rows",
+        tooling_artifact_policy_runners,
+        "matrix_rows",
         lambda _job: ([{"runner": "ubuntu-24.04"}], True),
     )
 
-    _selector, contexts, invalid = tooling_artifact_policy_actions._runner_profiles({"runs-on": "${{ matrix.runner }}"})
+    _selector, contexts, invalid = tooling_artifact_policy_runners.runner_profiles({"runs-on": "${{ matrix.runner }}"})
 
     assert invalid is True
     assert contexts == []

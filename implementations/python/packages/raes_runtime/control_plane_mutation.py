@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from collections.abc import AsyncIterator, Callable, Iterator
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import AbstractContextManager, asynccontextmanager, contextmanager, nullcontext
 from contextvars import ContextVar
 from dataclasses import dataclass
 from threading import Condition, Lock, get_ident, local
@@ -249,23 +249,26 @@ def _complete_waiter(future: asyncio.Future[None]) -> None:
         future.set_result(None)
 
 
-@contextmanager
-def external_control_plane_call(control_plane: object) -> Iterator[None]:
-    """Mark an extension callback when it runs inside an owned mutation cut."""
+def _external_call_scope(control_plane: object) -> AbstractContextManager[None]:
+    """Select the narrowest authority scope an extension callback may run inside."""
 
     authority = getattr(control_plane, "_mutation_authority", None)
     owns_current_thread = getattr(authority, "owns_current_thread", None)
     external_call = getattr(authority, "external_call", None)
     if callable(owns_current_thread) and owns_current_thread() and callable(external_call):
-        with external_call():
-            yield
-        return
+        return external_call()
     admission_call = getattr(authority, "admission_call", None)
     if callable(admission_call):
-        with admission_call():
-            yield
-        return
-    yield
+        return admission_call()
+    return nullcontext()
+
+
+@contextmanager
+def external_control_plane_call(control_plane: object) -> Iterator[None]:
+    """Mark an extension callback when it runs inside an owned mutation cut."""
+
+    with _external_call_scope(control_plane):
+        yield
 
 
 __all__ = (

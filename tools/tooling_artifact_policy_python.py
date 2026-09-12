@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import re
 import tomllib
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from packaging.requirements import InvalidRequirement, Requirement
 
@@ -19,6 +17,7 @@ from tools.tooling_artifact_policy_common import (
     failure,
     is_regular_repo_file,
 )
+from tools.tooling_artifact_policy_python_profiles import profile_semantic_failures
 
 PYTHON_PROJECT_PATH = "implementations/python/pyproject.toml"
 PYTHON_PROJECT_LOCK_PATH = "implementations/python/uv.lock"
@@ -46,34 +45,56 @@ _EXPECTED_TOOLS = {
 }
 _EXPECTED_BUILD = {"hatchling": "1.27.0"}
 _HASH_RE = re.compile(r"--hash=sha256:([0-9a-f]{64})")
+_TOML_SIZE_LIMIT = 4 * 1024 * 1024
 
 
-def _toml(repo_root: Path, relative_path: str) -> Mapping[str, Any] | None:
+def _bounded_repo_bytes(repo_root: Path, relative_path: str, *, limit: int) -> bytes | None:
+    """Read a tracked regular file, refusing anything missing or oversized."""
+
     if not is_regular_repo_file(repo_root, relative_path):
         return None
     try:
         payload = (repo_root / relative_path).read_bytes()
-        if len(payload) > 4 * 1024 * 1024:
-            return None
-        value = tomllib.loads(payload.decode("utf-8"))
-    except (OSError, UnicodeError, tomllib.TOMLDecodeError):
+    except OSError:
         return None
-    return value
+    return None if len(payload) > limit else payload
+
+
+def _toml(repo_root: Path, relative_path: str) -> Mapping[str, Any] | None:
+    """Parse one tracked TOML authority, or None when it cannot be trusted."""
+
+    payload = _bounded_repo_bytes(repo_root, relative_path, limit=_TOML_SIZE_LIMIT)
+    if payload is None:
+        return None
+    try:
+        return tomllib.loads(payload.decode("utf-8"))
+    except ValueError:
+        return None
+
+
+def _exact_pin(value: object, seen: Mapping[str, str]) -> tuple[str, str]:
+    """Return one exact name/version pin, rejecting anything inexact or duplicated."""
+
+    if not isinstance(value, str):
+        raise InvalidRequirement("direct dependency must be a requirement string")
+    requirement = Requirement(value)
+    specifiers = list(requirement.specifier)
+    name = requirement.name.lower()
+    if len(specifiers) != 1 or specifiers[0].operator != "==" or name in seen:
+        raise InvalidRequirement("direct dependency must carry one unique exact pin")
+    return name, specifiers[0].version
 
 
 def _direct_pins(requirements: object) -> dict[str, str] | None:
+    """Index exact ``==`` direct pins, or None when any requirement is not exact."""
+
     if not isinstance(requirements, list):
         return None
     pins: dict[str, str] = {}
     try:
         for value in requirements:
-            if not isinstance(value, str):
-                return None
-            requirement = Requirement(value)
-            specifiers = list(requirement.specifier)
-            if len(specifiers) != 1 or specifiers[0].operator != "==" or requirement.name.lower() in pins:
-                return None
-            pins[requirement.name.lower()] = specifiers[0].version
+            name, version = _exact_pin(value, pins)
+            pins[name] = version
     except InvalidRequirement:
         return None
     return pins
@@ -88,213 +109,32 @@ def _lock_versions(lock: Mapping[str, Any]) -> dict[str, set[str]]:
     return versions
 
 
+def _constraint_record(line: str, seen: Mapping[str, tuple[str, set[str]]]) -> tuple[str, tuple[str, set[str]]]:
+    """Return one exact hash-complete constraint, rejecting anything else."""
+
+    requirement = Requirement(line.split("--hash", 1)[0].strip())
+    specifiers = list(requirement.specifier)
+    hashes = set(_HASH_RE.findall(line))
+    name = requirement.name.lower()
+    if len(specifiers) != 1 or specifiers[0].operator != "==" or not hashes or name in seen:
+        raise InvalidRequirement("build constraint must carry one unique exact hash-pinned version")
+    return name, (specifiers[0].version, hashes)
+
+
 def _constraint_records(text: str) -> dict[str, tuple[str, set[str]]] | None:
+    """Index exact hash-pinned build constraints, or None when any line is not."""
+
     records: dict[str, tuple[str, set[str]]] = {}
-    logical = text.replace("\\\n", " ").splitlines()
     try:
-        for line in logical:
+        for line in text.replace("\\\n", " ").splitlines():
             stripped = line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
-            requirement = Requirement(stripped.split("--hash", 1)[0].strip())
-            specifiers = list(requirement.specifier)
-            hashes = set(_HASH_RE.findall(stripped))
-            if len(specifiers) != 1 or specifiers[0].operator != "==" or not hashes:
-                return None
-            name = requirement.name.lower()
-            if name in records:
-                return None
-            records[name] = (specifiers[0].version, hashes)
+            name, record = _constraint_record(stripped, records)
+            records[name] = record
     except InvalidRequirement:
         return None
     return records
-
-
-def _profile_semantic_failures(
-    repo_root: Path,
-    profiles: Mapping[str, Any],
-) -> list[PolicyFailure]:
-    failures: list[PolicyFailure] = []
-    contexts = [value for value in profiles.get("python_package_contexts", []) if isinstance(value, Mapping)]
-    context_ids = [str(value.get("context_id", "")) for value in contexts]
-    if set(context_ids) != {
-        "python-public",
-        "python-enterprise-mirror-only",
-        "python-offline",
-    } or len(context_ids) != len(set(context_ids)):
-        failures.append(
-            failure(
-                "tooling-python-contexts",
-                "Python package contexts must be exact and unique",
-                PROFILES_PATH,
-            )
-        )
-    for context in contexts:
-        mode = context.get("mode")
-        credentials = context.get("credential_refs", [])
-        mappings = context.get("namespace_mapping", [])
-        if mode in {"public", "offline"} and credentials:
-            failures.append(
-                failure(
-                    "tooling-python-credentials",
-                    "public and offline Python contexts must be credential-free",
-                    PROFILES_PATH,
-                )
-            )
-        if mode == "mirror-only" and (
-            not credentials
-            or len(mappings) != 1
-            or not isinstance(mappings[0], Mapping)
-            or mappings[0].get("namespace") != "*"
-            or mappings[0].get("locator_ref") != context.get("locator_ref")
-        ):
-            failures.append(
-                failure(
-                    "tooling-python-mirror",
-                    "mirror-only Python context must map the complete namespace to one credential-referenced mirror",
-                    PROFILES_PATH,
-                )
-            )
-        if context.get("public_fallback") != "prohibited":
-            failures.append(
-                failure(
-                    "tooling-python-fallback",
-                    "Python package contexts must prohibit fallback",
-                    PROFILES_PATH,
-                )
-            )
-
-    host_ids = {
-        str(value.get("host_profile_id")) for value in profiles.get("host_profiles", []) if isinstance(value, Mapping)
-    }
-    seen: set[str] = set()
-    for value in profiles.get("python_closure_profiles", []):
-        if not isinstance(value, Mapping):
-            continue
-        profile_id = str(value.get("python_closure_profile_id", ""))
-        if profile_id in seen:
-            failures.append(
-                failure(
-                    "tooling-python-profile-duplicate",
-                    "Python closure profile ids must be unique",
-                    PROFILES_PATH,
-                )
-            )
-        seen.add(profile_id)
-        if value.get("host_profile_id") not in host_ids:
-            failures.append(
-                failure(
-                    "tooling-python-host",
-                    "Python closure profile references an unknown host",
-                    PROFILES_PATH,
-                )
-            )
-        python = value.get("python", {})
-        if isinstance(python, Mapping) and str(python.get("abi", "")) != "cp" + str(python.get("version", "")).replace(
-            ".", ""
-        ):
-            failures.append(
-                failure(
-                    "tooling-python-abi",
-                    "Python ABI must match the selected CPython feature release",
-                    PROFILES_PATH,
-                )
-            )
-        purposes = set(value.get("purposes", []))
-        project_scoped = bool(purposes & {"wheel-smoke", "sdist-smoke", "compatibility", "docs"})
-        if not project_scoped and purposes != {"tool", "build"}:
-            failures.append(
-                failure(
-                    "tooling-python-purposes",
-                    "non-project Python closures must bind both tool and build purposes",
-                    PROFILES_PATH,
-                )
-            )
-        expected_extras = {"dev", "docs"} if project_scoped else set()
-        if set(value.get("project_extras", [])) != expected_extras:
-            failures.append(
-                failure(
-                    "tooling-python-extras",
-                    "project smoke closures must include all extras and tool/build closures must include none",
-                    PROFILES_PATH,
-                )
-            )
-        if set(value.get("tool_groups", [])) != {"default", "build"}:
-            failures.append(
-                failure(
-                    "tooling-python-groups",
-                    "every Python closure must bind tool and build groups",
-                    PROFILES_PATH,
-                )
-            )
-        if set(value.get("acquisition_context_ids", [])) != set(context_ids):
-            failures.append(
-                failure(
-                    "tooling-python-context-binding",
-                    "Python closure profile must bind every acquisition context",
-                    PROFILES_PATH,
-                )
-            )
-        manifest_path = value.get("wheelhouse_manifest")
-        requirements_path = value.get("smoke_requirements")
-        if not isinstance(manifest_path, str) or not isinstance(requirements_path, str):
-            continue
-        if not is_regular_repo_file(repo_root, manifest_path) or not is_regular_repo_file(repo_root, requirements_path):
-            failures.append(
-                failure(
-                    "tooling-python-projection",
-                    "Python closure projection is missing or non-regular",
-                    manifest_path,
-                )
-            )
-            continue
-        if (repo_root / manifest_path).stat().st_size > 2 * 1024 * 1024 or (
-            repo_root / requirements_path
-        ).stat().st_size > 2 * 1024 * 1024:
-            failures.append(
-                failure(
-                    "tooling-python-projection",
-                    "Python closure projection exceeds the size limit",
-                    manifest_path,
-                )
-            )
-            continue
-        try:
-            manifest = json.loads((repo_root / manifest_path).read_text(encoding="utf-8"))
-            requirements = (repo_root / requirements_path).read_bytes()
-        except (OSError, UnicodeError, json.JSONDecodeError):
-            failures.append(
-                failure(
-                    "tooling-python-projection",
-                    "Python closure projection could not be parsed",
-                    manifest_path,
-                )
-            )
-            continue
-        selected_lock_path = PYTHON_PROJECT_LOCK_PATH if project_scoped else PYTHON_TOOL_LOCK_PATH
-        selected_lock_digest = hashlib.sha256((repo_root / selected_lock_path).read_bytes()).hexdigest()
-        if (
-            manifest.get("python_closure_profile_id") != profile_id
-            or manifest.get("lock_path") != selected_lock_path
-            or manifest.get("lock_sha256") != selected_lock_digest
-            or manifest.get("requirements_sha256") != hashlib.sha256(requirements).hexdigest()
-        ):
-            failures.append(
-                failure(
-                    "tooling-python-projection-drift",
-                    "Python closure projection is not bound to its profile and project lock",
-                    manifest_path,
-                )
-            )
-    if not seen:
-        failures.append(
-            failure(
-                "tooling-python-profiles",
-                "repository Python project requires reviewed closure profiles",
-                PROFILES_PATH,
-            )
-        )
-    return failures
 
 
 def _legacy_surface_failures(repo_root: Path, tracked_paths: Sequence[str]) -> list[PolicyFailure]:
@@ -336,41 +176,48 @@ def _legacy_surface_failures(repo_root: Path, tracked_paths: Sequence[str]) -> l
     return failures
 
 
-def python_closure_failures(
+def _python_authorities(
     repo_root: Path,
-    documents: Mapping[str, Mapping[str, Any]],
-    tracked_paths: Sequence[str],
-) -> list[PolicyFailure]:
-    """Validate the internal Python closure authorities without acquisition."""
+) -> tuple[tuple[Mapping[str, Any], ...] | None, list[PolicyFailure]]:
+    """Parse the reviewed Python authorities, or report why they cannot be read."""
 
-    if not (repo_root / PYTHON_PROJECT_PATH).exists():
-        return []
-    failures: list[PolicyFailure] = []
     missing = [path for path in PYTHON_AUTHORITY_PATHS if not is_regular_repo_file(repo_root, path)]
-    failures.extend(
-        failure(
-            "tooling-python-authority",
-            "Python closure authority must be a repository regular file",
-            path,
-        )
-        for path in missing
-    )
     if missing:
-        return failures
-    project = _toml(repo_root, PYTHON_PROJECT_PATH)
-    project_lock = _toml(repo_root, PYTHON_PROJECT_LOCK_PATH)
-    tool_project = _toml(repo_root, PYTHON_TOOL_PROJECT_PATH)
-    tool_lock = _toml(repo_root, PYTHON_TOOL_LOCK_PATH)
-    if any(value is None for value in (project, project_lock, tool_project, tool_lock)):
-        return [
-            *failures,
+        return None, [
+            failure(
+                "tooling-python-authority",
+                "Python closure authority must be a repository regular file",
+                path,
+            )
+            for path in missing
+        ]
+    parsed = tuple(
+        _toml(repo_root, path)
+        for path in (
+            PYTHON_PROJECT_PATH,
+            PYTHON_PROJECT_LOCK_PATH,
+            PYTHON_TOOL_PROJECT_PATH,
+            PYTHON_TOOL_LOCK_PATH,
+        )
+    )
+    if any(value is None for value in parsed):
+        return None, [
             failure(
                 "tooling-python-toml",
                 "Python closure TOML authority could not be parsed safely",
-            ),
+            )
         ]
-    assert project is not None and project_lock is not None and tool_project is not None and tool_lock is not None
+    return cast("tuple[Mapping[str, Any], ...]", parsed), []
 
+
+def _dependency_pin_failures(
+    project: Mapping[str, Any],
+    tool_project: Mapping[str, Any],
+    tool_lock: Mapping[str, Any],
+) -> list[PolicyFailure]:
+    """Require the reviewed exact tool, build, and build-system pin sets."""
+
+    failures: list[PolicyFailure] = []
     tool_pins = _direct_pins(tool_project.get("project", {}).get("dependencies"))
     build_pins = _direct_pins(tool_project.get("dependency-groups", {}).get("build"))
     if tool_pins != _EXPECTED_TOOLS or build_pins != _EXPECTED_BUILD:
@@ -382,17 +229,16 @@ def python_closure_failures(
             )
         )
     versions = _lock_versions(tool_lock)
-    for name, version in {**_EXPECTED_TOOLS, **_EXPECTED_BUILD}.items():
-        if versions.get(name) != {version}:
-            failures.append(
-                failure(
-                    "tooling-python-lock",
-                    "reviewed Python direct dependency is absent or drifted in the tool lock",
-                    PYTHON_TOOL_LOCK_PATH,
-                )
-            )
-    build_requires = _direct_pins(project.get("build-system", {}).get("requires"))
-    if build_requires != _EXPECTED_BUILD:
+    failures.extend(
+        failure(
+            "tooling-python-lock",
+            "reviewed Python direct dependency is absent or drifted in the tool lock",
+            PYTHON_TOOL_LOCK_PATH,
+        )
+        for name, version in {**_EXPECTED_TOOLS, **_EXPECTED_BUILD}.items()
+        if versions.get(name) != {version}
+    )
+    if _direct_pins(project.get("build-system", {}).get("requires")) != _EXPECTED_BUILD:
         failures.append(
             failure(
                 "tooling-python-build-system",
@@ -400,10 +246,16 @@ def python_closure_failures(
                 PYTHON_PROJECT_PATH,
             )
         )
-    project_requirements = project.get("project", {}).get("dependencies", [])
+    return failures
+
+
+def _governed_pin_failures(repo_root: Path, project: Mapping[str, Any]) -> list[PolicyFailure]:
+    """Require the governed solver pin and hash-complete build constraints."""
+
+    failures: list[PolicyFailure] = []
     z3_requirements = [
         Requirement(value)
-        for value in project_requirements
+        for value in project.get("project", {}).get("dependencies", [])
         if isinstance(value, str) and Requirement(value).name.lower() == "z3-solver"
     ]
     if len(z3_requirements) != 1 or str(z3_requirements[0].specifier) != "==4.16.0.0":
@@ -415,10 +267,9 @@ def python_closure_failures(
             )
         )
     constraints = _constraint_records((repo_root / PYTHON_BUILD_CONSTRAINTS_PATH).read_text(encoding="utf-8"))
-    if (
-        constraints is None
-        or not _EXPECTED_BUILD.items() <= {name: record[0] for name, record in (constraints or {}).items()}.items()
-    ):
+    recorded = {name: record[0] for name, record in (constraints or {}).items()}
+    hash_complete = constraints is not None and _EXPECTED_BUILD.items() <= recorded.items()
+    if not hash_complete:
         failures.append(
             failure(
                 "tooling-python-build-constraints",
@@ -426,21 +277,45 @@ def python_closure_failures(
                 PYTHON_BUILD_CONSTRAINTS_PATH,
             )
         )
+    return failures
 
-    profiles = documents.get(PROFILES_PATH)
-    if isinstance(profiles, Mapping):
-        failures.extend(_profile_semantic_failures(repo_root, profiles))
+
+def _projection_generation_failures(repo_root: Path) -> list[PolicyFailure]:
+    """Require the checked-in projections to match a fresh generation exactly."""
+
     try:
         projections_current = generate_python_closures(check=True, repo_root=repo_root)
-    except (OSError, UnicodeError, ValueError, tomllib.TOMLDecodeError):
+    except (OSError, ValueError):
         projections_current = False
-    if not projections_current:
-        failures.append(
-            failure(
-                "tooling-python-projection-generation",
-                "Python closure projections must exactly match the reviewed lock authorities",
-                "implementations/tooling/python/smoke",
-            )
+    if projections_current:
+        return []
+    return [
+        failure(
+            "tooling-python-projection-generation",
+            "Python closure projections must exactly match the reviewed lock authorities",
+            "implementations/tooling/python/smoke",
         )
-    failures.extend(_legacy_surface_failures(repo_root, tracked_paths))
-    return failures
+    ]
+
+
+def python_closure_failures(
+    repo_root: Path,
+    documents: Mapping[str, Mapping[str, Any]],
+    tracked_paths: Sequence[str],
+) -> list[PolicyFailure]:
+    """Validate the internal Python closure authorities without acquisition."""
+
+    if not (repo_root / PYTHON_PROJECT_PATH).exists():
+        return []
+    authorities, blocking = _python_authorities(repo_root)
+    if authorities is None:
+        return blocking
+    project, _project_lock, tool_project, tool_lock = authorities
+    profiles = documents.get(PROFILES_PATH)
+    return [
+        *_dependency_pin_failures(project, tool_project, tool_lock),
+        *_governed_pin_failures(repo_root, project),
+        *(profile_semantic_failures(repo_root, profiles) if isinstance(profiles, Mapping) else []),
+        *_projection_generation_failures(repo_root),
+        *_legacy_surface_failures(repo_root, tracked_paths),
+    ]

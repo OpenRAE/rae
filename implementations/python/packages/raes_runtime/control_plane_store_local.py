@@ -7,29 +7,18 @@ import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import asdict
-from datetime import UTC, datetime
 from pathlib import Path
 
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import RuntimeSnapshot
 
-from .control_plane_store import (
-    AuditEvent,
-    ControlPlaneOperationRecord,
-    SnapshotState,
-    TerminalCommitMode,
-    _require_expected_control_head,
-    _require_expected_history_heads,
-    _require_operation_audit_binding,
-    _require_operation_record_transition,
-    _require_terminal_commit_mode,
-    _require_terminal_operation_audit,
-    _require_terminal_operation_transition,
-    _require_terminal_retry_mode,
-    terminal_operation_audit,
+from .control_plane_store_history import (
+    require_expected_control_head as _require_expected_control_head,
+)
+from .control_plane_store_history import (
+    require_expected_history_heads as _require_expected_history_heads,
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
-from .control_plane_store_legacy import _read_legacy_state
 from .control_plane_store_local_codec import (
     decode_payload as _decode_payload,
 )
@@ -39,9 +28,20 @@ from .control_plane_store_local_codec import (
 from .control_plane_store_local_codec import (
     transaction as _transaction,
 )
+from .control_plane_store_local_migration import LocalLegacyMigrationMixin
 from .control_plane_store_local_snapshot import LocalSnapshotRevisionStoreMixin
+from .control_plane_store_operations import (
+    AuditEvent,
+    ControlPlaneOperationRecord,
+    _require_operation_audit_binding,
+    _require_operation_record_transition,
+    _require_terminal_commit_mode,
+    _require_terminal_operation_audit,
+    _require_terminal_operation_transition,
+    _require_terminal_retry_mode,
+    terminal_operation_audit,
+)
 from .control_plane_store_paths import (
-    _copy_regular_file_durably,
     _fsync_directory,
     _require_same_file,
     _secure_database_file,
@@ -57,7 +57,9 @@ from .control_plane_store_records import (
     _record_from_payload,
     _record_payload,
 )
+from .control_plane_store_revision import SnapshotState
 from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from .control_plane_store_types import TerminalCommitMode
 
 _DATABASE_NAME = "control-plane.sqlite3"
 _SCHEMA_VERSION = LOCAL_OPERATION_SCHEMA_VERSION
@@ -73,7 +75,7 @@ def _participant_transition_count(snapshot: RuntimeSnapshot) -> int:
     return _count_participant_transitions(snapshot)
 
 
-class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
+class LocalControlPlaneStore(LocalLegacyMigrationMixin, LocalSnapshotRevisionStoreMixin):
     """Transactional single-host control-plane durability.
 
     SQLite WAL transactions serialize writers across processes, keep operation
@@ -377,62 +379,6 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
                 raise ValueError("local control-plane database failed its integrity check")
         if not database_existed:
             _fsync_directory(self._base_dir)
-
-    def _migrate_legacy_json(self, connection: sqlite3.Connection) -> None:
-        completed = connection.execute("SELECT value FROM metadata WHERE key='legacy-json-migration'").fetchone()
-        if completed is not None:
-            return
-        legacy_paths = self._existing_legacy_paths()
-        if not legacy_paths:
-            connection.execute("INSERT INTO metadata(key, value) VALUES ('legacy-json-migration', 'not-present')")
-            return
-
-        snapshot, records, audits = _read_legacy_state(
-            snapshot_path=self._snapshot_path,
-            operations_path=self._operations_path,
-            audit_path=self._audit_path,
-            control_state_path=self._control_state_path,
-        )
-        backup_dir = self._backup_legacy_files(legacy_paths)
-        self._upsert_snapshot(connection, snapshot)
-        for record in records.values():
-            self._upsert_record(connection, record)
-        for event in audits:
-            payload, digest = _encode_payload(asdict(event))
-            connection.execute(
-                _INSERT_AUDIT_EVENT,
-                (payload, digest),
-            )
-        stored_record_count = connection.execute("SELECT COUNT(*) FROM operations").fetchone()[0]
-        stored_audit_count = connection.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0]
-        if stored_record_count != len(records) or stored_audit_count != len(audits):
-            raise ValueError("legacy control-plane migration verification failed")
-        connection.execute(
-            "INSERT INTO metadata(key, value) VALUES ('legacy-json-migration', ?)",
-            (backup_dir.name,),
-        )
-
-    def _existing_legacy_paths(self) -> list[Path]:
-        return [
-            path
-            for path in (
-                self._snapshot_path,
-                self._operations_path,
-                self._audit_path,
-                self._control_state_path,
-            )
-            if path.exists()
-        ]
-
-    def _backup_legacy_files(self, paths: list[Path]) -> Path:
-        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S.%fZ")
-        backup_dir = self._base_dir / f"legacy-json-backup-{timestamp}"
-        backup_dir.mkdir(mode=0o700)
-        for path in paths:
-            _copy_regular_file_durably(path, backup_dir / path.name)
-        _fsync_directory(backup_dir)
-        _fsync_directory(self._base_dir)
-        return backup_dir
 
     @staticmethod
     def _load_record(

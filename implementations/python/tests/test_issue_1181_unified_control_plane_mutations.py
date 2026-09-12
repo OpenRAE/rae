@@ -444,11 +444,13 @@ def test_participant_terminal_commit_rejects_audit_actor_or_operation_mismatch(
         operation_id="different-operation",
     )
 
+    candidate = RuntimeSnapshot(metadata={"candidate": "rejected"})
+
     with pytest.raises(ValueError, match="actor-bound"):
         store.commit_participant_transition(
             expected_history_heads={},
             expected_revision=0,
-            snapshot=RuntimeSnapshot(metadata={"candidate": "rejected"}),
+            snapshot=candidate,
             record=terminal,
             audit_event=mismatched,
         )
@@ -532,8 +534,11 @@ def test_runtime_rejects_store_without_complete_atomic_mutation_capability() -> 
                 raise AttributeError(name)
             return getattr(self.delegate, name)
 
+    target = create_stub_target()
+    legacy_store = LegacyStore()
+
     with pytest.raises(TypeError, match="atomic mutation capabilities"):
-        RuntimeControlPlane(create_stub_target(), store=LegacyStore())  # type: ignore[arg-type]
+        RuntimeControlPlane(target, store=legacy_store)  # type: ignore[arg-type]
 
 
 def test_restart_preserves_running_claim_for_governed_recovery() -> None:

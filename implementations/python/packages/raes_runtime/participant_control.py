@@ -290,29 +290,6 @@ class ParticipantControlMixin(
                     "participant_address": getattr(participant_behavior, "address", "unknown"),
                 },
             )
-        try:
-            with external_control_plane_call(self):
-                request = bind_participant_decision_surface_selection(
-                    surface=surface,
-                    selection=selection,
-                    admission_request=admission_request,
-                    argument_shape_resolver=resolvers.argument_shape,
-                    apparatus_resolver=resolvers.apparatus,
-                )
-        except (TypeError, ValueError) as exc:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.PARTICIPANT,
-                diagnostics=[
-                    _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
-                ],
-                idempotency_key=options.idempotency_key,
-                request_fingerprint=options.request_fingerprint,
-                identity=options.identity,
-                request={
-                    "operation": "participant-decision-surface-selection",
-                    "participant_address": getattr(participant_behavior, "address", "unknown"),
-                },
-            )
         with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
             try:
                 with external_control_plane_call(self):

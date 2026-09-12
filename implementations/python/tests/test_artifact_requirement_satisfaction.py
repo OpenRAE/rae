@@ -45,7 +45,7 @@ from raes_processor.semantics.realization import (
     artifact_requirement_diagnostics,
     realization_disclosure,
 )
-from raes_runtime.control_plane_store import _snapshot_from_payload, _snapshot_payload
+from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
 
 _DIGEST_A = "sha256:" + "a" * 64
 _DIGEST_B = "sha256:" + "b" * 64

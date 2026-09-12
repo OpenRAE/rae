@@ -38,9 +38,8 @@ from raes_runtime.control_plane_security import (
 from raes_runtime.control_plane_store import (
     InMemoryControlPlaneStore,
     LocalControlPlaneStore,
-    _snapshot_from_payload,
-    _snapshot_payload,
 )
+from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
 from raes_runtime.operational_apparatus import operational_apparatus_summary
 from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
 from raes_runtime.participant_crossing_boundary import _action_subject

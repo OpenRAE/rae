@@ -52,26 +52,6 @@ class ParticipantDecisionSurfaceV2ControlMixin:
                 idempotency_key=idempotency_key,
                 request_fingerprint=request_fingerprint,
             )
-        try:
-            validate_participant_decision_surface_v2_anchor(self._snapshot, surface)
-            with external_control_plane_call(self):
-                request = bind_participant_decision_surface_selection_v2(
-                    surface=surface,
-                    selection=selection,
-                    admission_request=admission_request,
-                    argument_shape_resolver=resolvers.argument_shape,
-                    apparatus_resolver=resolvers.apparatus,
-                    delivery_resolver=resolvers.delivery,
-                )
-        except (TypeError, ValueError) as exc:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.PARTICIPANT,
-                diagnostics=[
-                    _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
-                ],
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
         with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
             try:
                 validate_participant_decision_surface_v2_anchor(self._snapshot, surface)

@@ -112,12 +112,12 @@ def _runtime_declarations(
     return declared, failures
 
 
-def _runtime_observations(
+def _runtime_source_observations(
     tracked_paths: Sequence[str],
     python_scans: Mapping[str, PythonScan | None],
-    action_policy: Mapping[str, Any],
-    eligible_action_artifact_ids: set[str],
 ) -> tuple[dict[str, set[str]], list[PolicyFailure]]:
+    """Observe runtime selections declared by tracked Python sources."""
+
     observed: dict[str, set[str]] = {}
     failures: list[PolicyFailure] = []
     for path in tracked_paths:
@@ -143,6 +143,16 @@ def _runtime_observations(
             )
         for artifact_id in scan.selected_artifact_ids:
             observed.setdefault(artifact_id, set()).add(path)
+    return observed, failures
+
+
+def _runtime_observations(
+    tracked_paths: Sequence[str],
+    python_scans: Mapping[str, PythonScan | None],
+    action_policy: Mapping[str, Any],
+    eligible_action_artifact_ids: set[str],
+) -> tuple[dict[str, set[str]], list[PolicyFailure]]:
+    observed, failures = _runtime_source_observations(tracked_paths, python_scans)
     for action_value in as_list(action_policy.get("actions")):
         for input_value in as_list(as_mapping(action_value).get("transitive_inputs")):
             artifact_id = as_mapping(input_value).get("artifact_ref")

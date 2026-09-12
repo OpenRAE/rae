@@ -10,7 +10,7 @@ from raes_contracts.contracts.base import ContractModel, Rfc3339DateTimeString
 from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt, OperationStatus
 
-from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store_operations import AuditEvent, ControlPlaneOperationRecord
 
 
 def _diagnostics_payload(diagnostics: list[Diagnostic]) -> list[dict[str, Any]]:

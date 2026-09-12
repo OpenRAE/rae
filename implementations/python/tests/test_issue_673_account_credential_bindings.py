@@ -30,7 +30,7 @@ from raes_runtime.control_plane_security import (
     ControlPlaneRole,
     ControlPlaneSecurityConfig,
 )
-from raes_runtime.control_plane_store import _snapshot_payload
+from raes_runtime.control_plane_store_snapshots import _snapshot_payload
 from raes_runtime.control_plane_submission import _submitted_plan_diagnostics
 from starlette.testclient import TestClient
 
