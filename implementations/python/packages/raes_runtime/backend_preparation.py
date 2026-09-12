@@ -238,7 +238,7 @@ def _admit_backend_completion(
     diagnostics, invalid = _materialize_diagnostics(response.diagnostics, _PREPARATION_ADDRESS)
     if invalid or not response.success or any(diagnostic.is_error for diagnostic in diagnostics):
         raise ValueError("Backend did not return a supported completion.")
-    selected = _selected_plan(plan, replace(response, diagnostics=tuple(diagnostics)))
+    selected = _selected_plan(plan, cast("RealizationPreparation", replace(response, diagnostics=tuple(diagnostics))))
     violation = (
         prepared_profile_violation(plan, selected, profile_context)
         or _transition_violation(plan, selected, previous)

@@ -55,7 +55,8 @@ class _DestroyPhaseMixin:
             ),
         )
 
-    def _destroy_delete_plan(self, snapshot: RuntimeSnapshot) -> ProvisioningPlan:
+    @staticmethod
+    def _destroy_delete_plan(snapshot: RuntimeSnapshot) -> ProvisioningPlan:
         """Build the plan that deletes every live provisioning entry in order."""
 
         entries = snapshot.for_domain(RuntimeDomain.PROVISIONING)
