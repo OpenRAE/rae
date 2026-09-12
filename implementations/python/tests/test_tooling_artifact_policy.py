@@ -808,6 +808,46 @@ def test_host_selection_launcher_rejects_an_unbound_validator_response(monkeypat
         tooling_policy_gate.load_tooling_host_profile_selection("host-a")
 
 
+def test_host_selection_launcher_can_reuse_the_active_tool_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = {
+        "host_profile": {
+            "host_profile_id": "host-a",
+            "platform_id": "linux-x86_64",
+            "bootstrap_payload_ids": ["uv"],
+        },
+        "artifacts": [
+            {
+                "artifact_id": "uv",
+                "artifact_class": "bootstrap",
+                "version": "1.0.0",
+                "source": {"repository": "https://example.invalid", "release": "v1.0.0"},
+                "platform": {
+                    "platform_id": "linux-x86_64",
+                    "host_profile_ids": ["host-a"],
+                    "source_urls": ["https://example.invalid/uv"],
+                    "raw_manifest": [{"path": "uv.tar.gz", "sha256": _SHA_A, "size": 1}],
+                    "installed_manifest": [{"path": "uv", "sha256": _SHA_A, "size": 1}],
+                },
+            }
+        ],
+        "policy_sha256": _SHA_A,
+    }
+    commands: list[list[str]] = []
+
+    def validator_stdout(command: list[str], **_kwargs: object) -> str:
+        commands.append(command)
+        return json.dumps(response)
+
+    monkeypatch.setattr(tooling_policy_gate, "_validator_host_stdout", validator_stdout)
+    assert tooling_policy_gate.load_tooling_host_profile_selection_with_current_interpreter("host-a") == response
+    assert commands == [
+        [
+            tooling_policy_gate.sys.executable,
+            str(REPO_ROOT / "tools" / "check_tooling_artifact_policy.py"),
+        ]
+    ]
+
+
 @pytest.mark.integration
 def test_repository_discovery_uses_only_git_tracked_paths(tmp_path: Path) -> None:
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)

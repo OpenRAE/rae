@@ -28,7 +28,9 @@ from pathlib import Path, PurePosixPath
 
 from tools import maintained_client_acquisition
 from tools.tooling_policy_gate import (
-    load_tooling_host_profile_selection,
+    load_tooling_host_profile_selection_with_current_interpreter as load_tooling_host_profile_selection,
+)
+from tools.tooling_policy_gate import (
     safe_tooling_cache_parent,
 )
 
@@ -294,7 +296,9 @@ def proof_support_outcome(platform_id: str) -> str:
     return "required" if platform_id == "linux-x86_64" else "unsupported"
 
 
-def _generic_tool_local_artifacts(local_input_root: Path | None) -> dict[str, dict[str, object]]:
+def _generic_tool_local_artifacts(
+    local_input_root: Path | None,
+) -> dict[str, dict[str, object]]:
     if local_input_root is None:
         return {}
     if not local_input_root.is_dir() or local_input_root.is_symlink():

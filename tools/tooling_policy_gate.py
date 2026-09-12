@@ -8,6 +8,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
@@ -129,6 +130,16 @@ def _frozen_validator_command(policy_root: Path) -> list[str]:
         "python",
         str(validator),
     ]
+
+
+def _current_interpreter_validator_command(policy_root: Path) -> list[str]:
+    validator_python = Path(sys.executable)
+    validator = policy_root / "tools" / "check_tooling_artifact_policy.py"
+    if not validator_python.is_absolute() or not validator_python.is_file() or not validator.is_file():
+        raise RuntimeError(
+            "development artifact policy failed before acquisition: the active tool validator is unavailable"
+        )
+    return [str(validator_python), str(validator)]
 
 
 def _validator_stdout(
@@ -294,12 +305,11 @@ def load_tooling_artifact_selection(
     return result
 
 
-def load_tooling_host_profile_selection(  # NOSONAR -- closed response validation is deliberately explicit.
+def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validation is deliberately explicit.
     host_profile_id: str,
+    validator_command: list[str],
 ) -> dict[str, object]:
-    """Load one schema- and semantics-validated host/bootstrap selection."""
-
-    payload = _validator_host_stdout(_frozen_validator_command(REPO_ROOT), host_profile_id=host_profile_id)
+    payload = _validator_host_stdout(validator_command, host_profile_id=host_profile_id)
     selection = _selection_document(payload, _INVALID_HOST_RESPONSE)
     host = selection.get("host_profile")
     artifacts = selection.get("artifacts")
@@ -371,3 +381,20 @@ def load_tooling_host_profile_selection(  # NOSONAR -- closed response validatio
     except (KeyError, TypeError, RuntimeError):
         raise RuntimeError(_INVALID_HOST_RESPONSE) from None
     return selection
+
+
+def load_tooling_host_profile_selection(host_profile_id: str) -> dict[str, object]:
+    """Load one validated host selection through the frozen tooling project."""
+
+    return _load_tooling_host_profile_selection(host_profile_id, _frozen_validator_command(REPO_ROOT))
+
+
+def load_tooling_host_profile_selection_with_current_interpreter(
+    host_profile_id: str,
+) -> dict[str, object]:
+    """Load one validated host selection through the active reviewed tool environment."""
+
+    return _load_tooling_host_profile_selection(
+        host_profile_id,
+        _current_interpreter_validator_command(REPO_ROOT),
+    )
