@@ -89,7 +89,8 @@ def test_five_selected_components_are_typed_fixture_data_without_collection():
     receipt = control.submit_provisioning(ProvisioningPlan(observation_demands=demands))
     assert control.get_operation(receipt.operation_id).state.value == "succeeded"
     execution = control.observation_execution(receipt.operation_id)
-    assert not execution.lifecycle.collected and not execution.lifecycle.exported
+    assert not execution.lifecycle.collected
+    assert not execution.lifecycle.exported
     description = execution.realized_form_disclosures[0].typed_description
     assert len(description.facts) == 5
     assert [fact.value.value for fact in description.facts] == ["linux", "kali", "abstract", "private-system", "linux"]
@@ -135,7 +136,8 @@ def test_protection_applies_to_typed_values_before_the_retention_transaction():
         for record in store.load_records().values()
     )
     recovered = control.observation_execution(receipt.operation_id).realized_form_disclosures[0].typed_description
-    assert recovered.facts[0].state == "withheld" and recovered.facts[0].value is None
+    assert recovered.facts[0].state == "withheld"
+    assert recovered.facts[0].value is None
     assert supplied.facts[0].value.value == "private-sentinel"
 
 
@@ -195,3 +197,55 @@ def _stored_scalar_values(value):
             yield from _stored_scalar_values(child)
     else:
         yield value
+
+
+@pytest.mark.parametrize("allow_opaque", [False, True])
+def test_runtime_description_profiles_preserve_explicit_host_policy(allow_opaque):
+    from raes_contracts.description_reporting import DescriptionProfileAdmission
+    from raes_contracts.domain_profiles import (
+        DomainProfileAdmissionPolicyModel,
+        DomainProfileNamespaceAdmissionModel,
+        DomainProfileResolutionContextModel,
+    )
+    from raes_runtime.observation_execution import ConfiguredObservationRuntime
+    from test_issue_1209_description_profiles import profiled_payload
+
+    selector = ObservationSelector(semantic_scope="/nodes/a", data_kind="field", names=("family",))
+    demands = _demands(
+        selector, purpose="realization-description", collection="require", retention="require", required=True
+    )
+    supplied = TypedRealizationDescriptionModel.model_validate(profiled_payload("experiment-run-v1"))
+    capabilities = _runtime(
+        selector, stages=frozenset({ObservationLifecycleStage.RETENTION}), describer=lambda *_: None
+    ).capabilities
+    runtime = ConfiguredObservationRuntime(
+        capabilities=capabilities,
+        describers={
+            "test-observation": lambda *_: AchievedObservationValue(supplied, ObservationBasis.BACKEND_SELECTED)
+        },
+        description_profiles=DescriptionProfileAdmission(
+            context=DomainProfileResolutionContextModel(
+                namespace_admissions=(
+                    DomainProfileNamespaceAdmissionModel(
+                        namespace="com.example.private",
+                        authority="urn:example:authority",
+                        trust_decision_id="local-admission",
+                    ),
+                ),
+                definitions=(),
+            ),
+            policy=DomainProfileAdmissionPolicyModel(allow_opaque_exchange=allow_opaque),
+        ),
+    )
+    target = replace(create_stub_target(), observation_runtime=runtime)
+    store = InMemoryControlPlaneStore()
+    control = RuntimeControlPlane(target, store=store)
+    receipt = control.submit_provisioning(ProvisioningPlan(observation_demands=demands))
+    assert receipt.accepted
+    assert control.get_operation(receipt.operation_id).state.value == ("succeeded" if allow_opaque else "failed")
+    if allow_opaque:
+        recovered = RuntimeControlPlane(target, store=store).observation_execution(receipt.operation_id)
+        assert (
+            recovered.realized_form_disclosures[0].typed_description.facts[0].profile_bindings
+            == supplied.facts[0].profile_bindings
+        )

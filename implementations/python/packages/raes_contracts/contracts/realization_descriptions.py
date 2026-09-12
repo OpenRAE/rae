@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
 from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
 from ..canonical import canonical_json_digest
-from ..domain_profiles import DomainProfileBindingBasis, DomainProfileBindingModel, DomainProfileBindingUse
+from ..domain_profiles import (
+    DomainProfileBindingBasis,
+    DomainProfileBindingModel,
+    DomainProfileBindingOwnerModel,
+    DomainProfileBindingUse,
+)
 from ..observation_demand import ObservationBasis
 from ..realization_structure import (
     RealizationKeyedCollectionConstraint,
@@ -139,14 +145,20 @@ class TypedRealizationDescriptionModel(DescriptionModel):
             for binding in iter_description_bindings(fact.profile_bindings):
                 _validate_binding_provenance(binding, provenance)
         for coverage in self.coverage:
-            if len(coverage.fact_ids) != len(set(coverage.fact_ids)):
-                raise ValueError("coverage fact ids must be unique")
-            if any(
-                fact_id not in facts or not semantic_address_contains(coverage.subject, facts[fact_id].subject)
-                for fact_id in coverage.fact_ids
-            ):
-                raise ValueError("coverage must reference facts inside its named scope")
+            _validate_coverage_references(coverage, facts)
         return self
+
+
+def _validate_coverage_references(
+    coverage: DescriptionCoverageModel, facts: Mapping[str, DescriptionFactModel]
+) -> None:
+    if len(coverage.fact_ids) != len(set(coverage.fact_ids)):
+        raise ValueError("coverage fact ids must be unique")
+    if any(
+        fact_id not in facts or not semantic_address_contains(coverage.subject, facts[fact_id].subject)
+        for fact_id in coverage.fact_ids
+    ):
+        raise ValueError("coverage must reference facts inside its named scope")
 
 
 def _validate_descriptive_value(value: RecursiveRealizationStructure) -> None:
@@ -156,32 +168,45 @@ def _validate_descriptive_value(value: RecursiveRealizationStructure) -> None:
         raise ValueError("descriptive values cannot carry author presence constraints")
     if isinstance(value, RealizationLiteral):
         return
+    children = _descriptive_children(value)
+    _validate_descriptive_coverage(value)
+    for child in children:
+        _validate_descriptive_value(child)
+
+
+def _descriptive_children(value: RecursiveRealizationStructure) -> tuple[RecursiveRealizationStructure, ...]:
     if isinstance(value, RealizationRecordConstraint):
         children = tuple(value.fields.values())
     elif isinstance(value, RealizationSequenceConstraint):
         children = value.items
     elif isinstance(value, RealizationKeyedCollectionConstraint):
+        _validate_descriptive_identities(value)
         children = tuple(member.constraint for member in value.members)
-        if value.aliases:
-            raise ValueError("descriptions retain actual identities, not comparison aliases")
-        for member in value.members:
-            if not isinstance(member.constraint, RealizationRecordConstraint):
-                raise ValueError("descriptive member identity requires a record value")
-            actual = tuple(member.constraint.fields.get(name) for name in value.identity_fields)
-            if any(not isinstance(item, RealizationLiteral) for item in actual) or (
-                canonical_json_digest([item.value for item in actual]) != canonical_json_digest(list(member.identity))
-            ):
-                raise ValueError("descriptive member identity must match supplied identity fields")
     else:
         raise ValueError("descriptions cannot carry delegated, domain, reference, or conjunction authority")
+    return children
+
+
+def _validate_descriptive_identities(value: RealizationKeyedCollectionConstraint) -> None:
+    if value.aliases:
+        raise ValueError("descriptions retain actual identities, not comparison aliases")
+    for member in value.members:
+        if not isinstance(member.constraint, RealizationRecordConstraint):
+            raise ValueError("descriptive member identity requires a record value")
+        actual = tuple(member.constraint.fields.get(name) for name in value.identity_fields)
+        if any(not isinstance(item, RealizationLiteral) for item in actual) or (
+            canonical_json_digest([item.value for item in actual]) != canonical_json_digest(list(member.identity))
+        ):
+            raise ValueError("descriptive member identity must match supplied identity fields")
+
+
+def _validate_descriptive_coverage(value: RecursiveRealizationStructure) -> None:
     if value.closure.posture.value != "undefined":
         raise ValueError("description coverage must not be encoded as author closure")
     if isinstance(value, (RealizationSequenceConstraint, RealizationKeyedCollectionConstraint)) and (
         value.min_items != 0 or value.max_items != 4096
     ):
         raise ValueError("description coverage must not carry author cardinality constraints")
-    for child in children:
-        _validate_descriptive_value(child)
 
 
 _DESCRIPTION_HOST_PHASES = {
@@ -190,7 +215,9 @@ _DESCRIPTION_HOST_PHASES = {
 }
 
 
-def _validate_descriptive_binding(binding: DomainProfileBindingModel, subject: str, parent=None) -> None:
+def _validate_descriptive_binding(
+    binding: DomainProfileBindingModel, subject: str, parent: DomainProfileBindingOwnerModel | None = None
+) -> None:
     if binding.owner.use not in {DomainProfileBindingUse.TYPED_REPORT, DomainProfileBindingUse.OPAQUE_EXCHANGE}:
         raise ValueError("description profiles cannot carry author constraints")
     owner = binding.owner
@@ -207,13 +234,13 @@ def _validate_descriptive_binding(binding: DomainProfileBindingModel, subject: s
         _validate_descriptive_binding(child, owner.canonical_address[1:], owner)
 
 
-def iter_description_bindings(bindings):
+def iter_description_bindings(bindings: tuple[DomainProfileBindingModel, ...]) -> Iterator[DomainProfileBindingModel]:
     for binding in bindings:
         yield binding
         yield from iter_description_bindings(binding.children)
 
 
-def _validate_binding_provenance(binding, provenance) -> None:
+def _validate_binding_provenance(binding: DomainProfileBindingModel, provenance: DescriptionProvenanceModel) -> None:
     expected = {
         ObservationBasis.BACKEND_SELECTED: DomainProfileBindingBasis.BACKEND_SELECTED,
         ObservationBasis.OBSERVED: DomainProfileBindingBasis.OBSERVED,

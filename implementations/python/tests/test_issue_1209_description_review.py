@@ -161,8 +161,9 @@ def test_selector_exclusions_remove_complete_coverage_claims():
     value = AchievedObservationValue(
         TypedRealizationDescriptionModel.model_validate(payload), ObservationBasis.BACKEND_SELECTED
     )
+    resolution = ObservationDemandResolution(demands)
     with pytest.raises(ValueError, match="coverage|unsatisfied"):
-        realization_description_report(ObservationDemandResolution(demands), {selector.key: value})
+        realization_description_report(resolution, {selector.key: value})
 
 
 def test_coverage_cannot_claim_stronger_basis_than_the_report():

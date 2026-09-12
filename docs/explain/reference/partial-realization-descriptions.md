@@ -17,7 +17,9 @@ The Python reference API exposes `TypedRealizationDescriptionModel` from
 `raes_contracts.description_reporting` admits bounded JSON without duplicate
 members. Private profile bindings retain exact coordinates and inert values;
 `admit_description_profiles` requires an explicit offline context and policy.
-Opaque acceptance does not enable semantic comparison.
+Opaque acceptance does not enable semantic comparison. Runtime adapters accept
+a `DescriptionProfileAdmission` pairing the offline context with its host policy
+through `ConfiguredObservationRuntime(description_profiles=...)`.
 
 `assess_realization_description` in `raes_contracts.description_projection`
 compares against the original constraint document and its digest. Known facts
@@ -28,8 +30,9 @@ different windows cannot silently become one state. Overlapping partial record
 projections require explicit reconciliation.
 
 `promote_description` in `raes_contracts.description_promotion` takes selected
-known scalar fact IDs, the original constraints, an actor, decision ID, time and
-new target identity/version. It returns a new document and transformation
+known scalar fact IDs, the original constraints, and a
+`DescriptionPromotionDecision` containing the actor, decision ID, time and new
+target identity/version. It returns a new document and transformation
 record after checked composition and refinement. It performs no authoring write
 or execution. The original document and unselected facts remain intact.
 

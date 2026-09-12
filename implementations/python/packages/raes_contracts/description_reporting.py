@@ -2,18 +2,35 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Any
+
 from .contracts.experiment_artifacts import _experiment_reference_key
 from .contracts.experiment_manifest_references import ExperimentEvidenceRecordReferenceModel
-from .contracts.realization_descriptions import TypedRealizationDescriptionModel, iter_description_bindings
-from .description_coverage import DescriptionCoverageUnsatisfied, coverage_matches
+from .contracts.realization_descriptions import (
+    DescriptionCoverageModel,
+    DescriptionFactModel,
+    TypedRealizationDescriptionModel,
+    iter_description_bindings,
+)
+from .description_coverage import DescriptionCoverageScope, DescriptionCoverageUnsatisfied, coverage_matches
 from .description_projection import readmit_description
 from .domain_profiles import (
+    DomainProfileAdmissionPolicyModel,
+    DomainProfileAdmissionReport,
+    DomainProfileResolutionContextModel,
     admit_domain_profile_bindings,
 )
 from .json_ingress import parse_bounded_json_object
 from .observation_demand import ObservationBasis, ObservationSelector
 from .realization_structure import semantic_address_contains
 from .realization_structure._common import pointer_tokens
+
+
+@dataclass(frozen=True)
+class DescriptionProfileAdmission:
+    context: DomainProfileResolutionContextModel
+    policy: DomainProfileAdmissionPolicyModel
 
 
 def project_description(
@@ -39,31 +56,55 @@ def project_description(
     return projected
 
 
-def _selected_facts(description, selector):
-    return tuple(
-        fact
-        for fact in description.facts
-        if (
-            selector.data_kind == "field"
-            and semantic_address_contains(selector.semantic_scope, fact.subject)
-            and not any(
-                semantic_address_contains(scope, fact.subject) or semantic_address_contains(fact.subject, scope)
-                for scope in selector.excluded_scopes
-            )
-            and (not selector.component_refs or fact.component_ref in selector.component_refs)
-            and (
-                not selector.window_refs
-                or (fact.provenance or description.provenance).window_ref in selector.window_refs
-            )
-            and (
-                fact.subject in selector.names
-                or (pointer_tokens(fact.subject) and pointer_tokens(fact.subject)[-1] in selector.names)
-            )
-        )
+def _fact_scope_selected(fact: DescriptionFactModel, selector: ObservationSelector) -> bool:
+    return semantic_address_contains(selector.semantic_scope, fact.subject) and not any(
+        semantic_address_contains(scope, fact.subject) or semantic_address_contains(fact.subject, scope)
+        for scope in selector.excluded_scopes
     )
 
 
-def _selected_coverage(description, selector, facts):
+def _fact_metadata_selected(
+    fact: DescriptionFactModel, description: TypedRealizationDescriptionModel, selector: ObservationSelector
+) -> bool:
+    source = fact.provenance or description.provenance
+    return (not selector.component_refs or fact.component_ref in selector.component_refs) and (
+        not selector.window_refs or source.window_ref in selector.window_refs
+    )
+
+
+def _fact_name_selected(fact: DescriptionFactModel, selector: ObservationSelector) -> bool:
+    tokens = pointer_tokens(fact.subject)
+    return fact.subject in selector.names or bool(tokens and tokens[-1] in selector.names)
+
+
+def _selected_facts(
+    description: TypedRealizationDescriptionModel, selector: ObservationSelector
+) -> tuple[DescriptionFactModel, ...]:
+    if selector.data_kind != "field":
+        return ()
+    return tuple(
+        fact
+        for fact in description.facts
+        if _fact_scope_selected(fact, selector)
+        and _fact_metadata_selected(fact, description, selector)
+        and _fact_name_selected(fact, selector)
+    )
+
+
+def _coverage_scope(selector: ObservationSelector) -> DescriptionCoverageScope:
+    return DescriptionCoverageScope(
+        scope=selector.semantic_scope,
+        kind=selector.data_kind,
+        profile=selector.coverage_profile,
+        exclusions=selector.excluded_scopes,
+    )
+
+
+def _selected_coverage(
+    description: TypedRealizationDescriptionModel,
+    selector: ObservationSelector,
+    facts: tuple[DescriptionFactModel, ...],
+) -> tuple[DescriptionCoverageModel, ...]:
     selected_ids = {fact.fact_id for fact in facts}
     return tuple(
         item.model_copy(
@@ -78,15 +119,12 @@ def _selected_coverage(description, selector, facts):
         and coverage_matches(
             description,
             item,
-            scope=selector.semantic_scope,
-            kind=selector.data_kind,
-            profile=selector.coverage_profile,
-            exclusions=selector.excluded_scopes,
+            _coverage_scope(selector),
         )
     )
 
 
-def _has_exhaustive_coverage(projected, selector):
+def _has_exhaustive_coverage(projected: TypedRealizationDescriptionModel, selector: ObservationSelector) -> bool:
     return not (
         not all(
             any(
@@ -100,10 +138,7 @@ def _has_exhaustive_coverage(projected, selector):
             coverage_matches(
                 projected,
                 item,
-                scope=selector.semantic_scope,
-                kind=selector.data_kind,
-                profile=selector.coverage_profile,
-                exclusions=selector.excluded_scopes,
+                _coverage_scope(selector),
                 complete=True,
             )
             for item in projected.coverage
@@ -111,7 +146,12 @@ def _has_exhaustive_coverage(projected, selector):
     )
 
 
-def admit_description_profiles(description, context, *, policy):
+def admit_description_profiles(
+    description: TypedRealizationDescriptionModel,
+    context: DomainProfileResolutionContextModel,
+    *,
+    policy: DomainProfileAdmissionPolicyModel,
+) -> DomainProfileAdmissionReport:
     """Apply the existing offline profile admission contract to descriptive uses."""
     description = readmit_description(description)
     return admit_domain_profile_bindings(
@@ -127,7 +167,9 @@ def parse_realization_description(source: str | bytes | bytearray) -> TypedReali
     return TypedRealizationDescriptionModel.model_validate(payload)
 
 
-def validate_description_evidence(description, basis, evidence_ref) -> None:
+def validate_description_evidence(
+    description: TypedRealizationDescriptionModel, basis: ObservationBasis, evidence_ref: str | None
+) -> None:
     """Join effective claims to the verifier's unqualified evidence-record identity."""
     if basis not in {ObservationBasis.OBSERVED, ObservationBasis.INDEPENDENTLY_VERIFIED}:
         return
@@ -145,7 +187,7 @@ def validate_description_evidence(description, basis, evidence_ref) -> None:
         raise ValueError("typed description evidence must join the externally verified reference")
 
 
-def _evidence_record_key(ref_id):
+def _evidence_record_key(ref_id: str | None) -> tuple[Any, ...]:
     return _experiment_reference_key(ExperimentEvidenceRecordReferenceModel(ref_kind="evidence-record", ref_id=ref_id))
 
 

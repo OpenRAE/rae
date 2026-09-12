@@ -89,3 +89,13 @@ research outcomes remain unchanged.
 | 10. Retention checks depended on `repr` formatting | Retention and redaction inspect stored scalar values structurally. |
 | 11. Coverage kind and universe cases had asymmetric assertions | Separate named tests cover wrong kind and effective universe. |
 | 12. Ownership assertions only counted failures | The test asserts each forbidden path and its ownership rule ID. |
+
+## Maintainability remediation
+
+Sonar findings are addressed by typed helpers for assertion comparison, coverage,
+projection, profile/evidence admission and promotion. Promotion decisions and
+runtime profile admission group their related inputs explicitly. These changes
+preserve the contract schemas and existing knowledge, provenance, selection and
+refinement rules. The issue regressions cover the refactored paths;
+`test_runtime_description_profiles_preserve_explicit_host_policy` additionally
+checks configured opaque-profile admission through execution and retention.

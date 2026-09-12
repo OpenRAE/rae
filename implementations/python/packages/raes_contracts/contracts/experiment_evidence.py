@@ -87,8 +87,10 @@ class ExperimentEvidenceRecordModel(ContractModel):
             json_schema,
             "evidence-description-nonauthoritative",
             "Typed descriptions preserve bounded supplied values, explicit knowledge, coverage and source identities; "
-            "they do not carry author closure or establish capture satisfaction. Withheld evidence carries no known values. "
-            "Profile owners bind to the fact scope and capture carrier; nested profile basis and evidence join fact provenance.",
+            "they do not carry author closure or establish capture satisfaction. Withheld evidence "
+            "carries no known values. "
+            "Profile owners bind to the fact scope and capture carrier; nested profile basis and evidence "
+            "join fact provenance.",
             validator="raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate",
             inputs=[{"contract_id": "experiment-evidence-record-v1", "instance_path": "#"}],
         )
@@ -346,7 +348,8 @@ class ExperimentRealizedFormDisclosureModel(ContractModel):
             json_schema,
             "realized-description-nonauthoritative",
             "Typed descriptions preserve explicit knowledge, bounded recursive values and coverage separately from "
-            "author authority, with versioned sources and exact extension coordinates. Profile owners bind to the fact scope "
+            "author authority, with versioned sources and exact extension coordinates. Profile owners "
+            "bind to the fact scope "
             "and realization-description carrier; nested profile basis and evidence join fact provenance.",
             validator="raes_contracts.contracts.ExperimentRealizedFormDisclosureModel.model_validate",
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_form_disclosures"}],

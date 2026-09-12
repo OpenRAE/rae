@@ -12,7 +12,7 @@ from .contracts.artifact_transformations import (
 )
 from .contracts.base import _parse_rfc3339_datetime
 from .contracts.experiment_references import ExperimentReferenceModel
-from .contracts.realization_descriptions import TypedRealizationDescriptionModel
+from .contracts.realization_descriptions import DescriptionFactModel, TypedRealizationDescriptionModel
 from .description_projection import (
     _bind_author,
     description_conflict,
@@ -32,6 +32,15 @@ from .realization_structure import (
 
 
 @dataclass(frozen=True)
+class DescriptionPromotionDecision:
+    actor: str
+    decision_id: str
+    decided_at: str
+    target_id: str
+    target_version: str
+
+
+@dataclass(frozen=True)
 class DescriptionPromotion:
     constraints: RealizationConstraintDocument
     selected_fact_ids: tuple[str, ...]
@@ -48,77 +57,30 @@ def promote_description(
     authored: RealizationConstraintDocument,
     *,
     fact_ids: tuple[str, ...],
-    actor: str,
-    decision_id: str,
-    decided_at: str,
-    target_id: str,
-    target_version: str,
+    decision: DescriptionPromotionDecision,
 ) -> DescriptionPromotion:
     """Conjoin selected known scalar facts with an isolated original constraint.
 
     This returns a new artifact and decision record. It grants no storage,
     execution, or authoring permission and performs no external operation.
     """
-    decision = {
-        "fact_ids": fact_ids,
-        "actor": actor,
-        "decision_id": decision_id,
-        "decided_at": decided_at,
-        "target_id": target_id,
-        "target_version": target_version,
-    }
-    if not validate_realization_value(decision, python_carriers=True).conformant:
-        raise ValueError("promotion decision exceeds the supported bounds")
-    if any(
-        not isinstance(value, str) or not value.strip() for value in (actor, decision_id, target_id, target_version)
-    ):
-        raise ValueError("promotion requires explicit actor, decision and target identities")
-    _parse_rfc3339_datetime("decided_at", decided_at)
+    _validate_decision(decision, fact_ids)
     description = readmit_description(description)
     if _bind_author(description, authored) is not None:
         raise ValueError("promotion requires the matching original author artifact")
-    if (target_id, target_version) == (description.authored_ref.ref_id, description.authored_ref.ref_version):
-        raise ValueError("promotion must create a new authored artifact identity")
-    if not fact_ids or len(set(fact_ids)) != len(fact_ids):
-        raise ValueError("promotion requires a nonempty unique selection of fact ids")
-    selected = tuple(fact for fact in description.facts if fact.fact_id in fact_ids)
-    if len(selected) != len(fact_ids) or any(
-        fact.state != "known"
-        or not isinstance(fact.value, RealizationLiteral)
-        or fact.profile_bindings
-        or fact.limitations
-        for fact in selected
+    if (decision.target_id, decision.target_version) == (
+        description.authored_ref.ref_id,
+        description.authored_ref.ref_version,
     ):
-        raise ValueError("promotion requires selected known supported scalar facts without limitations")
+        raise ValueError("promotion must create a new authored artifact identity")
+    selected = _promotion_selection(description, fact_ids)
     selected_subjects = {fact.subject for fact in selected}
-    competing = description.model_copy(
-        update={
-            "facts": tuple(
-                fact
-                for fact in description.facts
-                if any(
-                    semantic_address_contains(subject, fact.subject) or semantic_address_contains(fact.subject, subject)
-                    for subject in selected_subjects
-                )
-            )
-        }
-    )
-    if description_conflict(competing) is not None or known_fact_violation(competing, authored) is not None:
-        raise ValueError("promotion cannot resolve conflicting assertions or weaken author constraints")
-    values = description_values(selected)
-    normalized = normalize_realization_literal(values, semantic_profile=authored.semantic_profile)
-    if normalized.document is None:
-        raise ValueError("promotion selection could not be normalized within supported bounds")
-    original = RealizationConstraintDocument.model_validate(authored.model_dump(mode="json"))
-    additional = original.model_copy(update={"root": normalized.document.root})
-    composed = compose_realization_constraints(original, additional)
-    if composed.document is None or not realization_constraint_refines(composed.document, original).conformant:
-        raise ValueError("promotion could not establish a conforming refinement")
-    target = composed.document
+    _validate_competing_facts(description, authored, selected_subjects)
+    target = _compose_promotion(selected, authored)
     source_digest = canonical_json_digest(description.model_dump(mode="json"))
     target_digest = canonical_json_digest(target.model_dump(mode="json"))
     selected_ids = tuple(sorted(fact_ids))
-    policy_digest = canonical_json_digest({**decision, "fact_ids": list(selected_ids)})
+    policy_digest = canonical_json_digest({**_decision_values(decision), "fact_ids": list(selected_ids)})
     transformation = ArtifactTransformationReportModel(
         operation_profile="description-promotion/v1",
         status="success",
@@ -152,13 +114,91 @@ def promote_description(
             ref_digest=source_digest,
         ),
         ExperimentReferenceModel(
-            ref_kind="authoring-input", ref_id=target_id, ref_version=target_version, ref_digest=target_digest
+            ref_kind="authoring-input",
+            ref_id=decision.target_id,
+            ref_version=decision.target_version,
+            ref_digest=target_digest,
         ),
-        actor,
-        decision_id,
-        decided_at,
+        decision.actor,
+        decision.decision_id,
+        decision.decided_at,
         transformation,
     )
 
 
-__all__ = ["DescriptionPromotion", "promote_description"]
+def _decision_values(decision: DescriptionPromotionDecision) -> dict[str, object]:
+    return {
+        "actor": decision.actor,
+        "decision_id": decision.decision_id,
+        "decided_at": decision.decided_at,
+        "target_id": decision.target_id,
+        "target_version": decision.target_version,
+    }
+
+
+def _validate_decision(decision: DescriptionPromotionDecision, fact_ids: tuple[str, ...]) -> None:
+    if not validate_realization_value(
+        {**_decision_values(decision), "fact_ids": fact_ids}, python_carriers=True
+    ).conformant:
+        raise ValueError("promotion decision exceeds the supported bounds")
+    identities = (decision.actor, decision.decision_id, decision.target_id, decision.target_version)
+    if any(not isinstance(value, str) or not value.strip() for value in identities):
+        raise ValueError("promotion requires explicit actor, decision and target identities")
+    _parse_rfc3339_datetime("decided_at", decision.decided_at)
+
+
+def _promotion_selection(
+    description: TypedRealizationDescriptionModel, fact_ids: tuple[str, ...]
+) -> tuple[DescriptionFactModel, ...]:
+    if not fact_ids or len(set(fact_ids)) != len(fact_ids):
+        raise ValueError("promotion requires a nonempty unique selection of fact ids")
+    selected = tuple(fact for fact in description.facts if fact.fact_id in fact_ids)
+    if len(selected) != len(fact_ids) or any(not _promotable_fact(fact) for fact in selected):
+        raise ValueError("promotion requires selected known supported scalar facts without limitations")
+    return selected
+
+
+def _promotable_fact(fact: DescriptionFactModel) -> bool:
+    return (
+        fact.state == "known"
+        and isinstance(fact.value, RealizationLiteral)
+        and not fact.profile_bindings
+        and not fact.limitations
+    )
+
+
+def _validate_competing_facts(
+    description: TypedRealizationDescriptionModel, authored: RealizationConstraintDocument, selected_subjects: set[str]
+) -> None:
+    competing = description.model_copy(
+        update={
+            "facts": tuple(
+                fact
+                for fact in description.facts
+                if any(
+                    semantic_address_contains(subject, fact.subject) or semantic_address_contains(fact.subject, subject)
+                    for subject in selected_subjects
+                )
+            )
+        }
+    )
+    if description_conflict(competing) is not None or known_fact_violation(competing, authored) is not None:
+        raise ValueError("promotion cannot resolve conflicting assertions or weaken author constraints")
+
+
+def _compose_promotion(
+    selected: tuple[DescriptionFactModel, ...], authored: RealizationConstraintDocument
+) -> RealizationConstraintDocument:
+    values = description_values(selected)
+    normalized = normalize_realization_literal(values, semantic_profile=authored.semantic_profile)
+    if normalized.document is None:
+        raise ValueError("promotion selection could not be normalized within supported bounds")
+    original = RealizationConstraintDocument.model_validate(authored.model_dump(mode="json"))
+    additional = original.model_copy(update={"root": normalized.document.root})
+    composed = compose_realization_constraints(original, additional)
+    if composed.document is None or not realization_constraint_refines(composed.document, original).conformant:
+        raise ValueError("promotion could not establish a conforming refinement")
+    return composed.document
+
+
+__all__ = ["DescriptionPromotion", "DescriptionPromotionDecision", "promote_description"]

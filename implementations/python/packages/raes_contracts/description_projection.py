@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 from ._description_assertions import assertion_conflict
 from .canonical import canonical_json_digest
 from .contracts.realization_descriptions import DescriptionFactModel, TypedRealizationDescriptionModel
-from .description_coverage import coverage_matches
+from .description_coverage import DescriptionCoverageScope, coverage_matches
 from .diagnostics import Diagnostic
 from .realization_structure import (
     RealizationConstraintDocument,
@@ -47,16 +49,22 @@ def readmit_description(description: TypedRealizationDescriptionModel) -> TypedR
 def descriptive_value(value: RecursiveRealizationStructure) -> object:
     """Project supplied values only; no deployment model or default participates."""
     if isinstance(value, RealizationLiteral):
-        return value.value
-    if isinstance(value, RealizationRecordConstraint):
-        return {name: descriptive_value(child) for name, child in value.fields.items()}
+        projected = value.value
+    elif isinstance(value, RealizationRecordConstraint):
+        projected = {name: descriptive_value(child) for name, child in value.fields.items()}
+    else:
+        projected = [descriptive_value(child) for child in _descriptive_items(value)]
+    return projected
+
+
+def _descriptive_items(value: RecursiveRealizationStructure) -> tuple[RecursiveRealizationStructure, ...]:
     if isinstance(value, RealizationSequenceConstraint):
-        return [descriptive_value(child) for child in value.items]
+        return value.items
     if isinstance(value, RealizationKeyedCollectionConstraint):
-        return [
-            descriptive_value(member.constraint)
+        return tuple(
+            member.constraint
             for member in sorted(value.members, key=lambda member: canonical_json_digest(list(member.identity)))
-        ]
+        )
     raise ValueError("unsupported descriptive value")
 
 
@@ -72,46 +80,105 @@ def description_conflict(description: TypedRealizationDescriptionModel) -> Reali
 def _bind_author(
     description: TypedRealizationDescriptionModel, authored: RealizationConstraintDocument
 ) -> RealizationRelationResult | None:
+    result = None
     if not validate_realization_value(authored, python_carriers=True).conformant:
-        return description_result("limit-exceeded", "limit-exceeded", "Author constraints exceed the supported bounds.")
-    if description.semantic_profile != authored.semantic_profile:
-        return description_result("unsupported", "profile", "Description and author semantic profiles differ.")
-    if description.authored_ref.ref_digest != canonical_json_digest(authored.model_dump(mode="json")):
-        return description_result(
+        result = description_result(
+            "limit-exceeded", "limit-exceeded", "Author constraints exceed the supported bounds."
+        )
+    elif description.semantic_profile != authored.semantic_profile:
+        result = description_result("unsupported", "profile", "Description and author semantic profiles differ.")
+    elif description.authored_ref.ref_digest != canonical_json_digest(authored.model_dump(mode="json")):
+        result = description_result(
             "invalid", "author-binding", "The description names a different original author artifact."
         )
+    return result
+
+
+def _extra_scope_failure(
+    authored: RealizationConstraintDocument,
+    rule: RealizationRecordConstraint,
+    tokens: tuple[str, ...],
+    traversed: tuple[str, ...],
+) -> RealizationRelationResult | None:
+    for count in range(len(traversed), len(tokens)):
+        closure = closure_for(authored, rule.closure, tokens[:count])
+        if closure is None or closure.posture.value != "open":
+            return description_result(
+                "nonconformant", "closed-scope", "A supplied fact is outside the closed author scope."
+            )
     return None
 
 
-def _rule_at(authored: RealizationConstraintDocument, subject: str):
-    rule = authored.root
-    traversed = ()
-    for token in pointer_tokens(subject):
+def _rule_at(
+    authored: RealizationConstraintDocument, subject: str
+) -> tuple[RecursiveRealizationStructure | None, RealizationRelationResult | None]:
+    rule: RecursiveRealizationStructure | None = authored.root
+    traversed: tuple[str, ...] = ()
+    failure = None
+    tokens = pointer_tokens(subject)
+    for token in tokens:
         if rule.presence is RealizationPresence.FORBIDDEN:
-            return rule, description_result(
+            failure = description_result(
                 "nonconformant", "forbidden", "A supplied fact is inside a forbidden author scope."
             )
+            break
         if not isinstance(rule, RealizationRecordConstraint):
-            return None, description_result(
+            rule = None
+            failure = description_result(
                 "unsupported", "projection", "Partial projection through this author structure is unsupported."
             )
+            break
         if token not in rule.fields:
-            closure = closure_for(authored, rule.closure, traversed)
-            if closure is None or closure.posture.value != "open":
-                return None, description_result(
-                    "nonconformant", "closed-scope", "A supplied fact is outside the closed author scope."
-                )
-            # Additional descendants remain subject to any explicit lexical scopes.
-            for count in range(len(traversed) + 1, len(pointer_tokens(subject))):
-                inherited = closure_for(authored, rule.closure, pointer_tokens(subject)[:count])
-                if inherited is None or inherited.posture.value != "open":
-                    return None, description_result(
-                        "nonconformant", "closed-scope", "A supplied fact is outside the closed author scope."
-                    )
-            return None, None
+            failure = _extra_scope_failure(authored, rule, tokens, traversed)
+            rule = None
+            break
         rule = rule.fields[token]
         traversed += (token,)
-    return rule, None
+    return rule, failure
+
+
+def _literal_violation(
+    rule: RecursiveRealizationStructure, literal: RealizationLiteral, authored: RealizationConstraintDocument
+) -> RealizationRelationResult | None:
+    if isinstance(
+        rule, (RealizationRecordConstraint, RealizationKeyedCollectionConstraint, RealizationSequenceConstraint)
+    ):
+        return description_result(
+            "nonconformant", "value", "A supplied scalar contradicts the authored structured value."
+        )
+    result = evaluate_realization_constraint(authored.model_copy(update={"root": rule, "scopes": ()}), literal.value)
+    return None if result.conformant else result
+
+
+def _resolved_fact_violation(
+    fact: DescriptionFactModel, rule: RecursiveRealizationStructure | None, authored: RealizationConstraintDocument
+) -> RealizationRelationResult | None:
+    result = None
+    if rule is None:
+        return None
+    if fact.state == "known-absent":
+        if rule.presence is RealizationPresence.REQUIRED:
+            result = description_result(
+                "nonconformant", "known-absent", "A required author field is positively known absent."
+            )
+    elif rule.presence is RealizationPresence.FORBIDDEN:
+        result = description_result(
+            "nonconformant", "forbidden", "A supplied fact contradicts an author absence constraint."
+        )
+    elif isinstance(fact.value, RealizationLiteral):
+        result = _literal_violation(rule, fact.value, authored)
+    return result
+
+
+def _fact_violation(
+    fact: DescriptionFactModel, authored: RealizationConstraintDocument
+) -> RealizationRelationResult | None:
+    if fact.state not in {"known", "known-absent"}:
+        return None
+    rule, failure = _rule_at(authored, fact.subject)
+    if failure is not None:
+        return failure if fact.state == "known" else None
+    return _resolved_fact_violation(fact, rule, authored)
 
 
 def known_fact_violation(
@@ -119,40 +186,12 @@ def known_fact_violation(
 ) -> RealizationRelationResult | None:
     """A supplied scalar can disprove an exact constraint even in a partial report."""
     for fact in _comparison_facts(description.facts):
-        if fact.state not in {"known", "known-absent"}:
-            continue
-        rule, failure = _rule_at(authored, fact.subject)
-        if failure is not None:
-            if fact.state == "known":
-                return failure
-            continue
-        if rule is not None and fact.state == "known-absent":
-            if rule.presence is RealizationPresence.REQUIRED:
-                return description_result(
-                    "nonconformant", "known-absent", "A required author field is positively known absent."
-                )
-            continue
-        if rule is not None and rule.presence is RealizationPresence.FORBIDDEN:
-            return description_result(
-                "nonconformant", "forbidden", "A supplied fact contradicts an author absence constraint."
-            )
-        if rule is None or not isinstance(fact.value, RealizationLiteral):
-            continue
-        if isinstance(
-            rule, (RealizationRecordConstraint, RealizationKeyedCollectionConstraint, RealizationSequenceConstraint)
-        ):
-            return description_result(
-                "nonconformant", "value", "A supplied scalar contradicts the authored structured value."
-            )
-        result = evaluate_realization_constraint(
-            authored.model_copy(update={"root": rule, "scopes": ()}), fact.value.value
-        )
-        if not result.conformant:
-            return result
+        if violation := _fact_violation(fact, authored):
+            return violation
     return None
 
 
-def _comparison_facts(facts):
+def _comparison_facts(facts: tuple[DescriptionFactModel, ...]) -> Iterator[DescriptionFactModel]:
     for fact in facts:
         if fact.state == "known" and isinstance(fact.value, RealizationRecordConstraint):
             children = tuple(
@@ -208,6 +247,12 @@ def assess_realization_description(
         description = readmit_description(description)
     except ValueError:
         return description_result("invalid", "invalid", "Description failed bounded contract admission.")
+    return _assess_admitted_description(description, authored)
+
+
+def _assess_admitted_description(
+    description: TypedRealizationDescriptionModel, authored: RealizationConstraintDocument
+) -> RealizationRelationResult:
     conflict = description_conflict(description)
     precondition = _bind_author(description, authored) or (
         conflict if conflict and conflict.status.value != "unresolved" else None
@@ -218,29 +263,32 @@ def assess_realization_description(
         return description_result(
             "unsupported", "profile-comparison", "Private profile carriage does not establish comparison support."
         )
-    if violation := known_fact_violation(description, authored):
-        return violation
-    if conflict is not None:
-        return conflict
-    root_closure = closure_for(authored, getattr(authored.root, "closure", authored.default_closure), ())
+    return (
+        known_fact_violation(description, authored) or conflict or _assess_complete_description(description, authored)
+    )
+
+
+def _complete_author_coverage(
+    description: TypedRealizationDescriptionModel, authored: RealizationConstraintDocument
+) -> bool:
+    closure = closure_for(authored, getattr(authored.root, "closure", authored.default_closure), ())
+    if closure is None:
+        return False
     kind = (
         "collection"
         if isinstance(authored.root, (RealizationSequenceConstraint, RealizationKeyedCollectionConstraint))
         else "field"
     )
-    complete = root_closure is not None and any(
-        coverage_matches(
-            description,
-            coverage,
-            scope="",
-            kind=kind,
-            profile=root_closure.profile or authored.semantic_profile,
-            universe=root_closure.universe,
-            complete=True,
-        )
-        for coverage in description.coverage
+    requested = DescriptionCoverageScope(
+        scope="", kind=kind, profile=closure.profile or authored.semantic_profile, universe=closure.universe
     )
-    if not complete:
+    return any(coverage_matches(description, coverage, requested, complete=True) for coverage in description.coverage)
+
+
+def _assess_complete_description(
+    description: TypedRealizationDescriptionModel, authored: RealizationConstraintDocument
+) -> RealizationRelationResult:
+    if not _complete_author_coverage(description, authored):
         return description_result(
             "unresolved", "coverage", "The report does not establish complete coverage of the requested realization."
         )

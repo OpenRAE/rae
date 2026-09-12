@@ -78,9 +78,12 @@ def test_partial_description_round_trips_through_existing_evidence_envelope():
     restored = ExperimentEvidenceRecordModel.model_validate_json(record.model_dump_json(exclude_none=True))
     facts = {fact.fact_id: fact for fact in restored.typed_description.facts}
     assert facts["family"].value.value == "linux"
-    assert facts["release"].state == "not-observed" and facts["release"].value is None
-    assert facts["absent"].state == "known-absent" and facts["absent"].value is None
-    assert facts["private"].state == "withheld" and facts["private"].limitations
+    assert facts["release"].state == "not-observed"
+    assert facts["release"].value is None
+    assert facts["absent"].state == "known-absent"
+    assert facts["absent"].value is None
+    assert facts["private"].state == "withheld"
+    assert facts["private"].limitations
     assert restored.typed_description.provenance.basis.value == "backend-selected"
     assert restored.typed_description.coverage[0].status == "partial"
     assert restored.typed_description == record.typed_description
@@ -111,7 +114,8 @@ def test_known_empty_values_are_not_missing(value):
     )
     restored = ExperimentRealizedFormDisclosureModel.model_validate_json(disclosure.model_dump_json(exclude_none=True))
     actual = restored.typed_description.facts[0].value.value
-    assert type(actual) is type(value) and actual == value
+    assert type(actual) is type(value)
+    assert actual == value
 
 
 @pytest.mark.parametrize("state", ["not-observed", "known-absent", "withheld", "contradictory", "not-applicable"])
@@ -208,7 +212,8 @@ def test_private_offline_carriage_requires_explicit_host_admission_policy(monkey
     admitted = admit_description_profiles(
         description, empty_context, policy=DomainProfileAdmissionPolicyModel(allow_opaque_exchange=True)
     )
-    assert admitted.admitted and admitted.results[0].opaque
+    assert admitted.admitted
+    assert admitted.results[0].opaque
     restored = TypedRealizationDescriptionModel.model_validate_json(description.model_dump_json())
     assert restored.facts[0].profile_bindings[0].coordinate == binding.coordinate
     assert restored.facts[0].profile_bindings[0].value == {"name": "private-detail"}

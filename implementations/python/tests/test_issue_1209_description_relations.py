@@ -78,7 +78,7 @@ def test_conflicting_same_time_facts_survive_roundtrip_and_do_not_establish_trut
 
 
 def test_promotion_selects_only_named_facts_and_records_a_new_artifact():
-    from raes_contracts.description_promotion import promote_description
+    from raes_contracts.description_promotion import DescriptionPromotionDecision, promote_description
 
     original, capture = authored_and_capture(complete=True)
     before = capture.model_dump(mode="json")
@@ -86,16 +86,19 @@ def test_promotion_selects_only_named_facts_and_records_a_new_artifact():
         capture,
         original,
         fact_ids=("family",),
-        actor="author-1",
-        decision_id="decision-1",
-        decided_at="2026-09-12T12:00:00Z",
-        target_id="new-request",
-        target_version="2",
+        decision=DescriptionPromotionDecision(
+            actor="author-1",
+            decision_id="decision-1",
+            decided_at="2026-09-12T12:00:00Z",
+            target_id="new-request",
+            target_version="2",
+        ),
     )
     assert result.constraints is not original
     assert result.selected_fact_ids == ("family",)
     assert result.target_ref.ref_id == "new-request"
-    assert result.decision_id == "decision-1" and result.actor == "author-1"
+    assert result.decision_id == "decision-1"
+    assert result.actor == "author-1"
     assert result.transformation.source_digest == canonical_json_digest(before)
     assert result.transformation.target_digest == canonical_json_digest(result.constraints.model_dump(mode="json"))
     assert evaluate_realization_constraint(
@@ -115,23 +118,26 @@ def test_promotion_selects_only_named_facts_and_records_a_new_artifact():
     ],
 )
 def test_promotion_refuses_conflicting_or_unobserved_facts(value, message):
-    from raes_contracts.description_promotion import promote_description
+    from raes_contracts.description_promotion import DescriptionPromotionDecision, promote_description
 
     original, capture = authored_and_capture(value=value)
     if value is None:
         payload = capture.model_dump(mode="json")
         payload["facts"][0].update(state="not-observed", value=None)
         capture = TypedRealizationDescriptionModel.model_validate(payload)
+    decision = DescriptionPromotionDecision(
+        actor="author-1",
+        decision_id="decision-1",
+        decided_at="2026-09-12T12:00:00Z",
+        target_id="new-request",
+        target_version="2",
+    )
     with pytest.raises(ValueError, match=message):
         promote_description(
             capture,
             original,
             fact_ids=("family",),
-            actor="author-1",
-            decision_id="decision-1",
-            decided_at="2026-09-12T12:00:00Z",
-            target_id="new-request",
-            target_version="2",
+            decision=decision,
         )
 
 
@@ -146,7 +152,7 @@ def test_known_absence_disproves_required_field_even_in_partial_capture():
 
 
 def test_promotion_cannot_add_a_field_under_closed_author_scope():
-    from raes_contracts.description_promotion import promote_description
+    from raes_contracts.description_promotion import DescriptionPromotionDecision, promote_description
 
     original, capture = authored_and_capture()
     original = original.model_copy(
@@ -160,6 +166,13 @@ def test_promotion_cannot_add_a_field_under_closed_author_scope():
     payload["authored_ref"]["ref_digest"] = canonical_json_digest(original.model_dump(mode="json"))
     payload["facts"][0]["subject"] = "/nodes/a/extra"
     capture = TypedRealizationDescriptionModel.model_validate(payload)
+    decision = DescriptionPromotionDecision(
+        actor="author-1",
+        decision_id="decision-1",
+        decided_at="2026-09-12T12:00:00Z",
+        target_id="new-request",
+        target_version="2",
+    )
     with pytest.raises(
         ValueError, match="promotion cannot resolve conflicting assertions or weaken author constraints"
     ):
@@ -167,11 +180,7 @@ def test_promotion_cannot_add_a_field_under_closed_author_scope():
             capture,
             original,
             fact_ids=("family",),
-            actor="author-1",
-            decision_id="decision-1",
-            decided_at="2026-09-12T12:00:00Z",
-            target_id="new-request",
-            target_version="2",
+            decision=decision,
         )
 
 
@@ -313,12 +322,19 @@ def test_overlapping_partial_records_require_reconciliation_before_projection():
 
 
 def test_promotion_does_not_ignore_an_absent_ancestor():
-    from raes_contracts.description_promotion import promote_description
+    from raes_contracts.description_promotion import DescriptionPromotionDecision, promote_description
 
     original, capture = authored_and_capture()
     payload = capture.model_dump(mode="json")
     payload["facts"].append({"fact_id": "absent-node", "subject": "/nodes/a", "state": "known-absent"})
     capture = TypedRealizationDescriptionModel.model_validate(payload)
+    decision = DescriptionPromotionDecision(
+        actor="author",
+        decision_id="decision",
+        decided_at="2026-09-12T12:00:00Z",
+        target_id="new",
+        target_version="1",
+    )
     with pytest.raises(
         ValueError, match="promotion cannot resolve conflicting assertions or weaken author constraints"
     ):
@@ -326,9 +342,5 @@ def test_promotion_does_not_ignore_an_absent_ancestor():
             capture,
             original,
             fact_ids=("family",),
-            actor="author",
-            decision_id="decision",
-            decided_at="2026-09-12T12:00:00Z",
-            target_id="new",
-            target_version="1",
+            decision=decision,
         )
