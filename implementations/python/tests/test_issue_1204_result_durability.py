@@ -11,9 +11,8 @@ from raes_processor.planner import plan
 from raes_reference_backend import create_reference_backend_target
 from raes_reference_backend.provisioner import ReferenceProvisioner
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.control_plane_store import InMemoryControlPlaneStore
+from raes_runtime.control_plane_store import InMemoryControlPlaneStore, _snapshot_payload
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
-from raes_runtime.control_plane_store_snapshots import _snapshot_payload
 from test_issue_158_runtime_result_integrity import _SCENARIO
 
 

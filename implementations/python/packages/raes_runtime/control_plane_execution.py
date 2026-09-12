@@ -22,15 +22,12 @@ from raes_contracts.runtime_state import (
 )
 
 from .backend_calls import _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
-from .backend_observation_calls import (
-    PreparedObservationExecution,
-    _call_backend_apply_with_observation,
-    _ObservationApplyRequest,
-)
+from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
 from .diagnostics import _has_error_diagnostic
+from .observation_results import PreparedObservationExecution
 from .participant_effect_authority import participant_effect_authority
 
 
@@ -252,33 +249,22 @@ class OperationExecutionRequest:
     admission_diagnostics: Callable[[], list[Diagnostic]] | None = None
 
 
-def execute_operation(
-    control_plane: object,
-    request: OperationExecutionRequest,
-) -> OperationReceipt:
-    with control_plane_mutation(control_plane, request.context.operation_kind):
-        with control_plane._operation_lock:
-            control_plane._reload_derived_state()
-        return _execute_operation_locked(control_plane, request)
-
-
 @dataclass(frozen=True)
-class _OperationApplication:
-    """Backend validation and apply outcome for one already-claimed operation."""
-
-    diagnostics: list[Diagnostic]
+class _OperationOutcome:
+    operation_id: str
+    submitted_at: str
+    receipt: OperationReceipt
     result: ApplyResult
+    diagnostics: list[Diagnostic]
     observation_execution: PreparedObservationExecution | None
     validation_failed: bool
 
 
-def _admitted_operation_receipt(
+def _operation_admission_receipt(
     control_plane: object,
     request: OperationExecutionRequest,
     exact_retry: dict[str, str],
 ) -> OperationReceipt | None:
-    """Return a receipt that settles the request before any operation is claimed."""
-
     existing = control_plane._idempotent_receipt(
         idempotency_key=request.idempotency_key,
         request_fingerprint=request.request_fingerprint,
@@ -289,27 +275,61 @@ def _admitted_operation_receipt(
         return existing
     if request.base_snapshot is not None and request.base_snapshot != control_plane._snapshot:
         raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
-    admission_diagnostics = request.admission_diagnostics() if request.admission_diagnostics is not None else []
-    if not admission_diagnostics:
-        return None
-    return control_plane._reject_diagnostics(
-        domain=request.domain,
-        diagnostics=admission_diagnostics,
-        idempotency_key=request.idempotency_key,
-        request_fingerprint=request.request_fingerprint,
-        context=request.context,
-    )
+    diagnostics = None if request.admission_diagnostics is None else request.admission_diagnostics()
+    if diagnostics:
+        return control_plane._reject_diagnostics(
+            domain=request.domain,
+            diagnostics=diagnostics,
+            idempotency_key=request.idempotency_key,
+            request_fingerprint=request.request_fingerprint,
+            context=request.context,
+        )
+    return None
 
 
-def _apply_claimed_operation(
+def _claim_running_operation(
     control_plane: object,
     request: OperationExecutionRequest,
-    *,
-    snapshot: RuntimeSnapshot,
-    operation_id: str,
-) -> _OperationApplication:
-    """Validate and apply one claimed operation through the backend seam."""
+    exact_retry: dict[str, str],
+) -> tuple[str, str, RuntimeSnapshot, OperationReceipt, OperationReceipt]:
+    operation_id = str(uuid4())
+    submitted_at = _utc_now()
+    snapshot = request.base_snapshot if request.base_snapshot is not None else control_plane._snapshot
+    status = OperationStatus(
+        operation_id=operation_id,
+        domain=request.domain,
+        state=OperationState.RUNNING,
+        submitted_at=submitted_at,
+        updated_at=submitted_at,
+        context=request.context,
+        diagnostics=list(request.diagnostics),
+    )
+    receipt = OperationReceipt(
+        operation_id=operation_id,
+        domain=request.domain,
+        submitted_at=submitted_at,
+        accepted=True,
+        context=request.context,
+        diagnostics=list(request.diagnostics),
+    )
+    claimed = control_plane._claim_record(
+        ControlPlaneOperationRecord(
+            receipt=receipt,
+            status=status,
+            idempotency_key=request.idempotency_key,
+            request_fingerprint=request.request_fingerprint,
+        ),
+        **exact_retry,
+    )
+    return operation_id, submitted_at, snapshot, receipt, claimed.receipt
 
+
+def _apply_operation(
+    control_plane: object,
+    request: OperationExecutionRequest,
+    operation_id: str,
+    snapshot: RuntimeSnapshot,
+) -> tuple[ApplyResult, PreparedObservationExecution | None, list[Diagnostic], bool]:
     diagnostics = list(request.diagnostics)
     if request.validation_method is not None:
         with control_plane._mutation_authority.external_call():
@@ -320,13 +340,9 @@ def _apply_claimed_operation(
                     address=f"{request.address}.validate",
                 )
             )
-    if _has_error_diagnostic(diagnostics):
-        return _OperationApplication(
-            diagnostics=diagnostics,
-            result=ApplyResult(success=False, snapshot=snapshot),
-            observation_execution=None,
-            validation_failed=True,
-        )
+    validation_failed = _has_error_diagnostic(diagnostics)
+    if validation_failed:
+        return ApplyResult(success=False, snapshot=snapshot), None, diagnostics, True
     with control_plane._mutation_authority.external_call():
         result, observation_execution = _call_backend_apply_with_observation(
             request.method,
@@ -355,12 +371,51 @@ def _apply_claimed_operation(
                 None,
             ),
         )
-    return _OperationApplication(
-        diagnostics=diagnostics,
-        result=result,
-        observation_execution=observation_execution,
-        validation_failed=False,
+    return result, observation_execution, diagnostics, False
+
+
+def _commit_operation_result(
+    control_plane: object,
+    request: OperationExecutionRequest,
+    outcome: _OperationOutcome,
+) -> None:
+    final_state = OperationState.SUCCEEDED if outcome.result.success else OperationState.FAILED
+    final_status = OperationStatus(
+        operation_id=outcome.operation_id,
+        domain=request.domain,
+        state=final_state,
+        submitted_at=outcome.submitted_at,
+        updated_at=_utc_now(),
+        context=request.context,
+        diagnostics=operation_terminal_diagnostics(
+            final_state,
+            [*outcome.diagnostics, *outcome.result.diagnostics],
+        ),
+        changed_addresses=list(outcome.result.changed_addresses),
     )
+    control_plane._commit_terminal_operation(
+        outcome.result.snapshot,
+        ControlPlaneOperationRecord(
+            receipt=outcome.receipt,
+            status=final_status,
+            idempotency_key=request.idempotency_key,
+            request_fingerprint=request.request_fingerprint,
+            result_payload=(
+                None if outcome.observation_execution is None else outcome.observation_execution.result_payload
+            ),
+        ),
+        mode=(TerminalCommitMode.OPERATION_ONLY if outcome.validation_failed else TerminalCommitMode.SNAPSHOT_BEARING),
+    )
+
+
+def execute_operation(
+    control_plane: object,
+    request: OperationExecutionRequest,
+) -> OperationReceipt:
+    with control_plane_mutation(control_plane, request.context.operation_kind):
+        with control_plane._operation_lock:
+            control_plane._reload_derived_state()
+        return _execute_operation_locked(control_plane, request)
 
 
 def _execute_operation_locked(
@@ -372,69 +427,30 @@ def _execute_operation_locked(
         if request.exact_retry_fingerprint is not None
         else {}
     )
-    admitted = _admitted_operation_receipt(control_plane, request, exact_retry)
-    if admitted is not None:
-        return admitted
-    operation_id = str(uuid4())
-    submitted_at = _utc_now()
-    snapshot = request.base_snapshot if request.base_snapshot is not None else control_plane._snapshot
-    receipt = OperationReceipt(
-        operation_id=operation_id,
-        domain=request.domain,
-        submitted_at=submitted_at,
-        accepted=True,
-        context=request.context,
-        diagnostics=list(request.diagnostics),
-    )
-    claimed = control_plane._claim_record(
-        ControlPlaneOperationRecord(
-            receipt=receipt,
-            status=OperationStatus(
-                operation_id=operation_id,
-                domain=request.domain,
-                state=OperationState.RUNNING,
-                submitted_at=submitted_at,
-                updated_at=submitted_at,
-                context=request.context,
-                diagnostics=list(request.diagnostics),
-            ),
-            idempotency_key=request.idempotency_key,
-            request_fingerprint=request.request_fingerprint,
-        ),
-        **exact_retry,
-    )
-    if claimed.receipt.operation_id != operation_id:
-        return claimed.receipt
-    applied = _apply_claimed_operation(
+    admission_receipt = _operation_admission_receipt(control_plane, request, exact_retry)
+    if admission_receipt is not None:
+        return admission_receipt
+    operation_id, submitted_at, snapshot, receipt, claimed_receipt = _claim_running_operation(
         control_plane,
         request,
-        snapshot=snapshot,
+        exact_retry,
+    )
+    if claimed_receipt.operation_id != operation_id:
+        return claimed_receipt
+    result, observation_execution, diagnostics, validation_failed = _apply_operation(
+        control_plane,
+        request,
+        operation_id,
+        snapshot,
+    )
+    outcome = _OperationOutcome(
         operation_id=operation_id,
+        submitted_at=submitted_at,
+        receipt=receipt,
+        result=result,
+        diagnostics=diagnostics,
+        observation_execution=observation_execution,
+        validation_failed=validation_failed,
     )
-    final_state = OperationState.SUCCEEDED if applied.result.success else OperationState.FAILED
-    control_plane._commit_terminal_operation(
-        applied.result.snapshot,
-        ControlPlaneOperationRecord(
-            receipt=receipt,
-            status=OperationStatus(
-                operation_id=operation_id,
-                domain=request.domain,
-                state=final_state,
-                submitted_at=submitted_at,
-                updated_at=_utc_now(),
-                context=request.context,
-                diagnostics=operation_terminal_diagnostics(
-                    final_state,
-                    [*applied.diagnostics, *applied.result.diagnostics],
-                ),
-                changed_addresses=list(applied.result.changed_addresses),
-            ),
-            idempotency_key=request.idempotency_key,
-            request_fingerprint=request.request_fingerprint,
-            result_payload=(
-                None if applied.observation_execution is None else applied.observation_execution.result_payload
-            ),
-        ),
-        mode=(TerminalCommitMode.OPERATION_ONLY if applied.validation_failed else TerminalCommitMode.SNAPSHOT_BEARING),
-    )
+    _commit_operation_result(control_plane, request, outcome)
     return receipt

@@ -201,7 +201,7 @@ def test_prepared_profile_conjunction_and_actual_delivery(choice, delivered, sup
 
 
 def test_profile_snapshot_codec_preserves_typed_backend_selected_values():
-    from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+    from raes_runtime.control_plane_store import _snapshot_from_payload, _snapshot_payload
 
     _, result = _apply_profile_request(_profile_backend())
     assert result.success

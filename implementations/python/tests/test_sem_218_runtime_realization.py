@@ -38,7 +38,7 @@ from raes_contracts.runtime_state import (
 )
 from raes_contracts.versions import RUNTIME_SNAPSHOT_SCHEMA_VERSION
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
-from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from raes_runtime.control_plane_store import _snapshot_from_payload, _snapshot_payload
 from raes_runtime.manager import RuntimeManager
 from raes_runtime.registry import RuntimeTarget
 

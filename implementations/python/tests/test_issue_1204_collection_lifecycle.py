@@ -11,8 +11,8 @@ from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
+from raes_runtime.control_plane_store import _snapshot_payload
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
-from raes_runtime.control_plane_store_snapshots import _snapshot_payload
 from raes_runtime.manager import RuntimeManager
 from raes_runtime.registry import RuntimeTarget
 from starlette.testclient import TestClient

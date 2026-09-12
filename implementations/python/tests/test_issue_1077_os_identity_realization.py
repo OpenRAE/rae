@@ -645,7 +645,7 @@ class TestBoundOperatingSystemObservation:
         from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
         from raes_processor.compiler import compile_runtime_model
         from raes_processor.planner import plan
-        from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+        from raes_runtime.control_plane_store import _snapshot_from_payload, _snapshot_payload
 
         execution_plan = plan(compile_runtime_model(parse_sdl(_OS_NODE_SCENARIO)), _os_manifest("22.04"))
         snapshot = self._snapshot(execution_plan, version="22.04")

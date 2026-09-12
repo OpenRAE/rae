@@ -25,9 +25,10 @@ from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyCon
 from raes_runtime.control_plane_api_models import _snapshot_model
 from raes_runtime.control_plane_store import (
     _require_expected_history_heads,
+    _snapshot_from_payload,
+    _snapshot_payload,
 )
 from raes_runtime.control_plane_store_local import _participant_transition_count
-from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
 from raes_runtime.operational_apparatus import _runtime_surface_summary
 from raes_runtime.participant_result_contracts import (
     participant_runtime_history_transition_diagnostics,

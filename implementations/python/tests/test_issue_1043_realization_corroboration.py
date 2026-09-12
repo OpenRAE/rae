@@ -21,7 +21,7 @@ from raes_contracts.runtime_state import (
 from raes_contracts.vocabulary import RealizationVerificationScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan, realization_disclosure
-from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
+from raes_runtime.control_plane_store import _snapshot_from_payload, _snapshot_payload
 
 
 def _scenario(*, configured: bool = True) -> str:

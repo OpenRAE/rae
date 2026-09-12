@@ -93,8 +93,8 @@ def test_profile_authentication_and_rejected_delivery_preserve_durable_predecess
     from raes_reference_backend import create_reference_backend_target
     from raes_runtime.control_plane import RuntimeControlPlane
     from raes_runtime.control_plane_api import create_control_plane_app
+    from raes_runtime.control_plane_store import _snapshot_payload
     from raes_runtime.control_plane_store_local import LocalControlPlaneStore
-    from raes_runtime.control_plane_store_snapshots import _snapshot_payload
     from raes_runtime.manager import RuntimeManager
     from starlette.testclient import TestClient
     from test_runtime_control_plane_api import _test_security

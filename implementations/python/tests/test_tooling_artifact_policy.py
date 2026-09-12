@@ -21,7 +21,7 @@ from tools import (
     gitleaks_tool,
     isabelle_tool,
     osv_scanner_tool,
-    tooling_artifact_policy_runners,
+    tooling_artifact_policy_actions,
     tooling_policy_gate,
     vale_tool,
 )
@@ -1734,14 +1734,14 @@ def test_oversized_matrix_is_rejected_before_cartesian_materialization(
     def unexpected_product(*_args: object, **_kwargs: object) -> object:
         raise AssertionError("oversized matrix must be rejected before product expansion")
 
-    monkeypatch.setattr(tooling_artifact_policy_runners, "product", unexpected_product)
+    monkeypatch.setattr(tooling_artifact_policy_actions, "product", unexpected_product)
     job = {
         "strategy": {
             "matrix": {f"axis-{index}": [False, True] for index in range(9)},
         },
     }
 
-    rows, invalid = tooling_artifact_policy_runners.matrix_rows(job)
+    rows, invalid = tooling_artifact_policy_actions._matrix_rows(job)
 
     assert invalid is True
     assert rows == []
@@ -1751,12 +1751,12 @@ def test_invalid_matrix_rows_are_not_processed_as_runner_contexts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        tooling_artifact_policy_runners,
-        "matrix_rows",
+        tooling_artifact_policy_actions,
+        "_matrix_rows",
         lambda _job: ([{"runner": "ubuntu-24.04"}], True),
     )
 
-    _selector, contexts, invalid = tooling_artifact_policy_runners.runner_profiles({"runs-on": "${{ matrix.runner }}"})
+    _selector, contexts, invalid = tooling_artifact_policy_actions._runner_profiles({"runs-on": "${{ matrix.runner }}"})
 
     assert invalid is True
     assert contexts == []
