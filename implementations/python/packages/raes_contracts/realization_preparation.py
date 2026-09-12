@@ -9,7 +9,7 @@ from pydantic import ConfigDict, Field
 from pydantic_core import to_jsonable_python
 
 from ._base import ContractModel
-from .canonical import canonical_json_digest
+from .canonical import canonical_json_digest, jsonable_fallback
 from .diagnostics import Diagnostic
 from .realization_collections import PreparedNodeCollectionAuthority
 from .realization_structure import validate_realization_value
@@ -38,7 +38,7 @@ def preparation_snapshot_digest(snapshot: RuntimeSnapshot) -> str:
 
     if not validate_realization_value(snapshot, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
         raise ValueError("preparation predecessor exceeds the admitted portable bounds")
-    payload = to_jsonable_python(snapshot)
+    payload = to_jsonable_python(snapshot, fallback=jsonable_fallback)
     if not validate_realization_value(payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
         raise ValueError("preparation predecessor exceeds the admitted portable bounds")
     return canonical_json_digest(payload)

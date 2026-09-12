@@ -7,9 +7,10 @@ from pathlib import Path
 
 import yaml
 
-_UID = re.compile(r"[A-Z]{3}-[0-9]{3,}")
+_UID = re.compile(r"[A-Z]{3}-\d{3,}")
 _TRACE = re.compile(r"- ([A-Z][A-Z_]*) → ([A-Z][A-Z_]*) `([^`\n]+)`(?: \([^\n]*\))?")
 _MAX_REQUIREMENT_BYTES = 512 * 1024
+_GOVERNED_STATUSES = frozenset({"DRAFT", "ACTIVE", "DEPRECATED", "ARCHIVED"})
 
 
 class RepositoryRequirementError(ValueError):
@@ -17,7 +18,7 @@ class RepositoryRequirementError(ValueError):
 
 
 class _RequirementLoader(yaml.SafeLoader):
-    def construct_mapping(self, node, deep=False):
+    def construct_mapping(self, node: yaml.MappingNode, deep: bool = False) -> dict[object, object]:
         keys = [key.value for key, _ in node.value if isinstance(key, yaml.ScalarNode)]
         if len(keys) != len(node.value) or len(keys) != len(set(keys)):
             raise yaml.YAMLError("Requirement metadata keys must be unique scalars.")
@@ -38,6 +39,17 @@ def _metadata(frontmatter: str) -> object:
         return loader.get_single_data()
     finally:
         loader.dispose()
+
+
+def _governed_requirement(metadata: object, uid: str) -> dict[str, object]:
+    """Admit one requirement's identity and governed status from its frontmatter."""
+
+    if not isinstance(metadata, dict) or metadata.get("id") != uid:
+        raise RepositoryRequirementError("Requirement metadata does not match its canonical identity.")
+    status = metadata.get("status")
+    if not isinstance(status, str) or status not in _GOVERNED_STATUSES:
+        raise RepositoryRequirementError("Requirement metadata has no valid governed status.")
+    return {"id": uid, "uid": uid, "status": status}
 
 
 class RepositoryRequirementClient:
@@ -62,20 +74,8 @@ class RepositoryRequirementClient:
                 raw = source.read(_MAX_REQUIREMENT_BYTES + 1)
             if len(raw) > _MAX_REQUIREMENT_BYTES:
                 raise RepositoryRequirementError("Requirement source exceeds its bounded file size.")
-            document = raw.decode("utf-8")
-            frontmatter, body = self._split(document)
-            metadata = _metadata(frontmatter)
-            if not isinstance(metadata, dict) or metadata.get("id") != uid:
-                raise RepositoryRequirementError("Requirement metadata does not match its canonical identity.")
-            status = metadata.get("status")
-            if not isinstance(status, str) or status not in {
-                "DRAFT",
-                "ACTIVE",
-                "DEPRECATED",
-                "ARCHIVED",
-            }:
-                raise RepositoryRequirementError("Requirement metadata has no valid governed status.")
-            requirement = {"id": uid, "uid": uid, "status": status}
+            frontmatter, body = self._split(raw.decode("utf-8"))
+            requirement = _governed_requirement(_metadata(frontmatter), uid)
             traceability = self._traceability(body)
         except (OSError, UnicodeError, yaml.YAMLError, RecursionError) as exc:
             raise RepositoryRequirementError("Requirement authority cannot be read and validated.") from exc

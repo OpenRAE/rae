@@ -35,8 +35,10 @@ def test_safe_mount_presence_cannot_contradict_its_owned_projection(field):
     )
     safe = sanitize_mount_observation([mount.model_dump(mode="json")], observed=True)
     safe[0][field] = False
+    adapter = TypeAdapter(list[RuntimeMount])
+
     with pytest.raises(ValueError):
-        typed_runtime_observation_shape(safe, adapter=TypeAdapter(list[RuntimeMount]))
+        typed_runtime_observation_shape(safe, adapter=adapter)
 
 
 @pytest.mark.parametrize("projector", [project_mounts, sanitize_mount_observation])

@@ -31,8 +31,9 @@ def test_preparation_response_schema_and_codec_roundtrip():
         else:
             invalid["request_digest"] = "not-a-digest"
         assert not Draft202012Validator(schema).is_valid(invalid)
+        model_type = type(model)
         with pytest.raises(ValueError):
-            type(model).model_validate(invalid)
+            model_type.model_validate(invalid)
 
 
 @pytest.mark.parametrize("value_count, admitted", [(200, True), (400, False)])
@@ -44,9 +45,9 @@ def test_response_aggregate_is_bounded_before_portable_serialization(monkeypatch
     calls = []
     serialize = backend_preparation.to_jsonable_python
 
-    def recording_serialize(value):
+    def recording_serialize(value, **kwargs):
         calls.append(True)
-        return serialize(value)
+        return serialize(value, **kwargs)
 
     monkeypatch.setattr(backend_preparation, "to_jsonable_python", recording_serialize)
     response = RealizationPreparation(

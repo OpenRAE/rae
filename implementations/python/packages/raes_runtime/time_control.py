@@ -10,7 +10,7 @@ from raes_contracts.participant_autonomous_state import require_participant_auto
 from raes_contracts.runtime_state import ApplyResult
 from raes_processor.compiler.time_model import time_model_contract_model
 
-from .backend_calls import _call_backend_apply, _RealizationApplyContext
+from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 
 if TYPE_CHECKING:
@@ -52,7 +52,9 @@ class RuntimeTimeControlMixin:
             realization=_RealizationApplyContext(
                 effect_owners=frozenset({"time"}), effect_targets=frozenset(declaration.clocks)
             ),
-            information_state_context_resolver=self._information_state_context_resolver,
+            call=_BackendCallContext(
+                information_state_context_resolver=self._information_state_context_resolver,
+            ),
         )
         self._record_phase_result(state, result)
         if result.success:
@@ -139,8 +141,10 @@ class RuntimeTimeControlMixin:
             address=f"runtime.time.{method_name}",
             snapshot=self._snapshot,
             realization=authority,
-            information_state_context_resolver=self._information_state_context_resolver,
-            service_dependencies=(self._target.participant_runtime,),
+            call=_BackendCallContext(
+                information_state_context_resolver=self._information_state_context_resolver,
+                service_dependencies=(self._target.participant_runtime,),
+            ),
         )
         if result.success:
             result = self._validated_time_control_result(method_name, result, predecessor, args)

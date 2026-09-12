@@ -35,27 +35,35 @@ from ._normalization_overlays import validated_leaf_override
 from ._normalization_scopes import normalize_scope_identities
 
 
+@dataclass(frozen=True)
+class RealizationNormalizationMetadata:
+    """The scope, origin, and leaf metadata one normalization is lowered under."""
+
+    scopes: tuple[RealizationScope, ...] = ()
+    collection_profiles: tuple[RealizationCollectionProfile, ...] = ()
+    origins: Mapping[str, RealizationOrigin | str] = field(default_factory=dict)
+    leaf_constraints: Mapping[str, RecursiveRealizationStructure] = field(default_factory=dict)
+    optional_fields: frozenset[str] = frozenset()
+
+
 def normalize_realization_literal(
     value: object,
     *,
     semantic_profile: str,
     default_closure: RealizationClosure = DEFAULT_UNDEFINED_REALIZATION_CLOSURE,
-    scopes: tuple[RealizationScope, ...] = (),
-    collection_profiles: tuple[RealizationCollectionProfile, ...] = (),
-    origins: Mapping[str, RealizationOrigin | str] | None = None,
-    leaf_constraints: Mapping[str, RecursiveRealizationStructure] | None = None,
-    optional_fields: frozenset[str] = frozenset(),
+    metadata: RealizationNormalizationMetadata | None = None,
     limits: RealizationConstraintLimits = DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
 ) -> RealizationConstraintBuildResult:
     """Lower ordinary JSON literals without requiring wrappers around scalars."""
 
+    metadata = metadata or RealizationNormalizationMetadata()
+    scopes = metadata.scopes
     budget = RelationBudget(limits)
-    origins = origins or {}
-    leaf_constraints = leaf_constraints or {}
-    result = _normalization_metadata_failure(scopes, collection_profiles, origins, budget)
+    origins = metadata.origins
+    result = _normalization_metadata_failure(scopes, metadata.collection_profiles, origins, budget)
     if result is not None:
         return result
-    profiles, profile_failure = _collection_profile_map(collection_profiles)
+    profiles, profile_failure = _collection_profile_map(metadata.collection_profiles)
     result = result or profile_failure
     normalized_scopes: tuple[RealizationScope, ...] = ()
     if result is None:
@@ -66,11 +74,9 @@ def normalize_realization_literal(
             semantic_profile,
             default_closure,
             normalized_scopes,
-            origins,
             profiles,
             budget,
-            leaf_constraints,
-            optional_fields,
+            metadata,
         )
     return result
 
@@ -115,12 +121,13 @@ def _normalize_document(
     semantic_profile: str,
     default_closure: RealizationClosure,
     normalized_scopes: tuple[RealizationScope, ...],
-    origins: Mapping[str, RealizationOrigin | str],
     profiles: Mapping[str, RealizationCollectionProfile],
     budget: RelationBudget,
-    leaf_constraints: Mapping[str, RecursiveRealizationStructure],
-    optional_fields: frozenset[str],
+    metadata: RealizationNormalizationMetadata,
 ) -> RealizationConstraintBuildResult:
+    origins = metadata.origins
+    leaf_constraints = metadata.leaf_constraints
+    optional_fields = metadata.optional_fields
     if max(len(optional_fields), len(leaf_constraints)) > budget.limits.max_members:
         return build_failure(
             RealizationRelationStatus.LIMIT_EXCEEDED, "", "Normalization metadata exceeded max_members."

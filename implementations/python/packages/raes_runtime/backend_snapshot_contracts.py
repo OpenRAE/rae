@@ -4,6 +4,7 @@ from dataclasses import fields
 
 from pydantic_core import to_jsonable_python
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.realization_structure import (
@@ -67,7 +68,11 @@ _VALUE_LIMITS = RUNTIME_SNAPSHOT_VALUE_LIMITS
 def snapshot_values_equal(before: object, after: object) -> bool:
     """Compare admitted portable values through the incumbent exact relation."""
 
-    return structure_matches(ExactRealizationValue(kind="exact"), to_jsonable_python(before), to_jsonable_python(after))
+    return structure_matches(
+        ExactRealizationValue(kind="exact"),
+        to_jsonable_python(before, fallback=jsonable_fallback),
+        to_jsonable_python(after, fallback=jsonable_fallback),
+    )
 
 
 def snapshot_shape_violation(snapshot: RuntimeSnapshot) -> str | None:

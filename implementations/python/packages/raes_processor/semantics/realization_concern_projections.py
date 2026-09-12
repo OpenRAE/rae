@@ -10,7 +10,7 @@ from pydantic_core import to_jsonable_python
 from raes.runtime_capabilities import RuntimeProcessIdentity
 from raes.runtime_generated_value import GeneratedArtifactValueSource
 from raes.runtime_resource_limits import project_process_resource_limit
-from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.canonical import canonical_json_digest, jsonable_fallback
 
 from .realization_concern_observations import validate_value_commitment
 from .realization_runtime_concern_profiles import RUNTIME_NON_REALIZATION_FIELDS
@@ -133,7 +133,7 @@ def project_recursive_environment(value: object, observed: bool = False) -> obje
 
     return [
         project_environment([item], observed)[0]
-        for item in _sequence(to_jsonable_python(value), label="runtime environment")
+        for item in _sequence(to_jsonable_python(value, fallback=jsonable_fallback), label="runtime environment")
     ]
 
 

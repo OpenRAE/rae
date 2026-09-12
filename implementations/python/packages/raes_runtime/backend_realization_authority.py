@@ -81,9 +81,10 @@ def _submitted_authority_matches(realization: _RealizationApplyContext) -> bool:
     if not isinstance(realization.operation_plan, ProvisioningPlan):
         return False
     try:
-        return runtime_plan_digest(realization.plan) == runtime_plan_digest(realization.operation_plan)
+        matches = runtime_plan_digest(realization.plan) == runtime_plan_digest(realization.operation_plan)
     except (AttributeError, TypeError, ValueError):
-        return False
+        matches = False
+    return matches
 
 
 def _bind_submitted_plan(

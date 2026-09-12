@@ -192,8 +192,10 @@ def test_invalid_repository_requirement_fails_closed(tmp_path, mutation):
         outside = tmp_path / "outside.md"
         path.rename(outside)
         path.symlink_to(outside)
+    client = RepositoryRequirementClient(tmp_path)
+
     with pytest.raises(RepositoryRequirementError):
-        RepositoryRequirementClient(tmp_path).get_requirement("raes-sdl", uid)
+        client.get_requirement("raes-sdl", uid)
 
 
 def test_configured_repository_governance_never_uses_or_falls_back_to_http(tmp_path, monkeypatch, capsys):
@@ -231,5 +233,7 @@ def test_ambiguous_or_excessively_nested_metadata_is_a_governed_failure(tmp_path
 
     path = _requirement(tmp_path)
     path.write_text(f"---\n{metadata}\n---\n", encoding="utf-8")
+    client = RepositoryRequirementClient(tmp_path)
+
     with pytest.raises(RepositoryRequirementError):
-        RepositoryRequirementClient(tmp_path).get_requirement("raes-sdl", "ASR-532")
+        client.get_requirement("raes-sdl", "ASR-532")

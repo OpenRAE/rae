@@ -290,9 +290,8 @@ def operating_system_choice_supported(
 ) -> bool:
     """Check one selected tuple against coupled rows without combining leaf sets."""
 
-    if any(value in {"unknown", "other"} for value in (family, distribution, version)):
-        return False
-    if family and family not in provisioner.supported_os_families:
+    unmodelled = any(value in {"unknown", "other"} for value in (family, distribution, version))
+    if unmodelled or (family and family not in provisioner.supported_os_families):
         return False
     if not distribution and not version:
         return bool(family)

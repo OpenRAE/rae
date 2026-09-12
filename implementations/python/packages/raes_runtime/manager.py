@@ -1,5 +1,7 @@
 """Runtime manager for compiled SDL runtime plans."""
 
+from __future__ import annotations
+
 from collections.abc import Iterable
 from dataclasses import dataclass
 
@@ -10,16 +12,18 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
+from raes_contracts.planning import RuntimeDomain
+from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.models import ExecutionPlan
-from raes_processor.planner import plan, snapshot_delete_order
+from raes_processor.planner import plan
 
 from .apply_failure import maybe_synthesize_failure, rollback_services
-from .backend_calls import _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
+from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _apply_runtime_plan_with_observation, _RuntimePlanApplyRequest
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
+from .manager_destroy import _DestroyPhaseMixin
 from .manager_plan_admission import runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
 from .participant_execution_control import RuntimeParticipantExecutionMixin
@@ -45,7 +49,7 @@ class _RuntimeApplyState:
     failure: ApplyResult | None = None
 
 
-class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
+class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
     """Plans and executes SDL runtime work against a target."""
 
     def __init__(
@@ -85,7 +89,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         parameters: dict[str, object] | None = None,
         profile: str | None = None,
         artifact_availability: ArtifactAvailabilityContext | None = None,
-        profile_authority=None,
+        profile_authority: PlanProfileAuthority | None = None,
     ) -> ExecutionPlan:
         model = compile_scenario_runtime_model(
             scenario, parameters=parameters, profile=profile, profile_authority=profile_authority
@@ -373,91 +377,52 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         return info
 
     def destroy(self) -> ApplyResult:
-        if not self._stop_participant_clock_driver():
-            return ApplyResult(
-                success=False,
-                snapshot=self._snapshot,
-                diagnostics=[
-                    Diagnostic(
-                        code="runtime.participant-clock-driver-stop-timeout",
-                        domain="participant",
-                        address="runtime.destroy",
-                        message="Destroy did not start because the participant clock driver is still active.",
-                    )
-                ],
-            )
+        refusal = self._clock_driver_stop_refusal()
+        if refusal is not None:
+            return refusal
         diagnostics: list[Diagnostic] = []
         changed_addresses: list[str] = []
         working_snapshot = self._snapshot
         phases_succeeded = True
-
-        if self._target.orchestrator is not None:
-            stop_result = _call_backend_apply(
-                self._target.orchestrator.stop,
-                working_snapshot,
-                address="runtime.destroy.orchestrator",
-                snapshot=working_snapshot,
-                realization=_RealizationApplyContext(stop_domain=RuntimeDomain.ORCHESTRATION),
-                information_state_context_resolver=self._information_state_context_resolver,
-            )
-            diagnostics.extend(stop_result.diagnostics)
-            changed_addresses.extend(stop_result.changed_addresses)
-            working_snapshot = stop_result.snapshot
-            if not stop_result.success:
-                phases_succeeded = False
-                maybe_synthesize_failure(
-                    diagnostics,
-                    result=stop_result,
-                    code=_DESTROY_PHASE_FAILED,
-                    address="runtime.destroy.orchestrator",
-                    message="Orchestrator stop failed.",
-                )
-
-        if self._target.evaluator is not None:
-            stop_result = _call_backend_apply(
-                self._target.evaluator.stop,
-                working_snapshot,
-                address="runtime.destroy.evaluator",
-                snapshot=working_snapshot,
-                realization=_RealizationApplyContext(stop_domain=RuntimeDomain.EVALUATION),
-                information_state_context_resolver=self._information_state_context_resolver,
-            )
-            diagnostics.extend(stop_result.diagnostics)
-            changed_addresses.extend(stop_result.changed_addresses)
-            working_snapshot = stop_result.snapshot
-            if not stop_result.success:
-                phases_succeeded = False
-                maybe_synthesize_failure(
-                    diagnostics,
-                    result=stop_result,
-                    code=_DESTROY_PHASE_FAILED,
-                    address="runtime.destroy.evaluator",
-                    message="Evaluator stop failed.",
-                )
-
-        provisioning_entries = working_snapshot.for_domain(RuntimeDomain.PROVISIONING)
-        delete_plan = ProvisioningPlan(
-            resources={},
-            operations=[
-                ProvisionOp(
-                    action=ChangeAction.DELETE,
-                    address=address,
-                    resource_type=provisioning_entries[address].resource_type,
-                    payload=provisioning_entries[address].payload,
-                    ordering_dependencies=(provisioning_entries[address].ordering_dependencies),
-                    refresh_dependencies=(provisioning_entries[address].refresh_dependencies),
-                )
-                for address in snapshot_delete_order(provisioning_entries)
-            ],
-            realization_envelope=working_snapshot.realization_envelope,
+        service_phases = (
+            (
+                self._target.orchestrator,
+                "runtime.destroy.orchestrator",
+                RuntimeDomain.ORCHESTRATION,
+                "Orchestrator stop failed.",
+            ),
+            (
+                self._target.evaluator,
+                "runtime.destroy.evaluator",
+                RuntimeDomain.EVALUATION,
+                "Evaluator stop failed.",
+            ),
         )
+        for service, address, domain, message in service_phases:
+            stop_result = self._stop_service_phase(service, working_snapshot, address=address, domain=domain)
+            if stop_result is None:
+                continue
+            diagnostics.extend(stop_result.diagnostics)
+            changed_addresses.extend(stop_result.changed_addresses)
+            working_snapshot = stop_result.snapshot
+            if not stop_result.success:
+                phases_succeeded = False
+                maybe_synthesize_failure(
+                    diagnostics,
+                    result=stop_result,
+                    code=_DESTROY_PHASE_FAILED,
+                    address=address,
+                    message=message,
+                )
         provision_result = _call_backend_apply(
             self._target.provisioner.apply,
-            delete_plan,
+            self._destroy_delete_plan(working_snapshot),
             working_snapshot,
             address="runtime.destroy.provisioning",
             snapshot=working_snapshot,
-            information_state_context_resolver=self._information_state_context_resolver,
+            call=_BackendCallContext(
+                information_state_context_resolver=self._information_state_context_resolver,
+            ),
         )
         diagnostics.extend(provision_result.diagnostics)
         changed_addresses.extend(provision_result.changed_addresses)
@@ -471,7 +436,6 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 address="runtime.destroy.provisioning",
                 message="Provisioning destroy failed.",
             )
-
         self._snapshot = working_snapshot
         return ApplyResult(
             success=phases_succeeded and not _has_error_diagnostic(diagnostics),

@@ -19,7 +19,7 @@ from raes_contracts.planning import RuntimeDomain
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
 from ..compiler.time_model import time_model_contract_model
-from ..models import ExecutionPlan, RuntimeModel, RuntimeSnapshot
+from ..models import CompiledRealizationRequirement, ExecutionPlan, RuntimeModel, RuntimeSnapshot
 from ..semantics.realization import (
     ApparatusRealizationDefaultResolver,
     artifact_requirement_diagnostics,
@@ -105,19 +105,13 @@ def _observation_owner(
     return RuntimeDomain.PROVISIONING
 
 
-def plan(
+def _resolved_realization(
     model: RuntimeModel,
     manifest: BackendManifest,
-    snapshot: RuntimeSnapshot | None = None,
-    *,
-    target_name: str | None = None,
-    apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
-    artifact_availability: ArtifactAvailabilityContext | None = None,
-    profile_context: DomainProfileResolutionContextModel | None = None,
-) -> ExecutionPlan:
-    """Reconcile a compiled runtime model against the current snapshot."""
+    apparatus_realization_default: ApparatusRealizationDefaultResolver | None,
+) -> tuple[RuntimeModel, tuple[CompiledRealizationRequirement, ...], tuple[object, ...], list[Diagnostic]]:
+    """Resolve apparatus defaults, lower deferred constraints, and materialize authority."""
 
-    snapshot = snapshot or RuntimeSnapshot()
     apparatus_decisions = resolve_apparatus_realization_defaults(
         model.realization_requirements,
         manifest,
@@ -134,28 +128,50 @@ def plan(
         manifest,
         apparatus_decisions=apparatus_decisions,
     )
-    effective_model = replace(model, realization_requirements=effective_requirements)
-    resources = _collect_resources(effective_model)
-    resources, profile_diagnostics = profile_resources(effective_model, resources, manifest, snapshot, profile_context)
-    preparation = preparation_authority(manifest)
-    envelope_diagnostics = (
-        list(member(effective_model.realization_instance, manifest.realization_envelope.expression).diagnostics)
-        if manifest.realization_envelope is not None and effective_model.realization_instance is not None
-        else []
+    return (
+        replace(model, realization_requirements=effective_requirements),
+        effective_requirements,
+        resolved_authority,
+        authority_diagnostics,
     )
-    if preparation is not None:
-        envelope_diagnostics = preparation_member_diagnostics(envelope_diagnostics, effective_requirements)
-    diagnostics = [
-        *profile_diagnostics,
+
+
+def _envelope_diagnostics(
+    effective_model: RuntimeModel,
+    manifest: BackendManifest,
+    effective_requirements: tuple[CompiledRealizationRequirement, ...],
+    *,
+    preparation: object | None,
+) -> list[Diagnostic]:
+    """Project envelope membership, keeping only statically decidable failures."""
+
+    envelope = manifest.realization_envelope
+    instance = effective_model.realization_instance
+    diagnostics = (
+        list(member(instance, envelope.expression).diagnostics) if envelope is not None and instance is not None else []
+    )
+    if preparation is None:
+        return diagnostics
+    return preparation_member_diagnostics(diagnostics, effective_requirements)
+
+
+def _admission_diagnostics(
+    effective_model: RuntimeModel,
+    manifest: BackendManifest,
+    effective_requirements: tuple[CompiledRealizationRequirement, ...],
+    *,
+    artifact_availability: ArtifactAvailabilityContext | None,
+    preparation: object | None,
+) -> list[Diagnostic]:
+    """Collect every static admission failure before any operation is planned."""
+
+    return [
         *effective_model.diagnostics,
         *_validate_manifest(effective_model, manifest),
         *_time_model_diagnostics(effective_model, manifest),
         *_participant_execution_diagnostics(effective_model, manifest),
         *capture_admission_diagnostics(effective_model.capture_demands, manifest.observation),
-        *realization_support_diagnostics(
-            effective_requirements,
-            manifest,
-        ),
+        *realization_support_diagnostics(effective_requirements, manifest),
         *realization_envelope_diagnostics(
             effective_requirements,
             manifest,
@@ -166,8 +182,44 @@ def plan(
             manifest,
             availability=artifact_availability,
         ),
+        *_envelope_diagnostics(
+            effective_model,
+            manifest,
+            effective_requirements,
+            preparation=preparation,
+        ),
+    ]
+
+
+def plan(
+    model: RuntimeModel,
+    manifest: BackendManifest,
+    snapshot: RuntimeSnapshot | None = None,
+    *,
+    target_name: str | None = None,
+    apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
+    artifact_availability: ArtifactAvailabilityContext | None = None,
+    profile_context: DomainProfileResolutionContextModel | None = None,
+) -> ExecutionPlan:
+    """Reconcile a compiled runtime model against the current snapshot."""
+
+    snapshot = snapshot or RuntimeSnapshot()
+    effective_model, effective_requirements, resolved_authority, authority_diagnostics = _resolved_realization(
+        model, manifest, apparatus_realization_default
+    )
+    resources = _collect_resources(effective_model)
+    resources, profile_diagnostics = profile_resources(effective_model, resources, manifest, snapshot, profile_context)
+    preparation = preparation_authority(manifest)
+    diagnostics = [
+        *profile_diagnostics,
+        *_admission_diagnostics(
+            effective_model,
+            manifest,
+            effective_requirements,
+            artifact_availability=artifact_availability,
+            preparation=preparation,
+        ),
         *authority_diagnostics,
-        *envelope_diagnostics,
         *_ordering_cycle_diagnostics(resources),
     ]
     actions, deleted_entries = _build_operations(

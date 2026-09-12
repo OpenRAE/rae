@@ -24,6 +24,7 @@ import sys
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from tools.nox_support.compatibility_lanes import _run_python_compatibility
 from tools.nox_support.config import (
     CONTRACT_TRIGGER_PREFIXES,
     FULL_TEST_TRIGGER_PREFIXES,
@@ -57,7 +58,6 @@ from tools.nox_support.test_lanes import (
     _run_fuzz,
     _run_integration_tests,
     _run_osv_scan,
-    _run_python_compatibility,
     _run_tests,
 )
 

@@ -7,6 +7,7 @@ from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationDomainValue,
+    RealizationNormalizationMetadata,
     RealizationRelationStatus,
     evaluate_realization_constraint,
     normalize_realization_literal,
@@ -18,11 +19,13 @@ def test_normalization_lowers_domains_and_default_presence_without_losing_exact_
         {"name": "db", "engine": "other", "port": None},
         semantic_profile="test/recursive-carriage/v1",
         default_closure=RealizationClosure(posture="closed", universe="database", profile="test/v1"),
-        origins={"/port": "default"},
-        optional_fields=frozenset({"/port"}),
-        leaf_constraints={
-            "/engine": RealizationDomainValue(kind="domain", domain=EnumDomain(values=["sqlite", "postgresql"]))
-        },
+        metadata=RealizationNormalizationMetadata(
+            origins={"/port": "default"},
+            optional_fields=frozenset({"/port"}),
+            leaf_constraints={
+                "/engine": RealizationDomainValue(kind="domain", domain=EnumDomain(values=["sqlite", "postgresql"]))
+            },
+        ),
     )
     assert result.status is RealizationRelationStatus.CONFORMANT
     document = result.document
@@ -45,7 +48,9 @@ def test_normalization_rejects_unresolved_leaf_authority(pointer):
     result = normalize_realization_literal(
         {"engine": "other"},
         semantic_profile="test/recursive-carriage/v1",
-        leaf_constraints={pointer: RealizationDomainValue(kind="domain", domain=EnumDomain(values=["sqlite"]))},
+        metadata=RealizationNormalizationMetadata(
+            leaf_constraints={pointer: RealizationDomainValue(kind="domain", domain=EnumDomain(values=["sqlite"]))},
+        ),
     )
     assert result.status is RealizationRelationStatus.INVALID
     assert result.document is None
@@ -67,7 +72,9 @@ def test_normalization_bounds_leaf_metadata_before_materializing_it():
     result = normalize_realization_literal(
         "value",
         semantic_profile="test/metadata/v1",
-        leaf_constraints=OversizedMetadata(),
+        metadata=RealizationNormalizationMetadata(
+            leaf_constraints=OversizedMetadata(),
+        ),
     )
     assert result.status is RealizationRelationStatus.LIMIT_EXCEEDED
     assert result.document is None
@@ -80,7 +87,9 @@ def test_normalization_revalidates_mutated_leaf_models():
     result = normalize_realization_literal(
         "safe",
         semantic_profile="test/metadata/v1",
-        leaf_constraints={"": invalid},
+        metadata=RealizationNormalizationMetadata(
+            leaf_constraints={"": invalid},
+        ),
     )
     assert result.status is RealizationRelationStatus.INVALID
     assert result.document is None
@@ -207,10 +216,10 @@ def test_accepted_snapshot_sanitization_preserves_recursive_sequence_order():
 
 
 def test_final_safe_projection_cannot_introduce_a_constraint_violation(monkeypatch):
-    from raes_runtime import backend_calls
+    from raes_runtime import backend_apply_results
     from test_issue_1200_mixed_runtime_constraints import _apply, _fixture
 
-    sanitize = backend_calls._sanitize_backend_realization
+    sanitize = backend_apply_results._sanitize_backend_realization
 
     def changed_projection(result, **kwargs):
         sanitized = sanitize(result, **kwargs)
@@ -220,7 +229,7 @@ def test_final_safe_projection_cannot_introduce_a_constraint_violation(monkeypat
 
     runtime = {"packages": [{"manager": "apt", "name": "nmap", "version": "7.95"}]}
     _, portable, manifest = _fixture(runtime)
-    monkeypatch.setattr(backend_calls, "_sanitize_backend_realization", changed_projection)
+    monkeypatch.setattr(backend_apply_results, "_sanitize_backend_realization", changed_projection)
     result = _apply(portable, manifest, runtime)
     assert not result.success
     assert result.snapshot.entries == {}

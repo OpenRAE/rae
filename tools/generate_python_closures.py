@@ -7,17 +7,21 @@ import argparse
 import hashlib
 import json
 import tomllib
-from collections import defaultdict, deque
 from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from packaging.markers import Marker, default_environment
 from packaging.tags import Tag, compatible_tags, cpython_tags, mac_platforms
 from packaging.utils import InvalidWheelFilename, parse_wheel_filename
 
+from tools.generate_python_closures_locks import lock_mappings, locked_closure, target_environment
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
+_SHA256_PREFIX = "sha256:"
+_BUILD_CONSTRAINT_PYTHON_VERSIONS = ("3.11", "3.12", "3.13", "3.14")
+_TOOL_ROOT_NAME = "raes-development-tools"
 TARGETS = (
     (
         "public-linux-x86_64-cp311-all-extras",
@@ -59,147 +63,67 @@ TOOL_TARGETS = (
 )
 
 
-def _environment(python_version: str, platform: str) -> dict[str, str]:
-    environment = default_environment()
-    major, minor = python_version.split(".")
-    machine = "aarch64" if platform.startswith("aarch64") else "x86_64"
-    environment.update(
-        {
-            "implementation_name": "cpython",
-            "platform_machine": machine,
-            "platform_python_implementation": "CPython",
-            "python_full_version": f"{major}.{minor}.0",
-            "python_version": python_version,
-            "sys_platform": "darwin" if platform.endswith("apple-darwin") else "linux",
-        }
-    )
-    return environment
+def _build_group_dependencies(lock: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    """Resolve the reviewed build dependency group declared by the tool lock."""
 
-
-def _matches(marker: object, environment: Mapping[str, str]) -> bool:
-    return not marker or isinstance(marker, str) and Marker(marker).evaluate(environment=dict(environment))
-
-
-def _package_applies(package: Mapping[str, Any], environment: Mapping[str, str]) -> bool:
-    markers = package.get("resolution-markers")
-    return not markers or isinstance(markers, list) and any(_matches(marker, environment) for marker in markers)
-
-
-def _selected_package(
-    packages: Mapping[str, Sequence[Mapping[str, Any]]],
-    dependency: Mapping[str, Any],
-    environment: Mapping[str, str],
-) -> Mapping[str, Any]:
-    candidates = [
-        package
-        for package in packages.get(str(dependency.get("name")), ())
-        if _package_applies(package, environment)
-        and (not dependency.get("version") or package.get("version") == dependency.get("version"))
-    ]
-    if len(candidates) != 1:
-        raise ValueError(f"dependency {dependency.get('name')!r} did not select exactly one locked package")
-    return candidates[0]
-
-
-def _locked_closure(
-    lock: Mapping[str, Any],
-    environment: Mapping[str, str],
-    *,
-    root_name: str,
-    include_root_optional: bool,
-    root_groups: Sequence[str] = (),
-    initial_dependencies: Sequence[Mapping[str, Any]] | None = None,
-) -> list[Mapping[str, Any]]:
-    packages: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
-    for package in lock.get("package", []):
-        if isinstance(package, Mapping) and isinstance(package.get("name"), str):
-            packages[package["name"]].append(package)
-    roots = packages.get(root_name, [])
-    if len(roots) != 1:
-        raise ValueError(f"lock must contain exactly one {root_name} package")
-
-    root = roots[0]
-    if initial_dependencies is None:
-        root_dependencies = list(root.get("dependencies", []))
-        if include_root_optional:
-            root_dependencies.extend(item for group in root.get("optional-dependencies", {}).values() for item in group)
-        development_groups = root.get("dev-dependencies", {})
-        for group in root_groups:
-            dependencies = development_groups.get(group, []) if isinstance(development_groups, Mapping) else []
-            if not isinstance(dependencies, list):
-                raise ValueError(f"tool lock dependency group {group!r} is invalid")
-            root_dependencies.extend(dependencies)
-    else:
-        root_dependencies = list(initial_dependencies)
-    pending: deque[Mapping[str, Any]] = deque(
-        dependency for dependency in root_dependencies if isinstance(dependency, Mapping)
-    )
-    selected: dict[str, Mapping[str, Any]] = {}
-    processed_dependencies: set[str] = set()
-    processed_extras: dict[str, set[str]] = defaultdict(set)
-    while pending:
-        dependency = pending.popleft()
-        if not _matches(dependency.get("marker"), environment):
-            continue
-        package = _selected_package(packages, dependency, environment)
-        name = str(package["name"])
-        previous = selected.setdefault(name, package)
-        if previous is not package and previous.get("version") != package.get("version"):
-            raise ValueError(f"target closure selected multiple versions of {name}")
-        if name not in processed_dependencies:
-            pending.extend(item for item in package.get("dependencies", []) if isinstance(item, Mapping))
-            processed_dependencies.add(name)
-        requested_extras = {item for item in dependency.get("extra", []) if isinstance(item, str)} - processed_extras[
-            name
-        ]
-        for extra in sorted(requested_extras):
-            pending.extend(
-                item for item in package.get("optional-dependencies", {}).get(extra, []) if isinstance(item, Mapping)
-            )
-        processed_extras[name].update(requested_extras)
-    return [selected[name] for name in sorted(selected)]
-
-
-def render_build_constraints(lock: Mapping[str, Any]) -> str:
     root = next(
         (
             package
             for package in lock.get("package", [])
-            if isinstance(package, Mapping) and package.get("name") == "raes-development-tools"
+            if isinstance(package, Mapping) and package.get("name") == _TOOL_ROOT_NAME
         ),
         None,
     )
     if root is None:
         raise ValueError("tool lock has no project root")
-    build_dependencies = root.get("dev-dependencies", {}).get("build", [])
-    if not isinstance(build_dependencies, list) or not build_dependencies:
+    dependencies = lock_mappings(root.get("dev-dependencies", {}).get("build", []))
+    if not dependencies:
         raise ValueError("tool lock has no build dependency group")
+    return dependencies
+
+
+def _build_constraint_packages(lock: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+    """Select one exact version per build dependency across every supported runtime."""
+
+    dependencies = _build_group_dependencies(lock)
     selected: dict[str, Mapping[str, Any]] = {}
-    for python_version in ("3.11", "3.12", "3.13", "3.14"):
-        for package in _locked_closure(
+    for python_version in _BUILD_CONSTRAINT_PYTHON_VERSIONS:
+        for package in locked_closure(
             lock,
-            _environment(python_version, "x86_64-unknown-linux-gnu"),
-            root_name="raes-development-tools",
+            target_environment(python_version, "x86_64-unknown-linux-gnu"),
+            root_name=_TOOL_ROOT_NAME,
             include_root_optional=False,
-            initial_dependencies=[dependency for dependency in build_dependencies if isinstance(dependency, Mapping)],
+            initial_dependencies=dependencies,
         ):
             name = str(package["name"])
-            previous = selected.setdefault(name, package)
-            if previous.get("version") != package.get("version"):
+            if selected.setdefault(name, package).get("version") != package.get("version"):
                 raise ValueError(f"build constraint selects multiple versions of {name}")
+    return selected
+
+
+def _sha256_artifact_hashes(package: Mapping[str, Any]) -> list[str]:
+    """Collect the SHA-256 artifact identities of one locked package."""
+
+    artifact_values = [package.get("sdist"), *package.get("wheels", [])]
+    return sorted(
+        {
+            str(artifact["hash"])
+            for artifact in artifact_values
+            if isinstance(artifact, Mapping)
+            and isinstance(artifact.get("hash"), str)
+            and str(artifact["hash"]).startswith(_SHA256_PREFIX)
+        }
+    )
+
+
+def render_build_constraints(lock: Mapping[str, Any]) -> str:
+    """Render hash-complete build constraints for the reviewed build group."""
+
+    selected = _build_constraint_packages(lock)
     lines: list[str] = []
     for name in sorted(selected):
         package = selected[name]
-        artifact_values = [package.get("sdist"), *package.get("wheels", [])]
-        hashes = sorted(
-            {
-                str(artifact["hash"])
-                for artifact in artifact_values
-                if isinstance(artifact, Mapping)
-                and isinstance(artifact.get("hash"), str)
-                and str(artifact["hash"]).startswith("sha256:")
-            }
-        )
+        hashes = _sha256_artifact_hashes(package)
         if not hashes:
             raise ValueError(f"build constraint {name} has no SHA-256 artifacts")
         lines.append(f"{name}=={package['version']} \\")
@@ -258,102 +182,153 @@ def _select_wheel(package: Mapping[str, Any], supported: Sequence[Tag]) -> Mappi
 def _artifact(package: Mapping[str, Any], wheel: Mapping[str, Any]) -> dict[str, object]:
     url = str(wheel["url"])
     digest = str(wheel["hash"])
-    if not digest.startswith("sha256:"):
+    if not digest.startswith(_SHA256_PREFIX):
         raise ValueError(f"{package.get('name')} has a non-SHA256 wheel identity")
     return {
         "name": package["name"],
         "version": package["version"],
         "filename": Path(urlsplit(url).path).name,
         "url": url,
-        "sha256": digest.removeprefix("sha256:"),
+        "sha256": digest.removeprefix(_SHA256_PREFIX),
         "size": wheel["size"],
     }
 
 
-def render_target(
-    lock: Mapping[str, Any],
-    lock_path: Path,
-    profile_id: str,
-    python_version: str,
-    abi: str,
-    platform: str,
-    *,
-    root_name: str,
-    include_root_optional: bool,
-    root_groups: Sequence[str] = (),
-    repo_root: Path = REPO_ROOT,
-) -> tuple[str, str]:
-    environment = _environment(python_version, platform)
-    supported = _supported_tags(python_version, abi, platform)
+@dataclass(frozen=True)
+class _TargetRequest:
+    """One reviewed closure target and the lock root it is projected from."""
+
+    lock: Mapping[str, Any]
+    lock_path: Path
+    profile_id: str
+    python_version: str
+    abi: str
+    platform: str
+    root_name: str
+    include_root_optional: bool
+    root_groups: Sequence[str] = ()
+    repo_root: Path = REPO_ROOT
+
+
+@dataclass(frozen=True)
+class _LockDefinition:
+    """One lock authority and the reviewed targets projected from it."""
+
+    lock_path: Path
+    root_name: str
+    include_root_optional: bool
+    targets: Sequence[tuple[str, str, str, str]]
+    root_groups: Sequence[str] = field(default=())
+
+
+def render_target(request: _TargetRequest) -> tuple[str, str]:
+    """Render the pinned requirements and wheelhouse manifest for one target."""
+
+    environment = target_environment(request.python_version, request.platform)
+    supported = _supported_tags(request.python_version, request.abi, request.platform)
     artifacts = [
         _artifact(package, _select_wheel(package, supported))
-        for package in _locked_closure(
-            lock,
+        for package in locked_closure(
+            request.lock,
             environment,
-            root_name=root_name,
-            include_root_optional=include_root_optional,
-            root_groups=root_groups,
+            root_name=request.root_name,
+            include_root_optional=request.include_root_optional,
+            root_groups=request.root_groups,
         )
     ]
     requirements = "".join(
-        f"{artifact['name']}=={artifact['version']} --hash=sha256:{artifact['sha256']}\n" for artifact in artifacts
+        f"{artifact['name']}=={artifact['version']} --hash={_SHA256_PREFIX}{artifact['sha256']}\n"
+        for artifact in artifacts
     )
     manifest = {
         "schema_version": "raes-python-wheelhouse-manifest/v1",
-        "python_closure_profile_id": profile_id,
-        "lock_path": lock_path.relative_to(repo_root).as_posix(),
-        "lock_sha256": hashlib.sha256(lock_path.read_bytes()).hexdigest(),
+        "python_closure_profile_id": request.profile_id,
+        "lock_path": request.lock_path.relative_to(request.repo_root).as_posix(),
+        "lock_sha256": hashlib.sha256(request.lock_path.read_bytes()).hexdigest(),
         "requirements_sha256": hashlib.sha256(requirements.encode()).hexdigest(),
         "artifacts": artifacts,
     }
     return requirements, json.dumps(manifest, indent=2, sort_keys=True) + "\n"
 
 
-def generate(*, check: bool, repo_root: Path = REPO_ROOT) -> bool:
+def _write_if_changed(path: Path, content: str, *, check: bool) -> bool:
+    """Report whether the content differs, writing it unless this is a check run."""
+
+    if path.exists() and path.read_text(encoding="utf-8") == content:
+        return False
+    if not check:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+    return True
+
+
+def _projection_stem(definition: _LockDefinition, profile_id: str) -> str:
+    """Name the projection files one target writes."""
+
+    stem = profile_id.removeprefix("public-").removesuffix("-all-extras").removesuffix("-tools")
+    return f"tools-{stem}" if definition.root_name == _TOOL_ROOT_NAME else stem
+
+
+def _definition_changes(
+    definition: _LockDefinition,
+    *,
+    output_root: Path,
+    repo_root: Path,
+    check: bool,
+) -> bool:
+    """Project every target of one lock authority and report whether any changed."""
+
+    lock = tomllib.loads(definition.lock_path.read_text(encoding="utf-8"))
     changed = False
-    project_lock = repo_root / "implementations" / "python" / "uv.lock"
-    tool_lock = repo_root / "implementations" / "tooling" / "python" / "uv.lock"
-    output_root = repo_root / "implementations" / "tooling" / "python" / "smoke"
-    tool_lock_document = tomllib.loads(tool_lock.read_text(encoding="utf-8"))
-    constraints_path = repo_root / "implementations" / "tooling" / "python" / "build-constraints.txt"
-    constraints = render_build_constraints(tool_lock_document)
-    if not constraints_path.exists() or constraints_path.read_text(encoding="utf-8") != constraints:
-        changed = True
-        if not check:
-            constraints_path.parent.mkdir(parents=True, exist_ok=True)
-            constraints_path.write_text(constraints, encoding="utf-8")
-    definitions = (
-        (project_lock, "raes", True, (), TARGETS),
-        (tool_lock, "raes-development-tools", False, ("build",), TOOL_TARGETS),
-    )
-    for lock_path, root_name, include_root_optional, root_groups, targets in definitions:
-        lock = tomllib.loads(lock_path.read_text(encoding="utf-8"))
-        for profile_id, python_version, abi, platform in targets:
-            stem = profile_id.removeprefix("public-").removesuffix("-all-extras").removesuffix("-tools")
-            if root_name == "raes-development-tools":
-                stem = f"tools-{stem}"
-            requirements, manifest = render_target(
-                lock,
-                lock_path,
-                profile_id,
-                python_version,
-                abi,
-                platform,
-                root_name=root_name,
-                include_root_optional=include_root_optional,
-                root_groups=root_groups,
+    for profile_id, python_version, abi, platform in definition.targets:
+        requirements, manifest = render_target(
+            _TargetRequest(
+                lock=lock,
+                lock_path=definition.lock_path,
+                profile_id=profile_id,
+                python_version=python_version,
+                abi=abi,
+                platform=platform,
+                root_name=definition.root_name,
+                include_root_optional=definition.include_root_optional,
+                root_groups=definition.root_groups,
                 repo_root=repo_root,
             )
-            for path, content in (
-                (output_root / f"{stem}.txt", requirements),
-                (output_root / f"{stem}.wheelhouse-manifest.json", manifest),
-            ):
-                if path.exists() and path.read_text(encoding="utf-8") == content:
-                    continue
-                changed = True
-                if not check:
-                    path.parent.mkdir(parents=True, exist_ok=True)
-                    path.write_text(content, encoding="utf-8")
+        )
+        stem = _projection_stem(definition, profile_id)
+        for path, content in (
+            (output_root / f"{stem}.txt", requirements),
+            (output_root / f"{stem}.wheelhouse-manifest.json", manifest),
+        ):
+            changed = _write_if_changed(path, content, check=check) or changed
+    return changed
+
+
+def generate(*, check: bool, repo_root: Path = REPO_ROOT) -> bool:
+    """Project every reviewed closure, reporting whether the tree was already current."""
+
+    tool_root = repo_root / "implementations" / "tooling" / "python"
+    tool_lock_path = tool_root / "uv.lock"
+    output_root = tool_root / "smoke"
+    constraints = render_build_constraints(tomllib.loads(tool_lock_path.read_text(encoding="utf-8")))
+    changed = _write_if_changed(tool_root / "build-constraints.txt", constraints, check=check)
+    definitions = (
+        _LockDefinition(
+            lock_path=repo_root / "implementations" / "python" / "uv.lock",
+            root_name="raes",
+            include_root_optional=True,
+            targets=TARGETS,
+        ),
+        _LockDefinition(
+            lock_path=tool_lock_path,
+            root_name=_TOOL_ROOT_NAME,
+            include_root_optional=False,
+            targets=TOOL_TARGETS,
+            root_groups=("build",),
+        ),
+    )
+    for definition in definitions:
+        changed = _definition_changes(definition, output_root=output_root, repo_root=repo_root, check=check) or changed
     return not changed
 
 

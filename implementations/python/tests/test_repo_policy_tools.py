@@ -44,6 +44,7 @@ sys.modules.setdefault(
 import pytest
 import tools.check_generated_schemas as check_generated_schemas
 import tools.check_json_artifacts as check_json_artifacts
+import tools.nox_support.compatibility_lanes as nox_compatibility_lanes
 import tools.nox_support.config as nox_config
 import tools.nox_support.graph as nox_graph
 import tools.nox_support.policy_lanes as nox_policy_lanes
@@ -69,7 +70,14 @@ from tools.policy.common import PolicyFailure
 from tools.policy.conftest_tool import run_conftest_policy
 from tools.policy.repo_policy import evaluate_repo_policy
 
-NOX_SUPPORT_MODULES = ("config", "runner", "policy_lanes", "test_lanes", "graph")
+NOX_SUPPORT_MODULES = (
+    "config",
+    "runner",
+    "policy_lanes",
+    "test_lanes",
+    "compatibility_lanes",
+    "graph",
+)
 
 
 def test_sonar_project_binding_matches_scanner_configuration() -> None:
@@ -714,15 +722,15 @@ def _exercise_python_compatibility(
         monkeypatch.setenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, "/verified-wheelhouse")
     else:
         monkeypatch.delenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, raising=False)
-    monkeypatch.setattr(nox_test_lanes, "_run", fake_run)
-    monkeypatch.setattr(nox_test_lanes, "_sync_project", sync_calls.append)
+    monkeypatch.setattr(nox_compatibility_lanes, "_run", fake_run)
+    monkeypatch.setattr(nox_compatibility_lanes, "_sync_project", sync_calls.append)
     monkeypatch.setattr(
-        nox_test_lanes,
+        nox_compatibility_lanes,
         "_run_pytest",
         lambda _session, *args, **_kwargs: pytest_calls.append(tuple(args)),
     )
     reporter = nox_runner.SessionReporter(FakeSession(), "python-compatibility")
-    nox_test_lanes._run_python_compatibility(reporter.session, reporter)
+    nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
     return commands, pytest_calls, reporter.results, sync_calls
 
 
@@ -818,7 +826,7 @@ def test_python_compatibility_rejects_restored_wheelhouse_outside_smoke_executio
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
     with pytest.raises(RuntimeError, match="valid only for compatibility smoke execution"):
-        nox_test_lanes._compatibility_runtime_stages(
+        nox_compatibility_lanes._compatibility_runtime_stages(
             reporter.session,
             reporter,
             selector="cpython-3.14",
@@ -835,7 +843,7 @@ def test_python_compatibility_distribution_requires_reviewed_closure_profile(
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
     with pytest.raises(RuntimeError, match="must select a reviewed closure profile"):
-        nox_test_lanes._compatibility_distribution_stages(
+        nox_compatibility_lanes._compatibility_distribution_stages(
             reporter.session,
             reporter,
             selector="cpython-3.14",
@@ -861,7 +869,7 @@ def test_python_compatibility_rejects_unsupported_or_missing_interpreter_selecti
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
     with pytest.raises(RuntimeError, match=message):
-        nox_test_lanes._run_python_compatibility(reporter.session, reporter)
+        nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
 
 
 def test_python_compatibility_rejects_profile_for_another_interpreter(
@@ -874,7 +882,7 @@ def test_python_compatibility_rejects_profile_for_another_interpreter(
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
     with pytest.raises(RuntimeError, match="must match the selected interpreter"):
-        nox_test_lanes._run_python_compatibility(reporter.session, reporter)
+        nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
 
 
 def test_python_compatibility_rejects_incomplete_distribution_build(
@@ -891,7 +899,7 @@ def test_python_compatibility_and_osv_session_wrappers_always_summarize(
     logs: list[str] = []
     session = types.SimpleNamespace(log=logs.append, posargs=[])
     monkeypatch.setattr(
-        nox_test_lanes,
+        nox_compatibility_lanes,
         "_run_python_compatibility",
         lambda _session, _reporter: calls.append("python"),
     )

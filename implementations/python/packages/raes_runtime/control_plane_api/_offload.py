@@ -74,14 +74,29 @@ class _ControlPlaneCallExecutor:
         try:
             return await asyncio.shield(worker)
         except asyncio.CancelledError:
-            while not worker.done():
-                try:
-                    await asyncio.shield(worker)
-                except asyncio.CancelledError:
-                    continue
-                except Exception:
-                    break
+            await _settle_worker(worker)
             raise
+
+
+async def _settle_worker(worker: asyncio.Task[object]) -> None:
+    """Wait for an in-flight control-plane mutation to settle before unwinding.
+
+    The worker owns a durable mutation, so repeated cancellation is absorbed
+    while it is still running rather than abandoning it mid-commit. The last
+    cancellation observed is re-raised once the worker has settled, so the
+    caller's cancellation still propagates.
+    """
+
+    cancelled: asyncio.CancelledError | None = None
+    while not worker.done():
+        try:
+            await asyncio.shield(worker)
+        except asyncio.CancelledError as exc:
+            cancelled = exc
+        except Exception:
+            break
+    if cancelled is not None:
+        raise cancelled
 
 
 def _control_plane_calls(request: Request) -> _ControlPlaneCallExecutor:
