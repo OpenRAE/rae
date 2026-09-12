@@ -125,7 +125,7 @@ def _register_provisioning_submission_route(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="submit_provisioning",
@@ -170,7 +170,7 @@ def _register_orchestration_submission_route(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="submit_orchestration",
@@ -215,7 +215,7 @@ def _register_evaluation_submission_route(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="submit_evaluation",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from typing import ParamSpec, TypeVar
 
@@ -58,9 +59,29 @@ class _ControlPlaneCallExecutor:
                     return await self.run(call, *args, **kwargs)
             except MutationReservationRequired as reservation:
                 async with reservation.authority.reserve(reservation.kind):
-                    return await self.run(call, *args, **kwargs)
+                    return await self._run_reserved(call, *args, **kwargs)
         finally:
             self._pending_mutations -= 1
+
+    async def _run_reserved(
+        self,
+        call: Callable[_P, _T],
+        /,
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> _T:
+        worker = asyncio.create_task(self.run(call, *args, **kwargs))
+        try:
+            return await asyncio.shield(worker)
+        except asyncio.CancelledError:
+            while not worker.done():
+                try:
+                    await asyncio.shield(worker)
+                except asyncio.CancelledError:
+                    continue
+                except Exception:
+                    break
+            raise
 
 
 def _control_plane_calls(request: Request) -> _ControlPlaneCallExecutor:

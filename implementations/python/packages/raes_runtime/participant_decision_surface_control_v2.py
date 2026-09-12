@@ -6,6 +6,7 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceSelectionV2Model,
     ParticipantDecisionSurfaceV2Model,
 )
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.participant_binding_v2 import (
     ParticipantDecisionSurfaceBindingResolversV2,
@@ -27,6 +28,33 @@ from .participant_control_diagnostics import (
 )
 
 
+def _bind_participant_decision_surface_v2(
+    control_plane: object,
+    participant_behavior: ParticipantBehaviorRuntime,
+    surface: ParticipantDecisionSurfaceV2Model,
+    selection: ParticipantDecisionSurfaceSelectionV2Model,
+    admission_request: ParticipantActionAdmissionRequest,
+    resolvers: ParticipantDecisionSurfaceBindingResolversV2,
+) -> tuple[ParticipantActionAdmissionRequest | None, Diagnostic | None]:
+    try:
+        validate_participant_decision_surface_v2_anchor(control_plane._snapshot, surface)
+        with external_control_plane_call(control_plane):
+            request = bind_participant_decision_surface_selection_v2(
+                surface=surface,
+                selection=selection,
+                admission_request=admission_request,
+                argument_shape_resolver=resolvers.argument_shape,
+                apparatus_resolver=resolvers.apparatus,
+                delivery_resolver=resolvers.delivery,
+            )
+    except (TypeError, ValueError) as exc:
+        return None, _participant_binding_diagnostic(
+            _participant_binding_address(participant_behavior),
+            str(exc),
+        )
+    return request, None
+
+
 class ParticipantDecisionSurfaceV2ControlMixin:
     """Exact-cut decision-surface operations mixed into the control plane."""
 
@@ -45,60 +73,56 @@ class ParticipantDecisionSurfaceV2ControlMixin:
     ) -> OperationReceipt:
         """Re-resolve v2 state and delivery before ordinary action admission."""
 
+        receipt: OperationReceipt
         if self._target.participant_runtime is None:
-            return self._reject_submission(
+            receipt = self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
                 idempotency_key=idempotency_key,
                 request_fingerprint=request_fingerprint,
             )
-        try:
-            validate_participant_decision_surface_v2_anchor(self._snapshot, surface)
-            with external_control_plane_call(self):
-                request = bind_participant_decision_surface_selection_v2(
-                    surface=surface,
-                    selection=selection,
-                    admission_request=admission_request,
-                    argument_shape_resolver=resolvers.argument_shape,
-                    apparatus_resolver=resolvers.apparatus,
-                    delivery_resolver=resolvers.delivery,
-                )
-        except (TypeError, ValueError) as exc:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.PARTICIPANT,
-                diagnostics=[
-                    _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
-                ],
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
+        else:
+            request, diagnostic = _bind_participant_decision_surface_v2(
+                self,
+                participant_behavior,
+                surface,
+                selection,
+                admission_request,
+                resolvers,
             )
-        with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
-            try:
-                validate_participant_decision_surface_v2_anchor(self._snapshot, surface)
-                with external_control_plane_call(self):
-                    request = bind_participant_decision_surface_selection_v2(
-                        surface=surface,
-                        selection=selection,
-                        admission_request=admission_request,
-                        argument_shape_resolver=resolvers.argument_shape,
-                        apparatus_resolver=resolvers.apparatus,
-                        delivery_resolver=resolvers.delivery,
-                    )
-            except (TypeError, ValueError) as exc:
-                return self._reject_diagnostics(
+            if diagnostic is not None:
+                receipt = self._reject_diagnostics(
                     domain=RuntimeDomain.PARTICIPANT,
-                    diagnostics=[
-                        _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
-                    ],
+                    diagnostics=[diagnostic],
                     idempotency_key=idempotency_key,
                     request_fingerprint=request_fingerprint,
                 )
-            return self.admit_participant_action(
-                participant_behavior,
-                request,
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
+            else:
+                with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
+                    request, diagnostic = _bind_participant_decision_surface_v2(
+                        self,
+                        participant_behavior,
+                        surface,
+                        selection,
+                        admission_request,
+                        resolvers,
+                    )
+                    if diagnostic is not None:
+                        receipt = self._reject_diagnostics(
+                            domain=RuntimeDomain.PARTICIPANT,
+                            diagnostics=[diagnostic],
+                            idempotency_key=idempotency_key,
+                            request_fingerprint=request_fingerprint,
+                        )
+                    else:
+                        assert request is not None
+                        receipt = self.admit_participant_action(
+                            participant_behavior,
+                            request,
+                            idempotency_key=idempotency_key,
+                            request_fingerprint=request_fingerprint,
+                        )
+        return receipt
 
 
 __all__ = ("ParticipantDecisionSurfaceV2ControlMixin",)

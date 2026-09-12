@@ -363,6 +363,45 @@ def test_http_mutation_waits_for_core_authority_without_occupying_worker(
     assert not holder.is_alive()
 
 
+def test_cancelled_http_mutation_retains_reservation_until_worker_exits(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    authority = RuntimeMutationAuthority()
+    cancelled_entered = Event()
+    release_cancelled = Event()
+    follower_entered = Event()
+
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
+    def mutate(label: str) -> str:
+        with authority.mutation(OperationKind.PARTICIPANT_ACTION):
+            if label == "cancelled":
+                cancelled_entered.set()
+                assert release_cancelled.wait(timeout=5)
+            else:
+                follower_entered.set()
+            return label
+
+    async def run_in_thread(call: object, *args: object, **kwargs: object) -> object:
+        return await asyncio.to_thread(call, *args, **kwargs)  # type: ignore[operator]
+
+    monkeypatch.setattr(control_plane_offload, "run_in_threadpool", run_in_thread)
+    executor = _ControlPlaneCallExecutor(max_pending_mutations=2)
+
+    async def exercise() -> None:
+        cancelled = asyncio.create_task(executor.mutate(mutate, "cancelled"))
+        assert await asyncio.to_thread(cancelled_entered.wait, 2)
+        cancelled.cancel()
+        follower = asyncio.create_task(executor.mutate(mutate, "follower"))
+        await asyncio.sleep(0.05)
+        assert not follower_entered.is_set()
+        release_cancelled.set()
+        with pytest.raises(asyncio.CancelledError):
+            await cancelled
+        assert await asyncio.wait_for(follower, timeout=2) == "follower"
+
+    asyncio.run(exercise())
+
+
 @pytest.fixture(params=("memory", "local"))
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> InMemoryControlPlaneStore | LocalControlPlaneStore:
     if request.param == "memory":
@@ -443,12 +482,13 @@ def test_participant_terminal_commit_rejects_audit_actor_or_operation_mismatch(
         identity="different-actor",
         operation_id="different-operation",
     )
+    candidate = RuntimeSnapshot(metadata={"candidate": "rejected"})
 
     with pytest.raises(ValueError, match="actor-bound"):
         store.commit_participant_transition(
             expected_history_heads={},
             expected_revision=0,
-            snapshot=RuntimeSnapshot(metadata={"candidate": "rejected"}),
+            snapshot=candidate,
             record=terminal,
             audit_event=mismatched,
         )
@@ -532,8 +572,10 @@ def test_runtime_rejects_store_without_complete_atomic_mutation_capability() -> 
                 raise AttributeError(name)
             return getattr(self.delegate, name)
 
+    target = create_stub_target()
+    legacy_store = LegacyStore()
     with pytest.raises(TypeError, match="atomic mutation capabilities"):
-        RuntimeControlPlane(create_stub_target(), store=LegacyStore())  # type: ignore[arg-type]
+        RuntimeControlPlane(target, store=legacy_store)  # type: ignore[arg-type]
 
 
 def test_restart_preserves_running_claim_for_governed_recovery() -> None:

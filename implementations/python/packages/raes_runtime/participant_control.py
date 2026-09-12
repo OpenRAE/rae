@@ -205,6 +205,31 @@ def _participant_binding_request_diagnostics(
     return diagnostics
 
 
+def _bind_participant_decision_surface(
+    control_plane: object,
+    participant_behavior: ParticipantBehaviorRuntime,
+    surface: ParticipantDecisionSurfaceModel,
+    selection: ParticipantDecisionSurfaceSelectionModel,
+    admission_request: ParticipantActionAdmissionRequest,
+    resolvers: ParticipantDecisionSurfaceBindingResolvers,
+) -> tuple[ParticipantActionAdmissionRequest | None, Diagnostic | None]:
+    try:
+        with external_control_plane_call(control_plane):
+            request = bind_participant_decision_surface_selection(
+                surface=surface,
+                selection=selection,
+                admission_request=admission_request,
+                argument_shape_resolver=resolvers.argument_shape,
+                apparatus_resolver=resolvers.apparatus,
+            )
+    except (TypeError, ValueError) as exc:
+        return None, _participant_binding_diagnostic(
+            _participant_binding_address(participant_behavior),
+            str(exc),
+        )
+    return request, None
+
+
 class ParticipantControlMixin(
     ParticipantEpisodeControlMixin,
     ParticipantCrossingControlIngressMixin,
@@ -278,8 +303,9 @@ class ParticipantControlMixin(
         """Validate a SEM-220 selection before reusing normal action admission."""
 
         options = ParticipantSubmissionOptions.from_fields(submission_options)
+        receipt: OperationReceipt
         if self._target.participant_runtime is None:
-            return self._reject_submission(
+            receipt = self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
                 idempotency_key=options.idempotency_key,
@@ -290,45 +316,19 @@ class ParticipantControlMixin(
                     "participant_address": getattr(participant_behavior, "address", "unknown"),
                 },
             )
-        try:
-            with external_control_plane_call(self):
-                request = bind_participant_decision_surface_selection(
-                    surface=surface,
-                    selection=selection,
-                    admission_request=admission_request,
-                    argument_shape_resolver=resolvers.argument_shape,
-                    apparatus_resolver=resolvers.apparatus,
-                )
-        except (TypeError, ValueError) as exc:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.PARTICIPANT,
-                diagnostics=[
-                    _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
-                ],
-                idempotency_key=options.idempotency_key,
-                request_fingerprint=options.request_fingerprint,
-                identity=options.identity,
-                request={
-                    "operation": "participant-decision-surface-selection",
-                    "participant_address": getattr(participant_behavior, "address", "unknown"),
-                },
+        else:
+            request, diagnostic = _bind_participant_decision_surface(
+                self,
+                participant_behavior,
+                surface,
+                selection,
+                admission_request,
+                resolvers,
             )
-        with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
-            try:
-                with external_control_plane_call(self):
-                    request = bind_participant_decision_surface_selection(
-                        surface=surface,
-                        selection=selection,
-                        admission_request=admission_request,
-                        argument_shape_resolver=resolvers.argument_shape,
-                        apparatus_resolver=resolvers.apparatus,
-                    )
-            except (TypeError, ValueError) as exc:
-                return self._reject_diagnostics(
+            if diagnostic is not None:
+                receipt = self._reject_diagnostics(
                     domain=RuntimeDomain.PARTICIPANT,
-                    diagnostics=[
-                        _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
-                    ],
+                    diagnostics=[diagnostic],
                     idempotency_key=options.idempotency_key,
                     request_fingerprint=options.request_fingerprint,
                     identity=options.identity,
@@ -337,14 +337,39 @@ class ParticipantControlMixin(
                         "participant_address": getattr(participant_behavior, "address", "unknown"),
                     },
                 )
-            return self.admit_participant_action(
-                participant_behavior,
-                request,
-                idempotency_key=options.idempotency_key,
-                request_fingerprint=options.request_fingerprint,
-                identity=options.identity,
-                crossing_evidence=options.crossing_evidence,
-            )
+            else:
+                with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
+                    request, diagnostic = _bind_participant_decision_surface(
+                        self,
+                        participant_behavior,
+                        surface,
+                        selection,
+                        admission_request,
+                        resolvers,
+                    )
+                    if diagnostic is not None:
+                        receipt = self._reject_diagnostics(
+                            domain=RuntimeDomain.PARTICIPANT,
+                            diagnostics=[diagnostic],
+                            idempotency_key=options.idempotency_key,
+                            request_fingerprint=options.request_fingerprint,
+                            identity=options.identity,
+                            request={
+                                "operation": "participant-decision-surface-selection",
+                                "participant_address": getattr(participant_behavior, "address", "unknown"),
+                            },
+                        )
+                    else:
+                        assert request is not None
+                        receipt = self.admit_participant_action(
+                            participant_behavior,
+                            request,
+                            idempotency_key=options.idempotency_key,
+                            request_fingerprint=options.request_fingerprint,
+                            identity=options.identity,
+                            crossing_evidence=options.crossing_evidence,
+                        )
+        return receipt
 
 
 __all__ = (

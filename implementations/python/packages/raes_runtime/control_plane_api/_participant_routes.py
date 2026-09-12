@@ -61,7 +61,7 @@ def _register_participant_execution_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action=f"participant_execution_{body.action}",
@@ -175,7 +175,7 @@ def _register_participant_episode_start_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="initialize_participant_episode",
@@ -208,7 +208,7 @@ def _register_participant_episode_start_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="reset_participant_episode",
@@ -246,7 +246,7 @@ def _register_participant_episode_end_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="restart_participant_episode",
@@ -283,7 +283,7 @@ def _register_participant_episode_end_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await _record_operation_receipt_audit(
+        _record_operation_receipt_audit(
             calls,
             control_plane,
             action="terminate_participant_episode",
