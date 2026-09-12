@@ -10,7 +10,7 @@ from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
-from .backend_calls import _call_backend_apply
+from .backend_calls import _BackendCallContext, _call_backend_apply
 from .backend_realization_authority import _RealizationApplyContext
 from .observation_execution import (
     ObservationRuntime,
@@ -62,8 +62,10 @@ def _call_backend_apply_with_observation(
         address=request.address,
         snapshot=request.snapshot,
         realization=realization,
-        operation_id=request.operation_id,
-        information_state_context_resolver=information_state_context_resolver,
+        call=_BackendCallContext(
+            operation_id=request.operation_id,
+            information_state_context_resolver=information_state_context_resolver,
+        ),
     )
     execution = None
     if result.success:
@@ -116,7 +118,9 @@ def _apply_runtime_plan_with_observation(
             address=request.address,
             snapshot=snapshot,
             realization=request.realization,
-            information_state_context_resolver=request.information_state_context_resolver,
+            call=_BackendCallContext(
+                information_state_context_resolver=request.information_state_context_resolver,
+            ),
         )
     result, _execution = _call_backend_apply_with_observation(
         method,

@@ -5,7 +5,7 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
-from .backend_calls import _call_backend_apply, _RealizationApplyContext
+from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 
 
@@ -42,7 +42,9 @@ def rollback_services(
             address=address,
             snapshot=working_snapshot,
             realization=_RealizationApplyContext(stop_domain=domain),
-            information_state_context_resolver=information_state_context_resolver,
+            call=_BackendCallContext(
+                information_state_context_resolver=information_state_context_resolver,
+            ),
         )
         diagnostics.extend(stop_result.diagnostics)
         changed_addresses.extend(stop_result.changed_addresses)

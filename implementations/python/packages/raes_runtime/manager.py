@@ -17,7 +17,7 @@ from raes_processor.models import ExecutionPlan
 from raes_processor.planner import plan, snapshot_delete_order
 
 from .apply_failure import maybe_synthesize_failure, rollback_services
-from .backend_calls import _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
+from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _apply_runtime_plan_with_observation, _RuntimePlanApplyRequest
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 from .manager_plan_admission import runtime_plan_precondition_diagnostics
@@ -398,7 +398,9 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 address="runtime.destroy.orchestrator",
                 snapshot=working_snapshot,
                 realization=_RealizationApplyContext(stop_domain=RuntimeDomain.ORCHESTRATION),
-                information_state_context_resolver=self._information_state_context_resolver,
+                call=_BackendCallContext(
+                    information_state_context_resolver=self._information_state_context_resolver,
+                ),
             )
             diagnostics.extend(stop_result.diagnostics)
             changed_addresses.extend(stop_result.changed_addresses)
@@ -420,7 +422,9 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 address="runtime.destroy.evaluator",
                 snapshot=working_snapshot,
                 realization=_RealizationApplyContext(stop_domain=RuntimeDomain.EVALUATION),
-                information_state_context_resolver=self._information_state_context_resolver,
+                call=_BackendCallContext(
+                    information_state_context_resolver=self._information_state_context_resolver,
+                ),
             )
             diagnostics.extend(stop_result.diagnostics)
             changed_addresses.extend(stop_result.changed_addresses)
@@ -457,7 +461,9 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
             working_snapshot,
             address="runtime.destroy.provisioning",
             snapshot=working_snapshot,
-            information_state_context_resolver=self._information_state_context_resolver,
+            call=_BackendCallContext(
+                information_state_context_resolver=self._information_state_context_resolver,
+            ),
         )
         diagnostics.extend(provision_result.diagnostics)
         changed_addresses.extend(provision_result.changed_addresses)

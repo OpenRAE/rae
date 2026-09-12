@@ -207,10 +207,10 @@ def test_accepted_snapshot_sanitization_preserves_recursive_sequence_order():
 
 
 def test_final_safe_projection_cannot_introduce_a_constraint_violation(monkeypatch):
-    from raes_runtime import backend_calls
+    from raes_runtime import backend_apply_results
     from test_issue_1200_mixed_runtime_constraints import _apply, _fixture
 
-    sanitize = backend_calls._sanitize_backend_realization
+    sanitize = backend_apply_results._sanitize_backend_realization
 
     def changed_projection(result, **kwargs):
         sanitized = sanitize(result, **kwargs)
@@ -220,7 +220,7 @@ def test_final_safe_projection_cannot_introduce_a_constraint_violation(monkeypat
 
     runtime = {"packages": [{"manager": "apt", "name": "nmap", "version": "7.95"}]}
     _, portable, manifest = _fixture(runtime)
-    monkeypatch.setattr(backend_calls, "_sanitize_backend_realization", changed_projection)
+    monkeypatch.setattr(backend_apply_results, "_sanitize_backend_realization", changed_projection)
     result = _apply(portable, manifest, runtime)
     assert not result.success
     assert result.snapshot.entries == {}
