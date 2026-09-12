@@ -18,6 +18,8 @@ from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel
 from .runtime_values import (
     coerce_string_list,
@@ -103,11 +105,11 @@ class RuntimeAppAuthorizationPrincipal(SDLModel):
     """
 
     principal_id: str
-    kind: RuntimeAppAuthorizationPrincipalKind | str = RuntimeAppAuthorizationPrincipalKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeAppAuthorizationPrincipalKind] = RuntimeAppAuthorizationPrincipalKind.UNKNOWN
     name: str = ""
     reserved: bool | str | None = None
     hidden: bool | str | None = None
-    credential_classification: RuntimeAppAuthorizationCredentialClassification | str = (
+    credential_classification: GovernedVocabulary[RuntimeAppAuthorizationCredentialClassification] = (
         RuntimeAppAuthorizationCredentialClassification.NONE
     )
     backend_roles: list[str] = Field(default_factory=list)
@@ -174,10 +176,12 @@ class RuntimeAppAuthorizationGrant(SDLModel):
 
     grant_id: str
     role_ref: str = ""
-    resource_kind: RuntimeAppAuthorizationResourceVocabulary | str = RuntimeAppAuthorizationResourceVocabulary.UNKNOWN
+    resource_kind: GovernedVocabulary[RuntimeAppAuthorizationResourceVocabulary] = (
+        RuntimeAppAuthorizationResourceVocabulary.UNKNOWN
+    )
     actions: list[str] = Field(default_factory=list)
     resource_patterns: list[str] = Field(default_factory=list)
-    effect: RuntimeAppAuthorizationGrantEffect | str = RuntimeAppAuthorizationGrantEffect.ALLOW
+    effect: GovernedVocabulary[RuntimeAppAuthorizationGrantEffect] = RuntimeAppAuthorizationGrantEffect.ALLOW
     description: str = ""
 
     @field_validator("grant_id")
@@ -252,7 +256,7 @@ class RuntimeAppAuthorization(SDLModel):
     """Application-internal RBAC store inventory for a single owning spine."""
 
     app_authorization_id: str
-    resource_vocabulary: RuntimeAppAuthorizationResourceVocabulary | str = (
+    resource_vocabulary: GovernedVocabulary[RuntimeAppAuthorizationResourceVocabulary] = (
         RuntimeAppAuthorizationResourceVocabulary.UNKNOWN
     )
     auth_enabled: bool | str | None = None
@@ -297,16 +301,13 @@ class RuntimeAppAuthorization(SDLModel):
         vocab = self.resource_vocabulary
         if is_variable_ref(vocab):
             return
-        if not isinstance(vocab, RuntimeAppAuthorizationResourceVocabulary):
-            return
         if vocab is RuntimeAppAuthorizationResourceVocabulary.UNKNOWN:
             return
         for grant in self.permission_grants:
             if grant.resource_kind == vocab:
                 return
         raise ValueError(
-            f"app_authorization '{self.app_authorization_id}' declares resource_vocabulary "
-            f"'{vocab.value}' but no permission_grant has a matching resource_kind"
+            "app_authorization declares a resource_vocabulary but no permission_grant has a matching resource_kind"
         )
 
 

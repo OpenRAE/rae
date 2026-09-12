@@ -7,7 +7,8 @@ from dataclasses import dataclass
 
 from raes.nodes import OSFamily
 from raes.operating_systems import normalize_os_distribution, normalize_os_version
-from raes.value_parsing import extract_variable_name, parse_enum_or_var
+from raes.runtime_values import parse_runtime_enum_identity
+from raes.value_parsing import extract_variable_name
 from raes_backend_protocols.capabilities import ProvisionerCapabilities
 
 from ..models import CompiledCapabilityConstraint, Diagnostic, NodeRuntime, RuntimeModel
@@ -95,18 +96,10 @@ def _validated_family_constraint(
 
 
 def _parse_family_domain_value(raw_value: object, variable_name: str) -> tuple[str | None, str | None]:
-    parsed = None
-    message = None
     try:
-        parsed = parse_enum_or_var(raw_value, OSFamily, field_name="os")
+        return parse_runtime_enum_identity(raw_value, OSFamily, field_name="os"), None
     except ValueError as exc:
-        message = f"Variable '{variable_name}' allowed_values contain value {raw_value!r} invalid for nodes.os: {exc}."
-    if message is None and extract_variable_name(parsed) is not None:
-        message = f"Variable '{variable_name}' has a non-concrete nodes.os domain."
-    if message is None and not isinstance(parsed, OSFamily):
-        message = f"Variable '{variable_name}' contains an invalid nodes.os value."
-    token = parsed.value if isinstance(parsed, OSFamily) else None
-    return token, message
+        return None, f"Variable '{variable_name}' has an invalid nodes.os domain: {exc}."
 
 
 def _scalar_domain_or_open(

@@ -5,6 +5,8 @@ from enum import Enum
 
 from pydantic import ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from .runtime_values import absolute_path_or_var, parse_runtime_enum_or_var
 
@@ -124,8 +126,8 @@ class RuntimeFilesystemEntry(SDLModel):
     """A filesystem entry observed inside a runtime node or container asset."""
 
     path: str
-    entry_type: RuntimeFilesystemEntryType | str = RuntimeFilesystemEntryType.OTHER
-    presence: RuntimeFilesystemPresence | str = RuntimeFilesystemPresence.PRESENT
+    entry_type: GovernedVocabulary[RuntimeFilesystemEntryType] = RuntimeFilesystemEntryType.OTHER
+    presence: GovernedVocabulary[RuntimeFilesystemPresence] = RuntimeFilesystemPresence.PRESENT
     owner_user: str = ""
     owner_group: str = ""
     uid: int | str | None = None
@@ -136,8 +138,8 @@ class RuntimeFilesystemEntry(SDLModel):
     digest_algorithm: str = ""
     source_path: str = ""
     provenance: str = ""
-    stability: RuntimeFilesystemStability | str = RuntimeFilesystemStability.UNKNOWN
-    sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
+    stability: GovernedVocabulary[RuntimeFilesystemStability] = RuntimeFilesystemStability.UNKNOWN
+    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
     description: str = ""
 
     @field_validator("path")

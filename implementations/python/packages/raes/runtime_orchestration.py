@@ -21,6 +21,8 @@ from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from .runtime_values import parse_runtime_enum_or_var, require_symbol
 
@@ -129,14 +131,14 @@ class RuntimeOrchestrationAuthority(SDLModel):
 
     orchestration_authority_id: str
     control_interface_ref: str = ""
-    engine: RuntimeOrchestrationEngine | str = RuntimeOrchestrationEngine.UNKNOWN
+    engine: GovernedVocabulary[RuntimeOrchestrationEngine] = RuntimeOrchestrationEngine.UNKNOWN
     engine_api_version: str = ""
     name: str = ""
     scope: RuntimeOrchestrationScope | None = None
     spawn_templates: list[RuntimeOrchestrationSpawnTemplate] = Field(default_factory=list)
     lifecycle_policy: RuntimeOrchestrationLifecyclePolicy | None = None
     realized_children: list[RuntimeOrchestrationRealizedChild] = Field(default_factory=list)
-    privilege_class: RuntimeOrchestrationPrivilegeClass | str = RuntimeOrchestrationPrivilegeClass.UNKNOWN
+    privilege_class: GovernedVocabulary[RuntimeOrchestrationPrivilegeClass] = RuntimeOrchestrationPrivilegeClass.UNKNOWN
     description: str = ""
 
     @field_validator("orchestration_authority_id")

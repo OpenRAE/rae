@@ -4,6 +4,8 @@ from enum import Enum
 
 from pydantic import field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel
 from .runtime_values import (
     parse_optional_bool_or_var,
@@ -46,7 +48,7 @@ class RuntimeScheduledJobLastResult(str, Enum):
 class RuntimeScheduledJobSchedule(SDLModel):
     """The recurrence cadence for a scheduled job."""
 
-    kind: RuntimeScheduledJobScheduleKind | str = RuntimeScheduledJobScheduleKind.INTERVAL
+    kind: GovernedVocabulary[RuntimeScheduledJobScheduleKind] = RuntimeScheduledJobScheduleKind.INTERVAL
     spec: str = ""
     enabled: bool | str | None = None
 
@@ -66,7 +68,7 @@ class RuntimeScheduledJobRunState(SDLModel):
 
     last_run: str = ""
     next_run: str = ""
-    last_result: RuntimeScheduledJobLastResult | str = RuntimeScheduledJobLastResult.UNKNOWN
+    last_result: GovernedVocabulary[RuntimeScheduledJobLastResult] = RuntimeScheduledJobLastResult.UNKNOWN
 
     @field_validator("last_result", mode="before")
     @classmethod

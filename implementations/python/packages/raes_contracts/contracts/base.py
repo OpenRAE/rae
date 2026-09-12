@@ -10,6 +10,7 @@ from typing import Annotated, Literal
 from pydantic import Field, model_validator
 
 from raes_contracts._base import ContractModel, NonEmptyString, PrefixedDigestString
+from raes_contracts.runtime_vocabulary_scopes import SDL_IDENTITY_VOCABULARY_SCOPES
 
 BehavioralRelationId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9-]*$")]
 
@@ -246,6 +247,7 @@ _PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES = frozenset(
 
 _CONTROLLED_VOCABULARY_GOVERNED_SCOPES = frozenset(
     {
+        *SDL_IDENTITY_VOCABULARY_SCOPES,
         "behavior_specifications.behavior_mode",
         "agents.interactive_access.channel",
         "sdl.accounts.auth_method",

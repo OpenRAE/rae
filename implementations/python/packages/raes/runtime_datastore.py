@@ -24,6 +24,8 @@ semantic validator) — this surface carries no embedded principal/role/grant.
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref
 from .runtime_datastore_partitions import (
     RuntimeDatastoreCluster,
@@ -92,8 +94,8 @@ class RuntimeDatastoreService(SDLModel):
 
     datastore_service_id: str
     service: str = ""
-    engine: RuntimeDatastoreEngine | str = RuntimeDatastoreEngine.UNKNOWN
-    data_model: RuntimeDatastoreDataModel | str = RuntimeDatastoreDataModel.UNKNOWN
+    engine: GovernedVocabulary[RuntimeDatastoreEngine] = RuntimeDatastoreEngine.UNKNOWN
+    data_model: GovernedVocabulary[RuntimeDatastoreDataModel] = RuntimeDatastoreDataModel.UNKNOWN
     protocol: str = ""
     version: str = ""
     name: str = ""
@@ -252,18 +254,14 @@ class RuntimeDatastoreService(SDLModel):
 
     @staticmethod
     def _has_concrete_replication(partition: RuntimeDatastorePartition) -> bool:
-        """Return whether a keyspace declares a non-``unknown`` replication strategy.
-
-        A ``${var}`` placeholder strategy is treated as concrete-deferred (the
-        author asserted a strategy, resolved at instantiation); only the OPEN
-        ``unknown`` sentinel counts as an absent profile.
-        """
+        """Recognize exact strategy identities while excluding knowledge tails."""
         strategy = partition.replication_strategy
         if is_variable_ref(strategy):
             return True
-        if isinstance(strategy, RuntimeDatastoreReplicationStrategy):
-            return strategy is not RuntimeDatastoreReplicationStrategy.UNKNOWN
-        return False
+        return isinstance(strategy, str) and strategy not in {
+            RuntimeDatastoreReplicationStrategy.UNKNOWN,
+            RuntimeDatastoreReplicationStrategy.OTHER,
+        }
 
     def _validate_local_manifest_refs(self) -> None:
         partition_ids = {partition.partition_id for partition in self.partitions}

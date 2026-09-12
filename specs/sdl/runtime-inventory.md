@@ -113,10 +113,17 @@ not contradict these.
    ([document-model.md §6](document-model.md)). Runtime/native/provider ids that
    are not RAES-local declaration identities retain their owning contracts.
    References address elements by these ids ([references.md](references.md)).
-2. **Enum sentinels.** An open enum carries a closed core of well-defined values
-   plus the sentinels `unknown` and `other`, so an authored value can record
-   "not determined" or "outside the closed set" without widening the closed core.
-   A sentinel value is discriminator-neutral: it imposes no profile requirement.
+2. **Vocabulary identity and knowledge.** Externally owned identity vocabularies
+   use the scoped policies in the [controlled vocabulary catalog](../concept-authority/controlled-vocabularies.md).
+   Known private identities use its `x-<owner>:<term>` form and compare exactly;
+   adding a private product requires no core term or registration. Existing
+   core aliases retain their defined normalization. Native identifiers with
+   different case/punctuation rules remain in their native identity fields.
+   Legacy `unknown` and unrecovered `other` record knowledge, not permission to
+   select a core product or change exact descendants. Recursive compilation
+   retains them as unresolved knowledge. DNS `other` plus `type_code` is the
+   existing exact numeric identity exception. Finite operators, grant effects,
+   sensitivity decisions and profile discriminators remain closed.
 3. **Quantity normalisation.** A human-readable byte quantity (for example
    `4 GiB`, `512 MB`) is normalised to a canonical byte count on a `_bytes`-style
    field. The normalised count is the value's meaning; the authored spelling is a
@@ -127,6 +134,10 @@ not contradict these.
    discriminator that selects a profile without that profile's required fields is
    an error ([diagnostics.md](diagnostics.md)). A discriminator set to a sentinel
    (`unknown`/`other`) requires no profile.
+   A product identity alone does not select a required implementation recipe.
+   Unmentioned identity inherits the enclosing realization scope; neither a
+   core nor a private catalog is a compulsory replacement for omitted detail.
+   Further correction of specimen-shaped profile guards is owned by #1207.
 5. **Observed values and redaction.** Runtime inventory records observed posture,
    not live secrets. An explicit `redacted` or `operator_secret` classification
    **MUST** omit the raw value
@@ -136,6 +147,32 @@ not contradict these.
    ([diagnostics.md](diagnostics.md)); they never silently strip or rewrite a
    value. A posture-only model **MUST NOT** gain raw-credential fields.
 
+### Identity support and domain ownership
+
+RAE owns language semantics, portable contracts and conformance. Scenario packs
+own concrete scenario content, and backends own concrete realization and
+operations, as specified by [OpenRAE/hub#3](https://github.com/OpenRAE/hub/issues/3).
+A motivating product or backend does not define the language's universe.
+
+Governed tokens describe identity only. They do not load code, grant execution
+authority, prove protocol compatibility or assert a successful observation.
+Richer operational meaning uses the existing typed domain-profile contract and
+its explicitly admitted host; unsupported operations remain unsupported. The
+[plan-level host](plan-realization-profiles.md) retains its public provisioning
+scope and does not become a general inventory, secret or observation carrier.
+
+An inherited open scope permits omission of irrelevant implementation identity,
+without requiring an author profile for backend-internal choices. Exact children
+remain binding, and an abstract model need not acquire an OS, package or concrete
+runtime inventory. Reporting a choice, observing it, retaining it and exporting
+it remain independent decisions under the existing observation-demand owners.
+
+The [disposition inventory](../../docs/research/language-extensibility/scope-inventory.md)
+records each migrated and retained vocabulary. Python and published schema
+validation share the same core aliases, variable grammar and extension policy.
+Legacy data with no recoverable identity remains unknown; conversions must not
+invent a private token or collapse a known token into `other`.
+
 ## Extending the runtime-family index
 
 A new runtime family is added by: defining its model and published schema,
@@ -144,3 +181,29 @@ collection, primary `<noun>_id`, child-ref tree), and adding one row to the inde
 above. The shared invariants (§3) apply automatically; the nested runtime-family
 reference form ([references.md §1](references.md)) addresses its elements without
 bespoke prose. No second runtime-family registry exists or should be created.
+
+### Private identity example
+
+This complete abstract scenario delegates unspecified implementation details.
+The database engine is an exact declared identity. It requires no catalog entry
+for that particular engine and creates no observation demand:
+
+```yaml
+name: private-engine-identity
+realization: {default: open}
+nodes:
+  host:
+    type: compute
+    runtime:
+      database_services:
+        - database_service_id: database
+          engine: x-owner:private-engine
+```
+
+Changing the engine to `x-owner:another-engine` changes the constraint. Omitting
+`engine` delegates that choice; writing `unknown` records unresolved knowledge.
+Consumers migrating from sentinel-only storage must preserve the exact string
+through normalization, snapshots, and comparison. Existing `other` captures
+remain readable but cannot recover an identity that was never recorded. A
+consumer that needs to execute an operation must separately establish support
+for its declared semantic profile.
