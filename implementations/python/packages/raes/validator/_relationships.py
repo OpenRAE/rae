@@ -122,7 +122,8 @@ class _RelationshipsMixin:
             return
         if edge_protocol not in target_protocols:
             self._err(
-                f"{label} forwarding_edge protocol does not match any ship_target protocol on forwarding agent '{agent_id}'"
+                f"{label} forwarding_edge protocol does not match any ship_target protocol "
+                f"on forwarding agent '{agent_id}'"
             )
 
     def _check_forwarding_edge_role_agreement(

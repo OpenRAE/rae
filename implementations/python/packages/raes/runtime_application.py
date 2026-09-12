@@ -21,11 +21,7 @@ from pydantic import Field, ValidationInfo, field_validator, model_validator
 
 from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import (
-    SDLModel,
-    is_variable_ref,
-    parse_int_or_var,
-)
+from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from ._classification_guard import LegacyClassificationGuard
 from .runtime_filesystem import RuntimeSensitivityClassification
 from .runtime_values import (

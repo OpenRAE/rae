@@ -226,9 +226,14 @@ def parse_runtime_enum_or_var(value: Any, enum_cls: type[Enum], *, field_name: s
     if value is None or isinstance(value, enum_cls) or is_variable_ref(value):
         return value
     try:
-        return parse_enum_or_var(value, enum_cls, field_name=field_name)
+        parsed = parse_enum_or_var(value, enum_cls, field_name=field_name)
     except ValueError:
-        pass
+        parsed = _parse_runtime_extension(value, enum_cls, field_name=field_name)
+    return parsed
+
+
+def _parse_runtime_extension(value: Any, enum_cls: type[Enum], *, field_name: str):
+    """Admit a private identity only through the field's governed vocabulary."""
     # The contracts facade also exposes SDL-shaped DTOs. Resolve its catalog
     # after model construction, as the incumbent account vocabulary does.
     from raes_contracts.controlled_vocabularies import (

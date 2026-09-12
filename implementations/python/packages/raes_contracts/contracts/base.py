@@ -248,7 +248,6 @@ _PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES = frozenset(
 _CONTROLLED_VOCABULARY_GOVERNED_SCOPES = frozenset(
     {
         *SDL_IDENTITY_VOCABULARY_SCOPES,
-        *SDL_IDENTITY_VOCABULARY_SCOPES,
         "behavior_specifications.behavior_mode",
         "agents.interactive_access.channel",
         "sdl.accounts.auth_method",
