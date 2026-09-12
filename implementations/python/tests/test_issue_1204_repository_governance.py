@@ -3,6 +3,20 @@
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def repository_governance_environment(monkeypatch):
+    """Keep the gate's decisions sourced from the repository under test.
+
+    ``check_requirement_governance`` reads the GitHub Actions pull-request refs
+    to recognise a dev-to-main promotion and to recover the branch from a
+    detached PR checkout. Left in place, the workflow's own refs decide these
+    tests: a promotion pull request exempts every governed path and the gate
+    stops before it inspects the fixture repository at all.
+    """
+    for name in ("GITHUB_HEAD_REF", "GITHUB_BASE_REF"):
+        monkeypatch.delenv(name, raising=False)
+
+
 @pytest.fixture
 def merging_repository(tmp_path):
     import subprocess
@@ -84,6 +98,22 @@ def test_merge_governance_preserves_the_staged_boundary(merging_repository, monk
         monkeypatch.setattr("sys.argv", ["check", "--requirement-uid", "ASR-532", *flags])
         assert gate.main() == 0
         assert ("implementations/incoming.py" in observed) is includes_unstaged
+
+
+def test_dev_to_main_promotion_exempts_the_merge_diff(merging_repository, monkeypatch):
+    from tools import check_requirement_governance as gate
+
+    root, _git, _write = merging_repository
+    observed = []
+    monkeypatch.setattr(gate, "REPO_ROOT", root)
+    monkeypatch.setattr(
+        gate, "evaluate_configured_governance", lambda paths, *_args, **_kwargs: observed.extend(paths) or 0
+    )
+    monkeypatch.setenv("GITHUB_HEAD_REF", "dev")
+    monkeypatch.setenv("GITHUB_BASE_REF", "main")
+    monkeypatch.setattr("sys.argv", ["check", "--requirement-uid", "ASR-532"])
+    assert gate.main() == 0
+    assert observed == []
 
 
 @pytest.mark.parametrize("staged", [False, True])
