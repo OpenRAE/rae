@@ -6,11 +6,13 @@ from collections.abc import Callable, Mapping
 from typing import Protocol
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.description_reporting import DescriptionProfileAdmission
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.observation_demand import (
     AchievedObservationValue,
     EffectiveObservationDemand,
     ObservationBasis,
+    ObservationDemandResolution,
     ObservationLifecycleItem,
     ObservationLifecycleStage,
     ObservationPurpose,
@@ -19,6 +21,7 @@ from raes_contracts.observation_demand import (
     observation_selector_has_more_specific_policy,
     realization_description_report,
 )
+from raes_contracts.observation_reporting import RealizationDescriptionItem
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .observation_admission import (
@@ -92,6 +95,7 @@ class ConfiguredObservationRuntime:
         redactors: Mapping[str, Redactor] | None = None,
         integrity_providers: Mapping[str, IntegrityProvider] | None = None,
         evidence_verifier: EvidenceVerifier | None = None,
+        description_profiles: DescriptionProfileAdmission | None = None,
     ) -> None:
         _require_unique_capability_ids(capabilities)
         self._capabilities = capabilities
@@ -100,6 +104,7 @@ class ConfiguredObservationRuntime:
         self._redactors = dict(redactors or {})
         self._integrity_providers = dict(integrity_providers or {})
         self._evidence_verifier = evidence_verifier
+        self.description_profiles = description_profiles
         for capability in capabilities:
             _validate_capability_callbacks(
                 capability,
@@ -237,26 +242,7 @@ def _execute_admitted_plan_observation(
             supported=supported,
             protector=runtime.protect,
         )
-        description_selectors = {
-            selector.key: selector
-            for demand in resolution.effective
-            if demand.purpose is ObservationPurpose.REALIZATION_DESCRIPTION
-            for selector in demand.selectors
-            if not observation_selector_has_more_specific_policy(resolution.effective, demand, selector)
-        }
-        achieved = {
-            key: value
-            for key, selector in description_selectors.items()
-            if (value := runtime.describe(selector, plan, snapshot)) is not None
-        }
-        description = realization_description_report(
-            resolution,
-            achieved,
-            evidence_validator=lambda key, value: runtime.verify_evidence(
-                description_selectors[key], value, plan, snapshot
-            ),
-            protector=lambda key, value, demand: _protect_description(runtime, key, value, demand),
-        )
+        description = _describe_admitted_plan(resolution, runtime, plan, snapshot)
         if manifest is None:
             raise ValueError("observation execution requires a backend manifest")
         execution = prepare_observation_execution(
@@ -308,3 +294,34 @@ __all__ = [
     "execute_plan_observation_demand",
     "observation_submission_diagnostic",
 ]
+
+
+def _describe_admitted_plan(
+    resolution: ObservationDemandResolution,
+    runtime: ObservationRuntime,
+    plan: Plan,
+    snapshot: RuntimeSnapshot,
+) -> tuple[RealizationDescriptionItem, ...]:
+    description_selectors = {
+        selector.key: selector
+        for demand in resolution.effective
+        if demand.purpose is ObservationPurpose.REALIZATION_DESCRIPTION
+        for selector in demand.selectors
+        if not observation_selector_has_more_specific_policy(resolution.effective, demand, selector)
+    }
+    achieved = {
+        key: value
+        for key, selector in description_selectors.items()
+        if (value := runtime.describe(selector, plan, snapshot)) is not None
+    }
+    profiles = getattr(runtime, "description_profiles", None)
+    return realization_description_report(
+        resolution,
+        achieved,
+        profile_context=profiles.context if profiles else None,
+        profile_policy=profiles.policy if profiles else None,
+        evidence_validator=lambda key, value: runtime.verify_evidence(
+            description_selectors[key], value, plan, snapshot
+        ),
+        protector=lambda key, value, demand: _protect_description(runtime, key, value, demand),
+    )

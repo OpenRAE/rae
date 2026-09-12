@@ -1,0 +1,116 @@
+{
+  "schema_version": "experiment-evidence-record/v1",
+  "evidence_record_id": "evidence-techvault-network-trace-001",
+  "record_version": "1.0.0",
+  "capture_spec_ref": {
+    "ref_kind": "capture-spec",
+    "ref_id": "capture-techvault-evidence-v1",
+    "ref_version": "1.0.0"
+  },
+  "capture_requirement_ref": "network-trace",
+  "output_contract": "participant-behavior-history-event-stream-v1",
+  "run_ref": {
+    "ref_kind": "run",
+    "ref_id": "run-techvault-001",
+    "ref_version": "1.0.0"
+  },
+  "task_ref": {
+    "ref_kind": "task",
+    "ref_id": "task-techvault-red-team-v1",
+    "ref_version": "1.0.0"
+  },
+  "source_refs": [
+    {
+      "ref_kind": "measurement-channel",
+      "ref_id": "evaluation-history-channel",
+      "ref_version": "1.0.0"
+    }
+  ],
+  "evidence_kind": "trace",
+  "captured_at": "2026-05-26T00:40:00Z",
+  "capture_window_ref": "run-window",
+  "raw_content": {
+    "content_uri": "runs/run-techvault-001/evaluation-history.json",
+    "content_checksum": {
+      "algorithm": "sha256",
+      "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "payload_summary": "Evaluation history export containing the observed foothold event."
+  },
+  "sensitivity": "internal",
+  "redaction_state": "none",
+  "provenance_refs": [
+    {
+      "ref_kind": "backend",
+      "ref_id": "stub-backend",
+      "ref_version": "0.1.0"
+    }
+  ],
+  "typed_description": {
+    "schema_version": "realization-description/v1",
+    "description_id": "capture-1",
+    "description_version": "1",
+    "semantic_profile": "example-state/v1",
+    "authored_ref": {
+      "ref_kind": "scenario",
+      "ref_id": "original",
+      "ref_version": "1",
+      "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "provenance": {
+      "observer_ref": {
+        "ref_kind": "backend",
+        "ref_id": "example",
+        "ref_version": "1"
+      },
+      "recorded_at": "2026-09-12T10:00:00Z",
+      "basis": "backend-selected",
+      "window_ref": "selection-1"
+    },
+    "facts": [
+      {
+        "fact_id": "family",
+        "subject": "/nodes/a/family",
+        "state": "known",
+        "value": {
+          "kind": "literal",
+          "value": "linux",
+          "origin": "backend"
+        }
+      },
+      {
+        "fact_id": "release",
+        "subject": "/nodes/a/release",
+        "state": "not-observed"
+      },
+      {
+        "fact_id": "absent",
+        "subject": "/nodes/a/optional",
+        "state": "known-absent"
+      },
+      {
+        "fact_id": "private",
+        "subject": "/nodes/a/private",
+        "state": "withheld",
+        "limitations": [
+          "Not disclosed under the selected policy."
+        ]
+      }
+    ],
+    "coverage": [
+      {
+        "subject": "/nodes/a",
+        "kind": "field",
+        "universe": "node-fields/v1",
+        "profile": "example-state/v1",
+        "status": "partial",
+        "fact_ids": [
+          "family",
+          "release",
+          "absent",
+          "private"
+        ]
+      }
+    ]
+  }
+}

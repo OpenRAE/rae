@@ -7,12 +7,23 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, NamedTuple
 
 if TYPE_CHECKING:
-    from .observation_demand import EffectiveObservationDemand, ObservationBasis, ObservationDemandResolution
+    from .description_reporting import DescriptionProfileAdmission
+    from .domain_profiles import DomainProfileAdmissionPolicyModel, DomainProfileResolutionContextModel
+    from .observation_demand import (
+        EffectiveObservationDemand,
+        ObservationBasis,
+        ObservationDemandResolution,
+        ObservationSelector,
+    )
 
 
 @dataclass(frozen=True)
 class AchievedObservationValue:
-    """A value paired with its achieved, rather than requested, basis."""
+    """A value with its achieved basis and optional unqualified evidence-record ID.
+
+    The verifier admits ``evidence_ref`` as a record ID; this API does not admit
+    version, digest, path, or other reference-kind claims.
+    """
 
     value: object
     basis: ObservationBasis
@@ -47,9 +58,18 @@ def realization_description_report(
     *,
     evidence_validator: Callable[[str, AchievedObservationValue], bool] | None = None,
     protector: Callable[[str, AchievedObservationValue, object], AchievedObservationValue] | None = None,
+    profile_context: DomainProfileResolutionContextModel | None = None,
+    profile_policy: DomainProfileAdmissionPolicyModel | None = None,
 ) -> tuple[RealizationDescriptionItem, ...]:
     """Project only requested backend-known selections at their truthful basis."""
 
+    from .description_reporting import DescriptionProfileAdmission
+    from .domain_profiles import DomainProfileAdmissionPolicyModel, DomainProfileResolutionContextModel
+
+    profiles = DescriptionProfileAdmission(
+        profile_context or DomainProfileResolutionContextModel(namespace_admissions=(), definitions=()),
+        profile_policy or DomainProfileAdmissionPolicyModel(),
+    )
     result = []
     for demand in resolution.effective:
         if not _is_description_selection(demand):
@@ -57,15 +77,78 @@ def realization_description_report(
         for selector in demand.selectors:
             if _selector_is_partitioned(resolution, demand, selector):
                 continue
-            achieved = selected_values.get(selector.key)
-            if not _achieved_basis_satisfies(selector.key, achieved, demand, evidence_validator):
-                if demand.required:
-                    raise ValueError("required-realization-description-basis-unsatisfied")
-                continue
-            assert achieved is not None
-            protected = _protected_description(selector.key, achieved, demand, protector)
-            result.append(_description_item(selector.key, protected, demand))
+            item = _report_selected_value(
+                demand, selector, selected_values.get(selector.key), evidence_validator, protector, profiles
+            )
+            if item is not None:
+                result.append(item)
     return tuple(result)
+
+
+def _report_selected_value(
+    demand: EffectiveObservationDemand,
+    selector: ObservationSelector,
+    achieved: AchievedObservationValue | None,
+    evidence_validator: Callable[[str, AchievedObservationValue], bool] | None,
+    protector: Callable[[str, AchievedObservationValue, object], AchievedObservationValue] | None,
+    profiles: DescriptionProfileAdmission,
+) -> RealizationDescriptionItem | None:
+    achieved = _project_achieved_description(achieved, selector, demand, profiles)
+    if not _require_achieved_basis(selector.key, achieved, demand, evidence_validator):
+        return None
+    assert achieved is not None
+    protected = _protected_description(selector.key, achieved, demand, protector)
+    projected = _project_achieved_description(protected, selector, demand, profiles)
+    if not _require_achieved_basis(selector.key, projected, demand, evidence_validator):
+        return None
+    assert projected is not None
+    return _description_item(selector.key, projected, demand)
+
+
+def _require_achieved_basis(
+    selector_key: str,
+    achieved: AchievedObservationValue | None,
+    demand: EffectiveObservationDemand,
+    evidence_validator: Callable[[str, AchievedObservationValue], bool] | None,
+) -> bool:
+    satisfies = _achieved_basis_satisfies(selector_key, achieved, demand, evidence_validator)
+    if demand.required and not satisfies:
+        raise ValueError("required-realization-description-basis-unsatisfied")
+    return satisfies
+
+
+def _project_achieved_description(
+    achieved: AchievedObservationValue | None,
+    selector: ObservationSelector,
+    demand: EffectiveObservationDemand,
+    profiles: DescriptionProfileAdmission,
+) -> AchievedObservationValue | None:
+    from .contracts.realization_descriptions import TypedRealizationDescriptionModel
+    from .description_coverage import DescriptionCoverageUnsatisfied
+    from .description_reporting import admit_description_profiles, project_description, validate_description_evidence
+
+    if achieved is not None and isinstance(achieved.value, TypedRealizationDescriptionModel):
+        try:
+            projected = project_description(
+                achieved.value, selector, achieved.basis, exhaustive=demand.mode.value == "exhaustive"
+            )
+        except DescriptionCoverageUnsatisfied:
+            if demand.required:
+                raise
+            return None
+        validate_description_evidence(projected, achieved.basis, achieved.evidence_ref)
+        if not admit_description_profiles(
+            projected,
+            profiles.context,
+            policy=profiles.policy,
+        ).admitted:
+            raise ValueError("description profile admission refused")
+        return (
+            AchievedObservationValue(projected, achieved.basis, achieved.evidence_ref, achieved.integrity_ref)
+            if projected.facts
+            else None
+        )
+    return achieved
 
 
 def _is_description_selection(demand: EffectiveObservationDemand) -> bool:
@@ -121,14 +204,24 @@ def _protected_description(
     if protector is None and protection_required:
         raise ValueError("observation-report-protection-runtime-unavailable")
     protected = achieved if protector is None else protector(selector_key, achieved, demand)
-    if not isinstance(protected, AchievedObservationValue):
-        raise ValueError("invalid-observation-report-protection-result")
-    if (protected.basis, protected.evidence_ref) != (achieved.basis, achieved.evidence_ref):
-        raise ValueError("observation report protection cannot change evidence claims")
+    _validate_protected_carrier(achieved, protected)
     integrity_missing = protected.integrity_ref is None or not protected.integrity_ref.strip()
     if demand.integrity not in {None, "none"} and integrity_missing:
         raise ValueError("observation report integrity policy must produce an integrity reference")
     return protected
+
+
+def _validate_protected_carrier(achieved: AchievedObservationValue, protected: AchievedObservationValue) -> None:
+    if not isinstance(protected, AchievedObservationValue):
+        raise ValueError("invalid-observation-report-protection-result")
+    from .contracts.realization_descriptions import TypedRealizationDescriptionModel
+
+    if isinstance(achieved.value, TypedRealizationDescriptionModel) and not isinstance(
+        protected.value, TypedRealizationDescriptionModel
+    ):
+        raise ValueError("protection must preserve the typed description carrier")
+    if (protected.basis, protected.evidence_ref) != (achieved.basis, achieved.evidence_ref):
+        raise ValueError("observation report protection cannot change evidence claims")
 
 
 def _description_item(

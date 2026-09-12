@@ -118,6 +118,32 @@
       "title": "BindingScalarType",
       "type": "string"
     },
+    "BooleanDomain": {
+      "additionalProperties": false,
+      "description": "Booleans: both ``true``/``false``, or an exact boolean when ``value`` set.",
+      "properties": {
+        "kind": {
+          "const": "boolean",
+          "default": "boolean",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "title": "BooleanDomain",
+      "type": "object"
+    },
     "ClockDeclarationModel": {
       "additionalProperties": false,
       "properties": {
@@ -195,6 +221,327 @@
         "description"
       ],
       "title": "ClockDeclarationModel",
+      "type": "object"
+    },
+    "DescriptionCoverageModel": {
+      "additionalProperties": false,
+      "description": "Enumeration coverage in a named universe; never author collection closure.",
+      "properties": {
+        "fact_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4096,
+          "title": "Fact Ids",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "field",
+            "collection"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "profile": {
+          "minLength": 1,
+          "title": "Profile",
+          "type": "string"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DescriptionProvenanceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recursive": {
+          "default": false,
+          "title": "Recursive",
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "partial",
+            "complete",
+            "not-observed",
+            "withheld"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Subject",
+          "type": "string"
+        },
+        "universe": {
+          "minLength": 1,
+          "title": "Universe",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject",
+        "kind",
+        "universe",
+        "profile",
+        "status"
+      ],
+      "title": "DescriptionCoverageModel",
+      "type": "object"
+    },
+    "DescriptionFactModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "profile_bindings": {
+                "maxItems": 0
+              },
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "state": {
+                "const": "known"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        }
+      ],
+      "description": "One assertion; different sources at the same subject remain separate facts.",
+      "properties": {
+        "component_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component Ref"
+        },
+        "fact_id": {
+          "minLength": 1,
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "profile_bindings": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DomainProfileBindingModel"
+          },
+          "maxItems": 256,
+          "title": "Profile Bindings",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DescriptionProvenanceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "state": {
+          "enum": [
+            "known",
+            "not-observed",
+            "known-absent",
+            "withheld",
+            "contradictory",
+            "not-applicable"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "subject": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Subject",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "all-of": "#/$defs/RealizationAllOf",
+                  "definition-reference": "#/$defs/RealizationDefinitionReference",
+                  "delegated": "#/$defs/RealizationDelegatedValue",
+                  "domain": "#/$defs/RealizationDomainValue",
+                  "graph-reference": "#/$defs/RealizationGraphReference",
+                  "keyed-collection": "#/$defs/RealizationKeyedCollectionConstraint",
+                  "knowledge": "#/$defs/RealizationKnowledgeValue",
+                  "literal": "#/$defs/RealizationLiteral",
+                  "recursive-record": "#/$defs/RealizationRecordConstraint",
+                  "sequence": "#/$defs/RealizationSequenceConstraint"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/RealizationLiteral"
+                },
+                {
+                  "$ref": "#/$defs/RealizationKnowledgeValue"
+                },
+                {
+                  "$ref": "#/$defs/RealizationDelegatedValue"
+                },
+                {
+                  "$ref": "#/$defs/RealizationDomainValue"
+                },
+                {
+                  "$ref": "#/$defs/RealizationRecordConstraint"
+                },
+                {
+                  "$ref": "#/$defs/RealizationKeyedCollectionConstraint"
+                },
+                {
+                  "$ref": "#/$defs/RealizationSequenceConstraint"
+                },
+                {
+                  "$ref": "#/$defs/RealizationDefinitionReference"
+                },
+                {
+                  "$ref": "#/$defs/RealizationGraphReference"
+                },
+                {
+                  "$ref": "#/$defs/RealizationAllOf"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "fact_id",
+        "subject",
+        "state"
+      ],
+      "title": "DescriptionFactModel",
+      "type": "object"
+    },
+    "DescriptionProvenanceModel": {
+      "additionalProperties": false,
+      "description": "Actual source and basis, inherited unless a fact explicitly overrides it.",
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/ObservationBasis"
+        },
+        "configuration_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ExperimentReferenceModel"
+          },
+          "maxItems": 256,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "observer_ref": {
+          "$ref": "#/$defs/ExperimentReferenceModel"
+        },
+        "operation_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "window_ref": {
+          "minLength": 1,
+          "title": "Window Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observer_ref",
+        "recorded_at",
+        "basis",
+        "window_ref"
+      ],
+      "title": "DescriptionProvenanceModel",
       "type": "object"
     },
     "DifficultyActionModel": {
@@ -1104,6 +1451,308 @@
         "priority"
       ],
       "title": "DifficultyThresholdRuleModel",
+      "type": "object"
+    },
+    "DomainProfileBindingBasis": {
+      "enum": [
+        "author-supplied",
+        "backend-selected",
+        "observed"
+      ],
+      "title": "DomainProfileBindingBasis",
+      "type": "string"
+    },
+    "DomainProfileBindingModel": {
+      "additionalProperties": false,
+      "description": "Typed profile data attached to one explicit host owner.",
+      "properties": {
+        "binding_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "children": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DomainProfileBindingModel"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "coordinate": {
+          "$ref": "#/$defs/DomainProfileCoordinateModel"
+        },
+        "owner": {
+          "$ref": "#/$defs/DomainProfileBindingOwnerModel"
+        },
+        "provenance": {
+          "$ref": "#/$defs/DomainProfileBindingProvenanceModel"
+        },
+        "schema_version": {
+          "const": "domain-profile-binding/v1",
+          "default": "domain-profile-binding/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "binding_id",
+        "coordinate",
+        "owner",
+        "value",
+        "provenance"
+      ],
+      "title": "DomainProfileBindingModel",
+      "type": "object"
+    },
+    "DomainProfileBindingOwnerModel": {
+      "additionalProperties": false,
+      "description": "Explicit core owner, phase, context, and use for profile data.",
+      "properties": {
+        "canonical_address": {
+          "maxLength": 4096,
+          "pattern": "^#(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Canonical Address",
+          "type": "string"
+        },
+        "concept_family": {
+          "minLength": 1,
+          "title": "Concept Family",
+          "type": "string"
+        },
+        "context": {
+          "minLength": 1,
+          "title": "Context",
+          "type": "string"
+        },
+        "lifecycle_phase": {
+          "minLength": 1,
+          "title": "Lifecycle Phase",
+          "type": "string"
+        },
+        "owning_contract_id": {
+          "minLength": 1,
+          "title": "Owning Contract Id",
+          "type": "string"
+        },
+        "use": {
+          "$ref": "#/$defs/DomainProfileBindingUse"
+        }
+      },
+      "required": [
+        "owning_contract_id",
+        "canonical_address",
+        "concept_family",
+        "lifecycle_phase",
+        "context",
+        "use"
+      ],
+      "title": "DomainProfileBindingOwnerModel",
+      "type": "object"
+    },
+    "DomainProfileBindingProvenanceModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "evidence_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "enum": [
+                  "author-supplied",
+                  "backend-selected"
+                ]
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "Basis of a bound value, separate from definition trust provenance.",
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/DomainProfileBindingBasis"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "basis",
+        "source_ref"
+      ],
+      "title": "DomainProfileBindingProvenanceModel",
+      "type": "object"
+    },
+    "DomainProfileBindingUse": {
+      "enum": [
+        "constraint",
+        "typed-report",
+        "annotation",
+        "opaque-exchange"
+      ],
+      "title": "DomainProfileBindingUse",
+      "type": "string"
+    },
+    "DomainProfileCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact immutable definition coordinate.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "definition_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 253,
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "profile_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "title": "DomainProfileCoordinateModel",
+      "type": "object"
+    },
+    "EnumDomain": {
+      "additionalProperties": false,
+      "description": "A finite value set: values equal to one listed member.",
+      "properties": {
+        "kind": {
+          "const": "enum",
+          "default": "enum",
+          "title": "Kind",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "title": "EnumDomain",
+      "type": "object"
+    },
+    "ExactDomain": {
+      "additionalProperties": false,
+      "description": "A singleton value set: values equal to ``value``.",
+      "properties": {
+        "kind": {
+          "const": "exact",
+          "default": "exact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "ExactDomain",
       "type": "object"
     },
     "ExactRatioModel": {
@@ -2771,6 +3420,17 @@
           ],
           "default": null,
           "title": "Realized Value Summary"
+        },
+        "typed_description": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TypedRealizationDescriptionModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -2794,6 +3454,18 @@
           ],
           "level": "error",
           "validator": "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel._validate_realized_form_disclosure"
+        },
+        {
+          "description": "Typed descriptions preserve explicit knowledge, bounded recursive values and coverage separately from author authority, with versioned sources and exact extension coordinates. Profile owners bind to the fact scope and realization-description carrier; nested profile basis and evidence join fact provenance.",
+          "id": "realized-description-nonauthoritative",
+          "inputs": [
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/realized_form_disclosures"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel.model_validate"
         }
       ]
     },
@@ -3367,6 +4039,39 @@
       "title": "GovernedRandomOutcomeRefModel",
       "type": "object"
     },
+    "GovernedReferenceDomain": {
+      "additionalProperties": false,
+      "description": "References in a finite governed set under a named authority.",
+      "properties": {
+        "allowed_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Refs",
+          "type": "array"
+        },
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "kind": {
+          "const": "governed-reference",
+          "default": "governed-reference",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authority",
+        "allowed_refs"
+      ],
+      "title": "GovernedReferenceDomain",
+      "type": "object"
+    },
+    "JsonValue": {},
     "LiteralBindingValueModel": {
       "additionalProperties": false,
       "description": "Portable literal value; strict type validation occurs at its descriptor.",
@@ -3403,6 +4108,80 @@
       ],
       "title": "LiteralBindingValueModel",
       "type": "object"
+    },
+    "NullDomain": {
+      "additionalProperties": false,
+      "description": "The singleton JSON-null domain, distinct from omission or unknown.",
+      "properties": {
+        "kind": {
+          "const": "null",
+          "default": "null",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "NullDomain",
+      "type": "object"
+    },
+    "NumericIntervalDomain": {
+      "additionalProperties": false,
+      "description": "Numbers of ``numeric_type`` inside a bounded interval.\n\nBoth endpoints are required (the fragment admits only *bounded* intervals,\n``envelope-semantics.md`` R3). An integer interval requires integral\nendpoints. Empty intervals are rejected at construction.",
+      "properties": {
+        "kind": {
+          "const": "numeric-interval",
+          "default": "numeric-interval",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lower": {
+          "title": "Lower",
+          "type": "number"
+        },
+        "lower_closed": {
+          "default": true,
+          "title": "Lower Closed",
+          "type": "boolean"
+        },
+        "numeric_type": {
+          "$ref": "#/$defs/NumericType"
+        },
+        "upper": {
+          "title": "Upper",
+          "type": "number"
+        },
+        "upper_closed": {
+          "default": true,
+          "title": "Upper Closed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "numeric_type",
+        "lower",
+        "upper"
+      ],
+      "title": "NumericIntervalDomain",
+      "type": "object"
+    },
+    "NumericType": {
+      "description": "Declared numeric type for a numeric-interval domain.",
+      "enum": [
+        "integer",
+        "number"
+      ],
+      "title": "NumericType",
+      "type": "string"
+    },
+    "ObservationBasis": {
+      "description": "Truthful basis requested for a reportable value.",
+      "enum": [
+        "backend-selected",
+        "observed",
+        "independently-verified",
+        "operational"
+      ],
+      "title": "ObservationBasis",
+      "type": "string"
     },
     "ParticipantExposurePolicyModel": {
       "additionalProperties": false,
@@ -3968,6 +4747,837 @@
       "title": "RandomStreamProfileReferenceModel",
       "type": "object"
     },
+    "RealizationAllOf": {
+      "additionalProperties": false,
+      "description": "A canonical conjunction used when constraints cannot be safely folded.",
+      "properties": {
+        "constraints": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "all-of": "#/$defs/RealizationAllOf",
+                "definition-reference": "#/$defs/RealizationDefinitionReference",
+                "delegated": "#/$defs/RealizationDelegatedValue",
+                "domain": "#/$defs/RealizationDomainValue",
+                "graph-reference": "#/$defs/RealizationGraphReference",
+                "keyed-collection": "#/$defs/RealizationKeyedCollectionConstraint",
+                "knowledge": "#/$defs/RealizationKnowledgeValue",
+                "literal": "#/$defs/RealizationLiteral",
+                "recursive-record": "#/$defs/RealizationRecordConstraint",
+                "sequence": "#/$defs/RealizationSequenceConstraint"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/RealizationLiteral"
+              },
+              {
+                "$ref": "#/$defs/RealizationKnowledgeValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationDelegatedValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationDomainValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationRecordConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationKeyedCollectionConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationSequenceConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationDefinitionReference"
+              },
+              {
+                "$ref": "#/$defs/RealizationGraphReference"
+              },
+              {
+                "$ref": "#/$defs/RealizationAllOf"
+              }
+            ]
+          },
+          "maxItems": 256,
+          "minItems": 2,
+          "title": "Constraints",
+          "type": "array"
+        },
+        "kind": {
+          "const": "all-of",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        }
+      },
+      "required": [
+        "kind",
+        "constraints"
+      ],
+      "title": "RealizationAllOf",
+      "type": "object"
+    },
+    "RealizationClosure": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "posture": {
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "posture"
+            ]
+          },
+          "then": {
+            "required": [
+              "universe",
+              "profile"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "posture": {
+                "const": "undefined"
+              }
+            },
+            "required": [
+              "posture"
+            ]
+          },
+          "then": {
+            "properties": {
+              "profile": {
+                "type": "null"
+              },
+              "universe": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One local posture in an explicitly named semantic universe.",
+      "properties": {
+        "posture": {
+          "$ref": "#/$defs/RealizationClosurePosture",
+          "default": "undefined"
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Profile"
+        },
+        "universe": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Universe"
+        }
+      },
+      "title": "RealizationClosure",
+      "type": "object"
+    },
+    "RealizationClosurePosture": {
+      "description": "Local collection or record posture before lexical inheritance.",
+      "enum": [
+        "open",
+        "closed",
+        "undefined"
+      ],
+      "title": "RealizationClosurePosture",
+      "type": "string"
+    },
+    "RealizationCollectionMember": {
+      "additionalProperties": false,
+      "description": "One semantic member identity and its recursive constraint.",
+      "properties": {
+        "constraint": {
+          "discriminator": {
+            "mapping": {
+              "all-of": "#/$defs/RealizationAllOf",
+              "definition-reference": "#/$defs/RealizationDefinitionReference",
+              "delegated": "#/$defs/RealizationDelegatedValue",
+              "domain": "#/$defs/RealizationDomainValue",
+              "graph-reference": "#/$defs/RealizationGraphReference",
+              "keyed-collection": "#/$defs/RealizationKeyedCollectionConstraint",
+              "knowledge": "#/$defs/RealizationKnowledgeValue",
+              "literal": "#/$defs/RealizationLiteral",
+              "recursive-record": "#/$defs/RealizationRecordConstraint",
+              "sequence": "#/$defs/RealizationSequenceConstraint"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/RealizationLiteral"
+            },
+            {
+              "$ref": "#/$defs/RealizationKnowledgeValue"
+            },
+            {
+              "$ref": "#/$defs/RealizationDelegatedValue"
+            },
+            {
+              "$ref": "#/$defs/RealizationDomainValue"
+            },
+            {
+              "$ref": "#/$defs/RealizationRecordConstraint"
+            },
+            {
+              "$ref": "#/$defs/RealizationKeyedCollectionConstraint"
+            },
+            {
+              "$ref": "#/$defs/RealizationSequenceConstraint"
+            },
+            {
+              "$ref": "#/$defs/RealizationDefinitionReference"
+            },
+            {
+              "$ref": "#/$defs/RealizationGraphReference"
+            },
+            {
+              "$ref": "#/$defs/RealizationAllOf"
+            }
+          ],
+          "title": "Constraint"
+        },
+        "identity": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Identity",
+          "type": "array"
+        }
+      },
+      "required": [
+        "identity",
+        "constraint"
+      ],
+      "title": "RealizationCollectionMember",
+      "type": "object"
+    },
+    "RealizationDefinitionReference": {
+      "additionalProperties": false,
+      "description": "A bounded acyclic reference to another constraint definition.",
+      "properties": {
+        "kind": {
+          "const": "definition-reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        },
+        "target": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "target"
+      ],
+      "title": "RealizationDefinitionReference",
+      "type": "object"
+    },
+    "RealizationDelegatedValue": {
+      "additionalProperties": false,
+      "description": "A deliberately backend-selected value, distinct from unknown knowledge.",
+      "properties": {
+        "kind": {
+          "const": "delegated",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "RealizationDelegatedValue",
+      "type": "object"
+    },
+    "RealizationDomainValue": {
+      "additionalProperties": false,
+      "description": "A scalar restricted by the shared bounded-domain algebra.",
+      "properties": {
+        "domain": {
+          "discriminator": {
+            "mapping": {
+              "boolean": "#/$defs/BooleanDomain",
+              "enum": "#/$defs/EnumDomain",
+              "exact": "#/$defs/ExactDomain",
+              "governed-reference": "#/$defs/GovernedReferenceDomain",
+              "null": "#/$defs/NullDomain",
+              "numeric-interval": "#/$defs/NumericIntervalDomain",
+              "record": "#/$defs/RecordDomain"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ExactDomain"
+            },
+            {
+              "$ref": "#/$defs/EnumDomain"
+            },
+            {
+              "$ref": "#/$defs/BooleanDomain"
+            },
+            {
+              "$ref": "#/$defs/NullDomain"
+            },
+            {
+              "$ref": "#/$defs/NumericIntervalDomain"
+            },
+            {
+              "$ref": "#/$defs/GovernedReferenceDomain"
+            },
+            {
+              "$ref": "#/$defs/RecordDomain"
+            }
+          ],
+          "title": "Domain"
+        },
+        "kind": {
+          "const": "domain",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        }
+      },
+      "required": [
+        "kind",
+        "domain"
+      ],
+      "title": "RealizationDomainValue",
+      "type": "object"
+    },
+    "RealizationGraphReference": {
+      "additionalProperties": false,
+      "description": "A graph identity edge; it is compared, never recursively expanded.",
+      "properties": {
+        "cycle_policy": {
+          "enum": [
+            "allow",
+            "forbid"
+          ],
+          "title": "Cycle Policy",
+          "type": "string"
+        },
+        "domain": {
+          "$ref": "#/$defs/GovernedReferenceDomain"
+        },
+        "kind": {
+          "const": "graph-reference",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        }
+      },
+      "required": [
+        "kind",
+        "domain",
+        "cycle_policy"
+      ],
+      "title": "RealizationGraphReference",
+      "type": "object"
+    },
+    "RealizationIdentityAlias": {
+      "additionalProperties": false,
+      "description": "One explicit alternate identity mapped to a canonical member identity.",
+      "properties": {
+        "identity": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Identity",
+          "type": "array"
+        },
+        "target": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Target",
+          "type": "array"
+        }
+      },
+      "required": [
+        "identity",
+        "target"
+      ],
+      "title": "RealizationIdentityAlias",
+      "type": "object"
+    },
+    "RealizationKeyedCollectionConstraint": {
+      "additionalProperties": false,
+      "description": "A set-like collection matched by profile-owned semantic identity.",
+      "properties": {
+        "aliases": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RealizationIdentityAlias"
+          },
+          "maxItems": 4096,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "closure": {
+          "$ref": "#/$defs/RealizationClosure",
+          "default": {
+            "posture": "undefined",
+            "profile": null,
+            "universe": null
+          }
+        },
+        "collection_kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Collection Kind",
+          "type": "string"
+        },
+        "identity_fields": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Identity Fields",
+          "type": "array"
+        },
+        "kind": {
+          "const": "keyed-collection",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_items": {
+          "default": 4096,
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "members": {
+          "items": {
+            "$ref": "#/$defs/RealizationCollectionMember"
+          },
+          "maxItems": 4096,
+          "title": "Members",
+          "type": "array"
+        },
+        "min_items": {
+          "default": 0,
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Min Items",
+          "type": "integer"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        }
+      },
+      "required": [
+        "kind",
+        "collection_kind",
+        "identity_fields",
+        "members"
+      ],
+      "title": "RealizationKeyedCollectionConstraint",
+      "type": "object"
+    },
+    "RealizationKnowledgeValue": {
+      "additionalProperties": false,
+      "description": "A value-free knowledge state that never grants realization authority.",
+      "properties": {
+        "kind": {
+          "const": "knowledge",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "redacted",
+            "not-applicable"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "state"
+      ],
+      "title": "RealizationKnowledgeValue",
+      "type": "object"
+    },
+    "RealizationLiteral": {
+      "additionalProperties": false,
+      "description": "A type-sensitive exact JSON value, including explicit JSON null.",
+      "properties": {
+        "kind": {
+          "const": "literal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "RealizationLiteral",
+      "type": "object"
+    },
+    "RealizationOrigin": {
+      "description": "Authority origin retained independently of the represented value.",
+      "enum": [
+        "author",
+        "default",
+        "processor",
+        "backend",
+        "observation"
+      ],
+      "title": "RealizationOrigin",
+      "type": "string"
+    },
+    "RealizationPresence": {
+      "description": "Whether the addressed member must, may, or must not exist.",
+      "enum": [
+        "required",
+        "optional",
+        "forbidden"
+      ],
+      "title": "RealizationPresence",
+      "type": "string"
+    },
+    "RealizationRecordConstraint": {
+      "additionalProperties": false,
+      "description": "A recursive record whose closure is independent of child precision.",
+      "properties": {
+        "closure": {
+          "$ref": "#/$defs/RealizationClosure",
+          "default": {
+            "posture": "undefined",
+            "profile": null,
+            "universe": null
+          }
+        },
+        "fields": {
+          "additionalProperties": {
+            "discriminator": {
+              "mapping": {
+                "all-of": "#/$defs/RealizationAllOf",
+                "definition-reference": "#/$defs/RealizationDefinitionReference",
+                "delegated": "#/$defs/RealizationDelegatedValue",
+                "domain": "#/$defs/RealizationDomainValue",
+                "graph-reference": "#/$defs/RealizationGraphReference",
+                "keyed-collection": "#/$defs/RealizationKeyedCollectionConstraint",
+                "knowledge": "#/$defs/RealizationKnowledgeValue",
+                "literal": "#/$defs/RealizationLiteral",
+                "recursive-record": "#/$defs/RealizationRecordConstraint",
+                "sequence": "#/$defs/RealizationSequenceConstraint"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/RealizationLiteral"
+              },
+              {
+                "$ref": "#/$defs/RealizationKnowledgeValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationDelegatedValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationDomainValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationRecordConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationKeyedCollectionConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationSequenceConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationDefinitionReference"
+              },
+              {
+                "$ref": "#/$defs/RealizationGraphReference"
+              },
+              {
+                "$ref": "#/$defs/RealizationAllOf"
+              }
+            ]
+          },
+          "maxProperties": 4096,
+          "title": "Fields",
+          "type": "object"
+        },
+        "kind": {
+          "const": "recursive-record",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        }
+      },
+      "required": [
+        "kind",
+        "fields"
+      ],
+      "title": "RealizationRecordConstraint",
+      "type": "object"
+    },
+    "RealizationSequenceConstraint": {
+      "additionalProperties": false,
+      "description": "An ordered collection; position remains meaningful and duplicates survive.",
+      "properties": {
+        "closure": {
+          "$ref": "#/$defs/RealizationClosure",
+          "default": {
+            "posture": "undefined",
+            "profile": null,
+            "universe": null
+          }
+        },
+        "items": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "all-of": "#/$defs/RealizationAllOf",
+                "definition-reference": "#/$defs/RealizationDefinitionReference",
+                "delegated": "#/$defs/RealizationDelegatedValue",
+                "domain": "#/$defs/RealizationDomainValue",
+                "graph-reference": "#/$defs/RealizationGraphReference",
+                "keyed-collection": "#/$defs/RealizationKeyedCollectionConstraint",
+                "knowledge": "#/$defs/RealizationKnowledgeValue",
+                "literal": "#/$defs/RealizationLiteral",
+                "recursive-record": "#/$defs/RealizationRecordConstraint",
+                "sequence": "#/$defs/RealizationSequenceConstraint"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/RealizationLiteral"
+              },
+              {
+                "$ref": "#/$defs/RealizationKnowledgeValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationDelegatedValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationDomainValue"
+              },
+              {
+                "$ref": "#/$defs/RealizationRecordConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationKeyedCollectionConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationSequenceConstraint"
+              },
+              {
+                "$ref": "#/$defs/RealizationDefinitionReference"
+              },
+              {
+                "$ref": "#/$defs/RealizationGraphReference"
+              },
+              {
+                "$ref": "#/$defs/RealizationAllOf"
+              }
+            ]
+          },
+          "maxItems": 4096,
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "const": "sequence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_items": {
+          "default": 4096,
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "min_items": {
+          "default": 0,
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Min Items",
+          "type": "integer"
+        },
+        "origin": {
+          "$ref": "#/$defs/RealizationOrigin",
+          "default": "author"
+        },
+        "presence": {
+          "$ref": "#/$defs/RealizationPresence",
+          "default": "required"
+        }
+      },
+      "required": [
+        "kind",
+        "items"
+      ],
+      "title": "RealizationSequenceConstraint",
+      "type": "object"
+    },
     "RealizedBindingProvenanceModel": {
       "additionalProperties": false,
       "description": "Portable provenance for one binding actually realized by its owner.",
@@ -4093,6 +5703,40 @@
         "evidence_refs"
       ],
       "title": "RealizedTimeModelProvenanceModel",
+      "type": "object"
+    },
+    "RecordDomain": {
+      "additionalProperties": false,
+      "description": "Product structure: each declared field references another named domain.\n\n``extra`` controls undeclared fields: ``False`` (closed) rejects any field not\nnamed in ``fields``; ``True`` (open) admits them. Field values reference domain\nnames resolved against the envelope's ``domains`` map, keeping the structure\nacyclic and free of inline recursion.",
+      "properties": {
+        "extra": {
+          "default": false,
+          "title": "Extra",
+          "type": "boolean"
+        },
+        "fields": {
+          "additionalProperties": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Fields",
+          "type": "object"
+        },
+        "kind": {
+          "const": "record",
+          "default": "record",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "RecordDomain",
       "type": "object"
     },
     "ScenarioBindingTargetModel": {
@@ -5015,6 +6659,76 @@
         "terminal_attempt_id"
       ],
       "title": "TrialRunProvenanceModel",
+      "type": "object"
+    },
+    "TypedRealizationDescriptionModel": {
+      "additionalProperties": false,
+      "description": "Versioned descriptive content, separate from its original author request.",
+      "properties": {
+        "authored_ref": {
+          "$ref": "#/$defs/ExperimentReferenceModel"
+        },
+        "coverage": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DescriptionCoverageModel"
+          },
+          "maxItems": 4096,
+          "title": "Coverage",
+          "type": "array"
+        },
+        "description_id": {
+          "minLength": 1,
+          "title": "Description Id",
+          "type": "string"
+        },
+        "description_version": {
+          "minLength": 1,
+          "title": "Description Version",
+          "type": "string"
+        },
+        "facts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DescriptionFactModel"
+          },
+          "maxItems": 4096,
+          "title": "Facts",
+          "type": "array"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/DescriptionProvenanceModel"
+        },
+        "schema_version": {
+          "const": "realization-description/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "semantic_profile": {
+          "minLength": 1,
+          "title": "Semantic Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "description_id",
+        "description_version",
+        "semantic_profile",
+        "authored_ref",
+        "provenance"
+      ],
+      "title": "TypedRealizationDescriptionModel",
       "type": "object"
     },
     "ValidationBasisDisclosureModel": {

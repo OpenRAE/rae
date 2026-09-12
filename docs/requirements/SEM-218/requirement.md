@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-09-06T00:00:00Z
+updated_at: 2026-09-12T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -219,3 +219,30 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → GITHUB_ISSUE `1204` (Recursive authority through admitted preparation and results)
 - IMPLEMENTS → SPEC `specs/sdl/backend-realization-preparation.md`
 - IMPLEMENTS → SPEC `specs/sdl/plan-realization-profiles.md`
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_descriptions.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/description_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_description_assertions.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/description_promotion.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/description_reporting.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1209_descriptions.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1209_description_relations.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1209_description_lifecycle.py`
+- IMPLEMENTS → GITHUB_ISSUE `1209` (Typed partial descriptions and explicit selected-fact promotion)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1209-clause-mapping.md`
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/partial-realization-descriptions.md`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_evidence.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_reporting.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_execution.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_results.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1209_policy_ownership.py`
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Replay of source-bound semantic evidence after description contract changes)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Replay of source-bound semantic evidence after description contract changes)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Source-bound capture provenance and strict supported-release regression checks)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/description_coverage.py` (Shared requested and authored coverage matching)
+- TESTS → TEST `implementations/python/tests/test_issue_1209_description_review.py` (Coverage, ownership, provenance and protection review regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_1209_description_profiles.py` (Coverage, ownership, provenance and protection review regressions)
+- TESTS → TEST `implementations/python/tests/test_issue_1209_description_evidence.py` (Effective provenance and complete evidence-reference identity)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage_units.py` (Independent evidence arithmetic and integrity fixtures)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation_review.py` (Replay, provenance and anti-fabrication evidence controls)
+- TESTS → TEST `implementations/python/tests/evidence_test_fixtures.py` (Isolated shared evidence fixtures)

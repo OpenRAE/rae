@@ -389,6 +389,12 @@ from .random_stream import (
     StreamAddressModel,
     TrialCoordinateModel,
 )
+from .realization_descriptions import (
+    DescriptionCoverageModel,
+    DescriptionFactModel,
+    DescriptionProvenanceModel,
+    TypedRealizationDescriptionModel,
+)
 from .realization_plans import (
     EvaluationPlanModel,
     ObservedOperatingSystemIdentityModel,
