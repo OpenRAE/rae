@@ -94,9 +94,12 @@ def test_control_plane_respects_backend_validation_before_apply(severity):
     execution = plan(compile_runtime_model(parse_sdl(_SCENARIO)), target.manifest)
     control_plane.register_planner_produced_plan(execution)
     receipt = control_plane.submit_provisioning(execution.provisioning)
+    status = control_plane.get_operation(receipt.operation_id)
     assert backend.applies == int(severity is not Severity.ERROR)
-    assert receipt.accepted is (severity is not Severity.ERROR)
-    assert receipt.diagnostics[0].code == "test.support"
+    assert receipt.accepted
+    assert receipt.diagnostics == []
+    assert status.state is (OperationState.FAILED if severity is Severity.ERROR else OperationState.SUCCEEDED)
+    assert status.diagnostics[0].code == "test.support"
     if severity is Severity.ERROR:
         assert _snapshot_payload(control_plane.snapshot) == predecessor
     control_plane.close()

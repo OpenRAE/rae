@@ -24,6 +24,7 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
 )
 
+from .control_plane_mutation import external_control_plane_call
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import ControlPlaneOperationRecord
@@ -77,10 +78,11 @@ def _next_crossing_snapshot(
             intent.participant_address: candidate_history,
         },
     )
-    context = control_plane._crossing_policy_resolver.validation_context(
-        control_plane._snapshot,
-        intent.participant_address,
-    )
+    with external_control_plane_call(control_plane):
+        context = control_plane._crossing_policy_resolver.validation_context(
+            control_plane._snapshot,
+            intent.participant_address,
+        )
     validate_participant_crossing_occurrence_context(
         [ParticipantCrossingOccurrenceModel.model_validate(item) for item in candidate_history],
         known_subjects=context.known_subjects,
@@ -119,10 +121,11 @@ def _prepare_crossing_decision(
         records.append(transformed)
         if intent.direction is ParticipantCrossingDirection.INGRESS:
             fresh_intent = _fresh_transformed_intent(intent, transformation, transformed)
-            fresh_resolution = control_plane._crossing_policy_resolver.resolve(
-                fresh_intent,
-                control_plane._snapshot,
-            )
+            with external_control_plane_call(control_plane):
+                fresh_resolution = control_plane._crossing_policy_resolver.resolve(
+                    fresh_intent,
+                    control_plane._snapshot,
+                )
             fresh_support = _resolve_backend_support(control_plane, fresh_intent, fresh_resolution)
             fresh_gates = _decision_gates(
                 _applicable_semantic_gates(fresh_intent, fresh_resolution),

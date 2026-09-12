@@ -19,6 +19,7 @@ from tools.policy.common import (
     changed_paths,
     failures_to_json,
     load_exceptions,
+    run_git,
 )
 from tools.policy.requirement_governance import (
     GroundControlAuthRequired,
@@ -268,12 +269,35 @@ def evaluate_configured_governance(
     return emit_failures(failures, as_json=as_json)
 
 
+def requirement_changed_paths(*, staged: bool, base_rev: str | None) -> list[str]:
+    """During a dev-history merge, govern the delivery diff, not imported work."""
+    paths = changed_paths(REPO_ROOT, staged=staged, base_rev=base_rev)
+    if base_rev is not None:
+        return paths
+    try:
+        merge = run_git(["rev-parse", "--verify", "MERGE_HEAD^{commit}"], repo_root=REPO_ROOT).strip()
+        integration = run_git(
+            ["rev-parse", "--verify", "refs/remotes/origin/dev^{commit}"], repo_root=REPO_ROOT
+        ).strip()
+        run_git(["merge-base", "--is-ancestor", merge, integration], repo_root=REPO_ROOT)
+    except subprocess.CalledProcessError:
+        return paths
+    # Use the actual merge parent, even when the remote integration ref has
+    # advanced since synchronization began. Its tree retains committed feature
+    # work and conflict resolutions without relabelling unchanged imports.
+    output = run_git(
+        ["diff", "--name-only", "--diff-filter=d", "-z", *(["--cached"] if staged else []), merge, "--"],
+        repo_root=REPO_ROOT,
+    )
+    return [path for path in output.split("\0") if path]
+
+
 def main() -> int:
     args = parse_args()
     paths = (
         [Path(path).as_posix() for path in args.paths]
         if args.paths
-        else changed_paths(REPO_ROOT, staged=args.staged, base_rev=args.base_rev)
+        else requirement_changed_paths(staged=args.staged, base_rev=args.base_rev)
     )
     effective_paths = governed_requirement_paths(paths)
     uid = requirement_uid_from_context(current_branch(REPO_ROOT), args.requirement_uid)

@@ -52,6 +52,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "5.0.0",
         "6.0.0",
         "7.0.0",
+        "8.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -59,9 +60,9 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
 
-    assert release.manifest["revision"] == "7.0.0"
+    assert release.manifest["revision"] == "8.0.0"
     assert protocol["revision"] == corpus["revision"] == "2.0.0"
-    assert snapshot["baseline"]["release_revision"] == "6.0.0"
+    assert snapshot["baseline"]["release_revision"] == "7.0.0"
     assert len(snapshot["deviations"]) == 2
     assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
     assert all(
@@ -176,6 +177,17 @@ def test_retest_gate_rejects_changed_baseline_release_digest() -> None:
     failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
 
     assert "formal-validation-baseline-selection" in _rule_ids(failures)
+
+
+def test_current_retest_requires_drift_disposition_for_production_evidence_cases() -> None:
+    release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
+    snapshot = deepcopy(snapshot)
+    observation = next(item for item in snapshot["observations"] if item["case_id"] == "finite-domain-satisfiable-v2")
+    observation["result_digest"] = "0" * 64
+
+    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
+
+    assert "formal-validation-baseline-drift" in _rule_ids(failures)
 
 
 def test_retest_production_evidence_contains_governed_payloads() -> None:

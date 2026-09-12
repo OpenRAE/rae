@@ -14,10 +14,11 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminateRequest,
 )
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationReceipt
+from raes_contracts.runtime_state import OperationKind, OperationReceipt
 
 from .control_plane_execution import execute_participant_action
 from .control_plane_lifecycle import runtime_owned, store_authoritative_state
+from .control_plane_mutation import mutation_entry
 from .participant_control_diagnostics import _NO_PARTICIPANT_RUNTIME_MESSAGE
 from .participant_execution_control_boundary import backend_execution_control_method
 
@@ -26,6 +27,7 @@ class ParticipantEpisodeControlMixin:
     """Execution-service and participant-episode mutation methods."""
 
     @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def control_participant_execution(
         self,
         request: ParticipantExecutionControlRequestModel,
@@ -75,6 +77,7 @@ class ParticipantEpisodeControlMixin:
         return method(execution_scope_ref, self._snapshot)
 
     @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def initialize_participant_episode(
         self,
         participant_address: str,
@@ -98,6 +101,7 @@ class ParticipantEpisodeControlMixin:
         )
 
     @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def reset_participant_episode(
         self,
         participant_address: str,
@@ -123,6 +127,7 @@ class ParticipantEpisodeControlMixin:
         )
 
     @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def restart_participant_episode(
         self,
         participant_address: str,
@@ -148,6 +153,7 @@ class ParticipantEpisodeControlMixin:
         )
 
     @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def terminate_participant_episode(
         self,
         participant_address: str,

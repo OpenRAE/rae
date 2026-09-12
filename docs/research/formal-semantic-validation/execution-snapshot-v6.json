@@ -3,9 +3,9 @@
     "execution_id": "issue-1212-execution-v5",
     "release_path": "docs/research/formal-semantic-validation/bundles/retest-v5.json",
     "release_revision": "6.0.0",
-    "release_sha256": "f129482aa7769a88c33aca15e7c61e36cc0b6fe62c15fe0ba3c6896054b17a72"
+    "release_sha256": "b989dd917b524137923493aa5f641c8e7ef250520b7243f028aadad89bf59e3e"
   },
-  "captured_at": "2026-09-12T03:23:19+00:00",
+  "captured_at": "2026-09-11T04:41:01+00:00",
   "commands": [
     {
       "argv": [
@@ -88,47 +88,8 @@
   ],
   "configuration_id": "raes-python-reference-offline-v6",
   "corpus_revision": "2.0.0",
-  "deviations": [
-    {
-      "baseline": {
-        "actual_outcome": "stable",
-        "diagnostic_kind": null,
-        "result_digest": "f578d39f96458d8977c5fea627033b922157bd24b8639f3767420a8ef26043ab"
-      },
-      "case_id": "compile-repeatability-control",
-      "category": "compiled-carrier-shape",
-      "changed_fields": [
-        "result_digest"
-      ],
-      "disposition": "accepted",
-      "rationale": "Issue #1204 adds authenticated recursive realization and optional plan-level profile carriers. Replaying the retained compiler controls changes canonical output digests, while stability and distinguishability outcomes remain unchanged.",
-      "retest": {
-        "actual_outcome": "stable",
-        "diagnostic_kind": null,
-        "result_digest": "595d1c0c3cc90ac28ba61290f609b6f56d2cb0fa81f2b3de68e7fc4b004da6d7"
-      }
-    },
-    {
-      "baseline": {
-        "actual_outcome": "distinguishable",
-        "diagnostic_kind": null,
-        "result_digest": "e2cc3c0c5a494906102a048e6a21d11ed7aa4057a36cb94c2776f9d9cf66292a"
-      },
-      "case_id": "compile-non-vacuity-control",
-      "category": "compiled-carrier-shape",
-      "changed_fields": [
-        "result_digest"
-      ],
-      "disposition": "accepted",
-      "rationale": "Issue #1204 adds authenticated recursive realization and optional plan-level profile carriers. Replaying the retained compiler controls changes canonical output digests, while stability and distinguishability outcomes remain unchanged.",
-      "retest": {
-        "actual_outcome": "distinguishable",
-        "diagnostic_kind": null,
-        "result_digest": "be75a4dd5ddcca749515c0cbb777fbb1f6d17d927b1c0572e90bf40700252217"
-      }
-    }
-  ],
-  "execution_id": "issue-1204-execution-v6",
+  "deviations": [],
+  "execution_id": "issue-1137-execution-v6",
   "execution_status": "complete",
   "observations": [
     {
@@ -145,7 +106,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-valid.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "A passing minimal source does not establish semantic correctness."
       ],
@@ -167,7 +128,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-invalid-unknown-field.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The observation covers one unknown-field defect only."
       ],
@@ -189,7 +150,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-valid.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "This is a positive control for one objective-reference slice."
       ],
@@ -211,7 +172,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-dangling-ref.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "A single dangling reference does not prove complete semantic coverage."
       ],
@@ -233,7 +194,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-ambiguous-ref.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "One namespace collision does not enumerate every ambiguity surface."
       ],
@@ -255,7 +216,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-feature-cycle.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "One static dependency cycle does not establish general constraint satisfiability."
       ],
@@ -279,7 +240,7 @@
         "implementations/python/tests/test_semantics_planner.py",
         "specs/formal/workflows/state-machine.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The graph is workflow control flow only."
       ],
@@ -303,7 +264,7 @@
         "implementations/python/tests/test_semantics_planner.py",
         "specs/formal/workflows/state-machine.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The result does not establish network, service, participant, or exploit reachability."
       ],
@@ -325,7 +286,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "No governed whole-scenario constraint theory or solver exists."
       ],
@@ -347,7 +308,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Local checks cannot produce a whole-scenario unsat certificate."
       ],
@@ -369,7 +330,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The issue-168 baseline had no canonical typed attack graph or path-query entrypoint."
       ],
@@ -391,7 +352,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Vulnerability and topology declarations are not an invalid-path proof."
       ],
@@ -414,12 +375,12 @@
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml",
         "implementations/python/tests/test_pipeline_determinism.py"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The witness ends at compiled output."
       ],
       "replayable": true,
-      "result_digest": "595d1c0c3cc90ac28ba61290f609b6f56d2cb0fa81f2b3de68e7fc4b004da6d7",
+      "result_digest": "f578d39f96458d8977c5fea627033b922157bd24b8639f3767420a8ef26043ab",
       "source_digest": null
     },
     {
@@ -437,12 +398,12 @@
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml",
         "docs/research/formal-semantic-validation/corpus/determinism-b.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Distinct digests are a non-vacuity control, not semantic non-equivalence proof."
       ],
       "replayable": true,
-      "result_digest": "be75a4dd5ddcca749515c0cbb777fbb1f6d17d927b1c0572e90bf40700252217",
+      "result_digest": "e2cc3c0c5a494906102a048e6a21d11ed7aa4057a36cb94c2776f9d9cf66292a",
       "source_digest": null
     },
     {
@@ -459,7 +420,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "No governed intervention or ablation protocol exists."
       ],
@@ -481,7 +442,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Attribution and negative fixtures do not demonstrate non-necessity."
       ],
@@ -505,7 +466,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v3.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Demonstrates only the pinned finite-domain theory, translation, solver profile, and source."
       ],
@@ -529,7 +490,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v3.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The subset-minimal core is evidence for the pinned translation and solver, not a proof certificate for arbitrary SDL."
       ],
@@ -553,7 +514,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v3.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The witness is bounded to the admitted snapshot, normalized graph, query, semantics, and search profile; it does not establish backend execution."
       ],
@@ -577,7 +538,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v3.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Structured rejection proves only that this bounded graph/query cannot reach its goal; it does not establish real-world non-exploitability."
       ],
@@ -592,7 +553,7 @@
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_disclosure_is_separate_from_observable_projection",
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_cannot_be_observed_without_explicit_disclosure_rule"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Covers the reference SDL/contract path, not every backend projection."
       ],
@@ -605,7 +566,7 @@
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_contract_declares_sem_211_classes_and_compiles_them",
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_result_rejects_success_when_preconditions_are_unresolved"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Covers declared applicability and one unresolved-precondition failure."
       ],
@@ -618,7 +579,7 @@
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_runtime_snapshot_publishes_joint_action_and_time_context_records",
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_joint_action_record_contract_rejects_unordered_conflicting_writes"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Contract evidence does not prove every backend's live concurrency fidelity."
       ],
@@ -631,7 +592,7 @@
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_accepts_supported_order_claim_strengths",
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_rejects_wall_clock_causality"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Rejecting timestamp-only causality does not supply counterfactual proof."
       ],
@@ -644,7 +605,7 @@
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_attribution_edge_round_trips_on_terminal_observation",
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_timestamp_adjacency_cannot_be_reported_as_strong_causality"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Attribution labels disclose basis; they do not demonstrate necessity."
       ],
@@ -657,7 +618,7 @@
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_outcome_interpretation_rule_parses_and_compiles_explicit_layers",
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_local_action_success_does_not_imply_objective_success_without_rule_record"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "The fixtures establish layer separation, not outcome validity in every realization."
       ],
@@ -670,7 +631,7 @@
         "implementations/python/tests/test_realization_honesty_conformance.py::test_constructive_envelope_runs_positive_and_negative_honesty_probes",
         "implementations/python/tests/test_realization_honesty_conformance.py::test_only_native_live_can_support_native_conformance"
       ],
-      "execution_id": "issue-1204-execution-v6",
+      "execution_id": "issue-1137-execution-v6",
       "limitations": [
         "Reference conformance evidence remains bounded to declared realization profiles."
       ],
@@ -684,11 +645,11 @@
   "source_state": {
     "base_revision": "4914612d108f06ff9db2eb69a14449a830a20848",
     "checkout_state": "modified",
-    "implementation_digest": "8104220eda0d11d5c949b69e656e90552b9aa59496d68612bbb6485149b93556",
+    "implementation_digest": "2900f5ba6258e26dde852d71efe7999f24c46efdeb7d2ad02925313318739256",
     "profile": "python-reference-source/v1"
   },
   "versions": {
-    "python": "3.13.13",
+    "python": "3.14.4",
     "raes": "3.5.0",
     "z3_engine": "4.16.0",
     "z3_solver": "4.16.0.0"

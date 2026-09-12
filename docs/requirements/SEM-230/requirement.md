@@ -45,7 +45,7 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-802-api-423-participant-control-migration-preflight.md` (Issue #802 participant-control migration architecture preflight)
 - TESTS → TEST `implementations/python/tests/test_issue_802_participant_control_migration.py` (Issue #802 participant-control compatibility and migration tests)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_retrieval.py` (Trusted participant-relative governed retrieval)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store.py` (Participant crossing-history source-presence classification)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_types.py` (Participant crossing-history source-presence classification)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_participant_retrieval.py` (Audience-bound participant retrieval API adapter)
 - TESTS → TEST `implementations/python/tests/test_public_docs_policy.py` (Executable participant-control public guide claim example)
 - DOCUMENTS → DOCUMENTATION `docs/public/participant-control.md` (Participant input and output control guide)

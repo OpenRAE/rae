@@ -366,6 +366,19 @@ plan carrying effect-capable authority, and coupled witness selection. Keep
 these separate from the four completed #158 characterizations: they exercise
 additional boundaries that a runtime-only result check cannot establish.
 
+## Repository-governance synchronization repair
+
+The repository-backed requirement gate retains phase ordering, lifecycle and
+exact traceability checks. During an in-progress integration merge it checks
+the delivery diff against the actual `MERGE_HEAD`, provided that commit is in
+`refs/remotes/origin/dev` history. This includes already-committed feature work
+and conflict resolutions without attributing unchanged imported files to the
+feature's requirement. A later remote-tip advance does not replace the pinned
+merge parent. Missing or unrelated integration evidence retains the ordinary
+local-diff checks; explicit paths, explicit bases and staged-versus-working-tree
+selection retain their existing behavior. Real temporary-repository regressions
+exercise each selection boundary. Other repository-policy checks are unchanged.
+
 ## Non-goals and anti-patterns
 
 This work validates RAE-owned claims at execution admission. It does not certify

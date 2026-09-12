@@ -11,8 +11,13 @@ from tools.formal_semantic_validation._baseline import _validate_baseline_drift
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._corpus import _validate_corpus
 from tools.formal_semantic_validation._protocol import _validate_protocol
-from tools.formal_semantic_validation._retest import _RetestScope, _validate_retest_snapshot
-from tools.formal_semantic_validation._satisfiability import validate_satisfiability_analysis
+from tools.formal_semantic_validation._retest import (
+    _RetestScope,
+    _validate_retest_snapshot,
+)
+from tools.formal_semantic_validation._satisfiability import (
+    validate_satisfiability_analysis,
+)
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
@@ -148,7 +153,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "7.0.0",
+                replay_current=manifest.get("revision") == "8.0.0",
             )
         )
     else:
@@ -201,7 +206,11 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 )
                 failures.extend(
                     validate_satisfiability_analysis(
-                        repo_root, legacy_manifest, snapshot, analysis, replay_current=False
+                        repo_root,
+                        legacy_manifest,
+                        snapshot,
+                        analysis,
+                        replay_current=False,
                     )
                 )
     return failures
@@ -225,7 +234,13 @@ def validate_retest_bundle(
     snapshot_path = str(release.manifest.get("snapshot_path"))
     analysis_path = str(release.manifest.get("analysis_path"))
     release_revision = release.manifest.get("revision")
-    if not replay_current and release_revision not in {"3.0.0", "4.0.0", "5.0.0", "6.0.0"}:
+    if not replay_current and release_revision not in {
+        "3.0.0",
+        "4.0.0",
+        "5.0.0",
+        "6.0.0",
+        "7.0.0",
+    }:
         return [
             _failure(
                 "formal-validation-current-replay-required",
@@ -233,7 +248,7 @@ def validate_retest_bundle(
                 snapshot_path,
             )
         ]
-    if release_revision not in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0"}:
+    if release_revision not in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0"}:
         failures.append(
             _failure(
                 "formal-validation-retest-release",
@@ -250,7 +265,7 @@ def validate_retest_bundle(
             )
         )
 
-    if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0"}:
+    if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0"}:
         _current_retest_source_failures(
             repo_root,
             snapshot,
@@ -275,13 +290,10 @@ def validate_retest_bundle(
         failures,
         snapshot_path,
     )
-    _validate_baseline_drift(
-        repo_root,
-        snapshot,
-        cases_by_id if release_revision == "4.0.0" else historical_cases,
-        failures,
-        snapshot_path,
+    baseline_cases = (
+        cases_by_id if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0"} else historical_cases
     )
+    _validate_baseline_drift(repo_root, snapshot, baseline_cases, failures, snapshot_path)
     _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
     return failures
 
@@ -298,9 +310,21 @@ def _current_retest_source_failures(
     failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=replay_current))
     state = snapshot.get("source_state")
     if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
-        failures.append(_failure("research-evidence-source-state", "base revision must join source identity", path))
+        failures.append(
+            _failure(
+                "research-evidence-source-state",
+                "base revision must join source identity",
+                path,
+            )
+        )
     baseline = snapshot.get("baseline")
-    expected_baseline = {"4.0.0": "3.0.0", "5.0.0": "4.0.0", "6.0.0": "5.0.0", "7.0.0": "6.0.0"}[release_revision]
+    expected_baseline = {
+        "4.0.0": "3.0.0",
+        "5.0.0": "4.0.0",
+        "6.0.0": "5.0.0",
+        "7.0.0": "6.0.0",
+        "8.0.0": "7.0.0",
+    }[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(
             _failure(

@@ -72,13 +72,14 @@ def _terminal_record(record: ControlPlaneOperationRecord) -> ControlPlaneOperati
     )
 
 
-def _audit_event(action: str) -> AuditEvent:
+def _audit_event(action: str, record: ControlPlaneOperationRecord) -> AuditEvent:
     return AuditEvent(
-        timestamp="2026-09-07T12:00:00Z",
+        timestamp=record.status.updated_at,
         action=action,
-        identity="test-identity",
+        identity=record.status.context.actor_id,
         allowed=True,
         target="runtime.control-plane",
+        operation_id=record.receipt.operation_id,
     )
 
 
@@ -185,7 +186,7 @@ def test_participant_snapshot_commits_reject_stale_revision_without_side_effects
     common = {
         "snapshot": RuntimeSnapshot(metadata={"writer": "first"}),
         "record": first,
-        "audit_event": _audit_event(f"{transition}-first"),
+        "audit_event": _audit_event(f"{transition}-first", first),
         "expected_revision": observed.revision,
     }
     if transition == "control":
@@ -209,7 +210,7 @@ def test_participant_snapshot_commits_reject_stale_revision_without_side_effects
     stale_common = {
         "snapshot": RuntimeSnapshot(metadata={"writer": "stale"}),
         "record": stale,
-        "audit_event": _audit_event(f"{transition}-stale"),
+        "audit_event": _audit_event(f"{transition}-stale", stale),
         "expected_revision": observed.revision,
     }
 

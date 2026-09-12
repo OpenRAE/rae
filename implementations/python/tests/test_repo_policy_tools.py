@@ -2901,8 +2901,8 @@ def test_osv_scanner_valid_cache_hit_rehashes_without_network(
     binary.chmod(0o755)
     monkeypatch.setattr(
         osv_scanner_tool,
-        "download_bytes",
-        lambda _url, **_kwargs: pytest.fail("network used for valid cache"),
+        "acquire_locked_bytes",
+        lambda **_kwargs: pytest.fail("acquisition used for valid cache"),
     )
 
     assert osv_scanner_tool.ensure_osv_scanner(tmp_path) == binary
@@ -2925,7 +2925,7 @@ def test_osv_scanner_invalid_file_cache_is_reacquired_atomically(
     else:
         binary.write_bytes(payload if cache_kind == "non-executable" else b"tampered")
         binary.chmod(0o644 if cache_kind == "non-executable" else 0o755)
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", lambda _url, **_kwargs: payload)
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", lambda **_kwargs: payload)
 
     installed = osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
@@ -3069,24 +3069,27 @@ def test_osv_scanner_cache_hash_rejects_open_and_post_hash_identity_changes(
         osv_scanner_tool._sha256_path(binary)
 
 
-def test_osv_scanner_download_has_a_finite_timeout(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_osv_scanner_uses_the_selected_raw_object_at_the_shared_acquisition_boundary(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
     observed: dict[str, object] = {}
 
-    def download(url: str, **kwargs: object) -> bytes:
-        observed.update(url=url, **kwargs)
+    def acquire_locked_bytes(**kwargs: object) -> bytes:
+        observed.update(kwargs)
         return payload
 
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", download)
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", acquire_locked_bytes)
 
     assert osv_scanner_tool.ensure_osv_scanner(tmp_path).read_bytes() == payload
-    assert observed == {
-        "url": "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64",
-        "description": "osv-scanner",
-        "timeout_seconds": 60,
-        "max_bytes": 256 * 1024 * 1024,
-    }
+    assert observed["artifact_id"] == "osv-scanner"
+    assert observed["source_url"] == (
+        "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64"
+    )
+    assert observed["expected"].path == "osv-scanner_darwin_arm64"
+    assert observed["local_input"] is None
 
 
 def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
@@ -3099,25 +3102,24 @@ def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_selection)
     monkeypatch.setattr(
         osv_scanner_tool,
-        "download_bytes",
-        lambda _url, **_kwargs: pytest.fail("unsafe URL reached the network client"),
+        "acquire_locked_bytes",
+        lambda **_kwargs: pytest.fail("unsafe URL reached the acquisition boundary"),
     )
 
     with pytest.raises(RuntimeError, match="policy rejected unsafe source URL"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
-def test_osv_scanner_download_timeout_fails_closed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_osv_scanner_acquisition_failure_is_terminal(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
 
-    def timeout(_url: str, **kwargs: object) -> bytes:
-        assert kwargs["timeout_seconds"] == 60
-        raise RuntimeError("failed to download osv-scanner after 5 attempts")
+    def timeout(**_kwargs: object) -> bytes:
+        raise RuntimeError("osv-scanner acquisition failed: curl-wall-deadline")
 
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", timeout)
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", timeout)
 
-    with pytest.raises(RuntimeError, match="failed to download osv-scanner"):
+    with pytest.raises(RuntimeError, match="curl-wall-deadline"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3130,20 +3132,10 @@ def test_osv_scanner_unpinned_version_and_download_mismatch_fail_closed(
     with pytest.raises(RuntimeError, match="no reviewed lock selection"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path, version="9.9.9")
 
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", lambda _url, **_kwargs: b"different")
-    with pytest.raises(RuntimeError, match="checksum or size mismatch"):
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", lambda **_kwargs: b"different")
+    with pytest.raises(RuntimeError, match="installed binary differs"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
     assert not osv_scanner_tool.osv_scanner_binary_path(tmp_path).exists()
-
-
-def test_osv_scanner_oversized_download_is_rejected(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    payload = b"four"
-    _pin_fake_osv_download(monkeypatch, payload)
-    monkeypatch.setattr(osv_scanner_tool, "_MAX_BINARY_BYTES", 3)
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", lambda _url, **_kwargs: payload)
-
-    with pytest.raises(RuntimeError, match="exceeds the download limit"):
-        osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
 def test_osv_scanner_concurrent_acquisition_publishes_only_complete_bytes(
@@ -3154,11 +3146,11 @@ def test_osv_scanner_concurrent_acquisition_publishes_only_complete_bytes(
     _pin_fake_osv_download(monkeypatch, payload)
     barrier = threading.Barrier(2, timeout=3)
 
-    def concurrent_download(_url: str, **_kwargs: object) -> bytes:
+    def concurrent_acquisition(**_kwargs: object) -> bytes:
         barrier.wait()
         return payload
 
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", concurrent_download)
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", concurrent_acquisition)
     results: list[Path] = []
     failures: list[BaseException] = []
 
@@ -3249,7 +3241,7 @@ def _run_nox_osv_scan(
     tmp_path: Path,
     *,
     exit_code: int,
-) -> None:
+) -> nox_runner.SessionReporter:
     class FakeSession:
         def log(self, _message: str) -> None:
             pass
@@ -3272,14 +3264,18 @@ def _run_nox_osv_scan(
 
     monkeypatch.setattr(nox_test_lanes, "run_osv_scanner", fake_run_osv_scanner)
     session = FakeSession()
-    nox_test_lanes._run_osv_scan(session, nox_runner.SessionReporter(session, "osv_scan"))
+    reporter = nox_runner.SessionReporter(session, "osv_scan")
+    nox_test_lanes._run_osv_scan(session, reporter)
+    return reporter
 
 
 def test_nox_osv_scan_accepts_only_a_clean_result(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=0)
+    reporter = _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=0)
+
+    assert [result.name for result in reporter.results] == ["osv-scan / uv.lock"]
 
 
 def test_nox_osv_scan_gates_vulnerability_findings(

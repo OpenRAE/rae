@@ -1,20 +1,22 @@
-"""Compatibility seam for optional crash-atomic store capabilities."""
+"""Capability admission for crash-atomic control-plane stores."""
 
 from __future__ import annotations
 
-import warnings
+import inspect
 from typing import cast
 
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .control_plane_store import (
     AtomicControlPlaneStore,
+    AuditEvent,
     ControlPlaneOperationRecord,
     ControlPlaneStore,
     SnapshotState,
+    TerminalCommitMode,
 )
 
-_LEGACY_STORE_METHODS = (
+_BASE_STORE_METHODS = (
     "load_snapshot",
     "load_snapshot_state",
     "save_snapshot",
@@ -29,16 +31,11 @@ _LEGACY_STORE_METHODS = (
 _ATOMIC_STORE_METHODS = (
     "claim_record",
     "commit_terminal_operation",
-    "reconcile_interrupted_records",
 )
 
 
-class LegacyControlPlaneStoreWarning(DeprecationWarning):
-    """A custom store is using the non-crash-atomic 3.x compatibility path."""
-
-
 class ControlPlaneStoreCommitAdapter:
-    """Centralize complete atomic capability use or ordered legacy fallback."""
+    """Centralize use of the complete atomic mutation capability."""
 
     def __init__(self, store: ControlPlaneStore, *, crash_atomic: bool) -> None:
         self._store = store
@@ -49,63 +46,52 @@ class ControlPlaneStoreCommitAdapter:
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         *,
+        audit_event: AuditEvent | None = None,
+        mode: TerminalCommitMode = TerminalCommitMode.SNAPSHOT_BEARING,
         expected_revision: int,
     ) -> SnapshotState:
-        if self.crash_atomic:
-            return cast(AtomicControlPlaneStore, self._store).commit_terminal_operation(
-                snapshot,
-                record,
-                expected_revision=expected_revision,
-            )
-        committed = self._store.save_snapshot(snapshot, expected_revision=expected_revision)
-        self._store.save_record(record)
-        return committed
+        return cast(AtomicControlPlaneStore, self._store).commit_terminal_operation(
+            snapshot,
+            record,
+            audit_event=audit_event,
+            mode=mode,
+            expected_revision=expected_revision,
+        )
 
     def claim_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
-        if self.crash_atomic:
-            return cast(AtomicControlPlaneStore, self._store).claim_record(record)
-        if record.idempotency_key:
-            existing = self._store.find_by_idempotency(record.idempotency_key)
-            if existing is not None:
-                return existing
-        self._store.save_record(record)
-        return record
-
-    def reconcile_interrupted_records(
-        self,
-        records: tuple[ControlPlaneOperationRecord, ...],
-    ) -> None:
-        if self.crash_atomic:
-            cast(AtomicControlPlaneStore, self._store).reconcile_interrupted_records(records)
-            return
-        for record in records:
-            self._store.save_record(record)
+        return cast(AtomicControlPlaneStore, self._store).claim_record(record)
 
 
 def adapt_control_plane_store(store: object) -> ControlPlaneStoreCommitAdapter:
-    """Validate the legacy contract and select one stable commit mode."""
+    """Reject stores that cannot provide the complete atomic mutation contract."""
 
-    missing_legacy = [name for name in _LEGACY_STORE_METHODS if not callable(getattr(store, name, None))]
-    if missing_legacy:
-        capabilities = ", ".join(missing_legacy)
+    missing_base = [name for name in _BASE_STORE_METHODS if not callable(getattr(store, name, None))]
+    if missing_base:
+        capabilities = ", ".join(missing_base)
         raise TypeError(f"control-plane store is missing required capabilities: {capabilities}")
 
     missing_atomic = [name for name in _ATOMIC_STORE_METHODS if not callable(getattr(store, name, None))]
-    crash_atomic = not missing_atomic
+    terminal_commit = getattr(store, "commit_terminal_operation", None)
+    if callable(terminal_commit) and not _accepts_terminal_commit_artifact(terminal_commit):
+        missing_atomic.append("commit_terminal_operation(audit_event, mode)")
     if missing_atomic:
         capabilities = ", ".join(missing_atomic)
-        warnings.warn(
-            "custom control-plane store is using the deprecated non-crash-atomic 3.x "
-            "compatibility path because it lacks a complete atomic capability set "
-            f"({capabilities}); implement all atomic methods before version 4",
-            LegacyControlPlaneStoreWarning,
-            stacklevel=3,
-        )
-    return ControlPlaneStoreCommitAdapter(cast(ControlPlaneStore, store), crash_atomic=crash_atomic)
+        raise TypeError(f"control-plane store is missing required atomic mutation capabilities: {capabilities}")
+    return ControlPlaneStoreCommitAdapter(cast(ControlPlaneStore, store), crash_atomic=True)
+
+
+def _accepts_terminal_commit_artifact(method: object) -> bool:
+    try:
+        parameters = inspect.signature(method).parameters.values()  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return False
+    if any(parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters):
+        return True
+    names = {parameter.name for parameter in parameters}
+    return {"audit_event", "mode"} <= names
 
 
 __all__ = (
     "ControlPlaneStoreCommitAdapter",
-    "LegacyControlPlaneStoreWarning",
     "adapt_control_plane_store",
 )

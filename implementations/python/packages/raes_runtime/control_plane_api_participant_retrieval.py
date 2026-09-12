@@ -12,6 +12,7 @@ from raes_contracts.contracts import (
     ParticipantHistoryViewModel,
     ParticipantStatusViewModel,
 )
+from raes_contracts.runtime_state import OperationKind
 
 from .control_plane import RuntimeControlPlane
 from .control_plane_api._offload import _control_plane_calls
@@ -76,7 +77,8 @@ async def _resolved_governed_view(
     projection = await calls.mutate(
         _governed_view,
         lambda: control_plane._project_snapshot_read(
-            lambda: resolution.resolve(audience_binding, request.headers.get("idempotency-key", ""))
+            lambda: resolution.resolve(audience_binding, request.headers.get("idempotency-key", "")),
+            mutation_kind=OperationKind.PARTICIPANT_CROSSING,
         ),
     )
     view, revision = projection

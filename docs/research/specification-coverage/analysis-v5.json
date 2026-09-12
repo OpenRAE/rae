@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1204-v5",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1137-v5",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,11 +39,11 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-12",
+  "generated_at": "2026-09-11",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
-    "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation."
+    "The retained protocol does not test scoped-observation-demand behavior; this release only re-establishes its original bounded coverage result against the current implementation."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -83,6 +83,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1204-v5",
-  "snapshot_sha256": "0c0fbd8c29aaafd15c0206b57f208b17cdbc0fbbdd53ab2c1a6188252c65b639"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1137-v5",
+  "snapshot_sha256": "479f8229d08e2d4caaefb2fab0bb18433ac2f0d69e862b006eb5ea0651ca23ee"
 }

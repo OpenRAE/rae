@@ -18,9 +18,13 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
     workflow = yaml.safe_load(source)
     triggers = workflow.get("on", workflow.get(True))
 
-    assert workflow["permissions"] == "read-all"
+    assert workflow["permissions"] == {}
     assert "pull_request_target" not in triggers
+    assert "workflow_dispatch" not in triggers
+    assert triggers["schedule"] == [{"cron": "17 3 * * 1"}]
+    assert triggers["push"] == {"branches": ["main"]}
     analysis = workflow["jobs"]["analysis"]
+    assert analysis["runs-on"] == "ubuntu-24.04"
     assert analysis["permissions"] == {
         "contents": "read",
         "security-events": "write",
@@ -35,9 +39,33 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
         "results_format": "sarif",
         "publish_results": "true",
     }
+    harden_step = next(
+        step for step in analysis["steps"] if step.get("uses", "").startswith("step-security/harden-runner@")
+    )
+    assert harden_step["with"] == {"egress-policy": "audit"}
+    artifact_step = next(
+        step for step in analysis["steps"] if step.get("uses", "").startswith("actions/upload-artifact@")
+    )
+    assert artifact_step["if"] == "${{ always() }}"
+    assert artifact_step["with"]["retention-days"] == 5
+    sarif_step = next(
+        step for step in analysis["steps"] if step.get("uses", "").startswith("github/codeql-action/upload-sarif@")
+    )
+    assert sarif_step["if"] == "${{ always() }}"
     assert "SCORECARD_TOKEN" not in source
     for match in re.finditer(r"^\s*uses:\s*([^#\s]+)", source, re.MULTILINE):
         assert re.fullmatch(r"[^@]+@[0-9a-f]{40}", match.group(1))
+
+
+def test_scorecard_badge_is_backed_by_recorded_live_evidence() -> None:
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    evidence = (REPO_ROOT / "docs" / "decisions" / "issue-839-scorecard-evidence.md").read_text(encoding="utf-8")
+
+    badge = "https://api.securityscorecards.dev/projects/github.com/OpenRAE/rae/badge"
+    assert badge in readme
+    assert "https://github.com/OpenRAE/rae/actions/runs/34099892356" in evidence
+    assert "056fe65c57d1489489cff978019011f284106ba9" in evidence
+    assert "HTTP 200 with SVG media type" in evidence
 
 
 def test_best_practices_proposal_is_factual_about_single_maintainer_limits() -> None:

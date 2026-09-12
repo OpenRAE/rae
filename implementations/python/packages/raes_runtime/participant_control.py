@@ -13,10 +13,11 @@ from raes_contracts.participant_binding import (
     bind_participant_decision_surface_selection,
 )
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationReceipt
+from raes_contracts.runtime_state import OperationKind, OperationReceipt
 from raes_processor.models import ParticipantBehaviorRuntime
 
 from .control_plane_lifecycle import runtime_owned
+from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .participant_control_diagnostics import (
     _NO_PARTICIPANT_RUNTIME_MESSAGE,
     _participant_binding_address,
@@ -212,6 +213,7 @@ class ParticipantControlMixin(
     """Participant runtime methods for the shared runtime control plane."""
 
     @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def admit_participant_action(
         self,
         participant_behavior: ParticipantBehaviorRuntime,
@@ -262,6 +264,7 @@ class ParticipantControlMixin(
         return submit_bound_participant_action(self, participant_behavior, request, options)
 
     @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def admit_participant_decision_surface_selection(
         self,
         participant_behavior: ParticipantBehaviorRuntime,
@@ -288,13 +291,14 @@ class ParticipantControlMixin(
                 },
             )
         try:
-            request = bind_participant_decision_surface_selection(
-                surface=surface,
-                selection=selection,
-                admission_request=admission_request,
-                argument_shape_resolver=resolvers.argument_shape,
-                apparatus_resolver=resolvers.apparatus,
-            )
+            with external_control_plane_call(self):
+                request = bind_participant_decision_surface_selection(
+                    surface=surface,
+                    selection=selection,
+                    admission_request=admission_request,
+                    argument_shape_resolver=resolvers.argument_shape,
+                    apparatus_resolver=resolvers.apparatus,
+                )
         except (TypeError, ValueError) as exc:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.PARTICIPANT,
@@ -309,14 +313,38 @@ class ParticipantControlMixin(
                     "participant_address": getattr(participant_behavior, "address", "unknown"),
                 },
             )
-        return self.admit_participant_action(
-            participant_behavior,
-            request,
-            idempotency_key=options.idempotency_key,
-            request_fingerprint=options.request_fingerprint,
-            identity=options.identity,
-            crossing_evidence=options.crossing_evidence,
-        )
+        with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
+            try:
+                with external_control_plane_call(self):
+                    request = bind_participant_decision_surface_selection(
+                        surface=surface,
+                        selection=selection,
+                        admission_request=admission_request,
+                        argument_shape_resolver=resolvers.argument_shape,
+                        apparatus_resolver=resolvers.apparatus,
+                    )
+            except (TypeError, ValueError) as exc:
+                return self._reject_diagnostics(
+                    domain=RuntimeDomain.PARTICIPANT,
+                    diagnostics=[
+                        _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
+                    ],
+                    idempotency_key=options.idempotency_key,
+                    request_fingerprint=options.request_fingerprint,
+                    identity=options.identity,
+                    request={
+                        "operation": "participant-decision-surface-selection",
+                        "participant_address": getattr(participant_behavior, "address", "unknown"),
+                    },
+                )
+            return self.admit_participant_action(
+                participant_behavior,
+                request,
+                idempotency_key=options.idempotency_key,
+                request_fingerprint=options.request_fingerprint,
+                identity=options.identity,
+                crossing_evidence=options.crossing_evidence,
+            )
 
 
 __all__ = (

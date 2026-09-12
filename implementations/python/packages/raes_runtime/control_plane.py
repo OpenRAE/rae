@@ -26,7 +26,6 @@ from raes_contracts.runtime_state import (
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_processor.models import ParticipantBehaviorSpecificationRuntime
 
-from .backend_calls import _call_backend_diagnostics
 from .control_plane_admission import RuntimeAdmissionMixin
 from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
@@ -34,13 +33,18 @@ from .control_plane_execution import (
     execute_operation,
 )
 from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
+from .control_plane_mutation import (
+    RuntimeMutationAuthority,
+    SubordinateMutationGate,
+    control_plane_mutation,
+    mutation_entry,
+)
 from .control_plane_operation_context import (
     operation_admission_context,
     operation_idempotency_fingerprint,
     operation_requires_ephemeral_retry_proof,
 )
 from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
-from .control_plane_recovery import reconcile_interrupted_operations
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
@@ -49,7 +53,7 @@ from .control_plane_store import (
     SnapshotState,
 )
 from .control_plane_store_compatibility import adapt_control_plane_store
-from .control_plane_submission import _submitted_plan_diagnostics
+from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_workflow_control import WorkflowControlMixin
 from .observation_execution import ObservationExecution
 from .observation_results import observation_execution_from_payload
@@ -139,6 +143,7 @@ class RuntimeControlPlane(
         self._enforce_final_sink_flow_control = enforce_final_sink_flow_control
         self._store = store or InMemoryControlPlaneStore(initial_snapshot)
         try:
+            self._mutation_authority = RuntimeMutationAuthority()
             self._operation_lock = RLock()
             self._snapshot_projection_depth = 0
             self._store_commits = adapt_control_plane_store(self._store)
@@ -147,12 +152,11 @@ class RuntimeControlPlane(
                 self._runtime_lease = acquire_runtime_lease()
             self._snapshot_state = self._store.load_snapshot_state()
             self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
-            self._operations = reconcile_interrupted_operations(self._store_commits, self._operations)
             self._behavior_specifications = dict(behavior_specifications or {})
             self._crossing_policy_resolver = crossing_policy_resolver
             self._information_state_context_resolver = information_state_context_resolver
             self._ephemeral_idempotency_fingerprints: dict[str, str] = {}
-            self._participant_control_lock = self._operation_lock
+            self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
             self._trusted_runtime_plan_lock = RLock()
             self._trusted_runtime_plan_digests: set[str] = set()
             require_participant_information_state_snapshot(
@@ -182,10 +186,24 @@ class RuntimeControlPlane(
     def _project_snapshot_read(
         self,
         projector: Callable[[], _ProjectionT],
+        *,
+        mutation_kind: OperationKind | None = None,
     ) -> tuple[_ProjectionT, int]:
         """Project one response from an authoritative, revision-bound state cut."""
 
         self._assert_runtime_owner()
+        if mutation_kind is not None:
+            with control_plane_mutation(self, mutation_kind):
+                with self._operation_lock:
+                    self._reload_derived_state_if_unpinned()
+                    observed_state = self._snapshot_state
+                    self._snapshot_projection_depth += 1
+                try:
+                    projected = projector()
+                finally:
+                    with self._operation_lock:
+                        self._snapshot_projection_depth -= 1
+                return projected, observed_state.revision
         with self._operation_lock:
             self._reload_derived_state_if_unpinned()
             observed_state = self._snapshot_state
@@ -233,6 +251,7 @@ class RuntimeControlPlane(
         )
 
     @runtime_owned
+    @mutation_entry(OperationKind.PROVISIONING)
     @store_authoritative_state
     def submit_provisioning(
         self,
@@ -269,16 +288,7 @@ class RuntimeControlPlane(
         if existing is not None:
             return existing
         self._require_observed_base_snapshot(base_snapshot)
-        diagnostics = _submitted_plan_diagnostics(
-            plan,
-            RuntimeDomain.PROVISIONING,
-            self._snapshot,
-            self._target.manifest,
-            self._target.observation_runtime,
-            durable_lifecycle_available=self._store_commits.crash_atomic,
-        )
-        if not diagnostics:
-            diagnostics.extend(self._plan_authorization_diagnostics(plan))
+        diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING)
         if diagnostics:
             return self._reject_diagnostics(
                 domain=RuntimeDomain.PROVISIONING,
@@ -287,12 +297,6 @@ class RuntimeControlPlane(
                 request_fingerprint=context.request_commitment,
                 context=context,
             )
-        if plan.preparation is None:
-            diagnostics = _call_backend_diagnostics(
-                self._target.provisioner.validate,
-                plan,
-                address="runtime.control-plane.provisioning.validate",
-            )
         return execute_operation(
             self,
             OperationExecutionRequest(
@@ -300,16 +304,19 @@ class RuntimeControlPlane(
                 method=self._target.provisioner.apply,
                 plan=plan,
                 address="runtime.control-plane.provisioning",
-                diagnostics=diagnostics,
+                diagnostics=[],
+                validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
                 base_snapshot=base_snapshot,
                 idempotency_key=idempotency_key,
                 request_fingerprint=context.request_commitment,
                 context=context,
                 exact_retry_fingerprint=exact_retry_fingerprint,
+                admission_diagnostics=lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING),
             ),
         )
 
     @runtime_owned
+    @mutation_entry(OperationKind.ORCHESTRATION)
     @store_authoritative_state
     def submit_orchestration(
         self,
@@ -354,16 +361,7 @@ class RuntimeControlPlane(
                 context=context,
             )
         else:
-            diagnostics = _submitted_plan_diagnostics(
-                plan,
-                RuntimeDomain.ORCHESTRATION,
-                self._snapshot,
-                self._target.manifest,
-                self._target.observation_runtime,
-                durable_lifecycle_available=self._store_commits.crash_atomic,
-            )
-            if not diagnostics:
-                diagnostics.extend(self._plan_authorization_diagnostics(plan))
+            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
             if diagnostics:
                 receipt = self._reject_diagnostics(
                     domain=RuntimeDomain.ORCHESTRATION,
@@ -386,11 +384,15 @@ class RuntimeControlPlane(
                         request_fingerprint=context.request_commitment,
                         context=context,
                         exact_retry_fingerprint=exact_retry_fingerprint,
+                        admission_diagnostics=lambda: control_plane_plan_diagnostics(
+                            self, plan, RuntimeDomain.ORCHESTRATION
+                        ),
                     ),
                 )
         return receipt
 
     @runtime_owned
+    @mutation_entry(OperationKind.EVALUATION)
     @store_authoritative_state
     def submit_evaluation(
         self,
@@ -435,16 +437,7 @@ class RuntimeControlPlane(
                 context=context,
             )
         else:
-            diagnostics = _submitted_plan_diagnostics(
-                plan,
-                RuntimeDomain.EVALUATION,
-                self._snapshot,
-                self._target.manifest,
-                self._target.observation_runtime,
-                durable_lifecycle_available=self._store_commits.crash_atomic,
-            )
-            if not diagnostics:
-                diagnostics.extend(self._plan_authorization_diagnostics(plan))
+            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
             if diagnostics:
                 receipt = self._reject_diagnostics(
                     domain=RuntimeDomain.EVALUATION,
@@ -467,6 +460,9 @@ class RuntimeControlPlane(
                         request_fingerprint=context.request_commitment,
                         context=context,
                         exact_retry_fingerprint=exact_retry_fingerprint,
+                        admission_diagnostics=lambda: control_plane_plan_diagnostics(
+                            self, plan, RuntimeDomain.EVALUATION
+                        ),
                     ),
                 )
         return receipt

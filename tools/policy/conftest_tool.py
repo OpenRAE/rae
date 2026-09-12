@@ -10,7 +10,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tools.http_download import download_bytes
+from tools.maintained_client_acquisition import acquire_locked_bytes
 
 from ..tool_versions import CONTFEST_VERSION
 from .common import REPO_ROOT, PolicyFailure
@@ -54,7 +54,7 @@ def _install_locked_binary(
             extracted_stream = archive.extractfile(member)
             if extracted_stream is None:
                 raise RuntimeError("conftest installed archive member cannot be read")
-            extracted_bytes = extracted_stream.read()
+            extracted_bytes = extracted_stream.read(installed.size + 1)
         if len(extracted_bytes) != installed.size or sha256(extracted_bytes).hexdigest() != installed.sha256:
             raise RuntimeError("conftest installed binary differs from the reviewed lock manifest")
         extracted = Path(tmpdir) / "locked-conftest-binary"
@@ -63,7 +63,12 @@ def _install_locked_binary(
         shutil.move(extracted, binary_path)
 
 
-def ensure_conftest(repo_root: Path = REPO_ROOT, *, version: str = CONTFEST_VERSION) -> Path:
+def ensure_conftest(
+    repo_root: Path = REPO_ROOT,
+    *,
+    version: str = CONTFEST_VERSION,
+    local_input: Path | None = None,
+) -> Path:
     from tools.tooling_policy_gate import (
         host_platform_id,
         load_tooling_artifact_selection,
@@ -87,11 +92,12 @@ def ensure_conftest(repo_root: Path = REPO_ROOT, *, version: str = CONTFEST_VERS
         return binary_path
     binary_path.unlink(missing_ok=True)
 
-    asset_name = raw.path
-    archive_bytes = download_bytes(selection.source_urls[0], description="conftest")
-    actual_checksum = sha256(archive_bytes).hexdigest()
-    if len(archive_bytes) != raw.size or actual_checksum != raw.sha256:
-        raise RuntimeError(f"conftest checksum or size mismatch for locked asset {asset_name}")
+    archive_bytes = acquire_locked_bytes(
+        artifact_id="conftest",
+        source_url=selection.source_urls[0],
+        expected=raw,
+        local_input=local_input,
+    )
 
     _install_locked_binary(archive_bytes, installed, binary_path)
     return binary_path

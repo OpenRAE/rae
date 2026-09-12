@@ -65,11 +65,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v5.json`](analysis-v5.json) to the final scoped-observation source
   state. The behavior-preserving remediation replays without result drift from
   release 5.0.0.
-- [`bundles/retest-v6.json`](bundles/retest-v6.json) is current release 7.0.0.
+- [`bundles/retest-v6.json`](bundles/retest-v6.json) preserves release 7.0.0.
   It binds [`execution-snapshot-v6.json`](execution-snapshot-v6.json) and
-  [`analysis-v6.json`](analysis-v6.json) to the issue-1204 recursive realization
-  source state. Two compiler result digests change from the pinned release
-  6.0.0 baseline; the replayed stability and distinguishability outcomes do not.
+  [`analysis-v6.json`](analysis-v6.json) to the tooling-policy configuration
+  change. Every retained observation replays without result drift from release
+  6.0.0.
+- [`bundles/retest-v7.json`](bundles/retest-v7.json) is current release 8.0.0.
+  It binds [`execution-snapshot-v7.json`](execution-snapshot-v7.json) and
+  [`analysis-v7.json`](analysis-v7.json) to the issue-1204 recursive realization
+  source state after integration with the unified control-plane mutation
+  lifecycle. Two compiler result digests change from the pinned release
+  7.0.0 baseline; the replayed stability and distinguishability outcomes do not.
   The original protocol and unsupported claims remain unchanged.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
@@ -115,7 +121,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 7.0.0, rejects unsupported future
+Current validation requires explicit release 8.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

@@ -27,7 +27,7 @@
       "policy_id": "oci-input-v1",
       "subject": "oci-image",
       "status": "active",
-      "accepted_evidence": ["oci-index-digest", "reviewed-consumer-reference"],
+      "accepted_evidence": ["oci-index-digest", "absent-signature-review", "reviewed-consumer-reference"],
       "reviewer_roles": ["Backend", "Security"]
     }
   ],

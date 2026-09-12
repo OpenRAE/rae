@@ -33,6 +33,7 @@ from raes_contracts.contracts import (
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import OperationReceipt, OperationState, operation_terminal_diagnostics
 
+from .control_plane_mutation import external_control_plane_call
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_crossing_action import combined_crossing_audit
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
@@ -156,13 +157,14 @@ def _resolve_flow_sink_relation(
     head_refs: tuple[str, ...],
 ) -> ParticipantFlowSinkResolution | ParticipantFlowSinkDecision:
     try:
-        resolution = hook(
-            snapshot=control_plane._snapshot,
-            intent=crossing.intent,
-            crossing=crossing,
-            sink_kind=sink_kind,
-            expected_history_head_refs=head_refs,
-        )
+        with external_control_plane_call(control_plane):
+            resolution = hook(
+                snapshot=control_plane._snapshot,
+                intent=crossing.intent,
+                crossing=crossing,
+                sink_kind=sink_kind,
+                expected_history_head_refs=head_refs,
+            )
     except Exception:
         # Fail closed for every resolver failure (BaseException such as
         # KeyboardInterrupt/SystemExit still propagates by design).
