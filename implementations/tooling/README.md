@@ -103,8 +103,12 @@ propagates caller trust into local reusable workflows, and checks their input
 and permission ceilings. Remote reusable workflows are rejected until they have
 a complete source/use-site model. Candidate jobs cannot hold write
 permissions, enterprise secrets, OIDC, trusted cache/artifact roles, or
-publication authority. Checkout credential persistence and cache behavior are
-closed source input contracts. The policy compares the complete Dependabot
+publication authority. A job condition may refine pull-request execution to
+the `same-repository-pr` class only by proving that the head repository equals
+`github.repository`; this keeps fork and Dependabot contribution paths in the
+untrusted class while admitting repository-secret checks for repository-owned
+branches. Checkout credential persistence and cache behavior are closed source
+input contracts. The policy compares the complete Dependabot
 configuration so extra update streams, empty groups, schedule changes, or a
 changed `z3-solver` exclusion cannot escape admission.
 

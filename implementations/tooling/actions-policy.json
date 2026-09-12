@@ -1209,7 +1209,8 @@
         "public-ubuntu-24.04-x86_64"
       ],
       "trust_classes": [
-        "protected-branch"
+        "protected-branch",
+        "same-repository-pr"
       ],
       "permissions": {
         "contents": "read"
@@ -2534,7 +2535,8 @@
       "artifact_role": "none",
       "source_id": "sonarqube-scan",
       "trust_classes": [
-        "protected-branch"
+        "protected-branch",
+        "same-repository-pr"
       ]
     },
     {
@@ -2562,7 +2564,8 @@
       "artifact_role": "none",
       "source_id": "checkout",
       "trust_classes": [
-        "protected-branch"
+        "protected-branch",
+        "same-repository-pr"
       ]
     },
     {
@@ -2592,7 +2595,8 @@
       "artifact_role": "read-same-run",
       "source_id": "download-artifact",
       "trust_classes": [
-        "protected-branch"
+        "protected-branch",
+        "same-repository-pr"
       ]
     },
     {

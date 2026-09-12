@@ -205,7 +205,7 @@
         "trust_classes": {
           "type": "array", "minItems": 1, "uniqueItems": true,
           "items": {
-            "enum": ["untrusted-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
+            "enum": ["untrusted-pr", "same-repository-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
           }
         },
         "permissions": {"$ref": "#/$defs/permissions"},
@@ -237,7 +237,7 @@
         "trust_classes": {
           "type": "array", "minItems": 1, "uniqueItems": true,
           "items": {
-            "enum": ["untrusted-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
+            "enum": ["untrusted-pr", "same-repository-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
           }
         },
         "credential_classes": {"$ref": "#/$defs/strings"},

@@ -208,6 +208,16 @@ def _condition_string_literals(expression: tuple[Any, ...]) -> set[str]:
     return literals
 
 
+def _condition_variables(expression: tuple[Any, ...]) -> set[str]:
+    variables: set[str] = set()
+    if expression[0] == "variable":
+        variables.add(str(expression[1]))
+    for child in expression[1:]:
+        if isinstance(child, tuple):
+            variables.update(_condition_variables(child))
+    return variables
+
+
 def _unmodeled_ref(
     known_refs: set[str],
     candidate: str = "refs/heads/__gc-unmodeled-ref__",
@@ -238,11 +248,32 @@ def _generic_trust_contexts(
             "refs/pull/__gc-unmodeled-ref__/merge",
         )
     )
+    repository = "gc/repository"
+    repository_actors = ["gc-repository-actor", "dependabot[bot]"]
     return {
         "untrusted-pr": [
-            {"github.event_name": event_name, "github.ref": reference}
+            {
+                "github.event_name": event_name,
+                "github.ref": reference,
+                "github.repository": repository,
+                "github.event.pull_request.head.repo.full_name": "gc/fork",
+                "github.actor": actor,
+            }
             for event_name in pull_request_events
             for reference in (pull_request_refs if event_name == "pull_request" else all_refs)
+            for actor in repository_actors
+        ],
+        "same-repository-pr": [
+            {
+                "github.event_name": event_name,
+                "github.ref": reference,
+                "github.repository": repository,
+                "github.event.pull_request.head.repo.full_name": repository,
+                "github.actor": actor,
+            }
+            for event_name in pull_request_events
+            for reference in (pull_request_refs if event_name == "pull_request" else all_refs)
+            for actor in repository_actors
         ],
         "untrusted-ref": [{"github.event_name": "push", "github.ref": reference} for reference in unprotected],
         "protected-branch": [{"github.event_name": "push", "github.ref": reference} for reference in protected],
@@ -261,10 +292,15 @@ def _filter_trust_classes(
     expression = _condition_ast(condition)
     if expression is None:
         return classes, False
+    candidate_classes = set(classes)
+    if "untrusted-pr" in candidate_classes and (
+        "github.event.pull_request.head.repo.full_name" in _condition_variables(expression)
+    ):
+        candidate_classes.add("same-repository-pr")
     contexts = _generic_trust_contexts(protected_refs, expression, trigger_names)
     return {
         trust_class
-        for trust_class in classes
+        for trust_class in candidate_classes
         if any(True in _condition_values(expression, context) for context in contexts[trust_class])
     }, True
 

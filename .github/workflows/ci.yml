@@ -173,12 +173,15 @@ jobs:
   sonar:
     runs-on: ubuntu-24.04
     needs: [verify]
-    # Candidate PR code must never receive the enterprise Sonar credential.
-    # The protected push reruns the same canonical verification result before
-    # Sonar consumes the checked-out revision.
+    # GitHub withholds Actions secrets from forked and Dependabot pull requests.
+    # Run the quality gate for same-repository PRs so findings block the
+    # merge, while keeping the credential out of untrusted contribution paths.
     if: >-
-      github.event_name == 'push'
-      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+      (github.event_name == 'push'
+      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+      || (github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.actor != 'dependabot[bot]')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

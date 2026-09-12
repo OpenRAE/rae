@@ -1211,6 +1211,50 @@ def test_complete_action_admission_context_is_accepted(tmp_path: Path) -> None:
     assert not _failures(root, tracked_paths=[".github/workflows/test.yml"])
 
 
+def test_same_repository_pr_condition_refines_secret_boundary(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        """on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-24.04
+    env:
+      ANALYSIS_TOKEN: ${{ secrets.ANALYSIS_TOKEN }}
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+""",
+        encoding="utf-8",
+    )
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    trust_classes = ["protected-branch", "same-repository-pr"]
+    credential_classes = ["github-token", "secret:analysis-token"]
+    policy["workflow_jobs"][0]["trust_classes"] = trust_classes
+    policy["workflow_jobs"][0]["credential_classes"] = credential_classes
+    policy["use_sites"][0]["trust_classes"] = trust_classes
+    policy["use_sites"][0]["credential_classes"] = credential_classes
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    profiles = _load(root, PROFILES_PATH)
+    profiles["qualification_records"][0]["policy_sha256"] = tooling_policy_sha256(root)
+    _write_json(root, PROFILES_PATH, profiles)
+
+    assert not _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
 def test_action_source_owner_and_reviewer_roles_must_be_independent(tmp_path: Path) -> None:
     root = _seed_policy(tmp_path)
     _seed_valid_checkout_admission(root)

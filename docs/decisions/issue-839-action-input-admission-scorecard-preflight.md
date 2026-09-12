@@ -37,9 +37,10 @@ expanding the JSON inventory:
   `pull-requests: write`, although no current CI step needs it. Fork token
   downgrading is not a substitute for an explicit untrusted-job boundary.
 - The Sonar job excludes forks and Dependabot but supplies `SONAR_TOKEN` while
-  consuming a same-repository PR checkout and configuration. Any PR head is
-  candidate input; enterprise credentials must be confined to protected-branch
-  execution or an equivalently protected workflow/policy boundary.
+  consuming a same-repository PR checkout and configuration. That path must be
+  represented by an explicit same-repository trust class proven from the exact
+  head-repository condition; generic PR paths remain untrusted and cannot
+  receive the credential.
 - `ci.yml`, `scorecard.yml`, and `release-please.yml` accept manual dispatch.
   Their privileged jobs do not all prove that the selected workflow definition
   is the protected revision: CI's non-PR condition admits the Sonar secret,
