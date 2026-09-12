@@ -40,7 +40,7 @@ def _receipt_response(receipt: OperationReceipt) -> OperationReceiptModel:
     )
 
 
-async def _record_operation_receipt_audit(
+def _record_operation_receipt_audit(
     calls: _ControlPlaneCallExecutor,
     control_plane: RuntimeControlPlane,
     *,
