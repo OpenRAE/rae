@@ -2,9 +2,9 @@
   "contract_id": "experiment-binding-descriptors-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-binding-descriptors-v1.json",
   "stability": "draft",
-  "content_hash": "788ba843a35efcb88019c79717c1fe0e6b05fe096194bcbd833cc06cd39da189",
+  "content_hash": "0cc0394e63b3c482c4f0ca346604d0197b5fa4b55603d979dedcae0f600a9d88",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "788ba843a35efcb88019c79717c1fe0e6b05fe096194bcbd833cc06cd39da189"
+    "summary": "Updated shared scalar-union ordering after software-contract imports; accepted scalar values are unchanged (#1205).",
+    "content_hash": "0cc0394e63b3c482c4f0ca346604d0197b5fa4b55603d979dedcae0f600a9d88"
   }
 }

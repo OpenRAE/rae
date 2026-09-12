@@ -610,7 +610,7 @@
         "value": {
           "anyOf": [
             {
-              "type": "boolean"
+              "type": "string"
             },
             {
               "type": "integer"
@@ -619,7 +619,7 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "boolean"
             },
             {
               "type": "null"

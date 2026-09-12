@@ -54,6 +54,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "7.0.0",
         "8.0.0",
         "9.0.0",
+        "10.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -61,10 +62,17 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
 
-    assert release.manifest["revision"] == "9.0.0"
+    assert release.manifest["revision"] == "10.0.0"
     assert protocol["revision"] == corpus["revision"] == "2.0.0"
-    assert snapshot["baseline"]["release_revision"] == "8.0.0"
-    assert snapshot["deviations"] == []
+    assert snapshot["baseline"]["release_revision"] == "9.0.0"
+    assert {item["case_id"] for item in snapshot["deviations"]} == {
+        "compile-repeatability-control",
+        "compile-non-vacuity-control",
+    }
+    assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
+    assert all(
+        item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
+    )
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
 

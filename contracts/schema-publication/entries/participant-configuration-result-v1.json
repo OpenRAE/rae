@@ -2,9 +2,9 @@
   "contract_id": "participant-configuration-result-v1",
   "schema_path": "contracts/schemas/participant-implementation-configuration/participant-configuration-result-v1.json",
   "stability": "draft",
-  "content_hash": "744f485aa40a45574b8a0a4e5c1141d0edaaeb4bf97b16e4ef8bab8872e5b7d3",
+  "content_hash": "d57514f97dd434b94e2e7474cfcff8ce66c7b6187360993c281294ae8ff65952",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "744f485aa40a45574b8a0a4e5c1141d0edaaeb4bf97b16e4ef8bab8872e5b7d3"
+    "summary": "Updated shared scalar-union ordering after software-contract imports; accepted scalar values are unchanged (#1205).",
+    "content_hash": "d57514f97dd434b94e2e7474cfcff8ce66c7b6187360993c281294ae8ff65952"
   }
 }

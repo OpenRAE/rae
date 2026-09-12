@@ -135,8 +135,8 @@ class RuntimeAptPackageRepository(SDLModel):
         return sorted(value)
 
 
-# The profile discriminator and version are fixed on the initial member. Future
-# managers extend this public alias with their own closed profile models.
+# This compatibility profile retains its fixed final-state meaning. New
+# acquisition semantics use component domain-profile refinements instead.
 RuntimePackageRepository = Annotated[
     RuntimeAptPackageRepository,
     Field(discriminator="repository_profile"),

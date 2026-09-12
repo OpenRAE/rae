@@ -18,7 +18,7 @@ from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 from ._errors import SDLParseDiagnostic, SDLSourcePosition, SDLSourceRange
 from ._identifiers import is_portable_identifier
-from ._mapping_scopes import MappingScope, is_literal_map_field, normalize_field_key
+from ._mapping_scopes import PROFILE_JSON_FIELDS, MappingScope, is_literal_map_field, normalize_field_key
 from ._source_identifier_paths import is_declaration_key_path, is_scalar_identifier_path
 from ._source_profile import SDLMigrationPolicy
 
@@ -433,6 +433,8 @@ def _merge_sources(node: Node) -> Iterator[MappingNode]:
 
 
 def _child_scope(scope: MappingScope, canonical: str, value_node: Node) -> MappingScope:
+    if scope is MappingScope.DATA or scope is MappingScope.STRUCTURAL and canonical in PROFILE_JSON_FIELDS:
+        return MappingScope.DATA
     is_literal = scope is MappingScope.STRUCTURAL and is_literal_map_field(
         canonical,
         value_is_mapping=isinstance(value_node, MappingNode),

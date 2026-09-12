@@ -10,6 +10,7 @@ from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .realization_concerns import realization_concern_descriptor
+from .software_identity import validate_returned_software_references
 
 if TYPE_CHECKING:
     from .realization import CompiledRealizationRequirement
@@ -46,6 +47,8 @@ def sanitize_realization_snapshot(
         _set_concern_value(payload, descriptor.payload_path, safe_value)
         entries[requirement.address] = replace(entry, payload=payload)
         sanitized.add(key)
+    for address in {address for address, _ in sanitized}:
+        validate_returned_software_references(entries[address].payload)
     return returned_snapshot.with_entries(entries)
 
 
@@ -86,6 +89,8 @@ def _project_payload(
     observed: bool,
 ) -> dict[str, object]:
     projected = deepcopy(payload)
+    if observed:
+        validate_returned_software_references(projected)
     handled: set[tuple[str, ...]] = set()
     for requirement in requirements:
         descriptor = realization_concern_descriptor(requirement.requirement_kind)

@@ -1098,7 +1098,8 @@
               "governed-reference": "#/$defs/GovernedReferenceDomain",
               "null": "#/$defs/NullDomain",
               "numeric-interval": "#/$defs/NumericIntervalDomain",
-              "record": "#/$defs/RecordDomain"
+              "record": "#/$defs/RecordDomain",
+              "version": "#/$defs/VersionDomain"
             },
             "propertyName": "kind"
           },
@@ -1114,6 +1115,9 @@
             },
             {
               "$ref": "#/$defs/NullDomain"
+            },
+            {
+              "$ref": "#/$defs/VersionDomain"
             },
             {
               "$ref": "#/$defs/NumericIntervalDomain"
@@ -1662,6 +1666,86 @@
         "fields"
       ],
       "title": "RecordDomain",
+      "type": "object"
+    },
+    "VersionDomain": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "lower": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "lower"
+          ]
+        },
+        {
+          "properties": {
+            "upper": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "upper"
+          ]
+        }
+      ],
+      "description": "An optional one-sided or bounded restriction; exact SDL strings stay exact.\n\nComparison equality is relation-owned. This never asserts correspondence\nbetween an application version and a distribution package version.",
+      "properties": {
+        "kind": {
+          "const": "version",
+          "default": "version",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lower": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lower"
+        },
+        "lower_closed": {
+          "default": true,
+          "title": "Lower Closed",
+          "type": "boolean"
+        },
+        "relation": {
+          "$ref": "#/$defs/DomainProfileSemanticContractModel"
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upper"
+        },
+        "upper_closed": {
+          "default": true,
+          "title": "Upper Closed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "relation"
+      ],
+      "title": "VersionDomain",
       "type": "object"
     }
   },

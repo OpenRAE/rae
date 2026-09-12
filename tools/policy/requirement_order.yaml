@@ -60,6 +60,11 @@ phases:
       - ASR-538
     blocked_until:
       - modular-control-runtime
+  - id: software-requirement-semantics
+    requirements:
+      - SEM-218
+    blocked_until:
+      - reference-implementations
   - id: semantics-expansion
     patterns:
       - ^SEM-
@@ -215,6 +220,37 @@ ownership:
     - implementations/python/tests
     - contracts/fixtures
     - CHANGELOG.md
+  # SEM-218 uses shared semantic contracts and their generated/evidence closure.
+  # It does not own backend implementations or downstream scenarios.
+  software-requirement-semantics:
+    - contracts/schemas/sdl
+    - contracts/schemas/realization-constraints
+    - contracts/schemas/plans
+    - contracts/schemas/satisfiability
+    - contracts/schemas/backend-manifest
+    - contracts/schemas/processor-manifest
+    - contracts/schemas/experiment-core
+    - contracts/schemas/participant-implementation-configuration
+    - contracts/schemas/participant-implementation-manifest
+    - contracts/schemas/participant-runtime
+    - contracts/schema-publication/entries
+    - docs/decisions
+    - docs/explain/reference
+    - docs/explain/sdl
+    - docs/requirements/SEM-218
+    - docs/requirements/ASR-530
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_contracts
+    - implementations/python/tests
+    - implementations/python/pyproject.toml
+    - implementations/python/uv.lock
+    - implementations/tooling/python/smoke
+    - implementations/tooling/profiles/development-profiles.json
+    - specs/formal
+    - specs/sdl
   semantics-expansion:
     - contracts/schemas/sdl
     - docs/explain/reference

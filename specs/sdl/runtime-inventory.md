@@ -90,6 +90,11 @@ authored `accounts`, runtime local identity, application authorization, database
 roles, and participant identities are distinct models and MUST NOT be collapsed
 into one.
 
+Component software requirements, exact-package shorthand, optional typed
+acquisition refinements and the node-local shared `repository_state` surface
+follow [software-requirements.md](software-requirements.md). They do not add
+ref-targetable service families to the table above.
+
 A node's `runtime.environment[]` variable and `runtime.environment_files[]` entry
 may source their value from a **generated-artifact output** instead of a literal,
 using a value-free `value_from: {generated_artifact, output}` reference. This is

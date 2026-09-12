@@ -10,6 +10,13 @@ models, schemas, compiler behavior, backend support, or package installation.
 Existing decisions already own the relevant boundaries, so no new ADR or ADR
 amendment is required.
 
+Scope clarification (2026-09-12): this note preserves the legacy exact APT
+shorthand's meaning. Its closed profile-union direction, final-state coupling
+and verification obligations are not general requirements for software
+outcomes or backend-internal acquisition. For the corrective #1205 design,
+use the [software outcomes preflight](issue-1205-software-outcomes-preflight.md)
+and its governing references; do not weaken existing `apt`/`1` semantics.
+
 ## Architectural Diagnosis
 
 `RuntimePackage` is currently a closed object only in the Pydantic/JSON Schema

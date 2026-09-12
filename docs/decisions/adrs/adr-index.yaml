@@ -190,11 +190,14 @@ adrs:
         summary: "Refined participant-discoverable capture versus deliberate authored runtime contract promotion across the six carrier categories."
   - id: ADR-034
     path: docs/decisions/adrs/adr-034-runtime-software-component-inventory.md
-    pin: eb62ece791c5c0b442d5c77d89867832c01f0f5bc108b577f8636089be7c647e
+    pin: 4fd19ef7fc5b15cea8ea385fb987ae1ad1ff2723b7c330b635d33f3b13874c48
     amendments:
       - date: 2026-07-13
         ref: "#417"
         summary: "Clarified authored software components as required final state and moved scanner/SBOM/filesystem/process capture methods to evidence provenance."
+      - date: 2026-09-12
+        ref: "#1205"
+        summary: "Adopted generic software refinements, exact-package compatibility, shared final repository/trust identity and independent acquisition/reporting boundaries."
   - id: ADR-035
     path: docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md
     pin: a8eb4df39f8b88781fee62ce83a2d2abee3951ebbeed5dc0c544a2a929ffad06

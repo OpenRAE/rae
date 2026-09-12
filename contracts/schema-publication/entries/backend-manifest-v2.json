@@ -2,9 +2,9 @@
   "contract_id": "backend-manifest-v2",
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft",
-  "content_hash": "565389f5ce75589ab6f8f559507027841c5b3afce939b3c37b596ed361dc78ad",
+  "content_hash": "9b141567c4231b734da4f2512ec283d3b847169505b5f0e4d3fb5b119af10946",
   "last_change": {
-    "summary": "Negotiated read-only joint preparation and plan-level profiles with a pinned target context digest for issue #1204.",
-    "content_hash": "565389f5ce75589ab6f8f559507027841c5b3afce939b3c37b596ed361dc78ad"
+    "summary": "Updated shared scalar-union ordering after software-contract imports; accepted scalar values are unchanged (#1205).",
+    "content_hash": "9b141567c4231b734da4f2512ec283d3b847169505b5f0e4d3fb5b119af10946"
   }
 }

@@ -497,6 +497,22 @@
       "version": "0.30.0"
     },
     {
+      "filename": "semantic_version-2.10.0-py2.py3-none-any.whl",
+      "name": "semantic-version",
+      "sha256": "de78a3b8e0feda74cabc54aab2da702113e33ac9d9eb9d2389bcf1f58b7d9177",
+      "size": 15552,
+      "url": "https://files.pythonhosted.org/packages/6a/23/8146aad7d88f4fcb3a6218f41a60f6c2d4e3a72de72da1825dc7c8f7877c/semantic_version-2.10.0-py2.py3-none-any.whl",
+      "version": "2.10.0"
+    },
+    {
+      "filename": "semver-3.0.4-py3-none-any.whl",
+      "name": "semver",
+      "sha256": "9c824d87ba7f7ab4a1890799cec8596f15c1241cb473404ea1cb0c55e4b04746",
+      "size": 17912,
+      "url": "https://files.pythonhosted.org/packages/a6/24/4d91e05817e92e3a61c8a21e08fd0f390f5301f1c448b137c57c4bc6e543/semver-3.0.4-py3-none-any.whl",
+      "version": "3.0.4"
+    },
+    {
       "filename": "shellingham-1.5.4-py2.py3-none-any.whl",
       "name": "shellingham",
       "sha256": "7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686",
@@ -657,6 +673,14 @@
       "version": "0.4.2"
     },
     {
+      "filename": "univers-32.0.1-py3-none-any.whl",
+      "name": "univers",
+      "sha256": "50a574ff2321e31e1eba7aa586bf63a9558d91c69c70316bf26c75e1b122499b",
+      "size": 98791,
+      "url": "https://files.pythonhosted.org/packages/a7/4f/1c7953d10a9147dc1ec8a4902a1e08d7107d1f4833e316470190039e8507/univers-32.0.1-py3-none-any.whl",
+      "version": "32.0.1"
+    },
+    {
       "filename": "urllib3-2.7.0-py3-none-any.whl",
       "name": "urllib3",
       "sha256": "9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897",
@@ -706,8 +730,8 @@
     }
   ],
   "lock_path": "implementations/python/uv.lock",
-  "lock_sha256": "0b7eb0cfefeb18ef2ef9df8687d3dfbe362c228db10527f08032d0cf502a39c8",
+  "lock_sha256": "1f8bb8a09c7535a4bf00ed073c76308ae625e2c1dab1d77ba151bbec114de7ba",
   "python_closure_profile_id": "public-linux-x86_64-cp312-all-extras",
-  "requirements_sha256": "fc2be472c289d8b7af4799315f91e2ae998fd28ce1b3aba3a9ae2c328abeee2b",
+  "requirements_sha256": "58c6c1f64fad378874e96dd92220bdb0960f59d9e359ac921b8d07a8bf0f237b",
   "schema_version": "raes-python-wheelhouse-manifest/v1"
 }

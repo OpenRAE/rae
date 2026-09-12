@@ -24,6 +24,7 @@ from ._legacy_node_migration import migrate_legacy_vm_nodes
 from ._mapping_scopes import (
     HASHMAP_SECTIONS,
     NESTED_HASHMAP_FIELDS,
+    PROFILE_JSON_FIELDS,
     MappingScope,
     is_literal_map_field,
     normalize_field_key,
@@ -139,7 +140,11 @@ def _normalize_keys(data: Any, is_hashmap: bool = False) -> Any:
                 # Check if this field's children are user-defined HashMap keys
                 child_key = norm_k if isinstance(norm_k, str) else str(norm_k)
                 child_is_hashmap = _child_is_hashmap_field(child_key, v)
-            result[norm_k] = _normalize_keys(v, is_hashmap=child_is_hashmap)
+            result[norm_k] = (
+                v
+                if not is_hashmap and norm_k in PROFILE_JSON_FIELDS
+                else _normalize_keys(v, is_hashmap=child_is_hashmap)
+            )
         return result
     if isinstance(data, list):
         # List items inherit the hashmap flag — if the parent dict had

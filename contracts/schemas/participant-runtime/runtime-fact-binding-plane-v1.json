@@ -300,7 +300,7 @@
         "value": {
           "anyOf": [
             {
-              "type": "boolean"
+              "type": "string"
             },
             {
               "type": "integer"
@@ -309,7 +309,7 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "boolean"
             },
             {
               "type": "null"
@@ -614,7 +614,7 @@
         "value": {
           "anyOf": [
             {
-              "type": "boolean"
+              "type": "string"
             },
             {
               "type": "integer"
@@ -623,7 +623,7 @@
               "type": "number"
             },
             {
-              "type": "string"
+              "type": "boolean"
             },
             {
               "type": "null"

@@ -10,11 +10,29 @@ documentation more precise and easier to validate.
   is enough. Use `No issue: <brief reason>` in its Issue tracking section.
 - For SDL language changes, contract changes, processor behavior changes, or
   backend conformance changes, open an issue first and reference it with a
-  standalone `Closes #N` line. Those changes can affect authored scenario
+  standalone `Refs #N` line when the issue's Requirements section declares
+  requirement UIDs, or `Closes #N` otherwise. Those changes can affect authored scenario
   meaning and generated artifacts.
 - Keep unrelated work in separate pull requests.
 - Base pull requests on `dev`, not `main`. `main` is the stable release line;
   `dev` is the integration branch.
+
+Requirement-backed issues stay open at merge. The delivery workflow verifies
+the merged requirement status and traceability, records its final report, and
+then closes the issue. Do not add closing keywords elsewhere in the PR body to
+circumvent that verification. The body guard checks scope from the linked issue,
+not from a self-declaration in the PR. Keep the plain-language Context, Problem
+and Fix bullets and substantive Verification evidence. The tracking heading may
+be `Issue tracking` or the workflow renderer's `Related Issues`; the former
+`Issues closed` heading remains compatible on existing PRs.
+
+The body guard normally executes the validator from the PR's base revision.
+The requirement-aware policy migration admits exactly one legacy validator
+digest and one pinned replacement Git blob, with an independent SHA-256 check
+before execution. This lets the introducing PR be validated without executing
+PR-head code or bypassing policy. Once the replacement lands on `dev`, the
+legacy digest no longer matches and the normal base-validator path applies.
+Changing this migration pin is an explicit, reviewable workflow trust change.
 
 ## Set up the repository
 

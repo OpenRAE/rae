@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.realization_structure import RealizationPresence
 
 from . import runtime_app_authorization as _runtime_app_authorization
 from . import runtime_application as _runtime_application
@@ -109,6 +110,7 @@ from .runtime_software import (
     RuntimeSoftwareComponentProvenance,
     RuntimeSoftwareComponentType,
 )
+from .runtime_software_repositories import RuntimeSoftwareRepositoryState, require_compatible_presence
 from .runtime_values import absolute_path_or_var as _abs_path_or_var
 from .runtime_values import parse_ram
 from .runtime_values import parse_runtime_enum_or_var as _parse_runtime_enum_or_var
@@ -321,7 +323,37 @@ class RuntimeConfiguration(SDLModel):
     service_manager_units: list[ServiceManagerUnit] = Field(default_factory=list)
     packages: list[RuntimePackage] = Field(default_factory=list)
     software_components: list[RuntimeSoftwareComponent] = Field(default_factory=list)
+    repository_state: RuntimeSoftwareRepositoryState | None = None
     dependency_manifests: list[RuntimeDependencyManifest] = Field(default_factory=list)
+
+    def exact_package_requirements(self) -> Iterable[RuntimePackage]:
+        """One exact refinement type, shared by canonical components and shorthand."""
+
+        yield from self.packages
+        yield from (
+            component.package
+            for component in self.software_components
+            if component.package is not None and component.presence is not RealizationPresence.FORBIDDEN
+        )
+
+    def resolved_software_package(self, component: RuntimeSoftwareComponent) -> RuntimePackage | None:
+        """Resolve an explicit reference only; equal names never create a relation."""
+
+        reference = component.package_ref
+        if reference is None:
+            return component.package
+        matches = [
+            package
+            for package in self.packages
+            if (
+                package.manager == reference.manager
+                and package.name == reference.name
+                and (not reference.architecture or package.architecture == reference.architecture)
+            )
+        ]
+        if len(matches) != 1:
+            raise ValueError("Software package reference must resolve exactly one package row")
+        return matches[0]
 
     @model_validator(mode="after")
     def validate_unique_runtime_entries(self) -> "RuntimeConfiguration":
@@ -391,4 +423,17 @@ class RuntimeConfiguration(SDLModel):
         _reject_duplicate_keys(self.mail_services, attr="mail_service_id", label="mail_service mail_service_id")
         _reject_duplicate_package_identities(self.packages)
         _reject_duplicate_keys(self.software_components, attr="component_id", label="software component")
+        for component in self.software_components:
+            repositories = (
+                {}
+                if self.repository_state is None
+                else {item.repository_id: item for item in self.repository_state.repositories}
+            )
+            for repository_ref in component.repository_refs:
+                if repository_ref not in repositories:
+                    raise ValueError("Software repository reference does not resolve")
+                require_compatible_presence(component.presence, repositories[repository_ref].presence)
+            package = self.resolved_software_package(component)
+            if package is not None:
+                component.validate_package_correspondence(package)
         return self

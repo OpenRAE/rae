@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-09-06T00:00:00Z
+updated_at: 2026-09-12T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -20,6 +20,40 @@ The ecosystem shall define semantics distinguishing binding author declarations 
 Current state: identified gap. Honest portability requires normative semantics for what is binding, what may be realized later, and when approximation is forbidden.
 
 ## Traceability
+
+- TESTS → TEST `implementations/python/tests/test_pr_body_guard.py` (Ancillary delivery-policy repair: preserve post-merge verification before requirement-backed issue closure; not software semantics)
+- TESTS → TEST `implementations/python/tests/test_pr_body_policy_migration.py` (Ancillary delivery-policy migration: execute only the pinned replacement of the exact legacy guard)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_typed_runtime_projection.py` (Comparison-only repository-reference sets with native snapshot values)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_mapping_key_analyzer.py` (Preserve typed profile JSON key identity)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_mapping_scopes.py` (Separate profile data from structural SDL keys)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parser.py` (Preserve authored profile data during normalization)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_nodes_infra_network.py` (Apply existing architecture checks to canonical exact-package refinements)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_operational_verification.py` (Keep software constraints independent of unrequested observation)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Replay unchanged claim boundaries and exact compiler deviations)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Replay the existing coverage protocol against current software semantics)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Reject stale current captures while preserving historical evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_repository_governance.py` (Constrain ownership to generic semantics and required evidence)
+- TESTS → TEST `implementations/python/tests/test_dsl_437_benign_participant_execution.py` (Deterministic pause/resume pacing regression repaired during completion verification)
+- DOCUMENTS → ADR `docs/decisions/adrs/adr-034-runtime-software-component-inventory.md` (In-band software requirement amendment under ADR-059)
+- IMPLEMENTS → GITHUB_ISSUE `1205` (Software requirements, acquisition constraints and shared final-state identity)
+- IMPLEMENTS → SPEC `specs/sdl/software-requirements.md` (Generic ownership, version predicates, package compatibility, profiles and evidence separation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_software.py` (Independent presence and application/package constraints on the canonical component owner)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_software_profiles.py` (Pinned software profile and explicit package-reference authoring)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_software_repositories.py` (Shared repository/trust identity, presence and reference consistency)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/software_versions.py` (Pure bounded named version relations and honest unsupported outcomes)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/software_constraints.py` (Conjunctive exact, range and explicitly linked package coordinates)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/software_profiles.py` (Software profile carriage through the incumbent plan host and inherited closure)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/software_identity.py` (Legacy package identity and joint returned-reference validation)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_software_versions.py` (Version ordering, range boundaries, distinct versions and unsupported composition)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_software_carriage.py` (Portable plan/result constraints, presence and support admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_software_profiles.py` (Private route carriage, inherited profile openness, package correspondence and insecure descriptions)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_refinement_ownership.py` (Every valid and invalid owner/purpose pairing across runtime, parser/compiler and published schemas)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_repository_state.py` (Shared identities, final absence and dangling returned-reference rejection)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_package_identity.py` (Exact-package refinement compatibility, architecture identity and joint coordinate admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_kali_ladder.py` (Inherited freedom, exact tools and optional-if-present conformance)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_software_reporting.py` (Selected description depth without unrequested acquisition telemetry or retention/export)
+- TESTS → TEST `implementations/python/tests/test_issue_1205_profile_execution.py` (Installed application/package correspondence rejects incompatible completion before effects)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1205-software-outcomes-remediation.md` (Whole-surface assessment, architecture rationale and repository boundary)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/__init__.py` (Public owner and compatibility facade for realization authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_models.py` (Versioned recursive authority, closure, collection, reference, provenance, and limit contracts)
@@ -145,7 +179,6 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_contracts.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_identity.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/compute_substrate.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py`

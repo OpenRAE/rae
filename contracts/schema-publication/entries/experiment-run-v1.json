@@ -2,9 +2,9 @@
   "contract_id": "experiment-run-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft",
-  "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75",
+  "content_hash": "8896f468a805af667e61f42d26a9b6fc2d97b876fff01ec1d017c25f22e11c88",
   "last_change": {
-    "summary": "Separated structural task/run validation from authoritative content-backed evidence satisfaction for issue #1112.",
-    "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75"
+    "summary": "Updated shared scalar-union ordering after software-contract imports; accepted scalar values are unchanged (#1205).",
+    "content_hash": "8896f468a805af667e61f42d26a9b6fc2d97b876fff01ec1d017c25f22e11c88"
   }
 }

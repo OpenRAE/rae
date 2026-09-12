@@ -36,6 +36,8 @@ dependencies = [
     "jsonschema-specifications==2025.9.1",
     "referencing==0.37.0",
     "packaging>=23.0",
+    # Pure Debian/RPM comparison; selected by exact software semantic contracts.
+    "univers==32.0.1",
     "rfc8785>=0.1.4,<0.2",
     "blake3>=1.0.8,<2",
     # Pinned to the governed raes-z3-finite-domain/v1 solver profile. The

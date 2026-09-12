@@ -2,9 +2,9 @@
   "contract_id": "runtime-fact-binding-plane-v1",
   "schema_path": "contracts/schemas/participant-runtime/runtime-fact-binding-plane-v1.json",
   "stability": "draft",
-  "content_hash": "b9caac5ba2595f7874e99354fab676f23dd19a1735ccac4b31b4ee5650dc103a",
+  "content_hash": "946424ce707419bd4e09f1633bc124899be3b7e18d546bd0985f854517d1017f",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "b9caac5ba2595f7874e99354fab676f23dd19a1735ccac4b31b4ee5650dc103a"
+    "summary": "Updated shared scalar-union ordering after software-contract imports; accepted scalar values are unchanged (#1205).",
+    "content_hash": "946424ce707419bd4e09f1633bc124899be3b7e18d546bd0985f854517d1017f"
   }
 }

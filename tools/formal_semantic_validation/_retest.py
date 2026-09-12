@@ -67,7 +67,7 @@ def _validate_retest_snapshot(
         _SNAPSHOT_V2_KEYS
         | (
             {"source_state"}
-            if release.manifest.get("revision") in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}
+            if release.manifest.get("revision") in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0"}
             else set()
         ),
         rule_id="formal-validation-snapshot-shape",
@@ -93,6 +93,7 @@ def _validate_retest_snapshot(
         "7.0.0",
         "8.0.0",
         "9.0.0",
+        "10.0.0",
     }:
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
     _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)

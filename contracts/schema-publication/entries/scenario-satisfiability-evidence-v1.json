@@ -1,10 +1,10 @@
 {
+  "content_hash": "4755879288532bee217bbd4b9a892f76bda248825eb4b06c995d8c8814177fb3",
   "contract_id": "scenario-satisfiability-evidence-v1",
-  "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
-  "stability": "draft",
-  "content_hash": "995ac88a10e61b754b7d730848775ccdd0d9bd168b49b6fb822cdf5caa3aa37b",
   "last_change": {
-    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
-    "content_hash": "995ac88a10e61b754b7d730848775ccdd0d9bd168b49b6fb822cdf5caa3aa37b"
-  }
+    "content_hash": "4755879288532bee217bbd4b9a892f76bda248825eb4b06c995d8c8814177fb3",
+    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner."
+  },
+  "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
+  "stability": "draft"
 }

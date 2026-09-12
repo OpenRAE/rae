@@ -5,13 +5,31 @@ from pydantic import TypeAdapter
 from ._build import RealizationConstraintBuildResult, build_failure
 from ._common import validate_realization_value
 from ._models import (
+    RealizationAllOf,
     RealizationConstraintLimits,
+    RealizationDelegatedValue,
+    RealizationDomainValue,
+    RealizationKnowledgeValue,
+    RealizationLiteral,
     RealizationOrigin,
     RealizationRelationStatus,
     RecursiveRealizationStructure,
 )
 
 _LEAF_ADAPTER = TypeAdapter(RecursiveRealizationStructure)
+
+
+def is_scalar_constraint(constraint: RecursiveRealizationStructure) -> bool:
+    if isinstance(constraint, RealizationAllOf):
+        return len(constraint.constraints) <= 256 and all(
+            isinstance(
+                item, (RealizationDelegatedValue, RealizationDomainValue, RealizationKnowledgeValue, RealizationLiteral)
+            )
+            for item in constraint.constraints
+        )
+    return isinstance(
+        constraint, (RealizationDelegatedValue, RealizationDomainValue, RealizationKnowledgeValue, RealizationLiteral)
+    )
 
 
 def validated_leaf_override(

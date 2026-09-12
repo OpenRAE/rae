@@ -10,6 +10,7 @@ from raes_contracts.apparatus import (
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.realization_structure import RealizationCollection, RealizationRecord
+from raes_contracts.software_versions import has_version_constraints, version_relations_supported
 from raes_contracts.vocabulary import RealizationSupportMode
 
 from .realization_apparatus_defaults import (
@@ -49,10 +50,22 @@ def _realization_support_diagnostic(
     manifest: BackendManifest,
     apparatus_default: ApparatusRealizationDefaultResolver | None,
 ) -> Diagnostic | None:
+    if requirement.constraint_document is not None and not version_relations_supported(requirement.constraint_document):
+        return Diagnostic(
+            "realization.unsupported-version-relation",
+            requirement.domain,
+            requirement.address,
+            "Required version comparison semantics are not installed.",
+            severity=Severity.ERROR,
+        )
     explicitness = effective_realization_explicitness(requirement, manifest, apparatus_default)
     declarations = [
         declaration for declaration in manifest.realization_support if declaration.domain == requirement.domain
     ]
+    if requirement.constraint_document is not None and has_version_constraints(requirement.constraint_document):
+        diagnostic = _constraint_support_diagnostic(requirement, declarations)
+        if diagnostic is not None:
+            return diagnostic
     if requirement.requirement_kind == "process-resource-limits":
         process_diagnostic = process_resource_limit_support_diagnostic(
             requirement, declarations, explicitness, manifest.realization_envelope

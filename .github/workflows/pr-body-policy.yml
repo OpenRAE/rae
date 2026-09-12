@@ -32,8 +32,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ ! -f tools/check_pr_body.py ]; then
-            echo "::notice::body guard is not on the base ref yet; bootstrap PR only"
-            exit 0
+          validator=tools/check_pr_body.py
+          base_digest=$(sha256sum "$validator" | cut -d ' ' -f 1)
+          # Explicit legacy-to-requirement-aware migration. Fetch only this
+          # immutable blob, never a branch path or PR-head executable. Both pins
+          # are review-protected workflow policy, independent of event input.
+          if [ "$base_digest" = c3be7b261802eb2359714974778933cd4b7ef92e7b69a88f6bbd68b309a9d228 ]; then
+            validator="$RUNNER_TEMP/pr-body-validator.py"
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/fbfd79761f531d970766d001ba750c83dbe7770b" \
+              --jq .content | base64 --decode > "$validator"
+            echo "94207f785993226d1784ac1340b95a2810fb9582e1411ab7180730f3b58088e1  $validator" | sha256sum --check --strict
           fi
-          python tools/check_pr_body.py
+          python -I "$validator"
