@@ -11,6 +11,8 @@ from raes_contracts.contracts import (
     ExperimentRealizedFormDisclosureModel,
     ExperimentReferenceModel,
 )
+from raes_contracts.contracts.realization_descriptions import TypedRealizationDescriptionModel
+from raes_contracts.description_projection import readmit_description
 from raes_contracts.observation_demand import (
     ObservationBasis,
     ObservationLifecycleItem,
@@ -138,6 +140,7 @@ def _realized_form_disclosure(
         else [ExperimentEvidenceRecordReferenceModel(ref_kind="evidence-record", ref_id=evidence_ref)]
     )
     integrity = "" if integrity_ref is None else f" Integrity reference: {integrity_ref}."
+    description = readmit_description(value) if isinstance(value, TypedRealizationDescriptionModel) else None
     return ExperimentRealizedFormDisclosureModel(
         concern_id=selector_key,
         concern_kind="other",
@@ -147,7 +150,12 @@ def _realized_form_disclosure(
             ref_id=manifest.identity.name,
             ref_version=manifest.identity.version,
         ),
-        realized_value_summary=_json_text(value),
+        realized_value_summary=(
+            f"Requested typed description with {len(description.facts)} facts."
+            if description is not None
+            else _json_text(value)
+        ),
+        typed_description=description,
         disclosure=f"Requested realization description achieved with basis '{basis.value}'.{integrity}",
         evidence_refs=evidence_refs,
     )
@@ -155,10 +163,18 @@ def _realized_form_disclosure(
 
 def _json_value(value: object) -> object:
     try:
-        encoded = json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":"))
+        encoded = json.dumps(
+            value, default=_description_json, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":")
+        )
         return json.loads(encoded)
     except (TypeError, ValueError) as exc:
         raise ValueError("observation result must be JSON-compatible") from exc
+
+
+def _description_json(value: object) -> object:
+    if isinstance(value, TypedRealizationDescriptionModel):
+        return readmit_description(value).model_dump(mode="json", exclude_none=True)
+    raise TypeError("unsupported observation result value")
 
 
 def _json_text(value: object) -> str:

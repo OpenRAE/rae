@@ -168,3 +168,37 @@ deliver a backend witness (#1204). It does not migrate the public software
 authoring surface (#1205), define realization reporting (#1209), negotiate all
 legacy compatibility boundaries (#1210), supply integrated conformance (#1211),
 or select observation, retention and export demand (#1212).
+
+## Descriptive projection and explicit promotion
+
+The experiment lifecycle's `typed_description` uses recursive values without
+granting them author authority. Coverage-aware assessment MUST retain the existing
+conformant, nonconformant, unresolved, invalid, unsupported and limit-exceeded
+outcomes. A supplied scalar or positive absence can contradict an explicit
+constraint. Missing fields in a partial report cannot prove violation or
+satisfaction. A whole-description conformance claim requires complete recursive
+coverage of the same named universe/profile, compatible windows and no unresolved
+facts or limitations before invoking the existing realization evaluator.
+
+Promotion is a pure operation that selects known, supported scalar facts by
+identity and creates a new recursive author-constraint artifact. It MUST preserve
+the source capture and original author artifact. The output records selected
+identities and paths, source/target identity/version/digest, actor, decision, time,
+and an artifact transformation report. Only the selected facts gain authority;
+siblings, incidental descendants and collection closure are not promoted.
+The reference operation refuses nonknown, conflicting, private-profile or
+otherwise unsupported selected facts and requires the canonical composition and
+refinement relation to preserve the original constraints. Structured facts must
+be explicitly captured at the scalar paths selected for this operation.
+
+Returning this artifact grants no permission to store it as author intent or
+execute it. Those operations remain subject to their existing author admission
+and semantic validation owners. Task/run/study refinement, realized-source
+provenance and conditional augmentation disclosures remain independent.
+
+Description completeness MUST match the effective root closure's universe and
+profile, including root-local and lexical scope overrides, and the root's
+field/collection kind. Type-sensitive literal comparison distinguishes an
+integer from a floating-point value. Different observation windows prevent a
+whole-state conformance claim, but MUST NOT hide a supplied value that already
+violates an exact author constraint.

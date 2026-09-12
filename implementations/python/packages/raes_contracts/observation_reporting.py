@@ -12,7 +12,11 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class AchievedObservationValue:
-    """A value paired with its achieved, rather than requested, basis."""
+    """A value with its achieved basis and optional unqualified evidence-record ID.
+
+    The verifier admits ``evidence_ref`` as a record ID; this API does not admit
+    version, digest, path, or other reference-kind claims.
+    """
 
     value: object
     basis: ObservationBasis
@@ -47,6 +51,8 @@ def realization_description_report(
     *,
     evidence_validator: Callable[[str, AchievedObservationValue], bool] | None = None,
     protector: Callable[[str, AchievedObservationValue, object], AchievedObservationValue] | None = None,
+    profile_context=None,
+    profile_policy=None,
 ) -> tuple[RealizationDescriptionItem, ...]:
     """Project only requested backend-known selections at their truthful basis."""
 
@@ -58,14 +64,50 @@ def realization_description_report(
             if _selector_is_partitioned(resolution, demand, selector):
                 continue
             achieved = selected_values.get(selector.key)
+            achieved = _project_achieved_description(achieved, selector, demand, profile_context, profile_policy)
             if not _achieved_basis_satisfies(selector.key, achieved, demand, evidence_validator):
                 if demand.required:
                     raise ValueError("required-realization-description-basis-unsatisfied")
                 continue
             assert achieved is not None
             protected = _protected_description(selector.key, achieved, demand, protector)
+            protected = _project_achieved_description(protected, selector, demand, profile_context, profile_policy)
+            if not _achieved_basis_satisfies(selector.key, protected, demand, evidence_validator):
+                if demand.required:
+                    raise ValueError("required-realization-description-basis-unsatisfied")
+                continue
             result.append(_description_item(selector.key, protected, demand))
     return tuple(result)
+
+
+def _project_achieved_description(achieved, selector, demand, profile_context, profile_policy):
+    from .contracts.realization_descriptions import TypedRealizationDescriptionModel
+    from .description_coverage import DescriptionCoverageUnsatisfied
+    from .description_reporting import admit_description_profiles, project_description, validate_description_evidence
+    from .domain_profiles import DomainProfileAdmissionPolicyModel, DomainProfileResolutionContextModel
+
+    if achieved is not None and isinstance(achieved.value, TypedRealizationDescriptionModel):
+        try:
+            projected = project_description(
+                achieved.value, selector, achieved.basis, exhaustive=demand.mode.value == "exhaustive"
+            )
+        except DescriptionCoverageUnsatisfied:
+            if demand.required:
+                raise
+            return None
+        validate_description_evidence(projected, achieved.basis, achieved.evidence_ref)
+        if not admit_description_profiles(
+            projected,
+            profile_context or DomainProfileResolutionContextModel(namespace_admissions=(), definitions=()),
+            policy=profile_policy or DomainProfileAdmissionPolicyModel(),
+        ).admitted:
+            raise ValueError("description profile admission refused")
+        return (
+            AchievedObservationValue(projected, achieved.basis, achieved.evidence_ref, achieved.integrity_ref)
+            if projected.facts
+            else None
+        )
+    return achieved
 
 
 def _is_description_selection(demand: EffectiveObservationDemand) -> bool:
@@ -123,6 +165,12 @@ def _protected_description(
     protected = achieved if protector is None else protector(selector_key, achieved, demand)
     if not isinstance(protected, AchievedObservationValue):
         raise ValueError("invalid-observation-report-protection-result")
+    from .contracts.realization_descriptions import TypedRealizationDescriptionModel
+
+    if isinstance(achieved.value, TypedRealizationDescriptionModel) and not isinstance(
+        protected.value, TypedRealizationDescriptionModel
+    ):
+        raise ValueError("protection must preserve the typed description carrier")
     if (protected.basis, protected.evidence_ref) != (achieved.basis, achieved.evidence_ref):
         raise ValueError("observation report protection cannot change evidence claims")
     integrity_missing = protected.integrity_ref is None or not protected.integrity_ref.strip()

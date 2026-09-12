@@ -5,6 +5,8 @@ from __future__ import annotations
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+from evidence_test_fixtures import copy_bundle
 from tools.check_specification_coverage import (
     EXPECTED_CLASSIFICATIONS,
     EXPECTED_STRATA,
@@ -23,7 +25,7 @@ def _rule_ids(failures: list[object]) -> set[str]:
 
 
 def _bundle() -> tuple[dict, dict, dict, dict]:
-    manifest, protocol, snapshot, analysis = load_bundle(REPO_ROOT)
+    manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, REPO_ROOT)
     return (
         deepcopy(manifest),
         deepcopy(protocol),
@@ -47,10 +49,10 @@ def test_current_bundle_records_reproducible_and_honest_results() -> None:
 
 
 def test_immutable_bundle_index_preserves_concurrent_captures() -> None:
-    bundles = load_bundles(REPO_ROOT)
+    bundles = copy_bundle(load_bundles, REPO_ROOT)
     assert {manifest["revision"] for manifest, *_rest in bundles} >= {"1.0.0", "1.1.0"}
-    manifest, *_rest = load_bundle(REPO_ROOT)
-    assert manifest["revision"] == "7.0.0"
+    manifest, *_rest = copy_bundle(load_bundle, REPO_ROOT)
+    assert manifest["revision"] == "8.0.0"
 
 
 def test_gate_rejects_missing_strata_and_composite_concepts() -> None:
@@ -182,7 +184,7 @@ def test_gate_rejects_invalid_implementation_identity_and_analysis_join() -> Non
 
 
 def test_historical_implementation_digest_does_not_bind_the_live_checkout() -> None:
-    _, protocol, snapshot, analysis = deepcopy(load_bundles(REPO_ROOT)[0])
+    _, protocol, snapshot, analysis = deepcopy(copy_bundle(load_bundles, REPO_ROOT)[0])
     surfaces = snapshot.get("implementation_surfaces")
     assert isinstance(surfaces, list) and surfaces
     surfaces[0]["content_sha256"] = "f" * 64
@@ -197,3 +199,34 @@ def test_current_implementation_surface_digest_binds_live_checkout() -> None:
     snapshot["implementation_surfaces"][0]["content_sha256"] = "f" * 64
     failures = validate_bundle(REPO_ROOT, protocol, snapshot, analysis)
     assert "specification-coverage-implementation-identity" in _rule_ids(failures)
+
+
+@pytest.mark.parametrize(
+    ("artifact", "keys", "value", "rule"),
+    [
+        ("protocol", ("title",), "", "specification-coverage-protocol-shape"),
+        ("protocol", ("classification_rules",), {}, "specification-coverage-classifications"),
+        ("protocol", ("artifact_stages",), [{"stage_id": "incomplete"}], "specification-coverage-stage-catalog"),
+        ("protocol", ("carriers", 0, "carrier_id"), "", "specification-coverage-carriers"),
+        ("protocol", ("concepts", 0, "request_id"), "unknown", "specification-coverage-concepts"),
+        (
+            "protocol",
+            ("execution_rules", "normal_execution_network_access"),
+            True,
+            "specification-coverage-execution-rules",
+        ),
+        ("snapshot", ("raes_revision",), "dev", "specification-coverage-snapshot-shape"),
+        ("snapshot", ("execution_status",), "incomplete", "specification-coverage-snapshot-status"),
+        ("snapshot", ("artifacts", 0, "artifact_id"), "", "specification-coverage-artifacts"),
+        ("analysis", ("protocol_revision",), "stale", "specification-coverage-analysis-join"),
+        ("analysis", ("classification_counts",), {}, "specification-coverage-analysis-shape"),
+    ],
+)
+def test_gate_rejects_each_remaining_integrity_rule(artifact, keys, value, rule):
+    _, protocol, snapshot, analysis = _bundle()
+    target = {"protocol": protocol, "snapshot": snapshot, "analysis": analysis}[artifact]
+    for key in keys[:-1]:
+        target = target[key]
+    target[keys[-1]] = value
+    failures = validate_bundle(REPO_ROOT, protocol, snapshot, analysis)
+    assert rule in _rule_ids(failures)

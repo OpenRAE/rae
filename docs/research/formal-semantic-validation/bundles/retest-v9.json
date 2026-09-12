@@ -1,0 +1,122 @@
+{
+  "analysis_path": "docs/research/formal-semantic-validation/analysis-v9.json",
+  "analysis_sha256": "19489e2d6822590b7d7c6ff34e182fea430286977952c0d8023f3ffbbeac60cd",
+  "artifacts": [
+    {
+      "artifact_id": "finite-domain-satisfiable-v2-input",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/satisfiable-control.sdl.yaml",
+      "sha256": "0ca9eaba9dc47171f7a042dc6753faa6c820c65ee966538f9d65fac5342202e8"
+    },
+    {
+      "artifact_id": "finite-domain-satisfiable-v2-evidence",
+      "kind": "production-evidence",
+      "path": "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v3.json",
+      "sha256": "7d1f05f634f0b36e763de1ece6598641006c2dd570531aa7a1cfc23c74784146"
+    },
+    {
+      "artifact_id": "finite-domain-unsatisfiable-v2-input",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/unsatisfiable-control.sdl.yaml",
+      "sha256": "cfef56a1f56d5f0db9da195377fd75694bdd0f0b92932fdb8fafcbd3f7baf6c5"
+    },
+    {
+      "artifact_id": "finite-domain-unsatisfiable-v2-evidence",
+      "kind": "production-evidence",
+      "path": "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v3.json",
+      "sha256": "e31bb7245d62e25810e394008da3ef4dcbbb6dad85f6363138cedef93ddc5c47"
+    },
+    {
+      "artifact_id": "typed-exploit-path-valid-v2-input",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/exploit-path-valid-v2.json",
+      "sha256": "23693f83f135c35960c144ab3434e866acec2313dc5f467fcccc8a18044f8b96"
+    },
+    {
+      "artifact_id": "typed-exploit-path-valid-v2-evidence",
+      "kind": "production-evidence",
+      "path": "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v3.json",
+      "sha256": "800c36e9e2415c3187c7bf16b781b1c7f2515829e205d40673a3fa1acf76d33f"
+    },
+    {
+      "artifact_id": "typed-exploit-path-invalid-v2-input",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/exploit-path-invalid-v2.json",
+      "sha256": "ad6636d5334d381bfda8d22183120d3f6a697a6ad92300e101e8cd2328f2ecd7"
+    },
+    {
+      "artifact_id": "typed-exploit-path-invalid-v2-evidence",
+      "kind": "production-evidence",
+      "path": "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v3.json",
+      "sha256": "01a611834924d0fb2c48fb9a6795441e1281ad12bd8dd128ffaa5756b452da0f"
+    },
+    {
+      "artifact_id": "schema-valid-control-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/schema-valid.sdl.yaml",
+      "sha256": "41a9adffdf9f5f2ccc2f887dcf7b15fba3b47c83a1af15f33db872c4a2449d67"
+    },
+    {
+      "artifact_id": "schema-unknown-field-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/schema-invalid-unknown-field.sdl.yaml",
+      "sha256": "51cf62319a86c95a2517995939d1f370573051835e4b55bb6d5beaf049640481"
+    },
+    {
+      "artifact_id": "semantic-resolved-objective-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/semantic-valid.sdl.yaml",
+      "sha256": "a074d75b1b420a47a740703deaff45c20ec1c5d846f660412929bc69ab0efb19"
+    },
+    {
+      "artifact_id": "semantic-dangling-assertion-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/semantic-invalid-dangling-ref.sdl.yaml",
+      "sha256": "ebdb18e5a5288189daccdc5111b5915d2f0d40a3eef1f5dee6428c1c1d719ff9"
+    },
+    {
+      "artifact_id": "semantic-ambiguous-reference-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/semantic-invalid-ambiguous-ref.sdl.yaml",
+      "sha256": "653cbd2fd62e220d49fb86f80133884207df5ae6752846345ae3085b93f6e4ed"
+    },
+    {
+      "artifact_id": "semantic-feature-cycle-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/semantic-invalid-feature-cycle.sdl.yaml",
+      "sha256": "e1f66d95a9ad039687aec8cccbc8843b514072ff08e006c1b4ca6aa5cd8d4ed1"
+    },
+    {
+      "artifact_id": "workflow-reachable-control-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/workflow-reachable.sdl.yaml",
+      "sha256": "54c40ceb98ad47247447d737973b2c55e8fb2045e209c7545c4fb20cf42dc3dc"
+    },
+    {
+      "artifact_id": "workflow-unreachable-step-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/workflow-unreachable.sdl.yaml",
+      "sha256": "ef22ef2e260f1a7fd92d286f9b571716436b192ddfd54aea7bdfcfdda4ca52a2"
+    },
+    {
+      "artifact_id": "compile-repeatability-control-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml",
+      "sha256": "0bc40900d598c1af7a405d798ca19710405e53ced262d8733081abf12edf89fe"
+    },
+    {
+      "artifact_id": "compile-non-vacuity-control-comparison-fixture",
+      "kind": "corpus-input",
+      "path": "docs/research/formal-semantic-validation/corpus/determinism-b.sdl.yaml",
+      "sha256": "d85338f89f20a45515b12da8640173c1a52e47eb17ca0f4f6b4f8f3306e863a1"
+    }
+  ],
+  "bundle_id": "raes-formal-semantic-validation",
+  "corpus_path": "docs/research/formal-semantic-validation/corpus/manifest-v2.json",
+  "corpus_sha256": "6adf37e76149c0361a0d5cceaecf161de66073039a80f065c735e46f391aed6a",
+  "protocol_path": "docs/research/formal-semantic-validation/protocol-v2.json",
+  "protocol_sha256": "abf94093e344bf495dfb04e8b0c5985c0beaab8ebb17a75e15c8674fa81b1a7c",
+  "revision": "10.0.0",
+  "snapshot_path": "docs/research/formal-semantic-validation/execution-snapshot-v9.json",
+  "snapshot_sha256": "38c6d7ac43bbc7e9436e866923f4fb31709dbbce66804232409abbe55c5fe15b"
+}

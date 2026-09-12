@@ -92,6 +92,8 @@ class ConfiguredObservationRuntime:
         redactors: Mapping[str, Redactor] | None = None,
         integrity_providers: Mapping[str, IntegrityProvider] | None = None,
         evidence_verifier: EvidenceVerifier | None = None,
+        description_profile_context=None,
+        description_profile_policy=None,
     ) -> None:
         _require_unique_capability_ids(capabilities)
         self._capabilities = capabilities
@@ -100,6 +102,8 @@ class ConfiguredObservationRuntime:
         self._redactors = dict(redactors or {})
         self._integrity_providers = dict(integrity_providers or {})
         self._evidence_verifier = evidence_verifier
+        self.description_profile_context = description_profile_context
+        self.description_profile_policy = description_profile_policy
         for capability in capabilities:
             _validate_capability_callbacks(
                 capability,
@@ -252,6 +256,8 @@ def _execute_admitted_plan_observation(
         description = realization_description_report(
             resolution,
             achieved,
+            profile_context=getattr(runtime, "description_profile_context", None),
+            profile_policy=getattr(runtime, "description_profile_policy", None),
             evidence_validator=lambda key, value: runtime.verify_evidence(
                 description_selectors[key], value, plan, snapshot
             ),

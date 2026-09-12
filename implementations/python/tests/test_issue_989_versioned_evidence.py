@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from evidence_test_fixtures import copy_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -17,7 +18,7 @@ def test_current_compile_replay_hashes_complete_capture_dimension():
     from tools.formal_semantic_validation._replay import _compiled_case_digest, _migration_policy_for_case
     from tools.formal_semantic_validation._shape import _digest
 
-    _, _, corpus, _, _ = load_retest_bundle(ROOT)
+    _, _, corpus, _, _ = copy_bundle(load_retest_bundle, ROOT)
     case = next(c for c in corpus["cases"] if c["case_id"] == "compile-repeatability-control")
     path = ROOT / case["fixture_path"]
     scenario = parse_sdl_file(path, migration_policy=_migration_policy_for_case(ROOT, case, path))
@@ -42,7 +43,7 @@ def test_historical_integrated_release_does_not_execute_current_code(monkeypatch
     from tools.formal_semantic_validation import _production, _releases, _retest
     from tools.formal_semantic_validation._loading import load_release_bundles
 
-    release = next(r for r in load_release_bundles(ROOT) if r.manifest["revision"] == "3.0.0")
+    release = next(r for r in copy_bundle(load_release_bundles, ROOT) if r.manifest["revision"] == "3.0.0")
 
     def forbidden(*args, **kwargs):
         raise AssertionError("historical observations are not current-code evidence")
@@ -57,8 +58,8 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(ROOT)
-    assert release.manifest["revision"] == "9.0.0"
+    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
+    assert release.manifest["revision"] == "10.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -76,7 +77,7 @@ def test_current_release_requires_truthful_implementation_provenance():
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(ROOT)
+    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
     snapshot = deepcopy(snapshot)
     assert "source_state" in snapshot
     snapshot["source_state"]["implementation_digest"] = "0" * 64
@@ -93,7 +94,7 @@ def test_current_production_evidence_replay_failure_is_not_hidden(monkeypatch):
         raise ValueError("seeded production replay failure")
 
     monkeypatch.setattr(satisfiability, "replay_satisfiability_evidence", fail)
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(ROOT)
+    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
     failures = validate_retest_bundle(ROOT, release, protocol, corpus, snapshot, analysis)
     assert "formal-validation-production-replay" in {f.rule_id for f in failures}
 
@@ -101,8 +102,8 @@ def test_current_production_evidence_replay_failure_is_not_hidden(monkeypatch):
 def test_specification_current_capture_does_not_accept_old_artifact_digest():
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
-    manifest, protocol, snapshot, analysis = load_bundle(ROOT)
-    assert manifest["revision"] == "7.0.0"
+    manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
+    assert manifest["revision"] == "8.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == "port-range-sdl")
     artifact["sha256"] = "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"
@@ -114,7 +115,7 @@ def test_historical_specification_evidence_is_integrity_checked_without_executio
     from tools import check_specification_coverage as coverage
     from tools.specification_coverage import _artifacts
 
-    manifest, protocol, snapshot, analysis = coverage.load_bundles(ROOT)[0]
+    manifest, protocol, snapshot, analysis = copy_bundle(coverage.load_bundles, ROOT)[0]
 
     def forbidden(*args, **kwargs):
         raise AssertionError("must not execute an archived artifact on current code")
@@ -127,7 +128,7 @@ def test_historical_specification_evidence_is_integrity_checked_without_executio
 def test_historical_specification_archive_pin_tampering_fails(value):
     from tools import check_specification_coverage as coverage
 
-    manifest, protocol, snapshot, analysis = coverage.load_bundles(ROOT)[0]
+    manifest, protocol, snapshot, analysis = copy_bundle(coverage.load_bundles, ROOT)[0]
     snapshot = deepcopy(snapshot)
     snapshot["artifacts"][0]["sha256"] = value
     failures = coverage.validate_historical_bundle(ROOT, protocol, snapshot, analysis)
@@ -164,7 +165,7 @@ def test_current_formal_release_cannot_request_historical_validation():
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(ROOT)
+    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
     failures = validate_retest_bundle(ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
     assert {f.rule_id for f in failures} == {"formal-validation-current-replay-required"}
 
@@ -198,7 +199,7 @@ def test_historical_supplement_never_runs_current_analyzer(monkeypatch):
         raise AssertionError("historical supplement must not claim current execution")
 
     monkeypatch.setattr(satisfiability, "analyze_scenario_file", forbidden)
-    release = next(r for r in load_release_bundles(ROOT) if r.manifest["revision"] == "2.0.0")
+    release = next(r for r in copy_bundle(load_release_bundles, ROOT) if r.manifest["revision"] == "2.0.0")
     assert validate_release_bundle(ROOT, release) == []
 
 
@@ -215,7 +216,7 @@ def test_current_cli_result_drift_is_rejected(monkeypatch):
         return payload
 
     monkeypatch.setattr(_production, "_run_production_evidence_cli", changed_cli)
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(ROOT)
+    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
     failures = validate_retest_bundle(ROOT, release, protocol, corpus, snapshot, analysis)
     assert "formal-validation-production-evidence-join" in {f.rule_id for f in failures}
 
@@ -235,7 +236,7 @@ def test_current_cli_must_emit_the_complete_pinned_payload(monkeypatch):
         return payload
 
     monkeypatch.setattr(_production, "_run_production_evidence_cli", omit_default)
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(ROOT)
+    release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
     failures = validate_retest_bundle(ROOT, release, protocol, corpus, snapshot, analysis)
     assert "formal-validation-production-evidence-join" in {f.rule_id for f in failures}
 
@@ -253,7 +254,7 @@ def test_archive_content_tampering_fails_even_when_manifest_pin_is_unchanged(mon
         return payload
 
     monkeypatch.setattr(_artifacts, "load_bounded_json_object", changed_archive)
-    _, protocol, snapshot, analysis = coverage.load_bundles(ROOT)[0]
+    _, protocol, snapshot, analysis = copy_bundle(coverage.load_bundles, ROOT)[0]
     failures = coverage.validate_historical_bundle(ROOT, protocol, snapshot, analysis)
     assert "specification-coverage-artifact-digest" in {f.rule_id for f in failures}
 
@@ -266,9 +267,9 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
 
     module = _loading if family == "formal" else check_specification_coverage
     revisions = (
-        ["1.0.0", "1.1.0", "1.2.0", "2.0.0", "3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"]
+        ["1.0.0", "1.1.0", "1.2.0", "2.0.0", "3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0"]
         if family == "formal"
-        else ["1.0.0", "1.1.0", "2.0.0", "3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0"]
+        else ["1.0.0", "1.1.0", "2.0.0", "3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0"]
     )
     revisions.pop(-1 if removed == "current" else 0)
     monkeypatch.setattr(
@@ -285,7 +286,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
 def test_current_coverage_requires_exact_baseline_deviations(change):
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
-    _, protocol, snapshot, analysis = load_bundle(ROOT)
+    _, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
     if change == "missing":
         snapshot["deviations"].pop()
     elif change == "old_digest":
@@ -302,7 +303,7 @@ def test_current_coverage_requires_exact_baseline_deviations(change):
 def test_current_coverage_preserves_untested_slots_without_claiming_capability_absence():
     from tools.check_specification_coverage import load_bundle
 
-    _, protocol, snapshot, analysis = load_bundle(ROOT)
+    _, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
     missing = [item for item in snapshot["concept_results"] if item["classification"] == "missing"]
     assert len(snapshot["concept_results"]) == len(protocol["concepts"]) == 16
     assert len(missing) == 3
@@ -316,7 +317,7 @@ def test_historical_archive_does_not_require_a_live_source_file(tmp_path):
     from tools.check_specification_coverage import load_bundles
     from tools.specification_coverage._artifacts import _validate_artifacts
 
-    _, _, snapshot, _ = load_bundles(ROOT)[0]
+    _, _, snapshot, _ = copy_bundle(load_bundles, ROOT)[0]
     archive = Path("docs/research/specification-coverage/historical-artifacts")
     shutil.copytree(ROOT / archive, tmp_path / archive)
     assert all(not (tmp_path / item["path"]).exists() for item in snapshot["artifacts"])

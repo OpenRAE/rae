@@ -3,6 +3,10 @@
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 
 PUBLIC_EXPORTS = [
+    "DescriptionCoverageModel",
+    "DescriptionFactModel",
+    "DescriptionProvenanceModel",
+    "TypedRealizationDescriptionModel",
     "ACTIVITYSTREAMS_ACTIVITY_TYPES_SOURCE_SCHEMA_VERSION",
     "ActivityStreamsActivityTypeSourceTermModel",
     "ActivityStreamsActivityTypesSourceModel",
