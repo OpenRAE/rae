@@ -1,15 +1,24 @@
 """Finite admission of portable backend inputs before hashing or isolation."""
 
+from __future__ import annotations
+
 from dataclasses import is_dataclass
 
 from pydantic import BaseModel
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
+from .backend_realization_authority import _RealizationApplyContext
+
 _PORTABLE_INPUT_TYPES = (BaseModel, dict, list, tuple, str, int, float, bool)
 
 
-def backend_input_violation(arguments: tuple[object, ...], *, authority=None, service_dependencies=()) -> str | None:
+def backend_input_violation(
+    arguments: tuple[object, ...],
+    *,
+    authority: _RealizationApplyContext | None = None,
+    service_dependencies: tuple[object, ...] = (),
+) -> str | None:
     """Bound value carriers without traversing injected service dependencies."""
 
     if authority is not None:

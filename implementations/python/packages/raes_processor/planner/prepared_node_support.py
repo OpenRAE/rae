@@ -1,8 +1,13 @@
 """Use existing support and artifact admission for backend-selected node values."""
 
+from __future__ import annotations
+
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes.nodes import Node
 from raes.realization_envelope import member_projection
 from raes.runtime_resource_limits import process_resource_limit_identity_digest
+from raes_backend_protocols.manifest import BackendManifest
+from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.vocabulary import ProcessResourceLimitScope
 
 from ..compiler.realization_value_domains import nested_authored_value
@@ -13,7 +18,12 @@ from ..semantics.realization_requirement import CompiledRealizationRequirement
 from ..semantics.realization_support import realization_support_diagnostics
 
 
-def validate_prepared_node_support(resource, node, manifest, availability) -> None:
+def validate_prepared_node_support(
+    resource: object,
+    node: Node,
+    manifest: BackendManifest | None,
+    availability: ArtifactAvailabilityContext | None,
+) -> None:
     """A concrete backend choice is not authored intent or an observation demand."""
 
     requirements = []

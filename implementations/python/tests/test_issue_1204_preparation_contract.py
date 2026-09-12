@@ -31,8 +31,9 @@ def test_preparation_response_schema_and_codec_roundtrip():
         else:
             invalid["request_digest"] = "not-a-digest"
         assert not Draft202012Validator(schema).is_valid(invalid)
+        model_type = type(model)
         with pytest.raises(ValueError):
-            type(model).model_validate(invalid)
+            model_type.model_validate(invalid)
 
 
 @pytest.mark.parametrize("value_count, admitted", [(200, True), (400, False)])

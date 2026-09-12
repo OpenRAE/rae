@@ -69,6 +69,29 @@ def compile_registered_constraint(
             scenario, registered, records, authored_value=authored_value, field_pointer=field_pointer
         )
         return structure, None, None, error, opened, False
+    return _compiled_recursive_constraint(
+        scenario,
+        registered,
+        records,
+        authored_value=authored_value,
+        field_pointer=field_pointer,
+        value_domain=value_domain,
+        apparatus_closure=apparatus_closure,
+    )
+
+
+def _compiled_recursive_constraint(
+    scenario: InstantiatedScenario,
+    registered: RegisteredRealizationConcern,
+    records: Mapping[str, ExplicitnessRecord],
+    *,
+    authored_value: object,
+    field_pointer: str,
+    value_domain: EnumDomain | None,
+    apparatus_closure: Closure | None,
+) -> tuple[RealizationStructure | None, RealizationConstraintDocument | None, str | None, bool, bool, bool]:
+    """Compile one recursive concern, deferring an unresolved apparatus closure."""
+
     try:
         document, error, opened = compile_recursive_realization_constraint(
             scenario,
@@ -83,7 +106,10 @@ def compile_registered_constraint(
         return None, None, None, False, False, True
     binding = (
         realization_constraint_binding(
-            document, to_jsonable_python(descriptor.project(authored_value, recursive=True), fallback=jsonable_fallback)
+            document,
+            to_jsonable_python(
+                registered.descriptor.project(authored_value, recursive=True), fallback=jsonable_fallback
+            ),
         )
         if document is not None
         else None
@@ -137,90 +163,124 @@ class _SourceMetadata:
             profile=self.profile,
         )
 
+    def _origin(self, record: ExplicitnessRecord | None) -> RealizationOrigin:
+        """Attribute one projected pointer to the authority that supplied it."""
+
+        if record is None:
+            return RealizationOrigin.DEFAULT
+        if record.provenance is ExplicitnessProvenance.PROCESSOR_DERIVED:
+            return RealizationOrigin.PROCESSOR
+        return RealizationOrigin.AUTHOR
+
+    def _collect_mapping(
+        self, projected: dict[str, object], source: object, pointer: str, path: str, source_pointer: str
+    ) -> None:
+        """Walk one projected record, retaining its source pointer alignment."""
+
+        self.scopes.append(RealizationScope(field_pointer=pointer, closure=self.closure(source_pointer)))
+        scalar_alias = set(projected) == {"_identity", "value"} and not isinstance(source, (dict, list))
+        for key, child in projected.items():
+            source_key = key.removesuffix("_present").removesuffix("_commitment")
+            if scalar_alias:
+                self.collect(child, source, f"{pointer}/{_escape(key)}", path, source_pointer)
+                continue
+            self.collect(
+                child,
+                _source_child(source, source_key),
+                f"{pointer}/{_escape(key)}",
+                f"{path}.{source_key}",
+                f"{source_pointer}/{_escape(source_key)}",
+            )
+
+    def _collection_identity(self, pointer: str) -> tuple[str, ...]:
+        """Name the identity fields one projected collection level carries."""
+
+        if not pointer:
+            return self.registered.descriptor.collection_identity_fields
+        return specialized_collection_identity(self.registered.descriptor.concern_kind, pointer)
+
+    def _collect_sequence(
+        self, projected: list[object], source: object, pointer: str, path: str, source_pointer: str
+    ) -> None:
+        """Walk one projected collection, preserving every source occurrence."""
+
+        closure = self.closure(source_pointer)
+        self.scopes.append(RealizationScope(field_pointer=pointer, closure=closure))
+        identity = self._collection_identity(pointer)
+        if identity:
+            self.collection_profiles.append(
+                RealizationCollectionProfile(
+                    field_pointer=pointer,
+                    collection_kind=self.registered.descriptor.concern_kind,
+                    identity_fields=identity,
+                    closure=closure,
+                )
+            )
+        if not isinstance(source, list):
+            raise ValueError("recursive projection must preserve source occurrences")
+        occurrences = source_occurrences(self.registered.descriptor.concern_kind, source_pointer, projected, source)
+        if len(occurrences) != len(projected):
+            raise ValueError("recursive projection must preserve source occurrences")
+        for index, (child, (source_index, source_child)) in enumerate(zip(projected, occurrences, strict=True)):
+            self.collect(
+                child,
+                source_child,
+                f"{pointer}/{index}",
+                f"{path}[{source_index}]",
+                f"{source_pointer}/{source_index}",
+            )
+
     def collect(self, projected: object, source: object, pointer: str, path: str, source_pointer: str = "") -> None:
         record = self.records.get(path)
-        self.origins[pointer] = (
-            RealizationOrigin.DEFAULT
-            if record is None
-            else RealizationOrigin.PROCESSOR
-            if record.provenance is ExplicitnessProvenance.PROCESSOR_DERIVED
-            else RealizationOrigin.AUTHOR
-        )
+        self.origins[pointer] = self._origin(record)
         if record is None and pointer:
             self.optional_fields.add(pointer)
         if isinstance(projected, dict):
-            self.scopes.append(RealizationScope(field_pointer=pointer, closure=self.closure(source_pointer)))
-            for key, child in projected.items():
-                source_key = key.removesuffix("_present").removesuffix("_commitment")
-                if set(projected) == {"_identity", "value"} and not isinstance(source, (dict, list)):
-                    self.collect(child, source, f"{pointer}/{_escape(key)}", path, source_pointer)
-                    continue
-                self.collect(
-                    child,
-                    _source_child(source, source_key),
-                    f"{pointer}/{_escape(key)}",
-                    f"{path}.{source_key}",
-                    f"{source_pointer}/{_escape(source_key)}",
-                )
+            self._collect_mapping(projected, source, pointer, path, source_pointer)
         elif isinstance(projected, list):
-            closure = self.closure(source_pointer)
-            self.scopes.append(RealizationScope(field_pointer=pointer, closure=closure))
-            identity = (
-                self.registered.descriptor.collection_identity_fields
-                if not pointer
-                else specialized_collection_identity(self.registered.descriptor.concern_kind, pointer)
-            )
-            if identity:
-                self.collection_profiles.append(
-                    RealizationCollectionProfile(
-                        field_pointer=pointer,
-                        collection_kind=self.registered.descriptor.concern_kind,
-                        identity_fields=identity,
-                        closure=closure,
-                    )
-                )
-            if not isinstance(source, list):
-                raise ValueError("recursive projection must preserve source occurrences")
-            occurrences = source_occurrences(self.registered.descriptor.concern_kind, source_pointer, projected, source)
-            if len(occurrences) != len(projected):
-                raise ValueError("recursive projection must preserve source occurrences")
-            for index, (child, (source_index, source_child)) in enumerate(zip(projected, occurrences, strict=True)):
-                self.collect(
-                    child,
-                    source_child,
-                    f"{pointer}/{index}",
-                    f"{path}[{source_index}]",
-                    f"{source_pointer}/{source_index}",
-                )
+            self._collect_sequence(projected, source, pointer, path, source_pointer)
         else:
-            self.leaf(projected, source, pointer, record, source_pointer)
+            self.leaf(source, pointer, record, source_pointer)
 
-    def leaf(
-        self, projected: object, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str
-    ) -> None:
-        if record is not None and record.classification is ExplicitnessClass.OPEN:
-            if not isinstance(source, Enum):
-                raise ValueError("open taxonomy must retain its typed finite domain")
-            values = [member.value for member in type(source) if member.value not in ("unknown", "other")]
-            if not values:
-                raise ValueError("open taxonomy has no known completion")
-            self.leaf_constraints[pointer] = RealizationDomainValue(kind="domain", domain=EnumDomain(values=values))
-        elif record is not None and record.classification is ExplicitnessClass.CONSTRAINED:
-            domain = self.root_domain if not pointer else None
-            if domain is None and not pointer.endswith(("_present", "_commitment")):
-                constraint = next(
-                    (
-                        item
-                        for item in self.scenario.instantiation_provenance.capability_constraints
-                        if item.field_pointer == f"{self.root_pointer}{source_pointer}"
-                    ),
-                    None,
-                )
-                if constraint is not None:
-                    domain = EnumDomain(values=list(constraint.allowed_values))
-            if domain is None:
-                raise ValueError("constrained leaf requires a publication-safe domain")
-            self.leaf_constraints[pointer] = RealizationDomainValue(kind="domain", domain=domain)
+    def _open_taxonomy_domain(self, source: object) -> EnumDomain:
+        """Require an open taxonomy leaf to keep its typed finite domain."""
+
+        if not isinstance(source, Enum):
+            raise ValueError("open taxonomy must retain its typed finite domain")
+        values = [member.value for member in type(source) if member.value not in ("unknown", "other")]
+        if not values:
+            raise ValueError("open taxonomy has no known completion")
+        return EnumDomain(values=values)
+
+    def _constrained_domain(self, pointer: str, source_pointer: str) -> EnumDomain:
+        """Resolve the publication-safe domain one constrained leaf narrows to."""
+
+        domain = self.root_domain if not pointer else None
+        if domain is None and not pointer.endswith(("_present", "_commitment")):
+            constraint = next(
+                (
+                    item
+                    for item in self.scenario.instantiation_provenance.capability_constraints
+                    if item.field_pointer == f"{self.root_pointer}{source_pointer}"
+                ),
+                None,
+            )
+            if constraint is not None:
+                domain = EnumDomain(values=list(constraint.allowed_values))
+        if domain is None:
+            raise ValueError("constrained leaf requires a publication-safe domain")
+        return domain
+
+    def leaf(self, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str) -> None:
+        classification = None if record is None else record.classification
+        if classification is ExplicitnessClass.OPEN:
+            self.leaf_constraints[pointer] = RealizationDomainValue(
+                kind="domain", domain=self._open_taxonomy_domain(source)
+            )
+        elif classification is ExplicitnessClass.CONSTRAINED:
+            self.leaf_constraints[pointer] = RealizationDomainValue(
+                kind="domain", domain=self._constrained_domain(pointer, source_pointer)
+            )
         elif record is None and self.closure(source_pointer).posture.value == "open":
             self.leaf_constraints[pointer] = RealizationDelegatedValue(kind="delegated")
 

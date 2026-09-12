@@ -11,7 +11,10 @@ as a backend-specific exception.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.planning import ChangeAction, PlanOperation, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_contracts.realization_observation import (
@@ -23,6 +26,7 @@ from raes_contracts.realization_observation import (
 )
 from raes_contracts.realization_observation_demand import compute_substrate_collection_addresses
 from raes_contracts.realization_operational_observation import invoke_native_readback
+from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 
 from .driver import ContainerSpec, DeploymentDriver, NetworkSpec
@@ -47,8 +51,8 @@ class ReferenceProvisioner:
         driver: DeploymentDriver,
         realization_envelope: BackendRealizationEnvelopeModel | None = None,
         *,
-        domain_profile_context=None,
-        profile_choices=None,
+        domain_profile_context: DomainProfileResolutionContextModel | None = None,
+        profile_choices: Mapping[str, object] | None = None,
     ) -> None:
         self._driver = driver
         self._realization_envelope = realization_envelope
@@ -60,7 +64,7 @@ class ReferenceProvisioner:
         realization = interpret_provisioning_plan(plan)
         return [*realization.diagnostics, *reference_profile_diagnostics(plan, self.domain_profile_context)]
 
-    def prepare(self, plan: ProvisioningPlan, snapshot: RuntimeSnapshot):
+    def prepare(self, plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> RealizationPreparation:
         return prepare_reference_profiles(plan, snapshot, self.domain_profile_context, self._profile_choices)
 
     def validate_profiles(self, plan: ProvisioningPlan) -> list[Diagnostic]:

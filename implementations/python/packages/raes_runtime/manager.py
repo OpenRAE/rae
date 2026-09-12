@@ -1,5 +1,7 @@
 """Runtime manager for compiled SDL runtime plans."""
 
+from __future__ import annotations
+
 from collections.abc import Iterable
 from dataclasses import dataclass
 
@@ -11,6 +13,7 @@ from raes_contracts.contracts import (
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
+from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.models import ExecutionPlan
@@ -85,7 +88,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         parameters: dict[str, object] | None = None,
         profile: str | None = None,
         artifact_availability: ArtifactAvailabilityContext | None = None,
-        profile_authority=None,
+        profile_authority: PlanProfileAuthority | None = None,
     ) -> ExecutionPlan:
         model = compile_scenario_runtime_model(
             scenario, parameters=parameters, profile=profile, profile_authority=profile_authority

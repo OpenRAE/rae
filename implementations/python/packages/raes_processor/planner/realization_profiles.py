@@ -1,8 +1,13 @@
 """Programmatic profile carriage through the incumbent reconciliation owner."""
 
+from __future__ import annotations
+
+from collections.abc import Mapping
 from dataclasses import replace
 
+from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
 from raes_contracts.realization_profiles import (
     PLAN_PROFILE_CONTRACT,
@@ -13,7 +18,13 @@ from raes_contracts.realization_profiles import (
 )
 
 
-def profile_resources(model, resources, manifest, snapshot, context):
+def profile_resources(
+    model: object,
+    resources: Mapping[str, object],
+    manifest: BackendManifest,
+    snapshot: Mapping[str, object],
+    context: DomainProfileResolutionContextModel | None,
+) -> tuple[Mapping[str, object], list[Diagnostic]]:
     """Retain a still-admitted backend choice; changed authority reconciles normally."""
 
     authority = model.profile_authority

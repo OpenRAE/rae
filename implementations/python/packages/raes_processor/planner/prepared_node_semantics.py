@@ -1,5 +1,7 @@
 """Reconstruct the portable node context for the incumbent semantic validator."""
 
+from collections.abc import Mapping
+
 from pydantic import TypeAdapter
 from raes import SDLValidationError
 from raes.nodes import Node
@@ -13,7 +15,7 @@ from ..semantics.realization_concern_observations import typed_runtime_observati
 from .stateful_admission import _canonical_consumers, _validated_generated_artifact_payload
 
 
-def validate_prepared_node_semantics(live) -> None:
+def validate_prepared_node_semantics(live: Mapping[str, object]) -> None:
     """Check references and unresolved inputs without reconstructing author provenance."""
 
     context = {"nodes": {}, "infrastructure": {}, "generated_artifacts": {}, "persistent_volumes": {}, "accounts": {}}

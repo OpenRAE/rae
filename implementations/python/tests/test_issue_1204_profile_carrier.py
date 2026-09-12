@@ -398,12 +398,14 @@ def test_snapshot_profile_host_cannot_be_moved_to_another_runtime_domain():
     from pydantic import ValidationError
     from raes_contracts.contracts.realization_plans import SnapshotEntryModel
 
+    bindings = _profiles()[0].bindings
+
     with pytest.raises(ValidationError, match="profile"):
         SnapshotEntryModel(
             address="orchestration.script.main",
             domain="orchestration",
             resource_type="script",
-            profile_bindings=_profiles()[0].bindings,
+            profile_bindings=bindings,
         )
 
 
