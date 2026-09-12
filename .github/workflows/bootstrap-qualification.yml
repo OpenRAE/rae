@@ -123,7 +123,8 @@ jobs:
             export RAES_PYTHON_CLOSURE_WHEELHOUSE="${restored_root}/project-wheelhouse"
             "${restored_tool_python}" -m nox -f noxfile.py -s python-compatibility
           else
-            "${restored_tool_python}" -c "import cryptography, nox; print(nox.__version__)"
+            "${restored_tool_python}" -c \
+              'import cryptography; from importlib.metadata import version; print(version("nox"))'
           fi
           "${restored_tool_python}" -m tools.bootstrap_profile record-case T02 "${{ github.sha }}" noxfile.py \
             --artifact-id cpython-3.14 --artifact-id uv --artifact-id conftest --artifact-id gitleaks \

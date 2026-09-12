@@ -198,6 +198,8 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert 'runtime_root="$(mktemp -d "${RUNNER_TEMP}/raes-bootstrap-runtime.XXXXXX")"' in workflow_text
     assert 'export UV_CACHE_DIR="${runtime_root}/uv-cache"' in workflow_text
     assert 'restored_tool_environment="${runtime_root}/tool-environment"' in workflow_text
+    assert 'from importlib.metadata import version; print(version("nox"))' in workflow_text
+    assert "nox.__version__" not in workflow_text
     assert "tools.python_closure" in workflow_text
     assert "wheelhouse-manifest.json" in workflow_text
     assert "bootstrap-wheelhouse-verify" in workflow_text
