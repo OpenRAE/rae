@@ -1,10 +1,15 @@
 """Safe selected-node constraints shared by preparation, delivery and storage."""
 
+from __future__ import annotations
+
+from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import replace
+from typing import Any
 
 from pydantic_core import to_jsonable_python
-from raes_contracts.planning import ChangeAction, ProvisioningPlan
+from raes_contracts.canonical import jsonable_fallback
+from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationOrigin,
@@ -20,7 +25,7 @@ from ..semantics.realization_concerns import realization_concern_descriptors
 _PROFILE = "raes/prepared-portable-node/v1"
 
 
-def prepared_node_payload_projection(payload):
+def prepared_node_payload_projection(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Use incumbent concern sanitizers; no backend-selected secret becomes authority."""
 
     if not validate_realization_value(payload, python_carriers=True).conformant:
@@ -33,19 +38,26 @@ def prepared_node_payload_projection(payload):
         leaf = descriptor.payload_path[-1]
         if isinstance(current, dict) and leaf in current:
             current[leaf] = descriptor.sanitize_observation(current[leaf], recursive=True)
-    return to_jsonable_python(projected)
+    return to_jsonable_python(projected, fallback=jsonable_fallback)
 
 
-def _backend_origins(value, path=""):
+def _origin_children(value: object) -> Iterable[tuple[object, object]]:
+    """Yield the indexed children one projected carrier exposes."""
+
+    if isinstance(value, dict):
+        return value.items()
+    return enumerate(value) if isinstance(value, list) else ()
+
+
+def _backend_origins(value: object, path: str = "") -> dict[str, RealizationOrigin]:
     origins = {path: RealizationOrigin.BACKEND}
-    children = value.items() if isinstance(value, dict) else enumerate(value) if isinstance(value, list) else ()
-    for key, child in children:
+    for key, child in _origin_children(value):
         token = str(key).replace("~", "~0").replace("/", "~1")
         origins.update(_backend_origins(child, f"{path}/{token}"))
     return origins
 
 
-def prepared_node_document(payload):
+def prepared_node_document(payload: Mapping[str, Any]) -> object:
     selected = prepared_node_payload_projection(payload)
     built = normalize_realization_literal(
         selected,
@@ -58,7 +70,7 @@ def prepared_node_document(payload):
     return built.document
 
 
-def prepared_additional_node_operations(selected: ProvisioningPlan):
+def prepared_additional_node_operations(selected: ProvisioningPlan) -> tuple[ProvisionOp, ...]:
     authority = selected.preparation.node_collection if selected.preparation is not None else None
     if authority is None:
         return ()
