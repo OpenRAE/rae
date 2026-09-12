@@ -23,7 +23,6 @@ Prerequisites:
 - a standard CPython 3.11, 3.12, 3.13, or 3.14 payload admitted by the
   [development profile](implementations/tooling/README.md); 3.14t is preview-only
 - the exact uv payload selected by the development artifact lock
-- [nox](https://nox.thea.codes/) or `uvx nox`
 
 The host profile also requires Git, trusted CA roots, SHA-256 tooling, GH CLI
 when GitHub operations are used, and curl 8.4.0 or newer with verified
@@ -33,12 +32,13 @@ image or repository snapshot; the offline payload kit supplies exact Python,
 uv, and generic-tool objects after those prerequisites are present. Do not pipe
 a remote installer into a shell.
 
-Install the locked Python environment:
+Install the separate locked project and verification-tool environments:
 
 ```shell
 git clone https://github.com/OpenRAE/rae.git
 cd rae
 uv sync --project implementations/python --all-extras --frozen
+uv sync --project implementations/tooling/python --frozen --no-default-groups
 ```
 
 The [developer documentation index](docs/README.md) links to architecture,
@@ -65,7 +65,7 @@ hosted reader guide.
 The full repository gate is:
 
 ```shell
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
 ```
 
 That gate includes a `participant-opacity-proof` lane, which replays the pinned
@@ -91,7 +91,7 @@ offline boundary to make the lane pass.
 Run the change-aware local gate while iterating:
 
 ```shell
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify-changed
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-changed
 ```
 
 It selects from status-aware changes against the branch's upstream ref and
@@ -102,9 +102,9 @@ unconditional pull-request gate.
 Useful narrower sessions:
 
 ```shell
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s tests
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s docs
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -l
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s tests
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -l
 ```
 
 Run the full gate before requesting review for language, contract, generated

@@ -89,7 +89,7 @@ def test_publishers_build_only_the_curated_public_source() -> None:
     assert rtd["python"]["install"][0]["command"] == "sync --frozen"
 
     docs_workflow = (REPO_ROOT / ".github" / "workflows" / "docs.yml").read_text(encoding="utf-8")
-    assert "nox[uv]==2026.4.10" in docs_workflow
+    assert "uv run --project implementations/tooling/python --frozen --no-default-groups nox" in docs_workflow
     assert "-s docs" in docs_workflow
     assert "sphinx-build" not in docs_workflow
     assert "path: docs/_build/html" in docs_workflow
@@ -115,14 +115,15 @@ def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
     interpreter_job = ci["jobs"]["interpreters"]
     assert interpreter_job["strategy"]["fail-fast"] is False
     assert interpreter_job["strategy"]["matrix"]["python"] == [
-        {"feature": "3.11", "payload": "3.11.16"},
-        {"feature": "3.12", "payload": "3.12.14"},
-        {"feature": "3.13", "payload": "3.13.15"},
-        {"feature": "3.14", "payload": "3.14.7"},
+        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
+        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
+        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
+        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
     ]
     assert interpreter_job["env"] == {
         "UV_PYTHON": "${{ matrix.python.payload }}",
         "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
+        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
     }
 
     preview = yaml.safe_load(

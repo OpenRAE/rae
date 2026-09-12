@@ -101,12 +101,12 @@ def host_platform_id() -> str:
 
 
 def _frozen_validator_command(policy_root: Path) -> list[str]:
-    validator_python = policy_root / "implementations" / "python" / ".venv" / "bin" / "python"
-    project_root = policy_root / "implementations" / "python"
+    project_root = policy_root / "implementations" / "tooling" / "python"
+    validator_python = project_root / ".venv" / "bin" / "python"
     validator = policy_root / "tools" / "check_tooling_artifact_policy.py"
     if not validator.is_file():
         raise RuntimeError(
-            "development artifact policy failed before acquisition: the frozen project validator is unavailable"
+            "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
         )
     if validator_python.is_file():
         return [str(validator_python), str(validator)]
@@ -117,7 +117,7 @@ def _frozen_validator_command(policy_root: Path) -> list[str]:
         or not (project_root / "uv.lock").is_file()
     ):
         raise RuntimeError(
-            "development artifact policy failed before acquisition: the frozen project validator is unavailable"
+            "development artifact policy failed before acquisition: the frozen tool validator is unavailable"
         )
     return [
         uv_executable,
@@ -125,6 +125,7 @@ def _frozen_validator_command(policy_root: Path) -> list[str]:
         "--project",
         str(project_root),
         "--frozen",
+        "--no-default-groups",
         "python",
         str(validator),
     ]

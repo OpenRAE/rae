@@ -242,3 +242,41 @@ evidence artifact under the exact delivery SHA.
   stdin, a minimal environment, sanitized reason codes and explicit native
   setup planning. It never invokes `sudo`, shell evaluation, repository/key installation,
   pipe-to-shell acquisition or host-security reconfiguration.
+
+### Issue #1218 Python closure evidence
+
+The frozen tooling project, generated build constraints, target-specific smoke
+exports, raw wheel manifests, and closed Python closure profiles implement the
+Python-owned slices of T03, T10, T11, T13, and T23. Evidence remains explicitly
+scoped; it does not relabel generic, OCI, native, proof, or publication controls
+as qualified.
+
+- T03: the blocking CPython 3.11–3.14 matrix selects an exact closure profile.
+  Compatibility and release lanes build a direct wheel and an sdist-built wheel
+  with the same hash-complete Hatchling constraints, then install and exercise
+  each distribution outside the checkout.
+- T10: public, enterprise mirror-only, and offline contexts are closed profile
+  records. Minimal environments discard ambient index, proxy, Python-path,
+  virtual-environment, and credential state. Mirror-only selection accepts one
+  credential-free HTTPS locator, prohibits public fallback, and reports bounded
+  failure categories without response bodies or locator text.
+- T11: bootstrap qualification exports target-specific raw wheels and exact
+  manifests, verifies the whole restored wheelhouse before installation, keeps
+  client caches disposable, and recreates tool and supported project
+  environments with network and Python downloads disabled.
+- T13: static and runtime checks reject stale generated projections, missing or
+  unexpected files, symlinks, non-regular entries, size drift, and SHA-256 drift
+  before a package or candidate is installed.
+- T23: the canonical tooling-policy gate cross-checks exact direct pins,
+  transitive locks, the preserved Z3 pin, build constraints, profile tuples,
+  extras/groups, manifest bindings, tracked invocation surfaces, and generated
+  projection bytes before acquisition.
+
+The supported project closure does not include macOS x86_64 because the current
+all-extras lock has no compatible cryptography wheel and no reviewed source
+fallback. The macOS x86_64 bootstrap profile instead qualifies the tool and
+isolated-build closure, including the separately pinned universal cryptography
+wheel used by the T08 fixture.
+Input locks improve repeatability but do not prove byte-identical distributions
+across host SDKs, compilers, operating systems, or build times; candidate output
+digests are evidence, not release admission.

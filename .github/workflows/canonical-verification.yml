@@ -119,7 +119,7 @@ jobs:
           else
             verify_args+=(--skip-requirement)
           fi
-          uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify -- "${verify_args[@]}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify -- "${verify_args[@]}"
 
       - name: Record qualified proof-host evidence
         run: |

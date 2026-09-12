@@ -3,8 +3,10 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import shutil
 import subprocess
+import sys
 import tarfile
 from pathlib import Path
 from types import SimpleNamespace
@@ -283,12 +285,389 @@ def _load(root: Path, relative: str) -> dict:
     return json.loads((root / relative).read_text(encoding="utf-8"))
 
 
+def _seed_python_closure_authorities(root: Path) -> dict[str, dict]:
+    for relative in (
+        "implementations/python/pyproject.toml",
+        "implementations/python/uv.lock",
+    ):
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPO_ROOT / relative, destination)
+    shutil.copytree(
+        REPO_ROOT / "implementations" / "tooling" / "python",
+        root / "implementations" / "tooling" / "python",
+        ignore=shutil.ignore_patterns(".venv"),
+    )
+    return {PROFILES_PATH: _load(REPO_ROOT, PROFILES_PATH)}
+
+
+def _python_closure_rule_ids(root: Path, documents: dict[str, dict]) -> set[str]:
+    from tools.tooling_artifact_policy_python import python_closure_failures
+
+    return {item.rule_id for item in python_closure_failures(root, documents, tracked_paths=[])}
+
+
 @pytest.mark.integration
 @pytest.mark.timeout(300)
 def test_checked_in_tooling_policy_is_valid_and_deterministic() -> None:
     first = evaluate_tooling_artifact_policy(REPO_ROOT)
     second = evaluate_tooling_artifact_policy(REPO_ROOT)
     assert first == second == []
+
+
+def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
+    from tools.python_closure import load_python_closure_profile
+
+    expected_project = {f"public-linux-x86_64-cp{minor}-all-extras" for minor in (311, 312, 313, 314)} | {
+        "public-linux-arm64-cp314-all-extras",
+        "public-macos-arm64-cp314-all-extras",
+    }
+    expected_tools = {
+        "public-linux-x86_64-cp314-tools",
+        "public-linux-arm64-cp314-tools",
+        "public-macos-x86_64-cp314-tools",
+        "public-macos-arm64-cp314-tools",
+    }
+    document = _load(REPO_ROOT, PROFILES_PATH)
+    profiles = {profile["python_closure_profile_id"]: profile for profile in document["python_closure_profiles"]}
+
+    assert set(profiles) == expected_project | expected_tools
+    assert {profiles[profile_id]["python"]["version"] for profile_id in expected_project} == {
+        "3.11",
+        "3.12",
+        "3.13",
+        "3.14",
+    }
+    assert all(profiles[profile_id]["project_extras"] == ["dev", "docs"] for profile_id in expected_project)
+    assert all(profiles[profile_id]["purposes"] == ["tool", "build"] for profile_id in expected_tools)
+    assert all(profiles[profile_id]["project_extras"] == [] for profile_id in expected_tools)
+    assert all(profiles[profile_id]["tool_groups"] == ["default", "build"] for profile_id in expected_tools)
+    macos_x86_tools = json.loads(
+        (REPO_ROOT / profiles["public-macos-x86_64-cp314-tools"]["wheelhouse_manifest"]).read_text(encoding="utf-8")
+    )
+    artifacts = {item["name"]: item for item in macos_x86_tools["artifacts"]}
+    assert {"cryptography", "hatchling", "pathspec", "trove-classifiers"} <= artifacts.keys()
+    assert "macosx_10_9_universal2" in artifacts["cryptography"]["filename"]
+    loaded = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp312-all-extras")
+    assert loaded.build_constraints.name == "build-constraints.txt"
+    assert loaded.test_case_ids == ("T03", "T10", "T11", "T13", "T23")
+
+
+def test_python_closure_environment_discards_ambient_acquisition_state(tmp_path: Path) -> None:
+    from tools.python_closure import closure_environment, load_python_closure_profile
+
+    profile = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp312-all-extras")
+    environment = closure_environment(
+        profile,
+        context_id="python-offline",
+        home=tmp_path / "home",
+        cache_dir=tmp_path / "cache",
+        source={
+            "PATH": "/usr/bin",
+            "UV_INDEX_URL": "https://unreviewed.invalid/simple",
+            "PIP_EXTRA_INDEX_URL": "https://also-unreviewed.invalid/simple",
+            "PYTHONPATH": "/checkout/packages",
+            "HTTP_PROXY": "http://proxy.invalid",
+        },
+    )
+
+    assert environment == {
+        "HOME": str(tmp_path / "home"),
+        "PATH": "/usr/bin",
+        "UV_CACHE_DIR": str(tmp_path / "cache"),
+        "UV_KEYRING_PROVIDER": "disabled",
+        "UV_OFFLINE": "1",
+        "UV_PYTHON_DOWNLOADS": "never",
+    }
+
+
+def test_python_wheelhouse_admission_rejects_missing_unexpected_wrong_hash_and_symlink(tmp_path: Path) -> None:
+    from tools.python_closure import verify_wheelhouse
+
+    payload = b"reviewed-wheel"
+    digest = hashlib.sha256(payload).hexdigest()
+    manifest = {
+        "artifacts": [
+            {
+                "filename": "fixture-1.0-py3-none-any.whl",
+                "sha256": digest,
+                "size": len(payload),
+            }
+        ]
+    }
+    wheelhouse = tmp_path / "wheelhouse"
+    wheelhouse.mkdir()
+
+    with pytest.raises(ValueError, match="missing"):
+        verify_wheelhouse(wheelhouse, manifest)
+
+    artifact = wheelhouse / "fixture-1.0-py3-none-any.whl"
+    artifact.write_bytes(b"wrong")
+    with pytest.raises(ValueError, match="digest|size"):
+        verify_wheelhouse(wheelhouse, manifest)
+
+    artifact.write_bytes(payload)
+    unexpected = wheelhouse / "unexpected.whl"
+    unexpected.write_bytes(payload)
+    with pytest.raises(ValueError, match="unexpected"):
+        verify_wheelhouse(wheelhouse, manifest)
+
+    unexpected.unlink()
+    artifact.unlink()
+    artifact.symlink_to(tmp_path / "outside.whl")
+    with pytest.raises(ValueError, match="regular"):
+        verify_wheelhouse(wheelhouse, manifest)
+
+
+def _seed_bootstrap_wheelhouse_fixture(
+    tmp_path: Path,
+) -> tuple[Path, str, Path, Path, Path, Path, Path]:
+    root = tmp_path / "repo"
+    profiles_path = root / PROFILES_PATH
+    manifest_path = root / "closure-manifest.json"
+    requirements_path = root / "closure-requirements.txt"
+    lock_path = root / "closure.lock"
+    wheelhouse = root / "wheelhouse"
+    snapshot_path = root / "manifest-snapshot.json"
+    profiles_path.parent.mkdir(parents=True)
+    wheelhouse.mkdir()
+    requirements_path.write_text("fixture==1 --hash=sha256:" + _SHA_A + "\n", encoding="utf-8")
+    lock_path.write_text("locked\n", encoding="utf-8")
+    artifact = wheelhouse / "fixture-1-py3-none-any.whl"
+    artifact.write_bytes(b"reviewed-wheel")
+    profile_id = "bootstrap-test"
+    manifest = {
+        "python_closure_profile_id": profile_id,
+        "lock_path": lock_path.relative_to(root).as_posix(),
+        "lock_sha256": hashlib.sha256(lock_path.read_bytes()).hexdigest(),
+        "requirements_sha256": hashlib.sha256(requirements_path.read_bytes()).hexdigest(),
+        "artifacts": [
+            {
+                "filename": artifact.name,
+                "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+                "size": artifact.stat().st_size,
+            }
+        ],
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    snapshot_path.write_bytes(manifest_path.read_bytes())
+    profiles_path.write_text(
+        json.dumps(
+            {
+                "python_closure_profiles": [
+                    {
+                        "python_closure_profile_id": profile_id,
+                        "wheelhouse_manifest": manifest_path.relative_to(root).as_posix(),
+                        "smoke_requirements": requirements_path.relative_to(root).as_posix(),
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    return (
+        root,
+        profile_id,
+        wheelhouse,
+        snapshot_path,
+        manifest_path,
+        lock_path,
+        requirements_path,
+    )
+
+
+@pytest.mark.integration
+def test_bootstrap_wheelhouse_verification_runs_without_site_packages(tmp_path: Path) -> None:
+    root, profile_id, wheelhouse, snapshot_path, _manifest_path, _lock_path, _requirements_path = (
+        _seed_bootstrap_wheelhouse_fixture(tmp_path)
+    )
+    code = (
+        "import sys; from pathlib import Path; "
+        "sys.path.insert(0, sys.argv[1]); "
+        "from tools.python_closure import verify_bootstrap_wheelhouse; "
+        "verify_bootstrap_wheelhouse(Path(sys.argv[2]), sys.argv[3], Path(sys.argv[4]), Path(sys.argv[5]))"
+    )
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-S",
+            "-c",
+            code,
+            str(REPO_ROOT),
+            str(root),
+            profile_id,
+            str(wheelhouse),
+            str(snapshot_path),
+        ],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ("snapshot", "does not match the reviewed authority"),
+        ("lock", "lock identity is stale"),
+        ("requirements", "requirements identity is stale"),
+        ("profile", "profile identity is wrong"),
+        ("symlink", "must be a regular file"),
+    ],
+)
+def test_bootstrap_wheelhouse_verification_rejects_stale_or_untrusted_identity(
+    tmp_path: Path,
+    mutation: str,
+    message: str,
+) -> None:
+    from tools.python_closure import verify_bootstrap_wheelhouse
+
+    root, profile_id, wheelhouse, snapshot_path, manifest_path, _lock_path, _requirements_path = (
+        _seed_bootstrap_wheelhouse_fixture(tmp_path)
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if mutation == "snapshot":
+        snapshot_path.write_text("{}\n", encoding="utf-8")
+    elif mutation == "lock":
+        manifest["lock_sha256"] = _SHA_A
+    elif mutation == "requirements":
+        manifest["requirements_sha256"] = _SHA_B
+    elif mutation == "profile":
+        manifest["python_closure_profile_id"] = "another-profile"
+    elif mutation == "symlink":
+        snapshot_path.unlink()
+        snapshot_path.symlink_to(manifest_path)
+    else:  # pragma: no cover - the parametrization above is closed.
+        raise AssertionError(f"unknown mutation: {mutation}")
+    if mutation in {"lock", "requirements", "profile"}:
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        snapshot_path.write_bytes(manifest_path.read_bytes())
+
+    with pytest.raises(ValueError, match=message):
+        verify_bootstrap_wheelhouse(root, profile_id, wheelhouse, snapshot_path)
+
+
+def test_python_closure_anchors_relative_paths_before_temporary_cwd(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from tools import python_closure
+
+    project_root = REPO_ROOT / "implementations" / "python"
+    constraints = REPO_ROOT / "implementations" / "tooling" / "python" / "build-constraints.txt"
+    requirements = REPO_ROOT / "implementations" / "tooling" / "python" / "smoke" / "linux-x86_64-cp314.txt"
+    profile = SimpleNamespace(
+        project_lock=project_root / "uv.lock",
+        build_constraints=constraints,
+        smoke_requirements=requirements,
+        python_version=f"{sys.version_info.major}.{sys.version_info.minor}",
+        abi=f"cp{sys.version_info.major}{sys.version_info.minor}",
+        platform="x86_64-unknown-linux-gnu",
+        acquisition_context_ids=("python-public", "python-offline"),
+        contexts={"python-public": {"mode": "public"}, "python-offline": {"mode": "offline"}},
+    )
+    monkeypatch.chdir(tmp_path)
+    relative_source = Path(os.path.relpath(project_root, tmp_path))
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **_kwargs: object) -> None:
+        calls.append(command)
+        if "--sdist" in command:
+            (tmp_path / "build-output" / "raes-1.tar.gz").write_bytes(b"sdist")
+
+    monkeypatch.setattr(python_closure, "_run", fake_run)
+    monkeypatch.setattr(python_closure, "load_wheelhouse_manifest", lambda _profile: {"artifacts": []})
+    monkeypatch.setattr(python_closure, "verify_wheelhouse", lambda *_args: None)
+
+    python_closure._build(profile, relative_source, Path("build-output"), context_id="python-public")
+    candidate = tmp_path / "candidate.whl"
+    candidate.write_bytes(b"wheel")
+    wheelhouse = tmp_path / "wheelhouse"
+    wheelhouse.mkdir()
+    python_closure._smoke(
+        profile,
+        Path("candidate.whl"),
+        Path("installed"),
+        wheelhouse=Path("wheelhouse"),
+        offline=True,
+    )
+    monkeypatch.setattr(python_closure, "verify_wheelhouse", lambda *_args: None)
+    python_closure._materialize(profile, Path("materialized"))
+
+    rendered = "\n".join(" ".join(command) for command in calls)
+    assert str(tmp_path / "build-output") in rendered
+    assert str(project_root) in rendered
+    assert str(tmp_path / "candidate.whl") in rendered
+    assert str(tmp_path / "installed") in rendered
+    assert str(tmp_path / "wheelhouse") in rendered
+    assert str(tmp_path / "materialized") in rendered
+
+
+def test_python_closure_policy_rejects_authority_and_projection_drift(tmp_path: Path) -> None:
+    direct_root = tmp_path / "direct-pin"
+    direct_documents = _seed_python_closure_authorities(direct_root)
+    tool_project = direct_root / "implementations" / "tooling" / "python" / "pyproject.toml"
+    tool_project.write_text(
+        tool_project.read_text(encoding="utf-8").replace("ruff==0.15.9", "ruff==0.15.8"),
+        encoding="utf-8",
+    )
+    assert "tooling-python-direct-pins" in _python_closure_rule_ids(direct_root, direct_documents)
+
+    lock_root = tmp_path / "lock"
+    lock_documents = _seed_python_closure_authorities(lock_root)
+    tool_lock = lock_root / "implementations" / "tooling" / "python" / "uv.lock"
+    tool_lock.write_text(
+        tool_lock.read_text(encoding="utf-8").replace(
+            'name = "ruff"\nversion = "0.15.9"', 'name = "ruff"\nversion = "0.15.8"'
+        ),
+        encoding="utf-8",
+    )
+    lock_failures = _python_closure_rule_ids(lock_root, lock_documents)
+    assert {"tooling-python-lock", "tooling-python-projection-generation"} <= lock_failures
+
+    constraints_root = tmp_path / "constraints"
+    constraints_documents = _seed_python_closure_authorities(constraints_root)
+    constraints = constraints_root / "implementations" / "tooling" / "python" / "build-constraints.txt"
+    constraints.write_text("hatchling==1.27.0\n", encoding="utf-8")
+    assert "tooling-python-build-constraints" in _python_closure_rule_ids(
+        constraints_root,
+        constraints_documents,
+    )
+
+    projection_root = tmp_path / "projection"
+    projection_documents = _seed_python_closure_authorities(projection_root)
+    requirements = projection_root / "implementations" / "tooling" / "python" / "smoke" / "linux-x86_64-cp312.txt"
+    requirements.write_text(requirements.read_text(encoding="utf-8") + "# drift\n", encoding="utf-8")
+    projection_failures = _python_closure_rule_ids(projection_root, projection_documents)
+    assert {"tooling-python-projection-drift", "tooling-python-projection-generation"} <= projection_failures
+
+    profile_root = tmp_path / "profile"
+    profile_documents = _seed_python_closure_authorities(profile_root)
+    profile_documents[PROFILES_PATH]["python_closure_profiles"][0]["tool_groups"] = ["default"]
+    assert "tooling-python-groups" in _python_closure_rule_ids(profile_root, profile_documents)
+
+
+def test_python_closure_policy_rejects_symlink_authority_and_public_fallback(tmp_path: Path) -> None:
+    root = tmp_path / "symlink"
+    documents = _seed_python_closure_authorities(root)
+    constraints = root / "implementations" / "tooling" / "python" / "build-constraints.txt"
+    target = constraints.with_name("constraints-target.txt")
+    constraints.rename(target)
+    constraints.symlink_to(target.name)
+    assert "tooling-python-authority" in _python_closure_rule_ids(root, documents)
+
+    fallback_root = tmp_path / "fallback"
+    fallback_documents = _seed_python_closure_authorities(fallback_root)
+    fallback_documents[PROFILES_PATH]["python_package_contexts"][1]["public_fallback"] = "permitted"
+    assert "tooling-python-fallback" in _python_closure_rule_ids(
+        fallback_root,
+        fallback_documents,
+    )
 
 
 def test_seeded_policy_has_no_failures(tmp_path: Path) -> None:
@@ -342,11 +721,11 @@ def test_python_discovery_parses_each_tracked_source_once(
     assert parse_calls == 1
 
 
-def test_selection_launcher_uses_frozen_uv_without_a_project_venv(
+def test_selection_launcher_uses_frozen_uv_without_a_tool_venv(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    project_root = tmp_path / "implementations" / "python"
+    project_root = tmp_path / "implementations" / "tooling" / "python"
     project_root.mkdir(parents=True)
     (project_root / "pyproject.toml").write_text("[project]\nname='fixture'\n", encoding="utf-8")
     (project_root / "uv.lock").write_text("version = 1\n", encoding="utf-8")
@@ -361,6 +740,7 @@ def test_selection_launcher_uses_frozen_uv_without_a_project_venv(
         "--project",
         str(project_root),
         "--frozen",
+        "--no-default-groups",
         "python",
         str(validator),
     ]

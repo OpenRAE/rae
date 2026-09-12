@@ -149,7 +149,7 @@ uv run --project implementations/python raes --help
 Run the canonical verification graph:
 
 ```console
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
 ```
 
 Useful repository roots are:

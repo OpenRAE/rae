@@ -1,0 +1,26 @@
+[project]
+name = "raes-development-tools"
+version = "0"
+description = "Reviewed Python verification and isolated-build dependency closure for RAES."
+requires-python = ">=3.11,<3.15"
+dependencies = [
+    "check-jsonschema==0.37.1",
+    "cryptography==46.0.3",
+    "nox[uv]==2026.4.10",
+    "pip==26.0.1",
+    "pre-commit==4.3.0",
+    "pre-commit-hooks==6.0.0",
+    "pytest==9.0.3",
+    "pytest-timeout==2.4.0",
+    "ruff==0.15.9",
+    "uv==0.12.4",
+]
+
+[dependency-groups]
+build = [
+    "hatchling==1.27.0",
+]
+
+[tool.uv]
+package = false
+default-groups = []

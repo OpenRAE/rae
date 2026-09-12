@@ -93,14 +93,15 @@ def test_workflow_action_source_and_payload_selectors_are_separate() -> None:
     ci = yaml.safe_load((REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
     matrix = ci["jobs"]["interpreters"]["strategy"]["matrix"]["python"]
     assert matrix == [
-        {"feature": "3.11", "payload": "3.11.16"},
-        {"feature": "3.12", "payload": "3.12.14"},
-        {"feature": "3.13", "payload": "3.13.15"},
-        {"feature": "3.14", "payload": "3.14.7"},
+        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
+        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
+        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
+        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
     ]
     job = ci["jobs"]["interpreters"]
     assert job["env"]["UV_PYTHON"] == "${{ matrix.python.payload }}"
     assert job["env"]["RAES_EXPECTED_PYTHON"] == "${{ matrix.python.feature }}"
+    assert job["env"]["RAES_PYTHON_CLOSURE_PROFILE"] == "${{ matrix.python.closure }}"
     setup_python = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("actions/setup-python@"))
     setup_uv = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("astral-sh/setup-uv@"))
     assert setup_python["with"]["python-version"] == "${{ matrix.python.payload }}"
@@ -137,30 +138,45 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
             "profile": "public-ubuntu-24.04-x86_64",
             "runner": "ubuntu-24.04",
             "target": "x86_64-unknown-linux-gnu",
-            "no_binary_package": "",
+            "tool_closure": "public-linux-x86_64-cp314-tools",
+            "tool_requirements": "implementations/tooling/python/smoke/tools-linux-x86_64-cp314.txt",
+            "project_closure": "public-linux-x86_64-cp314-all-extras",
         },
         {
             "profile": "public-linux-arm64",
             "runner": "ubuntu-24.04-arm",
             "target": "aarch64-unknown-linux-gnu",
-            "no_binary_package": "",
+            "tool_closure": "public-linux-arm64-cp314-tools",
+            "tool_requirements": "implementations/tooling/python/smoke/tools-linux-arm64-cp314.txt",
+            "project_closure": "public-linux-arm64-cp314-all-extras",
         },
         {
             "profile": "public-macos-x86_64",
             "runner": "macos-15-intel",
             "target": "x86_64-apple-darwin",
-            "no_binary_package": "z3-solver",
+            "tool_closure": "public-macos-x86_64-cp314-tools",
+            "tool_requirements": "implementations/tooling/python/smoke/tools-macos-x86_64-cp314.txt",
+            "project_closure": "",
         },
         {
             "profile": "public-macos-arm64",
             "runner": "macos-15",
             "target": "aarch64-apple-darwin",
-            "no_binary_package": "",
+            "tool_closure": "public-macos-arm64-cp314-tools",
+            "tool_requirements": "implementations/tooling/python/smoke/tools-macos-arm64-cp314.txt",
+            "project_closure": "public-macos-arm64-cp314-all-extras",
         },
     ]
-    assert workflow["jobs"]["generic-tool-platforms"]["env"]["UV_NO_BINARY_PACKAGE"] == (
-        "${{ matrix.no_binary_package }}"
+    closure_profiles = {
+        item["python_closure_profile_id"]: item
+        for item in json.loads(
+            (REPO_ROOT / "implementations/tooling/profiles/development-profiles.json").read_text(encoding="utf-8")
+        )["python_closure_profiles"]
+    }
+    assert all(
+        closure_profiles[item["tool_closure"]]["smoke_requirements"] == item["tool_requirements"] for item in matrix
     )
+    assert "UV_NO_BINARY_PACKAGE" not in workflow["jobs"]["generic-tool-platforms"].get("env", {})
     assert workflow["jobs"]["generic-tool-platforms"]["env"]["RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"] == "1"
     setup_uv = next(
         step
@@ -173,14 +189,22 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert "offline-kit-install-python" in workflow_text
     assert "offline-kit-manifest" in workflow_text
     assert "offline-kit-verify" in workflow_text
-    assert "implementations/python/.venv/bin/python -m tools.bootstrap_profile offline-kit-verify" in workflow_text
+    assert "tools.bootstrap_profile offline-kit-verify" in workflow_text
     assert '"${restored_python}" -m tools.bootstrap_profile offline-kit-verify' not in workflow_text
     assert "UV_PYTHON_DOWNLOADS=never" in workflow_text
     assert "UV_OFFLINE=1" in workflow_text
+    assert 'RAES_PYTHON_CLOSURE_WHEELHOUSE="${restored_root}/project-wheelhouse"' in workflow_text
+    assert 'UV_FIND_LINKS="${restored_root}/tool-wheelhouse,${restored_root}/project-wheelhouse"' in workflow_text
+    assert 'runtime_root="$(mktemp -d "${RUNNER_TEMP}/raes-bootstrap-runtime.XXXXXX")"' in workflow_text
+    assert 'export UV_CACHE_DIR="${runtime_root}/uv-cache"' in workflow_text
+    assert 'restored_tool_environment="${runtime_root}/tool-environment"' in workflow_text
+    assert "tools.python_closure" in workflow_text
+    assert "wheelhouse-manifest.json" in workflow_text
+    assert "bootstrap-wheelhouse-verify" in workflow_text
     assert 'PYTHONDONTWRITEBYTECODE: "1"' in workflow_text
     assert 'export UV_PYTHON="${restored_python}"' in workflow_text
-    assert 'cp -R "${restored_root}/uv-cache" .qualification-runtime-cache' in workflow_text
-    assert 'export UV_CACHE_DIR="${{ github.workspace }}/.qualification-runtime-cache"' in workflow_text
+    assert 'cp -R "${restored_root}/uv-cache"' not in workflow_text
+    assert ".qualification-runtime-cache" not in workflow_text
     assert "mkdir .qualification-evidence-root" in workflow_text
     assert "--offline-kit-root .qualification-evidence-root" in workflow_text
     assert "record-case T12" in workflow_text

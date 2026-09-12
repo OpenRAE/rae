@@ -28,4 +28,4 @@ jobs:
         with:
           version: "0.12.4"
       - name: Test preview interpreter and clean distribution
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s python-compatibility
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility

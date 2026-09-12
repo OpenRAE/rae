@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -135,6 +135,7 @@ omit = [
     "*/.cache/*",
     "*/docs/*",
     "*/implementations/python/.venv/*",
+    "*/implementations/tooling/python/.venv/*",
     "*/implementations/python/tests/*",
 ]
 

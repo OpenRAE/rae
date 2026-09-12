@@ -217,7 +217,7 @@ jobs:
           DOCKER_JUNIT: ${{ runner.temp }}/raes-release-docker-junit.xml
         run: |
           set -euo pipefail
-          uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py \
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py \
             -s integration_docker -- --junitxml="${DOCKER_JUNIT}"
           python - "${DOCKER_JUNIT}" <<'PY'
           import sys
@@ -270,25 +270,45 @@ jobs:
         with:
           version: "0.12.4"
 
-      - name: Build the corpus-bundled wheel + sdist
-        run: uv build --out-dir dist implementations/python
+      - name: Build constrained release distributions
+        env:
+          DIST_DIR: ${{ runner.temp }}/raes-release-dist
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.python_closure build --profile public-linux-x86_64-cp312-all-extras \
+            --source implementations/python --out-dir "${DIST_DIR}"
+
+      - name: Materialize the exact release smoke wheelhouse
+        env:
+          WHEELHOUSE: ${{ runner.temp }}/raes-release-wheelhouse
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.python_closure materialize --profile public-linux-x86_64-cp312-all-extras \
+            --wheelhouse "${WHEELHOUSE}"
 
       - name: Verify the contract corpus is bundled in both distributions (#537)
+        env:
+          DIST_DIR: ${{ runner.temp }}/raes-release-dist
         run: |
           python - <<'PY'
           import glob
+          import os
           import sys
           import tarfile
           import zipfile
 
-          wheels = glob.glob("dist/raes-*.whl")
-          sdists = glob.glob("dist/raes-*.tar.gz")
+          dist_dir = os.environ["DIST_DIR"]
+          wheels = glob.glob(os.path.join(dist_dir, "raes-*.whl"))
+          sdists = glob.glob(os.path.join(dist_dir, "raes-*.tar.gz"))
           if len(wheels) != 1:
               sys.exit(f"expected exactly one wheel, found {wheels}")
           if len(sdists) != 1:
               sys.exit(f"expected exactly one sdist, found {sdists}")
           expected_files = {wheels[0], sdists[0]}
-          unexpected = sorted(set(glob.glob("dist/*")) - expected_files)
+          unexpected = sorted(
+              path for path in set(glob.glob(os.path.join(dist_dir, "*"))) - expected_files
+              if not os.path.isdir(path)
+          )
           if unexpected:
               sys.exit(f"unexpected release distributions: {unexpected}")
 
@@ -337,17 +357,21 @@ jobs:
       - name: Smoke-test the installed release wheel (#537)
         env:
           SMOKE_VENV: ${{ runner.temp }}/raes-release-smoke
+          DIST_DIR: ${{ runner.temp }}/raes-release-dist
+          WHEELHOUSE: ${{ runner.temp }}/raes-release-wheelhouse
           EXPECTED_TAG: ${{ needs.resolve-release.outputs.tag }}
         run: |
           set -euo pipefail
-          wheels=(dist/raes-*.whl)
+          wheels=("${DIST_DIR}"/raes-*.whl)
           if [ "${#wheels[@]}" -ne 1 ] || [ ! -f "${wheels[0]}" ]; then
             echo "Expected exactly one release wheel, found: ${wheels[*]}" >&2
             exit 1
           fi
 
-          uv venv "${SMOKE_VENV}"
-          uv pip install --python "${SMOKE_VENV}/bin/python" "${wheels[0]}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.python_closure smoke --profile public-linux-x86_64-cp312-all-extras \
+            --candidate "${wheels[0]}" --environment "${SMOKE_VENV}" \
+            --wheelhouse "${WHEELHOUSE}" --offline
           smoke_home="$(mktemp -d "${RUNNER_TEMP}/raes-release-smoke-cwd.XXXXXX")"
           report_path="${smoke_home}/conformance.json"
           (
@@ -380,17 +404,21 @@ jobs:
       - name: Smoke-test the installed release sdist (#537)
         env:
           SMOKE_VENV: ${{ runner.temp }}/raes-release-sdist-smoke
+          DIST_DIR: ${{ runner.temp }}/raes-release-dist
+          WHEELHOUSE: ${{ runner.temp }}/raes-release-wheelhouse
           EXPECTED_TAG: ${{ needs.resolve-release.outputs.tag }}
         run: |
           set -euo pipefail
-          sdists=(dist/raes-*.tar.gz)
-          if [ "${#sdists[@]}" -ne 1 ] || [ ! -f "${sdists[0]}" ]; then
-            echo "Expected exactly one release sdist, found: ${sdists[*]}" >&2
+          sdist_wheels=("${DIST_DIR}"/from-sdist/raes-*.whl)
+          if [ "${#sdist_wheels[@]}" -ne 1 ] || [ ! -f "${sdist_wheels[0]}" ]; then
+            echo "Expected exactly one release sdist-built wheel, found: ${sdist_wheels[*]}" >&2
             exit 1
           fi
 
-          uv venv "${SMOKE_VENV}"
-          uv pip install --no-cache --python "${SMOKE_VENV}/bin/python" "${sdists[0]}"
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.python_closure smoke --profile public-linux-x86_64-cp312-all-extras \
+            --candidate "${sdist_wheels[0]}" --environment "${SMOKE_VENV}" \
+            --wheelhouse "${WHEELHOUSE}" --offline
           smoke_home="$(mktemp -d "${RUNNER_TEMP}/raes-release-sdist-smoke-cwd.XXXXXX")"
           report_path="${smoke_home}/conformance.json"
           (
@@ -424,7 +452,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-distributions-${{ needs.resolve-release.outputs.release_sha }}
-          path: dist/
+          path: |
+            ${{ runner.temp }}/raes-release-dist/raes-*.whl
+            ${{ runner.temp }}/raes-release-dist/raes-*.tar.gz
           if-no-files-found: error
           retention-days: 7
 
