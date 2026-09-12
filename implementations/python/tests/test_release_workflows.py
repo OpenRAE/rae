@@ -281,6 +281,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     workflow = _load(CI_PATH)
     assert workflow["permissions"] == {"contents": "read"}
     assert workflow["on"]["push"]["branches"] == ["main", "dev"]
+    assert workflow["on"]["pull_request"]["branches"] == ["main", "dev"]
     assert "continue-on-error" not in workflow["jobs"]["supply-chain"]
     canonical = workflow["jobs"]["canonical"]
     assert canonical["uses"] == LOCAL_CANONICAL_WORKFLOW
@@ -297,7 +298,11 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert '"${CANONICAL_RESULT}" != "success"' in result_join["run"]
     assert "verify" in workflow["jobs"]["sonar"]["needs"]
     assert workflow["jobs"]["sonar"]["if"] == (
-        "github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')"
+        "(github.event_name == 'push' "
+        "&& (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) "
+        "|| (github.event_name == 'pull_request' "
+        "&& github.event.pull_request.head.repo.full_name == github.repository "
+        "&& github.actor != 'dependabot[bot]')"
     )
 
     interpreters = workflow["jobs"]["interpreters"]

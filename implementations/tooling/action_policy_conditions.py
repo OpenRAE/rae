@@ -22,6 +22,7 @@ _CONDITION_TOKEN_RE = re.compile(
     r"(?P<identifier>[A-Za-z_][A-Za-z0-9_.-]*))"
 )
 _EVENT_NAME = "github.event_name"
+_PR_HEAD_REPOSITORY = "github.event.pull_request.head.repo.full_name"
 _REF = "github.ref"
 
 
@@ -197,6 +198,14 @@ def _condition_string_literals(expression: tuple[Any, ...]) -> set[str]:
     return literals
 
 
+def _condition_variables(expression: tuple[Any, ...]) -> set[str]:
+    variables = {str(expression[1])} if expression[0] == "variable" else set()
+    for child in expression[1:]:
+        if isinstance(child, tuple):
+            variables.update(_condition_variables(child))
+    return variables
+
+
 def _unmodeled_ref(known_refs: set[str], candidate: str = "refs/heads/__gc-unmodeled-ref__") -> str:
     while candidate in known_refs:
         candidate += "-other"
@@ -219,7 +228,8 @@ def generic_trust_contexts(
     pull_refs = sorted(value for value in literal_refs if value.startswith("refs/pull/"))
     pull_refs.append(_unmodeled_ref(literal_refs | protected_set | set(pull_refs), "refs/pull/other/merge"))
     return {
-        "untrusted-pr": _pull_request_contexts(pull_events, pull_refs, all_refs),
+        "untrusted-pr": _pull_request_contexts(pull_events, pull_refs, all_refs, same_repository=False),
+        "same-repository-pr": _pull_request_contexts(pull_events, pull_refs, all_refs, same_repository=True),
         "untrusted-ref": _event_contexts("push", unprotected),
         "protected-branch": _event_contexts("push", protected),
         "manual": _event_contexts("workflow_dispatch", all_refs),
@@ -236,11 +246,21 @@ def _pull_request_contexts(
     events: list[str],
     pull_refs: list[str],
     all_refs: list[str],
+    *,
+    same_repository: bool,
 ) -> list[dict[str, object]]:
+    repository = "gc/repository"
     return [
-        {_EVENT_NAME: event, _REF: reference}
+        {
+            _EVENT_NAME: event,
+            _REF: reference,
+            "github.repository": repository,
+            _PR_HEAD_REPOSITORY: repository if same_repository else "gc/fork",
+            "github.actor": actor,
+        }
         for event in events
         for reference in (pull_refs if event == "pull_request" else all_refs)
+        for actor in ("gc-repository-actor", "dependabot[bot]")
     ]
 
 
@@ -253,10 +273,13 @@ def filter_trust_classes(
     expression = condition_ast(condition)
     if expression is None:
         return classes, False
+    candidate_classes = set(classes)
+    if "untrusted-pr" in candidate_classes and _PR_HEAD_REPOSITORY in _condition_variables(expression):
+        candidate_classes.add("same-repository-pr")
     contexts = generic_trust_contexts(protected_refs, expression, trigger_names)
     filtered = {
         trust_class
-        for trust_class in classes
+        for trust_class in candidate_classes
         if any(True in condition_values(expression, context) for context in contexts[trust_class])
     }
     return filtered, True
