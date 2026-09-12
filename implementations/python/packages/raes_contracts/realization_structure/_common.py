@@ -20,6 +20,16 @@ from ._models import (
 )
 
 
+def _scalar_size(value: object) -> int:
+    """Measure one scalar's byte cost under the shared realization value limits."""
+
+    if isinstance(value, str):
+        return len(value.encode("utf-8"))
+    if type(value) is int:
+        return max(1, (value.bit_length() + 7) // 8)
+    return 8 if type(value) in (float, bool, type(None)) else 0
+
+
 @dataclass
 class RelationBudget:
     limits: RealizationConstraintLimits
@@ -33,18 +43,14 @@ class RelationBudget:
         if isinstance(value, str) and len(value) > self.limits.max_scalar_bytes:
             return "max_scalar_bytes"
         try:
-            text_bytes = len(value.encode("utf-8")) if isinstance(value, str) else 0
+            size = _scalar_size(value)
         except UnicodeError:
             return "invalid_utf8"
-        size = (
-            text_bytes
-            if isinstance(value, str)
-            else max(1, (value.bit_length() + 7) // 8)
-            if type(value) is int
-            else 8
-            if type(value) in (float, bool, type(None))
-            else 0
-        )
+        return self._spend_scalar_size(size)
+
+    def _spend_scalar_size(self, size: int) -> str | None:
+        """Charge one measured scalar against the per-value and total budgets."""
+
         if size > self.limits.max_scalar_bytes:
             return "max_scalar_bytes"
         self.scalar_bytes += size
@@ -219,37 +225,61 @@ def _bounded_scalar_failure(
     return failure
 
 
+def _bounded_member_failure(
+    value: dict[object, object] | list[object] | tuple[object, ...],
+    key: object,
+    child: object,
+    path: tuple[str, ...],
+    depth: int,
+    budget: RelationBudget,
+) -> RealizationRelationResult | None:
+    """Validate one container member, including a record key's own scalar cost."""
+
+    current_pointer = pointer(path)
+    if isinstance(value, dict):
+        if not isinstance(key, str):
+            return relation_result(
+                RealizationRelationStatus.INVALID,
+                current_pointer,
+                "Realization record keys must be strings.",
+            )
+        key_failure = _bounded_scalar_failure(key, current_pointer, budget)
+        if key_failure is not None:
+            return key_failure
+    return validate_bounded_value(child, (*path, str(key)), depth + 1, budget)
+
+
 def _bounded_container_failure(
     value: dict[object, object] | list[object] | tuple[object, ...],
     path: tuple[str, ...],
     depth: int,
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
-    current_pointer = pointer(path)
-    failure = None
     if len(value) > budget.limits.max_members:
-        failure = relation_result(
+        return relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            current_pointer,
+            pointer(path),
             "Realization value validation exceeded max_members.",
         )
-    else:
-        children = value.items() if isinstance(value, dict) else enumerate(value)
-        for key, child in children:
-            if isinstance(value, dict) and not isinstance(key, str):
-                failure = relation_result(
-                    RealizationRelationStatus.INVALID,
-                    current_pointer,
-                    "Realization record keys must be strings.",
-                )
-            else:
-                if isinstance(value, dict):
-                    failure = _bounded_scalar_failure(key, current_pointer, budget)
-                if failure is None:
-                    failure = validate_bounded_value(child, (*path, str(key)), depth + 1, budget)
-            if failure is not None:
-                break
-    return failure
+    children = value.items() if isinstance(value, dict) else enumerate(value)
+    for key, child in children:
+        failure = _bounded_member_failure(value, key, child, path, depth, budget)
+        if failure is not None:
+            return failure
+    return None
+
+
+def _node_budget_failure(depth: int, current_pointer: str, budget: RelationBudget) -> RealizationRelationResult | None:
+    """Charge one node against the traversal budget."""
+
+    exhausted = budget.spend_node(depth)
+    if not exhausted:
+        return None
+    return relation_result(
+        RealizationRelationStatus.LIMIT_EXCEEDED,
+        current_pointer,
+        f"Realization value validation exceeded {exhausted}.",
+    )
 
 
 def validate_bounded_value(
@@ -259,20 +289,15 @@ def validate_bounded_value(
     budget: RelationBudget,
 ) -> RealizationRelationResult | None:
     current_pointer = pointer(path)
-    failure = None
     if budget.python_carriers and isinstance(value, Enum):
         value = value.value
-    if exhausted := budget.spend_node(depth):
-        failure = relation_result(
-            RealizationRelationStatus.LIMIT_EXCEEDED,
-            current_pointer,
-            f"Realization value validation exceeded {exhausted}.",
-        )
+    failure = _node_budget_failure(depth, current_pointer, budget)
     if failure is None and budget.python_carriers:
         value, failure = _python_record_values(value, current_pointer, budget)
     if failure is None:
         failure = _bounded_scalar_failure(value, current_pointer, budget)
-    if failure is None and (isinstance(value, (dict, list)) or budget.python_carriers and isinstance(value, tuple)):
+    container = isinstance(value, (dict, list)) or (budget.python_carriers and isinstance(value, tuple))
+    if failure is None and container:
         failure = _bounded_container_failure(value, path, depth, budget)
     return failure
 
