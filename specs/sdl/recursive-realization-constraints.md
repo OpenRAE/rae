@@ -4,7 +4,11 @@ Status: **normative contract boundary**. The authoritative portable schema is
 [`recursive-realization-constraint-v1.json`](../../contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json).
 ADR-105 supplies the reviewed semantic design. The contract has draft
 stability while later migration issues adopt it at parser, compiler, planner,
-backend and observation boundaries.
+backend and observation boundaries. Issue #1204 adopts this contract at the
+existing compiler, authenticated plan and runtime result boundaries; see
+[backend preparation](backend-realization-preparation.md) and
+[plan-level profiles](plan-realization-profiles.md). Public SDL profile
+attachment syntax is not part of that adoption.
 
 ## 1. Purpose and authority
 

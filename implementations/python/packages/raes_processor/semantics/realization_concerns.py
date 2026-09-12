@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
+from enum import Enum
 
 from .realization_concern_observations import (
     validate_capability_policy_observation,
@@ -21,6 +22,7 @@ from .realization_concern_projections import (
     project_mounts,
     project_process_resource_limits,
     project_published_ports,
+    project_recursive_environment,
     project_service_listeners,
     sanitize_mount_observation,
 )
@@ -30,6 +32,14 @@ from .realization_runtime_concern_profiles import (
     RuntimeFieldBoundary,
     runtime_configuration_boundary_inventory,
     runtime_path_annotation,
+)
+from .realization_specialized_projection import (
+    recursive_capabilities,
+    recursive_forwarding,
+    recursive_listeners,
+    recursive_mounts,
+    recursive_ports,
+    recursive_process_limits,
 )
 from .realization_typed_runtime_projection import typed_runtime_projector
 
@@ -48,6 +58,7 @@ class RealizationConcernDescriptor:
     non_stateful_mounts_only: bool = False
     explicitness_excluded_fields: frozenset[str] = RUNTIME_NON_REALIZATION_FIELDS
     collection_identity_fields: tuple[str, ...] = ()
+    recursive_projector: Callable[[object, bool], object] | None = None
 
     @property
     def authored_suffix(self) -> str:
@@ -61,18 +72,21 @@ class RealizationConcernDescriptor:
             includes = any(_mount_source_kind(item) in {"bind", "tmpfs"} for item in value)
         return includes
 
-    def project(self, value: object, *, observed: bool = False) -> object:
+    def project(self, value: object, *, observed: bool = False, recursive: bool = False) -> object:
         if observed and self.observed_validator is not None:
             self.observed_validator(value)
-        return self.projector(value, observed) if self.projector is not None else value
+        projector = self.recursive_projector if recursive and self.recursive_projector is not None else self.projector
+        if projector is not None:
+            return projector(value, observed)
+        return value.value if recursive and isinstance(value, Enum) else value
 
-    def sanitize_observation(self, value: object) -> object:
-        return self.sanitize(value, observed=True)
+    def sanitize_observation(self, value: object, *, recursive: bool = False) -> object:
+        return self.sanitize(value, observed=True, recursive=recursive)
 
-    def sanitize(self, value: object, *, observed: bool) -> object:
+    def sanitize(self, value: object, *, observed: bool, recursive: bool = False) -> object:
         if observed and self.observed_validator is not None:
             self.observed_validator(value)
-        projector = self.sanitizer or self.projector
+        projector = self.sanitizer or (self.recursive_projector if recursive else None) or self.projector
         return projector(value, observed) if projector is not None else value
 
 
@@ -137,6 +151,8 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "environment"),
         projector=project_environment,
         observed_validator=validate_environment_observation,
+        recursive_projector=project_recursive_environment,
+        collection_identity_fields=("name",),
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -147,6 +163,8 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         sanitizer=sanitize_mount_observation,
         observed_validator=validate_mounts_observation,
         non_stateful_mounts_only=True,
+        recursive_projector=recursive_mounts,
+        collection_identity_fields=("target",),
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -155,6 +173,8 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "linux_capabilities"),
         projector=project_capability_policy,
         observed_validator=validate_capability_policy_observation,
+        recursive_projector=recursive_capabilities,
+        sanitizer=project_capability_policy,
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -170,6 +190,9 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         ),
         projector=project_process_resource_limits,
         observed_validator=validate_process_resource_limits_observation,
+        recursive_projector=recursive_process_limits,
+        sanitizer=project_process_resource_limits,
+        collection_identity_fields=("_identity",),
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -178,6 +201,9 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "network", "published_ports"),
         projector=project_published_ports,
         observed_validator=validate_published_ports_observation,
+        recursive_projector=recursive_ports,
+        sanitizer=project_published_ports,
+        collection_identity_fields=("host_ip", "host_port", "protocol"),
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -187,6 +213,9 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         projector=project_forwarding_agents,
         observed_validator=validate_forwarding_agents_observation,
         explicitness_excluded_fields=RUNTIME_NON_REALIZATION_FIELDS | {"ownership_role"},
+        recursive_projector=recursive_forwarding,
+        sanitizer=project_forwarding_agents,
+        collection_identity_fields=("forwarding_agent_id",),
     ),
     RealizationConcernDescriptor(
         section="nodes",
@@ -195,6 +224,9 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
         payload_path=("spec", "node", "runtime", "service_listeners"),
         projector=project_service_listeners,
         observed_validator=validate_service_listeners_observation,
+        recursive_projector=recursive_listeners,
+        sanitizer=project_service_listeners,
+        collection_identity_fields=("service_listener_id",),
     ),
     *(
         RealizationConcernDescriptor(
@@ -210,6 +242,12 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
             ),
             explicitness_excluded_fields=RUNTIME_NON_REALIZATION_FIELDS | profile.excluded_fields,
             collection_identity_fields=profile.collection_identity_fields,
+            recursive_projector=typed_runtime_projector(
+                runtime_path_annotation(profile.authored_path),
+                concern_kind=profile.concern_kind,
+                excluded_fields=profile.excluded_fields,
+                preserve_sequence_order=True,
+            ),
         )
         for profile in RUNTIME_CONCERN_PROFILES
     ),
@@ -322,11 +360,12 @@ def project_realization_concern(
     value: object,
     *,
     observed: bool = False,
+    recursive: bool = False,
 ) -> object:
     """Project one value through its canonical registered descriptor."""
 
     descriptor = realization_concern_descriptor(concern_kind)
-    return descriptor.project(value, observed=observed) if descriptor is not None else value
+    return descriptor.project(value, observed=observed, recursive=recursive) if descriptor is not None else value
 
 
 __all__ = [

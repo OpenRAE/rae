@@ -39,7 +39,9 @@ def sanitize_realization_snapshot(
         observed_value = _concern_value(entry.payload, descriptor.payload_path)
         if observed_value is _MISSING_CONCERN_VALUE:
             continue
-        safe_value = descriptor.sanitize_observation(observed_value)
+        safe_value = descriptor.sanitize_observation(
+            observed_value, recursive=requirement.constraint_document is not None
+        )
         payload = deepcopy(entry.payload)
         _set_concern_value(payload, descriptor.payload_path, safe_value)
         entries[requirement.address] = replace(entry, payload=payload)
@@ -97,7 +99,7 @@ def _project_payload(
         _set_concern_value(
             projected,
             descriptor.payload_path,
-            descriptor.sanitize(value, observed=observed),
+            descriptor.sanitize(value, observed=observed, recursive=requirement.constraint_document is not None),
         )
         handled.add(descriptor.payload_path)
     return projected

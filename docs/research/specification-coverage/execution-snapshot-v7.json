@@ -1,0 +1,677 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "enterprise-participant-sdl",
+      "kind": "sdl",
+      "path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+      "sha256": "7d9c2b8222a71c168b1a644d083e3e165047802ca5b5c75e57aa3d3c9a73a530",
+      "validator": "raes parse, semantic, instantiation/admission, and compiler pipeline"
+    },
+    {
+      "artifact_id": "port-range-sdl",
+      "kind": "sdl",
+      "path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+      "sha256": "a777f6a7ace95da145f1cce15431b667b47849c32b62aecb96643e2c7b780ed7",
+      "validator": "raes parse, semantic, instantiation/admission, and compiler pipeline"
+    },
+    {
+      "artifact_id": "experiment-task-contract",
+      "kind": "experiment-task",
+      "path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+      "sha256": "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc",
+      "validator": "raes_contracts.contracts.ExperimentTaskModel"
+    },
+    {
+      "artifact_id": "apparatus-context-contract",
+      "kind": "experiment-apparatus-context",
+      "path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+      "sha256": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299",
+      "validator": "raes_contracts.contracts.ExperimentApparatusContextModel"
+    },
+    {
+      "artifact_id": "backend-profile",
+      "kind": "backend-profile",
+      "path": "contracts/profiles/backend/orchestration-capable.json",
+      "sha256": "f70b8505a5c0055416db86c533e2e5bf08b11e5a514f076223b6d6c36215a092",
+      "validator": "raes_contracts.backend_profiles.BackendProfileModel"
+    },
+    {
+      "artifact_id": "known-limitations",
+      "kind": "documentation",
+      "path": "docs/explain/sdl/limitations.md",
+      "sha256": "129cf17810aad4c51988bc872e28fe43ae95019a80053c42d800ff7e2b9cc93e",
+      "validator": "documentation evidence only"
+    }
+  ],
+  "baseline": {
+    "release_revision": "1.1.0",
+    "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
+  },
+  "captured_at": "2026-09-12T05:16:23+00:00",
+  "concept_results": [
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "range-topology",
+      "rationale": "SDL nodes and infrastructure own host, network, link, and dependency meaning; the compiler emits canonical node deployment addresses.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed VM declaration.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Links and dependencies resolved.",
+          "outcome": "passed",
+          "pointer": "/infrastructure/shipping-portal",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Published instantiated shape admitted.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Canonical deployment address retained.",
+          "outcome": "passed",
+          "pointer": "/node_deployments/provision.node.shipping-portal",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/nodes/shipping-portal"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "exercise-roles",
+      "rationale": "SDL entity roles own exercise responsibility without becoming control-plane identity or authorization.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed red role.",
+          "outcome": "passed",
+          "pointer": "/entities/enterprise-participant/role",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Entity references validated.",
+          "outcome": "passed",
+          "pointer": "/entities/enterprise-participant",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Role retained after instantiation.",
+          "outcome": "passed",
+          "pointer": "/entities/enterprise-participant/role",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Role retained in entity specification.",
+          "outcome": "passed",
+          "pointer": "/entity_specs/enterprise-participant/role",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/entities/enterprise-participant/role"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "evaluation-objectives",
+      "rationale": "SDL objectives own actor, target, window, and assertion-based success meaning while measures remain in experiment contracts.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed objective declaration.",
+          "outcome": "passed",
+          "pointer": "/objectives/demonstrate-handoff",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Actor, targets, assertions, and workflow refs resolved.",
+          "outcome": "passed",
+          "pointer": "/objectives/demonstrate-handoff/success",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Objective retained in admitted artifact.",
+          "outcome": "passed",
+          "pointer": "/objectives/demonstrate-handoff",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Canonical objective address retained.",
+          "outcome": "passed",
+          "pointer": "/objectives/evaluation.objective.demonstrate-handoff",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/objectives/demonstrate-handoff"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "control-workflows",
+      "rationale": "SDL workflows own the portable control graph and compile to canonical orchestration state contracts.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed control graph.",
+          "outcome": "passed",
+          "pointer": "/workflows/yard-recovery",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Step graph and objective refs validated.",
+          "outcome": "passed",
+          "pointer": "/workflows/yard-recovery/steps",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Workflow retained after instantiation.",
+          "outcome": "passed",
+          "pointer": "/workflows/yard-recovery",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Canonical control graph retained.",
+          "outcome": "passed",
+          "pointer": "/workflows/orchestration.workflow.yard-recovery",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/workflows/yard-recovery"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "authored-evidence-expectations",
+      "rationale": "SDL evidence requirements own portable capture intent and remain distinct from evidence records and measures.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed capture obligation.",
+          "outcome": "passed",
+          "pointer": "/evidence_requirements/objective-truth-evidence",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Source refs and bindings validated.",
+          "outcome": "passed",
+          "pointer": "/evidence_requirements/objective-truth-evidence",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Evidence intent retained in admitted artifact.",
+          "outcome": "passed",
+          "pointer": "/evidence_requirements/objective-truth-evidence",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        }
+      ],
+      "typed_pointer": "/evidence_requirements/objective-truth-evidence"
+    },
+    {
+      "backend_support": "profile-bound",
+      "backend_vocabulary_occurrences": [],
+      "classification": "profile-or-manifest-constraint",
+      "completeness_disposition": "implemented",
+      "concept_id": "apparatus-selection-constraints",
+      "rationale": "The experiment task contract binds processor/backend identities, manifest refs, and capabilities outside SDL.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+          "diagnostic_codes": [],
+          "note": "Closed ExperimentTaskModel validated.",
+          "outcome": "passed",
+          "pointer": "/apparatus_constraints/allowed_backend_refs/0",
+          "stage_id": "contract",
+          "validation_strength": "contract"
+        }
+      ],
+      "typed_pointer": "/apparatus_constraints/allowed_backend_refs/0"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "participant-agent",
+      "rationale": "SDL agents own participant entity, knowledge, actions, observation boundaries, and operating scope.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed participant declaration.",
+          "outcome": "passed",
+          "pointer": "/agents/participant-agent",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Participant refs and scope validated.",
+          "outcome": "passed",
+          "pointer": "/agents/participant-agent/observation_boundaries",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Participant retained in admitted artifact.",
+          "outcome": "passed",
+          "pointer": "/agents/participant-agent",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Compiled participant scope retained.",
+          "outcome": "passed",
+          "pointer": "/agent_specs/participant-agent",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/agents/participant-agent"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "participant-action-contract",
+      "rationale": "The action contract declares portable preconditions, effects, observations, evidence, and failure classes without a runner command.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed action contract.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/probe-customer-portal-login",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Action refs and evidence bindings validated.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/probe-customer-portal-login/effects",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Action retained in admitted artifact.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/probe-customer-portal-login",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Canonical action address retained.",
+          "outcome": "passed",
+          "pointer": "/action_contracts/participant.action-contract.probe-customer-portal-login",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/action_contracts/probe-customer-portal-login"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "participant-observation-boundary",
+      "rationale": "The observation boundary separately declares visible, hidden, and evidence-only information with transition rules.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed observation boundary.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant-view",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Information refs and transitions validated.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant-view/view_rules",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Boundary retained in admitted artifact.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant-view",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Canonical boundary address retained.",
+          "outcome": "passed",
+          "pointer": "/observation_boundaries/participant.observation-boundary.participant-view",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/observation_boundaries/participant-view"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "evaluation-measure",
+      "rationale": "ExperimentTaskModel owns metric construct, unit, direction, aggregation, and evidence requirements outside SDL objectives.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+          "diagnostic_codes": [],
+          "note": "Closed task contract validated.",
+          "outcome": "passed",
+          "pointer": "/evaluation_protocol/metric_definitions/foothold-achieved",
+          "stage_id": "contract",
+          "validation_strength": "contract"
+        }
+      ],
+      "typed_pointer": "/evaluation_protocol/metric_definitions/foothold-achieved"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "missing",
+      "completeness_disposition": "documented-gap",
+      "concept_id": "participant-tool-affordance",
+      "rationale": "This preregistered matrix has no tested carrier for participant tool affordances. The retained missing classification records missing coverage evidence, not the absence of current participant-behavior capabilities.",
+      "stage_results": [
+        {
+          "artifact_path": "docs/explain/sdl/limitations.md",
+          "diagnostic_codes": [],
+          "note": "The preregistered carrier slot was not run; metadata does not substitute for a typed coverage test.",
+          "outcome": "not_run",
+          "pointer": null,
+          "stage_id": "authored",
+          "validation_strength": "not-applicable"
+        }
+      ],
+      "typed_pointer": null
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "directly-expressible",
+      "completeness_disposition": "implemented",
+      "concept_id": "resource-constrained-topology",
+      "rationale": "SDL node resources and infrastructure dependencies express portable resource intent without provider resource identifiers.",
+      "stage_results": [
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Typed CPU and memory declaration.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal/resources",
+          "stage_id": "authored",
+          "validation_strength": "structural"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Resource-bearing topology validated.",
+          "outcome": "passed",
+          "pointer": "/infrastructure/shipping-portal",
+          "stage_id": "semantic",
+          "validation_strength": "semantic"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Constraints retained in admitted artifact.",
+          "outcome": "passed",
+          "pointer": "/nodes/shipping-portal/resources",
+          "stage_id": "instantiated",
+          "validation_strength": "phase-admitted"
+        },
+        {
+          "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+          "diagnostic_codes": [],
+          "note": "Deployment specification retains resource intent.",
+          "outcome": "passed",
+          "pointer": "/node_deployments/provision.node.shipping-portal",
+          "stage_id": "compiled",
+          "validation_strength": "compiled"
+        }
+      ],
+      "typed_pointer": "/nodes/shipping-portal/resources"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "missing",
+      "completeness_disposition": "documented-gap",
+      "concept_id": "formal-constraint-satisfiability",
+      "rationale": "This coverage matrix did not exercise a solver-backed carrier. The separate formal-semantic-validation release demonstrates its bounded finite-domain profile; that result is not silently imported into this protocol's missing carrier slot.",
+      "stage_results": [
+        {
+          "artifact_path": "docs/explain/sdl/limitations.md",
+          "diagnostic_codes": [],
+          "note": "No coverage-carrier execution was performed here; independent solver evidence does not change this preregistered denominator.",
+          "outcome": "not_run",
+          "pointer": null,
+          "stage_id": "semantic",
+          "validation_strength": "not-applicable"
+        }
+      ],
+      "typed_pointer": null
+    },
+    {
+      "backend_support": "profile-bound",
+      "backend_vocabulary_occurrences": [
+        {
+          "allowed": true,
+          "artifact_path": "source:vsdl-paper",
+          "pointer": "source sections 4-5",
+          "reason": "Legitimate VSDL realization vocabulary, not RAES core SDL structure.",
+          "term": "OpenStack/Terraform/Packer"
+        }
+      ],
+      "classification": "deliberately-backend-specific",
+      "completeness_disposition": "external",
+      "concept_id": "provider-specific-provisioning",
+      "rationale": "Provider image selection and provisioning engines are realization mechanics and therefore remain outside core SDL.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/profiles/backend/orchestration-capable.json",
+          "diagnostic_codes": [],
+          "note": "The portable boundary requires backend contracts; it does not standardize a provider engine.",
+          "outcome": "not_applicable",
+          "pointer": "/required_contracts",
+          "stage_id": "realization-disclosure",
+          "validation_strength": "profile"
+        }
+      ],
+      "typed_pointer": null
+    },
+    {
+      "backend_support": "profile-bound",
+      "backend_vocabulary_occurrences": [],
+      "classification": "profile-or-manifest-constraint",
+      "completeness_disposition": "implemented",
+      "concept_id": "apparatus-clock-context",
+      "rationale": "ExperimentApparatusContextModel records clock authority, time domain, and synchronization as apparatus facts outside scenario meaning.",
+      "stage_results": [
+        {
+          "artifact_path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+          "diagnostic_codes": [],
+          "note": "Closed apparatus context contract validated.",
+          "outcome": "passed",
+          "pointer": "/clocks/0",
+          "stage_id": "contract",
+          "validation_strength": "contract"
+        }
+      ],
+      "typed_pointer": "/clocks/0"
+    },
+    {
+      "backend_support": "not-evaluated",
+      "backend_vocabulary_occurrences": [],
+      "classification": "missing",
+      "completeness_disposition": "documented-gap",
+      "concept_id": "federated-object-event-exchange",
+      "rationale": "The federated cyber object/event exchange carrier was not exercised by this preregistered matrix. Runtime event internals are not treated as equivalent evidence.",
+      "stage_results": [
+        {
+          "artifact_path": "docs/explain/sdl/limitations.md",
+          "diagnostic_codes": [],
+          "note": "The missing coverage-carrier test is recorded explicitly, without inferring an ecosystem-wide capability absence.",
+          "outcome": "not_run",
+          "pointer": null,
+          "stage_id": "contract",
+          "validation_strength": "not-applicable"
+        }
+      ],
+      "typed_pointer": null
+    }
+  ],
+  "deviations": [
+    {
+      "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
+      "baseline_sha256": "54ba1a60220e27a55da9cd2a407d7d3ab836fa54460d0b0c6cad87c2e744ddbb",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
+      "retest_sha256": "7d9c2b8222a71c168b1a644d083e3e165047802ca5b5c75e57aa3d3c9a73a530"
+    },
+    {
+      "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
+      "baseline_sha256": "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
+      "retest_sha256": "a777f6a7ace95da145f1cce15431b667b47849c32b62aecb96643e2c7b780ed7"
+    },
+    {
+      "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
+      "baseline_sha256": "21952a752f4e8581a9fc3b872e4bc308150548170d38bcfc83dbbe35ff5e0b9f",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
+      "retest_sha256": "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc"
+    },
+    {
+      "artifact_path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
+      "baseline_sha256": "9536d897a09cbc6920e667e4f8f9371e51307aa0b3b5ff3c7de682dd783420ab",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
+      "retest_sha256": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299"
+    }
+  ],
+  "execution_status": "complete",
+  "implementation_surfaces": [
+    {
+      "content_sha256": "a858b83d10a074e40ffc9babad12f80cfa0cc1483ba52a47bbef9e03fffac3b9",
+      "path": "implementations/python/packages/raes_contracts",
+      "surface_id": "contract-models"
+    },
+    {
+      "content_sha256": "6d8f5c8e54a5a203bb90da569fbf542d8c2fa5fe83210e64b7599b36ac78faa3",
+      "path": "implementations/python/packages/raes_processor",
+      "surface_id": "processor-pipeline"
+    },
+    {
+      "content_sha256": "b72e76d131108789d4ae0c9ca0334efcf948cd046ebafbf906a015eb74e80681",
+      "path": "implementations/python/packages/raes",
+      "surface_id": "sdl-pipeline"
+    }
+  ],
+  "limitations": [
+    "The execution validates the pinned reference implementation and published contracts, not an independent backend.",
+    "Repository-owned examples are exact execution artifacts but are not themselves the literature-derived request corpus; the protocol's requests and concepts are.",
+    "No live range, participant, simulator federation, or provider provisioning engine was executed.",
+    "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
+    "This current capture re-executes the retained specification-coverage protocol against the recursive realization implementation; it does not add recursive realization or plan-profile support claims to that preregistered protocol."
+  ],
+  "protocol_revision": "1.0.0",
+  "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
+  "raes_revision": "9b69eb211afd0785809fc9db053f5799dc36eae9",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1204-v7",
+  "snapshot_revision": "7.0.0",
+  "source_state": {
+    "base_revision": "9b69eb211afd0785809fc9db053f5799dc36eae9",
+    "checkout_state": "modified",
+    "implementation_digest": "a3d917c7c810cbe358f89f32d98d6132c818c8abb4354dc482e494c8f5054c50",
+    "profile": "python-reference-source/v1"
+  }
+}

@@ -2,7 +2,17 @@
 
 ## Status
 
-proposed
+accepted
+
+Ratification is carried by the reviewed #1204 delivery change and becomes
+authoritative when that change merges. This acceptance is incremental; it does
+not declare every candidate-design example implemented.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-09-12 | #1204 | Proposed acceptance with bounded compiler/runtime adoption, opt-in joint preparation, prepared portable membership, and the authenticated plan-level profile host. Ratification takes effect on merge. |
 
 ## Date
 
@@ -13,10 +23,9 @@ proposed
 Classification: FM3
 Required artifacts: decision record, typed finite reference model, algebraic
 checks, explicit abstract transition system, counterexamples, acceptance matrix.
-Waivers: The #1201 design deliverable published no production schema, parser,
-compiler, backend or capture migration. Issue #1203 subsequently publishes the
-draft recursive constraint contract described below; public SDL syntax and
-backend migration remain unselected.
+Waivers: The finite reference model is a design oracle, not a proof of arbitrary
+backend behavior. The production adoption below selects no new SDL profile
+syntax, software-acquisition authoring contract, or global version migration.
 
 ## Context
 
@@ -34,11 +43,11 @@ all the new examples. Existing accepted specifications retain their meaning.
 
 ## Decision
 
-Propose the [review-1 semantic contract](../../research/partial-description/semantics.md)
-and its [executable evidence](../../research/partial-description/verification.md).
-The rules there are normative **within this candidate design**, including the
-governing intent; they are not assertions about current SDL behavior. Acceptance
-of this ADR and migration of production contracts are distinct events.
+Accept the design principles in the
+[review-1 semantic contract](../../research/partial-description/semantics.md)
+and its [executable evidence](../../research/partial-description/verification.md),
+with production applicability limited to the explicit adoption records below.
+The candidate notation and finite-model behavior are not public SDL syntax.
 
 1. Separate presence, constraints, knowledge, default selection, delegation,
    closure and lifecycle authority. Undefined contributes no local statement;
@@ -63,6 +72,54 @@ of this ADR and migration of production contracts are distinct events.
    Review the compact model before selecting public syntax or migrating consumers.
 
 ### Incremental adoption record
+
+Issue #1204 adopts the recursive contract at the existing compiler, planner,
+authenticated provisioning handoff, realization comparison, and safe snapshot
+publication boundaries. The carrier retains source-bound leaf domains, local
+closure, conditional presence, defaults and author/processor origins. Scalar
+defaults do not acquire author authority. Exact siblings remain binding under
+open aggregates. Core concerns and admitted standard/private extension values
+use the same bounded relation.
+
+Specialized collection profiles retain their native identities: mount target,
+published host endpoint, forwarding/listener IDs, and canonical process-limit
+selector identity. Capability and mount-option sets use comparison-only scalar
+records; finite scalar choices carry explicit collision-free aliases with the
+actual value kept separate from its matching identity. These aliases cannot
+rename plan-owned resources or permit ambiguous matching. Ordered sequences
+remain ordered. Publication uses existing native redaction and payload shapes,
+not the comparison-only identities.
+
+`backend-realization-preparation-v1` is the explicit change from full-envelope
+coverage admission to admission of one supported completion. An opted-in backend
+selects read-only, then the runtime validates the entire proposal before apply
+and verifies delivery of those selections afterward. Legacy backends retain
+their universal-envelope contract; ADR-070 `subsumes` is unchanged. Additional
+portable nodes must be declared in preparation under authenticated, plan-owned
+collection authority, with native identity, dependency, semantic, capability,
+artifact and observation admission. Internal backend choices are not implicitly
+portable resources.
+
+`plan-realization-profiles-v1` is an optional authenticated plan-level host for
+pinned definitions and recursive binding constraints. Backend support is pinned
+independently and requires installed semantic validation. No new SDL attachment
+syntax, executable handler loading from profile data, or opaque execution
+fallback is selected.
+
+ASR-532 admission is part of this same execution boundary: resource identity,
+domain ownership, submitted operation/target scope, complete transition
+accounting, typed carrier histories, and preservation of the immediate trusted
+predecessor on rejected successful claims. Credential egress uses the admitted
+completion and remains value-free. This does not certify backend honesty,
+contain hostile code, roll back infrastructure or authorize execution replay.
+
+The normative contracts are
+[preparation](../../../specs/sdl/backend-realization-preparation.md),
+[profile carriage](../../../specs/sdl/plan-realization-profiles.md), and
+[runtime result admission](../../../specs/formal/runtime-contracts/backend-result-admission.md).
+Selection does not create observation, retention or export demand; #1212 and
+#1112 continue to own selected demand and required-capture admission. #1205 owns
+software acquisition semantics, and #1210 owns program-wide version migration.
 
 Issue #1203 publishes `recursive-realization-constraint-v1` as the first
 versioned production contract for the shared normal form. The normative
@@ -140,6 +197,5 @@ oracle checks only its declared worlds and transitions; passing it cannot prove
 production integration, backend capability, independent observation or general
 solver completeness. The acceptance matrix states these limits.
 
-The PR review is the review record for the proposal and executable evidence.
-This ADR stays proposed until maintainer ratification; no accepted ADR pin or
-published schema is changed by merely adding it.
+The #1204 PR review and merge are the ratification record for this adoption.
+The earlier design PR remains the record for the finite proposal and evidence.

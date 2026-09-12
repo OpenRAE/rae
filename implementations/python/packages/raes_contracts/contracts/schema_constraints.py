@@ -291,6 +291,7 @@ def _attach_compiled_address_map_constraints(contract_id: str, json_schema: dict
 
 
 _PLAN_CONTRACT_DOMAIN = {
+    "backend-realization-preparation-v1": RuntimeDomain.PROVISIONING,
     "provisioning-plan-v1": RuntimeDomain.PROVISIONING,
     "orchestration-plan-v1": RuntimeDomain.ORCHESTRATION,
     "evaluation-plan-v1": RuntimeDomain.EVALUATION,
@@ -301,10 +302,15 @@ def _attach_plan_identity_constraints(contract_id: str, json_schema: dict[str, A
     domain = _PLAN_CONTRACT_DOMAIN.get(contract_id)
     if domain is None:
         return
-    operation = json_schema.get(_DEFS_KEY, {}).get("PlanOperationModel")
+    model_name = (
+        "PreparationOperationModel" if contract_id == "backend-realization-preparation-v1" else "PlanOperationModel"
+    )
+    operation = json_schema.get(_DEFS_KEY, {}).get(model_name)
     if not isinstance(operation, dict):
         return
     properties = operation.get("properties", {})
+    if domain is not RuntimeDomain.PROVISIONING and "profile_bindings" in properties:
+        properties["profile_bindings"]["maxItems"] = 0
     address = properties.get("address")
     resource_type = properties.get("resource_type")
     if isinstance(address, dict):

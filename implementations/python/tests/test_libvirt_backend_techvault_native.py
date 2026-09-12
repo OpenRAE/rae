@@ -34,6 +34,7 @@ from raes_backend_libvirt.techvault_native import (
 )
 from raes_backend_protocols.naming import provider_resource_name
 from raes_conformance.conformance.target_planning import target_probe_execution_plan
+from raes_contracts.runtime_state import OperationState
 from raes_operations import techvault_live
 from raes_operations.techvault_live import (
     TechVaultLiveConfig,
@@ -373,9 +374,10 @@ def test_operational_techvault_rejects_unrealized_concerns_before_libvirt_io(tmp
     )
 
     assert receipt.accepted is True
-    assert status is not None
-    assert status.state.value == "failed"
+    assert receipt.diagnostics == []
+    assert status is not None and status.state is OperationState.FAILED
     codes = {diagnostic.code for diagnostic in status.diagnostics}
+    assert "runtime.control-plane.operation-failed" in codes
     assert "libvirt-backend.techvault.resource-out-of-envelope" in codes
     assert "libvirt-backend.techvault.service-unsupported" in codes
     assert connection.domain_xml == []
@@ -385,27 +387,27 @@ def test_operational_techvault_rejects_unrealized_concerns_before_libvirt_io(tmp
 
 
 @pytest.mark.parametrize(
-    ("filename", "domain_count", "network_count", "accepted"),
+    ("filename", "expected_code", "accepted"),
     (
-        ("techvault-observability-core.sdl.yaml", 3, 1, True),
-        ("techvault-defensive-min.sdl.yaml", 6, 1, False),
-        ("techvault-enterprise-web.sdl.yaml", 9, 3, True),
-        ("techvault-attacker-target.sdl.yaml", 8, 3, True),
+        ("techvault-observability-core.sdl.yaml", "libvirt-backend.techvault.service-unsupported", True),
+        ("techvault-defensive-min.sdl.yaml", "realization.unsupported-exact-requirement", False),
+        ("techvault-enterprise-web.sdl.yaml", "libvirt-backend.techvault.service-unsupported", True),
+        ("techvault-attacker-target.sdl.yaml", "libvirt-backend.techvault.service-unsupported", True),
     ),
 )
-def test_curated_variants_do_not_turn_planned_surfaces_into_native_claims(
-    filename, domain_count, network_count, accepted, tmp_path
-):
-    del domain_count, network_count
+def test_curated_variants_do_not_turn_planned_surfaces_into_native_claims(filename, expected_code, accepted, tmp_path):
     driver, connection, receipt, status, snapshot = _submit_native_scenario(EXAMPLES_DIR / filename, tmp_path)
 
     assert receipt.accepted is accepted
     if accepted:
-        assert status is not None
-        assert status.state.value == "failed"
+        assert receipt.diagnostics == []
+        assert status is not None and status.state is OperationState.FAILED
+        codes = {diagnostic.code for diagnostic in status.diagnostics}
+        assert "runtime.control-plane.operation-failed" in codes
     else:
         assert status is None
-        assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["realization.unsupported-exact-requirement"]
+        codes = {diagnostic.code for diagnostic in receipt.diagnostics}
+    assert expected_code in codes
     assert connection.domain_xml == []
     assert connection.network_xml == []
     assert driver.last_snapshot == {}

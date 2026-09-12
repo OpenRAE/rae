@@ -137,6 +137,7 @@ def _project_runtime_mapping(
     excluded_fields: frozenset[str],
     observed: bool,
     path: tuple[str, ...],
+    preserve_sequence_order: bool,
 ) -> dict[str, object]:
     local_identity = _runtime_local_identity(value)
     semantic_path = (*path, local_identity) if local_identity is not None else path
@@ -157,6 +158,7 @@ def _project_runtime_mapping(
             excluded_fields=excluded_fields,
             observed=observed,
             path=(*semantic_path, key),
+            preserve_sequence_order=preserve_sequence_order,
         )
         for key, item in value.items()
         if key not in omitted_fields
@@ -182,6 +184,7 @@ def _project_runtime_sequence(
     excluded_fields: frozenset[str],
     observed: bool,
     path: tuple[str, ...],
+    preserve_sequence_order: bool,
 ) -> list[object]:
     projected = [
         _project_typed_runtime_value(
@@ -190,10 +193,11 @@ def _project_runtime_sequence(
             excluded_fields=excluded_fields,
             observed=observed,
             path=path,
+            preserve_sequence_order=preserve_sequence_order,
         )
         for item in value
     ]
-    if projected and all(isinstance(item, Mapping) for item in projected):
+    if not preserve_sequence_order and projected and all(isinstance(item, Mapping) for item in projected):
         projected = sorted(projected, key=_record_sort_key)
     return projected
 
@@ -205,6 +209,7 @@ def _project_typed_runtime_value(
     excluded_fields: frozenset[str],
     observed: bool,
     path: tuple[str, ...] = (),
+    preserve_sequence_order: bool = False,
 ) -> object:
     projected = value
     if isinstance(value, Mapping):
@@ -214,6 +219,7 @@ def _project_typed_runtime_value(
             excluded_fields=excluded_fields,
             observed=observed,
             path=path,
+            preserve_sequence_order=preserve_sequence_order,
         )
     elif isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
         projected = _project_runtime_sequence(
@@ -222,6 +228,7 @@ def _project_typed_runtime_value(
             excluded_fields=excluded_fields,
             observed=observed,
             path=path,
+            preserve_sequence_order=preserve_sequence_order,
         )
     return projected
 
@@ -234,6 +241,7 @@ def project_typed_runtime_concern(
     concern_kind: str,
     excluded_fields: frozenset[str] = frozenset(),
     sort_scalar_sequence: bool = False,
+    preserve_sequence_order: bool = False,
 ) -> object:
     """Project one typed runtime surface into a closed, value-safe form."""
 
@@ -244,8 +252,9 @@ def project_typed_runtime_concern(
         concern_kind=concern_kind,
         excluded_fields=excluded_fields,
         observed=observed,
+        preserve_sequence_order=preserve_sequence_order,
     )
-    if sort_scalar_sequence and isinstance(projected, list):
+    if sort_scalar_sequence and not preserve_sequence_order and isinstance(projected, list):
         projected = sorted(projected, key=lambda item: (type(item).__name__, repr(item)))
     return projected
 
@@ -256,6 +265,7 @@ def typed_runtime_projector(
     concern_kind: str,
     excluded_fields: frozenset[str] = frozenset(),
     sort_scalar_sequence: bool = False,
+    preserve_sequence_order: bool = False,
 ) -> Callable[..., object]:
     """Bind a closed Pydantic annotation to a reusable concern projector."""
 
@@ -265,6 +275,7 @@ def typed_runtime_projector(
         concern_kind=concern_kind,
         excluded_fields=excluded_fields,
         sort_scalar_sequence=sort_scalar_sequence,
+        preserve_sequence_order=preserve_sequence_order,
     )
 
 

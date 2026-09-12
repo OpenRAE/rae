@@ -37,6 +37,8 @@ class ReferenceOrchestrator:
         changed_addresses: list[str] = []
         now = _now_iso()
         for op in plan.operations:
+            if op.action == ChangeAction.UNCHANGED:
+                continue
             if op.action == ChangeAction.DELETE:
                 entries.pop(op.address, None)
                 results.pop(op.address, None)

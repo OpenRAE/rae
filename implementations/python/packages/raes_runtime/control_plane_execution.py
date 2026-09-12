@@ -28,6 +28,7 @@ from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
 from .diagnostics import _has_error_diagnostic
 from .observation_results import PreparedObservationExecution
+from .participant_effect_authority import participant_effect_authority
 
 
 def _utc_now() -> str:
@@ -50,6 +51,7 @@ def apply_authorized_participant_action(
         snapshot,
         address=address,
         snapshot=snapshot,
+        realization=participant_effect_authority(request, snapshot),
         information_state_context_resolver=information_state_context_resolver,
     )
 
@@ -136,6 +138,7 @@ def _execute_participant_action_locked(
             control_plane._snapshot,
             address=address,
             snapshot=control_plane._snapshot,
+            realization=participant_effect_authority(request, control_plane._snapshot),
             information_state_context_resolver=getattr(
                 control_plane,
                 "_information_state_context_resolver",

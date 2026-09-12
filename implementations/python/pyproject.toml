@@ -33,6 +33,8 @@ dependencies = [
     # Typed domain-profile validation is deliberately pinned to one inert,
     # in-process Draft 2020-12 implementation (issue #1202).
     "jsonschema==4.26.0",
+    "jsonschema-specifications==2025.9.1",
+    "referencing==0.37.0",
     "packaging>=23.0",
     "rfc8785>=0.1.4,<0.2",
     "blake3>=1.0.8,<2",

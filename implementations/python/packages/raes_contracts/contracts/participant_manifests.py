@@ -51,6 +51,9 @@ class BackendManifestV2Model(ContractModel):
     compatibility: BackendCompatibilityModel
     realization_support: list[RealizationSupportDeclarationModel] = Field(min_length=1)
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
+    domain_profile_context_digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     concept_bindings: list[ConceptBindingEntryModel] = Field(min_length=1)
     constraints: dict[str, str] = Field(default_factory=dict)
     capabilities: BackendCapabilitiesV2Model

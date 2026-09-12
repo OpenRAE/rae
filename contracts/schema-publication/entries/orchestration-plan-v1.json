@@ -2,9 +2,9 @@
   "contract_id": "orchestration-plan-v1",
   "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
   "stability": "draft",
-  "content_hash": "c135bc43f147bdbf5f14af491052b1ac9fa3b62420c653d828e9c40c7eea9fb5",
+  "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892",
   "last_change": {
-    "summary": "Carried normalized scoped observation demand through orchestration plans for issue #1212.",
-    "content_hash": "c135bc43f147bdbf5f14af491052b1ac9fa3b62420c653d828e9c40c7eea9fb5"
+    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
+    "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892"
   }
 }

@@ -9,6 +9,8 @@ from raes.semantics.domain_topology import (
     analyze_domain_topology,
 )
 from raes.value_parsing import is_variable_ref
+from raes_contracts.realization_profiles import PlanProfileAuthority
+from raes_contracts.realization_structure import validate_realization_value
 
 from ..capture_admission import compile_scenario_capture_demands
 from ..models import (
@@ -59,6 +61,7 @@ def compile_scenario_runtime_model(
     *,
     parameters: Mapping[str, object] | None = None,
     profile: str | None = None,
+    profile_authority: PlanProfileAuthority | None = None,
 ) -> RuntimeModel:
     """Instantiate an SDL scenario and compile it into runtime artifacts."""
 
@@ -67,12 +70,20 @@ def compile_scenario_runtime_model(
         if isinstance(scenario, InstantiatedScenario)
         else instantiate_scenario(scenario, parameters=parameters, profile=profile)
     )
-    return compile_runtime_model(concrete_scenario)
+    return compile_runtime_model(concrete_scenario, profile_authority=profile_authority)
 
 
-def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedScenario) -> RuntimeModel:
+def compile_runtime_model(
+    scenario: Scenario | ExpandedScenario | InstantiatedScenario,
+    *,
+    profile_authority: PlanProfileAuthority | None = None,
+) -> RuntimeModel:
     """Compile an SDL scenario into bound runtime objects."""
 
+    if profile_authority is not None:
+        if not validate_realization_value(profile_authority, python_carriers=True).conformant:
+            raise ValueError("Plan profile carrier exceeds bounded public input limits")
+        profile_authority = PlanProfileAuthority.model_validate(profile_authority.model_dump(mode="json"))
     scenario = (
         admit_instantiated_scenario(scenario)
         if isinstance(scenario, InstantiatedScenario)
@@ -135,6 +146,7 @@ def compile_runtime_model(scenario: Scenario | ExpandedScenario | InstantiatedSc
 
     return RuntimeModel(
         scenario_name=scenario.name,
+        profile_authority=profile_authority,
         feature_templates=feature_templates,
         condition_templates=condition_templates,
         inject_templates=inject_templates,

@@ -398,6 +398,7 @@ def test_authority_rejects_unknown_resolution_source_and_noncanonical_pointer() 
 
 def _snapshot_from_plan(plan_value: ProvisioningPlan) -> RuntimeSnapshot:
     return RuntimeSnapshot(
+        realization_envelope=plan_value.realization_envelope,
         entries={
             operation.address: SnapshotEntry(
                 address=operation.address,
@@ -407,7 +408,7 @@ def _snapshot_from_plan(plan_value: ProvisioningPlan) -> RuntimeSnapshot:
             )
             for operation in plan_value.operations
             if operation.action is not ChangeAction.DELETE
-        }
+        },
     )
 
 
@@ -420,6 +421,9 @@ def _constrained_os_selection(
     replacement = replace(
         replacement,
         mode=RealizationAuthorityMode.CONSTRAINED,
+        # This fixture explicitly exercises the legacy scalar-bound contract.
+        constraint_document=None,
+        constraint_binding=None,
         source=RealizationResolutionSource.AUTHORED_LEAF,
         bounds=(
             RealizationAuthorityBound(

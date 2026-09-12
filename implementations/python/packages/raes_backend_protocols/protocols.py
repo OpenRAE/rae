@@ -12,6 +12,7 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionServiceStateModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest, ParticipantActionApplyResult
 from raes_contracts.participant_episode import (
     ParticipantEpisodeInitializeRequest,
@@ -20,6 +21,7 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminateRequest,
 )
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 if TYPE_CHECKING:
@@ -39,6 +41,24 @@ class Provisioner(Protocol):
         snapshot: RuntimeSnapshot,
     ) -> ApplyResult:
         """Apply provisioning reconciliation operations."""
+        ...
+
+
+class PreparingProvisioner(Provisioner, Protocol):
+    """Opt-in read-only joint selection before ordinary provisioning apply."""
+
+    def prepare(self, plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> RealizationPreparation:
+        """Select one supported completion without mutating resources or collecting evidence."""
+        ...
+
+
+class ProfilePreparingProvisioner(PreparingProvisioner, Protocol):
+    """Explicitly negotiated, installed profile semantics over selected plans."""
+
+    domain_profile_context: DomainProfileResolutionContextModel
+
+    def validate_profiles(self, plan: ProvisioningPlan) -> list[Diagnostic]:
+        """Read-only semantic validation of the full core/profile conjunction."""
         ...
 
 

@@ -13,9 +13,11 @@ from raes_backend_protocols.domain_topology import domain_topology_plan_diagnost
 from raes_backend_protocols.service_materialization import service_materialization_plan_diagnostics
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.planning import RuntimeDomain
 
 from ..capture_admission import capture_admission_diagnostics
+from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
 from ..compiler.time_model import time_model_contract_model
 from ..models import ExecutionPlan, RuntimeModel, RuntimeSnapshot
 from ..semantics.realization import (
@@ -35,6 +37,9 @@ from .operations import (
 )
 from .ordering import _ordering_cycle_diagnostics
 from .realization_authority import materialize_realization_authority
+from .realization_collections import planned_node_collection, retain_open_collection_nodes
+from .realization_preparation import preparation_authority, preparation_member_diagnostics
+from .realization_profiles import profile_resources
 from .resources import _collect_resources
 
 
@@ -108,6 +113,7 @@ def plan(
     target_name: str | None = None,
     apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
     artifact_availability: ArtifactAvailabilityContext | None = None,
+    profile_context: DomainProfileResolutionContextModel | None = None,
 ) -> ExecutionPlan:
     """Reconcile a compiled runtime model against the current snapshot."""
 
@@ -117,6 +123,7 @@ def plan(
         manifest,
         apparatus_default=apparatus_realization_default,
     )
+    model = resolve_pending_recursive_constraints(model, apparatus_decisions)
     effective_requirements = materialize_realization_requirements(
         model.realization_requirements,
         manifest,
@@ -129,12 +136,17 @@ def plan(
     )
     effective_model = replace(model, realization_requirements=effective_requirements)
     resources = _collect_resources(effective_model)
+    resources, profile_diagnostics = profile_resources(effective_model, resources, manifest, snapshot, profile_context)
+    preparation = preparation_authority(manifest)
     envelope_diagnostics = (
         list(member(effective_model.realization_instance, manifest.realization_envelope.expression).diagnostics)
         if manifest.realization_envelope is not None and effective_model.realization_instance is not None
         else []
     )
+    if preparation is not None:
+        envelope_diagnostics = preparation_member_diagnostics(envelope_diagnostics, effective_requirements)
     diagnostics = [
+        *profile_diagnostics,
         *effective_model.diagnostics,
         *_validate_manifest(effective_model, manifest),
         *_time_model_diagnostics(effective_model, manifest),
@@ -147,6 +159,7 @@ def plan(
         *realization_envelope_diagnostics(
             effective_requirements,
             manifest,
+            preparation=preparation is not None,
         ),
         *artifact_requirement_diagnostics(
             effective_requirements,
@@ -171,6 +184,23 @@ def plan(
         effective_requirements,
         resolved_authority,
         effective_model.observation_demands,
+    )
+    if preparation is not None:
+        try:
+            preparation = preparation.model_copy(
+                update={"node_collection": planned_node_collection(effective_model, provisioning)}
+            )
+        except (TypeError, ValueError):
+            diagnostics.append(
+                Diagnostic(
+                    code="realization.invalid-node-collection",
+                    domain="provisioning",
+                    address="nodes",
+                    message="Portable node membership cannot be represented by a bounded collection authority.",
+                )
+            )
+    provisioning = retain_open_collection_nodes(
+        replace(provisioning, preparation=preparation, profile_authority=model.profile_authority)
     )
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,

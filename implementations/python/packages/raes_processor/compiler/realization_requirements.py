@@ -5,7 +5,6 @@ from dataclasses import replace
 
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
 from raes.nodes import NodeType
-from raes.realization_designation import RealizationConstraintPosture
 from raes.runtime_resource_limits import (
     RuntimeProcessResourceLimit,
     process_resource_limit_identity_digest,
@@ -39,9 +38,10 @@ from .addresses import (
     _persistent_volume_address,
 )
 from .realization_authority_posture import designated_registered_posture, explicit_registered_posture
+from .realization_compute_substrate import append_compute_substrate_requirements
 from .realization_concern_binding import realization_requirement_address
 from .realization_concern_explicitness import semantic_explicitness_record
-from .realization_structure import compile_realization_structure
+from .realization_recursive_constraints import compile_registered_constraint
 from .realization_value_domains import compiled_os_value_domain, nested_authored_value
 
 
@@ -313,12 +313,22 @@ def _compiled_registered_realization(
         declaration_name=declaration_name,
     )
     structure = None
+    constraint_document = None
+    constraint_binding = None
     structure_error = False
+    recursive_pending = False
     if record is not None:
-        structure, structure_error, root_open = compile_realization_structure(
-            scenario, registered, explicitness, authored_value=authored_value, field_pointer=field_pointer
+        structure, constraint_document, constraint_binding, structure_error, root_open, recursive_pending = (
+            compile_registered_constraint(
+                scenario,
+                registered,
+                explicitness,
+                authored_value=authored_value,
+                field_pointer=field_pointer,
+                value_domain=value_domain,
+            )
         )
-        if root_open and structure is not None:
+        if root_open and (structure is not None or constraint_document is not None):
             posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
     verification_scope, observation_strength = operational_verification_requirement(
         descriptor.concern_kind, authored_value
@@ -355,7 +365,10 @@ def _compiled_registered_realization(
         value_constraints=value_constraints,
         process_resource_limits=process_resource_limits,
         structure=structure,
+        constraint_document=constraint_document,
+        constraint_binding=constraint_binding,
         structure_error=structure_error,
+        recursive_pending=recursive_pending,
     )
     return requirement, authority
 
@@ -410,7 +423,7 @@ def _compile_realization(
     """Lower explicit leaves before typed fallbacks; omitted stays closed and explicit root delegation stays typed."""
 
     requirements: list[CompiledRealizationRequirement] = []
-    _append_compute_substrate_requirements(requirements, scenario)
+    append_compute_substrate_requirements(requirements, scenario)
     authority: list[CompiledRealizationAuthority] = []
     explicitness = scenario.explicitness
     for registered in registered_realization_concern_descriptors(
@@ -454,43 +467,3 @@ def _compile_realization_requirements(
     """Compatibility view over the SEM-218 realization demand graph."""
 
     return _compile_realization(scenario, domain_analysis)[0]
-
-
-def _append_compute_substrate_requirements(
-    requirements: list[CompiledRealizationRequirement],
-    scenario: InstantiatedScenario,
-) -> None:
-    """Lower addressed substrate intent independently of structural node kind."""
-
-    explicitness_by_posture = {
-        RealizationConstraintPosture.EXACT: ExplicitnessClass.EXACT,
-        RealizationConstraintPosture.CONSTRAINED: ExplicitnessClass.CONSTRAINED,
-        RealizationConstraintPosture.OPEN: ExplicitnessClass.OPEN,
-    }
-    records_by_pointer = {
-        record.field_pointer: record
-        for record in scenario.instantiation_provenance.realization_constraints
-        if record.concern.value == "compute-substrate"
-    }
-    for node_name, node in scenario.nodes.items():
-        if node.type is NodeType.SWITCH:
-            continue
-        pointer_name = node_name.replace("~", "~0").replace("/", "~1")
-        field_pointer = f"/nodes/{pointer_name}"
-        record = records_by_pointer.get(field_pointer)
-        posture = record.posture if record is not None else RealizationConstraintPosture.OPEN
-        requirements.append(
-            CompiledRealizationRequirement(
-                field_path=f"nodes.{node_name}.realization.compute-substrate",
-                address=_node_address(node_name),
-                domain=REALIZATION_DOMAIN,
-                requirement_kind="compute-substrate",
-                explicitness=explicitness_by_posture[posture],
-                provenance=ExplicitnessProvenance.AUTHOR_DECLARED,
-                governing_scope=record.governing_scope if record is not None else f"#{field_pointer}",
-                verification_scope=None,
-                required_observation_strength=None,
-                value_domain=record.domain if record is not None else None,
-                constraint_provenance=record.provenance if record is not None else "author-declared",
-            )
-        )
