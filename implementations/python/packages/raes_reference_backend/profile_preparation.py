@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
+from typing import cast
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
@@ -141,7 +142,7 @@ def prepare_reference_profiles(
         else op
         for op in plan.operations
     )
-    selected = replace(plan, operations=list(operations))
+    selected = cast("ProvisioningPlan", replace(plan, operations=list(operations)))
     diagnostics = reference_profile_diagnostics(selected, context)
     if profile_selection_violation(plan.profile_authority, bindings, context):
         diagnostics.append(

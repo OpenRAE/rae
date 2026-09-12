@@ -26,7 +26,7 @@ from tools.nox_support.config import (
     RUFF_CONFIG,
     VERIFY_PROJECT_SYNCED_ENV,
 )
-from tools.python_closure import frozen_tool_command
+from tools.python_closure_profiles import frozen_tool_command
 
 
 @dataclass(frozen=True)

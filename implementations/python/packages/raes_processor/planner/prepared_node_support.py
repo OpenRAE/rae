@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.nodes import Node
 from raes.realization_envelope import member_projection
-from raes.runtime_resource_limits import process_resource_limit_identity_digest
+from raes.runtime_resource_limits import (
+    RuntimeProcessResourceLimit,
+    process_resource_limit_identity_digest,
+)
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.vocabulary import ProcessResourceLimitScope
@@ -16,6 +21,23 @@ from ..semantics.realization_concerns import realization_concern_descriptors
 from ..semantics.realization_process_limits import ProcessResourceLimitDemand
 from ..semantics.realization_requirement import CompiledRealizationRequirement
 from ..semantics.realization_support import realization_support_diagnostics
+
+
+def _authored_process_limits(value: object) -> tuple[RuntimeProcessResourceLimit, ...]:
+    """Admit one authored concern value as the typed process-limit collection.
+
+    ``nested_authored_value`` walks the declaration generically and so reports
+    ``object``. The registered concern is declared as
+    ``list[RuntimeProcessResourceLimit]``, and anything else is a compiler
+    defect rather than an authoring error, so admission fails closed.
+    """
+
+    if not isinstance(value, Sequence) or isinstance(value, str | bytes):
+        raise ValueError("authored process resource limits must be a typed collection")
+    limits = tuple(limit for limit in value if isinstance(limit, RuntimeProcessResourceLimit))
+    if len(limits) != len(value):
+        raise ValueError("authored process resource limits must be typed runtime limit records")
+    return limits
 
 
 def _process_limit_demands(concern_kind: str, value: object) -> tuple[ProcessResourceLimitDemand, ...]:
@@ -31,7 +53,7 @@ def _process_limit_demands(concern_kind: str, value: object) -> tuple[ProcessRes
             soft=limit.soft,
             hard=limit.hard,
         )
-        for limit in value
+        for limit in _authored_process_limits(value)
     )
 
 

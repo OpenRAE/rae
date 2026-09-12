@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from raes.scenario import InstantiatedScenario
+from raes.scenario import InstantiatedScenario, ScenarioContent
 from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode
 
 from ..models import GeneratedArtifactRuntime, PersistentVolumeRuntime
@@ -27,10 +27,14 @@ def _generated_artifact_ref_matches(reference: str, artifact_name: str) -> bool:
 
 
 def _environment_consumer_projections(
-    scenario: InstantiatedScenario,
+    scenario: ScenarioContent,
     artifact_name: str,
 ) -> list[dict[str, Any]]:
     """Derive generated-artifact consumer projections from node env bindings.
+
+    The projection reads only the shared ``nodes`` content, so both the
+    instantiated scenario compiled here and the expanded scenario rebuilt for
+    prepared-node admission satisfy it.
 
     Authors declare the binding once on ``nodes.<node>.runtime.environment[]`` /
     ``environment_files[]``; the provisioning resource needs the matching

@@ -170,7 +170,8 @@ class _SourceMetadata:
             profile=self.profile,
         )
 
-    def _origin(self, record: ExplicitnessRecord | None) -> RealizationOrigin:
+    @staticmethod
+    def _origin(record: ExplicitnessRecord | None) -> RealizationOrigin:
         """Attribute one projected pointer to the authority that supplied it."""
 
         if record is None:
@@ -268,7 +269,8 @@ class _SourceMetadata:
         else:
             self.leaf(source, pointer, record, source_pointer)
 
-    def _open_taxonomy_domain(self, source: object) -> EnumDomain:
+    @staticmethod
+    def _open_taxonomy_domain(source: object) -> EnumDomain:
         """Require an open taxonomy leaf to keep its typed finite domain."""
 
         if not isinstance(source, Enum):
