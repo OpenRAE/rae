@@ -156,6 +156,14 @@
     {
       "artifact_id": "fipa-communicative-acts-snapshot",
       "consumers": ["tools/check_autonomous_behavior_vocabularies.py"]
+    },
+    {
+      "artifact_id": "scorecard-action-image",
+      "consumers": ["implementations/tooling/actions-policy.json"]
+    },
+    {
+      "artifact_id": "sonar-scanner-cli",
+      "consumers": ["implementations/tooling/actions-policy.json"]
     }
   ],
   "tracked_literals": [

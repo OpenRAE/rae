@@ -61,7 +61,8 @@ jobs:
       && ((github.event_name == 'push'
       && needs.release-please.result == 'success'
       && needs.release-please.outputs.release_created == 'true')
-      || github.event_name == 'workflow_dispatch')
+      || (github.event_name == 'workflow_dispatch'
+      && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-24.04
     permissions:
       contents: write       # draft Releases are visible only to push-capable tokens
@@ -186,6 +187,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.resolve-release.outputs.release_sha }}
+          persist-credentials: false
 
       - name: Bind real-container testing to the exact release commit
         env:
@@ -209,6 +211,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
         with:
+          enable-cache: false
           version: "0.12.4"
 
       - name: Require real-container release integration
@@ -249,6 +252,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ needs.resolve-release.outputs.release_sha }}
+          persist-credentials: false
 
       - name: Reconfirm the exact verified release checkout
         env:
@@ -268,6 +272,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
         with:
+          enable-cache: false
           version: "0.12.4"
 
       - name: Build constrained release distributions
@@ -466,6 +471,7 @@ jobs:
       && needs.verify-release.result == 'success'
       && needs.integration-docker-release.result == 'success'
       && needs.build-release.result == 'success'
+      && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: pypi
     permissions:
@@ -585,6 +591,7 @@ jobs:
       && needs.verify-release.result == 'success'
       && needs.build-release.result == 'success'
       && needs.publish-pypi.result == 'success'
+      && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -752,6 +759,7 @@ jobs:
     if: >-
       needs.release-please.outputs.release_created == 'true'
       && needs.publish-github.result == 'success'
+      && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -760,6 +768,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Open the back-merge PR (main -> dev)
         env:
           GH_TOKEN: ${{ github.token }}

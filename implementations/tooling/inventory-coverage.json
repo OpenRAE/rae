@@ -29,25 +29,25 @@
     {
       "inventory_id": "I05", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["repository-policy"],
       "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
-      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/policy/conftest_tool.py"],
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/maintained_client_acquisition.py", "tools/policy/conftest_tool.py"],
       "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
     },
     {
       "inventory_id": "I06", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["hygiene", "hooks"],
       "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
-      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/gitleaks_tool.py"],
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/maintained_client_acquisition.py", "tools/gitleaks_tool.py"],
       "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
     },
     {
       "inventory_id": "I07", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Docs", "Tooling"], "consumers": ["documentation-style"],
       "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
-      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/vale_tool.py"],
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/maintained_client_acquisition.py", "tools/vale_tool.py"],
       "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
     },
     {
       "inventory_id": "I08", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Security", "Tooling"], "consumers": ["supply-chain-policy"],
       "trust_root_refs": ["adr-106-reviewed-upstream-release"], "availability_class": "R", "retention_class": "supported-input",
-      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/osv_scanner_tool.py"],
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "tools/maintained_client_acquisition.py", "tools/osv_scanner_tool.py"],
       "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1216
     },
     {
@@ -130,7 +130,6 @@
     {"path": "implementations/python/packages/raes_backend_libvirt/drivers/seed.py", "inventory_id": "I12", "disposition": "legacy-remediation", "site_count": 1},
     {"path": "implementations/python/packages/raes_reference_backend/drivers/oci.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 1},
     {"path": "implementations/python/tests/test_corpus_packaging.py", "inventory_id": "I03", "disposition": "governed", "site_count": 1},
-    {"path": "implementations/python/tests/test_http_download.py", "inventory_id": "I05", "disposition": "governed", "site_count": 4},
     {"path": "implementations/python/tests/test_identity_cutover_policy.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "implementations/python/tests/test_reference_backend_docker_integration.py", "inventory_id": "I11", "disposition": "governed", "site_count": 2},
     {"path": "implementations/python/tests/test_satisfiability_cli.py", "inventory_id": "D01", "disposition": "non-acquisition-execution", "site_count": 1},
@@ -141,22 +140,20 @@
     {"path": "tools/check_nist_csf_defensive_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
     {"path": "tools/check_pr_body.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
     {"path": "tools/formal_semantic_validation/_production.py", "inventory_id": "D01", "disposition": "non-acquisition-execution", "site_count": 1},
-    {"path": "tools/gitleaks_tool.py", "inventory_id": "I06", "disposition": "governed", "site_count": 1},
-    {"path": "tools/http_download.py", "inventory_id": "I05", "disposition": "governed", "site_count": 1},
     {"path": "tools/isabelle_tool.py", "inventory_id": "I09", "disposition": "governed", "site_count": 3},
     {"path": "tools/check_json_artifacts.py", "inventory_id": "I02", "disposition": "governed", "site_count": 1},
     {"path": "tools/nox_support/runner.py", "inventory_id": "I02", "disposition": "governed", "site_count": 3},
-    {"path": "tools/osv_scanner_tool.py", "inventory_id": "I08", "disposition": "governed", "site_count": 2},
+    {"path": "tools/osv_scanner_tool.py", "inventory_id": "I08", "disposition": "governed", "site_count": 1},
     {"path": "tools/parallel_verification.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 1},
-    {"path": "tools/bootstrap_profile.py", "inventory_id": "I04", "disposition": "governed", "site_count": 6},
+    {"path": "tools/bootstrap_profile.py", "inventory_id": "I04", "disposition": "governed", "site_count": 4},
+    {"path": "tools/maintained_client_acquisition.py", "inventory_id": "I05", "disposition": "governed", "site_count": 2},
     {"path": "tools/policy/common.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
-    {"path": "tools/policy/conftest_tool.py", "inventory_id": "I05", "disposition": "governed", "site_count": 3},
+    {"path": "tools/policy/conftest_tool.py", "inventory_id": "I05", "disposition": "governed", "site_count": 2},
     {"path": "tools/policy/requirement_governance.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
     {"path": "tools/real-daemon/run_aws_guest_certify.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 2},
     {"path": "tools/real-daemon/run_aws_smoke.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 3},
     {"path": "tools/tooling_policy_gate.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 2},
     {"path": "tools/python_closure.py", "inventory_id": "I02", "disposition": "governed", "site_count": 1},
-    {"path": "tools/vale_tool.py", "inventory_id": "I07", "disposition": "governed", "site_count": 1},
     {"path": "tools/verification_plan.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/verify_all.py", "inventory_id": "I02", "disposition": "governed", "site_count": 1}
   ]

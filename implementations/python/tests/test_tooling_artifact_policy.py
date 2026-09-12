@@ -21,6 +21,7 @@ from tools import (
     gitleaks_tool,
     isabelle_tool,
     osv_scanner_tool,
+    tooling_artifact_policy_actions,
     tooling_policy_gate,
     vale_tool,
 )
@@ -214,11 +215,20 @@ def _seed_policy(root: Path) -> Path:
         root,
         ACTIONS_POLICY_PATH,
         {
-            "schema_version": "raes-development-actions-policy/v1",
+            "schema_version": "raes-development-actions-policy/v2",
             "policy_revision": "2026-09-06",
+            "exception_evaluation_date": "2026-09-06",
+            "protected_refs": ["refs/heads/main", "refs/heads/dev"],
             "policy_refs": ["action-source-v1"],
             "actions": [],
+            "service_managed_exceptions": [],
+            "workflow_jobs": [],
+            "use_sites": [],
             "local_workflows": [],
+            "dependabot": {
+                "version": 2,
+                "updates": [],
+            },
         },
     )
     _write_json(
@@ -305,6 +315,25 @@ def _python_closure_rule_ids(root: Path, documents: dict[str, dict]) -> set[str]
     from tools.tooling_artifact_policy_python import python_closure_failures
 
     return {item.rule_id for item in python_closure_failures(root, documents, tracked_paths=[])}
+
+
+def _fixture_service_exception(*, review_on: str = "2027-03-11") -> dict[str, object]:
+    return {
+        "exception_id": "fixture-service",
+        "source_id": "checkout",
+        "action": "actions/checkout",
+        "input_id": "service",
+        "reason": "Fixture service response cannot be pinned.",
+        "operation": "read fixture service",
+        "allowed_origins": ["github.com"],
+        "credential_class": "none",
+        "credential_forwarding": "none",
+        "owner_roles": ["Tooling"],
+        "reviewer_roles": ["Security"],
+        "evidence_ref": "fixture:service-review",
+        "scope": "Fixture-only source read.",
+        "review_on": review_on,
+    }
 
 
 @pytest.mark.integration
@@ -1038,6 +1067,861 @@ def test_stale_workflow_action_policy_entry_is_rejected(tmp_path: Path) -> None:
     assert "tooling-action-stale" in _failures(root)
 
 
+def _seed_checkout_workflow(root: Path, body: str) -> None:
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"].append(
+        {
+            "action": "actions/checkout",
+            "commit": "c" * 40,
+            "owner_roles": ["Tooling"],
+            "trust_root_refs": ["reviewed-git-commit"],
+        }
+    )
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(body, encoding="utf-8")
+
+
+def _seed_valid_checkout_admission(root: Path) -> None:
+    profiles = _load(root, PROFILES_PATH)
+    profiles["host_profiles"][0]["host_profile_id"] = "public-ubuntu-24.04-x86_64"
+    profiles["qualification_records"][0]["host_profile_id"] = "public-ubuntu-24.04-x86_64"
+    _write_json(root, PROFILES_PATH, profiles)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"] = [
+        {
+            "source_id": "checkout",
+            "action": "actions/checkout",
+            "commit": "c" * 40,
+            "owner_roles": ["Tooling"],
+            "reviewer_roles": ["Security"],
+            "trust_root_refs": ["git-commit-sha", "reviewed-workflow-reference"],
+            "runtime": "node24",
+            "closure_review_ref": "fixture:checkout-source-review",
+            "security_effects": {
+                "closed_inputs": {"persist-credentials": [False]},
+                "credentials": [],
+                "cache": [],
+                "artifact": [],
+            },
+            "transitive_inputs": [{"input_id": "git-client", "host_capability_ref": "git"}],
+        }
+    ]
+    origins = ["api.github.com", "codeload.github.com", "github.com"]
+    policy["workflow_jobs"] = [
+        {
+            "workflow": ".github/workflows/test.yml",
+            "job": "test",
+            "runner": "ubuntu-24.04",
+            "host_profile_ids": ["public-ubuntu-24.04-x86_64"],
+            "trust_classes": ["untrusted-pr"],
+            "permissions": {"contents": "read"},
+            "credential_classes": ["github-token"],
+            "allowed_origins": origins,
+            "cache_access": "none",
+            "artifact_access": "none",
+            "promotion_authority": False,
+            "publishing_authority": False,
+        }
+    ]
+    policy["use_sites"] = [
+        {
+            "use_id": "test/test/checkout",
+            "workflow": ".github/workflows/test.yml",
+            "job": "test",
+            "step": "actions/checkout",
+            "source_id": "checkout",
+            "action": "actions/checkout",
+            "commit": "c" * 40,
+            "inputs": {"persist-credentials": False},
+            "trust_classes": ["untrusted-pr"],
+            "credential_classes": ["github-token"],
+            "allowed_origins": origins,
+            "cache_role": "none",
+            "artifact_role": "none",
+        }
+    ]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(
+        """on: pull_request
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+""",
+        encoding="utf-8",
+    )
+    profiles = _load(root, PROFILES_PATH)
+    profiles["qualification_records"][0]["policy_sha256"] = tooling_policy_sha256(root)
+    _write_json(root, PROFILES_PATH, profiles)
+
+
+def test_complete_action_admission_context_is_accepted(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+
+    assert not _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_action_source_owner_and_reviewer_roles_must_be_independent(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["reviewer_roles"] = ["Tooling"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-source-review" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_duplicate_action_source_id_is_rejected(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    duplicate = json.loads(json.dumps(policy["actions"][0]))
+    duplicate["action"] = "example/other-action"
+    duplicate["commit"] = "d" * 40
+    policy["actions"].append(duplicate)
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-duplicate" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+@pytest.mark.parametrize("mutation", ["duplicate", "role-overlap", "unused"])
+def test_service_exception_lifecycle_rejects_duplicate_conflicted_or_unused_records(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    exception = _fixture_service_exception()
+    if mutation != "unused":
+        policy["actions"][0]["transitive_inputs"].append(
+            {"input_id": "service", "service_managed_exception_ref": "fixture-service"}
+        )
+    if mutation == "duplicate":
+        policy["service_managed_exceptions"] = [exception, json.loads(json.dumps(exception))]
+    else:
+        if mutation == "role-overlap":
+            exception["reviewer_roles"] = ["Tooling"]
+        policy["service_managed_exceptions"] = [exception]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-exception" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_expired_service_exception_is_rejected(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["transitive_inputs"].append(
+        {"input_id": "service", "service_managed_exception_ref": "fixture-service"}
+    )
+    policy["service_managed_exceptions"] = [_fixture_service_exception(review_on="2026-01-01")]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-exception-expired" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+@pytest.mark.parametrize("target", ["exception", "workflow-job", "use-site"])
+def test_unsafe_action_origin_is_rejected_at_every_policy_scope(tmp_path: Path, target: str) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    if target == "exception":
+        policy["actions"][0]["transitive_inputs"].append(
+            {"input_id": "service", "service_managed_exception_ref": "fixture-service"}
+        )
+        exception = _fixture_service_exception()
+        exception["allowed_origins"] = ["https://user:password@example.invalid"]
+        policy["service_managed_exceptions"] = [exception]
+    elif target == "workflow-job":
+        policy["workflow_jobs"][0]["allowed_origins"] = ["https://example.invalid"]
+    else:
+        policy["use_sites"][0]["allowed_origins"] = ["https://example.invalid"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-origin" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_service_exception_must_bind_exact_source_revision_and_input(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["transitive_inputs"] = [
+        {"input_id": "github-service", "service_managed_exception_ref": "github-service"}
+    ]
+    policy["service_managed_exceptions"] = [
+        {
+            "exception_id": "github-service",
+            "source_id": "different-source",
+            "action": "actions/checkout",
+            "input_id": "github-service",
+            "reason": "Fixture service response cannot be pinned.",
+            "operation": "read fixture source",
+            "allowed_origins": ["github.com"],
+            "credential_class": "github-token",
+            "credential_forwarding": "same-origin-only",
+            "owner_roles": ["Tooling"],
+            "reviewer_roles": ["Security"],
+            "evidence_ref": "fixture:service-review",
+            "scope": "Fixture-only source read.",
+            "review_on": "2027-03-11",
+        }
+    ]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-transitive-input" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_action_source_closure_cycles_fail_closed(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["transitive_inputs"] = [{"input_id": "nested", "action_source_ref": "nested-action"}]
+    policy["actions"].append(
+        {
+            "source_id": "nested-action",
+            "action": "example/nested-action",
+            "commit": "d" * 40,
+            "owner_roles": ["Tooling"],
+            "reviewer_roles": ["Security"],
+            "trust_root_refs": ["git-commit-sha", "reviewed-workflow-reference"],
+            "runtime": "composite",
+            "closure_review_ref": "fixture:nested-source-review",
+            "transitive_inputs": [{"input_id": "parent", "action_source_ref": "checkout"}],
+        }
+    )
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-transitive-cycle" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_action_payload_reference_is_a_runtime_selection_consumer(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"] = [
+        {
+            "source_id": "payload-consumer",
+            "action": "example/payload-consumer",
+            "commit": "d" * 40,
+            "owner_roles": ["Tooling"],
+            "reviewer_roles": ["Security"],
+            "trust_root_refs": ["git-commit-sha", "reviewed-workflow-reference"],
+            "runtime": "node24",
+            "closure_review_ref": "fixture:payload-consumer-review",
+            "transitive_inputs": [{"input_id": "payload", "artifact_ref": "tool-a"}],
+        }
+    ]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-runtime-selection-drift" in _failures(root)
+
+
+def test_declared_origin_and_literal_inputs_cannot_drift(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["use_sites"][0]["inputs"]["persist-credentials"] = True
+    policy["use_sites"][0]["allowed_origins"] = ["example.invalid"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-use-site" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_privileged_manual_job_requires_a_real_protected_definition_path(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(workflow.read_text().replace("on: pull_request", "on: workflow_dispatch"), encoding="utf-8")
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    job = policy["workflow_jobs"][0]
+    job["trust_classes"] = ["manual"]
+    job["permissions"] = {"contents": "write"}
+    job["promotion_authority"] = True
+    job["protected_definition_ref"] = "fixture:asserted-but-not-enforced"
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-trust-boundary" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_workflow_parser_rejects_aliases(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(
+        """on: pull_request
+permissions: {contents: read}
+jobs:
+  first: &shared
+    runs-on: ubuntu-24.04
+    steps: []
+  second: *shared
+""",
+        encoding="utf-8",
+    )
+
+    assert "tooling-action-scan" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_pull_request_job_cannot_hold_write_permissions_or_secrets(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_checkout_workflow(
+        root,
+        """on: pull_request
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+      - run: test -n \"$PRIVATE_TOKEN\"
+        env:
+          PRIVATE_TOKEN: ${{ secrets.ENTERPRISE_READ_TOKEN }}
+""",
+    )
+
+    failures = _failures(root, tracked_paths=[".github/workflows/test.yml"])
+    assert {"tooling-action-permission", "tooling-action-credential"} <= failures
+
+
+def test_checkout_credential_persistence_is_a_closed_source_input(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["use_sites"][0]["inputs"]["persist-credentials"] = True
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        workflow.read_text().replace("persist-credentials: false", "persist-credentials: true"),
+        encoding="utf-8",
+    )
+
+    assert "tooling-action-input-contract" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_action_effects_are_enforced_from_policy_without_action_name_branches(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["security_effects"]["cache"] = [{"role": "write"}]
+    policy["workflow_jobs"][0]["cache_access"] = "write-untrusted"
+    policy["use_sites"][0]["cache_role"] = "write-untrusted"
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-cache" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_action_payload_must_join_the_concrete_use_site_host_profile(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["transitive_inputs"] = [
+        {"input_id": "payload", "artifact_ref": "tool-a"},
+    ]
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    lock["artifacts"][0]["platforms"][0]["host_profile_ids"] = ["different-host-profile"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-action-host-join" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_action_capability_must_join_the_concrete_use_site_host_profile(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    profiles = _load(root, PROFILES_PATH)
+    other_host = json.loads(json.dumps(profiles["host_profiles"][0]))
+    other_host["host_profile_id"] = "different-host-profile"
+    other_host["required_capability_ids"] = ["container-daemon"]
+    profiles["host_profiles"].append(other_host)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["transitive_inputs"] = [
+        {"input_id": "container-runtime", "host_capability_ref": "container-daemon"},
+    ]
+    _write_json(root, PROFILES_PATH, profiles)
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-host-join" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_service_exception_credentials_propagate_to_action_occurrences(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"][0]["transitive_inputs"] = [
+        {"input_id": "service", "service_managed_exception_ref": "fixture-service"},
+    ]
+    policy["service_managed_exceptions"] = [
+        {
+            "exception_id": "fixture-service",
+            "source_id": "checkout",
+            "action": "actions/checkout",
+            "input_id": "service",
+            "reason": "Fixture service response cannot be pinned.",
+            "operation": "read fixture service",
+            "allowed_origins": ["github.com"],
+            "credential_class": "secret:service-token",
+            "credential_forwarding": "same-origin-only",
+            "owner_roles": ["Tooling"],
+            "reviewer_roles": ["Security"],
+            "evidence_ref": "fixture:service-review",
+            "scope": "Fixture-only source read.",
+            "review_on": "2027-03-11",
+        }
+    ]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-use-site" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_disjunctive_event_condition_cannot_forge_protected_trust(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        """on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+""",
+        encoding="utf-8",
+    )
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["workflow_jobs"][0]["trust_classes"] = ["protected-branch", "untrusted-pr"]
+    policy["workflow_jobs"][0]["permissions"] = {"contents": "write"}
+    policy["use_sites"][0]["trust_classes"] = ["protected-branch", "untrusted-pr"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-permission" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_disjunctive_main_ref_condition_is_not_a_protected_definition(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        workflow.read_text()
+        .replace("on: pull_request", "on: workflow_dispatch")
+        .replace(
+            "    runs-on: ubuntu-24.04",
+            "    if: github.ref == 'refs/heads/main' || always()\n    runs-on: ubuntu-24.04",
+        ),
+        encoding="utf-8",
+    )
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["workflow_jobs"][0].update(
+        {
+            "trust_classes": ["manual"],
+            "permissions": {"contents": "write"},
+            "promotion_authority": True,
+            "protected_definition_ref": "fixture:asserted-but-not-enforced",
+        }
+    )
+    policy["use_sites"][0]["trust_classes"] = ["manual"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-trust-boundary" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_named_unprotected_ref_condition_is_not_a_protected_definition(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        workflow.read_text()
+        .replace("on: pull_request", "on: workflow_dispatch")
+        .replace(
+            "    runs-on: ubuntu-24.04",
+            "    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/attack'\n    runs-on: ubuntu-24.04",
+        ),
+        encoding="utf-8",
+    )
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["workflow_jobs"][0].update(
+        {
+            "trust_classes": ["manual"],
+            "permissions": {"contents": "write"},
+            "promotion_authority": True,
+            "protected_definition_ref": "fixture:asserted-but-not-enforced",
+        }
+    )
+    policy["use_sites"][0]["trust_classes"] = ["manual"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-trust-boundary" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_named_pull_request_ref_preserves_untrusted_classification(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        """on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.ref == 'refs/pull/42/merge')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+""",
+        encoding="utf-8",
+    )
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["workflow_jobs"][0]["trust_classes"] = ["protected-branch"]
+    policy["workflow_jobs"][0]["permissions"] = {"contents": "write"}
+    policy["use_sites"][0]["trust_classes"] = ["protected-branch"]
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-permission" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_workflow_level_bracket_secret_expression_is_untrusted_credential(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        workflow.read_text().replace(
+            "permissions:\n  contents: read",
+            "env:\n  PRIVATE_TOKEN: ${{ secrets['ENTERPRISE_READ_TOKEN'] }}\npermissions:\n  contents: read",
+        ),
+        encoding="utf-8",
+    )
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    credentials = ["github-token", "secret:enterprise-read-token"]
+    policy["workflow_jobs"][0]["credential_classes"] = credentials
+    policy["use_sites"][0]["credential_classes"] = credentials
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-credential" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+@pytest.mark.parametrize("scope", ["workflow", "job", "step"])
+def test_whole_secrets_context_is_rejected_at_every_environment_scope(tmp_path: Path, scope: str) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    text = workflow.read_text(encoding="utf-8")
+    if scope == "workflow":
+        text = text.replace(
+            "permissions:\n  contents: read",
+            "env:\n  LEAK: ${{ toJSON(secrets) }}\npermissions:\n  contents: read",
+        )
+    elif scope == "job":
+        text = text.replace(
+            "    runs-on: ubuntu-24.04",
+            "    env:\n      LEAK: ${{ toJSON(secrets) }}\n    runs-on: ubuntu-24.04",
+        )
+    else:
+        text = text.replace(
+            "          persist-credentials: false",
+            "          persist-credentials: false\n        env:\n          LEAK: ${{ toJSON(secrets) }}",
+        )
+    workflow.write_text(text, encoding="utf-8")
+
+    assert "tooling-action-credential" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_oversized_matrix_is_rejected_before_cartesian_materialization(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unexpected_product(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("oversized matrix must be rejected before product expansion")
+
+    monkeypatch.setattr(tooling_artifact_policy_actions, "product", unexpected_product)
+    job = {
+        "strategy": {
+            "matrix": {f"axis-{index}": [False, True] for index in range(9)},
+        },
+    }
+
+    rows, invalid = tooling_artifact_policy_actions._matrix_rows(job)
+
+    assert invalid is True
+    assert rows == []
+
+
+def test_invalid_matrix_rows_are_not_processed_as_runner_contexts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        tooling_artifact_policy_actions,
+        "_matrix_rows",
+        lambda _job: ([{"runner": "ubuntu-24.04"}], True),
+    )
+
+    _selector, contexts, invalid = tooling_artifact_policy_actions._runner_profiles({"runs-on": "${{ matrix.runner }}"})
+
+    assert invalid is True
+    assert contexts == []
+
+
+def test_unsupported_action_identity_form_is_rejected(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        workflow.read_text().replace(
+            "actions/checkout@cccccccccccccccccccccccccccccccccccccccc",
+            "docker://alpine:3.22",
+        ),
+        encoding="utf-8",
+    )
+
+    assert "tooling-action-source" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+@pytest.mark.parametrize("scope", ["job", "step"])
+def test_unsupported_workflow_condition_fails_closed(tmp_path: Path, scope: str) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    text = workflow.read_text(encoding="utf-8")
+    if scope == "job":
+        text = text.replace(
+            "    runs-on: ubuntu-24.04",
+            "    if: startsWith(github.ref, 'refs/heads/main')\n    runs-on: ubuntu-24.04",
+        )
+    else:
+        text = text.replace(
+            "      - uses: actions/checkout",
+            "      - if: startsWith(github.ref, 'refs/heads/main')\n        uses: actions/checkout",
+        )
+    workflow.write_text(text, encoding="utf-8")
+
+    assert "tooling-action-condition" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+@pytest.mark.parametrize("mutation", ["mutable-selector", "stale-profile"])
+def test_workflow_runner_must_be_immutable_and_match_declared_profiles(tmp_path: Path, mutation: str) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    if mutation == "mutable-selector":
+        workflow = root / ".github" / "workflows" / "test.yml"
+        workflow.write_text(
+            workflow.read_text().replace("runs-on: ubuntu-24.04", "runs-on: ubuntu-latest"),
+            encoding="utf-8",
+        )
+    else:
+        policy = _load(root, ACTIONS_POLICY_PATH)
+        policy["workflow_jobs"][0]["host_profile_ids"] = ["stale-host-profile"]
+        _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-runner" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+@pytest.mark.parametrize("mutation", ["duplicate", "undeclared", "stale", "capability-drift"])
+def test_workflow_job_policy_is_exact_and_complete(tmp_path: Path, mutation: str) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    if mutation == "duplicate":
+        policy["workflow_jobs"].append(json.loads(json.dumps(policy["workflow_jobs"][0])))
+    elif mutation == "undeclared":
+        policy["workflow_jobs"] = []
+    elif mutation == "stale":
+        stale = json.loads(json.dumps(policy["workflow_jobs"][0]))
+        stale["workflow"] = ".github/workflows/stale.yml"
+        policy["workflow_jobs"].append(stale)
+    else:
+        policy["workflow_jobs"][0]["cache_access"] = "restore"
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+
+    assert "tooling-action-workflow-job" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_omitted_workflow_permissions_fail_closed(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        workflow.read_text().replace("permissions:\n  contents: read\n", ""),
+        encoding="utf-8",
+    )
+
+    assert "tooling-action-permission" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_remote_reusable_workflow_is_rejected_even_when_sha_pinned(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(
+        """on: workflow_dispatch
+permissions: {contents: read}
+jobs:
+  test:
+    uses: attacker/repository/.github/workflows/publish.yml@cccccccccccccccccccccccccccccccccccccccc
+""",
+        encoding="utf-8",
+    )
+
+    assert "tooling-reusable-workflow" in _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_workflow_parser_rejects_duplicate_keys_and_mutable_runners(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_checkout_workflow(
+        root,
+        """on: pull_request
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+""",
+    )
+
+    failures = _failures(root, tracked_paths=[".github/workflows/test.yml"])
+    assert "tooling-action-scan" in failures
+
+
+def test_transitive_input_and_workflow_use_site_must_be_owned(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["actions"].append(
+        {
+            "action": "actions/checkout",
+            "commit": "c" * 40,
+            "owner_roles": ["Tooling"],
+            "trust_root_refs": ["reviewed-git-commit"],
+            "runtime": "node24",
+            "closure_review_ref": "fixture-review",
+            "transitive_inputs": [
+                {"input_id": "git", "host_capability_ref": "missing-capability"},
+            ],
+        }
+    )
+    policy["workflow_jobs"] = []
+    policy["use_sites"] = []
+    policy["service_managed_exceptions"] = []
+    policy["dependabot"] = {
+        "target_branch": "dev",
+        "interval": "weekly",
+        "action_group": "github-actions",
+        "python_group": "python-minor-patch",
+        "excluded_python": ["z3-solver"],
+    }
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text(
+        """on: pull_request
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+""",
+        encoding="utf-8",
+    )
+
+    failures = _failures(root, tracked_paths=[".github/workflows/test.yml"])
+    assert {"tooling-action-transitive-input", "tooling-action-use-site"} <= failures
+
+
+def test_dependabot_action_updates_must_target_dev_without_changing_z3_policy(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    dependabot = root / ".github" / "dependabot.yml"
+    dependabot.parent.mkdir(parents=True, exist_ok=True)
+    dependabot.write_text(
+        """version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: main
+    schedule: {interval: daily}
+  - package-ecosystem: pip
+    directory: /implementations/python
+    target-branch: dev
+    schedule: {interval: weekly}
+""",
+        encoding="utf-8",
+    )
+
+    failures = _failures(root, tracked_paths=[".github/dependabot.yml"])
+    assert "tooling-action-dependabot" in failures
+
+
+@pytest.mark.parametrize("mutation", ["duplicate-update", "empty-group"])
+def test_dependabot_policy_compares_every_update_and_complete_group_semantics(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    root = _seed_policy(tmp_path)
+    admitted = {
+        "version": 2,
+        "updates": [
+            {
+                "package-ecosystem": "github-actions",
+                "directory": "/",
+                "target-branch": "dev",
+                "schedule": {"interval": "weekly"},
+                "open-pull-requests-limit": 5,
+                "groups": {"github-actions": {"patterns": ["*"]}},
+            }
+        ],
+    }
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    policy["dependabot"] = admitted
+    actual = json.loads(json.dumps(admitted))
+    if mutation == "duplicate-update":
+        actual["updates"].append(json.loads(json.dumps(actual["updates"][0])))
+    else:
+        actual["updates"][0]["groups"]["github-actions"] = {"patterns": []}
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    _write_json(root, ".github/dependabot.yml", actual)
+
+    assert "tooling-action-dependabot" in _failures(root, tracked_paths=[".github/dependabot.yml"])
+
+
 def test_selector_drift_is_rejected_against_the_lock_authority(tmp_path: Path) -> None:
     root = _seed_policy(tmp_path)
     bindings = _load(root, SELECTOR_BINDINGS_PATH)
@@ -1057,6 +1941,64 @@ def test_selector_drift_is_rejected_against_the_lock_authority(tmp_path: Path) -
     _write_json(root, SELECTOR_BINDINGS_PATH, bindings)
     (root / "noxfile.py").write_text('TOOL = "tool-a==2.0.0"\n', encoding="utf-8")
     assert "tooling-selector-drift" in _failures(root, tracked_paths=["noxfile.py"])
+
+
+def test_selector_binding_must_name_a_locked_artifact_authority(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    bindings = _load(root, SELECTOR_BINDINGS_PATH)
+    bindings["bindings"].append(
+        {
+            "binding_id": "missing-tool",
+            "artifact_id": "missing-tool",
+            "authority_field": "version",
+            "consumers": [{"path": "noxfile.py", "template": "missing-tool=={selector}"}],
+        }
+    )
+    _write_json(root, SELECTOR_BINDINGS_PATH, bindings)
+
+    assert "tooling-selector-authority" in _failures(root, tracked_paths=["noxfile.py"])
+
+
+def test_duplicate_selector_binding_id_is_rejected(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    bindings = _load(root, SELECTOR_BINDINGS_PATH)
+    binding = {
+        "binding_id": "tool-a-nox",
+        "artifact_id": "tool-a",
+        "authority_field": "version",
+        "consumers": [{"path": "noxfile.py", "template": "tool-a=={selector}"}],
+    }
+    bindings["bindings"] = [binding, json.loads(json.dumps(binding))]
+    _write_json(root, SELECTOR_BINDINGS_PATH, bindings)
+    (root / "noxfile.py").write_text('TOOL = "tool-a==1.0.0"\n', encoding="utf-8")
+
+    assert "tooling-selector-binding-duplicate" in _failures(root, tracked_paths=["noxfile.py"])
+
+
+def test_duplicate_runtime_selection_declaration_is_rejected(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    bindings = _load(root, SELECTOR_BINDINGS_PATH)
+    bindings["runtime_selections"].append(json.loads(json.dumps(bindings["runtime_selections"][0])))
+    _write_json(root, SELECTOR_BINDINGS_PATH, bindings)
+
+    assert "tooling-runtime-selection-duplicate" in _failures(root)
+
+
+def test_unreadable_tracked_python_source_fails_runtime_selection_scan(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    unreadable = root / "packages" / "unreadable.py"
+    unreadable.mkdir(parents=True)
+
+    assert "tooling-runtime-selection-scan" in _failures(root, tracked_paths=["packages/unreadable.py"])
+
+
+def test_every_locked_artifact_requires_runtime_selection_coverage(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    bindings = _load(root, SELECTOR_BINDINGS_PATH)
+    bindings["runtime_selections"] = []
+    _write_json(root, SELECTOR_BINDINGS_PATH, bindings)
+
+    assert "tooling-runtime-selection-coverage" in _failures(root)
 
 
 def test_tracked_literal_discovery_rejects_a_new_drifted_consumer(tmp_path: Path) -> None:
@@ -1366,13 +2308,13 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
             ),
         )
 
-    def download(url: str, **_kwargs: object) -> bytes:
-        observed["url"] = url
+    def acquire_locked_bytes(**kwargs: object) -> bytes:
+        observed["acquisition"] = kwargs
         return archive_bytes
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
-    monkeypatch.setattr(module, "download_bytes", download)
+    monkeypatch.setattr(module, "acquire_locked_bytes", acquire_locked_bytes)
 
     binary = acquire(tmp_path, version=version)
 
@@ -1384,7 +2326,16 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
             "platform_id": "linux-x86_64",
             "profile_id": "public-linux-x86_64",
         },
-        "url": source_url,
+        "acquisition": {
+            "artifact_id": artifact_id,
+            "source_url": source_url,
+            "expected": LockedManifestEntry(
+                f"{artifact_id}-{version}.tar.gz",
+                hashlib.sha256(archive_bytes).hexdigest(),
+                len(archive_bytes),
+            ),
+            "local_input": None,
+        },
     }
 
 
@@ -1434,7 +2385,7 @@ def test_archive_tool_rejects_a_symlink_selected_by_the_installed_manifest(
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
-    monkeypatch.setattr(module, "download_bytes", lambda *_args, **_kwargs: archive_bytes)
+    monkeypatch.setattr(module, "acquire_locked_bytes", lambda **_kwargs: archive_bytes)
 
     with pytest.raises(RuntimeError, match="regular"):
         acquire(tmp_path, version=version)
@@ -1497,11 +2448,11 @@ def test_archive_tool_never_accepts_a_symlink_cache_entry(
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
 
-    def reject_download(*_args: object, **_kwargs: object) -> bytes:
-        raise RuntimeError("download-sentinel")
+    def reject_acquisition(**_kwargs: object) -> bytes:
+        raise RuntimeError("acquisition-sentinel")
 
-    monkeypatch.setattr(module, "download_bytes", reject_download)
-    with pytest.raises(RuntimeError, match="download-sentinel"):
+    monkeypatch.setattr(module, "acquire_locked_bytes", reject_acquisition)
+    with pytest.raises(RuntimeError, match="acquisition-sentinel"):
         acquire(tmp_path, version=version)
     assert not cached.is_symlink()
     assert outside.read_bytes() == binary_bytes

@@ -20,8 +20,9 @@ manifests. Source-snapshot raw manifests describe the reviewed upstream bytes;
 their installed manifests describe the checked-in derived vocabulary snapshots.
 The validator discovers Git-tracked workflow actions, selector literals and
 acquisition surfaces, and fails closed when a relevant file cannot be parsed.
-Runtime-selection consumers are derived from every tracked Python call rather
-than trusted from the maintained binding list. Acquisition dispositions record
+Runtime-selection consumers are derived from every tracked Python call and
+every action-transitive artifact reference rather than trusted from the
+maintained binding list. Acquisition dispositions record
 the exact discovered site count, so a new call in an already covered file is
 still drift; dynamic process commands require an explicit disposition. Inert
 fixture strings do not count as execution.
@@ -80,6 +81,38 @@ builds are byte-for-byte reproducible across host SDKs, compilers, operating
 systems, or build times. Candidate wheel and sdist builds therefore run outside
 the checkout and are recorded by digest.
 
+## GitHub Action admission
+
+`actions-policy.json` v2 has three independent planes: exact action source
+revisions, their closed payload/host/service dependency graph, and every
+workflow job plus action use site. A use-site record binds the literal `with`
+inputs to its effective event/ref trust classes, permissions, credential
+classes, fixed runner profile, allowed origins, and cache/artifact role.
+Security-relevant input defaults and cache, artifact, and credential effects
+are declared on sources rather than inferred from action names. Each applicable
+transitive payload and host capability must join every concrete matrix runner
+profile at the use site. Composite-action dependencies have their own source
+revisions. External
+service inputs use reviewed, dated exceptions; an exception is a bounded
+nonclaim and never substitutes for a payload digest.
+
+The validator safely parses every tracked workflow, rejects YAML aliases and
+duplicate keys, evaluates a closed boolean condition grammar without substring
+trust shortcuts, accounts for workflow permission and environment inheritance,
+propagates caller trust into local reusable workflows, and checks their input
+and permission ceilings. Remote reusable workflows are rejected until they have
+a complete source/use-site model. Candidate jobs cannot hold write
+permissions, enterprise secrets, OIDC, trusted cache/artifact roles, or
+publication authority. Checkout credential persistence and cache behavior are
+closed source input contracts. The policy compares the complete Dependabot
+configuration so extra update streams, empty groups, schedule changes, or a
+changed `z3-solver` exclusion cannot escape admission.
+
+This repository check executes after GitHub fetches an action. GitHub's action
+allow policy, branch/ruleset protection, and environment protection remain
+required hosted controls; the JSON policy cannot replace them. Live services
+are unavailable offline and must be reported unevaluated rather than simulated.
+
 ## Bootstrap and host qualification
 
 The v2 development-profile document keeps artifact selection and host policy
@@ -120,6 +153,11 @@ must use an admitted client from its reviewed image or offline kit and otherwise
 fails. The proof profile remains useful on Ubuntu 22.04 because it keeps curl
 outside that profile's admitted capabilities and preserves Bubblewrap network
 isolation, fonts/fontconfig and `C.UTF-8` as hard prerequisites.
+Canonical verification therefore fetches the four generic-tool raw objects in
+a same-run Ubuntu 24.04 preparation job, carries only those lock-verified bytes
+to the proof job, and admits them through each installer's explicit local-input
+path. The Ubuntu 22.04 proof host never treats its stock curl as a generic-tool
+acquisition capability.
 
 `bootstrap-qualification.yml` executes the four locked generic tools on Linux
 x86_64/arm64 and macOS x86_64/arm64, runs the maintained curl against controlled

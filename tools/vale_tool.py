@@ -9,7 +9,7 @@ import tempfile
 from hashlib import sha256
 from pathlib import Path
 
-from tools.http_download import download_bytes
+from tools.maintained_client_acquisition import acquire_locked_bytes
 from tools.tool_versions import VALE_VERSION
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -50,7 +50,8 @@ def _extract_binary(
         extracted = archive.extractfile(member)
         if extracted is None:
             raise RuntimeError("Vale archive root vale binary cannot be read")
-        binary_bytes = extracted.read()
+        read_size = expected_size + 1 if expected_size is not None else -1
+        binary_bytes = extracted.read(read_size)
     if expected_size is not None and len(binary_bytes) != expected_size:
         raise RuntimeError("Vale installed binary size differs from the reviewed lock manifest")
     if expected_sha256 is not None and sha256(binary_bytes).hexdigest() != expected_sha256:
@@ -69,7 +70,12 @@ def _extract_binary(
         temporary_path.unlink(missing_ok=True)
 
 
-def ensure_vale(repo_root: Path = REPO_ROOT, *, version: str = VALE_VERSION) -> Path:
+def ensure_vale(
+    repo_root: Path = REPO_ROOT,
+    *,
+    version: str = VALE_VERSION,
+    local_input: Path | None = None,
+) -> Path:
     from tools.tooling_policy_gate import (
         host_platform_id,
         load_tooling_artifact_selection,
@@ -93,11 +99,12 @@ def ensure_vale(repo_root: Path = REPO_ROOT, *, version: str = VALE_VERSION) -> 
         return binary_path
     binary_path.unlink(missing_ok=True)
 
-    asset_name = raw.path
-    archive_bytes = download_bytes(selection.source_urls[0], description="Vale")
-    actual = sha256(archive_bytes).hexdigest()
-    if len(archive_bytes) != raw.size or actual != raw.sha256:
-        raise RuntimeError(f"Vale checksum or size mismatch for locked asset {asset_name}")
+    archive_bytes = acquire_locked_bytes(
+        artifact_id="vale",
+        source_url=selection.source_urls[0],
+        expected=raw,
+        local_input=local_input,
+    )
 
     _extract_binary(
         archive_bytes,

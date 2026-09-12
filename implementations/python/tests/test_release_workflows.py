@@ -245,8 +245,9 @@ def test_canonical_verifier_requires_and_checks_out_an_exact_commit_sha() -> Non
 
 def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> None:
     workflow = _load(CANONICAL_PATH)
-    assert set(workflow["jobs"]) == {"verify"}
+    assert set(workflow["jobs"]) == {"generic-tool-local-inputs", "verify"}
     job = workflow["jobs"]["verify"]
+    assert job["needs"] == "generic-tool-local-inputs"
     assert job["runs-on"] == "ubuntu-22.04"
 
     step_names = [step.get("name") for step in job["steps"]]
@@ -278,7 +279,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     workflow = _load(CI_PATH)
-    assert workflow["permissions"] == {"contents": "read", "pull-requests": "write"}
+    assert workflow["permissions"] == {"contents": "read"}
     assert workflow["on"]["push"]["branches"] == ["main", "dev"]
     assert "continue-on-error" not in workflow["jobs"]["supply-chain"]
     canonical = workflow["jobs"]["canonical"]
@@ -295,6 +296,9 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert result_join["env"]["CANONICAL_RESULT"] == "${{ needs.canonical.result }}"
     assert '"${CANONICAL_RESULT}" != "success"' in result_join["run"]
     assert "verify" in workflow["jobs"]["sonar"]["needs"]
+    assert workflow["jobs"]["sonar"]["if"] == (
+        "github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')"
+    )
 
     interpreters = workflow["jobs"]["interpreters"]
     assert interpreters["strategy"]["matrix"]["python"] == [
@@ -324,6 +328,7 @@ def test_release_resolves_and_verifies_one_immutable_release_commit() -> None:
     assert resolve["needs"] == "release-please"
     assert "github.event_name == 'push'" in resolve["if"]
     assert "github.event_name == 'workflow_dispatch'" in resolve["if"]
+    assert "github.ref == 'refs/heads/main'" in resolve["if"]
     assert "needs.release-please.result == 'success'" in resolve["if"]
     assert "needs.release-please.outputs.release_created == 'true'" in resolve["if"]
     assert resolve["permissions"] == {"contents": "write"}
@@ -467,6 +472,7 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     assert "needs.verify-release.result == 'success'" in publish_pypi["if"]
     assert "needs.integration-docker-release.result == 'success'" in publish_pypi["if"]
     assert "needs.build-release.result == 'success'" in publish_pypi["if"]
+    assert "github.ref == 'refs/heads/main'" in publish_pypi["if"]
     assert publish_pypi["environment"] == "pypi"
     assert publish_pypi["permissions"] == {"contents": "write", "id-token": "write"}
 
@@ -509,6 +515,7 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
         "publish-pypi",
     }
     assert "needs.publish-pypi.result == 'success'" in publish_github["if"]
+    assert "github.ref == 'refs/heads/main'" in publish_github["if"]
     assert publish_github["permissions"] == {"contents": "write"}
     github_download = _named_step(publish_github, "Download the tested release distributions")
     assert github_download["with"]["name"] == upload["with"]["name"]
@@ -526,6 +533,7 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     sync = jobs["sync-dev"]
     assert set(sync["needs"]) == {"release-please", "publish-github"}
     assert "needs.publish-github.result == 'success'" in sync["if"]
+    assert "github.ref == 'refs/heads/main'" in sync["if"]
 
 
 @pytest.mark.integration
