@@ -18,6 +18,7 @@ from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 
 from .control_plane_lifecycle import runtime_owned, store_authoritative_state
+from .control_plane_mutation import external_control_plane_call
 from .control_plane_security import ControlPlaneIdentity, ParticipantAudienceSubjectBinding
 from .control_plane_store import ControlPlaneOperationRecord
 from .participant_crossing_egress import ParticipantViewSerialization, serialize_participant_view
@@ -328,14 +329,15 @@ def _resolve_trusted_view_evidence(
         participant_address=serialization.participant_address,
         supplied=audience_binding,
     )
-    resolved = provider(
-        snapshot=control_plane._snapshot,
-        participant_address=serialization.participant_address,
-        episode_id=serialization.episode_id,
-        interaction_kind=serialization.interaction_kind,
-        projection_ref=serialization.projection_ref,
-        audience_binding=binding,
-    )
+    with external_control_plane_call(control_plane):
+        resolved = provider(
+            snapshot=control_plane._snapshot,
+            participant_address=serialization.participant_address,
+            episode_id=serialization.episode_id,
+            interaction_kind=serialization.interaction_kind,
+            projection_ref=serialization.projection_ref,
+            audience_binding=binding,
+        )
     if not isinstance(resolved, ParticipantCrossingEvidence):
         raise ValueError("participant view crossing evidence is unavailable")
     return resolved

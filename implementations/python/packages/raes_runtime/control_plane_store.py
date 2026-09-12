@@ -1,11 +1,12 @@
 """Durable storage for the per-target runtime control plane."""
 
+# ruff: noqa: F822, I001
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
 from threading import RLock
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Any, Protocol
 
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import (
@@ -19,62 +20,23 @@ from raes_contracts.runtime_state import (
 
 from .control_plane_store_history import (
     require_expected_control_head as _require_expected_control_head,
-)
-from .control_plane_store_history import (
     require_expected_history_heads as _require_expected_history_heads,
 )
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
     SnapshotState,
-)
-from .control_plane_store_revision import (
     next_snapshot_revision as _next_snapshot_revision,
-)
-from .control_plane_store_revision import (
     require_snapshot_revision as _require_snapshot_revision,
 )
-from .control_plane_store_snapshots import _snapshot_from_payload as _decode_snapshot_payload
-from .control_plane_store_snapshots import _snapshot_payload as _encode_snapshot_payload
-
-if TYPE_CHECKING:
-    from .control_plane_store_local import LocalControlPlaneStore
+from .control_plane_store_types import (
+    ParticipantCrossingHistoryPresence as ParticipantCrossingHistoryPresence,
+    TerminalCommitMode,
+    _snapshot_from_payload as _snapshot_from_payload,
+    _snapshot_payload as _snapshot_payload,
+    participant_crossing_history_presence as participant_crossing_history_presence,
+)
 
 _IDEMPOTENCY_KEY_CONFLICT = "idempotency key already belongs to another operation"
-
-
-def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
-    """Retain the pre-split private codec import for compatible callers."""
-
-    return _encode_snapshot_payload(snapshot)
-
-
-def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
-    """Retain the pre-split private codec import for compatible callers."""
-
-    return _decode_snapshot_payload(payload)
-
-
-class ParticipantCrossingHistoryPresence(str, Enum):
-    """Source-level API-423 history presence before snapshot defaults apply."""
-
-    ABSENT = "absent"
-    PRESENT_EMPTY = "present-empty"
-    PRESENT = "present"
-
-
-def participant_crossing_history_presence(
-    payload: dict[str, Any],
-) -> ParticipantCrossingHistoryPresence:
-    """Classify raw runtime-snapshot input without inventing historical meaning."""
-
-    if "participant_crossing_history" not in payload:
-        return ParticipantCrossingHistoryPresence.ABSENT
-    history = payload["participant_crossing_history"]
-    if not isinstance(history, dict):
-        raise ValueError("participant_crossing_history must be an object")
-    if not history:
-        return ParticipantCrossingHistoryPresence.PRESENT_EMPTY
-    return ParticipantCrossingHistoryPresence.PRESENT
 
 
 @dataclass(frozen=True)
@@ -190,38 +152,63 @@ def _require_terminal_operation_transition(
         raise
 
 
-def _require_interrupted_operation_transition(
-    existing: ControlPlaneOperationRecord | None,
-    replacement: ControlPlaneOperationRecord,
-) -> bool:
-    """Validate conservative startup recovery for one interrupted operation."""
+def terminal_operation_audit(record: ControlPlaneOperationRecord) -> AuditEvent:
+    """Build the canonical actor-bound audit for one accepted terminal operation."""
 
-    if existing is None:
-        raise ValueError("interrupted operation no longer exists in durable state")
-    if existing == replacement:
-        if not any(
-            diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in replacement.status.diagnostics
-        ):
-            raise ValueError("interrupted operation recovery requires its stable diagnostic")
-        return False
-    if existing.status.state not in _NON_TERMINAL_OPERATION_STATES:
-        raise ValueError("a terminal operation record cannot be rewritten during recovery")
-    expected_state = (
-        OperationState.CANCELLED if existing.status.state is OperationState.ACCEPTED else OperationState.INDETERMINATE
+    context = record.status.context
+    state = record.status.state
+    return AuditEvent(
+        timestamp=record.status.updated_at,
+        action=f"{context.operation_kind.value}_terminal",
+        identity=context.actor_id,
+        allowed=True,
+        target=context.target_scope,
+        operation_id=record.receipt.operation_id,
+        reason=f"operation-{state.value}",
+        details={"state": state.value},
     )
-    if replacement.status.state is not expected_state:
-        raise ValueError(
-            f"interrupted {existing.status.state.value} operation recovery must persist {expected_state.value}"
-        )
-    if not any(
-        diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in replacement.status.diagnostics
+
+
+def _require_terminal_operation_audit(
+    record: ControlPlaneOperationRecord,
+    audit_event: AuditEvent,
+) -> None:
+    expected = terminal_operation_audit(record)
+    if audit_event != expected:
+        raise ValueError("terminal audit does not match the immutable operation context")
+
+
+def _require_operation_audit_binding(
+    record: ControlPlaneOperationRecord,
+    audit_event: AuditEvent,
+) -> None:
+    """Reject audit events that are not bound to their immutable operation actor."""
+    if (
+        audit_event.operation_id != record.receipt.operation_id
+        or audit_event.identity != record.status.context.actor_id
+        or audit_event.timestamp != record.status.updated_at
     ):
-        raise ValueError("interrupted operation recovery requires its stable diagnostic")
-    return _require_operation_record_transition(existing, replacement)
+        raise ValueError("operation audit is not actor-bound to the immutable operation context")
+
+
+def _require_terminal_commit_mode(mode: TerminalCommitMode) -> None:
+    if not isinstance(mode, TerminalCommitMode):
+        raise TypeError("terminal commit mode must be a TerminalCommitMode")
+
+
+def _require_terminal_retry_mode(
+    *,
+    current_revision: int,
+    expected_revision: int,
+    mode: TerminalCommitMode,
+) -> None:
+    committed_revision = expected_revision + 1 if mode is TerminalCommitMode.SNAPSHOT_BEARING else expected_revision
+    if current_revision != committed_revision:
+        raise ValueError("terminal operation retry does not match the durable commit mode")
 
 
 class ControlPlaneStore(Protocol):
-    """Legacy-compatible durable persistence for control-plane state."""
+    """Durable persistence capabilities for control-plane state."""
 
     def load_snapshot(self) -> RuntimeSnapshot: ...
 
@@ -270,7 +257,7 @@ class ControlPlaneStore(Protocol):
 
 
 class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
-    """Optional crash-atomic terminal commit and recovery capabilities."""
+    """Crash-atomic claim and terminal commit capabilities."""
 
     def claim_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord: ...
 
@@ -279,13 +266,10 @@ class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         *,
+        audit_event: AuditEvent | None = None,
+        mode: TerminalCommitMode = TerminalCommitMode.SNAPSHOT_BEARING,
         expected_revision: int,
     ) -> SnapshotState: ...
-
-    def reconcile_interrupted_records(
-        self,
-        records: tuple[ControlPlaneOperationRecord, ...],
-    ) -> None: ...
 
 
 class InMemoryControlPlaneStore:
@@ -340,19 +324,38 @@ class InMemoryControlPlaneStore:
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         *,
+        audit_event: AuditEvent | None = None,
+        mode: TerminalCommitMode = TerminalCommitMode.SNAPSHOT_BEARING,
         expected_revision: int,
     ) -> SnapshotState:
-        """Atomically publish a snapshot with its terminal operation record."""
+        """Atomically publish a terminal record, actor audit, and explicit revision outcome."""
 
         require_participant_autonomous_runtime_snapshot(snapshot)
+        _require_terminal_commit_mode(mode)
+        event = audit_event or terminal_operation_audit(record)
+        _require_terminal_operation_audit(record, event)
         with self._lock:
             existing = self._records.get(record.receipt.operation_id)
             changed = _require_terminal_operation_transition(existing, record)
             if not changed:
+                _require_terminal_retry_mode(
+                    current_revision=self._snapshot_state.revision,
+                    expected_revision=expected_revision,
+                    mode=mode,
+                )
                 if self._snapshot_state.snapshot != snapshot:
                     raise ValueError("terminal operation retry does not match the durable snapshot")
+                matching_audits = [
+                    item
+                    for item in self._audit
+                    if item.operation_id == record.receipt.operation_id and item.action == event.action
+                ]
+                if matching_audits != [event]:
+                    raise ValueError("terminal operation retry does not match the durable audit")
                 return self._snapshot_state
             self._require_expected_revision(expected_revision)
+            if mode is TerminalCommitMode.OPERATION_ONLY and self._snapshot_state.snapshot != snapshot:
+                raise ValueError("operation-only terminal commit cannot change the durable snapshot")
             records = {**self._records, record.receipt.operation_id: record}
             idempotency = dict(self._idempotency)
             if record.idempotency_key:
@@ -360,25 +363,16 @@ class InMemoryControlPlaneStore:
                 if existing_operation_id is not None and existing_operation_id != record.receipt.operation_id:
                     raise ValueError(_IDEMPOTENCY_KEY_CONFLICT)
                 idempotency[record.idempotency_key] = record.receipt.operation_id
-            committed = SnapshotState(snapshot=snapshot, revision=_next_snapshot_revision(expected_revision))
+            committed = (
+                SnapshotState(snapshot=snapshot, revision=_next_snapshot_revision(expected_revision))
+                if mode is TerminalCommitMode.SNAPSHOT_BEARING
+                else self._snapshot_state
+            )
             self._snapshot_state = committed
             self._records = records
             self._idempotency = idempotency
+            self._audit = [*self._audit, event]
             return committed
-
-    def reconcile_interrupted_records(
-        self,
-        records: tuple[ControlPlaneOperationRecord, ...],
-    ) -> None:
-        """Atomically replace orphaned non-terminal records during startup."""
-
-        with self._lock:
-            staged = dict(self._records)
-            for record in records:
-                existing = staged.get(record.receipt.operation_id)
-                if _require_interrupted_operation_transition(existing, record):
-                    staged[record.receipt.operation_id] = record
-            self._records = staged
 
     def find_by_idempotency(
         self,
@@ -408,17 +402,16 @@ class InMemoryControlPlaneStore:
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
     ) -> SnapshotState:
-        with self._lock:
-            _require_expected_control_head(self._snapshot_state.snapshot, participant_address, expected_head)
-            return self.commit_participant_transition(
-                expected_history_heads={
-                    f"participant_control_history:{participant_address}": expected_head,
-                },
-                expected_revision=expected_revision,
-                snapshot=snapshot,
-                record=record,
-                audit_event=audit_event,
-            )
+        return self.commit_participant_transition(
+            expected_history_heads={
+                f"participant_control_history:{participant_address}": expected_head,
+            },
+            expected_revision=expected_revision,
+            snapshot=snapshot,
+            record=record,
+            audit_event=audit_event,
+            _control_head=(participant_address, expected_head),
+        )
 
     def commit_participant_transition(
         self,
@@ -428,13 +421,35 @@ class InMemoryControlPlaneStore:
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
+        _control_head: tuple[str, str | None] | None = None,
     ) -> SnapshotState:
+        require_participant_autonomous_runtime_snapshot(snapshot)
         with self._lock:
-            self._require_expected_revision(expected_revision)
-            _require_expected_history_heads(self._snapshot_state.snapshot, expected_history_heads)
-            require_participant_autonomous_runtime_snapshot(snapshot)
             existing = self._records.get(record.receipt.operation_id)
+            if existing == record:
+                _require_operation_audit_binding(record, audit_event)
+                _require_terminal_retry_mode(
+                    current_revision=self._snapshot_state.revision,
+                    expected_revision=expected_revision,
+                    mode=TerminalCommitMode.SNAPSHOT_BEARING,
+                )
+                if self._snapshot_state.snapshot != snapshot:
+                    raise ValueError("participant transition retry does not match the durable snapshot")
+                matching_audits = [
+                    item
+                    for item in self._audit
+                    if item.operation_id == record.receipt.operation_id and item.action == audit_event.action
+                ]
+                if matching_audits != [audit_event]:
+                    raise ValueError("participant transition retry does not match the durable audit")
+                return self._snapshot_state
+            self._require_expected_revision(expected_revision)
+            if _control_head is None:
+                _require_expected_history_heads(self._snapshot_state.snapshot, expected_history_heads)
+            else:
+                _require_expected_control_head(self._snapshot_state.snapshot, *_control_head)
             _require_operation_record_transition(existing, record)
+            _require_operation_audit_binding(record, audit_event)
             records = {**self._records, record.receipt.operation_id: record}
             idempotency = dict(self._idempotency)
             if record.idempotency_key:
@@ -473,8 +488,6 @@ class InMemoryControlPlaneStore:
 
 
 def __getattr__(name: str) -> object:
-    """Lazily expose the local store without creating an import cycle."""
-
     if name == "LocalControlPlaneStore":
         from .control_plane_store_local import LocalControlPlaneStore
 
@@ -482,16 +495,6 @@ def __getattr__(name: str) -> object:
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-__all__ = (
-    "AtomicControlPlaneStore",
-    "AuditEvent",
-    "ControlPlaneOperationRecord",
-    "ControlPlaneStore",
-    "INTERRUPTED_OPERATION_DIAGNOSTIC_CODE",
-    "InMemoryControlPlaneStore",
-    "LocalControlPlaneStore",
-    "ParticipantCrossingHistoryPresence",
-    "SnapshotRevisionConflict",
-    "SnapshotState",
-    "participant_crossing_history_presence",
-)
+# fmt: off
+__all__ = ["AtomicControlPlaneStore", "AuditEvent", "ControlPlaneOperationRecord", "ControlPlaneStore", "INTERRUPTED_OPERATION_DIAGNOSTIC_CODE", "InMemoryControlPlaneStore", "LocalControlPlaneStore", "ParticipantCrossingHistoryPresence", "SnapshotRevisionConflict", "SnapshotState", "TerminalCommitMode", "participant_crossing_history_presence", "terminal_operation_audit"]  # noqa: E501
+# fmt: on

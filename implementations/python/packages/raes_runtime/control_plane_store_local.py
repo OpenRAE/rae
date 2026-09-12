@@ -17,11 +17,16 @@ from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
     SnapshotState,
+    TerminalCommitMode,
     _require_expected_control_head,
     _require_expected_history_heads,
-    _require_interrupted_operation_transition,
+    _require_operation_audit_binding,
     _require_operation_record_transition,
+    _require_terminal_commit_mode,
+    _require_terminal_operation_audit,
     _require_terminal_operation_transition,
+    _require_terminal_retry_mode,
+    terminal_operation_audit,
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
 from .control_plane_store_legacy import _read_legacy_state
@@ -145,35 +150,48 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         *,
+        audit_event: AuditEvent | None = None,
+        mode: TerminalCommitMode = TerminalCommitMode.SNAPSHOT_BEARING,
         expected_revision: int,
     ) -> SnapshotState:
-        """Atomically publish a snapshot with its terminal operation record."""
+        """Atomically publish a terminal record, actor audit, and explicit revision outcome."""
 
         require_participant_autonomous_runtime_snapshot(snapshot)
+        _require_terminal_commit_mode(mode)
+        event = audit_event or terminal_operation_audit(record)
+        _require_terminal_operation_audit(record, event)
         with self._connection() as connection, _transaction(connection):
             existing = self._load_record(connection, record.receipt.operation_id)
             changed = _require_terminal_operation_transition(existing, record)
             if not changed:
                 canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
                 current = self._load_snapshot_state(connection)
+                _require_terminal_retry_mode(
+                    current_revision=current.revision,
+                    expected_revision=expected_revision,
+                    mode=mode,
+                )
                 if current.snapshot != canonical_snapshot:
                     raise ValueError("terminal operation retry does not match the durable snapshot")
+                matching_audits = [
+                    item
+                    for item in self._load_audits(connection)
+                    if item.operation_id == record.receipt.operation_id and item.action == event.action
+                ]
+                if matching_audits != [event]:
+                    raise ValueError("terminal operation retry does not match the durable audit")
                 return current
-            committed = self._commit_snapshot(connection, snapshot, expected_revision=expected_revision)
+            current = self._require_expected_revision(connection, expected_revision)
+            if mode is TerminalCommitMode.OPERATION_ONLY:
+                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                if current.snapshot != canonical_snapshot:
+                    raise ValueError("operation-only terminal commit cannot change the durable snapshot")
+                committed = current
+            else:
+                committed = self._commit_snapshot(connection, snapshot, expected_revision=expected_revision)
             self._upsert_record(connection, record)
+            self._insert_audit(connection, event)
             return committed
-
-    def reconcile_interrupted_records(
-        self,
-        records: tuple[ControlPlaneOperationRecord, ...],
-    ) -> None:
-        """Atomically replace orphaned non-terminal records during startup."""
-
-        with self._connection() as connection, _transaction(connection):
-            for record in records:
-                existing = self._load_record(connection, record.receipt.operation_id)
-                if _require_interrupted_operation_transition(existing, record):
-                    self._upsert_record(connection, record)
 
     def find_by_idempotency(self, key: str) -> ControlPlaneOperationRecord | None:
         if not key:
@@ -182,19 +200,12 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
             return self._find_by_idempotency(connection, key)
 
     def append_audit(self, event: AuditEvent) -> None:
-        payload, digest = _encode_payload(asdict(event))
         with self._connection() as connection, _transaction(connection):
-            connection.execute(
-                _INSERT_AUDIT_EVENT,
-                (payload, digest),
-            )
+            self._insert_audit(connection, event)
 
     def read_audit(self) -> list[AuditEvent]:
         with self._connection() as connection:
-            rows = connection.execute("SELECT payload, digest FROM audit_events ORDER BY sequence").fetchall()
-        return [
-            _audit_event_from_payload(_decode_payload(payload, digest, kind="audit event")) for payload, digest in rows
-        ]
+            return self._load_audits(connection)
 
     def commit_control_transition(
         self,
@@ -206,20 +217,16 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
     ) -> SnapshotState:
-        require_participant_autonomous_runtime_snapshot(snapshot)
-        with self._connection() as connection, _transaction(connection):
-            current_snapshot = self._require_expected_revision(connection, expected_revision).snapshot
-            _require_expected_control_head(current_snapshot, participant_address, expected_head)
-            existing = self._load_record(connection, record.receipt.operation_id)
-            _require_operation_record_transition(existing, record)
-            committed = self._commit_snapshot(connection, snapshot, expected_revision=expected_revision)
-            self._upsert_record(connection, record)
-            payload, digest = _encode_payload(asdict(audit_event))
-            connection.execute(
-                _INSERT_AUDIT_EVENT,
-                (payload, digest),
-            )
-            return committed
+        return self.commit_participant_transition(
+            expected_history_heads={
+                f"participant_control_history:{participant_address}": expected_head,
+            },
+            expected_revision=expected_revision,
+            snapshot=snapshot,
+            record=record,
+            audit_event=audit_event,
+            _control_head=(participant_address, expected_head),
+        )
 
     def commit_participant_transition(
         self,
@@ -229,21 +236,53 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
+        _control_head: tuple[str, str | None] | None = None,
     ) -> SnapshotState:
         require_participant_autonomous_runtime_snapshot(snapshot)
         with self._connection() as connection, _transaction(connection):
-            current_snapshot = self._require_expected_revision(connection, expected_revision).snapshot
-            _require_expected_history_heads(current_snapshot, expected_history_heads)
             existing = self._load_record(connection, record.receipt.operation_id)
+            if existing == record:
+                _require_operation_audit_binding(record, audit_event)
+                canonical_snapshot = _snapshot_from_payload(_snapshot_payload(snapshot))
+                current = self._load_snapshot_state(connection)
+                _require_terminal_retry_mode(
+                    current_revision=current.revision,
+                    expected_revision=expected_revision,
+                    mode=TerminalCommitMode.SNAPSHOT_BEARING,
+                )
+                if current.snapshot != canonical_snapshot:
+                    raise ValueError("participant transition retry does not match the durable snapshot")
+                matching_audits = [
+                    item
+                    for item in self._load_audits(connection)
+                    if item.operation_id == record.receipt.operation_id and item.action == audit_event.action
+                ]
+                if matching_audits != [audit_event]:
+                    raise ValueError("participant transition retry does not match the durable audit")
+                return current
+            current_snapshot = self._require_expected_revision(connection, expected_revision).snapshot
+            if _control_head is None:
+                _require_expected_history_heads(current_snapshot, expected_history_heads)
+            else:
+                _require_expected_control_head(current_snapshot, *_control_head)
             _require_operation_record_transition(existing, record)
+            _require_operation_audit_binding(record, audit_event)
             committed = self._commit_snapshot(connection, snapshot, expected_revision=expected_revision)
             self._upsert_record(connection, record)
-            payload, digest = _encode_payload(asdict(audit_event))
-            connection.execute(
-                _INSERT_AUDIT_EVENT,
-                (payload, digest),
-            )
+            self._insert_audit(connection, audit_event)
             return committed
+
+    @staticmethod
+    def _insert_audit(connection: sqlite3.Connection, event: AuditEvent) -> None:
+        payload, digest = _encode_payload(asdict(event))
+        connection.execute(_INSERT_AUDIT_EVENT, (payload, digest))
+
+    @staticmethod
+    def _load_audits(connection: sqlite3.Connection) -> list[AuditEvent]:
+        rows = connection.execute("SELECT payload, digest FROM audit_events ORDER BY sequence").fetchall()
+        return [
+            _audit_event_from_payload(_decode_payload(payload, digest, kind="audit event")) for payload, digest in rows
+        ]
 
     def _connect(self, *, allow_create: bool = False) -> tuple[sqlite3.Connection, os.stat_result]:
         before = _secure_database_file(self._database_path, allow_missing=allow_create)

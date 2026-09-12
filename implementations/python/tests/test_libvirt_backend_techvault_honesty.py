@@ -298,6 +298,7 @@ def test_techvault_rejects_fabricated_handle_without_daemon_observations():
     assert result.changed_addresses == []
     assert [diagnostic.code for diagnostic in result.diagnostics] == ["libvirt-backend.techvault.observation-missing"]
     assert len(driver.realize_calls) == 1
+    assert driver.destroy_calls == [{"networks": (), "domains": ("provision.node.demo",)}]
 
 
 def test_techvault_commits_snapshot_only_after_complete_matching_daemon_observations():
@@ -373,7 +374,11 @@ def test_failed_techvault_admission_preserves_persisted_runtime_snapshot(tmp_pat
 
     assert receipt.accepted is True
     assert status is not None and status.state.value == "failed"
-    assert [diagnostic.code for diagnostic in receipt.diagnostics] == ["libvirt-backend.techvault.service-unsupported"]
+    assert receipt.diagnostics == []
+    assert [diagnostic.code for diagnostic in status.diagnostics] == [
+        "libvirt-backend.techvault.service-unsupported",
+        "runtime.control-plane.operation-failed",
+    ]
     assert restarted.snapshot == baseline
     assert driver.realize_calls == []
     restarted.close()

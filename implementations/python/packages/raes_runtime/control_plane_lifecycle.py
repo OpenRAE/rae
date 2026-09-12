@@ -32,7 +32,7 @@ def runtime_owned(
 def store_authoritative_state(
     method: Callable[Concatenate[object, _P], _R],
 ) -> Callable[Concatenate[object, _P], _R]:
-    """Rebuild derived runtime state while holding the mutation authority."""
+    """Refresh derived state under the short cache-publication mutex."""
 
     @wraps(method)
     def guarded(control_plane: object, *args: _P.args, **kwargs: _P.kwargs) -> _R:
@@ -42,7 +42,7 @@ def store_authoritative_state(
             return method(control_plane, *args, **kwargs)
         with lock:
             reload_state()
-            return method(control_plane, *args, **kwargs)
+        return method(control_plane, *args, **kwargs)
 
     guarded.__store_authoritative_state__ = True
     return guarded

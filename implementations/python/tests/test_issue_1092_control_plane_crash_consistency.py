@@ -23,7 +23,6 @@ import pytest
 from raes import parse_sdl
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.apparatus import RealizationObservationCapability
-from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_envelope import (
     BackendRealizationEnvelopeModel,
@@ -72,7 +71,6 @@ from raes_runtime.control_plane_store import (
     SnapshotState,
 )
 from raes_runtime.control_plane_store_compatibility import (
-    LegacyControlPlaneStoreWarning,
     adapt_control_plane_store,
 )
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
@@ -409,13 +407,18 @@ def _terminal_record(record: ControlPlaneOperationRecord) -> ControlPlaneOperati
     )
 
 
-def _audit_event(action: str = "test") -> AuditEvent:
+def _audit_event(
+    action: str = "test",
+    *,
+    record: ControlPlaneOperationRecord | None = None,
+) -> AuditEvent:
     return AuditEvent(
-        timestamp="2026-08-11T12:00:00Z",
+        timestamp=record.status.updated_at if record is not None else "2026-08-11T12:00:00Z",
         action=action,
-        identity="test-identity",
+        identity=record.status.context.actor_id if record is not None else "test-identity",
         allowed=True,
         target="runtime.control-plane",
+        operation_id=record.receipt.operation_id if record is not None else "",
     )
 
 
@@ -423,28 +426,6 @@ def _atomic_store(kind: str, tmp_path: Path) -> InMemoryControlPlaneStore | Loca
     if kind.startswith("memory"):
         return InMemoryControlPlaneStore()
     return LocalControlPlaneStore(tmp_path / f"control-plane-{kind}")
-
-
-def _interrupted_record(record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
-    terminal_state = (
-        OperationState.CANCELLED if record.status.state is OperationState.ACCEPTED else OperationState.INDETERMINATE
-    )
-    return replace(
-        record,
-        status=replace(
-            record.status,
-            state=terminal_state,
-            updated_at="2026-08-11T12:00:02Z",
-            diagnostics=[
-                Diagnostic(
-                    code=INTERRUPTED_OPERATION_DIAGNOSTIC_CODE,
-                    domain="runtime",
-                    address="/state",
-                    message="Operation was interrupted before its terminal durable commit.",
-                )
-            ],
-        ),
-    )
 
 
 def _runtime_owner_result(store_path: str, queue: Any) -> None:
@@ -576,66 +557,6 @@ def test_terminal_commit_rejects_nonterminal_and_immutable_identity_changes(
 
 
 @pytest.mark.parametrize("store_kind", ["memory", "local"])
-@pytest.mark.parametrize("source_state", [OperationState.ACCEPTED, OperationState.RUNNING])
-def test_interrupted_reconciliation_validates_and_seals_terminal_record(
-    tmp_path: Path,
-    store_kind: str,
-    source_state: OperationState,
-) -> None:
-    store = _atomic_store(store_kind, tmp_path)
-    running = _running_record(f"recovery-invariants-{source_state.value}", state=source_state)
-    store.save_record(running)
-    recovered = _interrupted_record(running)
-
-    store.reconcile_interrupted_records((recovered,))
-    store.reconcile_interrupted_records((recovered,))
-    rewritten = replace(recovered, status=replace(recovered.status, updated_at="2026-08-11T12:00:05Z"))
-    with pytest.raises(ValueError, match="cannot be rewritten during recovery"):
-        store.reconcile_interrupted_records((rewritten,))
-
-    missing = _running_record("missing")
-    interrupted_missing = _interrupted_record(missing)
-    with pytest.raises(ValueError, match="no longer exists"):
-        store.reconcile_interrupted_records((interrupted_missing,))
-
-
-@pytest.mark.parametrize("store_kind", ["memory", "local"])
-@pytest.mark.parametrize("invalid_recovery", ["nonfailed", "missing-diagnostic"])
-def test_interrupted_reconciliation_rejects_invalid_replacement(
-    tmp_path: Path,
-    store_kind: str,
-    invalid_recovery: str,
-) -> None:
-    store = _atomic_store(f"{store_kind}-{invalid_recovery}", tmp_path)
-    running = _running_record(f"invalid-{invalid_recovery}")
-    store.save_record(running)
-    replacement = _interrupted_record(running)
-    if invalid_recovery == "nonfailed":
-        replacement = replace(
-            replacement,
-            status=replace(
-                replacement.status,
-                state=OperationState.FAILED,
-                diagnostics=[
-                    *[
-                        diagnostic
-                        for diagnostic in replacement.status.diagnostics
-                        if diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE
-                    ],
-                    operation_terminal_diagnostic(OperationState.FAILED),
-                ],
-            ),
-        )
-        message = "must persist indeterminate"
-    else:
-        replacement = replace(replacement, status=replace(replacement.status, diagnostics=[]))
-        message = "requires its stable diagnostic"
-
-    with pytest.raises(ValueError, match=message):
-        store.reconcile_interrupted_records((replacement,))
-
-
-@pytest.mark.parametrize("store_kind", ["memory", "local"])
 def test_claim_returns_existing_idempotency_owner_without_snapshot_change(
     tmp_path: Path,
     store_kind: str,
@@ -670,7 +591,7 @@ def test_in_memory_participant_transition_rolls_back_immutable_claim_rewrite() -
     store.save_record(first)
     store.save_record(competing_running)
     rollback_snapshot = RuntimeSnapshot(metadata={"must": "rollback"})
-    event = _audit_event("participant-transition")
+    event = _audit_event("participant-transition", record=competing)
     revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="operation identity is immutable"):
@@ -695,7 +616,7 @@ def test_in_memory_participant_transition_accepts_record_without_idempotency_key
     running = replace(_running_record("without-idempotency"), idempotency_key="")
     record = _terminal_record(running)
     snapshot = RuntimeSnapshot(metadata={"committed": True})
-    event = _audit_event("participant-transition-without-idempotency")
+    event = _audit_event("participant-transition-without-idempotency", record=record)
 
     store.claim_record(running)
     store.commit_participant_transition(
@@ -731,6 +652,7 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
             _record: ControlPlaneOperationRecord,
             *,
             expected_revision: int,
+            **_commit_options: object,
         ) -> SnapshotState:
             del expected_revision
             raise KeyboardInterrupt("injected crash before terminal transaction")
@@ -747,10 +669,7 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     records = store.load_records()
     assert len(records) == 1
     operation_id, interrupted = next(iter(records.items()))
-    expected_state = (
-        OperationState.INDETERMINATE if crash_boundary == "before-terminal-transaction" else OperationState.RUNNING
-    )
-    assert interrupted.status.state == expected_state
+    assert interrupted.status.state is OperationState.RUNNING
     assert store.load_snapshot() == RuntimeSnapshot()
     control_plane.close()
 
@@ -758,9 +677,8 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     _authorize_provisioning_plan(restarted, target, provisioning_plan)
     recovered = restarted.get_operation(operation_id)
     assert recovered is not None
-    assert recovered.state == OperationState.INDETERMINATE
-    assert any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in recovered.diagnostics)
-    assert recovered.diagnostics[-1].code == "runtime.control-plane.operation-indeterminate"
+    assert recovered.state is OperationState.RUNNING
+    assert not any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in recovered.diagnostics)
 
     retry = restarted.submit_provisioning(
         provisioning_plan,
@@ -772,7 +690,7 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     restarted.close()
 
 
-@pytest.mark.parametrize("write_boundary", ["snapshot", "record"])
+@pytest.mark.parametrize("write_boundary", ["snapshot", "record", "audit"])
 def test_terminal_transaction_rolls_back_at_each_internal_write_boundary(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -782,7 +700,7 @@ def test_terminal_transaction_rolls_back_at_each_internal_write_boundary(
     running = _running_record("transaction-crash")
     store.claim_record(running)
     next_snapshot = RuntimeSnapshot(metadata={"generation": 2})
-    method_name = f"_upsert_{write_boundary}"
+    method_name = "_insert_audit" if write_boundary == "audit" else f"_upsert_{write_boundary}"
     real_upsert = getattr(store, method_name)
 
     def interrupt_after_write(connection: object, value: object, **kwargs: object) -> None:
@@ -801,6 +719,7 @@ def test_terminal_transaction_rolls_back_at_each_internal_write_boundary(
 
     assert store.load_snapshot() == RuntimeSnapshot()
     assert store.load_records()[running.receipt.operation_id] == running
+    assert store.read_audit() == []
 
 
 def test_runtime_resynchronizes_after_error_reported_after_durable_terminal_commit(
@@ -819,8 +738,9 @@ def test_runtime_resynchronizes_after_error_reported_after_durable_terminal_comm
         record: ControlPlaneOperationRecord,
         *,
         expected_revision: int,
+        **commit_options: object,
     ) -> SnapshotState:
-        real_commit(snapshot, record, expected_revision=expected_revision)
+        real_commit(snapshot, record, expected_revision=expected_revision, **commit_options)
         raise RuntimeError("injected error after terminal commit")
 
     monkeypatch.setattr(store, "commit_terminal_operation", commit_then_error)
@@ -859,7 +779,7 @@ def test_runtime_resynchronizes_after_error_reported_after_durable_terminal_comm
     restarted.close()
 
 
-def test_runtime_seals_reloaded_non_terminal_operations_after_uncertain_terminal_commit(
+def test_runtime_poisoned_by_non_terminal_operation_after_uncertain_terminal_commit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     target, provisioning_plan, provisioner = _target_and_plan()
@@ -872,6 +792,7 @@ def test_runtime_seals_reloaded_non_terminal_operations_after_uncertain_terminal
         _record: ControlPlaneOperationRecord,
         *,
         expected_revision: int,
+        **_commit_options: object,
     ) -> SnapshotState:
         del expected_revision
         raise RuntimeError("injected terminal commit failure")
@@ -885,18 +806,18 @@ def test_runtime_seals_reloaded_non_terminal_operations_after_uncertain_terminal
         )
 
     durable_record = next(iter(store.load_records().values()))
-    assert durable_record.status.state == OperationState.INDETERMINATE
-    assert any(
+    assert durable_record.status.state is OperationState.RUNNING
+    assert not any(
         diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in durable_record.status.diagnostics
     )
-    assert control_plane.get_operation(durable_record.receipt.operation_id) == durable_record.status
-
-    retry = control_plane.submit_provisioning(
-        provisioning_plan,
-        idempotency_key="uncertain-terminal-commit",
-        request_fingerprint="same-request",
-    )
-    assert retry.operation_id == durable_record.receipt.operation_id
+    with pytest.raises(RuntimeError, match="requires restart"):
+        control_plane.get_operation(durable_record.receipt.operation_id)
+    with pytest.raises(RuntimeError, match="requires restart"):
+        control_plane.submit_provisioning(
+            provisioning_plan,
+            idempotency_key="uncertain-terminal-commit",
+            request_fingerprint="same-request",
+        )
     assert provisioner.apply_count == 1
     control_plane.close()
 
@@ -916,6 +837,7 @@ def test_runtime_error_reconciliation_does_not_seal_a_concurrent_operation(
         _record: ControlPlaneOperationRecord,
         *,
         expected_revision: int,
+        **_commit_options: object,
     ) -> SnapshotState:
         del expected_revision
         raise RuntimeError("injected terminal commit failure")
@@ -927,7 +849,7 @@ def test_runtime_error_reconciliation_does_not_seal_a_concurrent_operation(
         control_plane._commit_terminal_operation(snapshot, terminal)
 
     records = store.load_records()
-    assert records[failing.receipt.operation_id].status.state is OperationState.INDETERMINATE
+    assert records[failing.receipt.operation_id].status.state is OperationState.RUNNING
     assert records[concurrent.receipt.operation_id] == concurrent
 
 
@@ -944,6 +866,7 @@ def test_runtime_poisoned_when_store_error_cannot_be_reconciled(monkeypatch: pyt
         _record: ControlPlaneOperationRecord,
         *,
         expected_revision: int,
+        **_commit_options: object,
     ) -> SnapshotState:
         del expected_revision
         raise RuntimeError("terminal commit failed")
@@ -966,7 +889,7 @@ def test_runtime_poisoned_when_store_error_cannot_be_reconciled(monkeypatch: pyt
     control_plane.close()
 
 
-def test_startup_reconciliation_is_atomic_and_restarts_cleanly_after_failure(
+def test_startup_preserves_interrupted_records_without_record_only_terminalization(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -988,22 +911,23 @@ def test_startup_reconciliation_is_atomic_and_restarts_cleanly_after_failure(
 
     monkeypatch.setattr(store, "_upsert_record", fail_second_recovery_write)
     target = create_stub_target()
-    with pytest.raises(OSError, match="injected recovery crash"):
-        RuntimeControlPlane(target, store=store)
+    control_plane = RuntimeControlPlane(target, store=store)
 
+    assert writes == 0
     assert {record.status.state for record in store.load_records().values()} == {
         OperationState.ACCEPTED,
         OperationState.RUNNING,
     }
+    control_plane.close()
 
     restarted = RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
     recovered = restarted._operations.values()
     assert {record.status.state for record in recovered} == {
-        OperationState.CANCELLED,
-        OperationState.INDETERMINATE,
+        OperationState.ACCEPTED,
+        OperationState.RUNNING,
     }
     assert all(
-        any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in record.status.diagnostics)
+        not any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in record.status.diagnostics)
         for record in recovered
     )
     restarted.close()
@@ -2221,7 +2145,7 @@ def test_runtime_resynchronizes_after_transition_commit_reports_postcommit_error
     snapshot = RuntimeSnapshot(metadata={"committed": transition_kind})
     record = _terminal_record(_running_record(f"{transition_kind}-postcommit"))
     control_plane._claim_record(_running_record(f"{transition_kind}-postcommit"))
-    event = _audit_event(f"{transition_kind}-postcommit")
+    event = _audit_event(f"{transition_kind}-postcommit", record=record)
     method_name = f"commit_{transition_kind}_transition"
     real_commit = getattr(store, method_name)
 
@@ -2547,67 +2471,37 @@ def test_inherited_runtime_owner_fails_closed_after_fork(tmp_path: Path) -> None
 
 
 @pytest.mark.parametrize("store_type", [_LegacyControlPlaneStore, _PartiallyAtomicControlPlaneStore])
-def test_runtime_preserves_ordered_legacy_store_commits_with_deprecation(
+def test_runtime_rejects_ordered_or_partially_atomic_legacy_store_commits(
     store_type: type[_LegacyControlPlaneStore],
 ) -> None:
-    target, provisioning_plan, _ = _target_and_plan()
+    target = create_stub_target()
     store = store_type()
 
-    with pytest.warns(LegacyControlPlaneStoreWarning, match="before version 4"):
-        control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
-    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
-    receipt = control_plane.submit_provisioning(
-        provisioning_plan,
-        idempotency_key="legacy-compatible",
-        request_fingerprint="legacy-compatible-request",
-    )
-
-    assert store.write_calls == ["save_record", "save_snapshot", "save_record"]
-    assert store.delegate.load_snapshot() == control_plane.snapshot
-    assert store.delegate.load_records()[receipt.operation_id].status.state == OperationState.SUCCEEDED
-
-    replay = control_plane.submit_provisioning(
-        provisioning_plan,
-        idempotency_key="legacy-compatible",
-        request_fingerprint="legacy-compatible-request",
-    )
-    assert replay == receipt
-    assert store.write_calls == ["save_record", "save_snapshot", "save_record"]
-    representation_retry = control_plane.submit_provisioning(
-        provisioning_plan,
-        idempotency_key="legacy-compatible",
-        request_fingerprint="different-transport-representation",
-    )
-    assert representation_retry == receipt
-    assert store.write_calls == ["save_record", "save_snapshot", "save_record"]
-    control_plane.close()
+    with pytest.raises(TypeError, match="atomic mutation capabilities"):
+        RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    assert store.write_calls == []
 
 
-def test_public_store_protocol_keeps_atomic_capabilities_optional() -> None:
+def test_public_store_protocol_separates_atomic_capabilities_for_runtime_admission() -> None:
     assert not callable(getattr(ControlPlaneStore, "claim_record", None))
     assert callable(getattr(AtomicControlPlaneStore, "claim_record", None))
 
 
-def test_legacy_store_claim_fallback_returns_existing_idempotency_record() -> None:
+def test_legacy_store_adapter_rejects_non_atomic_idempotency_claims() -> None:
     store = _LegacyControlPlaneStore()
     existing = replace(
         _running_record("legacy-existing-claim"),
         idempotency_key="legacy-shared-claim",
     )
-    competing = replace(
-        _running_record("legacy-competing-claim"),
-        idempotency_key="legacy-shared-claim",
-    )
     store.delegate.save_record(existing)
 
-    with pytest.warns(LegacyControlPlaneStoreWarning, match="implement all atomic methods"):
-        adapter = adapt_control_plane_store(store)
+    with pytest.raises(TypeError, match="atomic mutation capabilities"):
+        adapt_control_plane_store(store)
 
-    assert adapter.claim_record(competing) == existing
     assert store.write_calls == []
 
 
-def test_runtime_legacy_store_recovers_interrupted_records_one_at_a_time() -> None:
+def test_runtime_rejects_legacy_store_before_interrupted_record_recovery() -> None:
     store = _LegacyControlPlaneStore()
     target = create_stub_target()
     first = _running_record("legacy-recovery-first")
@@ -2615,53 +2509,9 @@ def test_runtime_legacy_store_recovers_interrupted_records_one_at_a_time() -> No
     store.delegate.save_record(first)
     store.delegate.save_record(second)
 
-    with pytest.warns(LegacyControlPlaneStoreWarning, match="non-crash-atomic 3.x"):
-        control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
-
-    assert store.write_calls == ["save_record", "save_record"]
-    for operation_id in (first.receipt.operation_id, second.receipt.operation_id):
-        recovered = control_plane.get_operation(operation_id)
-        assert recovered is not None
-        assert recovered.state == OperationState.INDETERMINATE
-        assert any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in recovered.diagnostics)
-    control_plane.close()
-
-
-def test_runtime_legacy_store_preserves_snapshot_first_failure_window() -> None:
-    target, provisioning_plan, _ = _target_and_plan()
-    store = _LegacyControlPlaneStore()
-    with pytest.warns(LegacyControlPlaneStoreWarning):
-        control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
-    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
-    store.fail_terminal_record = True
-
-    with pytest.raises(RuntimeError, match="legacy terminal-record failure"):
-        control_plane.submit_provisioning(provisioning_plan)
-
-    assert store.write_calls == ["save_record", "save_snapshot", "save_record", "save_record"]
-    assert store.delegate.load_snapshot().entries
-    assert next(iter(store.delegate.load_records().values())).status.state == OperationState.RUNNING
-    with pytest.raises(RuntimeError, match="requires restart"):
-        control_plane.get_snapshot()
-    control_plane.close()
-
-
-def test_runtime_legacy_store_resynchronizes_after_snapshot_write_failure() -> None:
-    target, provisioning_plan, _ = _target_and_plan()
-    store = _LegacyControlPlaneStore()
-    with pytest.warns(LegacyControlPlaneStoreWarning):
-        control_plane = RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
-    _authorize_provisioning_plan(control_plane, target, provisioning_plan)
-    store.fail_snapshot = True
-
-    with pytest.raises(RuntimeError, match="legacy snapshot failure"):
-        control_plane.submit_provisioning(provisioning_plan)
-
-    assert store.write_calls == ["save_record", "save_snapshot", "save_record"]
-    assert control_plane.snapshot == RuntimeSnapshot()
-    assert store.delegate.load_snapshot() == control_plane.snapshot
-    assert next(iter(store.delegate.load_records().values())).status.state == OperationState.INDETERMINATE
-    control_plane.close()
+    with pytest.raises(TypeError, match="atomic mutation capabilities"):
+        RuntimeControlPlane(target, store=store)  # type: ignore[arg-type]
+    assert store.write_calls == []
 
 
 def test_runtime_rejects_store_without_the_legacy_contract() -> None:
@@ -2705,7 +2555,7 @@ def test_execution_helpers_return_the_durable_winner_when_an_idempotency_claim_l
             return replace(record, receipt=winning_receipt, status=winning_status)
 
         @staticmethod
-        def _commit_terminal_operation(*_args: object) -> None:
+        def _commit_terminal_operation(*_args: object, **_kwargs: object) -> None:
             raise AssertionError("a losing claimant must not call the backend or commit")
 
     control_plane = _LosingClaimControlPlane()
@@ -2775,7 +2625,7 @@ def test_persist_succeeded_operation_returns_newly_claimed_receipt() -> None:
             return record
 
         @staticmethod
-        def _commit_terminal_operation(*_args: object) -> None:
+        def _commit_terminal_operation(*_args: object, **_kwargs: object) -> None:
             return None
 
     receipt = persist_succeeded_operation(
