@@ -21,10 +21,12 @@ from raes_contracts.runtime_state import (
     operation_terminal_diagnostics,
 )
 
-from .backend_calls import _call_backend_apply, _RealizationApplyContext
+from .backend_calls import _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
+from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import operation_admission_context
-from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
+from .diagnostics import _has_error_diagnostic
 
 
 def _utc_now() -> str:
@@ -62,25 +64,15 @@ def execute_participant_action(
     identity: object | None = None,
 ) -> OperationReceipt:
     del request_fingerprint
-    lock = getattr(control_plane, "_participant_control_lock", None)
-    if lock is not None:
-        with lock:
-            return _execute_participant_action_locked(
-                control_plane,
-                method=method,
-                request=request,
-                address=address,
-                idempotency_key=idempotency_key,
-                identity=identity,
-            )
-    return _execute_participant_action_locked(
-        control_plane,
-        method=method,
-        request=request,
-        address=address,
-        idempotency_key=idempotency_key,
-        identity=identity,
-    )
+    with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_ACTION):
+        return _execute_participant_action_locked(
+            control_plane,
+            method=method,
+            request=request,
+            address=address,
+            idempotency_key=idempotency_key,
+            identity=identity,
+        )
 
 
 def _execute_participant_action_locked(
@@ -92,7 +84,8 @@ def _execute_participant_action_locked(
     idempotency_key: str,
     identity: object | None,
 ) -> OperationReceipt:
-    control_plane._reload_derived_state()
+    with control_plane._operation_lock:
+        control_plane._reload_derived_state()
     context = operation_admission_context(
         control_plane,
         kind=OperationKind.PARTICIPANT_ACTION,
@@ -135,18 +128,19 @@ def _execute_participant_action_locked(
     )
     if claimed.receipt.operation_id != operation_id:
         return claimed.receipt
-    result = _call_backend_apply(
-        method,
-        request,
-        control_plane._snapshot,
-        address=address,
-        snapshot=control_plane._snapshot,
-        information_state_context_resolver=getattr(
-            control_plane,
-            "_information_state_context_resolver",
-            None,
-        ),
-    )
+    with control_plane._mutation_authority.external_call():
+        result = _call_backend_apply(
+            method,
+            request,
+            control_plane._snapshot,
+            address=address,
+            snapshot=control_plane._snapshot,
+            information_state_context_resolver=getattr(
+                control_plane,
+                "_information_state_context_resolver",
+                None,
+            ),
+        )
     final_state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
     final_status = OperationStatus(
         operation_id=operation_id,
@@ -220,6 +214,7 @@ def persist_succeeded_operation(
             idempotency_key=request.idempotency_key,
             request_fingerprint=request.context.request_commitment,
         ),
+        mode=TerminalCommitMode.OPERATION_ONLY,
     )
     return receipt
 
@@ -246,14 +241,17 @@ class OperationExecutionRequest:
     request_fingerprint: str
     context: OperationAdmissionContext
     exact_retry_fingerprint: str | None = None
+    validation_method: Callable[..., object] | None = None
+    admission_diagnostics: Callable[[], list[Diagnostic]] | None = None
 
 
 def execute_operation(
     control_plane: object,
     request: OperationExecutionRequest,
 ) -> OperationReceipt:
-    with control_plane._operation_lock:
-        control_plane._reload_derived_state()
+    with control_plane_mutation(control_plane, request.context.operation_kind):
+        with control_plane._operation_lock:
+            control_plane._reload_derived_state()
         return _execute_operation_locked(control_plane, request)
 
 
@@ -276,6 +274,16 @@ def _execute_operation_locked(
         return existing
     if request.base_snapshot is not None and request.base_snapshot != control_plane._snapshot:
         raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
+    if request.admission_diagnostics is not None:
+        diagnostics = request.admission_diagnostics()
+        if diagnostics:
+            return control_plane._reject_diagnostics(
+                domain=request.domain,
+                diagnostics=diagnostics,
+                idempotency_key=request.idempotency_key,
+                request_fingerprint=request.request_fingerprint,
+                context=request.context,
+            )
     operation_id = str(uuid4())
     submitted_at = _utc_now()
     snapshot = request.base_snapshot if request.base_snapshot is not None else control_plane._snapshot
@@ -307,33 +315,49 @@ def _execute_operation_locked(
     )
     if claimed.receipt.operation_id != operation_id:
         return claimed.receipt
-    result, observation_execution = _call_backend_apply_with_observation(
-        request.method,
-        request.plan,
-        snapshot,
-        request=_ObservationApplyRequest(
-            address=request.address,
-            snapshot=snapshot,
-            plan=request.plan,
-            manifest=control_plane._target.manifest,
-            runtime=control_plane._target.observation_runtime,
-            durable_lifecycle_available=control_plane._store_commits.crash_atomic,
-            operation_id=operation_id,
-        ),
-        realization=(
-            _RealizationApplyContext(
-                plan=request.plan,
-                manifest=control_plane._target.manifest,
+    diagnostics = list(request.diagnostics)
+    if request.validation_method is not None:
+        with control_plane._mutation_authority.external_call():
+            diagnostics.extend(
+                _call_backend_diagnostics(
+                    request.validation_method,
+                    request.plan,
+                    address=f"{request.address}.validate",
+                )
             )
-            if isinstance(request.plan, ProvisioningPlan)
-            else None
-        ),
-        information_state_context_resolver=getattr(
-            control_plane,
-            "_information_state_context_resolver",
-            None,
-        ),
-    )
+    validation_failed = _has_error_diagnostic(diagnostics)
+    if validation_failed:
+        result = ApplyResult(success=False, snapshot=snapshot)
+        observation_execution = None
+    else:
+        with control_plane._mutation_authority.external_call():
+            result, observation_execution = _call_backend_apply_with_observation(
+                request.method,
+                request.plan,
+                snapshot,
+                request=_ObservationApplyRequest(
+                    address=request.address,
+                    snapshot=snapshot,
+                    plan=request.plan,
+                    manifest=control_plane._target.manifest,
+                    runtime=control_plane._target.observation_runtime,
+                    durable_lifecycle_available=control_plane._store_commits.crash_atomic,
+                    operation_id=operation_id,
+                ),
+                realization=(
+                    _RealizationApplyContext(
+                        plan=request.plan,
+                        manifest=control_plane._target.manifest,
+                    )
+                    if isinstance(request.plan, ProvisioningPlan)
+                    else None
+                ),
+                information_state_context_resolver=getattr(
+                    control_plane,
+                    "_information_state_context_resolver",
+                    None,
+                ),
+            )
     final_state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
     final_status = OperationStatus(
         operation_id=operation_id,
@@ -344,7 +368,7 @@ def _execute_operation_locked(
         context=request.context,
         diagnostics=operation_terminal_diagnostics(
             final_state,
-            [*status.diagnostics, *result.diagnostics],
+            [*diagnostics, *result.diagnostics],
         ),
         changed_addresses=list(result.changed_addresses),
     )
@@ -357,5 +381,6 @@ def _execute_operation_locked(
             request_fingerprint=request.request_fingerprint,
             result_payload=(None if observation_execution is None else observation_execution.result_payload),
         ),
+        mode=(TerminalCommitMode.OPERATION_ONLY if validation_failed else TerminalCommitMode.SNAPSHOT_BEARING),
     )
     return receipt

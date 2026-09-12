@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-07T05:07:58.000000Z
+updated_at: 2026-09-11T05:07:15.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -28,7 +28,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - DOCUMENTS → SPEC `specs/formal/runtime-control-plane/README.md` (ADR-104 FM3 abstract operation model and invariants)
 - TESTS → TEST `implementations/python/tests/test_issue_1151_runtime_control_plane_design.py` (Structural acceptance gate for the design set)
 - IMPLEMENTS → GITHUB_ISSUE `1182` (CP-1: Operation lifecycle contract)
-- DOCUMENTS → GITHUB_ISSUE `1181` (CP-2: Atomic terminal commit)
+- IMPLEMENTS → GITHUB_ISSUE `1181` (CP-2: Unified control-plane mutation commits)
 - DOCUMENTS → GITHUB_ISSUE `1179` (CP-3: Startup reconciliation)
 - IMPLEMENTS → GITHUB_ISSUE `1180` (CP-4: Snapshot revision compare-and-swap)
 - DOCUMENTS → GITHUB_ISSUE `1183` (CP-5: Store lease admission)
@@ -59,26 +59,31 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - TESTS → TEST `implementations/python/tests/test_issue_1182_operation_lifecycle_contract.py` (Closed transition matrix, malformed carriers, immutability, denial, semantic idempotency, and schema governance)
 - TESTS → TEST `implementations/python/tests/test_issue_1093_request_rejection_offload.py` (Non-blocking, saturation-bounded, fail-closed request rejection audit tests)
 - IMPLEMENTS → GITHUB_ISSUE `1092` (Make the local control plane crash-consistent and explicitly single-process)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store.py` (Atomic terminal commits and interrupted-operation reconciliation contract)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_recovery.py` (Conservative startup recovery policy for interrupted operations)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_durability.py` (Commit-outcome cache publication, reconciliation, and poison-on-unknown behavior)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_mutation.py` (Operation-family-neutral logical mutation authority and guarded extension callback boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py` (Write-ahead RUNNING claims, guarded backend validation and execution, and terminal commit routing)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store.py` (Actor-bound atomic terminal commits with explicit snapshot-bearing and operation-only modes)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_types.py` (Explicit portable snapshot-bearing and operation-only terminal commit modes)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_durability.py` (Atomic commit-outcome cache publication, readback reconciliation, and poison-on-unknown behavior)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_lifecycle.py` (Draining close, nested-call admission, and durability-poison boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_lease.py` (Secure single-process local runtime ownership)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py` (Compatibility-preserving portable snapshot serialization split)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local.py` (Required WAL admission, pinned database identity, durable legacy backup copies, and atomic transactions)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_records.py` (Strict lossless decoding of persisted operation and audit provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_legacy.py` (Complexity-bounded legacy JSON import readers)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_paths.py` (Descriptor-verified private directories, fail-closed durability synchronization, and metadata-only SQLite path validation)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_compatibility.py` (Deprecated 3.x custom-store fallback and optional atomic capability adapter)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_compatibility.py` (Fail-closed admission for complete atomic store capabilities)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_revision.py` (Provider-neutral logical revision state, validation, and conflict signal)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_history.py` (Participant-history concurrency guards for snapshot-bearing commits)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_codec.py` (SQLite transaction and durable payload integrity primitives)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_snapshot.py` (SQLite paired snapshot reads and transactional compare-and-swap writes)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py` (Authoritative revision-bound snapshot reads, submission admission, and cache rebuild coordination)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py` (Unified mutation admission, authoritative revision-bound reads, and cache rebuild coordination)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_operation_routes.py` (Revision-identifying snapshot and operational-summary reads)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_participant_retrieval.py` (Revision-identifying participant view reads)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_retrieval_context.py` (Runtime-owned participant context revision-path policy)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_projection.py` (Stable participant projection subjects across provider revisions)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1092-local-control-plane-durability-preflight.md` (Crash recovery and supported process topology)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1180-snapshot-revision-cas-preflight.md` (Snapshot CAS architecture guardrails and compatibility boundaries)
-- TESTS → TEST `implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py` (Atomic and legacy terminal commit, WAL admission, backup file/directory synchronization, interrupted-operation recovery, descriptor-free SQLite paths, URI no-recreation, multiprocess stress, retry, and runtime-owner tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py` (Atomic terminal rollback, WAL admission, durable path handling, uncertain-commit preservation, multiprocess stress, retry, and runtime-owner tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1180_snapshot_revision_cas.py` (Interleaved stale writers, cache rebuild, provider metadata isolation, and SQLite revision migration)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1181-unified-control-plane-mutations-preflight.md` (CP-2 mutation authority, write-ahead claim, atomic terminal cut, and compatibility boundaries)
+- TESTS → TEST `implementations/python/tests/test_issue_1181_unified_control_plane_mutations.py` (CP-2 authority, claim ordering, validation gate, atomicity, audit provenance, capability, recovery, and facade-boundary acceptance tests)
