@@ -194,29 +194,9 @@ class _ValidatorCore:
         # OCR passes
         self._verify_nodes()
         self._verify_infrastructure()
-        self._verify_runtime_network()
-        self._verify_runtime_network_sensors()
-        self._verify_runtime_network_detection_engines()
-        self._verify_runtime_service_listeners()
-        self._verify_runtime_application()
-        self._verify_runtime_capability_overrides()
-        self._verify_runtime_process_resource_limits()
-        self._verify_runtime_database_services()
-        self._verify_runtime_dns_services()
-        self._verify_runtime_ssh_servers()
-        self._verify_runtime_app_authorizations()
-        self._verify_runtime_service_manager_units()
-        self._verify_runtime_identity_authorities()
-        self._verify_runtime_file_services()
-        self._verify_runtime_security_monitoring_managers()
-        self._verify_runtime_datastore_services()
-        self._verify_runtime_platform_applications()
-        self._verify_runtime_forwarding_agents()
-        self._verify_runtime_orchestration_authorities()
-        self._verify_runtime_mail_services()
+        self._verify_runtime_configuration()
         self._verify_features()
         self._verify_conditions()
-        self._verify_vulnerabilities()
         self._verify_entities()
         self._verify_injects()
         self._verify_events()
@@ -255,6 +235,51 @@ class _ValidatorCore:
 
         if self._errors:
             raise SDLValidationError(self._errors)
+
+    def validate_node_realization(self) -> None:
+        """Validate a bounded portable node context, without creating author intent.
+
+        The caller supplies the selected live nodes, infrastructure, stateful
+        resources and accounts. This is not full scenario admission and cannot
+        authorize features, participant roles, domain membership or capture.
+        """
+
+        self._errors = []
+        self._warnings = []
+        self._runtime_references = None
+        for name, node in self._s.nodes.items():
+            self._verify_node_operating_system(name, node)
+            self._verify_node_architecture(name, node)
+        self._verify_infrastructure()
+        self._verify_runtime_configuration()
+        self._verify_stateful_resources()
+        self._verify_variables()
+        if self._errors:
+            raise SDLValidationError(self._errors)
+
+    def _verify_runtime_configuration(self) -> None:
+        """Shared native reference checks for authored and selected runtime values."""
+
+        self._verify_runtime_network()
+        self._verify_runtime_network_sensors()
+        self._verify_runtime_network_detection_engines()
+        self._verify_runtime_service_listeners()
+        self._verify_runtime_application()
+        self._verify_runtime_capability_overrides()
+        self._verify_runtime_process_resource_limits()
+        self._verify_runtime_database_services()
+        self._verify_runtime_dns_services()
+        self._verify_runtime_ssh_servers()
+        self._verify_runtime_app_authorizations()
+        self._verify_runtime_service_manager_units()
+        self._verify_runtime_identity_authorities()
+        self._verify_runtime_file_services()
+        self._verify_runtime_security_monitoring_managers()
+        self._verify_runtime_datastore_services()
+        self._verify_runtime_platform_applications()
+        self._verify_runtime_forwarding_agents()
+        self._verify_runtime_orchestration_authorities()
+        self._verify_runtime_mail_services()
 
     @property
     def warnings(self) -> list[str]:

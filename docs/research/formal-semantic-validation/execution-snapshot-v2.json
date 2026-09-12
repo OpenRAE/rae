@@ -158,11 +158,11 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Canonical result bytes and their digest changed across the RAES identity cutover, the issue #674 target-node CPU architecture field addition, issue #1066 registration of the portable process-resource-limit realization concern, issue #1067 publication of resolved realization authority, issue #1077 separation of OS distribution and release identity, and issue #1078 completion of RuntimeConfiguration boundary coverage; the governed outcome and diagnostic remain unchanged.",
+      "rationale": "Canonical result bytes and their digest changed across the RAES identity cutover, the issue #674 target-node CPU architecture field addition, issue #1066 registration of the portable process-resource-limit realization concern, issue #1067 publication of resolved realization authority, issue #1077 separation of OS distribution and release identity, issue #1078 completion of RuntimeConfiguration boundary coverage, and issue #1200 value-free mixed-constraint authority metadata; the governed outcome and diagnostic remain unchanged.",
       "retest": {
         "actual_outcome": "stable",
         "diagnostic_kind": null,
-        "result_digest": "1b359c40d500e39685fb7d393e98e9838eb2851d50e2f9bfead950702428da4d"
+        "result_digest": "a7a03db548d2a62214567834da0876609f9ff64f988878f719f846e6c5218f31"
       }
     },
     {
@@ -177,11 +177,11 @@
         "result_digest"
       ],
       "disposition": "accepted",
-      "rationale": "Canonical result bytes and their digest changed across the RAES identity cutover, the issue #674 target-node CPU architecture field addition, issue #1066 registration of the portable process-resource-limit realization concern, issue #1067 publication of resolved realization authority, issue #1077 separation of OS distribution and release identity, and issue #1078 completion of RuntimeConfiguration boundary coverage; the governed outcome and diagnostic remain unchanged.",
+      "rationale": "Canonical result bytes and their digest changed across the RAES identity cutover, the issue #674 target-node CPU architecture field addition, issue #1066 registration of the portable process-resource-limit realization concern, issue #1067 publication of resolved realization authority, issue #1077 separation of OS distribution and release identity, issue #1078 completion of RuntimeConfiguration boundary coverage, and issue #1200 value-free mixed-constraint authority metadata; the governed outcome and diagnostic remain unchanged.",
       "retest": {
         "actual_outcome": "distinguishable",
         "diagnostic_kind": null,
-        "result_digest": "7b665728b7cd242d92a848831327901f6835cac16ba032dc098038b2af698cf1"
+        "result_digest": "a9705de7191f3d2a76bd7aa53a1da0603c1cdc60f154a90c4e9cba6bf4d37e76"
       }
     }
   ],
@@ -476,7 +476,7 @@
         "The witness ends at compiled output."
       ],
       "replayable": true,
-      "result_digest": "1b359c40d500e39685fb7d393e98e9838eb2851d50e2f9bfead950702428da4d",
+      "result_digest": "a7a03db548d2a62214567834da0876609f9ff64f988878f719f846e6c5218f31",
       "source_digest": null
     },
     {
@@ -499,7 +499,7 @@
         "Distinct digests are a non-vacuity control, not semantic non-equivalence proof."
       ],
       "replayable": true,
-      "result_digest": "7b665728b7cd242d92a848831327901f6835cac16ba032dc098038b2af698cf1",
+      "result_digest": "a9705de7191f3d2a76bd7aa53a1da0603c1cdc60f154a90c4e9cba6bf4d37e76",
       "source_digest": null
     },
     {

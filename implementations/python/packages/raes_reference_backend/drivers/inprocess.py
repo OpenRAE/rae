@@ -58,9 +58,6 @@ class InProcessDriver:
         return DriverResult(
             networks=tuple(network_handles),
             containers=tuple(container_handles),
-            observations=tuple(
-                _substrate_observation(spec.address, sequence=index) for index, spec in enumerate(containers)
-            ),
         )
 
     @staticmethod

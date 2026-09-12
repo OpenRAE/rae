@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import cast
 
-from raes_contracts.runtime_state import OperationState, OperationStatus
+from raes_contracts.runtime_state import OperationState, OperationStatus, operation_terminal_diagnostics
 
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_crossing_mediation import ParticipantCrossingEvidence, PreparedParticipantCrossing
@@ -27,18 +27,16 @@ def action_operation_record(
     crossing: PreparedParticipantCrossing,
     result: object,
 ) -> ControlPlaneOperationRecord:
-    diagnostics = list(result.diagnostics)
-    receipt = replace(
-        crossing.record.receipt,
-        accepted=bool(result.success),
-        diagnostics=diagnostics,
-    )
+    state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
+    diagnostics = operation_terminal_diagnostics(state, list(result.diagnostics))
+    receipt = crossing.record.receipt
     status = OperationStatus(
         operation_id=receipt.operation_id,
         domain=receipt.domain,
-        state=OperationState.SUCCEEDED if result.success else OperationState.FAILED,
+        state=state,
         submitted_at=receipt.submitted_at,
         updated_at=crossing.audit_event.timestamp,
+        context=receipt.context,
         diagnostics=diagnostics,
         changed_addresses=list(result.changed_addresses),
     )

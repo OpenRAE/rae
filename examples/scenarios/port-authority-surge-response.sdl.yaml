@@ -695,23 +695,6 @@ evidence_requirements:
     integrity: checksum
     retention: study_lifetime
     loss_disclosure: required
-vulnerabilities:
-  stale-customs-token:
-    name: Stale customs federation token
-    description: Customs bridge accepts tokens beyond intended lifetime during surge
-      conditions
-    technical: true
-    class: CWE-613
-  vendor-vpn-cred-reuse:
-    name: Vendor credential reuse
-    description: Shared maintenance credentials allow reuse from the jump host
-    technical: true
-    class: CWE-521
-  flat-yard-trust:
-    name: Flat yard trust
-    description: Yard HMI can directly manage crane PLC without an approval gate
-    technical: true
-    class: CWE-306
 entities:
   port-blue:
     name: Port Authority Blue Team

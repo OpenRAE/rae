@@ -2,10 +2,41 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
+from itertools import islice
 
-from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.addressing import require_compiled_address
+from raes_contracts.diagnostics import Diagnostic, portable_diagnostic_payload
+from raes_contracts.realization_observation import RealizationObservationDisclosure
+from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+
+from .backend_snapshot_contracts import snapshot_shape_violation
+
+_MAX_DIAGNOSTICS = 1024
+_MAX_DETAILS_BYTES = 65536
+
+
+def _bounded_diagnostics(result: object) -> list[Diagnostic]:
+    """Drain one diagnostics iterable under its bound, refusing an overlong one."""
+
+    diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
+    if len(diagnostics) > _MAX_DIAGNOSTICS:
+        raise ValueError("Backend returned too many diagnostics.")
+    return diagnostics
+
+
+def _materialize_diagnostics(result: object, address: str) -> tuple[list[Diagnostic], str | None]:
+    message = _diagnostics_iterable_violation(result, address)
+    if message:
+        return [], message
+    try:
+        diagnostics = _bounded_diagnostics(result)
+    except Exception as exc:
+        overlong = isinstance(exc, ValueError) and str(exc) == "Backend returned too many diagnostics."
+        return [], str(exc) if overlong else "Backend returned a diagnostics iterable that could not be validated."
+    return diagnostics, _diagnostics_values_violation(diagnostics, address)
 
 
 def _diagnostics_iterable_violation(result: object, address: str) -> str | None:
@@ -19,6 +50,12 @@ def _diagnostics_values_violation(diagnostics: list[object], address: str) -> st
     message = None
     if any(not isinstance(diagnostic, Diagnostic) for diagnostic in diagnostics):
         message = f"Backend method '{address}' returned a diagnostics iterable containing non-Diagnostic values."
+    else:
+        try:
+            for diagnostic in diagnostics:
+                portable_diagnostic_payload(diagnostic)
+        except (AttributeError, TypeError, ValueError):
+            message = "Backend returned invalid diagnostic fields."
     return message
 
 
@@ -37,23 +74,26 @@ def _apply_result_shape_violation(result: object, address: str) -> str | None:
     message = None
     if not isinstance(result, ApplyResult):
         message = f"Backend method '{address}' returned {type(result).__name__}; expected ApplyResult."
+    elif type(result.success) is not bool:
+        message = "Backend returned a non-boolean success claim."
     elif not isinstance(result.snapshot, RuntimeSnapshot):
         message = (
             f"Backend method '{address}' returned ApplyResult.snapshot "
             f"as {type(result.snapshot).__name__}; expected RuntimeSnapshot."
         )
+    elif not isinstance(result.operational_realization_observations, tuple) or any(
+        not isinstance(item, RealizationObservationDisclosure) for item in result.operational_realization_observations
+    ):
+        message = f"Backend method '{address}' returned invalid operational realization observations."
+    else:
+        message = snapshot_shape_violation(result.snapshot)
     return message
 
 
 def _apply_result_diagnostics_violation(result: ApplyResult, address: str) -> str | None:
-    message = None
-    if not isinstance(result.diagnostics, Iterable) or isinstance(result.diagnostics, (str, bytes)):
-        message = (
-            f"Backend method '{address}' returned ApplyResult.diagnostics "
-            f"as {type(result.diagnostics).__name__}; expected iterable."
-        )
-    elif any(not isinstance(diagnostic, Diagnostic) for diagnostic in result.diagnostics):
-        message = f"Backend method '{address}' returned ApplyResult.diagnostics containing non-Diagnostic values."
+    diagnostics, message = _materialize_diagnostics(result.diagnostics, address)
+    if message is None:
+        result.diagnostics = diagnostics
     return message
 
 
@@ -66,10 +106,30 @@ def _apply_result_changed_addresses_violation(result: ApplyResult, address: str)
         )
     elif any(not isinstance(changed_address, str) for changed_address in result.changed_addresses):
         message = f"Backend method '{address}' returned ApplyResult.changed_addresses containing non-string values."
+    elif len(result.changed_addresses) > 16384 or len(result.changed_addresses) != len(set(result.changed_addresses)):
+        message = "Backend returned duplicate or excessive changed addresses."
+    else:
+        try:
+            for changed_address in result.changed_addresses:
+                require_compiled_address(changed_address, field_name="changed address")
+        except ValueError:
+            message = "Backend returned a non-canonical changed address."
     return message
 
 
+def _details_payload_violation(details: dict[str, object]) -> str | None:
+    """Bound one apply-result detail record before it becomes runtime state."""
+
+    if not validate_realization_value(details).conformant:
+        return "Backend returned invalid or excessive apply-result details."
+    oversized = len(json.dumps(details, allow_nan=False).encode("utf-8")) > _MAX_DETAILS_BYTES
+    return "Backend returned excessive apply-result details." if oversized else None
+
+
 def _apply_result_details_violation(result: ApplyResult, address: str) -> str | None:
-    if isinstance(result.details, dict):
-        return None
-    return f"Backend method '{address}' returned ApplyResult.details as {type(result.details).__name__}; expected dict."
+    if not isinstance(result.details, dict):
+        return (
+            f"Backend method '{address}' returned ApplyResult.details as "
+            f"{type(result.details).__name__}; expected dict."
+        )
+    return _details_payload_violation(result.details)

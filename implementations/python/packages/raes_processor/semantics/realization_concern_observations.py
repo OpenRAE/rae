@@ -62,6 +62,11 @@ def _restore_presence_marker(
 
 
 def _restore_committed_mapping(value: Mapping[str, Any]) -> dict[str, object]:
+    if "source_present" in value or "options_present" in value:
+        # Mount presence belongs to the existing mount contract, not the
+        # committed-value protocol. Preserve its admitted public values.
+        validate_mounts_observation([value])
+        return {key: item for key, item in value.items() if key not in {"source_present", "options_present"}}
     restored = {
         key: _restore_committed_runtime_fields(item)
         for key, item in value.items()
@@ -113,9 +118,15 @@ def _overlay_committed_runtime_fields(normalized: object, original: object) -> o
 def validate_typed_runtime_observation(value: object, *, adapter: TypeAdapter[object]) -> object:
     """Validate and normalize a raw or value-free observation through its SDL type."""
 
-    validated = adapter.validate_python(_restore_committed_runtime_fields(value))
+    validated = typed_runtime_observation_shape(value, adapter=adapter)
     normalized = adapter.dump_python(validated, mode="json")
     return _overlay_committed_runtime_fields(normalized, value)
+
+
+def typed_runtime_observation_shape(value: object, *, adapter: TypeAdapter[object]) -> object:
+    """Recover owner-defined presence rules without treating restored blanks as observed values."""
+
+    return adapter.validate_python(_restore_committed_runtime_fields(value))
 
 
 def _validate_safe_committed_record(
@@ -178,38 +189,59 @@ def validate_environment_observation(value: object) -> None:
         raise ValueError("runtime environment observation violates its closed contract") from None
 
 
+_SAFE_MOUNT_FIELDS = frozenset(
+    {
+        "target",
+        "source",
+        "source_present",
+        "source_sensitivity",
+        "source_kind",
+        "filesystem_type",
+        "read_only",
+        "options",
+        "options_present",
+        "options_sensitivity",
+        "propagation",
+        "stability",
+        "backend_generated",
+    }
+)
+_MOUNT_SOURCE_KINDS = frozenset({"bind", "tmpfs", "volume", "image"})
+
+
+def _mount_presence_candidate(record: dict[str, object]) -> dict[str, object]:
+    """Strip the presence markers after requiring the closed safe mount shape."""
+
+    candidate = dict(record)
+    if "source_present" not in record and "options_present" not in record:
+        return candidate
+    if set(record) != _SAFE_MOUNT_FIELDS:
+        raise ValueError("runtime mount observation uses an invalid closed shape")
+    if not isinstance(record["source_present"], bool) or not isinstance(record["options_present"], bool):
+        raise ValueError("runtime mount presence markers must be boolean")
+    candidate.pop("source_present")
+    candidate.pop("options_present")
+    return candidate
+
+
+def _require_mount_presence(record: dict[str, object], validated: RuntimeMount) -> None:
+    """Require each presence marker to agree with its typed value or sensitivity."""
+
+    for name in ("source", "options"):
+        present = bool(getattr(validated, name)) or _enum_value(getattr(validated, f"{name}_sensitivity")) in _PROTECTED
+        if record[f"{name}_present"] is not present:
+            raise ValueError("runtime mount presence contradicts its typed value or sensitivity")
+
+
 def validate_mounts_observation(value: object) -> None:
     """Validate the closed non-stateful mount readback surface."""
 
-    safe_fields = frozenset(
-        {
-            "target",
-            "source",
-            "source_present",
-            "source_sensitivity",
-            "source_kind",
-            "filesystem_type",
-            "read_only",
-            "options",
-            "options_present",
-            "options_sensitivity",
-            "propagation",
-            "stability",
-            "backend_generated",
-        }
-    )
     for item in _sequence(value, label="runtime mounts"):
         record = _mapping(item, label="runtime mount")
-        candidate = dict(record)
-        if "source_present" in record or "options_present" in record:
-            if set(record) != safe_fields:
-                raise ValueError("runtime mount observation uses an invalid closed shape")
-            if not isinstance(record["source_present"], bool) or not isinstance(record["options_present"], bool):
-                raise ValueError("runtime mount presence markers must be boolean")
-            candidate.pop("source_present")
-            candidate.pop("options_present")
-        validated = RuntimeMount.model_validate(candidate)
-        if _enum_value(validated.source_kind) not in {"bind", "tmpfs", "volume", "image"}:
+        validated = RuntimeMount.model_validate(_mount_presence_candidate(record))
+        if "source_present" in record:
+            _require_mount_presence(record, validated)
+        if _enum_value(validated.source_kind) not in _MOUNT_SOURCE_KINDS:
             raise ValueError("runtime mount observation uses an unsupported source kind")
 
 

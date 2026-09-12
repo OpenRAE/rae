@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from raes_contracts.contracts import (
@@ -21,13 +21,18 @@ from ..control_plane_api_models import (
     _operation_status_model,
     _orchestration_plan,
     _provisioning_plan,
-    _request_fingerprint,
     _snapshot_model,
 )
 from ..control_plane_security import ControlPlaneSecurityConfig
 from ._auth import _MutatingIdentity, _ReadIdentity
 from ._offload import _control_plane_calls
-from ._responses import _CONFLICT_RESPONSES, _NOT_FOUND_RESPONSES, _receipt_response
+from ._responses import (
+    _CONFLICT_RESPONSES,
+    _NOT_FOUND_RESPONSES,
+    _receipt_response,
+    _record_operation_receipt_audit,
+    _set_snapshot_revision_header,
+)
 
 
 def _install_request_guards(
@@ -80,6 +85,15 @@ def _register_operation_submission_routes(
     app: FastAPI,
     control_plane: RuntimeControlPlane,
 ) -> None:
+    _register_provisioning_submission_route(app, control_plane)
+    _register_orchestration_submission_route(app, control_plane)
+    _register_evaluation_submission_route(app, control_plane)
+
+
+def _register_provisioning_submission_route(
+    app: FastAPI,
+    control_plane: RuntimeControlPlane,
+) -> None:
     @app.post("/operations/provisioning", responses=_CONFLICT_RESPONSES)
     async def submit_provisioning(
         request: Request,
@@ -89,10 +103,10 @@ def _register_operation_submission_routes(
         submitted_plan = _provisioning_plan(plan)
         calls = _control_plane_calls(request)
         planner_authorized = await calls.run(
-            control_plane.is_planner_authorized_provisioning_plan,
+            control_plane.is_planner_authorized_plan,
             submitted_plan,
         )
-        if submitted_plan.operations and not planner_authorized:
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not planner_authorized:
             await calls.run(
                 control_plane.record_audit,
                 action="submit_provisioning",
@@ -107,78 +121,107 @@ def _register_operation_submission_routes(
                 control_plane.submit_provisioning,
                 submitted_plan,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="submit_provisioning",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
+
+def _register_orchestration_submission_route(
+    app: FastAPI,
+    control_plane: RuntimeControlPlane,
+) -> None:
     @app.post("/operations/orchestration", responses=_CONFLICT_RESPONSES)
     async def submit_orchestration(
         request: Request,
         plan: OrchestrationPlanModel,
         identity: _MutatingIdentity,
     ) -> OperationReceiptModel:
+        submitted_plan = _orchestration_plan(plan)
         calls = _control_plane_calls(request)
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not await calls.run(
+            control_plane.is_planner_authorized_plan,
+            submitted_plan,
+        ):
+            await calls.run(
+                control_plane.record_audit,
+                action="submit_orchestration",
+                identity=identity.identity,
+                allowed=False,
+                target=str(request.url.path),
+                reason="planner-authorization-mismatch",
+            )
+            raise HTTPException(status_code=403, detail="orchestration plan is not planner-authorized")
         try:
             receipt = await calls.mutate(
                 control_plane.submit_orchestration,
-                _orchestration_plan(plan),
+                submitted_plan,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="submit_orchestration",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
+
+def _register_evaluation_submission_route(
+    app: FastAPI,
+    control_plane: RuntimeControlPlane,
+) -> None:
     @app.post("/operations/evaluation", responses=_CONFLICT_RESPONSES)
     async def submit_evaluation(
         request: Request,
         plan: EvaluationPlanModel,
         identity: _MutatingIdentity,
     ) -> OperationReceiptModel:
+        submitted_plan = _evaluation_plan(plan)
         calls = _control_plane_calls(request)
+        if (submitted_plan.operations or submitted_plan.observation_demands) and not await calls.run(
+            control_plane.is_planner_authorized_plan,
+            submitted_plan,
+        ):
+            await calls.run(
+                control_plane.record_audit,
+                action="submit_evaluation",
+                identity=identity.identity,
+                allowed=False,
+                target=str(request.url.path),
+                reason="planner-authorization-mismatch",
+            )
+            raise HTTPException(status_code=403, detail="evaluation plan is not planner-authorized")
         try:
             receipt = await calls.mutate(
                 control_plane.submit_evaluation,
-                _evaluation_plan(plan),
+                submitted_plan,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="submit_evaluation",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
@@ -210,6 +253,7 @@ def _register_operation_read_routes(
     @app.get("/snapshot")
     async def get_snapshot(
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> RuntimeSnapshotEnvelopeModel:
         calls = _control_plane_calls(request)
@@ -220,11 +264,17 @@ def _register_operation_read_routes(
             allowed=True,
             target=str(request.url.path),
         )
-        return await calls.run(lambda: _snapshot_model(control_plane.get_snapshot()))
+        model, revision = await calls.run(
+            control_plane._project_snapshot_read,
+            lambda: _snapshot_model(control_plane.get_snapshot()),
+        )
+        _set_snapshot_revision_header(response, revision)
+        return model
 
     @app.get("/apparatus/operational-summary")
     async def get_operational_apparatus_summary(
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> dict[str, object]:
         calls = _control_plane_calls(request)
@@ -235,4 +285,9 @@ def _register_operation_read_routes(
             allowed=True,
             target=str(request.url.path),
         )
-        return await calls.run(control_plane.operational_apparatus_summary)
+        summary, revision = await calls.run(
+            control_plane._project_snapshot_read,
+            control_plane.operational_apparatus_summary,
+        )
+        _set_snapshot_revision_header(response, revision)
+        return summary

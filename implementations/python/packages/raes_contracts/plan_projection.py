@@ -43,6 +43,7 @@ __all__ = [
     "orchestration_plan_model",
     "provisioning_plan_digest",
     "provisioning_plan_model",
+    "runtime_plan_digest",
 ]
 
 
@@ -54,6 +55,7 @@ def _plan_operation_model(operation: PlanOperation) -> PlanOperationModel:
         payload=dict(operation.payload),
         ordering_dependencies=list(operation.ordering_dependencies),
         refresh_dependencies=list(operation.refresh_dependencies),
+        profile_bindings=getattr(operation, "profile_bindings", ()),
     )
 
 
@@ -84,6 +86,9 @@ def _realization_authority_model(
         ],
         verification_scope=authority.verification_scope,
         required_observation_strength=authority.required_observation_strength,
+        structure=authority.structure,
+        constraint_document=authority.constraint_document,
+        constraint_binding=authority.constraint_binding,
     )
 
 
@@ -91,6 +96,8 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
     """Project a provisioning plan into its published contract model."""
 
     return ProvisioningPlanModel(
+        preparation=plan.preparation,
+        profile_authority=plan.profile_authority,
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         diagnostics=_diagnostic_payloads(plan.diagnostics),
         realization_authority=[_realization_authority_model(entry) for entry in plan.realization_authority],
@@ -108,6 +115,7 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
             for item in plan.realization_constraints
         ],
         operation_id=plan.operation_id,
+        observation_demands=list(plan.observation_demands),
     )
 
 
@@ -117,6 +125,23 @@ def provisioning_plan_digest(plan: ProvisioningPlan) -> str:
     return canonical_json_digest(provisioning_plan_model(plan).model_dump(mode="json", exclude_none=True))
 
 
+def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str:
+    """Return one domain-tagged digest for an exact planner-produced artifact."""
+
+    if isinstance(plan, ProvisioningPlan):
+        domain = "provisioning"
+        model = provisioning_plan_model(plan)
+    elif isinstance(plan, OrchestrationPlan):
+        domain = "orchestration"
+        model = orchestration_plan_model(plan)
+    elif isinstance(plan, EvaluationPlan):
+        domain = "evaluation"
+        model = evaluation_plan_model(plan)
+    else:
+        raise TypeError("unsupported runtime plan type")
+    return canonical_json_digest({"domain": domain, "plan": model.model_dump(mode="json", exclude_none=True)})
+
+
 def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
     """Project an orchestration plan into its published contract model."""
 
@@ -124,6 +149,7 @@ def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
+        observation_demands=list(plan.observation_demands),
     )
 
 
@@ -134,4 +160,5 @@ def evaluation_plan_model(plan: EvaluationPlan) -> EvaluationPlanModel:
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
+        observation_demands=list(plan.observation_demands),
     )

@@ -21,14 +21,17 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
+from raes_contracts.runtime_state import OperationKind, OperationState
 
+from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
+from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import (
     ParticipantCrossingEvidence,
     ParticipantCrossingIntent,
     PreparedParticipantCrossing,
-    commit_prepared_crossing,
     prepare_participant_crossing,
 )
+from .participant_crossing_projection import RuntimeRevisionPath, stable_projection_subject
 from .participant_crossing_records import _expected_history_heads
 from .participant_flow_sink import (
     ParticipantFlowSinkDecision,
@@ -53,6 +56,7 @@ class ParticipantViewSerialization:
     identity: object
     crossing_evidence: ParticipantCrossingEvidence | None
     idempotency_key: str
+    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = ()
 
     def with_crossing_evidence(
         self,
@@ -69,9 +73,11 @@ class ParticipantViewSerialization:
             identity=self.identity,
             crossing_evidence=crossing_evidence,
             idempotency_key=self.idempotency_key,
+            runtime_owned_revision_paths=self.runtime_owned_revision_paths,
         )
 
 
+@mutation_entry(OperationKind.PARTICIPANT_CROSSING)
 def serialize_participant_view(
     control_plane: object,
     view: _ViewT,
@@ -81,12 +87,23 @@ def serialize_participant_view(
 
     if serialization.crossing_evidence is None:
         raise ValueError("configured participant egress requires crossing evidence")
+    with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CROSSING):
+        return _serialize_participant_view_authorized(control_plane, view, serialization)
+
+
+def _serialize_participant_view_authorized(
+    control_plane: object,
+    view: _ViewT,
+    serialization: ParticipantViewSerialization,
+) -> _ViewT:
     with control_plane._participant_control_lock:
+        control_plane._reload_derived_state_if_unpinned()
         subject = _view_subject(
             view,
             participant_address=serialization.participant_address,
             episode_id=serialization.episode_id,
             subject_kind=serialization.subject_kind,
+            runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
         )
         canonical = ParticipantCrossingIntent.model_validate(
             {
@@ -112,12 +129,12 @@ def serialize_participant_view(
             incumbent_carrier=view,
         )
         if prepared.existing_receipt is not None:
-            if not prepared.existing_receipt.accepted:
+            if prepared.record.status.state is not OperationState.SUCCEEDED:
                 raise PermissionError(_PROJECTION_NOT_PERMITTED)
             if prepared.record.result_payload is None:
                 raise ValueError("idempotent participant projection is missing its governed result")
             return type(view).model_validate(prepared.record.result_payload)
-        if not prepared.record.receipt.accepted:
+        if not participant_crossing_permitted(prepared):
             prepared = _with_opacity_egress_observation(
                 control_plane,
                 prepared,
@@ -164,7 +181,8 @@ def _governed_egress_view(
     transformer = getattr(control_plane._crossing_policy_resolver, "transform_egress", None)
     if not callable(transformer):
         raise ValueError("transformed participant egress requires a trusted view transformer")
-    candidate = transformer(prepared.intent, prepared.governed_subject, view)
+    with external_control_plane_call(control_plane):
+        candidate = transformer(prepared.intent, prepared.governed_subject, view)
     if not isinstance(candidate, type(view)):
         raise ValueError("participant egress transformation returned an invalid governed view")
     actual = _view_subject(
@@ -172,6 +190,7 @@ def _governed_egress_view(
         participant_address=serialization.participant_address,
         episode_id=serialization.episode_id,
         subject_kind=prepared.governed_subject.subject_kind,
+        runtime_owned_revision_paths=serialization.runtime_owned_revision_paths,
     )
     if actual != prepared.governed_subject:
         raise ValueError("trusted egress transformation does not match its governed identity")
@@ -269,10 +288,11 @@ def _with_opacity_egress_observation(
             participant_address: candidate,
         },
     )
-    context = control_plane._crossing_policy_resolver.validation_context(
-        control_plane._snapshot,
-        participant_address,
-    )
+    with external_control_plane_call(control_plane):
+        context = control_plane._crossing_policy_resolver.validation_context(
+            control_plane._snapshot,
+            participant_address,
+        )
     validate_participant_crossing_occurrence_context(
         [ParticipantCrossingOccurrenceModel.model_validate(item) for item in candidate],
         known_subjects=context.known_subjects,
@@ -397,13 +417,18 @@ def _view_subject(
     participant_address: str,
     episode_id: str,
     subject_kind: ParticipantCrossingSubjectKind,
+    runtime_owned_revision_paths: tuple[RuntimeRevisionPath, ...] = (),
 ) -> ParticipantCrossingSubjectReferenceModel:
     payload = view.model_dump(mode="json")
     payload.pop("generated_at", None)
     view_ref = payload.get("view_id")
     if not isinstance(view_ref, str) or not view_ref:
         raise ValueError("participant projection requires an exact view identity")
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    encoded = json.dumps(
+        stable_projection_subject(payload, runtime_owned_revision_paths),
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
     return ParticipantCrossingSubjectReferenceModel(
         subject_kind=subject_kind,
         contract_id=f"{subject_kind.value}-v1",

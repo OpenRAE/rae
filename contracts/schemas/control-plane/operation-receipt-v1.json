@@ -1,4 +1,151 @@
 {
+  "$defs": {
+    "DiagnosticModel": {
+      "additionalProperties": false,
+      "description": "Closed portable diagnostic shape for published contracts.",
+      "properties": {
+        "address": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Address",
+          "type": "string"
+        },
+        "code": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "domain": {
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Domain",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "default": "error"
+        }
+      },
+      "required": [
+        "code",
+        "domain",
+        "address",
+        "message"
+      ],
+      "title": "DiagnosticModel",
+      "type": "object"
+    },
+    "OperationAdmissionContext": {
+      "additionalProperties": false,
+      "description": "Immutable, value-free authority and request context fixed at admission.",
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "authorization_scope": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Authorization Scope",
+          "type": "array"
+        },
+        "operation_kind": {
+          "$ref": "#/$defs/OperationKind"
+        },
+        "parent_operation_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Operation Id"
+        },
+        "request_commitment": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Request Commitment",
+          "type": "string"
+        },
+        "run_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Run Scope",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Target Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor_id",
+        "authorization_scope",
+        "target_scope",
+        "run_scope",
+        "operation_kind",
+        "request_commitment"
+      ],
+      "title": "OperationAdmissionContext",
+      "type": "object"
+    },
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing"
+      ],
+      "title": "OperationKind",
+      "type": "string"
+    },
+    "RuntimeDomain": {
+      "description": "Top-level runtime concern.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "participant"
+      ],
+      "title": "RuntimeDomain",
+      "type": "string"
+    },
+    "Severity": {
+      "description": "Diagnostic severity level.",
+      "enum": [
+        "error",
+        "warning",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
   "$id": "https://openrae.github.io/rae/schemas/operation-receipt-v1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
@@ -7,19 +154,21 @@
       "title": "Accepted",
       "type": "boolean"
     },
+    "context": {
+      "$ref": "#/$defs/OperationAdmissionContext"
+    },
     "diagnostics": {
       "items": {
-        "additionalProperties": true,
-        "type": "object"
+        "$ref": "#/$defs/DiagnosticModel"
       },
       "title": "Diagnostics",
       "type": "array"
     },
     "domain": {
-      "title": "Domain",
-      "type": "string"
+      "$ref": "#/$defs/RuntimeDomain"
     },
     "operation_id": {
+      "minLength": 1,
       "title": "Operation Id",
       "type": "string"
     },
@@ -30,6 +179,9 @@
       "type": "string"
     },
     "submitted_at": {
+      "format": "date-time",
+      "minLength": 1,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
       "title": "Submitted At",
       "type": "string"
     }
@@ -38,7 +190,8 @@
     "operation_id",
     "domain",
     "submitted_at",
-    "accepted"
+    "accepted",
+    "context"
   ],
   "title": "OperationReceiptModel",
   "type": "object"

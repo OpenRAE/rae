@@ -1,0 +1,188 @@
+{
+  "$defs": {
+    "DomainProfileCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact immutable definition coordinate.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "definition_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 253,
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "profile_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "title": "DomainProfileCoordinateModel",
+      "type": "object"
+    },
+    "DomainProfileOperation": {
+      "enum": [
+        "structural-validation",
+        "semantic-validation",
+        "refinement",
+        "comparison",
+        "interpretation",
+        "execution",
+        "typed-report"
+      ],
+      "title": "DomainProfileOperation",
+      "type": "string"
+    },
+    "DomainProfileSemanticContractModel": {
+      "additionalProperties": false,
+      "description": "Exact identity of pre-installed semantic behavior, never executable data.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authority",
+        "contract_id",
+        "revision",
+        "digest"
+      ],
+      "title": "DomainProfileSemanticContractModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/domain-profile-support-declaration-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operations": {
+            "contains": {
+              "const": "structural-validation"
+            }
+          }
+        },
+        "required": [
+          "operations"
+        ]
+      },
+      "then": {
+        "properties": {
+          "supported_schema_dialects": {
+            "minItems": 1
+          },
+          "supported_schema_keywords": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "supported_schema_dialects",
+          "supported_schema_keywords"
+        ]
+      }
+    }
+  ],
+  "description": "Exact operation-specific support; never a handler or plugin record.",
+  "properties": {
+    "coordinate": {
+      "$ref": "#/$defs/DomainProfileCoordinateModel"
+    },
+    "operations": {
+      "items": {
+        "$ref": "#/$defs/DomainProfileOperation"
+      },
+      "minItems": 1,
+      "title": "Operations",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "domain-profile-support-declaration/v1",
+      "default": "domain-profile-support-declaration/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "semantic_contract": {
+      "$ref": "#/$defs/DomainProfileSemanticContractModel"
+    },
+    "supported_schema_dialects": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Supported Schema Dialects",
+      "type": "array"
+    },
+    "supported_schema_keywords": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Supported Schema Keywords",
+      "type": "array"
+    },
+    "supported_vocabularies": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Supported Vocabularies",
+      "type": "array"
+    }
+  },
+  "required": [
+    "coordinate",
+    "semantic_contract",
+    "operations"
+  ],
+  "title": "DomainProfileSupportDeclarationModel",
+  "type": "object"
+}

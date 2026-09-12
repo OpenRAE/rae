@@ -6,10 +6,9 @@ from fastapi import FastAPI, HTTPException, Request
 from raes_contracts.contracts import OperationReceiptModel, WorkflowCancellationRequestModel
 
 from ..control_plane import RuntimeControlPlane
-from ..control_plane_api_models import _request_fingerprint
 from ._auth import _MutatingIdentity
 from ._offload import _control_plane_calls
-from ._responses import _CONFLICT_RESPONSES, _receipt_response
+from ._responses import _CONFLICT_RESPONSES, _receipt_response, _record_operation_receipt_audit
 
 
 def _register_workflow_routes(
@@ -32,20 +31,17 @@ def _register_workflow_routes(
                 run_id=payload.run_id,
                 reason=payload.reason,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="cancel_workflow",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
@@ -59,19 +55,16 @@ def _register_workflow_routes(
             receipt = await calls.mutate(
                 control_plane.reconcile_workflow_timeouts,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="reconcile_workflow_timeouts",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)

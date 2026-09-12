@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:raes:tooling:inventory-coverage:v1",
+  "title": "RAES development artifact inventory coverage",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "inventory_source", "rows", "acquisition_paths"],
+  "properties": {
+    "schema_version": {"const": "raes-development-inventory-coverage/v1"},
+    "inventory_source": {"type": "string", "minLength": 1},
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inventory_id", "subjects", "evidence_refs", "owner_roles", "consumers", "trust_root_refs",
+          "availability_class", "retention_class", "disposition", "authority_refs",
+          "policy_refs", "owning_issue"
+        ],
+        "properties": {
+          "inventory_id": {"type": "string", "pattern": "^(I(0[1-9]|1[0-6])|A0[1-7]|O0[1-4]|C0[1-4]|S0[1-2]|D01)$"},
+          "subjects": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"enum": ["artifact", "action", "source-snapshot", "oci-image"]}
+          },
+          "evidence_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+          "owner_roles": {"$ref": "#/$defs/nonEmptyStrings"},
+          "consumers": {"$ref": "#/$defs/nonEmptyStrings"},
+          "trust_root_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+          "availability_class": {"enum": ["R", "L", "N"]},
+          "retention_class": {"enum": ["supported-input", "operational-cache", "release-evidence"]},
+          "disposition": {"enum": ["locked", "delegated", "retained", "prohibited"]},
+          "authority_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+          "policy_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+          "owning_issue": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "acquisition_paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "inventory_id", "disposition", "site_count"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "inventory_id": {"type": "string", "pattern": "^(I(0[1-9]|1[0-6])|A0[1-7]|O0[1-4]|C0[1-4]|S0[1-2]|D01)$"},
+          "disposition": {
+            "enum": [
+              "governed", "legacy-remediation", "external-service", "excluded-domain",
+              "non-acquisition-execution"
+            ]
+          },
+          "site_count": {"type": "integer", "minimum": 1}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyStrings": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

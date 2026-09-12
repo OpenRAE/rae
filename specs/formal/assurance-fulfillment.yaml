@@ -110,24 +110,11 @@ entries:
         path: specs/formal/runtime-control-plane/README.md
       - kind: abstract_state_machine_model
         path: specs/formal/runtime-control-plane/README.md
-    waived_artifacts:
       - kind: unit_tests
-        date: 2026-09-03
-        tracking:
-          - "#1182"
-          - "#1187"
-        rationale: >-
-          Issue #1151 is design authority and changes no executable lifecycle.
-          CP-1 owns transition and carrier tests; CP-9 owns profile, fault, and
-          adversarial conformance tests before any guarantee becomes claimable.
+        path: implementations/python/tests/test_issue_1182_operation_lifecycle_contract.py
       - kind: typed_ir_or_contract_coverage
-        date: 2026-09-03
-        tracking:
-          - "#1182"
-        rationale: >-
-          The existing OperationState and control-plane DTO family remains the
-          required owner, but its indeterminate state and immutable actor scope
-          are deliberately deferred to the contract-first CP-1 issue.
+        path: implementations/python/packages/raes_contracts/operation_lifecycle.py
+    waived_artifacts:
       - kind: property_based_or_differential_tests
         date: 2026-09-03
         tracking:

@@ -35,6 +35,7 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.participant_opacity_runtime import (
     validate_participant_opacity_runtime_enforcement,
 )
+from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import LocalControlPlaneStore
 from raes_runtime.participant_crossing_mediation import (
@@ -511,7 +512,8 @@ def test_runtime_decision_durably_owns_safe_opacity_binding() -> None:
 
     receipt = admit(plane, idempotency_key="opacity-action")
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     decision = plane.snapshot.participant_crossing_history[CROSSING_PARTICIPANT][1]["occurrence"]
     binding = decision["opacity_enforcement"]
     assert binding["assurance_axis"] == "runtime-enforcement"
@@ -606,7 +608,9 @@ def test_secret_dependent_policy_outcomes_are_normalized_to_the_same_observation
     allowed_receipt = admit(allowed, idempotency_key="opacity-secret-true")
     denied_receipt = admit(denied, idempotency_key="opacity-secret-false")
 
-    assert allowed_receipt.accepted is denied_receipt.accepted is False
+    assert allowed_receipt.accepted is denied_receipt.accepted is True
+    assert allowed.get_operation(allowed_receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
+    assert denied.get_operation(denied_receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     allowed_decision = allowed.snapshot.participant_crossing_history[CROSSING_PARTICIPANT][1]["occurrence"]
     denied_decision = denied.snapshot.participant_crossing_history[CROSSING_PARTICIPANT][1]["occurrence"]
     for decision in (allowed_decision, denied_decision):
@@ -619,7 +623,8 @@ def test_route_local_binding_omission_cannot_bypass_active_runtime_support() -> 
 
     receipt = admit(plane, idempotency_key="opacity-route-bypass")
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     decision = plane.snapshot.participant_crossing_history[CROSSING_PARTICIPANT][1]["occurrence"]
     assert decision["opacity_enforcement"]["assurance_axis"] == "runtime-enforcement"
 
@@ -643,6 +648,7 @@ def test_restart_requires_the_exact_persisted_opacity_context(tmp_path) -> None:
         store=store,
     )
     admit(first, idempotency_key="opacity-restart")
+    first.close()
 
     restarted_resolver = _OpacityResolver()
     restarted_resolver.subjects = list(first_resolver.subjects)
@@ -654,6 +660,7 @@ def test_restart_requires_the_exact_persisted_opacity_context(tmp_path) -> None:
         enforce_final_sink_flow_control=False,
     )
     assert restarted.snapshot.participant_crossing_history[CROSSING_PARTICIPANT]
+    restarted.close()
 
     stale = _OpacityResolver()
     stale.subjects = list(first_resolver.subjects)

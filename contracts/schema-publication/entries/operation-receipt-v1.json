@@ -2,9 +2,9 @@
   "contract_id": "operation-receipt-v1",
   "schema_path": "contracts/schemas/control-plane/operation-receipt-v1.json",
   "stability": "draft",
-  "content_hash": "ec597654ec84617161098e883eb41e18bf30a81af3a50c0e316e284a920409df",
+  "content_hash": "94ed21d020f0e0a6c3ca59092348bdd046ba34a3bffed34a4c7872037d0559b7",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "ec597654ec84617161098e883eb41e18bf30a81af3a50c0e316e284a920409df"
+    "summary": "Added the immutable operation admission context and closed diagnostic carrier for issue #1182.",
+    "content_hash": "94ed21d020f0e0a6c3ca59092348bdd046ba34a3bffed34a4c7872037d0559b7"
   }
 }

@@ -24,6 +24,7 @@ class RuntimeConcernProfile:
     concern_kind: str
     excluded_fields: frozenset[str] = frozenset()
     sort_scalar_sequence: bool = False
+    collection_identity_fields: tuple[str, ...] = ()
 
     @property
     def payload_path(self) -> tuple[str, ...]:
@@ -48,12 +49,14 @@ def _profile(
     *,
     excluded: tuple[str, ...] = (),
     sort_scalars: bool = False,
+    identity: tuple[str, ...] = (),
 ) -> RuntimeConcernProfile:
     return RuntimeConcernProfile(
         authored_path=tuple(path.split(".")),
         concern_kind=kind,
         excluded_fields=frozenset(excluded),
         sort_scalar_sequence=sort_scalars,
+        collection_identity_fields=identity,
     )
 
 
@@ -122,7 +125,7 @@ RUNTIME_CONCERN_PROFILES: tuple[RuntimeConcernProfile, ...] = (
     _profile("network.domainname", "runtime-network-domainname"),
     _profile("network.endpoints", "runtime-network-endpoints"),
     _profile("applications", "runtime-applications"),
-    _profile("database_services", "runtime-database-services"),
+    _profile("database_services", "runtime-database-services", identity=("database_service_id",)),
     _profile("dns_services", "runtime-dns-services"),
     _profile("network_sensors", "runtime-network-sensors"),
     _profile("network_detection_engines", "runtime-network-detection-engines", excluded=("loaded",)),
@@ -156,7 +159,7 @@ RUNTIME_CONCERN_PROFILES: tuple[RuntimeConcernProfile, ...] = (
         "runtime-service-manager-units",
         excluded=("sub_state", "result", "exit_code", "status_text", "main_pid"),
     ),
-    _profile("packages", "runtime-packages"),
+    _profile("packages", "runtime-packages", identity=("manager", "name")),
     _profile("software_components", "runtime-software-components"),
     _profile("dependency_manifests", "runtime-dependency-manifests"),
 )

@@ -17,14 +17,20 @@ from typing import TYPE_CHECKING, Any
 
 from raes.explicitness import ExplicitnessProvenance
 
+from raes_contracts._planning_validation import _validate_plan_addresses, _validate_realization_authority
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import DomainDescriptor
-from raes_contracts.compute_substrate import validate_compute_substrate_constraint
+from raes_contracts.compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.observation_demand import EffectiveObservationDemand
+from raes_contracts.realization_preparation import RealizationPreparationAuthority
+from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
 if TYPE_CHECKING:
     from raes_contracts.contracts import RealizationEnvelopeIdentityModel
+    from raes_contracts.domain_profiles import DomainProfileBindingModel
+    from raes_contracts.realization_profiles import PlanProfileAuthority
 
 
 class RuntimeDomain(str, Enum):
@@ -125,8 +131,9 @@ class RealizationAuthorityBound:
 def _require_authority_bounds(
     mode: RealizationAuthorityMode,
     bounds: tuple[RealizationAuthorityBound, ...],
+    constraint_document: RealizationConstraintDocument | None,
 ) -> None:
-    if mode is RealizationAuthorityMode.CONSTRAINED and not bounds:
+    if mode is RealizationAuthorityMode.CONSTRAINED and not bounds and constraint_document is None:
         raise ValueError("constrained realization authority requires typed bounds")
     if mode is not RealizationAuthorityMode.CONSTRAINED and bounds:
         raise ValueError("only constrained realization authority may carry typed bounds")
@@ -158,9 +165,16 @@ class ResolvedRealizationAuthority:
     bounds: tuple[RealizationAuthorityBound, ...] = ()
     verification_scope: RealizationVerificationScope | None = None
     required_observation_strength: ObservationStrength | None = None
+    structure: RealizationStructure | None = None
+    constraint_document: RealizationConstraintDocument | None = None
+    constraint_binding: str | None = None
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)
+        if self.structure is not None and self.constraint_document is not None:
+            raise ValueError("realization authority cannot carry two independently editable structures")
+        if (self.constraint_document is None) != (self.constraint_binding is None):
+            raise ValueError("recursive authority requires its source binding")
         if not self.field_path or not self.domain or not self.requirement_kind:
             raise ValueError("resolved realization authority requires non-empty concern identity")
         _require_json_pointer(
@@ -168,7 +182,7 @@ class ResolvedRealizationAuthority:
             field_name="resolved realization authority payload_pointer",
             allow_root=False,
         )
-        _require_authority_bounds(self.mode, self.bounds)
+        _require_authority_bounds(self.mode, self.bounds, self.constraint_document)
         _require_authority_source(self.mode, self.source)
 
 
@@ -199,6 +213,7 @@ class PlannedResource:
     payload: dict[str, Any]
     ordering_dependencies: tuple[str, ...] = ()
     refresh_dependencies: tuple[str, ...] = ()
+    profile_bindings: tuple[DomainProfileBindingModel, ...] = ()
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)
@@ -306,8 +321,11 @@ class PlanOperation:
             require_compiled_address(dependency, field_name="dependency address")
 
 
+@dataclass(frozen=True)
 class ProvisionOp(PlanOperation):
     """Provisioning reconciliation operation."""
+
+    profile_bindings: tuple[DomainProfileBindingModel, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -350,14 +368,18 @@ class ProvisioningPlan:
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     realization_constraints: tuple[PlannedRealizationConstraint, ...] = ()
     operation_id: str | None = None
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
+    preparation: RealizationPreparationAuthority | None = None
+    profile_authority: PlanProfileAuthority | None = None
 
     def __post_init__(self) -> None:
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("ProvisioningPlan operation_id must be non-empty when present")
         _validate_plan_addresses(self.resources, self.operations, domain=RuntimeDomain.PROVISIONING)
-        identities = [(item.address, item.concern) for item in self.realization_constraints]
-        if len(identities) != len(set(identities)):
-            raise ValueError("Provisioning plan realization constraints must identify unique concerns")
+        validate_planned_substrate_targets(
+            ((item.address, item.concern) for item in self.realization_constraints),
+            (op.address for op in self.operations if op.action != ChangeAction.DELETE and op.resource_type == "node"),
+        )
         _validate_realization_authority(self.operations, self.realization_authority)
 
     @property
@@ -373,6 +395,7 @@ class OrchestrationPlan:
     operations: list[OrchestrationOp] = field(default_factory=list)
     startup_order: list[str] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_plan_addresses(
@@ -395,6 +418,7 @@ class EvaluationPlan:
     operations: list[EvaluationOp] = field(default_factory=list)
     startup_order: list[str] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_plan_addresses(
@@ -407,52 +431,6 @@ class EvaluationPlan:
     @property
     def actionable_operations(self) -> list[EvaluationOp]:
         return [op for op in self.operations if op.action != ChangeAction.UNCHANGED]
-
-
-def _validate_plan_addresses(
-    resources: dict[str, PlannedResource],
-    operations: list[PlanOperation],
-    startup_order: list[str] | None = None,
-    *,
-    domain: RuntimeDomain,
-) -> None:
-    for map_key, resource in resources.items():
-        require_compiled_address(map_key, field_name="resource map key")
-        if map_key != resource.address:
-            raise ValueError("Plan resource map key must equal embedded address")
-        if resource.domain is not domain:
-            raise ValueError("Plan resource domain must equal the plan domain")
-        require_plan_operation_identity(domain, resource.address, resource.resource_type)
-    operation_addresses = [operation.address for operation in operations]
-    for operation in operations:
-        require_plan_operation_identity(domain, operation.address, operation.resource_type)
-    if len(operation_addresses) != len(set(operation_addresses)):
-        raise ValueError("Plan operation addresses must be unique")
-    if startup_order is None:
-        return
-    for address in startup_order:
-        require_compiled_address(address, field_name="startup_order address")
-    if len(startup_order) != len(set(startup_order)):
-        raise ValueError("Plan startup_order addresses must be unique")
-    unknown = set(startup_order) - set(operation_addresses)
-    if unknown:
-        raise ValueError("Plan startup_order must reference admitted operation addresses")
-
-
-def _validate_realization_authority(
-    operations: list[PlanOperation],
-    authority: tuple[ResolvedRealizationAuthority, ...],
-) -> None:
-    identities = [(entry.address, entry.requirement_kind) for entry in authority]
-    if len(identities) != len(set(identities)):
-        raise ValueError("Provisioning plan realization authority must identify unique concerns")
-    pointers = [(entry.address, entry.payload_pointer) for entry in authority]
-    if len(pointers) != len(set(pointers)):
-        raise ValueError("Provisioning plan realization authority payload pointers must be unique per resource")
-    admitted_addresses = {operation.address for operation in operations if operation.action is not ChangeAction.DELETE}
-    stale = sorted({entry.address for entry in authority} - admitted_addresses)
-    if stale:
-        raise ValueError("Provisioning plan realization authority must reference non-delete operations")
 
 
 __all__ = (

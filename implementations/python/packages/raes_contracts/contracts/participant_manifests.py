@@ -51,6 +51,9 @@ class BackendManifestV2Model(ContractModel):
     compatibility: BackendCompatibilityModel
     realization_support: list[RealizationSupportDeclarationModel] = Field(min_length=1)
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
+    domain_profile_context_digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     concept_bindings: list[ConceptBindingEntryModel] = Field(min_length=1)
     constraints: dict[str, str] = Field(default_factory=dict)
     capabilities: BackendCapabilitiesV2Model
@@ -67,9 +70,22 @@ class BackendManifestV2Model(ContractModel):
         self._validate_realization_envelope_contract()
         self._validate_cleanup_contracts()
         self._validate_time_contracts()
+        self._validate_observation_capture_offers()
         self._validate_participant_policy_contracts()
         self._validate_concept_bindings()
         return self
+
+    def _validate_observation_capture_offers(self) -> None:
+        observation = self.capabilities.observation
+        if observation is None:
+            return
+        declared_contracts = set(self.supported_contract_versions)
+        missing = sorted({offer.output_contract for offer in observation.capture_offers} - declared_contracts)
+        if missing:
+            raise ValueError(
+                "observation capture offers require output contracts in supported_contract_versions: "
+                + ", ".join(missing)
+            )
 
     def _validate_participant_policy_contracts(self) -> None:
         participant_runtime = self.capabilities.participant_runtime

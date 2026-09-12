@@ -18,9 +18,13 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
     workflow = yaml.safe_load(source)
     triggers = workflow.get("on", workflow.get(True))
 
-    assert workflow["permissions"] == "read-all"
+    assert workflow["permissions"] == {}
     assert "pull_request_target" not in triggers
+    assert "workflow_dispatch" not in triggers
+    assert triggers["schedule"] == [{"cron": "17 3 * * 1"}]
+    assert triggers["push"] == {"branches": ["main"]}
     analysis = workflow["jobs"]["analysis"]
+    assert analysis["runs-on"] == "ubuntu-24.04"
     assert analysis["permissions"] == {
         "contents": "read",
         "security-events": "write",
@@ -35,9 +39,33 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
         "results_format": "sarif",
         "publish_results": "true",
     }
+    harden_step = next(
+        step for step in analysis["steps"] if step.get("uses", "").startswith("step-security/harden-runner@")
+    )
+    assert harden_step["with"] == {"egress-policy": "audit"}
+    artifact_step = next(
+        step for step in analysis["steps"] if step.get("uses", "").startswith("actions/upload-artifact@")
+    )
+    assert artifact_step["if"] == "${{ always() }}"
+    assert artifact_step["with"]["retention-days"] == 5
+    sarif_step = next(
+        step for step in analysis["steps"] if step.get("uses", "").startswith("github/codeql-action/upload-sarif@")
+    )
+    assert sarif_step["if"] == "${{ always() }}"
     assert "SCORECARD_TOKEN" not in source
     for match in re.finditer(r"^\s*uses:\s*([^#\s]+)", source, re.MULTILINE):
         assert re.fullmatch(r"[^@]+@[0-9a-f]{40}", match.group(1))
+
+
+def test_scorecard_badge_is_backed_by_recorded_live_evidence() -> None:
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    evidence = (REPO_ROOT / "docs" / "decisions" / "issue-839-scorecard-evidence.md").read_text(encoding="utf-8")
+
+    badge = "https://api.securityscorecards.dev/projects/github.com/OpenRAE/rae/badge"
+    assert badge in readme
+    assert "https://github.com/OpenRAE/rae/actions/runs/34099892356" in evidence
+    assert "056fe65c57d1489489cff978019011f284106ba9" in evidence
+    assert "HTTP 200 with SVG media type" in evidence
 
 
 def test_best_practices_proposal_is_factual_about_single_maintainer_limits() -> None:
@@ -89,7 +117,7 @@ def test_publishers_build_only_the_curated_public_source() -> None:
     assert rtd["python"]["install"][0]["command"] == "sync --frozen"
 
     docs_workflow = (REPO_ROOT / ".github" / "workflows" / "docs.yml").read_text(encoding="utf-8")
-    assert "nox[uv]==2026.4.10" in docs_workflow
+    assert "uv run --project implementations/tooling/python --frozen --no-default-groups nox" in docs_workflow
     assert "-s docs" in docs_workflow
     assert "sphinx-build" not in docs_workflow
     assert "path: docs/_build/html" in docs_workflow
@@ -114,10 +142,16 @@ def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
     ci = yaml.safe_load((REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
     interpreter_job = ci["jobs"]["interpreters"]
     assert interpreter_job["strategy"]["fail-fast"] is False
-    assert interpreter_job["strategy"]["matrix"]["python-version"] == supported
+    assert interpreter_job["strategy"]["matrix"]["python"] == [
+        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
+        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
+        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
+        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
+    ]
     assert interpreter_job["env"] == {
-        "UV_PYTHON": "${{ matrix.python-version }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python-version }}",
+        "UV_PYTHON": "${{ matrix.python.payload }}",
+        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
+        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
     }
 
     preview = yaml.safe_load(
@@ -126,11 +160,11 @@ def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
     preview_job = preview["jobs"]["python-314t"]
     assert preview_job["continue-on-error"] is True
     assert preview_job["env"] == {
-        "UV_PYTHON": "3.14t",
+        "UV_PYTHON": "3.14.7t",
         "RAES_EXPECTED_PYTHON": "3.14",
         "RAES_EXPECT_FREE_THREADED": "1",
     }
 
-    compatibility_lane = (REPO_ROOT / "tools" / "nox_support" / "test_lanes.py").read_text(encoding="utf-8")
+    compatibility_lane = (REPO_ROOT / "tools" / "nox_support" / "compatibility_lanes.py").read_text(encoding="utf-8")
     assert 'assert is_gil_enabled() is False, "interpreter is not free-threaded"' in compatibility_lane
     assert 'assert is_gil_enabled() is True, "standard lane selected a free-threaded interpreter"' in compatibility_lane

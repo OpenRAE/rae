@@ -5,12 +5,14 @@ from __future__ import annotations
 import textwrap
 from dataclasses import replace
 
+import pytest
 from raes import parse_sdl
 from raes_contracts.planning import (
     ChangeAction,
     ProvisioningPlan,
     ProvisionOp,
 )
+from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_reference_backend import (
     create_reference_backend_components,
     create_reference_backend_manifest,
@@ -19,6 +21,7 @@ from raes_reference_backend.drivers.inprocess import InProcessDriver
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
 from raes_runtime.registry import RuntimeTarget
+from realization_authority_fixtures import with_compute_substrate_collection_demand
 
 _SCENARIO = """
 name: ref-provisioner
@@ -48,12 +51,24 @@ def _provisioning_plan(target: RuntimeTarget) -> ProvisioningPlan:
     return execution_plan.provisioning
 
 
+def _register_provisioning_plan(
+    control_plane: RuntimeControlPlane,
+    target: RuntimeTarget,
+    provisioning_plan: ProvisioningPlan,
+) -> None:
+    """Forge component authorization where planner validity is explicitly out of scope."""
+
+    execution_plan = RuntimeManager(target).plan(parse_sdl(textwrap.dedent(_SCENARIO)))
+    control_plane.register_planner_produced_plan(replace(execution_plan, provisioning=provisioning_plan))
+
+
 def test_apply_via_control_plane_records_entries_and_drives_driver():
     driver = InProcessDriver()
     target = _target_with_driver(driver)
     plan = _provisioning_plan(target)
 
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, plan)
     receipt = control_plane.submit_provisioning(plan)
     status = control_plane.get_operation(receipt.operation_id)
 
@@ -67,13 +82,42 @@ def test_apply_via_control_plane_records_entries_and_drives_driver():
     assert any(op.address == "provision.node.web" for op in realized)
 
 
+@pytest.mark.parametrize("collect", [False, True])
+def test_native_collection_is_selected_before_driver_readback_and_never_persisted(collect):
+    class Driver(InProcessDriver):
+        def realize(self, **kwargs):
+            result = super().realize(**kwargs)
+            assert result.observations == ()
+            return result
+
+        def observe(self, *, containers):
+            calls.append(tuple(spec.address for spec in containers))
+            return super().observe(containers=containers)
+
+    calls = []
+    target = _target_with_driver(Driver())
+    planned = replace(_provisioning_plan(target), operation_id="native-boundary")
+    if collect:
+        planned = with_compute_substrate_collection_demand(
+            planned,
+            semantic_scope="/nodes/web",
+            address="provision.node.web",
+        )
+    result = target.provisioner.apply(planned, RuntimeSnapshot())
+    assert result.success
+    assert calls == ([("provision.node.web",)] if collect else [])
+    assert result.snapshot.realization_observations == ()
+    assert bool(result.operational_realization_observations) == collect
+
+
 def test_apply_handles_delete_and_unchanged():
     driver = InProcessDriver()
     target = _target_with_driver(driver)
     plan = _provisioning_plan(target)
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, plan)
     control_plane.submit_provisioning(plan)
-    assert control_plane.snapshot.realization_observations
+    assert control_plane.snapshot.realization_observations == ()
 
     # Now submit a DELETE for the realized node.
     delete_plan = ProvisioningPlan(
@@ -86,6 +130,7 @@ def test_apply_handles_delete_and_unchanged():
             )
         ]
     )
+    _register_provisioning_plan(control_plane, target, delete_plan)
     receipt = control_plane.submit_provisioning(delete_plan)
     status = control_plane.get_operation(receipt.operation_id)
 
@@ -101,6 +146,7 @@ def test_unchanged_op_keeps_entry_without_driver_realize():
     target = _target_with_driver(driver)
     planned = _provisioning_plan(target)
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, planned)
     control_plane.submit_provisioning(planned)
     realizes_before = tuple(op for op in driver.recorded_ops if op.verb == "realize")
     unchanged_plan = replace(
@@ -111,6 +157,7 @@ def test_unchanged_op_keeps_entry_without_driver_realize():
             if operation.address == "provision.node.web"
         ],
     )
+    _register_provisioning_plan(control_plane, target, unchanged_plan)
     control_plane.submit_provisioning(unchanged_plan)
 
     entry = control_plane.snapshot.entries["provision.node.web"]
@@ -118,24 +165,41 @@ def test_unchanged_op_keeps_entry_without_driver_realize():
     assert tuple(op for op in driver.recorded_ops if op.verb == "realize") == realizes_before
 
 
-def test_unchanged_compute_bootstraps_missing_substrate_evidence_with_readback() -> None:
-    driver = InProcessDriver()
+def test_unchanged_compute_uses_non_retained_operational_readback() -> None:
+    observe_calls: list[tuple[str, ...]] = []
+
+    class _ObservationRecordingDriver(InProcessDriver):
+        def observe(self, *, containers):
+            observe_calls.append(tuple(container.address for container in containers))
+            return super().observe(containers=containers)
+
+    driver = _ObservationRecordingDriver()
     target = _target_with_driver(driver)
     scenario = parse_sdl(textwrap.dedent(_SCENARIO))
     create_plan = RuntimeManager(target).plan(scenario).provisioning
     first = RuntimeControlPlane(target)
+    _register_provisioning_plan(first, target, create_plan)
     first.submit_provisioning(create_plan)
     legacy_snapshot = replace(first.snapshot, realization_observations=())
     realizes_before = tuple(op for op in driver.recorded_ops if op.verb == "realize")
+    observes_before = len(observe_calls)
     unchanged_plan = RuntimeManager(target).plan(scenario, legacy_snapshot).provisioning
     assert all(operation.action is ChangeAction.UNCHANGED for operation in unchanged_plan.operations)
+    unchanged_plan = with_compute_substrate_collection_demand(
+        unchanged_plan,
+        semantic_scope="/nodes/web",
+        address="provision.node.web",
+    )
 
     upgraded = RuntimeControlPlane(target, initial_snapshot=legacy_snapshot)
+    _register_provisioning_plan(upgraded, target, unchanged_plan)
     receipt = upgraded.submit_provisioning(unchanged_plan)
 
     assert upgraded.get_operation(receipt.operation_id).state.value == "succeeded"
-    assert upgraded.snapshot.realization_observations
+    assert upgraded.snapshot.realization_observations == ()
     assert tuple(op for op in driver.recorded_ops if op.verb == "realize") == realizes_before
+    assert len(observe_calls) == observes_before + 1
+    assert observe_calls[-1] == ("provision.node.web",)
 
 
 def test_snapshot_payload_carries_only_portable_facts():
@@ -143,6 +207,7 @@ def test_snapshot_payload_carries_only_portable_facts():
     target = _target_with_driver(driver)
     plan = _provisioning_plan(target)
     control_plane = RuntimeControlPlane(target)
+    _register_provisioning_plan(control_plane, target, plan)
     control_plane.submit_provisioning(plan)
 
     snapshot = control_plane.snapshot

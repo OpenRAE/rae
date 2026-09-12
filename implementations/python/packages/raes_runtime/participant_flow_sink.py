@@ -31,11 +31,13 @@ from raes_contracts.contracts import (
     validate_participant_flow_control_resolved_context,
 )
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.runtime_state import OperationReceipt, OperationState
+from raes_contracts.runtime_state import OperationReceipt, OperationState, operation_terminal_diagnostics
 
+from .control_plane_mutation import external_control_plane_call
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_crossing_action import combined_crossing_audit
-from .participant_crossing_mediation import PreparedParticipantCrossing, commit_prepared_crossing
+from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
+from .participant_crossing_mediation import PreparedParticipantCrossing
 from .participant_crossing_state_cut import expected_participant_history_heads
 
 
@@ -155,13 +157,14 @@ def _resolve_flow_sink_relation(
     head_refs: tuple[str, ...],
 ) -> ParticipantFlowSinkResolution | ParticipantFlowSinkDecision:
     try:
-        resolution = hook(
-            snapshot=control_plane._snapshot,
-            intent=crossing.intent,
-            crossing=crossing,
-            sink_kind=sink_kind,
-            expected_history_head_refs=head_refs,
-        )
+        with external_control_plane_call(control_plane):
+            resolution = hook(
+                snapshot=control_plane._snapshot,
+                intent=crossing.intent,
+                crossing=crossing,
+                sink_kind=sink_kind,
+                expected_history_head_refs=head_refs,
+            )
     except Exception:
         # Fail closed for every resolver failure (BaseException such as
         # KeyboardInterrupt/SystemExit still propagates by design).
@@ -237,11 +240,14 @@ def flow_sink_denied_record(crossing: PreparedParticipantCrossing) -> ControlPla
         address=crossing.intent.participant_address,
         message="Participant flow-control final sink was not permitted.",
     )
-    rejected_receipt = replace(crossing.record.receipt, accepted=False, diagnostics=[diagnostic])
-    rejected_status = replace(crossing.record.status, state=OperationState.FAILED, diagnostics=[diagnostic])
+    rejected_status = replace(
+        crossing.record.status,
+        state=OperationState.FAILED,
+        diagnostics=operation_terminal_diagnostics(OperationState.FAILED, [diagnostic]),
+    )
     return cast(
         ControlPlaneOperationRecord,
-        replace(crossing.record, receipt=rejected_receipt, status=rejected_status),
+        replace(crossing.record, status=rejected_status),
     )
 
 
@@ -263,15 +269,36 @@ def commit_flow_sink_denial(
         reason="flow-sink-denied",
     )
     audit = apply_flow_sink_details(audit, decision)
-    control_plane._store.commit_participant_transition(
+    running = replace(
+        record,
+        status=replace(record.status, state=OperationState.RUNNING, diagnostics=[], changed_addresses=[]),
+    )
+    claimed = control_plane._claim_record(running)
+    if claimed.receipt.operation_id != running.receipt.operation_id:
+        return claimed.receipt
+    control_plane._commit_participant_transition(
         expected_history_heads=crossing.expected_history_heads,
         snapshot=crossing.next_snapshot,
         record=record,
         audit_event=audit,
     )
-    control_plane._snapshot = crossing.next_snapshot
-    control_plane._operations[record.receipt.operation_id] = record
     return record.receipt
+
+
+def resolve_flow_sink_denial(
+    control_plane: object,
+    crossing: PreparedParticipantCrossing,
+    *,
+    sink_kind: ParticipantFlowSinkKind,
+    action: str,
+) -> tuple[ParticipantFlowSinkDecision | None, OperationReceipt | None]:
+    """Resolve a final-sink decision and atomically commit a denial when needed."""
+
+    decision = resolve_participant_flow_sink_decision(control_plane, crossing, sink_kind=sink_kind)
+    receipt = None
+    if decision is not None and not decision.permitted:
+        receipt = commit_flow_sink_denial(control_plane, crossing, decision, action=action)
+    return decision, receipt
 
 
 def early_crossing_receipt(
@@ -287,7 +314,7 @@ def early_crossing_receipt(
 
     if crossing.existing_receipt is not None:
         return crossing.existing_receipt
-    if not crossing.record.receipt.accepted:
+    if not participant_crossing_permitted(crossing):
         return commit_prepared_crossing(control_plane, crossing)
     return None
 
@@ -302,4 +329,5 @@ __all__ = (
     "flow_sink_denied_record",
     "flow_sink_history_head_refs",
     "resolve_participant_flow_sink_decision",
+    "resolve_flow_sink_denial",
 )

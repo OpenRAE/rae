@@ -145,20 +145,6 @@ _HISTORICAL_SATISFIABILITY_EXECUTION_PROFILE = "a" + "ces-formal-satisfiability-
 _HISTORICAL_SATISFIABILITY_PROFILE = "a" + "ces-finite-domain-satisfiability-v1"
 _HISTORICAL_CLI = "implementations/python/.venv/bin/" + "a" + "ces"
 _CURRENT_SATISFIABILITY_PROFILE = "raes-finite-domain-satisfiability-v1"
-_RENAMED_FORMAL_REPLAY_DIGESTS = {
-    "semantic-resolved-objective": (
-        "ba0ecbfcb3090ffd6b660cb51324fafcd47ca8dedbbb985e98b6e7f64f8cc25b",
-        "5332666a0299d2c303d7a7da4b56dfd309cebf021af187b063ef597cf81bf40a",
-    ),
-    "compile-repeatability-control": (
-        "23b9d84fa757bd80436357ed52569b5445b0e4161641598e4b15c3b18cf6e668",
-        "4bb77034a8f2b1a577700ad03772a80acc0f4515a6831c8a35ac1bf50482d760",
-    ),
-    "compile-non-vacuity-control": (
-        "2e92bdb90a218c29201312052b64b7fb88e8a65e887f05168e2273d9710a5080",
-        "6cdc44529a87fb9addaf4040795c7f9ae702c5f6ae30e29a5086ee60072ded73",
-    ),
-}
 _HISTORICAL_VM_REPLAY_INPUTS = {
     (
         "semantic-resolved-objective",
@@ -181,42 +167,6 @@ _HISTORICAL_VM_REPLAY_INPUTS = {
         "docs/research/formal-semantic-validation/corpus/determinism-b.sdl.yaml",
     ): "d85338f89f20a45515b12da8640173c1a52e47eb17ca0f4f6b4f8f3306e863a1",
 }
-_RENAMED_SATISFIABILITY_MODEL_DIGESTS = {
-    "finite-domain-satisfiable": (
-        "sha256:32ac029d9279e6c7ea4cd9082435eb6fa455122bba57498923b8371818ef708c",
-        "sha256:fbd664cb97b3f95d89220c967af0c9c55b3bcb60ff755442b54007dad6971423",
-    ),
-    "finite-domain-unsatisfiable": (
-        "sha256:3a061baa67090e312abc4bca7a3ed24cc9458487b67f2fc37b3b7abcac2ecf1b",
-        "sha256:525d1520b96cc8a606dcfbc16d4c8c833ef00d6e258aed0a9bd47ba986b33e61",
-    ),
-    "finite-domain-unsupported": (
-        "sha256:2f0f762771dc329419ab739766f684c18261aba28c2fbc50a26ee8ad80224ba5",
-        "sha256:9cb311dac08cb20ed21d48d8cd5a4d49c51eb1036a0c6ba97e6f56a88d05ccfa",
-    ),
-}
-_MIGRATED_PRODUCTION_EVIDENCE_DIGESTS = {
-    "finite-domain-satisfiable-v2": (
-        "sha256:03925bfe0b209c3c77069c97061aa63e8795389be7ed7b78376020b7dc87853c",
-        "sha256:60495371aecdd9dff463726e54af424359e09429f8283cd31c1de847bbc38cba",
-    ),
-    "finite-domain-unsatisfiable-v2": (
-        "sha256:c2dc067c406ee9c26837e9565b6b52f8a6268e06e95dbc5937a455700b0c8109",
-        "sha256:8816c3a2898193280321559545cfacd462f38172fe7fbe7b005610401563b629",
-    ),
-    "typed-exploit-path-valid-v2": (
-        "sha256:0683b55cd2a52ba626bb5cfbf10de109798d8d31ba467aabd13d4930df204798",
-        "sha256:00a7d75ddaf8e21fb82de2ecbff3dfafc29660d0e60829610fcb607d3da5ef0f",
-    ),
-    "typed-exploit-path-invalid-v2": (
-        "sha256:1ec2ff4423088ad2ac6328aba7fbced5cd89b1569cff057e44ad30ef5c5befc0",
-        "sha256:74db3e5df9c19fe7a9a203ad3440656229af9df56164d63ec90f0c55e0aab8f2",
-    ),
-}
-_RENAMED_SOLVER_CONFIGURATION_DIGEST = (
-    "sha256:63e58f4637dbd8328d84a286e1e5af1f3a69557e5209f683909ce22f39838e7d",
-    "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
-)
 _RETAINED_CASE_TEXT_REPLACEMENTS = {
     "A" + "CES has no governed whole-scenario constraint theory or solver entrypoint.": (
         "The issue-168 baseline has no governed whole-scenario constraint theory or solver entrypoint."

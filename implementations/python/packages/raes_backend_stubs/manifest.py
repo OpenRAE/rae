@@ -54,6 +54,8 @@ from raes_contracts.vocabulary import (
 )
 
 REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(BACKEND_SUPPORTED_CONTRACT_IDS) - {
+    "backend-realization-preparation-v1",
+    "plan-realization-profiles-v1",
     "experiment-binding-descriptors-v1",
     "realization-envelope-v1",
 }
@@ -289,12 +291,13 @@ def _stub_participant_runtime() -> ParticipantRuntimeCapabilities:
 def _stub_observation() -> ObservationCapabilities:
     return ObservationCapabilities(
         name="stub-observation",
-        supported_capture_kinds=frozenset({"artifact", "log", "observation", "telemetry", "trace"}),
+        supported_capture_kinds=frozenset({"artifact", "log", "observation", "packet-capture", "telemetry", "trace"}),
         supported_channel_kinds=frozenset(
             {
                 "backend-log",
                 "evaluation-history",
                 "file-artifact",
+                "packet-capture",
                 "participant-observation",
                 "runtime-snapshot",
                 "workflow-history",
@@ -352,7 +355,7 @@ def _stub_capabilities(
         orchestrator=_stub_orchestrator(),
         evaluator=_stub_evaluator(),
         participant_runtime=_stub_participant_runtime() if with_participant_runtime else None,
-        observation=_stub_observation() if with_observation else None,
+        observation=(_stub_observation() if with_observation else None),
         cleanup=_stub_cleanup(),
         time=(_stub_time(supports_coordinated_participant_reset=with_participant_runtime) if with_time else None),
     )

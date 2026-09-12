@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.realization_observation import RealizationObservation
 
 from raes_backend_libvirt.driver import DomainHandle, DomainSpec, NetworkHandle, NetworkSpec
 
@@ -35,7 +34,6 @@ def realize_domain_specs(
     specs: tuple[DomainSpec, ...],
     created: list[str],
     handles: list[DomainHandle],
-    observations: list[RealizationObservation],
     diagnostics: list[Diagnostic],
 ) -> None:
     for spec in specs:
@@ -44,15 +42,6 @@ def realize_domain_specs(
             diagnostics.append(failure)
             continue
         handles.append(DomainHandle(address=spec.address, realized=True))
-        observation = driver._compute_substrate_observation(
-            connection,
-            spec.address,
-            sequence=len(observations),
-        )
-        if observation is None:
-            diagnostics.append(driver._operation_failure(spec.address))
-        else:
-            observations.append(observation)
 
 
 __all__ = ["realize_domain_specs", "realize_network_specs"]

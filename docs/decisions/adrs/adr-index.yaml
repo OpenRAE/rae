@@ -17,6 +17,9 @@ adrs:
       - date: 2026-07-11
         ref: "#721"
         summary: "Replaced implicit case-insensitive field parsing with strict sdl-yaml/v1, explicit diagnosed migration, an honest normalized-authoring-object schema boundary, and RFC 8785 semantic identity."
+      - date: 2026-09-09
+        ref: "#989"
+        summary: "Replace native vulnerability and classification sections with generic external concept bindings, preserving native execution semantics, explicit migration, and ordinary participant disclosure."
   - id: ADR-002
     path: docs/decisions/adrs/adr-002-declarative-sdl-objectives.md
     pin: 70db360e393dd0a02b0bed7aaa668a68ed6961eda0f9246905a536b9c6cba82c
@@ -505,7 +508,11 @@ adrs:
     pin: b7e17e58fc01e8f07a972ee5abc65e6a8470e2a6d51c2480334a3777df079e98
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
-    pin: add7e6ba4634965a9aa9c09248bfaafd981f1f16956b731fc913ca416ef92ffd
+    pin: 7d613beae8ae50e3232a07be1eedd5db422f252a728f34597d0c5dac65086164
+    amendments:
+      - date: 2026-09-06
+        ref: "#1068"
+        summary: "Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal."
   - id: ADR-102
     path: docs/decisions/adrs/adr-102-mixed-cross-backend-participant-control.md
     pin: cfcb0f5b7291b47fe6ff6096bb18dd9063b83ee5d4f7f6a9cafbdd06f21bf716
@@ -519,3 +526,27 @@ adrs:
       - date: 2026-09-03
         ref: "#1151"
         summary: "Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation."
+  - id: ADR-105
+    path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
+    pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e
+    amendments:
+      - date: 2026-09-12
+        ref: "#1204"
+        summary: "Proposed acceptance with bounded compiler/runtime adoption, opt-in joint preparation, prepared portable membership, and the authenticated plan-level profile host. Ratification takes effect on merge."
+  - id: ADR-106
+    path: docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md
+    pin: bc78a9a4b25f90572532084f1a4f5a254e969b21089b3c04a6876f84ee86536a
+    amendments:
+      - date: 2026-09-06
+        ref: "#1229"
+        summary: "Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest."
+  - id: ADR-107
+    path: docs/decisions/adrs/adr-107-artifact-promotion-and-release-admission.md
+    pin: 49c94a185d5bc012a246f3bffee067a9a043fa8ab662332f1d1354acdc97fb47
+    amendments:
+      - date: 2026-09-06
+        ref: "#1229"
+        summary: "Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest."
+  - id: ADR-108
+    path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
+    pin: d734bb660e153dc6d97c1cbdc5d1079cc837d77d5874da84bd8e8d788c7edf80

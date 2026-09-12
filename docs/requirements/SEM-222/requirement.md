@@ -27,4 +27,6 @@ Primary-source refresh shows that episode lifecycle meaning must be explicit if 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_result_contracts.py` (SEM-222 runtime episode-closure validation diagnostics seam (EBM-10 enforcement point))
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/result_contracts.py` (SEM-222 public re-export of participant_episode_closure_contract_diagnostics)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (SEM-222 RuntimeSnapshot participant_episode_closure_records carrier (canonical closure-validation wiring))
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Published runtime-snapshot-v1 participant episode closure-record carrier)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/snapshot_semantics.py` (Published runtime snapshot closure-record preservation and semantic validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_snapshot_updates.py` (RuntimeSnapshot update-builder module split out to admit the SEM-222 closure-records field under the source-size cap)

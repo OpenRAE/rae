@@ -14,6 +14,9 @@ _EXACT_SCHEMA_DIRECTORIES = (
         "sdl-lineage-ledger-v1": "provenance",
         "associated-artifact-manifest-v1": "associated-artifacts",
         "runtime-snapshot-v1": "snapshots",
+        "recursive-realization-constraint-v1": "realization-constraints",
+        "backend-realization-preparation-v1": "plans",
+        "plan-realization-profiles-v1": "plans",
     }
     | dict.fromkeys(
         {
@@ -87,9 +90,13 @@ _PREFIX_SCHEMA_DIRECTORIES = (
     ("realization-envelope-v", "realization-envelope"),
     ("processor-manifest-v", "processor-manifest"),
     ("participant-implementation-manifest-v", "participant-implementation-manifest"),
-    ("participant-implementation-provenance-v", "participant-implementation-provenance"),
+    (
+        "participant-implementation-provenance-v",
+        "participant-implementation-provenance",
+    ),
     ("participant-configuration-result-v", "participant-implementation-configuration"),
     ("semantic-profile-v", "profiles"),
+    ("domain-profile-", "profiles"),
     ("backend-profile-v", "profiles"),
     ("random-stream-profile-v", "profiles"),
     ("participant-information-reconstruction-profile-v", "profiles"),

@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-09-04T00:00:00Z
+updated_at: 2026-09-06T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -20,6 +20,28 @@ The ecosystem shall define semantics distinguishing binding author declarations 
 Current state: identified gap. Honest portability requires normative semantics for what is binding, what may be realized later, and when approximation is forbidden.
 
 ## Traceability
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/__init__.py` (Public owner and compatibility facade for realization authority)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_models.py` (Versioned recursive authority, closure, collection, reference, provenance, and limit contracts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_evaluation.py` (Bounded recursive conformance evaluation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_evaluation_context.py` (Shared bounded evaluation context and effective-closure resolution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_evaluation_collections.py` (Keyed-collection and sequence conformance evaluation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_scopes.py` (Closure overlays across materialized, additional, delegated, keyed, and sequence paths)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_limits.py` (Shared structural and metadata work admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_normalization.py` (Concise literal and stable-identity normalization)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_normalization_scopes.py` (Source-index to semantic-identity scope normalization)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_composition.py` (Canonical composition and structural refinement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_compatibility.py` (Lossless legacy conversion boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_compatibility_upgrade_leaf.py` (Legacy leaf upgrade and compatibility-closure helpers)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_compatibility_downgrade_helpers.py` (Lossless recursive-to-legacy projection helpers)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/bounded_domains.py` (Nullable scalar-domain support for recursive realization constraints)
+- IMPLEMENTS → SPEC `specs/sdl/recursive-realization-constraints.md` (Normative recursive authority, collection, reference, limit, and provenance semantics)
+- IMPLEMENTS → SCHEMA `contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json` (Published recursive realization constraint contract)
+- TESTS → TEST `implementations/python/tests/test_issue_1203_recursive_normal_form.py` (Nested authority, presence, collections, references, limits, refinement, and abstract-model acceptance coverage)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_structure.py` (Authored leaf and scoped collection lowering for mixed runtime constraints)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_concern_explicitness.py` (Concern-owned leaf selection with non-authoritative aggregate support summaries)
+- TESTS → TEST `implementations/python/tests/test_issue_1200_mixed_runtime_constraints.py` (Admitted apply, serialized authority, exact siblings, delegated packages, unknown observations and numeric DNS identity)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1200-mixed-runtime-constraints-preflight.md` (Mixed runtime constraint and portable authority guardrails)
 
 - IMPLEMENTS → GITHUB_ISSUE `1043` (Issue #1043 forwarding-agent realization semantics)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_forwarding_agent.py` (Forwarding-agent ownership-role model)
@@ -105,3 +127,95 @@ Current state: identified gap. Honest portability requires normative semantics f
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-847-runtime-package-repositories-preflight.md` (Typed package-repository profile and existing runtime-packages authority boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_packages.py` (Closed, pinned APT repository profile within the runtime-packages concern)
 - TESTS → TEST `implementations/python/tests/test_issue_847_runtime_package_repositories.py` (Repository validation, compilation, projection, schema, and compatibility coverage)
+
+- DOCUMENTS → GITHUB_ISSUE `1201` (Recursive partial-description design and finite reference model; production semantics unchanged)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md` (Recursive partial-description production adoption through issue 1204)
+- DOCUMENTS → DOCUMENTATION `docs/research/partial-description/semantics.md` (Candidate contract and versioned adoption boundary)
+- DOCUMENTS → DOCUMENTATION `docs/research/partial-description/verification.md` (Finite model acceptance matrix and limitations)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1201-recursive-description-semantics-preflight.md` (Architecture and canonical-owner assessment)
+- IMPLEMENTS → CODE_FILE `implementations/python/research/partial_description.py` (Finite design oracle for explicit constraints, delegation and scoped closure; not production enforcement)
+- IMPLEMENTS → CODE_FILE `implementations/python/research/description_lifecycle.py` (Finite lifecycle and abstract-execution design examples)
+- TESTS → TEST `implementations/python/tests/test_issue_1201_partial_description.py` (Finite composition, delegation and quantifier counterexamples)
+- TESTS → TEST `implementations/python/tests/test_issue_1201_description_lifecycle.py` (Version, knowledge, reporting and data-demand design checks)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_realization_envelope_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/realization_envelope.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/backend_manifest.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/protocols.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_contracts.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_identity.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/compute_substrate.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_constraints.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/snapshot_entry.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_collections.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_profiles.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_binding.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_common.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_normalization_overlays.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/pipeline.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_compute_substrate.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_deferred_constraints.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_recursive_constraints.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_scalar_sets.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/realization_value_domains.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/resources.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/operating_system_capability_domains.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_semantics.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_support.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_authority.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_authority_materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_collections.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_constraint_views.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_profiles.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_apparatus_defaults.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_requirement.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_runtime_common.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_specialized_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_support.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_typed_runtime_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/profile_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/provisioner.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/target.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_profiles.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_realization_authority.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_plan_authorization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1067_resolved_realization_authority.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_backend_preparation.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_collection_lifecycle.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_nested_domains.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_preparation_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_preparation_contract.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_preparation_os.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_prepared_credentials.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_prepared_node_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_prepared_node_semantics.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_prepared_sequence.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_profile_carrier.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_profile_offline.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_recursive_carriage.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_recursive_defaults.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_recursive_environment.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_reference_profiles.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_resource_collections.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_safe_presence.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_specialized_constraints.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1204_substrate_handoff.py`
+- IMPLEMENTS → GITHUB_ISSUE `1204` (Recursive authority through admitted preparation and results)
+- IMPLEMENTS → SPEC `specs/sdl/backend-realization-preparation.md`
+- IMPLEMENTS → SPEC `specs/sdl/plan-realization-profiles.md`

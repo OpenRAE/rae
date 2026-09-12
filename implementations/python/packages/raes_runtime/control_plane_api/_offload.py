@@ -9,23 +9,24 @@ from typing import ParamSpec, TypeVar
 from fastapi import HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
+from ..control_plane_mutation import MutationReservationRequired, mutation_probe
+
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
 
 
 class _ControlPlaneCallExecutor:
-    """Keep blocking calls off the event loop and serialize target mutation.
+    """Keep blocking calls off the event loop and bound pending mutations.
 
-    FastAPI/AnyIO owns the bounded worker pool. The async lock admits only one
-    target-mutating call at a time without consuming worker threads while other
-    mutations wait. Read and audit calls may still use separate workers, so a
-    slow backend does not prevent status or authentication requests.
+    FastAPI/AnyIO owns the bounded worker pool. The core mutation authority,
+    shared by direct and HTTP callers, serializes state cuts. Read and audit
+    calls use separate workers, so a slow backend does not prevent status or
+    authentication requests.
     """
 
     def __init__(self, *, max_pending_mutations: int) -> None:
         if max_pending_mutations <= 0:
             raise ValueError("max_pending_mutations must be positive")
-        self._mutation_lock = asyncio.Lock()
         self._max_pending_mutations = max_pending_mutations
         self._pending_mutations = 0
 
@@ -53,10 +54,48 @@ class _ControlPlaneCallExecutor:
             )
         self._pending_mutations += 1
         try:
-            async with self._mutation_lock:
-                return await self.run(call, *args, **kwargs)
+            try:
+                with mutation_probe():
+                    return await self.run(call, *args, **kwargs)
+            except MutationReservationRequired as reservation:
+                async with reservation.authority.reserve(reservation.kind):
+                    return await self._run_reserved(call, *args, **kwargs)
         finally:
             self._pending_mutations -= 1
+
+    async def _run_reserved(
+        self,
+        call: Callable[_P, _T],
+        /,
+        *args: _P.args,
+        **kwargs: _P.kwargs,
+    ) -> _T:
+        worker = asyncio.create_task(self.run(call, *args, **kwargs))
+        try:
+            return await asyncio.shield(worker)
+        except asyncio.CancelledError:
+            await _settle_worker(worker)
+            raise
+
+
+async def _settle_worker(worker: asyncio.Task[object]) -> None:
+    """Wait for an in-flight control-plane mutation to settle before unwinding.
+
+    The worker owns a durable mutation, so cancellation arriving while it is
+    still committing is absorbed rather than abandoning it mid-commit. Once the
+    worker has settled, cancellation propagates immediately; the caller re-raises
+    its own cancellation in every other case, so none is ever swallowed.
+    """
+
+    while not worker.done():
+        try:
+            await asyncio.shield(worker)
+        except asyncio.CancelledError:
+            if worker.done():
+                raise
+            continue
+        except Exception:
+            break
 
 
 def _control_plane_calls(request: Request) -> _ControlPlaneCallExecutor:

@@ -95,6 +95,7 @@ def evaluate(
 ) -> list[PolicyFailure]:
     try:
         releases = load_release_bundles(repo_root)
+        load_retest_bundle(repo_root)
     except (OSError, ValueError) as exc:
         return [_failure("formal-validation-bundle-load", str(exc), MANIFEST_PATH)]
     failures: list[PolicyFailure] = []

@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/OpenRAE/rae/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/OpenRAE/rae/actions/workflows/ci.yml)
 [![Docs](https://github.com/OpenRAE/rae/actions/workflows/docs.yml/badge.svg?branch=main)](https://openrae.github.io/rae/)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OpenRAE/rae/badge)](https://securityscorecards.dev/viewer/?uri=github.com/OpenRAE/rae)
 [![PyPI](https://img.shields.io/pypi/v/raes.svg)](https://pypi.org/project/raes/)
 [![Python](https://img.shields.io/pypi/pyversions/raes.svg)](https://pypi.org/project/raes/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/OpenRAE/rae/blob/main/LICENSE)
@@ -149,7 +150,7 @@ uv run --project implementations/python raes --help
 Run the canonical verification graph:
 
 ```console
-uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s verify
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
 ```
 
 Useful repository roots are:

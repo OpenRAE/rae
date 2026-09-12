@@ -2,9 +2,9 @@
   "contract_id": "orchestration-plan-v1",
   "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
   "stability": "draft",
-  "content_hash": "332f75d7f1e157d961c07eb5e26c8d1bfdd09abc7ee2f41e58a5b9d7384b653e",
+  "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "332f75d7f1e157d961c07eb5e26c8d1bfdd09abc7ee2f41e58a5b9d7384b653e"
+    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
+    "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892"
   }
 }

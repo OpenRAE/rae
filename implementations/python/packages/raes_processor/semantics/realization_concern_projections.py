@@ -6,9 +6,11 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from pydantic import ValidationError
+from pydantic_core import to_jsonable_python
+from raes.runtime_capabilities import RuntimeProcessIdentity
 from raes.runtime_generated_value import GeneratedArtifactValueSource
 from raes.runtime_resource_limits import project_process_resource_limit
-from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.canonical import canonical_json_digest, jsonable_fallback
 
 from .realization_concern_observations import validate_value_commitment
 from .realization_runtime_concern_profiles import RUNTIME_NON_REALIZATION_FIELDS
@@ -84,7 +86,9 @@ def _committed_value(
     }
 
 
-def project_environment(value: object, observed: bool = False) -> object:
+def project_environment(value: object, observed: bool = False) -> list[dict[str, object]]:
+    """Project authored runtime environment entries into their sorted records."""
+
     _require_observation_mode(observed)
     projected: list[dict[str, object]] = []
     for item in _sequence(value, label="runtime environment"):
@@ -124,6 +128,15 @@ def project_environment(value: object, observed: bool = False) -> object:
         )
         projected.append(entry)
     return sorted(projected, key=lambda item: str(item["name"]))
+
+
+def project_recursive_environment(value: object, observed: bool = False) -> object:
+    """Keep source occurrences for metadata binding; the profile owns set identity."""
+
+    return [
+        project_environment([item], observed)[0]
+        for item in _sequence(to_jsonable_python(value, fallback=jsonable_fallback), label="runtime environment")
+    ]
 
 
 def _project_mounts(
@@ -220,9 +233,11 @@ def project_capability_policy(value: object, observed: bool = False) -> object:
     overrides: list[dict[str, object]] = []
     for item in _sequence(record.get("process_overrides", []), label="process capability overrides"):
         override = _mapping(item, label="process capability override")
-        subject = _mapping(override.get("subject"), label="process capability override subject")
+        subject = RuntimeProcessIdentity.model_validate(
+            _mapping(override.get("subject"), label="process capability override subject")
+        ).model_dump(mode="json")
         projected_subject = {
-            key: subject.get(key)
+            key: subject[key]
             for key in (
                 "name",
                 "pid",
@@ -352,6 +367,8 @@ def project_forwarding_agents(value: object, observed: bool = False) -> object:
 
 
 def project_service_listeners(value: object, observed: bool = False) -> object:
+    from raes.runtime_listeners import RuntimeServiceListener
+
     _require_observation_mode(observed)
     projected: list[dict[str, object]] = []
     for item in _sequence(value, label="service listeners"):
@@ -359,8 +376,9 @@ def project_service_listeners(value: object, observed: bool = False) -> object:
         listener_id = record.get("service_listener_id")
         if not isinstance(listener_id, str) or not listener_id:
             raise ValueError("service listeners require a service_listener_id")
+        normalized = RuntimeServiceListener.model_validate(record).model_dump(mode="json")
         listener = {
-            key: record.get(key)
+            key: normalized[key]
             for key in (
                 "service_listener_id",
                 "service",

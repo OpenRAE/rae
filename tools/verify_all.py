@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools.tool_versions import NOX_TOOL_SPEC
+from tools.python_closure_profiles import frozen_tool_command
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,7 +21,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-rev", help="Compare against a specific git revision.")
     parser.add_argument("--requirement-uid", help="Explicit requirement UID override.")
     parser.add_argument(
-        "--skip-requirement", action="store_true", help="Skip Ground Control-backed requirement governance."
+        "--skip-requirement",
+        action="store_true",
+        help="Skip Ground Control-backed requirement governance.",
     )
     return parser.parse_args()
 
@@ -44,12 +46,7 @@ def main() -> int:
         forwarded.extend(["--requirement-uid", args.requirement_uid])
 
     command = [
-        "uv",
-        "tool",
-        "run",
-        "--from",
-        NOX_TOOL_SPEC,
-        "nox",
+        *frozen_tool_command(REPO_ROOT, "nox"),
         "-f",
         "noxfile.py",
         "-s",

@@ -2,39 +2,74 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
-from raes_contracts.diagnostics import Diagnostic, Severity
-from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationReceipt, OperationState, OperationStatus
+from pydantic import ConfigDict, Field, model_validator
+from raes_contracts.contracts import OperationReceiptModel, OperationStatusModel
+from raes_contracts.contracts.base import ContractModel, Rfc3339DateTimeString
+from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
+from raes_contracts.runtime_state import OperationReceipt, OperationStatus
 
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 
 
 def _diagnostics_payload(diagnostics: list[Diagnostic]) -> list[dict[str, Any]]:
-    return [
-        {
-            "code": diagnostic.code,
-            "domain": diagnostic.domain,
-            "address": diagnostic.address,
-            "message": diagnostic.message,
-            "severity": diagnostic.severity.value,
-        }
-        for diagnostic in diagnostics
-    ]
+    return [portable_diagnostic_payload(diagnostic) for diagnostic in diagnostics]
 
 
-def _diagnostics_from_payload(payload: list[dict[str, Any]]) -> list[Diagnostic]:
+def _diagnostics_from_models(payload: list[DiagnosticModel]) -> list[Diagnostic]:
     return [
         Diagnostic(
-            code=str(item.get("code", "runtime.control-plane")),
-            domain=str(item.get("domain", "runtime")),
-            address=str(item.get("address", "runtime.control-plane")),
-            message=str(item.get("message", "")),
-            severity=Severity(str(item.get("severity", "error"))),
+            code=item.code,
+            domain=item.domain,
+            address=item.address,
+            message=item.message,
+            severity=item.severity,
         )
         for item in payload
     ]
+
+
+class _OperationRecordModel(ContractModel):
+    """Closed persistence carrier validated before domain reconstruction."""
+
+    receipt: OperationReceiptModel
+    status: OperationStatusModel
+    request_fingerprint: str
+    idempotency_key: str
+    result_payload: dict[str, Any] | None
+    decision_history_heads: dict[str, str | None]
+    result_history_heads: dict[str, str | None]
+
+    @model_validator(mode="after")
+    def _validate_shared_carrier_identity(self) -> _OperationRecordModel:
+        if self.receipt.operation_id != self.status.operation_id:
+            raise ValueError("operation receipt and status identities do not match")
+        if self.receipt.domain != self.status.domain:
+            raise ValueError("operation receipt and status domains do not match")
+        if self.receipt.submitted_at != self.status.submitted_at:
+            raise ValueError("operation receipt and status submission times do not match")
+        if self.receipt.context != self.status.context:
+            raise ValueError("operation receipt and status contexts do not match")
+        return self
+
+
+_AuditString = Annotated[str, Field(min_length=1, max_length=512)]
+
+
+class _AuditEventModel(ContractModel):
+    """Closed, strict persisted audit carrier."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    timestamp: Rfc3339DateTimeString
+    action: _AuditString
+    identity: _AuditString
+    allowed: bool
+    target: _AuditString
+    operation_id: str
+    reason: str
+    details: dict[str, Any]
 
 
 def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
@@ -45,6 +80,7 @@ def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
             "domain": record.receipt.domain.value,
             "submitted_at": record.receipt.submitted_at,
             "accepted": record.receipt.accepted,
+            "context": record.receipt.context.model_dump(mode="json"),
             "diagnostics": _diagnostics_payload(record.receipt.diagnostics),
         },
         "status": {
@@ -54,6 +90,7 @@ def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
             "state": record.status.state.value,
             "submitted_at": record.status.submitted_at,
             "updated_at": record.status.updated_at,
+            "context": record.status.context.model_dump(mode="json"),
             "diagnostics": _diagnostics_payload(record.status.diagnostics),
             "changed_addresses": list(record.status.changed_addresses),
         },
@@ -66,53 +103,49 @@ def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
 
 
 def _record_from_payload(payload: dict[str, Any]) -> ControlPlaneOperationRecord:
-    receipt_payload = dict(payload.get("receipt", {}))
-    status_payload = dict(payload.get("status", {}))
+    carrier = _OperationRecordModel.model_validate(payload)
     receipt = OperationReceipt(
-        schema_version=str(receipt_payload.get("schema_version", "runtime-operation/v1")),
-        operation_id=str(receipt_payload.get("operation_id", "")),
-        domain=RuntimeDomain(str(receipt_payload.get("domain", "provisioning"))),
-        submitted_at=str(receipt_payload.get("submitted_at", "")),
-        accepted=bool(receipt_payload.get("accepted", False)),
-        diagnostics=_diagnostics_from_payload(list(receipt_payload.get("diagnostics", []))),
+        schema_version=carrier.receipt.schema_version,
+        operation_id=carrier.receipt.operation_id,
+        domain=carrier.receipt.domain,
+        submitted_at=carrier.receipt.submitted_at,
+        accepted=carrier.receipt.accepted,
+        context=carrier.receipt.context,
+        diagnostics=_diagnostics_from_models(carrier.receipt.diagnostics),
     )
     status = OperationStatus(
-        schema_version=str(status_payload.get("schema_version", "runtime-operation/v1")),
-        operation_id=str(status_payload.get("operation_id", "")),
-        domain=RuntimeDomain(str(status_payload.get("domain", "provisioning"))),
-        state=OperationState(str(status_payload.get("state", "accepted"))),
-        submitted_at=str(status_payload.get("submitted_at", "")),
-        updated_at=str(status_payload.get("updated_at", "")),
-        diagnostics=_diagnostics_from_payload(list(status_payload.get("diagnostics", []))),
-        changed_addresses=list(status_payload.get("changed_addresses", [])),
+        schema_version=carrier.status.schema_version,
+        operation_id=carrier.status.operation_id,
+        domain=carrier.status.domain,
+        state=carrier.status.state,
+        submitted_at=carrier.status.submitted_at,
+        updated_at=carrier.status.updated_at,
+        context=carrier.status.context,
+        diagnostics=_diagnostics_from_models(carrier.status.diagnostics),
+        changed_addresses=list(carrier.status.changed_addresses),
     )
     return ControlPlaneOperationRecord(
         receipt=receipt,
         status=status,
-        request_fingerprint=str(payload.get("request_fingerprint", "")),
-        idempotency_key=str(payload.get("idempotency_key", "")),
-        result_payload=(dict(payload["result_payload"]) if isinstance(payload.get("result_payload"), dict) else None),
-        decision_history_heads={
-            str(key): (str(value) if value is not None else None)
-            for key, value in dict(payload.get("decision_history_heads", {})).items()
-        },
-        result_history_heads={
-            str(key): (str(value) if value is not None else None)
-            for key, value in dict(payload.get("result_history_heads", {})).items()
-        },
+        request_fingerprint=carrier.request_fingerprint,
+        idempotency_key=carrier.idempotency_key,
+        result_payload=carrier.result_payload,
+        decision_history_heads=dict(carrier.decision_history_heads),
+        result_history_heads=dict(carrier.result_history_heads),
     )
 
 
 def _audit_event_from_payload(payload: dict[str, Any]) -> AuditEvent:
+    carrier = _AuditEventModel.model_validate(payload)
     return AuditEvent(
-        timestamp=str(payload.get("timestamp", "")),
-        action=str(payload.get("action", "")),
-        identity=str(payload.get("identity", "")),
-        allowed=bool(payload.get("allowed", False)),
-        target=str(payload.get("target", "")),
-        operation_id=str(payload.get("operation_id", "")),
-        reason=str(payload.get("reason", "")),
-        details=dict(payload.get("details", {})),
+        timestamp=carrier.timestamp,
+        action=carrier.action,
+        identity=carrier.identity,
+        allowed=carrier.allowed,
+        target=carrier.target,
+        operation_id=carrier.operation_id,
+        reason=carrier.reason,
+        details=carrier.details,
     )
 
 

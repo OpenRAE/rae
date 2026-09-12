@@ -177,6 +177,15 @@
       "diagnostic_codes": []
     },
     {
+      "name": "missing-context",
+      "contract_name": "operation-receipt-v1",
+      "valid": false,
+      "passed": true,
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ]
+    },
+    {
       "name": "missing-id",
       "contract_name": "operation-receipt-v1",
       "valid": false,
@@ -186,6 +195,13 @@
       ]
     },
     {
+      "name": "indeterminate",
+      "contract_name": "operation-status-v1",
+      "valid": true,
+      "passed": true,
+      "diagnostic_codes": []
+    },
+    {
       "name": "succeeded",
       "contract_name": "operation-status-v1",
       "valid": true,
@@ -193,7 +209,34 @@
       "diagnostic_codes": []
     },
     {
+      "name": "duplicate-terminal-diagnostic",
+      "contract_name": "operation-status-v1",
+      "valid": false,
+      "passed": true,
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ]
+    },
+    {
+      "name": "missing-terminal-diagnostic",
+      "contract_name": "operation-status-v1",
+      "valid": false,
+      "passed": true,
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ]
+    },
+    {
       "name": "unknown-extra",
+      "contract_name": "operation-status-v1",
+      "valid": false,
+      "passed": true,
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ]
+    },
+    {
+      "name": "unknown-state",
       "contract_name": "operation-status-v1",
       "valid": false,
       "passed": true,

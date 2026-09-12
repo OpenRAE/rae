@@ -31,6 +31,7 @@ COVERAGE_JSON_PATH = PROJECT_ROOT / "coverage.json"
 MINIMUM_LINE_COVERAGE_PERCENT = 90.0
 REQUIREMENT_UID_RE = re.compile(r"(?:^|[^A-Z0-9])[A-Z]{3}-\d{3}(?:$|[^A-Z0-9])", re.ASCII)
 TARGETED_POLICY_TESTS = [
+    "implementations/python/tests/test_tooling_artifact_policy.py",
     "implementations/python/tests/test_repo_policy_tools.py",
     "implementations/python/tests/test_requirement_governance.py",
     "implementations/python/tests/test_semantic_coverage.py",
@@ -55,6 +56,7 @@ CONTRACT_TRIGGER_PREFIXES = (
 FULL_TEST_TRIGGER_PREFIXES = ("implementations/python/",)
 TOOLING_TEST_TRIGGER_PREFIXES = (
     "tools/",
+    "implementations/tooling/",
     ".github/workflows/ci.yml",
     ".pre-commit-config.yaml",
     "noxfile.py",
@@ -67,3 +69,6 @@ VERIFY_COVERAGE_FILE_ENV = "RAES_VERIFY_COVERAGE_FILE"
 JSON_SCHEMA_WORKERS_ENV = "RAES_JSON_SCHEMA_WORKERS"
 EXPECTED_PYTHON_ENV = "RAES_EXPECTED_PYTHON"
 EXPECT_FREE_THREADED_ENV = "RAES_EXPECT_FREE_THREADED"
+PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV = "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"
+PYTHON_CLOSURE_PROFILE_ENV = "RAES_PYTHON_CLOSURE_PROFILE"
+PYTHON_CLOSURE_WHEELHOUSE_ENV = "RAES_PYTHON_CLOSURE_WHEELHOUSE"

@@ -7,6 +7,7 @@ import os
 import platform
 import resource
 import shutil
+import stat
 import subprocess
 import sys
 import tarfile
@@ -20,16 +21,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from tools import isabelle_sandbox  # noqa: E402
 from tools.tool_versions import ISABELLE_VERSION  # noqa: E402
 
+ISABELLE_SYSTEM_RUNTIME_PATHS = isabelle_sandbox.ISABELLE_SYSTEM_RUNTIME_PATHS
+_proof_sandbox_command = isabelle_sandbox.proof_sandbox_command
+
 ISABELLE_ARCHIVE_NAME = f"Isabelle{ISABELLE_VERSION}_linux.tar.gz"
-ISABELLE_ARCHIVE_URL = f"https://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/{ISABELLE_ARCHIVE_NAME}"
-ISABELLE_ARCHIVE_URLS = (
-    f"https://isabelle.in.tum.de/website-Isabelle{ISABELLE_VERSION}/dist/{ISABELLE_ARCHIVE_NAME}",
-    ISABELLE_ARCHIVE_URL,
-)
-ISABELLE_ARCHIVE_SHA256 = "a20a507bc7c1270d8be96a9f3fbec06345387789d2dc2c4d3df6260d47bfb33c"
-ISABELLE_ARCHIVE_BYTES = 1_228_480_874
 ISABELLE_SESSION = "Participant_Opacity"
 ISABELLE_SESSION_RELATIVE_PATH = Path("specs/formal/participant-semantics/isabelle")
 ISABELLE_LOCALE = "C.UTF-8"
@@ -39,23 +37,6 @@ ISABELLE_FILE_LIMIT_BYTES = 4 * 1024 * 1024 * 1024
 ISABELLE_PROCESS_ADDRESS_SPACE_LIMIT_MIB = 32768
 ISABELLE_JAVA_MAX_HEAP_MIB = 2048
 ISABELLE_ML_MAX_HEAP_MIB = 2048
-ISABELLE_SANDBOX_HOME = Path("/opt/isabelle")
-ISABELLE_SANDBOX_SESSION_ROOT = Path("/workspace/session")
-ISABELLE_SANDBOX_STATE_ROOT = Path("/state")
-ISABELLE_SYSTEM_RUNTIME_PATHS = (
-    Path("/usr/bin"),
-    Path("/usr/lib"),
-    Path("/usr/lib64"),
-    Path("/usr/share/locale"),
-    Path("/usr/share/fontconfig"),
-    Path("/usr/share/fonts"),
-    Path("/usr/share/zoneinfo"),
-    Path("/lib"),
-    Path("/lib64"),
-    Path("/etc/fonts"),
-    Path("/etc/ld.so.cache"),
-    Path("/var/cache/fontconfig"),
-)
 ISABELLE_REQUIRED_FONTCONFIG_PATHS = (
     Path("/etc/fonts"),
     Path("/usr/share/fonts"),
@@ -63,6 +44,7 @@ ISABELLE_REQUIRED_FONTCONFIG_PATHS = (
 ISABELLE_FONTCONFIG_LIST = Path("/usr/bin/fc-list")
 ISABELLE_FONTCONFIG_QUERY_TIMEOUT_SECONDS = 10
 _DOWNLOAD_CHUNK_BYTES = 1024 * 1024
+_INVALID_INSTALLATION = "pinned Isabelle installation marker or executable is invalid"
 
 
 class IsabelleToolError(RuntimeError):
@@ -85,6 +67,28 @@ def _installation_marker(repo_root: Path = REPO_ROOT) -> Path:
     return isabelle_home(repo_root).parent / f"Isabelle{ISABELLE_VERSION}.archive.sha256"
 
 
+def _reject_unsafe_cache_directory(path: Path) -> None:
+    try:
+        mode = path.lstat().st_mode
+    except FileNotFoundError:
+        return
+    if stat.S_ISLNK(mode) or not stat.S_ISDIR(mode):
+        raise IsabelleToolError("unsafe Isabelle cache directory")
+
+
+def _write_installation_marker(path: Path, digest: str) -> None:
+    descriptor, temporary_name = tempfile.mkstemp(prefix=".isabelle-marker-", dir=path.parent)
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="ascii") as stream:
+            stream.write(f"{digest}\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_path, path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -93,38 +97,56 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _verify_archive(path: Path) -> None:
+def _verify_archive(path: Path, *, expected_sha256: str, expected_size: int) -> None:
     try:
-        size = path.stat().st_size
+        status = path.lstat()
     except OSError as exc:
         raise IsabelleToolError("pinned Isabelle archive is unavailable") from exc
-    if size != ISABELLE_ARCHIVE_BYTES or _sha256_file(path) != ISABELLE_ARCHIVE_SHA256:
+    if not stat.S_ISREG(status.st_mode) or status.st_size != expected_size or _sha256_file(path) != expected_sha256:
         raise IsabelleToolError("pinned Isabelle archive checksum or size mismatch")
 
 
-def _download_archive_from_url(url: str, temporary_path: Path) -> None:
+def _download_archive_from_url(
+    url: str,
+    temporary_path: Path,
+    *,
+    expected_sha256: str,
+    expected_size: int,
+) -> None:
     digest = hashlib.sha256()
     total = 0
     response = urlopen(url, timeout=60)  # noqa: S310 - allowlisted official Isabelle release URLs
     with response, temporary_path.open("wb") as output:
         for chunk in iter(lambda: response.read(_DOWNLOAD_CHUNK_BYTES), b""):
             total += len(chunk)
-            if total > ISABELLE_ARCHIVE_BYTES:
+            if total > expected_size:
                 raise IsabelleToolError("download exceeded its declared size")
             digest.update(chunk)
             output.write(chunk)
-    if total != ISABELLE_ARCHIVE_BYTES or digest.hexdigest() != ISABELLE_ARCHIVE_SHA256:
+    if total != expected_size or digest.hexdigest() != expected_sha256:
         raise IsabelleToolError("download checksum or size mismatch")
 
 
-def _download_archive(path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary_path = path.with_suffix(path.suffix + ".download")
+def _download_archive(
+    path: Path,
+    *,
+    source_urls: tuple[str, ...],
+    expected_sha256: str,
+    expected_size: int,
+) -> None:
+    descriptor, temporary_name = tempfile.mkstemp(prefix=".isabelle-", suffix=".download", dir=path.parent)
+    os.close(descriptor)
+    temporary_path = Path(temporary_name)
     failures: list[str] = []
-    for url in ISABELLE_ARCHIVE_URLS:
+    for url in source_urls:
         temporary_path.unlink(missing_ok=True)
         try:
-            _download_archive_from_url(url, temporary_path)
+            _download_archive_from_url(
+                url,
+                temporary_path,
+                expected_sha256=expected_sha256,
+                expected_size=expected_size,
+            )
         except (HTTPError, URLError, TimeoutError, OSError, IsabelleToolError) as exc:
             failures.append(f"{url}: {type(exc).__name__}")
             continue
@@ -134,7 +156,7 @@ def _download_archive(path: Path) -> None:
     raise IsabelleToolError(f"pinned Isabelle download failed from all official mirrors ({'; '.join(failures)})")
 
 
-def _extract_archive(archive_path: Path, destination: Path) -> None:
+def _extract_archive(archive_path: Path, destination: Path, *, installed_path: str) -> None:
     expected_root = f"Isabelle{ISABELLE_VERSION}"
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="isabelle-extract-", dir=destination.parent) as temporary:
@@ -144,6 +166,12 @@ def _extract_archive(archive_path: Path, destination: Path) -> None:
                 top_levels = {Path(member.name).parts[0] for member in archive.getmembers() if Path(member.name).parts}
                 if top_levels != {expected_root}:
                     raise IsabelleToolError("pinned Isabelle archive has an unexpected root")
+                try:
+                    installed_member = archive.getmember(installed_path)
+                except KeyError as exc:
+                    raise IsabelleToolError("pinned Isabelle archive lacks its locked executable") from exc
+                if not installed_member.isfile():
+                    raise IsabelleToolError("pinned Isabelle locked executable is not a regular archive member")
                 archive.extractall(temporary_root, filter="data")
         except (OSError, tarfile.TarError) as exc:
             raise IsabelleToolError("pinned Isabelle archive extraction failed") from exc
@@ -156,38 +184,119 @@ def _extract_archive(archive_path: Path, destination: Path) -> None:
         extracted.replace(destination)
 
 
+def _installed_relative_path(installed_path: str) -> Path:
+    try:
+        return Path(installed_path).relative_to(f"Isabelle{ISABELLE_VERSION}")
+    except ValueError as exc:
+        raise IsabelleToolError("Isabelle installed manifest escapes the selected distribution") from exc
+
+
+def _verify_installed_executable(binary: Path, *, expected_sha256: str, expected_size: int) -> None:
+    try:
+        status = binary.lstat()
+    except OSError as exc:
+        raise IsabelleToolError("pinned Isabelle executable is unavailable") from exc
+    valid = (
+        stat.S_ISREG(status.st_mode)
+        and status.st_size == expected_size
+        and _sha256_file(binary) == expected_sha256
+        and os.access(binary, os.X_OK)
+    )
+    if not valid:
+        raise IsabelleToolError("pinned Isabelle executable differs from the reviewed lock manifest")
+
+
 def acquire_isabelle(repo_root: Path = REPO_ROOT) -> Path:
     """Acquire and checksum-verify the pinned development-only distribution."""
 
+    from tools.tooling_policy_gate import (
+        load_tooling_artifact_selection,
+        safe_tooling_cache_parent,
+    )
+
+    selection = load_tooling_artifact_selection(
+        artifact_id="isabelle",
+        version=ISABELLE_VERSION,
+        platform_id="linux-x86_64",
+        profile_id="proof-linux-x86_64",
+    )
+    if len(selection.raw_manifest) != 1 or len(selection.installed_manifest) != 1:
+        raise IsabelleToolError("Isabelle lock selection must contain one raw archive and installed executable")
+    raw = selection.raw_manifest[0]
+    installed = selection.installed_manifest[0]
     if platform.system() != "Linux" or platform.machine().lower() not in {
         "x86_64",
         "amd64",
     }:
         raise IsabelleToolError("the pinned Isabelle proof tool supports Linux x86_64 only")
-    archive_path = isabelle_archive_path(repo_root)
-    if not archive_path.exists():
-        _download_archive(archive_path)
-    _verify_archive(archive_path)
+    requested_archive_path = isabelle_archive_path(repo_root)
+    archive_path = (
+        safe_tooling_cache_parent(repo_root, requested_archive_path, artifact_id="Isabelle")
+        / requested_archive_path.name
+    )
     home = isabelle_home(repo_root)
-    if not (home / "bin" / "isabelle").is_file():
-        _extract_archive(archive_path, home)
+    safe_tooling_cache_parent(repo_root, home, artifact_id="Isabelle")
+    _reject_unsafe_cache_directory(home)
+    if not archive_path.exists():
+        _download_archive(
+            archive_path,
+            source_urls=selection.source_urls,
+            expected_sha256=raw.sha256,
+            expected_size=raw.size,
+        )
+    _verify_archive(archive_path, expected_sha256=raw.sha256, expected_size=raw.size)
+    installed_relative_path = _installed_relative_path(installed.path)
+    binary = home / installed_relative_path
+    if not binary.is_file():
+        _extract_archive(archive_path, home, installed_path=installed.path)
+    _verify_installed_executable(binary, expected_sha256=installed.sha256, expected_size=installed.size)
     marker = _installation_marker(repo_root)
-    marker.write_text(f"{ISABELLE_ARCHIVE_SHA256}\n", encoding="ascii")
+    _write_installation_marker(marker, raw.sha256)
     return home
 
 
 def require_isabelle(repo_root: Path = REPO_ROOT) -> Path:
     """Resolve a previously acquired distribution without any network access."""
 
+    from tools.tooling_policy_gate import (
+        load_tooling_artifact_selection,
+        safe_tooling_cache_parent,
+    )
+
+    selection = load_tooling_artifact_selection(
+        artifact_id="isabelle",
+        version=ISABELLE_VERSION,
+        platform_id="linux-x86_64",
+        profile_id="proof-linux-x86_64",
+    )
+    if len(selection.raw_manifest) != 1 or len(selection.installed_manifest) != 1:
+        raise IsabelleToolError("Isabelle lock selection must contain one raw archive and installed executable")
+    raw = selection.raw_manifest[0]
+    installed = selection.installed_manifest[0]
     home = isabelle_home(repo_root)
+    safe_tooling_cache_parent(repo_root, home, artifact_id="Isabelle")
+    _reject_unsafe_cache_directory(home)
     marker = _installation_marker(repo_root)
-    binary = home / "bin" / "isabelle"
+    installed_relative_path = _installed_relative_path(installed.path)
+    binary = home / installed_relative_path
     try:
+        if not stat.S_ISREG(marker.lstat().st_mode):
+            raise IsabelleToolError(_INVALID_INSTALLATION)
         installed_digest = marker.read_text(encoding="ascii").strip()
     except OSError as exc:
         raise IsabelleToolError("pinned Isabelle is not acquired; run the acquire command first") from exc
-    if installed_digest != ISABELLE_ARCHIVE_SHA256 or not binary.is_file() or not os.access(binary, os.X_OK):
-        raise IsabelleToolError("pinned Isabelle installation marker or executable is invalid")
+    try:
+        binary_status = binary.lstat()
+    except OSError as exc:
+        raise IsabelleToolError(_INVALID_INSTALLATION) from exc
+    if (
+        installed_digest != raw.sha256
+        or not stat.S_ISREG(binary_status.st_mode)
+        or binary_status.st_size != installed.size
+        or _sha256_file(binary) != installed.sha256
+        or not os.access(binary, os.X_OK)
+    ):
+        raise IsabelleToolError(_INVALID_INSTALLATION)
     return home
 
 
@@ -225,95 +334,6 @@ def expected_isabelle_result() -> dict[str, object]:
     encoded = json.dumps(result, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     result["result_digest"] = f"sha256:{hashlib.sha256(encoded).hexdigest()}"
     return result
-
-
-def _proof_sandbox_command(
-    *,
-    bwrap: Path,
-    home: Path,
-    session_root: Path,
-    state_root: Path,
-) -> list[str]:
-    """Build the fixed proof sandbox without exposing the host root or home."""
-
-    command = [
-        str(bwrap),
-        "--unshare-net",
-        "--unshare-pid",
-        "--unshare-ipc",
-        "--unshare-uts",
-        "--die-with-parent",
-        "--new-session",
-        "--clearenv",
-        "--dir",
-        "/opt",
-        "--dir",
-        "/workspace",
-        "--dir",
-        "/usr",
-        "--dir",
-        "/usr/share",
-        "--dir",
-        "/etc",
-        "--dir",
-        "/var",
-        "--dir",
-        "/var/cache",
-    ]
-    for runtime_path in ISABELLE_SYSTEM_RUNTIME_PATHS:
-        if runtime_path.exists():
-            command.extend(("--ro-bind", str(runtime_path), str(runtime_path)))
-    command.extend(
-        (
-            "--ro-bind",
-            str(home),
-            str(ISABELLE_SANDBOX_HOME),
-            "--ro-bind",
-            str(session_root),
-            str(ISABELLE_SANDBOX_SESSION_ROOT),
-            "--bind",
-            str(state_root),
-            str(ISABELLE_SANDBOX_STATE_ROOT),
-            "--dev",
-            "/dev",
-            "--proc",
-            "/proc",
-            "--tmpfs",
-            "/tmp",  # noqa: S108 - private bubblewrap tmpfs, not a shared host path
-            "--chdir",
-            "/workspace",
-            "--setenv",
-            "PATH",
-            "/usr/bin",
-            "--setenv",
-            "HOME",
-            "/state/user",
-            "--setenv",
-            "USER_HOME",
-            "/state/user",
-            "--setenv",
-            "ISABELLE_HOME_USER",
-            "/state/isabelle-user",
-            "--setenv",
-            "LANG",
-            ISABELLE_LOCALE,
-            "--setenv",
-            "LC_ALL",
-            ISABELLE_LOCALE,
-            "--setenv",
-            "TZ",
-            "UTC",
-            str(ISABELLE_SANDBOX_HOME / "bin" / "isabelle"),
-            "build",
-            "-o",
-            "threads=2",
-            "-o",
-            "timeout=300",
-            "-D",
-            str(ISABELLE_SANDBOX_SESSION_ROOT),
-        )
-    )
-    return command
 
 
 def _fontconfig_has_fonts(font_list: Path = ISABELLE_FONTCONFIG_LIST) -> bool:
@@ -383,6 +403,7 @@ def run_isabelle_build(repo_root: Path = REPO_ROOT) -> dict[str, object]:
             home=home,
             session_root=session_root,
             state_root=state_root,
+            locale=ISABELLE_LOCALE,
         )
         try:
             with output_path.open("wb") as output:
@@ -423,7 +444,7 @@ def main() -> int:
     try:
         if args.command == "acquire":
             acquire_isabelle()
-            print(f"acquired Isabelle{ISABELLE_VERSION} ({ISABELLE_ARCHIVE_SHA256})")
+            print(f"acquired Isabelle{ISABELLE_VERSION}")
         else:
             print(json.dumps(run_isabelle_build(), ensure_ascii=False, sort_keys=True))
     except IsabelleToolError as exc:

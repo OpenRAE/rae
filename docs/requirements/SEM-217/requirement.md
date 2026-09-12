@@ -21,6 +21,8 @@ Requirement inventory expansion. External knowledge bindings need explicit seman
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_classification_migration.py` (Externalized assertions preserve native runtime and require ordinary content disclosure)
+
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/README.md` (SEM-217 external knowledge binding effect semantics)
 - IMPLEMENTS → DOCUMENTATION `docs/explain/reference/shared-concept-model.md` (SEM-217 shared concept model binding-effect guidance)
 - TESTS → TEST `implementations/python/tests/test_sem_217_knowledge_bindings.py` (SEM-217 external knowledge binding effect tests)

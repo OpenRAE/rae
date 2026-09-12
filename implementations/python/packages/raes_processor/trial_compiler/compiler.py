@@ -6,10 +6,13 @@ from collections.abc import Mapping
 
 from raes import (
     ExpandedScenarioBindingTargetResolver,
+    InstantiatedScenario,
     select_scenario_family,
     validate_experiment_selection_against_family,
 )
 from raes.realization_envelope import member
+from raes_backend_protocols.capabilities import ObservationCapabilities
+from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import (
     AdmittedBindingModel,
@@ -19,6 +22,7 @@ from raes_contracts.contracts import (
     AdmittedTrialEntryModel,
     AdmittedTrialPlanAdmissionModel,
     AdmittedTrialPlanModel,
+    BackendManifestV2Model,
     ExperimentBindingDescriptorModel,
     ExperimentSelectionMemberOutcomeModel,
     ExperimentSelectionReferenceOutcomeModel,
@@ -37,6 +41,12 @@ from raes_contracts.experiment_bindings import (
     validate_experiment_binding_targets,
 )
 
+from ..capture_admission import (
+    CaptureDemand,
+    capture_admission_diagnostics,
+    compile_capture_spec_demands,
+    compile_scenario_capture_demands,
+)
 from .apparatus import (
     validate_selected_apparatus,
     validate_selected_participant_manifests,
@@ -49,6 +59,12 @@ from .profiles import admitted_profiles, coordinate_projection, derive_identity
 _DOMAIN = "trial-compiler"
 _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
 _ENTRIES_ADDRESS = "/entries/"
+
+
+class _CaptureAdmissionFailure(Exception):
+    def __init__(self, diagnostics: tuple[Diagnostic, ...]) -> None:
+        super().__init__("required capture is not supported by the admitted apparatus")
+        self.diagnostics = diagnostics
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -172,7 +188,7 @@ def _validate_selected_scenario(
     request: TrialCompilationRequest,
     row: CoordinateSelections,
     coordinate: TrialCoordinateModel,
-) -> None:
+) -> InstantiatedScenario:
     outcomes = {selection.point_id: selection.outcome for selection in row.selections}
     try:
         selected = select_scenario_family(request.family, outcomes)
@@ -189,6 +205,18 @@ def _validate_selected_scenario(
             _ENTRIES_ADDRESS + (coordinate.replicate_id or "coordinate"),
             "the selected scenario is outside the admitted realization envelope",
         )
+    return selected
+
+
+def _require_capture_admission(
+    demands: tuple[CaptureDemand, ...],
+    observations: tuple[ObservationCapabilities | None, ...],
+) -> None:
+    diagnostics = [
+        diagnostic for observation in observations for diagnostic in capture_admission_diagnostics(demands, observation)
+    ]
+    if diagnostics:
+        raise _CaptureAdmissionFailure(tuple(diagnostics))
 
 
 def _compile_entry(
@@ -197,8 +225,16 @@ def _compile_entry(
     row: CoordinateSelections,
     coordinate: TrialCoordinateModel,
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
+    observations: tuple[ObservationCapabilities | None, ...],
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
-    _validate_selected_scenario(request, row, coordinate)
+    selected = _validate_selected_scenario(request, row, coordinate)
+    _require_capture_admission(
+        (
+            *compile_scenario_capture_demands(selected),
+            *compile_capture_spec_demands(tuple(request.capture_specs.values())),
+        ),
+        observations,
+    )
     identity_projection = {
         "plan_id": plan_id,
         "coordinate": coordinate_projection(coordinate),
@@ -260,11 +296,13 @@ def _compile_entries(
     rows: list[CoordinateSelections],
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
     visit_indices: tuple[int, ...],
+    observations: tuple[ObservationCapabilities | None, ...],
 ) -> tuple[dict[str, AdmittedTrialEntryModel], dict[str, TrialCleanupPlanModel], set[str]]:
     entries: dict[str, AdmittedTrialEntryModel] = {}
     cleanup_plans: dict[str, TrialCleanupPlanModel] = {}
     used_control_ids: set[str] = set()
     canonical_failure: CompilationFailure | None = None
+    capture_failures: dict[tuple[str, str, str], Diagnostic] = {}
     for coordinate_index in visit_indices:
         coordinate = coordinates[coordinate_index]
         row = rows[coordinate_index]
@@ -275,7 +313,16 @@ def _compile_entries(
                 row,
                 coordinate,
                 descriptors,
+                observations,
             )
+        except _CaptureAdmissionFailure as failure:
+            capture_failures.update(
+                {
+                    (diagnostic.address, diagnostic.code, diagnostic.message): diagnostic
+                    for diagnostic in failure.diagnostics
+                }
+            )
+            continue
         except CompilationFailure as failure:
             candidate_failure = failure
         except (TypeError, ValueError) as exc:
@@ -292,6 +339,8 @@ def _compile_entries(
             continue
         if canonical_failure is None or _failure_key(candidate_failure) < _failure_key(canonical_failure):
             canonical_failure = candidate_failure
+    if capture_failures:
+        raise _CaptureAdmissionFailure(tuple(capture_failures[key] for key in sorted(capture_failures)))
     if canonical_failure is not None:
         raise canonical_failure
     return entries, cleanup_plans, used_control_ids
@@ -304,6 +353,13 @@ def _compile(
     validate_input_identities(request)
     apparatus_manifests = validate_selected_apparatus(request)
     participant_manifests = validate_selected_participant_manifests(request)
+    runtime_observations = tuple(
+        backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope).observation
+        for backend in sorted(
+            (manifest for manifest in apparatus_manifests.values() if isinstance(manifest, BackendManifestV2Model)),
+            key=lambda manifest: (manifest.identity.name, manifest.identity.version),
+        )
+    )
     try:
         validate_experiment_selection_against_family(request.experiment, family=request.family)
     except ValueError as exc:
@@ -333,6 +389,7 @@ def _compile(
         rows,
         descriptors,
         traversal,
+        runtime_observations,
     )
     controls = {
         control.control_id: control
@@ -369,8 +426,10 @@ def compile_admitted_trial_plan(
 
     try:
         plan = _compile(request, coordinate_partitions)
+    except _CaptureAdmissionFailure as failure:
+        result = TrialCompilationResult(plan=None, diagnostics=failure.diagnostics)
     except CompilationFailure as failure:
-        return TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))
+        result = TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))
     except (TypeError, ValueError) as exc:
         failure = _fail(
             "input-invalid",
@@ -378,8 +437,10 @@ def compile_admitted_trial_plan(
             "trial compilation input failed closed validation",
         )
         failure.__cause__ = exc
-        return TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))
-    return TrialCompilationResult(plan=plan, diagnostics=())
+        result = TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))
+    else:
+        result = TrialCompilationResult(plan=plan, diagnostics=())
+    return result
 
 
 __all__ = ["compile_admitted_trial_plan"]

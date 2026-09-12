@@ -2,9 +2,9 @@
   "contract_id": "runtime-snapshot-v1",
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "4388410c8e7536fef3f1251b7649b7d2cefef3764bf9da31d221430c92935879",
+  "content_hash": "d4bd1739165c6d7765b002f2a4f31fc858bd7f49a9c8b3e952dec589bda25e66",
   "last_change": {
-    "summary": "Added typed guest-observed operating-system identity bound to operation, envelope, configuration, observer, and sequence for issue #1077.",
-    "content_hash": "4388410c8e7536fef3f1251b7649b7d2cefef3764bf9da31d221430c92935879"
+    "summary": "Carried typed public profile selections on their owning provisioning resource entries for issue #1204.",
+    "content_hash": "d4bd1739165c6d7765b002f2a4f31fc858bd7f49a9c8b3e952dec589bda25e66"
   }
 }

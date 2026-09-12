@@ -6,13 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from .base import (
-    _payload_get,
-    _validate_artifact_collection_created_at,
-    _validate_rfc3339_payload_field,
-)
 from .experiment_apparatus import (
-    ExperimentApparatusContextModel,
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
 )
@@ -21,60 +15,17 @@ from .experiment_artifacts import (
     _format_reference,
 )
 from .experiment_conditions import _run_satisfies_condition_assignment
-from .experiment_references import (
-    ExperimentReferenceModel,
-    ExperimentTaskReferenceModel,
+from .experiment_references import ExperimentReferenceModel
+from .experiment_run import (
+    ExperimentRunEvidenceInputs,
+    ExperimentRunModel,
 )
-from .experiment_run import ExperimentRunModel, validate_experiment_run_against_task
 from .experiment_spec import ExperimentStudyModel
 from .experiment_study import (
     ExperimentRunAllocationPlanModel,
     ExperimentStudyMembershipModel,
 )
-
-
-def validate_experiment_task_archival_datetimes(task: ExperimentTaskModel | Mapping[str, Any]) -> None:
-    """Validate task-level archival timestamp semantics not carried by generic JSON Schema."""
-
-    _validate_artifact_collection_created_at("artifact_refs", _payload_get(task, "artifact_refs"))
-
-
-def validate_experiment_apparatus_context_archival_datetimes(
-    apparatus_context: ExperimentApparatusContextModel | Mapping[str, Any],
-) -> None:
-    """Validate apparatus-context archival timestamp semantics not carried by generic JSON Schema."""
-
-    _validate_rfc3339_payload_field(apparatus_context, "declared_at")
-    _validate_artifact_collection_created_at(
-        "observed_setup_evidence",
-        _payload_get(apparatus_context, "observed_setup_evidence"),
-    )
-
-
-def validate_experiment_run_archival_datetimes(run: ExperimentRunModel | Mapping[str, Any]) -> None:
-    """Validate run-level archival timestamp semantics not carried by generic JSON Schema."""
-
-    _validate_rfc3339_payload_field(run, "started_at")
-    _validate_rfc3339_payload_field(run, "ended_at")
-    invalidation = _payload_get(run, "invalidation")
-    if invalidation is not None:
-        _validate_rfc3339_payload_field(invalidation, "invalidated_at")
-    _validate_artifact_collection_created_at("evidence_artifacts", _payload_get(run, "evidence_artifacts"))
-
-
-def validate_experiment_study_archival_datetimes(study: ExperimentStudyModel | Mapping[str, Any]) -> None:
-    """Validate study-level archival timestamp semantics not carried by generic JSON Schema."""
-
-    _validate_artifact_collection_created_at("report_artifacts", _payload_get(study, "report_artifacts"))
-    _validate_artifact_collection_created_at("export_artifacts", _payload_get(study, "export_artifacts"))
-
-
-def _task_reference_key(reference: ExperimentTaskReferenceModel) -> tuple[str, str | None]:
-    return (reference.ref_id, reference.ref_version)
-
-
-def _task_model_key(task: ExperimentTaskModel) -> tuple[str, str]:
-    return (task.task_id, task.task_version)
+from .experiment_study_run_validation import validate_study_run_task_membership
 
 
 def _run_model_key(run: ExperimentRunModel) -> tuple[str, str | None]:
@@ -146,6 +97,9 @@ class _RunAllocationCoverageState:
     """Mutable accumulator for `_validate_study_run_allocation_coverage` classification."""
 
     grouped_run_keys: dict[str, set[tuple[str, str | None]]]
+    validated_evidence_by_run: Mapping[tuple[str, str | None], tuple[ExperimentReferenceModel, ...]] = field(
+        default_factory=dict
+    )
     condition_by_run_key: dict[tuple[str, str | None], str] = field(default_factory=dict)
     ungrouped_run_refs: list[str] = field(default_factory=list)
     unknown_groupings: list[str] = field(default_factory=list)
@@ -181,7 +135,8 @@ def _classify_eligible_run_allocation_candidate(
     state: _RunAllocationCoverageState,
 ) -> None:
     assignment = allocation.condition_assignments[grouping]
-    missing_condition_inputs = _run_satisfies_condition_assignment(run, assignment)
+    validated_evidence = state.validated_evidence_by_run.get(run_key, ())
+    missing_condition_inputs = _run_satisfies_condition_assignment(run, assignment, validated_evidence)
     if missing_condition_inputs:
         joined_missing_inputs = "|".join(sorted(missing_condition_inputs))
         state.unsatisfied_condition_runs.append(f"{run.run_id}:{grouping}:{joined_missing_inputs}")
@@ -189,7 +144,8 @@ def _classify_eligible_run_allocation_candidate(
     satisfied_other_conditions = sorted(
         condition_id
         for condition_id, candidate_assignment in allocation.condition_assignments.items()
-        if condition_id != grouping and not _run_satisfies_condition_assignment(run, candidate_assignment)
+        if condition_id != grouping
+        and not _run_satisfies_condition_assignment(run, candidate_assignment, validated_evidence)
     )
     if satisfied_other_conditions:
         joined_other_conditions = "|".join(satisfied_other_conditions)
@@ -268,6 +224,7 @@ def _validate_study_run_allocation_coverage(
     study: ExperimentStudyModel,
     runs: list[ExperimentRunModel],
     evaluation_run_members: list[ExperimentStudyMembershipModel],
+    validated_evidence_by_run: Mapping[tuple[str, str | None], tuple[ExperimentReferenceModel, ...]],
 ) -> None:
     allocation = study.run_allocation
     if allocation is None:
@@ -279,6 +236,7 @@ def _validate_study_run_allocation_coverage(
     condition_set = set(allocation.compared_conditions)
     state = _RunAllocationCoverageState(
         grouped_run_keys={condition: set() for condition in allocation.compared_conditions},
+        validated_evidence_by_run=validated_evidence_by_run,
     )
     for member in evaluation_run_members:
         _classify_evaluation_run_allocation_member(member, runs, allocation, condition_set, state)
@@ -411,18 +369,6 @@ def _resolve_and_validate_study_runs(
     return matched_runs, evaluation_run_members, matched_evaluation_runs
 
 
-def _validate_study_run_task_membership(
-    matched_tasks: list[ExperimentTaskModel],
-    matched_runs: list[ExperimentRunModel],
-) -> None:
-    task_by_key = {_task_model_key(task): task for task in matched_tasks}
-    for run in matched_runs:
-        task = task_by_key.get(_task_reference_key(run.task_ref))
-        if task is None:
-            raise ValueError("study run members must reference a supplied study task artifact")
-        validate_experiment_run_against_task(task, run)
-
-
 def _validate_study_analysis_plan_metrics(
     study: ExperimentStudyModel,
     matched_tasks: list[ExperimentTaskModel],
@@ -455,19 +401,61 @@ def _validate_study_analysis_plan_metrics(
         )
 
 
-def validate_experiment_study_against_tasks_and_runs(
+def _validate_experiment_study_against_tasks_and_runs(
     study: ExperimentStudyModel,
     tasks: list[ExperimentTaskModel],
     runs: list[ExperimentRunModel] | None = None,
+    *,
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
+    structural_only: bool,
 ) -> None:
     """Validate study-level analysis semantics against concrete task/run artifacts."""
 
     runs = runs or []
     matched_tasks = _resolve_and_validate_study_tasks(study, tasks)
     matched_runs, evaluation_run_members, matched_evaluation_runs = _resolve_and_validate_study_runs(study, runs)
+    validated_evidence = validate_study_run_task_membership(
+        matched_tasks,
+        matched_runs,
+        evidence_by_run,
+        structural_only=structural_only,
+    )
 
     _validate_study_analysis_run_eligibility(study, runs, evaluation_run_members)
-    _validate_study_run_allocation_coverage(study, runs, evaluation_run_members)
+    _validate_study_run_allocation_coverage(study, runs, evaluation_run_members, validated_evidence)
     _validate_study_run_allocation_stochastic_control_consistency(study, runs, evaluation_run_members)
-    _validate_study_run_task_membership(matched_tasks, matched_runs)
     _validate_study_analysis_plan_metrics(study, matched_tasks, matched_evaluation_runs)
+
+
+def validate_experiment_study_structure_against_tasks_and_runs(
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel] | None = None,
+) -> None:
+    """Validate only structural study/task/run joins for schema composition."""
+
+    _validate_experiment_study_against_tasks_and_runs(
+        study,
+        tasks,
+        runs,
+        evidence_by_run=None,
+        structural_only=True,
+    )
+
+
+def validate_experiment_study_against_tasks_and_runs(
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel] | None = None,
+    *,
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None,
+) -> None:
+    """Validate study semantics and content-backed evidence for every claimed run."""
+
+    _validate_experiment_study_against_tasks_and_runs(
+        study,
+        tasks,
+        runs,
+        evidence_by_run=evidence_by_run,
+        structural_only=False,
+    )

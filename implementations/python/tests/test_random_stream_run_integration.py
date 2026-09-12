@@ -25,7 +25,9 @@ from raes_contracts.contracts import (
     ExperimentRunModel,
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
-    validate_experiment_run_against_task,
+)
+from raes_contracts.contracts import (
+    validate_experiment_run_structure_against_task as validate_experiment_run_against_task,
 )
 from raes_contracts.contracts.random_stream import (
     PublicRandomOutcomeModel,

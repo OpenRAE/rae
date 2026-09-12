@@ -62,6 +62,26 @@ engineering risk is concept conflation: treating "not specified yet",
 
 ## Canonical Incumbents
 
+Issue #1200 preserves mixed constraints through the portable plan, rather than
+using a weakest-child aggregate as comparison authority. The optional typed
+`structure` entry records exact/open leaves, record additions and required keyed
+members without duplicating operation values. Compilation uses authored
+explicitness provenance, so normalization defaults are not promoted to author
+constraints. Package manager/name selectors intentionally leave an omitted
+architecture open; ambiguous partial identities reject before mutation.
+
+Both direct apply and serialized/control-plane readmission consume this
+descriptor. The shared structural matcher checks required membership without
+depending on observation ordering; canonical concern projection still owns
+typed shape, excluded fields and sensitive-value commitments. Unknown/missing
+observations do not create satisfaction provenance. Numeric DNS extension codes
+retain exact identity through the owning model's contextual classification.
+See `test_issue_1200_mixed_runtime_constraints.py` for the positive/negative
+apply pairs and `test_issue_1066_runtime_resource_limits.py` for retained
+finite-domain and exact-sibling checks. Unsupported mixed shapes receive the
+existing actionable authority-bound diagnostic. No new evidence demand or
+backend-specific interpretation is introduced.
+
 Build on these existing surfaces before adding anything new:
 
 - SDL parsing and closed models: `raes.parser`, `raes.SDLModel`, and

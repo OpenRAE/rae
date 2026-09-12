@@ -484,6 +484,68 @@ header identity must pass an explicit `ControlPlaneSecurityConfig`, set
 `trust_proxy_identity_headers=True`, and only trust those headers behind an
 authenticated proxy that strips caller-supplied identity headers.
 
+The local control-plane store persists snapshots, operations, idempotency
+claims, and audit events in a single SQLite WAL database. Full synchronous
+transactions and a unique idempotency index make concurrent same-host writers
+and participant transition commits atomic. Each authoritative snapshot is
+paired with a non-negative logical revision. Every snapshot-bearing mutation
+must supply the revision it observed, and compare-and-swap validation happens
+in the same lock or SQLite transaction as the snapshot, operation, and audit
+writes. A stale writer therefore changes none of them. An exact retry of an
+already committed terminal operation returns the durable state without
+incrementing its revision. A backend claim is stored before execution, and its
+resulting snapshot and terminal operation record commit in one transaction.
+Startup marks an orphaned non-terminal record `FAILED` with
+an explicit indeterminate-outcome diagnostic and never replays it; retaining
+the idempotency claim prevents a retry from blindly repeating backend effects.
+On first use, legacy JSON state is imported without deleting its source and is
+copied to a timestamped backup. Payload digests and SQLite integrity checks
+detect accidental durable-state corruption. Owned POSIX store directories are
+created or migrated to `0700` and the main SQLite database to `0600`. SQLite
+alone owns descriptors for the main database, WAL, shared-memory, and rollback
+journal. OpenRÆ uses descriptor-free metadata inspection and path-based mode
+tightening for type, owner, private-mode, and main-database same-file checks,
+so an independent `close()` cannot cancel SQLite's POSIX locks. Existing opens
+use URI `mode=rw`; only first creation uses
+`mode=rwc`, preventing a disappeared database from being silently recreated.
+The initialized database identity remains pinned for the store lifetime, and
+hard-linked aliases are rejected. Unsafe symlink, reparse, type, owner, mode, or
+identity changes fail closed. Snapshot revision conflicts are known non-commits:
+the runtime rebuilds its derived caches and fails the caller without sealing a
+running operation. If another commit error leaves its outcome uncertain, the
+runtime reloads both durable caches; a failed reload poisons the runtime until
+restart rather than allowing another mutation from stale state. Snapshot-derived
+HTTP reads return `X-RAES-Snapshot-Revision`, and participant view source refs
+bind the same pinned state cut; nested read or governed-projection work cannot
+rebind the response to a later revision. An explicitly supplied operation base
+snapshot must equal the authoritative content observed for the commit, while an
+already committed exact idempotent retry returns before attempting a new
+mutation. The provider-only revision is stored beside the durable snapshot and
+is not added to portable snapshot bodies, metadata, digests, or schemas.
+
+Built-in stores use the complete crash-atomic commit capability. Existing 3.x
+custom `ControlPlaneStore` adapters remain accepted when they implement the
+revision-aware structural contract, including paired snapshot reads and
+revision-checked snapshot writes. A centralized compatibility seam warns once
+per runtime and uses lookup-then-save claims, ordered snapshot/record writes,
+and per-record recovery. Stores that cannot compare and swap an observed
+snapshot revision are rejected instead of synthesizing revision authority. The
+compatibility mode preserves legacy atomicity behavior but has documented claim
+and terminal-write race/crash windows and is scheduled for removal in version
+4; custom adapters should implement `claim_record` and both atomic
+terminal/recovery methods before upgrading.
+
+The local runtime is deliberately single-process. Its logical revision prevents
+stale writes but is not a distributed ownership or availability mechanism, so a
+non-blocking filesystem lease admits one `RuntimeControlPlane` owner and rejects
+another, including inherited post-fork use. POSIX runtimes also hold a
+store-directory guard so
+unlinking or replacing the owner-file path cannot admit a second owner. Close
+drains admitted composite calls, including their nested guarded work, before it
+releases authority. Run one ASGI worker with reload disabled. This is a
+single-host reference boundary, not a distributed queue, replication, or
+multi-host availability claim.
+
 Bearer and verified-proxy authentication require the same exact target binding.
 An identity with no target, and an explicitly supplied bearer that is unknown,
 revoked, or scoped to another target, is rejected; a rejected bearer never

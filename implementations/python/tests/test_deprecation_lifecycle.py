@@ -77,6 +77,18 @@ def _good_ledger() -> dict:
                 "notice_window": "publish the final pointer release, verify it, then archive the project",
                 "verification_evidence": "the current release path publishes only raes",
             },
+            {
+                "id": "sdl-domain-classification-fields",
+                "surface_class": "sdl-scenario-module",
+                "identifier": "legacy classification fields",
+                "status": "removed",
+                "first_notice": "Issue #989",
+                "replacement": "standalone external concept bindings",
+                "migration_reference": "docs/migration/external-classifications.md",
+                "notice_window": "generic contract and atomic migrator available",
+                "verification_evidence": "canonical exclusion and migration tests",
+                "removal_record": "Draft SDL schemas no longer carry classification fields.",
+            },
         ],
     }
 
@@ -357,7 +369,7 @@ def test_dropping_a_canonical_record_is_rejected(tmp_path: Path) -> None:
     # deprecation is permanent lifecycle history, not something a later diff can
     # silently remove.
     ledger = _good_ledger()
-    dropped = ledger["records"].pop()  # remove the legacy distribution record
+    dropped = ledger["records"].pop()  # remove a canonical retention-floor record
     _write_repo(tmp_path, ledger)
     failures = evaluate_deprecation_records(tmp_path)
     assert any(f.rule_id == "deprecation-records-canonical-record-missing" for f in failures)
@@ -375,6 +387,7 @@ def test_canonical_record_ids_are_pinned() -> None:
     expected = {
         "legacy-python-distribution",
         "sdl-import-path-field",
+        "sdl-domain-classification-fields",
     }
     actual = CANONICAL_DEPRECATION_RECORD_IDS
     assert actual == expected

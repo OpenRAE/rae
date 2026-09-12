@@ -20,7 +20,10 @@ from raes_contracts.realization_envelope import ObservationStrength, Realization
 from raes_contracts.realization_observation import RealizationObservation
 from raes_contracts.runtime_state import RealizationObservationDisclosure, RuntimeSnapshot, SnapshotEntry
 from raes_contracts.vocabulary import RealizationVerificationScope
-from realization_authority_fixtures import complete_test_realization_authority
+from realization_authority_fixtures import (
+    complete_test_realization_authority,
+    with_compute_substrate_collection_demand,
+)
 
 
 class _RecordingDriver:
@@ -327,7 +330,7 @@ def test_apply_unchanged_placement_is_noop_with_unchanged_status():
     assert result.snapshot.entries["provision.account.admin"].status == "unchanged"
 
 
-def test_unchanged_compute_bootstraps_missing_substrate_evidence_with_readback() -> None:
+def test_unchanged_compute_bootstraps_operational_substrate_evidence_with_readback() -> None:
     driver = _RecordingDriver()
     resource = _node_resource()
     created = LibvirtProvisioner(driver).apply(_plan(resource), RuntimeSnapshot())
@@ -356,12 +359,25 @@ def test_unchanged_compute_bootstraps_missing_substrate_evidence_with_readback()
         operation_id="libvirt-upgrade-noop",
     )
 
+    without_demand = LibvirtProvisioner(driver).apply(unchanged, legacy_snapshot)
+
+    assert without_demand.success
+    assert driver.observe_calls == []
+    assert without_demand.operational_realization_observations == ()
+
+    unchanged = with_compute_substrate_collection_demand(
+        unchanged,
+        semantic_scope="/nodes/web",
+        address=resource.address,
+    )
+
     result = LibvirtProvisioner(driver).apply(unchanged, legacy_snapshot)
 
     assert result.success
     assert len(driver.realize_calls) == 1
     assert [spec.address for spec in driver.observe_calls[-1]["domains"]] == [resource.address]
-    [disclosure] = result.snapshot.realization_observations
+    assert result.snapshot.realization_observations == ()
+    [disclosure] = result.operational_realization_observations
     assert disclosure.observed_value == "virtual-machine"
     assert disclosure.operation_id == "libvirt-upgrade-noop"
 

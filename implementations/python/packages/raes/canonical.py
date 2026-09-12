@@ -90,25 +90,32 @@ class InstantiatedScenarioSnapshot(SDLModel):
 
 
 def migrate_legacy_instantiated_snapshot_payload(value: object) -> tuple[object, bool]:
-    """Upgrade a legacy v1 snapshot while preserving exact VM intent.
+    """Upgrade v1 snapshot defaults and legacy node kinds independently.
 
     Authoring input remains strict by default.  This compatibility boundary is
     limited to already-instantiated ``v1`` artifacts, whose historical ``vm``
     resource kind meant both compute and an exact virtual-machine substrate.
+    Empty retired classification containers assert nothing, regardless of the
+    node kinds present. Nonempty classifications still require explicit migration.
     """
 
-    legacy_names = _legacy_snapshot_vm_names(value)
-    if not legacy_names:
+    if (
+        not isinstance(value, Mapping)
+        or value.get("profile") != INSTANTIATED_SNAPSHOT_PROFILE
+        or not isinstance(value.get("scenario"), dict)
+    ):
         return value, False
 
-    if not isinstance(value, Mapping):
-        raise TypeError("legacy snapshot migration requires a mapping")
+    legacy_names = _legacy_snapshot_vm_names(value)
     migrated: dict[str, Any] = deepcopy(dict(value))
-    nodes, existing = _legacy_snapshot_migration_surfaces(migrated)
+    if legacy_names:
+        nodes, existing = _legacy_snapshot_migration_surfaces(migrated)
+        for name in legacy_names:
+            _migrate_legacy_snapshot_vm(name, nodes, existing)
+    from ._legacy_snapshot_classifications import remove_empty_legacy_snapshot_classifications
 
-    for name in legacy_names:
-        _migrate_legacy_snapshot_vm(name, nodes, existing)
-    return migrated, True
+    changed = remove_empty_legacy_snapshot_classifications(migrated["scenario"])
+    return (migrated, True) if legacy_names or changed else (value, False)
 
 
 def _legacy_snapshot_vm_names(value: object) -> list[str]:

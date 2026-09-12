@@ -54,10 +54,33 @@ def diagnostic_payload(diagnostic: Diagnostic) -> dict[str, Any]:
     }
 
 
+def portable_diagnostic_payload(diagnostic: Diagnostic) -> dict[str, Any]:
+    """Render a diagnostic through the closed portable JSON contract.
+
+    Internal diagnostic addresses predate the transport contract and may use
+    dotted runtime locations.  Preserve that value as one escaped JSON-Pointer
+    token instead of weakening the public address grammar.
+    """
+
+    address = diagnostic.address
+    try:
+        return DiagnosticModel(**diagnostic_payload(diagnostic)).model_dump(mode="json")
+    except ValueError:
+        pointer = "" if not address else f"/{address.replace('~', '~0').replace('/', '~1')}"
+        return DiagnosticModel(**{**diagnostic_payload(diagnostic), "address": pointer}).model_dump(mode="json")
+
+
 def diagnostic_model(diagnostic: Diagnostic) -> DiagnosticModel:
     """Convert the internal immutable diagnostic to its closed contract model."""
 
     return DiagnosticModel(**diagnostic_payload(diagnostic))
 
 
-__all__ = ("Diagnostic", "DiagnosticModel", "Severity", "diagnostic_model", "diagnostic_payload")
+__all__ = (
+    "Diagnostic",
+    "DiagnosticModel",
+    "Severity",
+    "diagnostic_model",
+    "diagnostic_payload",
+    "portable_diagnostic_payload",
+)

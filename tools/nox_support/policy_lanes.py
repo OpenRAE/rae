@@ -122,6 +122,10 @@ def _run_hygiene(
 def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> None:
     _sync_project(session)
     reporter.run(
+        "policy / development artifact lock",
+        lambda: _run_project_python(session, "tools/check_tooling_artifact_policy.py"),
+    )
+    reporter.run(
         "policy / conftest self-verify",
         lambda: _run(
             session,

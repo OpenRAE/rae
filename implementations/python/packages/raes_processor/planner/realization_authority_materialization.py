@@ -150,6 +150,70 @@ def _capability_authority_bounds(
     return (RealizationAuthorityBound(value_pointer="", domain=domain),) if domain is not None else ()
 
 
+def _resolved_authority(
+    model: RuntimeModel,
+    authority: CompiledRealizationAuthority,
+    requirement: object | None,
+    *,
+    mode: RealizationAuthorityMode,
+    bounds: tuple[RealizationAuthorityBound, ...],
+) -> ResolvedRealizationAuthority:
+    """Build one resolved authority from its compiled source and safe bounds."""
+
+    del model
+    return ResolvedRealizationAuthority(
+        address=authority.address,
+        field_path=authority.field_path,
+        domain=authority.domain,
+        requirement_kind=authority.requirement_kind,
+        payload_pointer=_payload_pointer(authority.payload_path),
+        mode=mode,
+        source=authority.source,
+        provenance=authority.provenance,
+        governing_scope=authority.governing_scope,
+        bounds=bounds,
+        verification_scope=authority.verification_scope,
+        required_observation_strength=authority.required_observation_strength,
+        structure=requirement.structure if requirement is not None else None,
+        constraint_document=requirement.constraint_document if requirement is not None else None,
+        constraint_binding=requirement.constraint_binding if requirement is not None else None,
+    )
+
+
+def _materialized_authority(
+    model: RuntimeModel,
+    authority: CompiledRealizationAuthority,
+    manifest: BackendManifest,
+    *,
+    apparatus_default: ApparatusRealizationDefaultResolver | None,
+    apparatus_decisions: ApparatusRealizationDecisions | None,
+) -> ResolvedRealizationAuthority | Diagnostic:
+    """Resolve one authority's mode and bounds, or report why it cannot resolve."""
+
+    requirement = _matching_requirement(model.realization_requirements, authority)
+    if requirement is not None and (requirement.structure_error or requirement.recursive_pending):
+        return _unsafe_bound_diagnostic(authority)
+    try:
+        mode = _resolved_mode(authority, requirement, manifest, apparatus_default, apparatus_decisions)
+    except ValueError:
+        return _unresolved_authority_diagnostic(authority)
+    bounds = (
+        _authority_bounds(model, authority, requirement, manifest)
+        if mode is RealizationAuthorityMode.CONSTRAINED
+        else ()
+    )
+    unbounded = (
+        mode is RealizationAuthorityMode.CONSTRAINED
+        and not bounds
+        and (requirement is None or requirement.constraint_document is None)
+    )
+    return (
+        _unsafe_bound_diagnostic(authority)
+        if unbounded
+        else _resolved_authority(model, authority, requirement, mode=mode, bounds=bounds)
+    )
+
+
 def materialize_realization_authority(
     model: RuntimeModel,
     manifest: BackendManifest,
@@ -162,42 +226,17 @@ def materialize_realization_authority(
     resolved: list[ResolvedRealizationAuthority] = []
     diagnostics: list[Diagnostic] = []
     for authority in model.realization_authority:
-        requirement = _matching_requirement(model.realization_requirements, authority)
-        try:
-            mode = _resolved_mode(
-                authority,
-                requirement,
-                manifest,
-                apparatus_default,
-                apparatus_decisions,
-            )
-        except ValueError:
-            diagnostics.append(_unresolved_authority_diagnostic(authority))
-            continue
-        bounds = (
-            _authority_bounds(model, authority, requirement, manifest)
-            if mode is RealizationAuthorityMode.CONSTRAINED
-            else ()
+        outcome = _materialized_authority(
+            model,
+            authority,
+            manifest,
+            apparatus_default=apparatus_default,
+            apparatus_decisions=apparatus_decisions,
         )
-        if mode is RealizationAuthorityMode.CONSTRAINED and not bounds:
-            diagnostics.append(_unsafe_bound_diagnostic(authority))
-            continue
-        resolved.append(
-            ResolvedRealizationAuthority(
-                address=authority.address,
-                field_path=authority.field_path,
-                domain=authority.domain,
-                requirement_kind=authority.requirement_kind,
-                payload_pointer=_payload_pointer(authority.payload_path),
-                mode=mode,
-                source=authority.source,
-                provenance=authority.provenance,
-                governing_scope=authority.governing_scope,
-                bounds=bounds,
-                verification_scope=authority.verification_scope,
-                required_observation_strength=authority.required_observation_strength,
-            )
-        )
+        if isinstance(outcome, Diagnostic):
+            diagnostics.append(outcome)
+        else:
+            resolved.append(outcome)
     return tuple(resolved), diagnostics
 
 
@@ -215,7 +254,11 @@ def _unsafe_bound_diagnostic(authority: CompiledRealizationAuthority) -> Diagnos
         code="realization.authority-bound-unavailable",
         domain=authority.domain,
         address=authority.address,
-        message=f"No publication-safe typed author bound is available for '{authority.requirement_kind}'.",
+        message=(
+            f"No publication-safe typed author bound is available for '{authority.requirement_kind}' "
+            f"at '{authority.field_path}'. This mixed demand needs an owning collection identity "
+            "and representable leaf bounds; use supported bounded forms or extend the concern contract."
+        ),
     )
 
 

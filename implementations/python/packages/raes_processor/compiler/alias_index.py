@@ -111,12 +111,6 @@ def _runtime_addressable_ref_index(scenario: InstantiatedScenario) -> dict[str, 
     )
     _add_qualified_aliases(
         index,
-        scenario.vulnerabilities,
-        address_for=lambda name: _template_address("vulnerability", name),
-        qualified_prefix="vulnerabilities",
-    )
-    _add_qualified_aliases(
-        index,
         scenario.action_contracts,
         address_for=_action_contract_address,
         qualified_prefix="action_contracts",

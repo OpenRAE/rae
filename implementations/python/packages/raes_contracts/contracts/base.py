@@ -9,7 +9,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
-from raes_contracts._base import ContractModel, NonEmptyString
+from raes_contracts._base import ContractModel, NonEmptyString, PrefixedDigestString
 
 BehavioralRelationId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9-]*$")]
 
@@ -165,18 +165,6 @@ CalendarDateString = Annotated[str, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")]
 HexDigestString = Annotated[str, Field(min_length=1, pattern=r"^[A-Fa-f0-9]+$")]
 
 
-PrefixedDigestString = Annotated[
-    str,
-    Field(
-        min_length=1,
-        pattern=(
-            r"^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|"
-            r"sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
-        ),
-    ),
-]
-
-
 NonNegativeInteger = Annotated[int, Field(ge=0)]
 
 
@@ -259,9 +247,6 @@ _PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES = frozenset(
 _CONTROLLED_VOCABULARY_GOVERNED_SCOPES = frozenset(
     {
         "behavior_specifications.behavior_mode",
-        "behavior_specifications.ai_offensive_behavior_refs",
-        "behavior_specifications.defensive_behavior_refs",
-        "behavior_specifications.offensive_behavior_refs",
         "agents.interactive_access.channel",
         "sdl.accounts.auth_method",
         "sdl.accounts.credential_bindings.auth_method",
@@ -404,3 +389,27 @@ def _validate_artifact_collection_created_at(field_name: str, artifacts: object)
         created_at = _payload_get(artifact, "created_at")
         if created_at is not None:
             _parse_rfc3339_datetime(f"{field_name}/{index}/created_at", created_at)
+
+
+__all__ = [
+    "BehavioralClaimBindingModel",
+    "BehavioralRelationId",
+    "BehavioralTaxonomyRevision",
+    "CalendarDateString",
+    "ClosedUnitIntervalFloat",
+    "ContractModel",
+    "ControlledVocabularyTermId",
+    "HexDigestString",
+    "InstancePath",
+    "JsonInstancePathString",
+    "JsonPointerString",
+    "NonEmptyString",
+    "NonNegativeInteger",
+    "PositiveInteger",
+    "PrefixedDigestString",
+    "ReferenceModelId",
+    "Rfc3339DateTimeString",
+    "SemanticAssumptionId",
+    "SemanticProfileId",
+    "UnitIntervalFloat",
+]

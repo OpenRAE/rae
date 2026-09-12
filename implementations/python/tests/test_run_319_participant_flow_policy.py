@@ -26,8 +26,9 @@ from pydantic import ValidationError
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingGateDisposition,
+    ParticipantCrossingSubjectKind,
 )
-from raes_contracts.runtime_state import RuntimeSnapshot, RuntimeSnapshotEnvelope
+from raes_contracts.runtime_state import OperationState, RuntimeSnapshot, RuntimeSnapshotEnvelope
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api_models import _snapshot_model
@@ -43,6 +44,7 @@ from raes_runtime.control_plane_store import (
 from raes_runtime.operational_apparatus import operational_apparatus_summary
 from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
 from raes_runtime.participant_crossing_boundary import _action_subject
+from raes_runtime.participant_crossing_egress import _view_subject
 from raes_runtime.participant_crossing_mediation import (
     ParticipantCrossingEvidence,
     ParticipantCrossingIntent,
@@ -52,6 +54,7 @@ from raes_runtime.participant_result_contracts import (
     participant_runtime_history_transition_diagnostics,
     participant_runtime_state_contract_diagnostics,
 )
+from raes_runtime.participant_retrieval import _context_revision_paths, _ContextViewOptions
 
 
 def test_crossing_history_is_first_class_serialized_and_operational_state() -> None:
@@ -163,7 +166,8 @@ def test_unsupported_backend_never_executes_the_incumbent_action() -> None:
 
     receipt = admit(plane)
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     assert plane.snapshot.participant_behavior_history == {}
     decision = plane.snapshot.participant_crossing_history[PARTICIPANT][-1]["occurrence"]
     assert decision["disposition"] == "unsupported"
@@ -180,7 +184,8 @@ def test_independent_ingress_gate_denials_do_not_execute_action(gate: str) -> No
 
     receipt = admit(plane, idempotency_key=f"denied-{gate}")
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     assert plane.snapshot.participant_behavior_history == {}
     decision = plane.snapshot.participant_crossing_history[PARTICIPANT][-1]["occurrence"]
     assert decision["gates"][gate] == "deny"
@@ -274,7 +279,8 @@ def test_fresh_denial_of_transformed_action_prevents_backend_execution() -> None
 
     receipt = admit(plane)
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     assert plane.snapshot.participant_behavior_history == {}
     assert plane.snapshot.participant_crossing_history[PARTICIPANT][-1]["occurrence"]["disposition"] == "deny"
 
@@ -351,6 +357,43 @@ def test_egress_transformation_returns_only_the_committed_governed_view() -> Non
         "decided",
         "transformed",
     ]
+
+
+@pytest.mark.parametrize("field", ["payload_ref", "derivation_basis_ref"])
+def test_runtime_revision_normalization_preserves_caller_controlled_context_identity(field: str) -> None:
+    resolver = StaticCrossingResolver()
+    plane = action_plane(resolver)
+    plane._crossing_policy_resolver = None
+
+    first = plane.get_participant_context_view(
+        PARTICIPANT,
+        view_ref="context.network-posture",
+        **{field: "runtime.snapshot.revision.7"},
+    )
+    second = plane.get_participant_context_view(
+        PARTICIPANT,
+        view_ref="context.network-posture",
+        **{field: "runtime.snapshot.revision.8"},
+    )
+    assert first is not None
+    assert second is not None
+    revision_paths = _context_revision_paths(_ContextViewOptions())
+    first_subject = _view_subject(
+        first,
+        participant_address=PARTICIPANT,
+        episode_id="episode-1",
+        subject_kind=ParticipantCrossingSubjectKind.PARTICIPANT_CONTEXT_VIEW,
+        runtime_owned_revision_paths=revision_paths,
+    )
+    second_subject = _view_subject(
+        second,
+        participant_address=PARTICIPANT,
+        episode_id="episode-1",
+        subject_kind=ParticipantCrossingSubjectKind.PARTICIPANT_CONTEXT_VIEW,
+        runtime_owned_revision_paths=revision_paths,
+    )
+
+    assert first_subject.subject_digest != second_subject.subject_digest
 
 
 def test_missing_visibility_gate_fails_closed_without_serializing_output() -> None:
@@ -432,12 +475,27 @@ def test_supervisory_control_derives_handoff_semantics_and_commits_one_transitio
     assert len(plane.snapshot.participant_crossing_history[PARTICIPANT]) == 2
     assert len(plane._operations) == 1
 
+    stale = intent.model_copy(update={"client_correlation_id": "handoff-stale"})
+    rejected = plane.record_participant_control(
+        PARTICIPANT,
+        stale,
+        identity=identity(),
+        crossing_evidence=evidence(),
+        idempotency_key="handoff-stale",
+    )
+
+    assert rejected.accepted is True
+    assert plane.get_operation(rejected.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
+    assert plane.audit_log()[-1].allowed is False
+    assert plane.audit_log()[-1].reason == "stale-state"
+
 
 def test_crossing_history_restarts_and_operation_replays_idempotently(tmp_path: Path) -> None:
     resolver = StaticCrossingResolver()
     store_path = tmp_path / "control-plane"
     first = action_plane(resolver, store=LocalControlPlaneStore(store_path))
     receipt = admit(first, idempotency_key="restart-crossing")
+    first.close()
 
     restarted_resolver = StaticCrossingResolver()
     restarted_resolver.subjects = list(resolver.subjects)
@@ -452,6 +510,7 @@ def test_crossing_history_restarts_and_operation_replays_idempotently(tmp_path: 
 
     assert retry.operation_id == receipt.operation_id
     assert len(restarted.snapshot.participant_crossing_history[PARTICIPANT]) == 2
+    restarted.close()
 
 
 class _FailingCommitStore(InMemoryControlPlaneStore):
@@ -500,7 +559,10 @@ class _BarrierResolver(StaticCrossingResolver):
         snapshot: RuntimeSnapshot,
     ) -> ParticipantCrossingPolicyResolution:
         resolution = super().resolve(intent, snapshot)
-        self.barrier.wait(timeout=5)
+        # The full verification suite runs this test under xdist on a
+        # CPU-constrained runner. Give the peer operation enough time to reach
+        # the rendezvous even when its worker is temporarily descheduled.
+        self.barrier.wait(timeout=30)
         return resolution
 
 
@@ -540,12 +602,10 @@ def test_concurrent_operation_cannot_commit_against_a_stale_history_cut() -> Non
     for thread in threads:
         thread.start()
     for thread in threads:
-        thread.join(timeout=10)
+        thread.join(timeout=40)
 
-    assert sum(not isinstance(result, Exception) for result in results) == 1
-    assert any(
-        "expected participant history head" in str(result) for result in results if isinstance(result, Exception)
-    )
+    assert sum(not isinstance(result, Exception) for result in results) == 1, [repr(result) for result in results]
+    assert any("snapshot revision conflict" in str(result) for result in results if isinstance(result, Exception))
     durable = store.load_snapshot()
     assert len(durable.participant_crossing_history[PARTICIPANT]) == 2
 
@@ -565,7 +625,8 @@ def test_missing_policy_fails_closed_with_safe_diagnostic_and_audit() -> None:
 
     receipt = admit(plane, idempotency_key="missing-policy")
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     assert plane.snapshot.participant_behavior_history == {}
     assert plane.snapshot.participant_crossing_history == {}
     assert receipt.diagnostics[0].code == "runtime.participant-crossing-policy-unresolved"

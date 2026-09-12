@@ -10,7 +10,7 @@ from raes_contracts.participant_autonomous_state import require_participant_auto
 from raes_contracts.runtime_state import ApplyResult
 from raes_processor.compiler.time_model import time_model_contract_model
 
-from .backend_calls import _call_backend_apply
+from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 
 if TYPE_CHECKING:
@@ -49,7 +49,12 @@ class RuntimeTimeControlMixin:
             state.working_snapshot,
             address=_APPLY_TIME_ADDRESS,
             snapshot=state.working_snapshot,
-            information_state_context_resolver=self._information_state_context_resolver,
+            realization=_RealizationApplyContext(
+                effect_owners=frozenset({"time"}), effect_targets=frozenset(declaration.clocks)
+            ),
+            call=_BackendCallContext(
+                information_state_context_resolver=self._information_state_context_resolver,
+            ),
         )
         self._record_phase_result(state, result)
         if result.success:
@@ -129,13 +134,17 @@ class RuntimeTimeControlMixin:
         invocation = self._time_control_invocation(method_name, args)
         if isinstance(invocation, ApplyResult):
             return invocation
-        method, method_args = invocation
+        method, method_args, authority = invocation
         result = _call_backend_apply(
             method,
             *method_args,
             address=f"runtime.time.{method_name}",
             snapshot=self._snapshot,
-            information_state_context_resolver=self._information_state_context_resolver,
+            realization=authority,
+            call=_BackendCallContext(
+                information_state_context_resolver=self._information_state_context_resolver,
+                service_dependencies=(self._target.participant_runtime,),
+            ),
         )
         if result.success:
             result = self._validated_time_control_result(method_name, result, predecessor, args)
@@ -155,11 +164,15 @@ class RuntimeTimeControlMixin:
         self,
         method_name: str,
         args: tuple[object, ...],
-    ) -> tuple[object, tuple[object, ...]] | ApplyResult:
+    ) -> tuple[object, tuple[object, ...], _RealizationApplyContext] | ApplyResult:
         method = getattr(self._target.time_runtime, method_name)
         method_args = (*args, self._snapshot)
         if method_name != "reset":
-            return method, method_args
+            return (
+                method,
+                method_args,
+                _RealizationApplyContext(effect_owners=frozenset({"time"}), effect_targets=frozenset({str(args[0])})),
+            )
         return self._coordinated_reset_invocation(method, method_args, args)
 
     def _coordinated_reset_invocation(
@@ -167,11 +180,15 @@ class RuntimeTimeControlMixin:
         default_method: object,
         default_args: tuple[object, ...],
         args: tuple[object, ...],
-    ) -> tuple[object, tuple[object, ...]] | ApplyResult:
+    ) -> tuple[object, tuple[object, ...], _RealizationApplyContext] | ApplyResult:
         reset_requests_factory = getattr(self, "_participant_execution_clock_reset_requests", None)
         reset_requests = reset_requests_factory(str(args[0])) if reset_requests_factory is not None else ()
         if not reset_requests:
-            return default_method, default_args
+            return (
+                default_method,
+                default_args,
+                _RealizationApplyContext(effect_owners=frozenset({"time"}), effect_targets=frozenset({str(args[0])})),
+            )
         capability = self._target.manifest.time
         if (
             capability is None
@@ -193,12 +210,13 @@ class RuntimeTimeControlMixin:
             CoordinatedParticipantTimeRuntime,
             self._target.time_runtime,
         )
-        return coordinated_time_runtime.reset_with_participants, (
-            str(args[0]),
-            bool(args[1]),
-            self._target.participant_runtime,
-            reset_requests,
-            self._snapshot,
+        return (
+            coordinated_time_runtime.reset_with_participants,
+            (str(args[0]), bool(args[1]), self._target.participant_runtime, reset_requests, self._snapshot),
+            _RealizationApplyContext(
+                effect_owners=frozenset({"time", "participant"}),
+                effect_targets=frozenset({str(args[0]), *(request.participant_address for request in reset_requests)}),
+            ),
         )
 
     def _validated_time_control_result(

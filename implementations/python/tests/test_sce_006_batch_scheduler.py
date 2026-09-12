@@ -60,6 +60,7 @@ def _proof(entry_ids: list[str], *, requested_parallelism: int = 2) -> Scheduler
 
 
 def _resealed_plan(payload: dict) -> AdmittedTrialPlanModel:
+    payload["input_refs"].setdefault("capture_spec_refs", [])
     content = {key: value for key, value in payload.items() if key != "plan_digest"}
     payload["plan_digest"] = canonical_json_digest(content)
     return AdmittedTrialPlanModel.model_validate(payload)

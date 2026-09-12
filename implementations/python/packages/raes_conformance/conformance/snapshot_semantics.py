@@ -16,6 +16,7 @@ from raes_contracts.participant_autonomous_state import (
 )
 from raes_contracts.participant_concurrency import iter_participant_concurrency_snapshot_violations
 from raes_contracts.participant_episode import iter_participant_episode_snapshot_violations
+from raes_contracts.participant_episode_closure import iter_participant_episode_closure_violations
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_snapshot_violations,
 )
@@ -111,6 +112,10 @@ def _snapshot_from_envelope(payload: dict[str, Any]) -> RuntimeSnapshot:
             participant_address: [event.model_dump(mode="json") for event in history]
             for participant_address, history in validated.participant_episode_history.items()
         },
+        participant_episode_closure_records={
+            participant_address: [dict(record) for record in records]
+            for participant_address, records in validated.participant_episode_closure_records.items()
+        },
         participant_behavior_history={
             participant_address: [event.model_dump(mode="json") for event in history]
             for participant_address, history in validated.participant_behavior_history.items()
@@ -174,6 +179,18 @@ def _participant_episode_snapshot_diagnostics(
         _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
         for address, message in iter_participant_episode_snapshot_violations(
             snapshot.participant_episode_results,
+            snapshot.participant_episode_history,
+        )
+    ]
+
+
+def _participant_episode_closure_snapshot_diagnostics(
+    snapshot: RuntimeSnapshot,
+) -> list[Diagnostic]:
+    return [
+        _diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message)
+        for address, message in iter_participant_episode_closure_violations(
+            snapshot.participant_episode_closure_records,
             snapshot.participant_episode_history,
         )
     ]
@@ -470,6 +487,7 @@ def _runtime_snapshot_semantic_diagnostics(
         *workflow_result_contract_diagnostics(snapshot),
         *evaluation_result_contract_diagnostics(snapshot),
         *_participant_episode_snapshot_diagnostics(snapshot),
+        *_participant_episode_closure_snapshot_diagnostics(snapshot),
         *_participant_behavior_snapshot_diagnostics(snapshot),
         *_shared_state_snapshot_diagnostics(snapshot),
         *_participant_concurrency_snapshot_diagnostics(snapshot),

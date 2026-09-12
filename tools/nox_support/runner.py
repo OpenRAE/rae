@@ -26,7 +26,7 @@ from tools.nox_support.config import (
     RUFF_CONFIG,
     VERIFY_PROJECT_SYNCED_ENV,
 )
-from tools.tool_versions import PRE_COMMIT_HOOKS_TOOL_SPEC, RUFF_TOOL_SPEC
+from tools.python_closure_profiles import frozen_tool_command
 
 
 @dataclass(frozen=True)
@@ -142,10 +142,6 @@ def _run_project_python(session: nox.Session, script: str, *args: str) -> None:
     )
 
 
-def _run_uv_tool(session: nox.Session, spec: str, *args: str) -> None:
-    _run(session, "uv", "tool", "run", "--from", spec, *args)
-
-
 def _run_external_subprocess(*args: str) -> None:
     proc = subprocess.run(
         args,
@@ -164,14 +160,7 @@ def _run_external_subprocess(*args: str) -> None:
 
 
 def _run_ruff(session: nox.Session, *args: str, project_relative: bool = False) -> None:
-    command = [
-        "uv",
-        "tool",
-        "run",
-        "--from",
-        RUFF_TOOL_SPEC,
-        "ruff",
-    ]
+    command = frozen_tool_command(REPO_ROOT, "ruff")
     if project_relative:
         with session.chdir(PROJECT_ROOT):
             _run(session, *command, *args)
@@ -356,12 +345,7 @@ def _paths_trigger(paths: Iterable[str], prefixes: tuple[str, ...]) -> bool:
 def _run_pre_commit_hook(_session: nox.Session, command: str, *args: str, paths: list[str]) -> None:
     for batch in _chunked(paths):
         _run_external_subprocess(
-            "uv",
-            "tool",
-            "run",
-            "--from",
-            PRE_COMMIT_HOOKS_TOOL_SPEC,
-            command,
+            *frozen_tool_command(REPO_ROOT, command),
             *args,
             *batch,
         )

@@ -100,6 +100,10 @@ snapshot. It binds:
 
 One scenario may be used by many tasks. One task may be executed by many runs.
 
+Tasks may carry `observation_demands` using the shared
+`observation-demand-v1` contract. This is demand policy, not captured evidence
+and not a realization constraint.
+
 ### Apparatus Context
 
 Execution apparatus context is the instrument setup for a run. It captures or
@@ -147,6 +151,16 @@ task. It binds:
 
 A run may reference live observation artifacts captured at a seal point. It
 must not be reconstructed from mutable live control-plane state.
+
+The pre-run `run_plan.observation_demands` carrier refines requested
+collection, retention, export, and reporting basis independently. It does not
+turn operational control data into archival run evidence.
+Task, run-plan, and capture-specification demand carriers remain declarative;
+their presence is not a live capture/export executor. Those integrations are
+owned by #1112/#1209. The current control plane rejects requested export and
+mandatory observation combined with backend mutation without a compensating
+owner. Nonretained backend-selected descriptions are immediate manager results,
+not archival evidence or recoverable control-plane bodies.
 
 For EXP-706, one trial is one archival run record. Repeated runs of the same
 task are represented by multiple run records with distinct `run_id` values, a
@@ -207,7 +221,18 @@ Realized-form disclosures are part of run provenance. They are not authored
 scenario meaning, are not raw evidence records, and are not derived measures or
 results.
 
+Runtime realization-description observations project into this canonical
+disclosure model. The projection preserves the concern, truthful achieved
+basis, backend identity, bounded value summary, integrity statement, and
+evidence-record references. It does not expose an internal protected-value
+carrier as a second public disclosure contract.
+
 ### Capture Specification
+
+Each capture requirement may carry the same scoped `observation_demand` rule.
+The capture requirement still owns its source, window, channel, sensitivity,
+redaction, integrity, retention, and loss disclosure; the demand rule controls
+whether and where that work is selected. A demand is never proof of capture.
 
 An experiment capture specification is the declarative EXP-707 statement of
 what evidence should be captured for an experiment scope. It binds:
@@ -266,6 +291,11 @@ support, chain-of-custody support, and constraints.
 Observation capability is not orchestrator, evaluator, or participant-runtime
 capability. It is a backend apparatus claim that must be backed by published
 experiment evidence contracts and governed concept bindings.
+Runtime implementations refine that portable claim into stable selector-family
+patterns (data kind, supported names, scope/component family, window, and
+bounded coverage). Admission binds a compiled scenario selector to one
+unambiguous most-specific pattern; adapter registration does not depend on a
+scenario-specific serialized selector key.
 
 ### Study Or Collection
 

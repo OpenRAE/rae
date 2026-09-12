@@ -9,11 +9,14 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
-from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+from raes_contracts.observation_demand import EffectiveObservationDemand
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
+from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
 
+from ..capture_admission import CaptureDemand
 from .behavior_resources import (
     EventRuntime,
     ObjectiveWindowReferenceRuntime,
@@ -108,7 +111,6 @@ class RuntimeModel:
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     inject_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
-    vulnerability_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     entity_specs: dict[str, dict[str, Any]] = field(default_factory=dict)
     agent_specs: dict[str, dict[str, Any]] = field(default_factory=dict)
     relationship_specs: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -117,6 +119,7 @@ class RuntimeModel:
     # consumed by planner capability checks and never enters backend resource
     # payloads.
     capability_constraints: tuple[CompiledCapabilityConstraint, ...] = ()
+    capture_demands: tuple[CaptureDemand, ...] = ()
     networks: dict[str, NetworkRuntime] = field(default_factory=dict)
     node_deployments: dict[str, NodeRuntime] = field(default_factory=dict)
     feature_bindings: dict[str, FeatureBinding] = field(default_factory=dict)
@@ -152,6 +155,8 @@ class RuntimeModel:
     # portable ProvisioningPlan authority collection.
     realization_authority: tuple[CompiledRealizationAuthority, ...] = ()
     realization_instance: InstantiatedScenario | None = None
+    observation_demands: tuple[EffectiveObservationDemand, ...] = ()
+    profile_authority: PlanProfileAuthority | None = None
 
     def __post_init__(self) -> None:
         owners: dict[str, str] = {}
@@ -215,6 +220,7 @@ class ExecutionPlan:
     provisioning: ProvisioningPlan
     orchestration: OrchestrationPlan
     evaluation: EvaluationPlan
+    observation_owner: RuntimeDomain
     diagnostics: list[Diagnostic] = field(default_factory=list)
     artifact_availability: ArtifactAvailabilityContext = field(
         default_factory=ArtifactAvailabilityContext,

@@ -4,14 +4,23 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 
 from raes_contracts._snapshot_updates import _snapshot_updates, _validate_snapshot_update_keys
 from raes_contracts.addressing import require_compiled_address
-from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.diagnostics import Diagnostic, Severity, portable_diagnostic_payload
+from raes_contracts.operation_lifecycle import (
+    OperationAdmissionContext,
+    OperationKind,
+    OperationState,
+    is_operation_transition_allowed,
+    operation_terminal_diagnostic,
+    operation_terminal_diagnostics,
+    operation_transition_diagnostic,
+    require_operation_terminal_diagnostics,
+)
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_state_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_observation import RealizationObservationDisclosure
@@ -21,16 +30,7 @@ if TYPE_CHECKING:
     from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
     from raes_contracts.contracts import RealizationEnvelopeIdentityModel
     from raes_contracts.contracts.time_model import TimeRuntimeStateModel
-
-
-class OperationState(str, Enum):
-    """Lifecycle for async control-plane operations."""
-
-    ACCEPTED = "accepted"
-    RUNNING = "running"
-    SUCCEEDED = "succeeded"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 
 @dataclass(frozen=True)
@@ -44,6 +44,7 @@ class SnapshotEntry:
     ordering_dependencies: tuple[str, ...] = ()
     refresh_dependencies: tuple[str, ...] = ()
     status: str = "ready"
+    profile_bindings: tuple[DomainProfileBindingModel, ...] = ()
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)
@@ -178,38 +179,73 @@ class ApplyResult:
     diagnostics: list[Diagnostic] = field(default_factory=list)
     changed_addresses: list[str] = field(default_factory=list)
     details: dict[str, Any] = field(default_factory=dict)
+    # Transient verification input. Snapshot/store/API codecs never serialize it.
+    operational_realization_observations: tuple[RealizationObservationDisclosure, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_changed_addresses(self.changed_addresses)
+        if not isinstance(self.operational_realization_observations, tuple) or any(
+            not isinstance(item, RealizationObservationDisclosure) for item in self.operational_realization_observations
+        ):
+            raise TypeError("operational realization observations must be a tuple of typed disclosures")
 
 
 @dataclass(frozen=True)
 class OperationReceipt:
     """Portable acknowledgment for an accepted control-plane operation."""
 
+    operation_id: str
+    domain: RuntimeDomain
+    submitted_at: str
+    accepted: bool
+    context: OperationAdmissionContext
     schema_version: str = OPERATION_SCHEMA_VERSION
-    operation_id: str = ""
-    domain: RuntimeDomain = RuntimeDomain.PROVISIONING
-    submitted_at: str = ""
-    accepted: bool = True
     diagnostics: list[Diagnostic] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "diagnostics", _portable_operation_diagnostics(self.diagnostics))
 
 
 @dataclass(frozen=True)
 class OperationStatus:
     """Portable status for a submitted control-plane operation."""
 
+    operation_id: str
+    domain: RuntimeDomain
+    state: OperationState
+    submitted_at: str
+    updated_at: str
+    context: OperationAdmissionContext
     schema_version: str = OPERATION_SCHEMA_VERSION
-    operation_id: str = ""
-    domain: RuntimeDomain = RuntimeDomain.PROVISIONING
-    state: OperationState = OperationState.ACCEPTED
-    submitted_at: str = ""
-    updated_at: str = ""
     diagnostics: list[Diagnostic] = field(default_factory=list)
     changed_addresses: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        diagnostics = _portable_operation_diagnostics(self.diagnostics)
+        if self.state in {
+            OperationState.SUCCEEDED,
+            OperationState.FAILED,
+            OperationState.CANCELLED,
+            OperationState.INDETERMINATE,
+        }:
+            diagnostics = operation_terminal_diagnostics(self.state, diagnostics)
+        else:
+            diagnostics = require_operation_terminal_diagnostics(self.state, diagnostics)
+        object.__setattr__(self, "diagnostics", diagnostics)
         _validate_changed_addresses(self.changed_addresses)
+
+
+def _portable_operation_diagnostics(diagnostics: list[Diagnostic]) -> list[Diagnostic]:
+    return [
+        Diagnostic(
+            code=payload["code"],
+            domain=payload["domain"],
+            address=payload["address"],
+            message=payload["message"],
+            severity=Severity(payload["severity"]),
+        )
+        for payload in (portable_diagnostic_payload(diagnostic) for diagnostic in diagnostics)
+    ]
 
 
 def _validate_changed_addresses(addresses: list[str]) -> None:
@@ -232,6 +268,8 @@ __all__ = (
     "ExplicitnessClass",
     "ExplicitnessProvenance",
     "OperationReceipt",
+    "OperationAdmissionContext",
+    "OperationKind",
     "OperationState",
     "OperationStatus",
     "RealizationObservationDisclosure",
@@ -239,4 +277,8 @@ __all__ = (
     "RuntimeSnapshot",
     "RuntimeSnapshotEnvelope",
     "SnapshotEntry",
+    "is_operation_transition_allowed",
+    "operation_terminal_diagnostic",
+    "operation_terminal_diagnostics",
+    "operation_transition_diagnostic",
 )

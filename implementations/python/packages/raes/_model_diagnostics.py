@@ -12,6 +12,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from ._classification_guard import CLASSIFICATION_MIGRATION_CODE
 from ._errors import (
     SDLParseDiagnostic,
     SDLParseError,
@@ -88,9 +89,12 @@ def _model_parse_error(
         raw_message = str(item.get("msg", ""))
         is_identifier = "portable SDL identifier" in raw_message or "qualified SDL identifier" in raw_message
         message = _bounded_model_message(raw_message)
+        code = "sdl.identifier.invalid" if is_identifier else "sdl.model.invalid"
+        if item.get("type") == CLASSIFICATION_MIGRATION_CODE:
+            code = CLASSIFICATION_MIGRATION_CODE
         diagnostics.append(
             SDLParseDiagnostic(
-                code="sdl.identifier.invalid" if is_identifier else "sdl.model.invalid",
+                code=code,
                 message=message,
                 pointer=pointer,
                 primary_range=_nearest_source_range(pointer, source_ranges),

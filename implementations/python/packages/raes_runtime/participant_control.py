@@ -6,28 +6,18 @@ from raes_contracts.contracts import (
     ParticipantDecisionSurfaceModel,
     ParticipantDecisionSurfaceSelectionModel,
 )
-from raes_contracts.contracts.participant_execution import (
-    ParticipantExecutionControlRequestModel,
-    ParticipantExecutionServiceStateModel,
-)
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_binding import (
     ParticipantActionAdmissionRequest,
     ParticipantDecisionSurfaceBindingResolvers,
     bind_participant_decision_surface_selection,
 )
-from raes_contracts.participant_episode import (
-    ParticipantEpisodeInitializeRequest,
-    ParticipantEpisodeResetRequest,
-    ParticipantEpisodeRestartRequest,
-    ParticipantEpisodeTerminalReason,
-    ParticipantEpisodeTerminateRequest,
-)
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationReceipt
+from raes_contracts.runtime_state import OperationKind, OperationReceipt
 from raes_processor.models import ParticipantBehaviorRuntime
 
-from .control_plane_execution import execute_participant_action
+from .control_plane_lifecycle import runtime_owned
+from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .participant_control_diagnostics import (
     _NO_PARTICIPANT_RUNTIME_MESSAGE,
     _participant_binding_address,
@@ -49,7 +39,7 @@ from .participant_crossing_boundary import (
     ParticipantCrossingEvidence,
 )
 from .participant_decision_surface_control_v2 import ParticipantDecisionSurfaceV2ControlMixin
-from .participant_execution_control_boundary import backend_execution_control_method
+from .participant_episode_control import ParticipantEpisodeControlMixin
 from .participant_submission_options import ParticipantSubmissionOptions, submit_bound_participant_action
 
 
@@ -215,176 +205,40 @@ def _participant_binding_request_diagnostics(
     return diagnostics
 
 
+def _bind_participant_decision_surface(
+    control_plane: object,
+    participant_behavior: ParticipantBehaviorRuntime,
+    surface: ParticipantDecisionSurfaceModel,
+    selection: ParticipantDecisionSurfaceSelectionModel,
+    admission_request: ParticipantActionAdmissionRequest,
+    resolvers: ParticipantDecisionSurfaceBindingResolvers,
+) -> tuple[ParticipantActionAdmissionRequest | None, Diagnostic | None]:
+    try:
+        with external_control_plane_call(control_plane):
+            request = bind_participant_decision_surface_selection(
+                surface=surface,
+                selection=selection,
+                admission_request=admission_request,
+                argument_shape_resolver=resolvers.argument_shape,
+                apparatus_resolver=resolvers.apparatus,
+            )
+    except (TypeError, ValueError) as exc:
+        return None, _participant_binding_diagnostic(
+            _participant_binding_address(participant_behavior),
+            str(exc),
+        )
+    return request, None
+
+
 class ParticipantControlMixin(
+    ParticipantEpisodeControlMixin,
     ParticipantCrossingControlIngressMixin,
     ParticipantDecisionSurfaceV2ControlMixin,
 ):
     """Participant runtime methods for the shared runtime control plane."""
 
-    def control_participant_execution(
-        self,
-        request: ParticipantExecutionControlRequestModel,
-        *,
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
-    ) -> OperationReceipt:
-        """Submit one generation-fenced execution-service lifecycle mutation."""
-
-        participant_runtime = self._target.participant_runtime
-        method = getattr(participant_runtime, "control_execution", None)
-        if participant_runtime is None or not callable(method):
-            return self._reject_submission(
-                domain=RuntimeDomain.PARTICIPANT,
-                message=("Participant runtime does not expose portable execution control."),
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
-        return execute_participant_action(
-            self,
-            method=backend_execution_control_method(
-                method,
-                information_state_context_resolver=getattr(
-                    self,
-                    "_information_state_context_resolver",
-                    None,
-                ),
-            ),
-            request=request,
-            address=(f"runtime.control-plane.participant-execution.{request.execution_scope_ref}.{request.action}"),
-            idempotency_key=idempotency_key,
-            request_fingerprint=request_fingerprint,
-        )
-
-    def participant_execution_state(
-        self,
-        execution_scope_ref: str,
-    ) -> ParticipantExecutionServiceStateModel:
-        """Read typed lifecycle, health, readiness, capacity, and evidence state."""
-
-        participant_runtime = self._target.participant_runtime
-        method = getattr(participant_runtime, "execution_state", None)
-        if participant_runtime is None or not callable(method):
-            raise ValueError("participant runtime does not expose execution-service readback")
-        return method(execution_scope_ref, self._snapshot)
-
-    def initialize_participant_episode(
-        self,
-        participant_address: str,
-        *,
-        episode_id: str | None = None,
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
-    ) -> OperationReceipt:
-        if self._target.participant_runtime is None:
-            return self._reject_submission(
-                domain=RuntimeDomain.PARTICIPANT,
-                message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
-        request = ParticipantEpisodeInitializeRequest(
-            participant_address=participant_address,
-            episode_id=episode_id,
-        )
-        return execute_participant_action(
-            self,
-            method=self._target.participant_runtime.initialize,
-            request=request,
-            address=f"runtime.control-plane.participant.{participant_address}.initialize",
-            idempotency_key=idempotency_key,
-            request_fingerprint=request_fingerprint,
-        )
-
-    def reset_participant_episode(
-        self,
-        participant_address: str,
-        *,
-        episode_id: str | None = None,
-        reason: str = "reset by operator",
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
-    ) -> OperationReceipt:
-        if self._target.participant_runtime is None:
-            return self._reject_submission(
-                domain=RuntimeDomain.PARTICIPANT,
-                message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
-        request = ParticipantEpisodeResetRequest(
-            participant_address=participant_address,
-            episode_id=episode_id,
-            reason=reason,
-        )
-        return execute_participant_action(
-            self,
-            method=self._target.participant_runtime.reset,
-            request=request,
-            address=f"runtime.control-plane.participant.{participant_address}.reset",
-            idempotency_key=idempotency_key,
-            request_fingerprint=request_fingerprint,
-        )
-
-    def restart_participant_episode(
-        self,
-        participant_address: str,
-        *,
-        episode_id: str | None = None,
-        reason: str = "restarted by operator",
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
-    ) -> OperationReceipt:
-        if self._target.participant_runtime is None:
-            return self._reject_submission(
-                domain=RuntimeDomain.PARTICIPANT,
-                message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
-        request = ParticipantEpisodeRestartRequest(
-            participant_address=participant_address,
-            episode_id=episode_id,
-            reason=reason,
-        )
-        return execute_participant_action(
-            self,
-            method=self._target.participant_runtime.restart,
-            request=request,
-            address=f"runtime.control-plane.participant.{participant_address}.restart",
-            idempotency_key=idempotency_key,
-            request_fingerprint=request_fingerprint,
-        )
-
-    def terminate_participant_episode(
-        self,
-        participant_address: str,
-        *,
-        terminal_reason: ParticipantEpisodeTerminalReason = ParticipantEpisodeTerminalReason.INTERRUPTED,
-        detail: str = "terminated by operator",
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
-    ) -> OperationReceipt:
-        if self._target.participant_runtime is None:
-            return self._reject_submission(
-                domain=RuntimeDomain.PARTICIPANT,
-                message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
-        request = ParticipantEpisodeTerminateRequest(
-            participant_address=participant_address,
-            terminal_reason=terminal_reason,
-            detail=detail,
-        )
-        return execute_participant_action(
-            self,
-            method=self._target.participant_runtime.terminate,
-            request=request,
-            address=f"runtime.control-plane.participant.{participant_address}.terminate",
-            idempotency_key=idempotency_key,
-            request_fingerprint=request_fingerprint,
-        )
-
+    @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def admit_participant_action(
         self,
         participant_behavior: ParticipantBehaviorRuntime,
@@ -402,6 +256,11 @@ class ParticipantControlMixin(
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
                 idempotency_key=idempotency_key,
                 request_fingerprint=request_fingerprint,
+                identity=identity,
+                request={
+                    "operation": "participant-action",
+                    "participant_address": getattr(participant_behavior, "address", "unknown"),
+                },
             )
         request, diagnostics = _participant_binding_diagnostics(
             participant_behavior,
@@ -414,6 +273,11 @@ class ParticipantControlMixin(
                 diagnostics=diagnostics,
                 idempotency_key=idempotency_key,
                 request_fingerprint=request_fingerprint,
+                identity=identity,
+                request={
+                    "operation": "participant-action",
+                    "participant_address": getattr(participant_behavior, "address", "unknown"),
+                },
             )
         assert request is not None
         options = ParticipantSubmissionOptions(
@@ -424,6 +288,8 @@ class ParticipantControlMixin(
         )
         return submit_bound_participant_action(self, participant_behavior, request, options)
 
+    @runtime_owned
+    @mutation_entry(OperationKind.PARTICIPANT_ACTION)
     def admit_participant_decision_surface_selection(
         self,
         participant_behavior: ParticipantBehaviorRuntime,
@@ -437,38 +303,73 @@ class ParticipantControlMixin(
         """Validate a SEM-220 selection before reusing normal action admission."""
 
         options = ParticipantSubmissionOptions.from_fields(submission_options)
+        receipt: OperationReceipt
         if self._target.participant_runtime is None:
-            return self._reject_submission(
+            receipt = self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
                 idempotency_key=options.idempotency_key,
                 request_fingerprint=options.request_fingerprint,
+                identity=options.identity,
+                request={
+                    "operation": "participant-decision-surface-selection",
+                    "participant_address": getattr(participant_behavior, "address", "unknown"),
+                },
             )
-        try:
-            request = bind_participant_decision_surface_selection(
-                surface=surface,
-                selection=selection,
-                admission_request=admission_request,
-                argument_shape_resolver=resolvers.argument_shape,
-                apparatus_resolver=resolvers.apparatus,
+        else:
+            request, diagnostic = _bind_participant_decision_surface(
+                self,
+                participant_behavior,
+                surface,
+                selection,
+                admission_request,
+                resolvers,
             )
-        except (TypeError, ValueError) as exc:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.PARTICIPANT,
-                diagnostics=[
-                    _participant_binding_diagnostic(_participant_binding_address(participant_behavior), str(exc))
-                ],
-                idempotency_key=options.idempotency_key,
-                request_fingerprint=options.request_fingerprint,
-            )
-        return self.admit_participant_action(
-            participant_behavior,
-            request,
-            idempotency_key=options.idempotency_key,
-            request_fingerprint=options.request_fingerprint,
-            identity=options.identity,
-            crossing_evidence=options.crossing_evidence,
-        )
+            if diagnostic is not None:
+                receipt = self._reject_diagnostics(
+                    domain=RuntimeDomain.PARTICIPANT,
+                    diagnostics=[diagnostic],
+                    idempotency_key=options.idempotency_key,
+                    request_fingerprint=options.request_fingerprint,
+                    identity=options.identity,
+                    request={
+                        "operation": "participant-decision-surface-selection",
+                        "participant_address": getattr(participant_behavior, "address", "unknown"),
+                    },
+                )
+            else:
+                with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
+                    request, diagnostic = _bind_participant_decision_surface(
+                        self,
+                        participant_behavior,
+                        surface,
+                        selection,
+                        admission_request,
+                        resolvers,
+                    )
+                    if diagnostic is not None:
+                        receipt = self._reject_diagnostics(
+                            domain=RuntimeDomain.PARTICIPANT,
+                            diagnostics=[diagnostic],
+                            idempotency_key=options.idempotency_key,
+                            request_fingerprint=options.request_fingerprint,
+                            identity=options.identity,
+                            request={
+                                "operation": "participant-decision-surface-selection",
+                                "participant_address": getattr(participant_behavior, "address", "unknown"),
+                            },
+                        )
+                    else:
+                        assert request is not None
+                        receipt = self.admit_participant_action(
+                            participant_behavior,
+                            request,
+                            idempotency_key=options.idempotency_key,
+                            request_fingerprint=options.request_fingerprint,
+                            identity=options.identity,
+                            crossing_evidence=options.crossing_evidence,
+                        )
+        return receipt
 
 
 __all__ = (

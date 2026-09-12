@@ -49,7 +49,15 @@ from raes_contracts.planning import (
     ProvisionOp,
     RuntimeDomain,
 )
-from raes_contracts.runtime_state import ApplyResult, OperationStatus, RuntimeSnapshot, SnapshotEntry
+from raes_contracts.runtime_state import (
+    ApplyResult,
+    OperationAdmissionContext,
+    OperationKind,
+    OperationState,
+    OperationStatus,
+    RuntimeSnapshot,
+    SnapshotEntry,
+)
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import NetworkRuntime, NodeRuntime, RuntimeModel
 
@@ -830,7 +838,24 @@ def test_runtime_snapshot_rejects_map_key_address_mismatch() -> None:
 
 @pytest.mark.parametrize("factory", [ApplyResult, OperationStatus])
 def test_runtime_changed_addresses_are_canonical_and_unique(factory) -> None:
-    kwargs = {"success": True, "snapshot": RuntimeSnapshot()} if factory is ApplyResult else {}
+    if factory is ApplyResult:
+        kwargs = {"success": True, "snapshot": RuntimeSnapshot()}
+    else:
+        kwargs = {
+            "operation_id": "operation-test",
+            "domain": RuntimeDomain.PROVISIONING,
+            "state": OperationState.RUNNING,
+            "submitted_at": "2026-09-06T10:00:00Z",
+            "updated_at": "2026-09-06T10:00:01Z",
+            "context": OperationAdmissionContext(
+                actor_id="operator-test",
+                authorization_scope=("role:operator",),
+                target_scope="target:test",
+                run_scope="run:test",
+                operation_kind=OperationKind.PROVISIONING,
+                request_commitment=f"sha256:{'0' * 64}",
+            ),
+        }
     with pytest.raises(ValueError, match="canonical compiled address"):
         factory(changed_addresses=["bad address"], **kwargs)
     with pytest.raises(ValueError, match="unique"):

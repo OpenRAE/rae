@@ -18,7 +18,13 @@ request_commitment, state, parent_operation_id?)`. The store fixes `S` at
 creation. `actor`, `authorization_scope`, `kind`, and `request_commitment` are
 immutable after admission. The request commitment is a value-free,
 domain-separated canonical digest; it is not a raw request body or bearer
-credential.
+credential. It covers every execution-affecting semantic input, including an
+explicit base snapshot through the same value-free projection. A separate
+ephemeral exact fingerprint binds credential-bearing input for in-process
+idempotency collision detection; that fingerprint never enters the operation
+store, receipts, statuses, diagnostics, or audit records. After restart its
+proof is intentionally unavailable, so a credential-bearing retry under an
+already-durable idempotency key fails closed and the caller must use a new key.
 
 ## Abstract states and transitions
 
@@ -34,6 +40,38 @@ RUNNING   --commit-------> SUCCEEDED | FAILED | CANCELLED | INDETERMINATE
 `REJECTED` is not an `OperationState`; denial is an audit outcome produced
 before any operation or idempotency claim exists. The `DENIED` label above is
 therefore not a stored lifecycle state.
+
+The closed persisted transition relation is the following matrix. Every cell
+not marked legal is illegal; implementations must not maintain a second,
+store-specific transition table.
+
+| From \\ To | `ACCEPTED` | `RUNNING` | `SUCCEEDED` | `FAILED` | `CANCELLED` | `INDETERMINATE` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `ACCEPTED` | illegal | legal: start | illegal | illegal | legal: cancel before invocation | illegal |
+| `RUNNING` | illegal | illegal | legal: commit observed success | legal: commit observed failure or known-absent effect | legal: commit proven cancellation or known-absent effect | legal: commit outcome that cannot be established |
+| `SUCCEEDED` | illegal | illegal | illegal | illegal | illegal | illegal |
+| `FAILED` | illegal | illegal | illegal | illegal | illegal | illegal |
+| `CANCELLED` | illegal | illegal | illegal | illegal | illegal | illegal |
+| `INDETERMINATE` | illegal | illegal | illegal | illegal | illegal | illegal |
+
+An exact retry of an already-persisted carrier is an idempotent persistence
+no-op, not a self-transition, and is valid only when the complete immutable
+operation context and terminal carrier are identical. `UNRECORDED` is not a
+persisted state and remains governed by the admission rules above.
+
+`OperationReceipt.accepted` is an admission acknowledgement, not a projection
+of `OperationState.ACCEPTED`. A false acknowledgement does not imply a
+`FAILED` operation: a denial receipt retained for transport compatibility has
+no persisted operation, claim, or subsequent status resource. A true
+acknowledgement identifies an operation governed by the matrix above.
+
+Lifecycle diagnostics use the existing closed `DiagnosticModel` contract.
+Invalid transition attempts and non-success terminal classifications carry
+stable namespaced codes and bounded, value-free messages; `INDETERMINATE` has
+a distinct code and must not be represented by a generic failed/cancelled
+diagnostic. Provider exception text, request content, credentials, paths, and
+authorization values never enter the diagnostic. Public diagnostic locations
+use the shared model's safe JSON-Pointer address shape.
 
 `SUCCEEDED`, `FAILED`, `CANCELLED`, and `INDETERMINATE` are terminal.
 Implementations may combine `admit/claim` and `start` into one durable
@@ -85,7 +123,8 @@ Reconciliation classification is closed:
    disconnect do not automatically invoke the backend again.
 8. **Idempotency invariant.** A claim is unique within
    `(store scope, actor, operation kind, idempotency key)`. A duplicate with a
-   different request commitment fails closed; a duplicate never bypasses
+   different request commitment, explicit base snapshot, admission context, or
+   private exact fingerprint fails closed; a duplicate never bypasses
    authorization or discloses another actor's receipt.
 9. **Authorization invariant.** Possession of an operation id, receipt, store,
    or idempotency key grants no authority. Every mutation and read is checked
@@ -102,6 +141,15 @@ Reconciliation classification is closed:
 12. **External-effect invariant.** Store atomicity does not imply exactly-once
     backend effects. When observation cannot distinguish applied from absent,
     the only safe terminal classification is `INDETERMINATE`.
+
+Pre-contract local-store schema v1 records cross this boundary only through the
+transactional v1-to-v2 migration. Accepted records receive an explicitly
+unattributed legacy context and canonical terminal classification; their
+unclassified request fingerprints are replaced with the new value-free
+commitment. Persisted legacy denials are removed from operation/idempotency
+state and retained as denial-only audit dispositions. The one-time JSON import
+uses the same migration function before the strict carrier codec. Malformed or
+partially migrated records still fail closed.
 
 ## Concurrency and failure obligations
 

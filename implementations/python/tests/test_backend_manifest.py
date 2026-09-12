@@ -49,7 +49,13 @@ V2_INVALID_DIR = FIXTURES_ROOT / "backend-manifest" / "backend-manifest-v2" / "i
 EXPECTED_SUPPORTED_CONTRACT_VERSIONS_V2 = [
     contract_id
     for contract_id in BACKEND_SUPPORTED_CONTRACT_IDS
-    if contract_id not in {"experiment-binding-descriptors-v1", "realization-envelope-v1"}
+    if contract_id
+    not in {
+        "experiment-binding-descriptors-v1",
+        "realization-envelope-v1",
+        "backend-realization-preparation-v1",
+        "plan-realization-profiles-v1",
+    }
 ]
 
 
@@ -273,11 +279,19 @@ def test_backend_manifest_v2_declares_observation_capability_dimensions():
     payload = backend_manifest_payload(create_stub_manifest())
     observation = payload["capabilities"]["observation"]
 
-    assert observation["supported_capture_kinds"] == ["artifact", "log", "observation", "telemetry", "trace"]
+    assert observation["supported_capture_kinds"] == [
+        "artifact",
+        "log",
+        "observation",
+        "packet-capture",
+        "telemetry",
+        "trace",
+    ]
     assert observation["supported_channel_kinds"] == [
         "backend-log",
         "evaluation-history",
         "file-artifact",
+        "packet-capture",
         "participant-observation",
         "runtime-snapshot",
         "workflow-history",
@@ -298,6 +312,7 @@ def test_backend_manifest_v2_declares_observation_capability_dimensions():
         "artifact",
         "log",
         "observation",
+        "packet-capture",
         "telemetry",
         "trace",
     ]

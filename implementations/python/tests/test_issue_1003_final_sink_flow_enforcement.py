@@ -26,6 +26,7 @@ from participant_crossing_fixtures import (
 )
 from raes_contracts.contracts import ParticipantFlowFinalDisposition as Disposition
 from raes_contracts.contracts import ParticipantFlowSinkKind
+from raes_contracts.runtime_state import OperationState, OperationStatus
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore, LocalControlPlaneStore
 from raes_runtime.participant_control_intents import ParticipantHandoffControlIntent
@@ -49,6 +50,12 @@ _NON_PERMIT_TOGGLES = [
     pytest.param(FlowSinkToggles(api_423_ref="crossing-decision.mismatch"), id="api-423-mismatch"),
     pytest.param(FlowSinkToggles(relation_audience="audience:wrong-sink"), id="binding-mismatch-audience"),
 ]
+
+
+def _operation_status(plane: RuntimeControlPlane, operation_id: str) -> OperationStatus:
+    status = plane.get_operation(operation_id)
+    assert status is not None
+    return status
 
 
 def _instrument_backend(target: object) -> dict[str, int]:
@@ -158,10 +165,12 @@ def test_non_permit_ingress_never_dispatches_backend(toggles: FlowSinkToggles) -
 
     receipt = admit(plane, idempotency_key="deny-ingress")
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    status = _operation_status(plane, receipt.operation_id)
+    assert status.state is OperationState.FAILED
     assert counter["calls"] == 0
     assert plane.snapshot.participant_behavior_history == {}
-    assert receipt.diagnostics[0].code == "runtime.participant-flow-sink-denied"
+    assert status.diagnostics[0].code == "runtime.participant-flow-sink-denied"
     assert plane.audit_log()[-1].reason == "flow-sink-denied"
     assert _no_secret_leak(plane, receipt)
 
@@ -196,7 +205,8 @@ def test_non_permit_control_ingress_applies_no_transition(toggles: FlowSinkToggl
         idempotency_key="deny-control",
     )
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert _operation_status(plane, receipt.operation_id).state is OperationState.FAILED
     assert plane.snapshot.participant_control_history == {}
     assert len(plane.snapshot.participant_crossing_history[PARTICIPANT]) == 2
     assert _no_secret_leak(plane, receipt)
@@ -218,9 +228,11 @@ def test_permit_bound_to_a_different_sink_kind_is_denied() -> None:
 
     receipt = admit(plane, idempotency_key="wrong-sink-kind")
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    status = _operation_status(plane, receipt.operation_id)
+    assert status.state is OperationState.FAILED
     assert counter["calls"] == 0
-    assert receipt.diagnostics[0].code == "runtime.participant-flow-sink-denied"
+    assert status.diagnostics[0].code == "runtime.participant-flow-sink-denied"
 
 
 def test_secure_default_requires_flow_sink_resolver_capability() -> None:
@@ -278,7 +290,8 @@ def test_permit_and_denial_hold_across_both_stores(make_store, tmp_path: Path) -
         store=make_store(tmp_path / "deny"),
     )
     denied = admit(deny_plane, idempotency_key="store-deny")
-    assert denied.accepted is False
+    assert denied.accepted is True
+    assert _operation_status(deny_plane, denied.operation_id).state is OperationState.FAILED
     assert deny_plane.snapshot.participant_behavior_history == {}
 
 
@@ -287,6 +300,7 @@ def test_local_store_restart_revalidates_and_replays_idempotently(tmp_path: Path
     resolver = permit_resolver()
     first = action_plane(resolver, store=LocalControlPlaneStore(store_path))
     receipt = admit(first, idempotency_key="restart")
+    first.close()
 
     restarted_resolver = Sem233FlowSinkResolver()
     restarted_resolver.subjects = list(resolver.subjects)
@@ -301,6 +315,7 @@ def test_local_store_restart_revalidates_and_replays_idempotently(tmp_path: Path
 
     assert retry.operation_id == receipt.operation_id
     assert len(restarted.snapshot.participant_crossing_history[PARTICIPANT]) == 2
+    restarted.close()
 
 
 # --- Legacy path and commit-before-effect --------------------------------

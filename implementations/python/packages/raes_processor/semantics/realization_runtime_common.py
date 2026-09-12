@@ -26,6 +26,8 @@ from .realization_concerns import project_realization_concern
 from .realization_snapshot_sanitization import invalid_observation_diagnostic
 
 if TYPE_CHECKING:
+    from raes_contracts.planning import ResolvedRealizationAuthority
+
     from .realization import CompiledRealizationRequirement
 
 BACKEND_CONTRACT_INVALID = "runtime.backend-contract-invalid"
@@ -34,7 +36,7 @@ OPERATING_SYSTEM_REQUIREMENT_KINDS = frozenset({"os-family", "os-distribution", 
 
 
 def matching_observation(
-    requirement: CompiledRealizationRequirement,
+    requirement: CompiledRealizationRequirement | ResolvedRealizationAuthority,
     returned_snapshot: RuntimeSnapshot,
 ) -> RealizationObservationDisclosure | None:
     if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS:
@@ -120,6 +122,7 @@ def observed_projection(
             requirement.requirement_kind,
             realized_value,
             observed=True,
+            recursive=requirement.constraint_document is not None,
         )
     except (TypeError, ValueError):
         return invalid_observation_diagnostic(requirement), MISSING_CONCERN_VALUE

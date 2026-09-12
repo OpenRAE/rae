@@ -163,12 +163,10 @@ class OciDeploymentDriver:
             return DriverResult(diagnostics=tuple(diagnostics))
         network_handles = self._realize_networks(networks, diagnostics)
         container_handles = self._realize_containers(containers, diagnostics)
-        observations = self._substrate_observations(container_handles, diagnostics) if not diagnostics else ()
         result = DriverResult(
             networks=tuple(network_handles),
             containers=tuple(container_handles),
             diagnostics=tuple(diagnostics),
-            observations=observations,
         )
         # Transactional boundary: if any resource failed, roll back the ones
         # that succeeded so a partial realize never leaves an orphan runtime

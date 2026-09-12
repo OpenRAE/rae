@@ -44,6 +44,7 @@ sys.modules.setdefault(
 import pytest
 import tools.check_generated_schemas as check_generated_schemas
 import tools.check_json_artifacts as check_json_artifacts
+import tools.nox_support.compatibility_lanes as nox_compatibility_lanes
 import tools.nox_support.config as nox_config
 import tools.nox_support.graph as nox_graph
 import tools.nox_support.policy_lanes as nox_policy_lanes
@@ -63,13 +64,20 @@ from tools.check_adr_immutability import (
 from tools.check_generated_schemas import _extra_published_schema_paths
 from tools.check_json_artifacts import ValidationTarget, collect_validation_targets, should_run_full_validation
 from tools.check_schema_publication import schema_content_hash, validate_schema_publication_manifest
-from tools.gitleaks_tool import _checksums_asset_name, _release_asset_name, gitleaks_binary_path
+from tools.gitleaks_tool import gitleaks_binary_path
 from tools.parallel_verification import VerificationLane, run_verification_lanes
 from tools.policy.common import PolicyFailure
 from tools.policy.conftest_tool import run_conftest_policy
 from tools.policy.repo_policy import evaluate_repo_policy
 
-NOX_SUPPORT_MODULES = ("config", "runner", "policy_lanes", "test_lanes", "graph")
+NOX_SUPPORT_MODULES = (
+    "config",
+    "runner",
+    "policy_lanes",
+    "test_lanes",
+    "compatibility_lanes",
+    "graph",
+)
 
 
 def test_sonar_project_binding_matches_scanner_configuration() -> None:
@@ -495,13 +503,22 @@ def test_parallel_graph_executes_success_and_reports_all_failures(
         nox_graph,
         "run_verification_lanes",
         lambda *_args, **_kwargs: [
-            types.SimpleNamespace(name="unit-tests", returncode=2, output="failed", duration_s=0.01),
+            types.SimpleNamespace(
+                name="unit-tests",
+                returncode=2,
+                output="FAILED tests/test_runtime.py::test_atomic_commit - AssertionError\n",
+                duration_s=0.01,
+            ),
             types.SimpleNamespace(name="contracts", returncode=3, output="", duration_s=0.02),
         ],
     )
     failure_reporter = ImmediateReporter()
     with pytest.raises(RuntimeError, match=r"unit-tests \(exit 2\), contracts \(exit 3\)"):
         nox_graph._run_parallel_verification(session, failure_reporter, include_policy=False)
+    assert any(
+        "failure summary unit-tests: FAILED tests/test_runtime.py::test_atomic_commit" in message
+        for message in session.messages
+    )
 
 
 def test_change_selected_graph_routes_plans_and_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -558,13 +575,13 @@ def test_graph_base_revision_and_cpu_fallbacks(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(nox_graph, "resolve_upstream", lambda _root: "origin/dev")
     assert nox_graph._changed_base_rev([]) == "origin/dev"
 
-    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", lambda _pid: {0, 1})
+    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", lambda _pid: {0, 1}, raising=False)
     assert nox_graph._available_cpu_count() == 2
 
     def unavailable(_pid: int) -> set[int]:
         raise OSError("unsupported")
 
-    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", unavailable)
+    monkeypatch.setattr(nox_graph.os, "sched_getaffinity", unavailable, raising=False)
     monkeypatch.setattr(nox_graph.os, "cpu_count", lambda: None)
     assert nox_graph._available_cpu_count() == 1
 
@@ -665,10 +682,18 @@ def _exercise_python_compatibility(
     monkeypatch: pytest.MonkeyPatch,
     *,
     build_artifacts: bool,
-) -> tuple[list[tuple[str, ...]], list[tuple[str, ...]], list[str]]:
+    smoke_only: bool = False,
+    configured_wheelhouse: bool = False,
+) -> tuple[
+    list[tuple[str, ...]],
+    list[tuple[str, ...]],
+    list[nox_runner.StageResult],
+    list[object],
+]:
     commands: list[tuple[str, ...]] = []
     pytest_calls: list[tuple[str, ...]] = []
     logs: list[str] = []
+    sync_calls: list[object] = []
 
     class FakeSession:
         def __init__(self) -> None:
@@ -683,54 +708,147 @@ def _exercise_python_compatibility(
         if command[:2] != ("uv", "build"):
             return
         output_dir = Path(command[command.index("--out-dir") + 1])
-        output_dir.mkdir(parents=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
         if build_artifacts:
             (output_dir / "raes-3.3.0-py3-none-any.whl").write_bytes(b"wheel")
             (output_dir / "raes-3.3.0.tar.gz").write_bytes(b"sdist")
 
     monkeypatch.setenv(nox_config.EXPECTED_PYTHON_ENV, "3.14")
     monkeypatch.setenv("UV_PYTHON", "cpython-3.14")
-    monkeypatch.setenv(nox_config.EXPECT_FREE_THREADED_ENV, "1")
-    monkeypatch.setattr(nox_test_lanes, "_run", fake_run)
-    monkeypatch.setattr(nox_test_lanes, "_sync_project", lambda _session: None)
+    monkeypatch.setenv(nox_config.EXPECT_FREE_THREADED_ENV, "0")
+    monkeypatch.setenv(nox_config.PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV, "1" if smoke_only else "0")
+    monkeypatch.setenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, "public-linux-x86_64-cp314-all-extras")
+    if configured_wheelhouse:
+        monkeypatch.setenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, "/verified-wheelhouse")
+    else:
+        monkeypatch.delenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, raising=False)
+    monkeypatch.setattr(nox_compatibility_lanes, "_run", fake_run)
+    monkeypatch.setattr(nox_compatibility_lanes, "_sync_project", sync_calls.append)
     monkeypatch.setattr(
-        nox_test_lanes,
+        nox_compatibility_lanes,
         "_run_pytest",
         lambda _session, *args, **_kwargs: pytest_calls.append(tuple(args)),
     )
     reporter = nox_runner.SessionReporter(FakeSession(), "python-compatibility")
-    nox_test_lanes._run_python_compatibility(reporter.session, reporter)
-    return commands, pytest_calls, [result.name for result in reporter.results]
+    nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
+    return commands, pytest_calls, reporter.results, sync_calls
 
 
 def test_python_compatibility_graph_builds_and_checks_clean_distribution(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    commands, pytest_calls, stages = _exercise_python_compatibility(
+    commands, pytest_calls, results, sync_calls = _exercise_python_compatibility(
         monkeypatch,
         build_artifacts=True,
     )
+    stages = [result.name for result in results]
 
     assert stages == [
         "python compatibility / frozen sync",
         "python compatibility / exact runtime",
         "python compatibility / hermetic tests",
         "python compatibility / build distributions",
-        "python compatibility / create clean environment",
-        "python compatibility / install wheel",
-        "python compatibility / installed metadata and imports",
-        "python compatibility / installed CLI version",
-        "python compatibility / installed CLI help",
+        "python compatibility / build wheel from sdist",
+        "python compatibility / materialize dependency wheelhouse",
+        "python compatibility / install direct wheel",
+        "python compatibility / direct wheel metadata and imports",
+        "python compatibility / direct wheel CLI version",
+        "python compatibility / direct wheel CLI help",
+        "python compatibility / install sdist-built wheel",
+        "python compatibility / sdist-built wheel metadata and imports",
+        "python compatibility / sdist-built wheel CLI version",
+        "python compatibility / sdist-built wheel CLI help",
     ]
+    assert len(sync_calls) == 1
     assert pytest_calls == [("-q",)]
     runtime_command = next(command for command in commands if command[:2] == ("uv", "run"))
-    assert runtime_command[-2:] == ("3.14", "1")
+    assert runtime_command[-2:] == ("3.14", "0")
     build_command = next(command for command in commands if command[:2] == ("uv", "build"))
     assert build_command[build_command.index("--python") :][:2] == ("--python", "cpython-3.14")
-    installed_python = next(command for command in commands if command and command[0].endswith("/bin/python"))
+    assert "--build-constraints" in build_command
+    assert "--require-hashes" in build_command
+    installed_python = next(
+        command
+        for command in commands
+        if command and "/installed-" in command[0] and command[0].endswith("/bin/python")
+    )
     assert installed_python[-1] == "3.14"
     assert any(command and command[0].endswith("/bin/raes") and command[-1] == "--version" for command in commands)
     assert nox_config.PROJECT_ROOT.as_posix() in build_command
+    install_command = next(command for command in commands if "tools.python_closure" in command and "smoke" in command)
+    assert "--offline" in install_command
+    assert "--wheelhouse" in install_command
+
+
+def test_python_compatibility_smoke_omits_redundant_hermetic_suite(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _commands, pytest_calls, results, _sync_calls = _exercise_python_compatibility(
+        monkeypatch,
+        build_artifacts=True,
+        smoke_only=True,
+    )
+    stages = [result.name for result in results]
+
+    assert "python compatibility / hermetic tests" not in stages
+    assert "python compatibility / direct wheel metadata and imports" in stages
+    assert pytest_calls == []
+
+
+def test_offline_python_compatibility_reuses_only_a_verified_raw_wheelhouse(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands, _pytest_calls, results, sync_calls = _exercise_python_compatibility(
+        monkeypatch,
+        build_artifacts=True,
+        smoke_only=True,
+        configured_wheelhouse=True,
+    )
+    stages = [result.name for result in results]
+
+    assert "python compatibility / wheelhouse-verify dependency wheelhouse" in stages
+    frozen_sync = next(result for result in results if result.name == "python compatibility / frozen sync")
+    assert frozen_sync.status == "SKIP"
+    assert sync_calls == []
+    runtime_command = next(command for command in commands if command and command[0] == "cpython-3.14")
+    assert runtime_command[-2:] == ("3.14", "0")
+    assert all(command[:2] != ("uv", "run") for command in commands)
+    closure_commands = [command for command in commands if "tools.python_closure" in command]
+    assert any("wheelhouse-verify" in command for command in closure_commands)
+    assert all("materialize" not in command for command in closure_commands)
+    assert all("/verified-wheelhouse" in command for command in closure_commands)
+
+
+def test_python_compatibility_rejects_restored_wheelhouse_outside_smoke_execution(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, "/verified-wheelhouse")
+    reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
+
+    with pytest.raises(RuntimeError, match="valid only for compatibility smoke execution"):
+        nox_compatibility_lanes._compatibility_runtime_stages(
+            reporter.session,
+            reporter,
+            selector="cpython-3.14",
+            expected="3.14",
+            expect_free_threaded=False,
+            smoke_only=False,
+        )
+
+
+def test_python_compatibility_distribution_requires_reviewed_closure_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, raising=False)
+    reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
+
+    with pytest.raises(RuntimeError, match="must select a reviewed closure profile"):
+        nox_compatibility_lanes._compatibility_distribution_stages(
+            reporter.session,
+            reporter,
+            selector="cpython-3.14",
+            expected="3.14",
+        )
 
 
 @pytest.mark.parametrize(
@@ -751,7 +869,20 @@ def test_python_compatibility_rejects_unsupported_or_missing_interpreter_selecti
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
     with pytest.raises(RuntimeError, match=message):
-        nox_test_lanes._run_python_compatibility(reporter.session, reporter)
+        nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
+
+
+def test_python_compatibility_rejects_profile_for_another_interpreter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(nox_config.EXPECTED_PYTHON_ENV, "3.14")
+    monkeypatch.setenv("UV_PYTHON", "cpython-3.14")
+    monkeypatch.setenv(nox_config.EXPECT_FREE_THREADED_ENV, "0")
+    monkeypatch.setenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, "public-linux-x86_64-cp313-all-extras")
+    reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
+
+    with pytest.raises(RuntimeError, match="must match the selected interpreter"):
+        nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
 
 
 def test_python_compatibility_rejects_incomplete_distribution_build(
@@ -768,7 +899,7 @@ def test_python_compatibility_and_osv_session_wrappers_always_summarize(
     logs: list[str] = []
     session = types.SimpleNamespace(log=logs.append, posargs=[])
     monkeypatch.setattr(
-        nox_test_lanes,
+        nox_compatibility_lanes,
         "_run_python_compatibility",
         lambda _session, _reporter: calls.append("python"),
     )
@@ -798,6 +929,7 @@ def test_coverage_configuration_measures_branches_and_repository_python() -> Non
         "*/.cache/*",
         "*/docs/*",
         "*/implementations/python/.venv/*",
+        "*/implementations/tooling/python/.venv/*",
         "*/implementations/python/tests/*",
     }
     assert report["include_namespace_packages"] is True
@@ -2830,47 +2962,10 @@ def test_json_validation_batches_by_schema_and_runs_batches_concurrently(
     )
 
 
-def test_gitleaks_release_asset_names_match_platform_conventions(monkeypatch) -> None:
-    monkeypatch.setattr("platform.system", lambda: "Linux")
-    monkeypatch.setattr("platform.machine", lambda: "x86_64")
-
-    assert _release_asset_name("8.30.1") == "gitleaks_8.30.1_linux_x64.tar.gz"
-    assert _checksums_asset_name("8.30.1") == "gitleaks_8.30.1_checksums.txt"
-
-
 def test_gitleaks_binary_path_uses_repo_local_cache(tmp_path: Path) -> None:
     assert gitleaks_binary_path(tmp_path, version="8.30.1") == (
         tmp_path / ".cache" / "raes-sdl" / "tooling" / "gitleaks" / "8.30.1" / "gitleaks"
     )
-
-
-@pytest.mark.parametrize(
-    ("system", "machine", "expected"),
-    [
-        ("Linux", "x86_64", "osv-scanner_linux_amd64"),
-        ("Linux", "aarch64", "osv-scanner_linux_arm64"),
-        ("Darwin", "arm64", "osv-scanner_darwin_arm64"),
-    ],
-)
-def test_osv_scanner_release_asset_names_match_platform_conventions(
-    monkeypatch: pytest.MonkeyPatch, system: str, machine: str, expected: str
-) -> None:
-    monkeypatch.setattr("platform.system", lambda: system)
-    monkeypatch.setattr("platform.machine", lambda: machine)
-
-    # OSV-Scanner ships plain per-platform binaries, not archives.
-    assert osv_scanner_tool._release_asset_name() == expected
-
-
-@pytest.mark.parametrize("system", ["Windows", "Plan9"])
-def test_osv_scanner_release_asset_name_rejects_unsupported_platform(
-    monkeypatch: pytest.MonkeyPatch, system: str
-) -> None:
-    monkeypatch.setattr("platform.system", lambda: system)
-    monkeypatch.setattr("platform.machine", lambda: "x86_64")
-
-    with pytest.raises(RuntimeError, match="unsupported osv-scanner platform"):
-        osv_scanner_tool._release_asset_name()
 
 
 def test_osv_scanner_binary_path_uses_repo_local_cache(tmp_path: Path) -> None:
@@ -2879,24 +2974,26 @@ def test_osv_scanner_binary_path_uses_repo_local_cache(tmp_path: Path) -> None:
     )
 
 
-def test_osv_scanner_checksums_are_repository_pinned_for_every_admitted_asset() -> None:
-    assert osv_scanner_tool.OSV_SCANNER_SHA256["2.4.0"] == {
-        "osv-scanner_darwin_amd64": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66",
-        "osv-scanner_darwin_arm64": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d",
-        "osv-scanner_linux_amd64": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0",
-        "osv-scanner_linux_arm64": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9",
-    }
-
-
 def _pin_fake_osv_download(monkeypatch: pytest.MonkeyPatch, payload: bytes) -> None:
-    asset = "osv-scanner_darwin_arm64"
-    monkeypatch.setattr(osv_scanner_tool.platform, "system", lambda: "Darwin")
-    monkeypatch.setattr(osv_scanner_tool.platform, "machine", lambda: "arm64")
-    monkeypatch.setattr(
-        osv_scanner_tool,
-        "OSV_SCANNER_SHA256",
-        {"2.4.0": {asset: osv_scanner_tool.sha256(payload).hexdigest()}},
-    )
+    digest = osv_scanner_tool.sha256(payload).hexdigest()
+
+    def selection(**kwargs: object) -> object:
+        if kwargs.get("version") != "2.4.0":
+            raise RuntimeError("no reviewed lock selection")
+        return types.SimpleNamespace(
+            artifact_id="osv-scanner",
+            version="2.4.0",
+            platform_id="macos-arm64",
+            profile_id="public-macos-arm64",
+            repository="https://github.com/google/osv-scanner",
+            release="v2.4.0",
+            source_urls=("https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64",),
+            raw_manifest=(types.SimpleNamespace(path="osv-scanner_darwin_arm64", sha256=digest, size=len(payload)),),
+            installed_manifest=(types.SimpleNamespace(path="osv-scanner", sha256=digest, size=len(payload)),),
+        )
+
+    monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "macos-arm64")
+    monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
 
 
 def test_osv_scanner_valid_cache_hit_rehashes_without_network(
@@ -2911,8 +3008,8 @@ def test_osv_scanner_valid_cache_hit_rehashes_without_network(
     binary.chmod(0o755)
     monkeypatch.setattr(
         osv_scanner_tool,
-        "download_bytes",
-        lambda _url, **_kwargs: pytest.fail("network used for valid cache"),
+        "acquire_locked_bytes",
+        lambda **_kwargs: pytest.fail("acquisition used for valid cache"),
     )
 
     assert osv_scanner_tool.ensure_osv_scanner(tmp_path) == binary
@@ -2935,7 +3032,7 @@ def test_osv_scanner_invalid_file_cache_is_reacquired_atomically(
     else:
         binary.write_bytes(payload if cache_kind == "non-executable" else b"tampered")
         binary.chmod(0o644 if cache_kind == "non-executable" else 0o755)
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", lambda _url, **_kwargs: payload)
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", lambda **_kwargs: payload)
 
     installed = osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
@@ -3079,54 +3176,57 @@ def test_osv_scanner_cache_hash_rejects_open_and_post_hash_identity_changes(
         osv_scanner_tool._sha256_path(binary)
 
 
-def test_osv_scanner_download_has_a_finite_timeout(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    payload = b"reviewed-scanner"
-    _pin_fake_osv_download(monkeypatch, payload)
-    observed: dict[str, object] = {}
-
-    def download(url: str, **kwargs: object) -> bytes:
-        observed.update(url=url, **kwargs)
-        return payload
-
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", download)
-
-    assert osv_scanner_tool.ensure_osv_scanner(tmp_path).read_bytes() == payload
-    assert observed == {
-        "url": "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64",
-        "description": "osv-scanner",
-        "timeout_seconds": 60,
-        "max_bytes": 256 * 1024 * 1024,
-    }
-
-
-def test_osv_scanner_download_rejects_an_untrusted_release_url(
+def test_osv_scanner_uses_the_selected_raw_object_at_the_shared_acquisition_boundary(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
-    monkeypatch.setattr(osv_scanner_tool, "_release_base_url", lambda _version: "file:///tmp")
+    observed: dict[str, object] = {}
+
+    def acquire_locked_bytes(**kwargs: object) -> bytes:
+        observed.update(kwargs)
+        return payload
+
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", acquire_locked_bytes)
+
+    assert osv_scanner_tool.ensure_osv_scanner(tmp_path).read_bytes() == payload
+    assert observed["artifact_id"] == "osv-scanner"
+    assert observed["source_url"] == (
+        "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64"
+    )
+    assert observed["expected"].path == "osv-scanner_darwin_arm64"
+    assert observed["local_input"] is None
+
+
+def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def reject_selection(**_kwargs: object) -> object:
+        raise RuntimeError("policy rejected unsafe source URL")
+
+    monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_selection)
     monkeypatch.setattr(
         osv_scanner_tool,
-        "download_bytes",
-        lambda _url, **_kwargs: pytest.fail("unsafe URL reached the network client"),
+        "acquire_locked_bytes",
+        lambda **_kwargs: pytest.fail("unsafe URL reached the acquisition boundary"),
     )
 
-    with pytest.raises(RuntimeError, match="unsafe osv-scanner release URL"):
+    with pytest.raises(RuntimeError, match="policy rejected unsafe source URL"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
-def test_osv_scanner_download_timeout_fails_closed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_osv_scanner_acquisition_failure_is_terminal(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
 
-    def timeout(_url: str, **kwargs: object) -> bytes:
-        assert kwargs["timeout_seconds"] == 60
-        raise RuntimeError("failed to download osv-scanner after 5 attempts")
+    def timeout(**_kwargs: object) -> bytes:
+        raise RuntimeError("osv-scanner acquisition failed: curl-wall-deadline")
 
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", timeout)
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", timeout)
 
-    with pytest.raises(RuntimeError, match="failed to download osv-scanner"):
+    with pytest.raises(RuntimeError, match="curl-wall-deadline"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3136,23 +3236,13 @@ def test_osv_scanner_unpinned_version_and_download_mismatch_fail_closed(
 ) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
-    with pytest.raises(RuntimeError, match="no repository-pinned checksum"):
+    with pytest.raises(RuntimeError, match="no reviewed lock selection"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path, version="9.9.9")
 
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", lambda _url, **_kwargs: b"different")
-    with pytest.raises(RuntimeError, match="checksum mismatch"):
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", lambda **_kwargs: b"different")
+    with pytest.raises(RuntimeError, match="installed binary differs"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
     assert not osv_scanner_tool.osv_scanner_binary_path(tmp_path).exists()
-
-
-def test_osv_scanner_oversized_download_is_rejected(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    payload = b"four"
-    _pin_fake_osv_download(monkeypatch, payload)
-    monkeypatch.setattr(osv_scanner_tool, "_MAX_BINARY_BYTES", 3)
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", lambda _url, **_kwargs: payload)
-
-    with pytest.raises(RuntimeError, match="exceeds the download limit"):
-        osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
 def test_osv_scanner_concurrent_acquisition_publishes_only_complete_bytes(
@@ -3163,11 +3253,11 @@ def test_osv_scanner_concurrent_acquisition_publishes_only_complete_bytes(
     _pin_fake_osv_download(monkeypatch, payload)
     barrier = threading.Barrier(2, timeout=3)
 
-    def concurrent_download(_url: str, **_kwargs: object) -> bytes:
+    def concurrent_acquisition(**_kwargs: object) -> bytes:
         barrier.wait()
         return payload
 
-    monkeypatch.setattr(osv_scanner_tool, "download_bytes", concurrent_download)
+    monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", concurrent_acquisition)
     results: list[Path] = []
     failures: list[BaseException] = []
 
@@ -3258,7 +3348,7 @@ def _run_nox_osv_scan(
     tmp_path: Path,
     *,
     exit_code: int,
-) -> None:
+) -> nox_runner.SessionReporter:
     class FakeSession:
         def log(self, _message: str) -> None:
             pass
@@ -3281,14 +3371,18 @@ def _run_nox_osv_scan(
 
     monkeypatch.setattr(nox_test_lanes, "run_osv_scanner", fake_run_osv_scanner)
     session = FakeSession()
-    nox_test_lanes._run_osv_scan(session, nox_runner.SessionReporter(session, "osv_scan"))
+    reporter = nox_runner.SessionReporter(session, "osv_scan")
+    nox_test_lanes._run_osv_scan(session, reporter)
+    return reporter
 
 
 def test_nox_osv_scan_accepts_only_a_clean_result(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=0)
+    reporter = _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=0)
+
+    assert [result.name for result in reporter.results] == ["osv-scan / uv.lock"]
 
 
 def test_nox_osv_scan_gates_vulnerability_findings(

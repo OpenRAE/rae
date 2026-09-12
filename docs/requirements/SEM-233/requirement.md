@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 4
 created_at: 2026-07-30T18:36:51.139346Z
-updated_at: 2026-08-02T14:51:08.532882Z
+updated_at: 2026-09-06T00:00:00Z
 ---
 
 # SEM-233 — Adversarial Participant Boundary Information-Flow Control
@@ -20,6 +20,9 @@ The ecosystem shall define revisioned participant-neutral boundary information-f
 SEM-230 and the current action, control, crossing, and runtime authorities define participant-relative mediation but do not yet carry independent confidentiality and source-integrity coordinates transitively to the final enforceable sink or distinguish intentionally adversarial influence from ordinary invalid behavior. Issue #812 adopts that missing boundary while preserving participant neutrality and explicit nonclaims for opaque internals and covert channels.
 
 ## Traceability
+
+- DOCUMENTS → ADR `docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md` (Preserves SEM-233 security semantics within modular control)
+- DOCUMENTS → DOCUMENTATION `docs/research/modular-participant-control/requirements.md` (Issue #1068 reuse disposition; statement and ACTIVE status unchanged)
 
 - TESTS → TEST `implementations/python/tests/test_sem_233_flow_control_contracts.py` (SEM-233 portable flow-control contract tests)
 - IMPLEMENTS → GITHUB_ISSUE `1002` (Issue #1002 portable flow-control contracts)

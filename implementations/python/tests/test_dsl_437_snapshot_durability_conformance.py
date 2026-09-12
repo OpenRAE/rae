@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import json
+import sqlite3
+from collections.abc import Callable
+from contextlib import closing
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -15,6 +19,31 @@ from raes_runtime.control_plane_store import InMemoryControlPlaneStore, LocalCon
 POLICY_ADDRESS = "participant.autonomous-execution.green-users"
 PARTICIPANT_ADDRESS = "participant.behavior.green-user"
 STATE_ADDRESS = f"{POLICY_ADDRESS}.state.{PARTICIPANT_ADDRESS}"
+
+
+def _rewrite_durable_snapshot(
+    store_path: Path,
+    mutate: Callable[[dict[str, object]], None],
+    *,
+    update_digest: bool = True,
+) -> None:
+    with closing(sqlite3.connect(store_path / "control-plane.sqlite3")) as connection, connection:
+        row = connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone()
+        assert row is not None
+        payload = json.loads(row[0])
+        mutate(payload)
+        content = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        if update_digest:
+            digest = sha256(content.encode("utf-8")).hexdigest()
+            connection.execute(
+                "UPDATE state SET payload=?, digest=? WHERE key='runtime-snapshot'",
+                (content, digest),
+            )
+        else:
+            connection.execute(
+                "UPDATE state SET payload=? WHERE key='runtime-snapshot'",
+                (content,),
+            )
 
 
 def _state(**updates: object) -> dict[str, object]:
@@ -149,7 +178,7 @@ def test_control_plane_store_round_trips_valid_autonomous_state(tmp_path: Path) 
     store = LocalControlPlaneStore(tmp_path / "control-plane")
     snapshot = _snapshot()
 
-    store.save_snapshot(snapshot)
+    store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
     loaded = store.load_snapshot()
 
     assert loaded.participant_autonomous_execution_states == {STATE_ADDRESS: _state()}
@@ -162,36 +191,68 @@ def test_control_plane_stores_revalidate_mutated_autonomous_state(tmp_path: Path
     snapshot.participant_autonomous_execution_states[STATE_ADDRESS] = _state(attempted_actions=2)
     memory_store = InMemoryControlPlaneStore()
     local_store = LocalControlPlaneStore(tmp_path / "control-plane")
+    memory_revision = memory_store.load_snapshot_state().revision
+    local_revision = local_store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="attempted_actions must equal"):
-        memory_store.save_snapshot(snapshot)
+        memory_store.save_snapshot(snapshot, expected_revision=memory_revision)
     with pytest.raises(ValueError, match="attempted_actions must equal"):
-        local_store.save_snapshot(snapshot)
+        local_store.save_snapshot(snapshot, expected_revision=local_revision)
 
 
 def test_local_control_plane_store_rejects_invalid_durable_state(tmp_path: Path) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
-    store.save_snapshot(_snapshot())
-    snapshot_path = tmp_path / "control-plane" / "snapshot.json"
-    payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
-    payload["participant_autonomous_execution_states"][STATE_ADDRESS]["attempted_actions"] = 2
-    snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
+    store_path = tmp_path / "control-plane"
+    store = LocalControlPlaneStore(store_path)
+    store.save_snapshot(_snapshot(), expected_revision=store.load_snapshot_state().revision)
+
+    def mutate(payload: dict[str, object]) -> None:
+        states = payload["participant_autonomous_execution_states"]
+        assert isinstance(states, dict)
+        state = states[STATE_ADDRESS]
+        assert isinstance(state, dict)
+        state["attempted_actions"] = 2
+
+    _rewrite_durable_snapshot(store_path, mutate)
 
     with pytest.raises(ValueError, match="attempted_actions must equal"):
         store.load_snapshot()
 
 
 def test_local_control_plane_store_rejects_durable_clock_segment_mismatch(tmp_path: Path) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
-    store.save_snapshot(_snapshot())
-    snapshot_path = tmp_path / "control-plane" / "snapshot.json"
-    payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
-    clock = payload["time_model_state"]["clocks"]["time.clock.scenario-clock"]
-    clock["coordinate"]["segment"] = 1
-    clock["history"][-1]["resulting"]["segment"] = 1
-    snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
+    store_path = tmp_path / "control-plane"
+    store = LocalControlPlaneStore(store_path)
+    store.save_snapshot(_snapshot(), expected_revision=store.load_snapshot_state().revision)
+
+    def mutate(payload: dict[str, object]) -> None:
+        time_model = payload["time_model_state"]
+        assert isinstance(time_model, dict)
+        clocks = time_model["clocks"]
+        assert isinstance(clocks, dict)
+        clock = clocks["time.clock.scenario-clock"]
+        assert isinstance(clock, dict)
+        coordinate = clock["coordinate"]
+        assert isinstance(coordinate, dict)
+        coordinate["segment"] = 1
+        history = clock["history"]
+        assert isinstance(history, list)
+        resulting = history[-1]["resulting"]
+        assert isinstance(resulting, dict)
+        resulting["segment"] = 1
+
+    _rewrite_durable_snapshot(store_path, mutate)
 
     with pytest.raises(ValueError, match="must match the bound shared clock segment"):
+        store.load_snapshot()
+
+
+def test_local_control_plane_store_rejects_corrupted_payload(tmp_path: Path) -> None:
+    store_path = tmp_path / "control-plane"
+    store = LocalControlPlaneStore(store_path)
+    store.save_snapshot(_snapshot(), expected_revision=store.load_snapshot_state().revision)
+
+    _rewrite_durable_snapshot(store_path, lambda payload: payload.clear(), update_digest=False)
+
+    with pytest.raises(ValueError, match="failed its durable integrity check"):
         store.load_snapshot()
 
 
@@ -222,15 +283,17 @@ def test_durable_snapshot_rejects_clock_segment_mismatch() -> None:
     snapshot = _snapshot()
     snapshot.time_model_state = _time_state(segment=1)
     store = InMemoryControlPlaneStore()
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="must match the bound shared clock segment"):
-        store.save_snapshot(snapshot)
+        store.save_snapshot(snapshot, expected_revision=revision)
 
 
 def test_durable_snapshot_rejects_episode_mismatch() -> None:
     snapshot = _snapshot()
     snapshot.participant_episode_results[PARTICIPANT_ADDRESS]["episode_id"] = "wrong-episode"
     store = InMemoryControlPlaneStore()
+    revision = store.load_snapshot_state().revision
 
     with pytest.raises(ValueError, match="must match the live participant episode"):
-        store.save_snapshot(snapshot)
+        store.save_snapshot(snapshot, expected_revision=revision)

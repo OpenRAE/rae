@@ -50,6 +50,7 @@ class NetworkRuntime(ResolvedResource):
     """Compiled switch/network deployment."""
 
     node_name: str = ""
+    node_kind: str = "switch"
 
 
 @dataclass(frozen=True)

@@ -7,6 +7,7 @@ from typing import Any
 from .associated_artifacts import AssociatedArtifactManifestModel
 from .execution_state import EvaluationHistoryEventModel
 from .experiment_bindings import ParticipantConfigurationResultModel
+from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
 from .participant_control import ParticipantControlOccurrenceModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
@@ -41,10 +42,6 @@ from .participant_views import (
     ParticipantHistoryViewModel,
     ParticipantOutcomeReportModel,
     ParticipantStatusViewModel,
-)
-from .realization_plans import (
-    OperationReceiptModel,
-    OperationStatusModel,
 )
 from .reusable_assets import (
     ReusableAssetTrustPolicyModel,

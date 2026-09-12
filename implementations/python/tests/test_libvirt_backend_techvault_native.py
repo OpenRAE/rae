@@ -33,6 +33,8 @@ from raes_backend_libvirt.techvault_native import (
     native_soc_readback,
 )
 from raes_backend_protocols.naming import provider_resource_name
+from raes_conformance.conformance.target_planning import target_probe_execution_plan
+from raes_contracts.runtime_state import OperationState
 from raes_operations import techvault_live
 from raes_operations.techvault_live import (
     TechVaultLiveConfig,
@@ -40,7 +42,6 @@ from raes_operations.techvault_live import (
     validate_techvault_live_manifest,
 )
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.manager import RuntimeManager
 
 
 class _NativeObject:
@@ -353,24 +354,31 @@ def _submit_native_scenario(path: Path, tmp_path: Path):
         initramfs_builder=_Builder(),
     )
     target = create_libvirt_target(driver=driver, name_prefix="native-test")
-    manager = RuntimeManager(target)
     content = re.sub(r"(?m)^\s+os(?:_distribution|_version)?:.*\n", "", path.read_text(encoding="utf-8"))
     scenario = parse_sdl(content)
-    execution_plan = manager.plan(scenario)
+    execution_plan = target_probe_execution_plan(scenario, target, provisioning_only=True)
+    # These tests exercise the native provisioning boundary itself. Planner
+    # capability diagnostics for the same unsupported concerns are out of scope.
+    execution_plan = replace(execution_plan, diagnostics=[])
     control_plane = RuntimeControlPlane(target)
+    assert execution_plan.is_valid, execution_plan.diagnostics
+    control_plane.register_planner_produced_plan(execution_plan)
     receipt = control_plane.submit_provisioning(execution_plan.provisioning)
     status = control_plane.get_operation(receipt.operation_id)
-    assert status is not None
-    return driver, connection, status, control_plane.snapshot
+    return driver, connection, receipt, status, control_plane.snapshot
 
 
 def test_operational_techvault_rejects_unrealized_concerns_before_libvirt_io(tmp_path):
-    driver, connection, status, snapshot = _submit_native_scenario(
+    driver, connection, receipt, status, snapshot = _submit_native_scenario(
         EXAMPLES_DIR / "techvault-operational.sdl.yaml", tmp_path
     )
 
-    assert status.state.value == "failed"
+    assert receipt.accepted is True
+    assert receipt.diagnostics == []
+    assert status is not None
+    assert status.state is OperationState.FAILED
     codes = {diagnostic.code for diagnostic in status.diagnostics}
+    assert "runtime.control-plane.operation-failed" in codes
     assert "libvirt-backend.techvault.resource-out-of-envelope" in codes
     assert "libvirt-backend.techvault.service-unsupported" in codes
     assert connection.domain_xml == []
@@ -380,28 +388,35 @@ def test_operational_techvault_rejects_unrealized_concerns_before_libvirt_io(tmp
 
 
 @pytest.mark.parametrize(
-    ("filename", "domain_count", "network_count"),
+    ("filename", "expected_code", "accepted"),
     (
-        ("techvault-observability-core.sdl.yaml", 3, 1),
-        ("techvault-defensive-min.sdl.yaml", 6, 1),
-        ("techvault-enterprise-web.sdl.yaml", 9, 3),
-        ("techvault-attacker-target.sdl.yaml", 8, 3),
+        ("techvault-observability-core.sdl.yaml", "libvirt-backend.techvault.service-unsupported", True),
+        ("techvault-defensive-min.sdl.yaml", "realization.unsupported-exact-requirement", False),
+        ("techvault-enterprise-web.sdl.yaml", "libvirt-backend.techvault.service-unsupported", True),
+        ("techvault-attacker-target.sdl.yaml", "libvirt-backend.techvault.service-unsupported", True),
     ),
 )
-def test_curated_variants_do_not_turn_planned_surfaces_into_native_claims(
-    filename, domain_count, network_count, tmp_path
-):
-    del domain_count, network_count
-    driver, connection, status, snapshot = _submit_native_scenario(EXAMPLES_DIR / filename, tmp_path)
+def test_curated_variants_do_not_turn_planned_surfaces_into_native_claims(filename, expected_code, accepted, tmp_path):
+    driver, connection, receipt, status, snapshot = _submit_native_scenario(EXAMPLES_DIR / filename, tmp_path)
 
-    assert status.state.value == "failed"
+    assert receipt.accepted is accepted
+    if accepted:
+        assert receipt.diagnostics == []
+        assert status is not None
+        assert status.state is OperationState.FAILED
+        codes = {diagnostic.code for diagnostic in status.diagnostics}
+        assert "runtime.control-plane.operation-failed" in codes
+    else:
+        assert status is None
+        codes = {diagnostic.code for diagnostic in receipt.diagnostics}
+    assert expected_code in codes
     assert connection.domain_xml == []
     assert connection.network_xml == []
     assert driver.last_snapshot == {}
     assert snapshot.entries == {}
 
 
-def test_bounded_substrate_emits_complete_daemon_observations(tmp_path):
+def test_bounded_substrate_keeps_operational_checks_and_observes_substrate_only_on_request(tmp_path):
     connection = _FakeConnection()
     kernel = tmp_path / "vmlinuz"
     kernel.write_bytes(b"kernel")
@@ -431,17 +446,14 @@ def test_bounded_substrate_emits_complete_daemon_observations(tmp_path):
     result = driver.realize(networks=(network,), domains=(domain,))
 
     assert not result.diagnostics
-    assert len(result.observations) == 14
+    assert len(result.observations) == 13
     assert {observation.source.value for observation in result.observations} == {"daemon-observed"}
-    substrate = next(
-        observation for observation in result.observations if observation.concern.value == "compute-substrate"
-    )
-    assert substrate.value == "virtual-machine"
-    assert substrate.binding_verified
+    assert all(observation.concern.value != "compute-substrate" for observation in result.observations)
     definitions_before = tuple(connection.domain_xml)
     readback = driver.observe(domains=(domain,))
     assert not readback.diagnostics
     assert [item.value for item in readback.observations] == ["virtual-machine"]
+    assert readback.observations[0].binding_verified
     assert tuple(connection.domain_xml) == definitions_before
     surface = expected_surface(driver.last_snapshot)
     assert surface["source"] == "daemon-observed"

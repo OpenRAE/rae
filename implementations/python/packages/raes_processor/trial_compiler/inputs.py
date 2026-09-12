@@ -10,6 +10,7 @@ from .models import CompilationFailure, TrialCompilationRequest
 from .profiles import admitted_profiles, coordinate_projection, replicate_id
 
 _RUN_PLAN_ADDRESS = "/run_plan"
+_CAPTURE_SPEC_REFS_ADDRESS = "/input_refs/capture_spec_refs"
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -70,11 +71,74 @@ def _validate_binding_input_ref(request: TrialCompilationRequest) -> None:
             )
 
 
+def _validate_capture_inputs(request: TrialCompilationRequest) -> None:
+    experiment_refs = request.experiment.capture_spec_refs
+    expected_keys = {(reference.ref_id, reference.ref_version) for reference in experiment_refs}
+    payload_keys = {
+        (capture_spec.capture_spec_id, capture_spec.spec_version) for capture_spec in request.capture_specs.values()
+    }
+    if (
+        len(payload_keys) != len(request.capture_specs)
+        or any(key != capture_spec.capture_spec_id for key, capture_spec in request.capture_specs.items())
+        or expected_keys != payload_keys
+    ):
+        raise _fail(
+            "capture-spec-payload-mismatch",
+            _CAPTURE_SPEC_REFS_ADDRESS,
+            "capture specification references do not resolve exactly to the supplied payloads",
+        )
+
+    pinned = {
+        (reference.ref_id, reference.ref_version, reference.ref_digest)
+        for reference in request.input_refs.capture_spec_refs
+    }
+    expected_pins = {
+        (
+            capture_spec.capture_spec_id,
+            capture_spec.spec_version,
+            canonical_json_digest(capture_spec.model_dump(mode="json")),
+        )
+        for capture_spec in request.capture_specs.values()
+    }
+    if pinned != expected_pins:
+        raise _fail(
+            "capture-spec-ref-mismatch",
+            _CAPTURE_SPEC_REFS_ADDRESS,
+            "capture specification digests do not match the admitted payloads",
+        )
+
+    requirement_ids = [
+        requirement.requirement_id
+        for capture_spec in request.capture_specs.values()
+        for requirement in capture_spec.capture_requirements.values()
+    ]
+    if len(set(requirement_ids)) != len(requirement_ids):
+        raise _fail(
+            "capture-requirement-ambiguous",
+            _CAPTURE_SPEC_REFS_ADDRESS,
+            "capture requirement identities must be unique across admitted capture specifications",
+        )
+    task_requirements = {reference.ref_id for reference in request.task.evaluation_protocol.observation_requirements}
+    task_requirements.update(
+        reference.ref_id
+        for metric in request.task.evaluation_protocol.metric_definitions.values()
+        for reference in metric.evidence_requirements
+    )
+    missing = sorted(task_requirements.difference(requirement_ids))
+    if missing:
+        raise _fail(
+            "task-capture-requirement-missing",
+            "/task/evaluation_protocol",
+            "task evidence requirements do not resolve to admitted capture requirements",
+        )
+
+
 def validate_input_identities(request: TrialCompilationRequest) -> None:
     """Validate every caller-supplied identity against its admitted payload."""
 
     _validate_primary_input_refs(request)
     _validate_binding_input_ref(request)
+    _validate_capture_inputs(request)
     refs = request.input_refs
     if request.apparatus.realization_envelope != request.realization_envelope.identity:
         raise _fail(

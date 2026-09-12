@@ -441,27 +441,26 @@ term lineage fields. The source artifact was extracted from the ATLAS
 
 Rules:
 
-- `offensive_behavior_refs` values resolve through
-  `participant-offensive-behavior-activities`.
-- `ai_offensive_behavior_refs` values resolve through
-  `participant-ai-offensive-behavior-activities`.
+- External classifications use standalone generic concept binding documents,
+  never behavior-specification fields (issue #989).
 - Base vocabulary values preserve ATT&CK tactic shortnames, IDs, names, URLs,
   descriptions, and matrix order from the pinned v19.1 source artifact.
 - ATLAS base vocabulary values preserve ATLAS tactic shortnames, IDs, names,
   URLs, descriptions, UUIDs, creation/modification dates, ATT&CK cross-reference
   metadata where present, and matrix order from the pinned v2026.06 source
   artifact.
-- Governed extensions must use the shared `x-<owner>:<term>` syntax.
-- Offensive behavior refs classify authored behavior intent; they do not
+- Optional source catalogs have no governed SDL scopes and closed adopted
+  term sets; additional schemes require explicit source context.
+- External behavior bindings classify authored behavior intent; they do not
   replace action contracts, observation boundaries, outcome rules, authority
   refs, SDL `goals`, experiment tasks, workflow steps, participant roles,
   behavior modes, backend feature support, or runtime history.
 - ATT&CK and ATLAS are distinct adopted authorities. Do not merge ATLAS terms
-  into the ATT&CK vocabulary, use one vocabulary to govern both fields, or treat
+  into the ATT&CK vocabulary, use one vocabulary to govern native fields, or treat
   overlapping labels as interchangeable without an explicit mapping surface.
 - External technique, tool, CVE, or command identifiers require explicit
   mapping or loss metadata on the owning surface; they are not accepted as raw
-  portable RAES semantics by this field.
+  portable RAES semantics as native configuration.
 - Future ATT&CK or ATLAS release updates must update the matching pinned source
   artifact, catalog terms, fixture, docs, schema metadata as needed, and
   checker validation evidence in one reviewable change.
@@ -507,15 +506,16 @@ Pinned ATLAS v2026.06 tactics:
 | AML.TA0010 | `exfiltration` | Exfiltration |
 | AML.TA0011 | `impact` | Impact |
 
-Implementation issue #209 owns executable declaration, validation, generated
-schema coverage, and compiler carry-through for offensive behavior refs.
+Issue #209 originally implemented native behavior refs. Issue #989 retires
+those fields and compiler carry-through in favor of
+[generic concept bindings](../../concept-authority/external-concept-bindings.md).
 
 ## ACT-610 - Defensive Behavior Vocabularies
 
-`defensive_behavior_refs` declare defensive participant intent or outcome
-domains on the existing behavior-specification aggregate. Values resolve
-through `participant-defensive-behavior-activities`, independently from the
-ATT&CK and ATLAS offensive scopes.
+Defensive intent and outcome classifications use generic bindings against
+the exact behavior-specification subject. The optional
+`participant-defensive-behavior-activities` source catalog is independent of
+ATT&CK and ATLAS and governs no SDL field.
 
 The eight base terms are RAES adaptations of the active NIST CSF 2.0 Detect,
 Respond, and Recover categories. The pinned source artifact is

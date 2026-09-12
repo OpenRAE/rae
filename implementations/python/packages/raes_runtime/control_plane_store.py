@@ -1,62 +1,37 @@
 """Durable storage for the per-target runtime control plane."""
 
+# ruff: noqa: F822, I001
+
 from __future__ import annotations
 
-import hashlib
-import json
-import os
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Any, Protocol
 
-from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
-from raes_contracts.contracts import RealizationEnvelopeIdentityModel
-from raes_contracts.contracts.time_model import TimeRuntimeStateModel
-from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
-from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
-    ExplicitnessClass,
-    ExplicitnessProvenance,
     OperationReceipt,
+    OperationState,
     OperationStatus,
-    RealizationProvenanceEntry,
     RuntimeSnapshot,
-    RuntimeSnapshotEnvelope,
-    SnapshotEntry,
+    is_operation_transition_allowed,
+    operation_transition_diagnostic,
 )
 
-from .control_plane_store_observations import realization_observation_from_payload
-from .control_plane_store_payloads import (
-    _entry_payloads,
-    _realization_observations_payload,
-    _realization_provenance_payload,
+from .control_plane_store_revision import (
+    SnapshotRevisionConflict,
+    SnapshotState,
 )
+from . import control_plane_store_history as _store_history
+from . import control_plane_store_types as _store_types
 
-if TYPE_CHECKING:
-    from .control_plane_store_local import LocalControlPlaneStore
+ParticipantCrossingHistoryPresence = _store_types.ParticipantCrossingHistoryPresence
+TerminalCommitMode = _store_types.TerminalCommitMode
+_require_expected_control_head = _store_history.require_expected_control_head
+_require_expected_history_heads = _store_history.require_expected_history_heads
+_snapshot_from_payload = _store_types._snapshot_from_payload
+_snapshot_payload = _store_types._snapshot_payload
+participant_crossing_history_presence = _store_types.participant_crossing_history_presence
 
-
-class ParticipantCrossingHistoryPresence(str, Enum):
-    """Source-level API-423 history presence before snapshot defaults apply."""
-
-    ABSENT = "absent"
-    PRESENT_EMPTY = "present-empty"
-    PRESENT = "present"
-
-
-def participant_crossing_history_presence(
-    payload: dict[str, Any],
-) -> ParticipantCrossingHistoryPresence:
-    """Classify raw runtime-snapshot input without inventing historical meaning."""
-
-    if "participant_crossing_history" not in payload:
-        return ParticipantCrossingHistoryPresence.ABSENT
-    history = payload["participant_crossing_history"]
-    if not isinstance(history, dict):
-        raise ValueError("participant_crossing_history must be an object")
-    if not history:
-        return ParticipantCrossingHistoryPresence.PRESENT_EMPTY
-    return ParticipantCrossingHistoryPresence.PRESENT
+_IDEMPOTENCY_KEY_CONFLICT = "idempotency key already belongs to another operation"
 
 
 @dataclass(frozen=True)
@@ -85,13 +60,161 @@ class ControlPlaneOperationRecord:
     decision_history_heads: dict[str, str | None] = field(default_factory=dict)
     result_history_heads: dict[str, str | None] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        _require_operation_record_identity(self)
+
+
+INTERRUPTED_OPERATION_DIAGNOSTIC_CODE = "runtime.control-plane.operation-interrupted"
+_NON_TERMINAL_OPERATION_STATES = {OperationState.ACCEPTED, OperationState.RUNNING}
+
+
+def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> None:
+    if record.receipt.operation_id != record.status.operation_id:
+        raise ValueError("operation receipt and status identities do not match")
+    if record.receipt.domain != record.status.domain:
+        raise ValueError("operation receipt and status domains do not match")
+    if record.receipt.submitted_at != record.status.submitted_at:
+        raise ValueError("operation receipt and status submission times do not match")
+    if record.receipt.context != record.status.context:
+        raise ValueError("operation receipt and status contexts do not match")
+    if not record.receipt.accepted:
+        raise ValueError("denied operation receipts cannot be persisted")
+
+
+def _require_same_operation_identity(
+    existing: ControlPlaneOperationRecord,
+    replacement: ControlPlaneOperationRecord,
+) -> None:
+    _require_operation_record_identity(existing)
+    _require_operation_record_identity(replacement)
+    if existing.receipt != replacement.receipt:
+        raise ValueError("operation receipt is immutable after its durable claim")
+    if (
+        existing.status.schema_version,
+        existing.status.operation_id,
+        existing.status.domain,
+        existing.status.submitted_at,
+        existing.status.context,
+        existing.idempotency_key,
+        existing.request_fingerprint,
+    ) != (
+        replacement.status.schema_version,
+        replacement.status.operation_id,
+        replacement.status.domain,
+        replacement.status.submitted_at,
+        replacement.status.context,
+        replacement.idempotency_key,
+        replacement.request_fingerprint,
+    ):
+        raise ValueError("operation identity is immutable after its durable claim")
+
+
+def _require_operation_record_transition(
+    existing: ControlPlaneOperationRecord | None,
+    replacement: ControlPlaneOperationRecord,
+) -> bool:
+    """Validate creation, transition, or exact retry through one authority."""
+
+    _require_operation_record_identity(replacement)
+    if existing is None:
+        if replacement.status.state not in {OperationState.ACCEPTED, OperationState.RUNNING}:
+            raise ValueError("new operation record requires an accepted or running status")
+        return True
+    _require_same_operation_identity(existing, replacement)
+    if existing == replacement:
+        return False
+    if not is_operation_transition_allowed(existing.status.state, replacement.status.state):
+        diagnostic = operation_transition_diagnostic(existing.status.state, replacement.status.state)
+        raise ValueError(f"{diagnostic.code}: {diagnostic.message}")
+    return True
+
+
+def _require_terminal_operation_transition(
+    existing: ControlPlaneOperationRecord | None,
+    replacement: ControlPlaneOperationRecord,
+) -> bool:
+    """Validate a terminal transition and return whether it changes the record."""
+
+    if replacement.status.state in _NON_TERMINAL_OPERATION_STATES:
+        raise ValueError("terminal operation commit requires a terminal status")
+    try:
+        return _require_operation_record_transition(existing, replacement)
+    except ValueError as exc:
+        if "immutable" in str(exc):
+            raise
+        if existing is not None and existing.status.state not in _NON_TERMINAL_OPERATION_STATES:
+            raise ValueError("a terminal operation record cannot be rewritten") from exc
+        raise
+
+
+def terminal_operation_audit(record: ControlPlaneOperationRecord) -> AuditEvent:
+    """Build the canonical actor-bound audit for one accepted terminal operation."""
+
+    context = record.status.context
+    state = record.status.state
+    return AuditEvent(
+        timestamp=record.status.updated_at,
+        action=f"{context.operation_kind.value}_terminal",
+        identity=context.actor_id,
+        allowed=True,
+        target=context.target_scope,
+        operation_id=record.receipt.operation_id,
+        reason=f"operation-{state.value}",
+        details={"state": state.value},
+    )
+
+
+def _require_terminal_operation_audit(
+    record: ControlPlaneOperationRecord,
+    audit_event: AuditEvent,
+) -> None:
+    expected = terminal_operation_audit(record)
+    if audit_event != expected:
+        raise ValueError("terminal audit does not match the immutable operation context")
+
+
+def _require_operation_audit_binding(
+    record: ControlPlaneOperationRecord,
+    audit_event: AuditEvent,
+) -> None:
+    """Reject audit events that are not bound to their immutable operation actor."""
+    if (
+        audit_event.operation_id != record.receipt.operation_id
+        or audit_event.identity != record.status.context.actor_id
+        or audit_event.timestamp != record.status.updated_at
+    ):
+        raise ValueError("operation audit is not actor-bound to the immutable operation context")
+
+
+def _require_terminal_commit_mode(mode: TerminalCommitMode) -> None:
+    if not isinstance(mode, TerminalCommitMode):
+        raise TypeError("terminal commit mode must be a TerminalCommitMode")
+
+
+def _require_terminal_retry_mode(
+    *,
+    current_revision: int,
+    expected_revision: int,
+    mode: TerminalCommitMode,
+) -> None:
+    committed_revision = expected_revision + 1 if mode is TerminalCommitMode.SNAPSHOT_BEARING else expected_revision
+    if current_revision != committed_revision:
+        raise ValueError("terminal operation retry does not match the durable commit mode")
+
 
 class ControlPlaneStore(Protocol):
-    """Durable persistence for control-plane state."""
+    """Durable persistence capabilities for control-plane state."""
 
     def load_snapshot(self) -> RuntimeSnapshot: ...
 
-    def save_snapshot(self, snapshot: RuntimeSnapshot) -> None: ...
+    def load_snapshot_state(self) -> SnapshotState: ...
+
+    def save_snapshot(
+        self,
+        snapshot: RuntimeSnapshot,
+        *,
+        expected_revision: int,
+    ) -> SnapshotState: ...
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]: ...
 
@@ -111,302 +234,43 @@ class ControlPlaneStore(Protocol):
         *,
         participant_address: str,
         expected_head: str | None,
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None: ...
+    ) -> SnapshotState: ...
 
     def commit_participant_transition(
         self,
         *,
         expected_history_heads: dict[str, str | None],
+        expected_revision: int,
         snapshot: RuntimeSnapshot,
         record: ControlPlaneOperationRecord,
         audit_event: AuditEvent,
-    ) -> None: ...
+    ) -> SnapshotState: ...
 
 
-def _control_history_head(snapshot: RuntimeSnapshot, participant_address: str) -> str | None:
-    events = snapshot.participant_control_history.get(participant_address, ())
-    if not events:
-        return None
-    event_id = events[-1].get("event_id")
-    return event_id if isinstance(event_id, str) and event_id else None
+class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
+    """Crash-atomic claim and terminal commit capabilities."""
 
+    def claim_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord: ...
 
-def _require_expected_control_head(
-    snapshot: RuntimeSnapshot,
-    participant_address: str,
-    expected_head: str | None,
-) -> None:
-    if _control_history_head(snapshot, participant_address) != expected_head:
-        raise ValueError("expected control history head does not match durable state")
-
-
-def _participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str | None:
-    history_name, separator, participant_address = history_key.partition(":")
-    histories = {
-        "participant_episode_history": snapshot.participant_episode_history,
-        "participant_behavior_history": snapshot.participant_behavior_history,
-        "participant_control_history": snapshot.participant_control_history,
-        "participant_crossing_history": snapshot.participant_crossing_history,
-        "information_state_history": snapshot.information_state_history,
-    }
-    history = histories.get(history_name)
-    if not separator or not participant_address or history is None:
-        raise ValueError("participant transition history key is not supported")
-    events = history.get(participant_address, ())
-    if not events:
-        return None
-    event_id = events[-1].get("event_id")
-    if isinstance(event_id, str) and event_id:
-        return event_id
-    encoded = json.dumps(events[-1], sort_keys=True, separators=(",", ":"), default=str).encode()
-    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
-
-
-def _require_expected_history_heads(
-    snapshot: RuntimeSnapshot,
-    expected_history_heads: dict[str, str | None],
-) -> None:
-    for history_key, expected_head in expected_history_heads.items():
-        if _participant_history_head(snapshot, history_key) != expected_head:
-            raise ValueError("expected participant history head does not match durable state")
-
-
-def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
-    require_participant_autonomous_runtime_snapshot(snapshot)
-    payload = {
-        "schema_version": RuntimeSnapshotEnvelope().schema_version,
-        "entries": _entry_payloads(snapshot),
-        "orchestration_results": dict(snapshot.orchestration_results),
-        "orchestration_history": {address: list(events) for address, events in snapshot.orchestration_history.items()},
-        "evaluation_results": dict(snapshot.evaluation_results),
-        "evaluation_history": {address: list(events) for address, events in snapshot.evaluation_history.items()},
-        "proposition_truth_results": dict(snapshot.proposition_truth_results),
-        "participant_episode_results": dict(snapshot.participant_episode_results),
-        "participant_episode_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_episode_history.items()
-        },
-        "participant_behavior_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_behavior_history.items()
-        },
-        "participant_control_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_control_history.items()
-        },
-        "participant_crossing_history": {
-            participant_address: list(events)
-            for participant_address, events in snapshot.participant_crossing_history.items()
-        },
-        "information_state_history": {
-            participant_address: list(records)
-            for participant_address, records in snapshot.information_state_history.items()
-        },
-        "participant_autonomous_execution_states": dict(snapshot.participant_autonomous_execution_states),
-        "participant_execution_services": dict(snapshot.participant_execution_services),
-        "participant_resource_budget_states": dict(snapshot.participant_resource_budget_states),
-        "participant_resource_pool_states": dict(snapshot.participant_resource_pool_states),
-        "participant_resource_budget_events": dict(snapshot.participant_resource_budget_events),
-        "shared_state_records": dict(snapshot.shared_state_records),
-        "shared_state_history": {
-            state_address: list(records) for state_address, records in snapshot.shared_state_history.items()
-        },
-        "joint_action_records": dict(snapshot.joint_action_records),
-        "time_management_contexts": dict(snapshot.time_management_contexts),
-        "time_model_state": (
-            snapshot.time_model_state.model_dump(mode="json") if snapshot.time_model_state is not None else None
-        ),
-        "realization_provenance": _realization_provenance_payload(snapshot),
-        "realization_observations": _realization_observations_payload(snapshot),
-        "realization_envelope": (
-            snapshot.realization_envelope.model_dump(mode="json") if snapshot.realization_envelope is not None else None
-        ),
-        "metadata": dict(snapshot.metadata),
-    }
-    return payload
-
-
-def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
-    entries_payload = payload.get("entries", {})
-    entries = {
-        address: SnapshotEntry(
-            address=str(entry.get("address", address)),
-            domain=RuntimeDomain(str(entry.get("domain", "provisioning"))),
-            resource_type=str(entry.get("resource_type", "")),
-            payload=dict(entry.get("payload", {})),
-            ordering_dependencies=tuple(entry.get("ordering_dependencies", ())),
-            refresh_dependencies=tuple(entry.get("refresh_dependencies", ())),
-            status=str(entry.get("status", "ready")),
-        )
-        for address, entry in entries_payload.items()
-        if isinstance(entry, dict)
-    }
-    snapshot = RuntimeSnapshot(
-        entries=entries,
-        orchestration_results=dict(payload.get("orchestration_results", {})),
-        orchestration_history={
-            address: list(events) for address, events in payload.get("orchestration_history", {}).items()
-        },
-        evaluation_results=dict(payload.get("evaluation_results", {})),
-        evaluation_history={address: list(events) for address, events in payload.get("evaluation_history", {}).items()},
-        proposition_truth_results=dict(payload.get("proposition_truth_results", {})),
-        participant_episode_results=dict(payload.get("participant_episode_results", {})),
-        participant_episode_history={
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_episode_history", {}).items()
-        },
-        participant_behavior_history={
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_behavior_history", {}).items()
-        },
-        participant_control_history={
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_control_history", {}).items()
-        },
-        participant_crossing_history={
-            participant_address: list(events)
-            for participant_address, events in payload.get("participant_crossing_history", {}).items()
-        },
-        information_state_history={
-            participant_address: list(records)
-            for participant_address, records in payload.get("information_state_history", {}).items()
-        },
-        participant_autonomous_execution_states=dict(payload.get("participant_autonomous_execution_states", {})),
-        participant_execution_services=dict(payload.get("participant_execution_services", {})),
-        participant_resource_budget_states=dict(payload.get("participant_resource_budget_states", {})),
-        participant_resource_pool_states=dict(payload.get("participant_resource_pool_states", {})),
-        participant_resource_budget_events=dict(payload.get("participant_resource_budget_events", {})),
-        shared_state_records=dict(payload.get("shared_state_records", {})),
-        shared_state_history={
-            state_address: list(records) for state_address, records in payload.get("shared_state_history", {}).items()
-        },
-        joint_action_records=dict(payload.get("joint_action_records", {})),
-        time_management_contexts=dict(payload.get("time_management_contexts", {})),
-        time_model_state=(
-            TimeRuntimeStateModel.model_validate(payload["time_model_state"])
-            if payload.get("time_model_state") is not None
-            else None
-        ),
-        realization_provenance=tuple(
-            RealizationProvenanceEntry(
-                address=str(item.get("address", "")),
-                field_path=str(item.get("field_path", "")),
-                domain=str(item.get("domain", "")),
-                requirement_kind=str(item.get("requirement_kind", "")),
-                explicitness=ExplicitnessClass(str(item.get("explicitness", ExplicitnessClass.EXACT.value))),
-                provenance=ExplicitnessProvenance(
-                    str(item.get("provenance", ExplicitnessProvenance.AUTHOR_DECLARED.value))
-                ),
-                governing_scope=(str(item["governing_scope"]) if item.get("governing_scope") is not None else None),
-                artifact_satisfaction=(
-                    ArtifactSatisfactionDisclosureModel.model_validate(item["artifact_satisfaction"])
-                    if item.get("artifact_satisfaction") is not None
-                    else None
-                ),
-            )
-            for item in payload.get("realization_provenance", [])
-            if isinstance(item, dict)
-        ),
-        realization_observations=tuple(
-            realization_observation_from_payload(item)
-            for item in payload.get("realization_observations", [])
-            if isinstance(item, dict)
-        ),
-        realization_envelope=(
-            RealizationEnvelopeIdentityModel.model_validate(payload["realization_envelope"])
-            if payload.get("realization_envelope") is not None
-            else None
-        ),
-        metadata=dict(payload.get("metadata", {})),
-    )
-    require_participant_autonomous_runtime_snapshot(snapshot)
-    return snapshot
-
-
-class InMemoryControlPlaneStore:
-    """Simple in-memory store."""
-
-    def __init__(self, snapshot: RuntimeSnapshot | None = None) -> None:
-        self._snapshot = snapshot if snapshot is not None else RuntimeSnapshot()
-        self._records: dict[str, ControlPlaneOperationRecord] = {}
-        self._idempotency: dict[str, str] = {}
-        self._audit: list[AuditEvent] = []
-
-    def load_snapshot(self) -> RuntimeSnapshot:
-        return self._snapshot
-
-    def save_snapshot(self, snapshot: RuntimeSnapshot) -> None:
-        require_participant_autonomous_runtime_snapshot(snapshot)
-        self._snapshot = snapshot
-
-    def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
-        return dict(self._records)
-
-    def save_record(self, record: ControlPlaneOperationRecord) -> None:
-        self._records[record.receipt.operation_id] = record
-        if record.idempotency_key:
-            self._idempotency[record.idempotency_key] = record.receipt.operation_id
-
-    def find_by_idempotency(
+    def commit_terminal_operation(
         self,
-        key: str,
-    ) -> ControlPlaneOperationRecord | None:
-        operation_id = self._idempotency.get(key)
-        if operation_id is None:
-            return None
-        return self._records.get(operation_id)
-
-    def append_audit(self, event: AuditEvent) -> None:
-        self._audit.append(event)
-
-    def read_audit(self) -> list[AuditEvent]:
-        return list(self._audit)
-
-    def commit_control_transition(
-        self,
+        snapshot: RuntimeSnapshot,
+        record: ControlPlaneOperationRecord,
         *,
-        participant_address: str,
-        expected_head: str | None,
-        snapshot: RuntimeSnapshot,
-        record: ControlPlaneOperationRecord,
-        audit_event: AuditEvent,
-    ) -> None:
-        _require_expected_control_head(self._snapshot, participant_address, expected_head)
-        self.commit_participant_transition(
-            expected_history_heads={
-                f"participant_control_history:{participant_address}": expected_head,
-            },
-            snapshot=snapshot,
-            record=record,
-            audit_event=audit_event,
-        )
+        audit_event: AuditEvent | None = None,
+        mode: TerminalCommitMode = TerminalCommitMode.SNAPSHOT_BEARING,
+        expected_revision: int,
+    ) -> SnapshotState: ...
 
-    def commit_participant_transition(
-        self,
-        *,
-        expected_history_heads: dict[str, str | None],
-        snapshot: RuntimeSnapshot,
-        record: ControlPlaneOperationRecord,
-        audit_event: AuditEvent,
-    ) -> None:
-        _require_expected_history_heads(self._snapshot, expected_history_heads)
-        require_participant_autonomous_runtime_snapshot(snapshot)
-        records = {**self._records, record.receipt.operation_id: record}
-        idempotency = dict(self._idempotency)
-        if record.idempotency_key:
-            idempotency[record.idempotency_key] = record.receipt.operation_id
-        self._snapshot = snapshot
-        self._records = records
-        self._idempotency = idempotency
-        self._audit = [*self._audit, audit_event]
+
+from .control_plane_store_memory import InMemoryControlPlaneStore  # noqa: E402
 
 
 def __getattr__(name: str) -> object:
-    """Lazily expose the local store without creating an import cycle."""
-
     if name == "LocalControlPlaneStore":
         from .control_plane_store_local import LocalControlPlaneStore
 
@@ -414,13 +278,22 @@ def __getattr__(name: str) -> object:
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-__all__ = (
+__all__ = [
+    "AtomicControlPlaneStore",
     "AuditEvent",
     "ControlPlaneOperationRecord",
     "ControlPlaneStore",
+    "INTERRUPTED_OPERATION_DIAGNOSTIC_CODE",
     "InMemoryControlPlaneStore",
     "LocalControlPlaneStore",
     "ParticipantCrossingHistoryPresence",
-    "os",
+    "SnapshotRevisionConflict",
+    "SnapshotState",
+    "TerminalCommitMode",
+    "_require_expected_control_head",
+    "_require_expected_history_heads",
+    "_snapshot_from_payload",
+    "_snapshot_payload",
     "participant_crossing_history_presence",
-)
+    "terminal_operation_audit",
+]

@@ -49,6 +49,7 @@ def _entry_matches_resource(
 ) -> bool:
     return (
         entry.domain == resource.domain
+        and entry.profile_bindings == resource.profile_bindings
         and entry.resource_type == resource.resource_type
         and realization_payloads_match(
             entry.address,

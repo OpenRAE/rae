@@ -6,6 +6,7 @@ import json
 
 from .contracts import (
     ActivityStreamsActivityTypesSourceModel,
+    AtlasTacticsSourceModel,
     AttackEnterpriseTacticsSourceModel,
     FipaCommunicativeActsSourceModel,
     NistCsfDefensiveCategorySourceModel,
@@ -23,6 +24,11 @@ def load_nist_csf_defensive_categories_source() -> NistCsfDefensiveCategorySourc
     return NistCsfDefensiveCategorySourceModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
 
 
+def load_atlas_tactics_source() -> AtlasTacticsSourceModel:
+    path = corpus_family_root(CONCEPT_AUTHORITY) / "atlas-tactics-source-v1.json"
+    return AtlasTacticsSourceModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
 def load_activitystreams_activity_types_source() -> ActivityStreamsActivityTypesSourceModel:
     path = corpus_family_root(CONCEPT_AUTHORITY) / "w3c-activitystreams-activity-types-source-v1.json"
     return ActivityStreamsActivityTypesSourceModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
@@ -36,6 +42,7 @@ def load_fipa_communicative_acts_source() -> FipaCommunicativeActsSourceModel:
 __all__ = [
     "load_activitystreams_activity_types_source",
     "load_attack_enterprise_tactics_source",
+    "load_atlas_tactics_source",
     "load_fipa_communicative_acts_source",
     "load_nist_csf_defensive_categories_source",
 ]

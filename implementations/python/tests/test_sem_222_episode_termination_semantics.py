@@ -13,6 +13,9 @@ real ADR-013 ``ParticipantEpisode*`` surface.
 from __future__ import annotations
 
 import pytest
+from jsonschema import Draft202012Validator
+from raes_conformance.conformance.semantics import _semantic_diagnostics
+from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel, schema_bundle
 from raes_contracts.participant_episode import (
     ParticipantEpisodeControlAction,
     ParticipantEpisodeStatus,
@@ -24,6 +27,8 @@ from raes_contracts.participant_episode_closure import (
     ParticipantEpisodeClosureSignal,
     iter_participant_episode_closure_violations,
 )
+from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_runtime.control_plane_store_snapshots import _snapshot_payload
 
 _ADDRESS = "scenario/participant/agent-0"
 _EPISODE = "episode-0"
@@ -276,3 +281,31 @@ def test_canonical_runtime_state_validation_enforces_closure_records() -> None:
     diagnostics = participant_runtime_state_contract_diagnostics(contradictory)
     assert diagnostics
     assert all(diag.code == "runtime.backend-contract-invalid" for diag in diagnostics)
+
+
+def test_public_runtime_snapshot_preserves_and_validates_closure_records() -> None:
+    snapshot = RuntimeSnapshot(
+        participant_episode_results=_terminal_result(),
+        participant_episode_history=_terminal_history(),
+        participant_episode_closure_records={_ADDRESS: [_closure_payload()]},
+    )
+    payload = _snapshot_payload(snapshot)
+
+    model = RuntimeSnapshotEnvelopeModel.model_validate(payload)
+    schema_errors = list(Draft202012Validator(schema_bundle()["runtime-snapshot-v1"]).iter_errors(payload))
+
+    assert model.participant_episode_closure_records == snapshot.participant_episode_closure_records
+    assert schema_errors == []
+    assert _semantic_diagnostics("runtime-snapshot-v1", payload) == []
+
+
+def test_public_runtime_snapshot_rejects_invalid_closure_record_semantics() -> None:
+    snapshot = RuntimeSnapshot(
+        participant_episode_results=_terminal_result(),
+        participant_episode_history=_terminal_history(),
+        participant_episode_closure_records={_ADDRESS: [_closure_payload(sequence_number=3)]},
+    )
+
+    diagnostics = _semantic_diagnostics("runtime-snapshot-v1", _snapshot_payload(snapshot))
+
+    assert any("history" in diagnostic.message for diagnostic in diagnostics)

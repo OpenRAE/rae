@@ -1,0 +1,177 @@
+{
+  "$defs": {
+    "DomainProfileCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact immutable definition coordinate.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "definition_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 253,
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "profile_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "title": "DomainProfileCoordinateModel",
+      "type": "object"
+    },
+    "DomainProfileSchemaModel": {
+      "additionalProperties": false,
+      "description": "Pinned inert JSON Schema carried by a profile definition.",
+      "properties": {
+        "dialect": {
+          "const": "https://json-schema.org/draft/2020-12/schema",
+          "default": "https://json-schema.org/draft/2020-12/schema",
+          "title": "Dialect",
+          "type": "string"
+        },
+        "required_vocabularies": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Required Vocabularies",
+          "type": "array"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "schema_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Schema Digest",
+          "type": "string"
+        },
+        "schema_document": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Schema Document",
+          "type": "object"
+        },
+        "schema_id": {
+          "minLength": 1,
+          "title": "Schema Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_id",
+        "revision",
+        "schema_digest",
+        "schema_document"
+      ],
+      "title": "DomainProfileSchemaModel",
+      "type": "object"
+    },
+    "DomainProfileSemanticContractModel": {
+      "additionalProperties": false,
+      "description": "Exact identity of pre-installed semantic behavior, never executable data.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authority",
+        "contract_id",
+        "revision",
+        "digest"
+      ],
+      "title": "DomainProfileSemanticContractModel",
+      "type": "object"
+    },
+    "JsonValue": {}
+  },
+  "$id": "https://openrae.github.io/rae/schemas/domain-profile-definition-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Immutable standard-or-private definition using the shared contract.",
+  "properties": {
+    "allowed_contexts": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Allowed Contexts",
+      "type": "array"
+    },
+    "coordinate": {
+      "$ref": "#/$defs/DomainProfileCoordinateModel"
+    },
+    "profile_schema": {
+      "$ref": "#/$defs/DomainProfileSchemaModel"
+    },
+    "schema_version": {
+      "const": "domain-profile-definition/v1",
+      "default": "domain-profile-definition/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "semantic_contract": {
+      "$ref": "#/$defs/DomainProfileSemanticContractModel"
+    }
+  },
+  "required": [
+    "coordinate",
+    "profile_schema",
+    "semantic_contract",
+    "allowed_contexts"
+  ],
+  "title": "DomainProfileDefinitionModel",
+  "type": "object"
+}

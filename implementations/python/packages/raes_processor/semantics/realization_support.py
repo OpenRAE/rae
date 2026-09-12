@@ -9,12 +9,14 @@ from raes_contracts.apparatus import (
     RealizationSupportDeclaration,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.realization_structure import RealizationCollection, RealizationRecord
 from raes_contracts.vocabulary import RealizationSupportMode
 
 from .realization_apparatus_defaults import (
     ApparatusRealizationDefaultResolver,
     effective_realization_explicitness,
 )
+from .realization_concerns import realization_concern_descriptor
 from .realization_observation_admission import has_required_observation_support
 from .realization_process_limits import process_resource_limit_support_diagnostic
 from .realization_requirement import CompiledRealizationRequirement
@@ -52,12 +54,20 @@ def _realization_support_diagnostic(
         declaration for declaration in manifest.realization_support if declaration.domain == requirement.domain
     ]
     if requirement.requirement_kind == "process-resource-limits":
-        diagnostic = process_resource_limit_support_diagnostic(
-            requirement,
-            declarations,
-            explicitness,
-            manifest.realization_envelope,
+        process_diagnostic = process_resource_limit_support_diagnostic(
+            requirement, declarations, explicitness, manifest.realization_envelope
         )
+        if process_diagnostic is not None:
+            return process_diagnostic
+    if isinstance(requirement.structure, (RealizationCollection, RealizationRecord)) or (
+        requirement.constraint_document is not None
+        and requirement.constraint_document.root.kind in {"recursive-record", "keyed-collection", "sequence"}
+    ):
+        exact_diagnostic = _exact_support_diagnostic(requirement, declarations)
+        if exact_diagnostic is not None:
+            return exact_diagnostic
+    if requirement.requirement_kind == "process-resource-limits":
+        diagnostic = None
     elif explicitness is ExplicitnessClass.OPEN:
         diagnostic = _open_support_diagnostic(requirement, declarations)
     elif explicitness is ExplicitnessClass.EXACT:
@@ -115,9 +125,11 @@ def _exact_support_diagnostic(
     requirement: CompiledRealizationRequirement,
     declarations: list[RealizationSupportDeclaration],
 ) -> Diagnostic | None:
-    requires_concern_specific_support = (
-        requirement.verification_scope is not None
-        and requirement.requirement_kind not in {"compute-substrate", "os-family", "os-distribution", "os-version"}
+    descriptor = realization_concern_descriptor(requirement.requirement_kind)
+    requires_concern_specific_support = bool(
+        descriptor is not None
+        and descriptor.authored_path[:1] == ("runtime",)
+        and requirement.requirement_kind != "process-resource-limits"
     )
     exact_declarations = [
         declaration

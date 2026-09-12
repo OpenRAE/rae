@@ -19,18 +19,22 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
-from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationReceipt, OperationState, OperationStatus, RuntimeSnapshot
+from raes_contracts.runtime_state import (
+    OperationKind,
+    RuntimeSnapshot,
+)
 
+from .control_plane_mutation import external_control_plane_call
+from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
-from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store import ControlPlaneOperationRecord
 from .participant_crossing_mediation import (
     ParticipantCrossingIntent,
     ParticipantCrossingPolicyResolution,
     ParticipantCrossingTransformationResolution,
     PreparedParticipantCrossing,
 )
+from .participant_crossing_operation import participant_crossing_operation_artifacts
 from .participant_crossing_policy import (
     _applicable_semantic_gates,
     _BackendSupport,
@@ -74,10 +78,11 @@ def _next_crossing_snapshot(
             intent.participant_address: candidate_history,
         },
     )
-    context = control_plane._crossing_policy_resolver.validation_context(
-        control_plane._snapshot,
-        intent.participant_address,
-    )
+    with external_control_plane_call(control_plane):
+        context = control_plane._crossing_policy_resolver.validation_context(
+            control_plane._snapshot,
+            intent.participant_address,
+        )
     validate_participant_crossing_occurrence_context(
         [ParticipantCrossingOccurrenceModel.model_validate(item) for item in candidate_history],
         known_subjects=context.known_subjects,
@@ -116,10 +121,11 @@ def _prepare_crossing_decision(
         records.append(transformed)
         if intent.direction is ParticipantCrossingDirection.INGRESS:
             fresh_intent = _fresh_transformed_intent(intent, transformation, transformed)
-            fresh_resolution = control_plane._crossing_policy_resolver.resolve(
-                fresh_intent,
-                control_plane._snapshot,
-            )
+            with external_control_plane_call(control_plane):
+                fresh_resolution = control_plane._crossing_policy_resolver.resolve(
+                    fresh_intent,
+                    control_plane._snapshot,
+                )
             fresh_support = _resolve_backend_support(control_plane, fresh_intent, fresh_resolution)
             fresh_gates = _decision_gates(
                 _applicable_semantic_gates(fresh_intent, fresh_resolution),
@@ -139,13 +145,20 @@ def _prepare_crossing_decision(
             final_decision = fresh_decision
             final_disposition = fresh_disposition
     next_snapshot = _next_crossing_snapshot(control_plane, intent, records)
-    record, audit_event = _operation_artifacts(
-        intent,
-        identity,
-        final_decision,
-        final_disposition,
-        preparation.semantic_fingerprint,
-        preparation.scoped_key,
+    record, audit_event = participant_crossing_operation_artifacts(
+        intent=intent,
+        identity=identity,
+        decision=final_decision,
+        disposition=final_disposition,
+        semantic_fingerprint=preparation.semantic_fingerprint,
+        scoped_key=preparation.scoped_key,
+        context=operation_admission_context(
+            control_plane,
+            kind=OperationKind.PARTICIPANT_CROSSING,
+            request=intent,
+            identity=identity,
+            run_scope=f"run:{intent.episode_id}",
+        ),
     )
     record = ControlPlaneOperationRecord(
         receipt=record.receipt,
@@ -358,73 +371,6 @@ def _base_envelope(
         "object_marking_refs": list(intent.object_marking_refs),
         "authorization_scope": intent.authorization_scope,
     }
-
-
-def _operation_artifacts(
-    intent: ParticipantCrossingIntent,
-    identity: ControlPlaneIdentity,
-    decision: ParticipantCrossingOccurrenceModel,
-    disposition: ParticipantCrossingDecisionDisposition,
-    semantic_fingerprint: str,
-    scoped_key: str,
-) -> tuple[ControlPlaneOperationRecord, AuditEvent]:
-    operation_id = str(uuid4())
-    submitted_at = decision.recorded_at
-    allowed = disposition is ParticipantCrossingDecisionDisposition.PERMIT or (
-        intent.direction is ParticipantCrossingDirection.EGRESS
-        and disposition is ParticipantCrossingDecisionDisposition.TRANSFORM
-    )
-    diagnostics = (
-        []
-        if allowed
-        else [
-            Diagnostic(
-                code="runtime.participant-crossing-denied",
-                domain="participant",
-                address=intent.participant_address,
-                message="Participant crossing was not permitted by the governed decision.",
-            )
-        ]
-    )
-    receipt = OperationReceipt(
-        operation_id=operation_id,
-        domain=RuntimeDomain.PARTICIPANT,
-        submitted_at=submitted_at,
-        accepted=allowed,
-        diagnostics=diagnostics,
-    )
-    status = OperationStatus(
-        operation_id=operation_id,
-        domain=RuntimeDomain.PARTICIPANT,
-        state=OperationState.SUCCEEDED if allowed else OperationState.FAILED,
-        submitted_at=submitted_at,
-        updated_at=submitted_at,
-        diagnostics=diagnostics,
-        changed_addresses=[intent.participant_address],
-    )
-    record = ControlPlaneOperationRecord(
-        receipt=receipt,
-        status=status,
-        request_fingerprint=semantic_fingerprint,
-        idempotency_key=scoped_key,
-    )
-    occurrence = decision.occurrence
-    audit_event = AuditEvent(
-        timestamp=submitted_at,
-        action="record_participant_crossing",
-        identity=identity.identity,
-        allowed=allowed,
-        target=intent.participant_address,
-        operation_id=operation_id,
-        reason=occurrence.reason_code,
-        details={
-            "episode_id": intent.episode_id,
-            "decision_id": occurrence.decision_id,
-            "decision_cut_ref": occurrence.policy.decision_cut_ref,
-            "disposition": occurrence.disposition.value,
-        },
-    )
-    return record, audit_event
 
 
 def _semantic_fingerprint(

@@ -2,9 +2,9 @@
   "contract_id": "provisioning-plan-v1",
   "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
   "stability": "draft",
-  "content_hash": "18166a63a4da604a62d4957fac6cca4344a285de17c7fa67746bfcbeae58ac5c",
+  "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15",
   "last_change": {
-    "summary": "Added mandatory resolved realization authority, operation identity, and separate authored compute-substrate constraints to provisioning plans for issues #1067 and #1076.",
-    "content_hash": "18166a63a4da604a62d4957fac6cca4344a285de17c7fa67746bfcbeae58ac5c"
+    "summary": "Carried recursive authority, prepared portable membership and authenticated profile constraints with pinned definitions for issue #1204.",
+    "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15"
   }
 }

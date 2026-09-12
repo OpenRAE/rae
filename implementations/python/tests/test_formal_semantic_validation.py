@@ -35,8 +35,8 @@ def _bundle() -> tuple[dict, dict, dict, dict, dict]:
     return tuple(deepcopy(item) for item in load_bundle(REPO_ROOT))  # type: ignore[return-value]
 
 
-def test_current_bundle_is_clean() -> None:
-    assert validate_bundle(REPO_ROOT, *_bundle()) == []
+def test_historical_bundle_integrity_is_clean() -> None:
+    assert validate_bundle(REPO_ROOT, *_bundle(), replay_cases=False) == []
 
 
 def test_atomic_release_index_validates_every_historical_bundle() -> None:
@@ -48,6 +48,12 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "1.2.0",
         "2.0.0",
         "3.0.0",
+        "4.0.0",
+        "5.0.0",
+        "6.0.0",
+        "7.0.0",
+        "8.0.0",
+        "9.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -55,17 +61,22 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
 
-    assert release.manifest["revision"] == "3.0.0"
+    assert release.manifest["revision"] == "9.0.0"
     assert protocol["revision"] == corpus["revision"] == "2.0.0"
-    assert snapshot["baseline"]["release_revision"] == "1.0.0"
-    assert {item["case_id"] for item in snapshot["deviations"]} == {
-        "schema-valid-control",
-        "semantic-resolved-objective",
-        "workflow-reachable-control",
-        "compile-repeatability-control",
-        "compile-non-vacuity-control",
-    }
+    assert snapshot["baseline"]["release_revision"] == "8.0.0"
+    assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
+
+
+def test_recursive_realization_capture_retains_exact_compiler_deviations() -> None:
+    release = next(item for item in load_release_bundles(REPO_ROOT) if item.manifest["revision"] == "8.0.0")
+    snapshot = release.snapshot
+    assert snapshot["baseline"]["release_revision"] == "7.0.0"
+    assert len(snapshot["deviations"]) == 2
+    assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
+    assert all(
+        item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
+    )
 
 
 def test_historical_release_validation_does_not_replay_current_code(
@@ -98,22 +109,70 @@ def test_unlisted_current_replay_does_not_enable_legacy_sdl_migration() -> None:
     assert result["diagnostic_kind"] == "SDLParseError"
 
 
+@pytest.mark.parametrize(
+    ("case_id", "recorded", "changed"),
+    [
+        (
+            "schema-valid-control",
+            "8d7592f5631ea6748a8ad2b482fb431839cc1eb74d79db24d0e6d159a7f1dddc",
+            "f7d364ef384df8a1526b489501835b635021c860793b5764f91d956710d2250c",
+        ),
+        (
+            "semantic-resolved-objective",
+            "8291a196859dbb09e9b2ef586ce179f1138139f469b92f03f16afb35877461a1",
+            "fadacf4359c97415f5433563e675d454c587917c85064b625d9756e4da1c4967",
+        ),
+        (
+            "workflow-reachable-control",
+            "9d1d9d8bbaec15c6419a9a0665e148cfdfa3048af5a61d71c3fa2bfd742929b9",
+            "b1b49649b54bd59d4ef357b39cf9158da90f4eae560f8dd756acf97bd0827a06",
+        ),
+        (
+            "compile-repeatability-control",
+            "a7a03db548d2a62214567834da0876609f9ff64f988878f719f846e6c5218f31",
+            "16cc92b2743538f193c9248dd5b5b8eca39787566a59d5ac3125923d41da6a38",
+        ),
+        (
+            "compile-non-vacuity-control",
+            "a9705de7191f3d2a76bd7aa53a1da0603c1cdc60f154a90c4e9cba6bf4d37e76",
+            "c4dc90b8056de2a3f41012c181bb4a611045d5d042503c7ea71fcf86ea5e926b",
+        ),
+    ],
+)
+def test_classification_replay_drift_is_not_accepted_by_a_digest_pair(case_id, recorded, changed) -> None:
+    from tools.formal_semantic_validation._replay import _replay_observation_matches
+
+    observation = {"actual_outcome": "accepted", "diagnostic_kind": None, "result_digest": recorded}
+    replayed = {**observation, "result_digest": changed}
+    assert not _replay_observation_matches(observation, replayed)
+
+
 def test_retest_gate_requires_explicit_baseline_drift_disposition() -> None:
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
-    snapshot = deepcopy(snapshot)
+    release = next(item for item in load_release_bundles(REPO_ROOT) if item.manifest["revision"] == "5.0.0")
+    protocol, corpus, snapshot, analysis = (
+        deepcopy(release.protocol),
+        deepcopy(release.corpus),
+        deepcopy(release.snapshot),
+        deepcopy(release.analysis),
+    )
     snapshot["deviations"] = snapshot["deviations"][1:]
 
-    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
+    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
 
     assert "formal-validation-baseline-drift" in _rule_ids(failures)
 
 
 def test_retest_gate_rejects_stale_baseline_observation_value() -> None:
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
-    snapshot = deepcopy(snapshot)
+    release = next(item for item in load_release_bundles(REPO_ROOT) if item.manifest["revision"] == "5.0.0")
+    protocol, corpus, snapshot, analysis = (
+        deepcopy(release.protocol),
+        deepcopy(release.corpus),
+        deepcopy(release.snapshot),
+        deepcopy(release.analysis),
+    )
     snapshot["deviations"][0]["baseline"]["result_digest"] = "0" * 64
 
-    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
+    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
 
     assert "formal-validation-baseline-drift" in _rule_ids(failures)
 
@@ -126,6 +185,17 @@ def test_retest_gate_rejects_changed_baseline_release_digest() -> None:
     failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
 
     assert "formal-validation-baseline-selection" in _rule_ids(failures)
+
+
+def test_current_retest_requires_drift_disposition_for_production_evidence_cases() -> None:
+    release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
+    snapshot = deepcopy(snapshot)
+    observation = next(item for item in snapshot["observations"] if item["case_id"] == "finite-domain-satisfiable-v2")
+    observation["result_digest"] = "0" * 64
+
+    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
+
+    assert "formal-validation-baseline-drift" in _rule_ids(failures)
 
 
 def test_retest_production_evidence_contains_governed_payloads() -> None:
@@ -190,7 +260,8 @@ def test_retest_gate_authenticates_immutable_evidence_payload_before_migration(
 ) -> None:
     from raes_processor.satisfiability import analyze_scenario_file
 
-    release, protocol, corpus, snapshot, analysis = load_retest_bundle(REPO_ROOT)
+    release = next(item for item in load_release_bundles(REPO_ROOT) if item.manifest["revision"] == "3.0.0")
+    protocol, corpus, snapshot, analysis = release.protocol, release.corpus, release.snapshot, release.analysis
     evidence_path = "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v2.json"
     fixture_path = REPO_ROOT / "docs/research/formal-semantic-validation/corpus/satisfiable-control.sdl.yaml"
     replacement = analyze_scenario_file(
@@ -208,7 +279,7 @@ def test_retest_gate_authenticates_immutable_evidence_payload_before_migration(
 
     monkeypatch.setattr(_production, "load_bounded_json_object", replace_stored_evidence)
 
-    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis)
+    failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
 
     assert "formal-validation-production-evidence-join" in _rule_ids(failures)
 
@@ -545,7 +616,7 @@ def test_satisfiability_supplement_has_complete_replayable_control_matrix() -> N
         "unsupported",
     }
     assert analysis["execution_id"] == snapshot["execution_id"]
-    assert validate_satisfiability_analysis(REPO_ROOT, manifest, snapshot, analysis) == []
+    assert validate_satisfiability_analysis(REPO_ROOT, manifest, snapshot, analysis, replay_current=False) == []
 
 
 def test_satisfiability_gate_rejects_missing_unsupported_control() -> None:

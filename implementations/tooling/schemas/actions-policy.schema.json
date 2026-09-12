@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:raes:tooling:actions-policy:v2",
+  "title": "RAES GitHub Actions source, transitive-input, and use-site policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_revision",
+    "exception_evaluation_date",
+    "protected_refs",
+    "policy_refs",
+    "actions",
+    "service_managed_exceptions",
+    "workflow_jobs",
+    "use_sites",
+    "local_workflows",
+    "dependabot"
+  ],
+  "properties": {
+    "schema_version": {"const": "raes-development-actions-policy/v2"},
+    "policy_revision": {"type": "string", "format": "date"},
+    "exception_evaluation_date": {"type": "string", "format": "date"},
+    "protected_refs": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^refs/heads/[A-Za-z0-9._/-]+$"}
+    },
+    "policy_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+    "actions": {"type": "array", "items": {"$ref": "#/$defs/action"}},
+    "service_managed_exceptions": {"type": "array", "items": {"$ref": "#/$defs/serviceException"}},
+    "workflow_jobs": {"type": "array", "items": {"$ref": "#/$defs/workflowJob"}},
+    "use_sites": {"type": "array", "items": {"$ref": "#/$defs/useSite"}},
+    "local_workflows": {"type": "array", "items": {"$ref": "#/$defs/localWorkflow"}},
+    "dependabot": {"$ref": "#/$defs/dependabot"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._/-]*$"},
+    "nonEmptyStrings": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "strings": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "workflowPath": {"type": "string", "pattern": "^\\.github/workflows/[A-Za-z0-9_.-]+\\.ya?ml$"},
+    "actionName": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+$"},
+    "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "scalar": {"type": ["string", "boolean", "integer", "null"]},
+    "inputs": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[A-Za-z0-9_.-]+$"},
+      "additionalProperties": {"$ref": "#/$defs/scalar"}
+    },
+    "permissions": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "actions", "attestations", "checks", "contents", "deployments",
+          "discussions", "id-token", "issues", "models", "packages", "pages",
+          "pull-requests", "security-events", "statuses"
+        ]
+      },
+      "additionalProperties": {"enum": ["none", "read", "write"]}
+    },
+    "inputCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "operator"],
+      "properties": {
+        "input": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+$"},
+        "operator": {"enum": ["present", "absent", "equals", "not-equals"]},
+        "value": {"$ref": "#/$defs/scalar"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"operator": {"enum": ["equals", "not-equals"]}}},
+          "then": {"required": ["value"]},
+          "else": {"not": {"required": ["value"]}}
+        }
+      ]
+    },
+    "credentialEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["credential_class"],
+      "properties": {
+        "credential_class": {"type": "string", "minLength": 1},
+        "when": {"$ref": "#/$defs/inputCondition"}
+      }
+    },
+    "cacheEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role"],
+      "properties": {
+        "role": {"enum": ["restore", "write"]},
+        "when": {"$ref": "#/$defs/inputCondition"}
+      }
+    },
+    "artifactEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role"],
+      "properties": {
+        "role": {"enum": ["read-same-run", "write"]},
+        "when": {"$ref": "#/$defs/inputCondition"}
+      }
+    },
+    "securityEffects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["closed_inputs", "credentials", "cache", "artifact"],
+      "properties": {
+        "closed_inputs": {
+          "type": "object",
+          "propertyNames": {"pattern": "^[A-Za-z0-9_.-]+$"},
+          "additionalProperties": {
+            "type": "array", "minItems": 1, "uniqueItems": true,
+            "items": {"$ref": "#/$defs/scalar"}
+          }
+        },
+        "credentials": {"type": "array", "items": {"$ref": "#/$defs/credentialEffect"}},
+        "cache": {"type": "array", "items": {"$ref": "#/$defs/cacheEffect"}},
+        "artifact": {"type": "array", "items": {"$ref": "#/$defs/artifactEffect"}}
+      }
+    },
+    "transitiveInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_id"],
+      "properties": {
+        "input_id": {"$ref": "#/$defs/identifier"},
+        "artifact_ref": {"$ref": "#/$defs/identifier"},
+        "host_capability_ref": {"$ref": "#/$defs/identifier"},
+        "service_managed_exception_ref": {"$ref": "#/$defs/identifier"},
+        "action_source_ref": {"$ref": "#/$defs/identifier"},
+        "when": {"$ref": "#/$defs/inputCondition"}
+      },
+      "oneOf": [
+        {"required": ["artifact_ref"]},
+        {"required": ["host_capability_ref"]},
+        {"required": ["service_managed_exception_ref"]},
+        {"required": ["action_source_ref"]}
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id", "action", "commit", "owner_roles", "reviewer_roles", "trust_root_refs",
+        "runtime", "closure_review_ref", "security_effects", "transitive_inputs"
+      ],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/identifier"},
+        "action": {"$ref": "#/$defs/actionName"},
+        "commit": {"$ref": "#/$defs/commit"},
+        "owner_roles": {"$ref": "#/$defs/nonEmptyStrings"},
+        "reviewer_roles": {"$ref": "#/$defs/nonEmptyStrings"},
+        "trust_root_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+        "runtime": {"enum": ["node24", "docker", "composite"]},
+        "closure_review_ref": {"type": "string", "minLength": 1},
+        "security_effects": {"$ref": "#/$defs/securityEffects"},
+        "transitive_inputs": {"type": "array", "items": {"$ref": "#/$defs/transitiveInput"}}
+      }
+    },
+    "serviceException": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exception_id", "source_id", "action", "input_id", "reason", "operation",
+        "allowed_origins", "credential_class", "credential_forwarding",
+        "owner_roles", "reviewer_roles", "evidence_ref", "scope", "review_on"
+      ],
+      "properties": {
+        "exception_id": {"$ref": "#/$defs/identifier"},
+        "source_id": {"$ref": "#/$defs/identifier"},
+        "action": {"$ref": "#/$defs/actionName"},
+        "input_id": {"$ref": "#/$defs/identifier"},
+        "reason": {"type": "string", "minLength": 1},
+        "operation": {"type": "string", "minLength": 1},
+        "allowed_origins": {"$ref": "#/$defs/nonEmptyStrings"},
+        "credential_class": {"type": "string", "minLength": 1},
+        "credential_forwarding": {"enum": ["none", "same-origin-only"]},
+        "owner_roles": {"$ref": "#/$defs/nonEmptyStrings"},
+        "reviewer_roles": {"$ref": "#/$defs/nonEmptyStrings"},
+        "evidence_ref": {"type": "string", "minLength": 1},
+        "scope": {"type": "string", "minLength": 1},
+        "review_on": {"type": "string", "format": "date"}
+      }
+    },
+    "workflowJob": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workflow", "job", "runner", "host_profile_ids", "trust_classes",
+        "permissions", "credential_classes", "allowed_origins", "cache_access",
+        "artifact_access", "promotion_authority", "publishing_authority"
+      ],
+      "properties": {
+        "workflow": {"$ref": "#/$defs/workflowPath"},
+        "job": {"$ref": "#/$defs/identifier"},
+        "runner": {"type": "string", "minLength": 1},
+        "host_profile_ids": {"$ref": "#/$defs/strings"},
+        "trust_classes": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {
+            "enum": ["untrusted-pr", "same-repository-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
+          }
+        },
+        "permissions": {"$ref": "#/$defs/permissions"},
+        "credential_classes": {"$ref": "#/$defs/strings"},
+        "allowed_origins": {"$ref": "#/$defs/strings"},
+        "cache_access": {"enum": ["none", "restore", "write-untrusted", "write-trusted"]},
+        "artifact_access": {"enum": ["none", "read-same-run", "write-untrusted", "write-trusted"]},
+        "promotion_authority": {"type": "boolean"},
+        "publishing_authority": {"type": "boolean"},
+        "protected_definition_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "useSite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "use_id", "workflow", "job", "step", "source_id", "action", "commit", "inputs",
+        "trust_classes", "credential_classes", "allowed_origins", "cache_role", "artifact_role"
+      ],
+      "properties": {
+        "use_id": {"$ref": "#/$defs/identifier"},
+        "workflow": {"$ref": "#/$defs/workflowPath"},
+        "job": {"$ref": "#/$defs/identifier"},
+        "step": {"type": "string", "minLength": 1},
+        "source_id": {"$ref": "#/$defs/identifier"},
+        "action": {"$ref": "#/$defs/actionName"},
+        "commit": {"$ref": "#/$defs/commit"},
+        "inputs": {"$ref": "#/$defs/inputs"},
+        "trust_classes": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {
+            "enum": ["untrusted-pr", "same-repository-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
+          }
+        },
+        "credential_classes": {"$ref": "#/$defs/strings"},
+        "allowed_origins": {"$ref": "#/$defs/strings"},
+        "cache_role": {"enum": ["none", "restore", "write-untrusted", "write-trusted"]},
+        "artifact_role": {"enum": ["none", "read-same-run", "write-untrusted", "write-trusted"]}
+      }
+    },
+    "localWorkflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "caller_workflow", "caller_job", "inputs", "permissions"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^\\./\\.github/workflows/[A-Za-z0-9_.-]+\\.ya?ml$"},
+        "caller_workflow": {"$ref": "#/$defs/workflowPath"},
+        "caller_job": {"$ref": "#/$defs/identifier"},
+        "inputs": {"$ref": "#/$defs/inputs"},
+        "permissions": {"$ref": "#/$defs/permissions"}
+      }
+    },
+    "dependabot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "updates"],
+      "properties": {
+        "version": {"const": 2},
+        "updates": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/dependabotUpdate"}
+        }
+      }
+    },
+    "dependabotUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package-ecosystem", "directory", "target-branch", "schedule",
+        "open-pull-requests-limit", "groups"
+      ],
+      "properties": {
+        "package-ecosystem": {"enum": ["github-actions", "pip"]},
+        "directory": {"type": "string", "minLength": 1},
+        "target-branch": {"const": "dev"},
+        "schedule": {
+          "type": "object", "additionalProperties": false,
+          "required": ["interval"], "properties": {"interval": {"const": "weekly"}}
+        },
+        "open-pull-requests-limit": {"type": "integer", "minimum": 1},
+        "groups": {
+          "type": "object", "minProperties": 1,
+          "propertyNames": {"pattern": "^[A-Za-z0-9_.-]+$"},
+          "additionalProperties": {
+            "type": "object", "additionalProperties": false,
+            "required": ["patterns"],
+            "properties": {
+              "patterns": {
+                "type": "array", "minItems": 1, "uniqueItems": true,
+                "items": {"type": "string", "minLength": 1}
+              },
+              "update-types": {
+                "type": "array", "minItems": 1, "uniqueItems": true,
+                "items": {"enum": ["major", "minor", "patch"]}
+              }
+            }
+          }
+        },
+        "ignore": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["dependency-name"],
+            "properties": {"dependency-name": {"type": "string", "minLength": 1}}
+          }
+        }
+      }
+    }
+  }
+}

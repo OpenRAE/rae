@@ -1,0 +1,44 @@
+{
+  "$defs": {
+    "DomainProfileOperation": {
+      "enum": [
+        "structural-validation",
+        "semantic-validation",
+        "refinement",
+        "comparison",
+        "interpretation",
+        "execution",
+        "typed-report"
+      ],
+      "title": "DomainProfileOperation",
+      "type": "string"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/domain-profile-admission-policy-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Host-owned use policy; profile data cannot grant opaque carriage.",
+  "properties": {
+    "allow_opaque_exchange": {
+      "default": false,
+      "title": "Allow Opaque Exchange",
+      "type": "boolean"
+    },
+    "required_operations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DomainProfileOperation"
+      },
+      "title": "Required Operations",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "domain-profile-admission-policy/v1",
+      "default": "domain-profile-admission-policy/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "title": "DomainProfileAdmissionPolicyModel",
+  "type": "object"
+}

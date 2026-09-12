@@ -10,6 +10,7 @@ from raes.canonical import InstantiatedScenarioSnapshot
 from raes.scenario import InstantiatedScenario, Scenario
 
 from raes_contracts.artifact_requirements import ArtifactRequirementContractModel
+from raes_contracts.observation_demand import ObservationDemandDocument
 
 from . import semantic_profiles, semantic_projection
 from .admitted_trial_plan import AdmittedTrialPlanModel
@@ -90,21 +91,28 @@ from .vocabulary_sources import (
 )
 
 
-def _core_schema_bundle() -> dict[str, dict[str, Any]]:
-    from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
-    from raes_contracts.semantic_comparison import SemanticComparisonRequestModel, SemanticComparisonResultModel
-
-    from ..behavioral_relation_profiles import BehavioralRelationProfileModel
-    from ..behavioral_relations import BehavioralRelationCatalogModel
-    from ..exploit_path import ExploitPathAnalysisEvidenceModel
-    from ..participant_opacity import (
-        ParticipantOpacityAnalysisEvidenceModel,
-        ParticipantOpacityAnalysisInputModel,
-        ParticipantOpacityModelCheckEvidenceModel,
-        ParticipantOpacityModelCheckInputModel,
+def _domain_profile_schema_bundle() -> dict[str, dict[str, Any]]:
+    from raes_contracts.domain_profiles import (
+        DomainProfileAdmissionPolicyModel,
+        DomainProfileBindingModel,
+        DomainProfileDefinitionModel,
+        DomainProfileResolutionContextModel,
+        DomainProfileSupportDeclarationModel,
     )
+
+    return {
+        "domain-profile-definition-v1": DomainProfileDefinitionModel.model_json_schema(),
+        "domain-profile-binding-v1": DomainProfileBindingModel.model_json_schema(),
+        "domain-profile-resolution-context-v1": DomainProfileResolutionContextModel.model_json_schema(),
+        "domain-profile-support-declaration-v1": DomainProfileSupportDeclarationModel.model_json_schema(),
+        "domain-profile-admission-policy-v1": DomainProfileAdmissionPolicyModel.model_json_schema(),
+    }
+
+
+def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
+    """Experiment, trial, time, and runtime-plan contract schemas."""
+
     from ..provenance import SDLLineageLedgerModel
-    from ..satisfiability import ScenarioSatisfiabilityEvidenceModel
     from ..scientific_completeness import (
         ScientificCompletenessAssessmentModel,
         ScientificCompletenessTaxonomyModel,
@@ -112,47 +120,6 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
     from ..validation_profiles import ValidationProfileCatalogModel
 
     return {
-        "raes-semantic-invariants-v1": _raes_semantic_invariant_profile_schema_for_bundle(),
-        "sdl-authoring-input-v1": Scenario.model_json_schema(),
-        "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
-        "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
-        "scenario-instantiation-request-v1": InstantiationRequestModel.model_json_schema(),
-        "artifact-requirement-v1": ArtifactRequirementContractModel.model_json_schema(),
-        **transformation_schema_bundle(),
-        "semantic-comparison-request-v1": SemanticComparisonRequestModel.model_json_schema(),
-        "semantic-comparison-result-v1": SemanticComparisonResultModel.model_json_schema(),
-        "exploit-path-analysis-evidence-v1": ExploitPathAnalysisEvidenceModel.model_json_schema(),
-        "scenario-satisfiability-evidence-v1": ScenarioSatisfiabilityEvidenceModel.model_json_schema(),
-        "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),
-        "realization-envelope-v1": BackendRealizationEnvelopeModel.model_json_schema(),
-        "processor-manifest-v2": ProcessorManifestV2Model.model_json_schema(),
-        "participant-implementation-manifest-v1": ParticipantImplementationManifestModel.model_json_schema(),
-        "participant-implementation-provenance-v1": ParticipantImplementationProvenanceModel.model_json_schema(),
-        "concept-families-v1": ConceptFamilyCatalogModel.model_json_schema(),
-        "behavioral-relations-v1": BehavioralRelationCatalogModel.model_json_schema(),
-        "behavioral-relation-profile-v1": BehavioralRelationProfileModel.model_json_schema(),
-        "participant-opacity-analysis-input-v1": ParticipantOpacityAnalysisInputModel.model_json_schema(),
-        "participant-opacity-analysis-evidence-v1": ParticipantOpacityAnalysisEvidenceModel.model_json_schema(),
-        "participant-opacity-model-check-input-v1": ParticipantOpacityModelCheckInputModel.model_json_schema(),
-        "participant-opacity-model-check-evidence-v1": ParticipantOpacityModelCheckEvidenceModel.model_json_schema(),
-        "reference-models-v1": ReferenceModelCatalogModel.model_json_schema(),
-        "uco-alignment-v1": UcoAlignmentCatalogModel.model_json_schema(),
-        "controlled-vocabularies-v1": ControlledVocabularyCatalogModel.model_json_schema(),
-        "external-concept-bindings-v1": ExternalConceptBindingDocumentModel.model_json_schema(),
-        "semantic-projection-report-v1": semantic_projection.SemanticProjectionReportModel.model_json_schema(),
-        "attack-enterprise-tactics-source-v1": AttackEnterpriseTacticsSourceModel.model_json_schema(),
-        "atlas-tactics-source-v1": AtlasTacticsSourceModel.model_json_schema(),
-        "nist-csf-defensive-categories-source-v1": NistCsfDefensiveCategorySourceModel.model_json_schema(),
-        "w3c-activitystreams-activity-types-source-v1": ActivityStreamsActivityTypesSourceModel.model_json_schema(),
-        "fipa-communicative-acts-source-v1": FipaCommunicativeActsSourceModel.model_json_schema(),
-        "semantic-profile-v1": semantic_profiles.SemanticProfileModel.model_json_schema(),
-        "backend-profile-v1": _backend_profile_schema_for_bundle(),
-        "random-stream-profile-v1": RandomStreamProfileModel.model_json_schema(),
-        "participant-information-reconstruction-profile-v1": (
-            ParticipantInformationReconstructionProfileModel.model_json_schema()
-        ),
-        "participant-boundary-flow-policy-v1": ParticipantBoundaryFlowPolicyProfileModel.model_json_schema(),
-        "random-stream-vector-v1": RandomStreamVectorModel.model_json_schema(),
         "experiment-apparatus-context-v1": ExperimentApparatusContextModel.model_json_schema(),
         "experiment-authoring-input-v1": ExperimentSpecModel.model_json_schema(),
         "experiment-binding-descriptors-v1": ExperimentBindingDescriptorSetModel.model_json_schema(),
@@ -187,6 +154,75 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "scientific-completeness-assessment-v1": ScientificCompletenessAssessmentModel.model_json_schema(),
         "validation-profile-catalog-v1": ValidationProfileCatalogModel.model_json_schema(),
         "validation-basis-disclosure-v1": ValidationBasisDisclosureDocumentModel.model_json_schema(),
+    }
+
+
+def _core_schema_bundle() -> dict[str, dict[str, Any]]:
+    from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
+    from raes_contracts.realization_structure import RealizationConstraintDocument
+    from raes_contracts.semantic_comparison import SemanticComparisonRequestModel, SemanticComparisonResultModel
+
+    from ..behavioral_relation_profiles import BehavioralRelationProfileModel
+    from ..behavioral_relations import BehavioralRelationCatalogModel
+    from ..exploit_path import ExploitPathAnalysisEvidenceModel
+    from ..participant_opacity import (
+        ParticipantOpacityAnalysisEvidenceModel,
+        ParticipantOpacityAnalysisInputModel,
+        ParticipantOpacityModelCheckEvidenceModel,
+        ParticipantOpacityModelCheckInputModel,
+    )
+    from ..realization_profiles import PlanProfileAuthority
+    from ..satisfiability import ScenarioSatisfiabilityEvidenceModel
+    from .backend_preparation import BackendPreparationResponseModel
+
+    return {
+        "raes-semantic-invariants-v1": _raes_semantic_invariant_profile_schema_for_bundle(),
+        "sdl-authoring-input-v1": Scenario.model_json_schema(),
+        "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
+        "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
+        "scenario-instantiation-request-v1": InstantiationRequestModel.model_json_schema(),
+        "artifact-requirement-v1": ArtifactRequirementContractModel.model_json_schema(),
+        **_domain_profile_schema_bundle(),
+        **transformation_schema_bundle(),
+        "semantic-comparison-request-v1": SemanticComparisonRequestModel.model_json_schema(),
+        "semantic-comparison-result-v1": SemanticComparisonResultModel.model_json_schema(),
+        "exploit-path-analysis-evidence-v1": ExploitPathAnalysisEvidenceModel.model_json_schema(),
+        "scenario-satisfiability-evidence-v1": ScenarioSatisfiabilityEvidenceModel.model_json_schema(),
+        "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),
+        "realization-envelope-v1": BackendRealizationEnvelopeModel.model_json_schema(),
+        "recursive-realization-constraint-v1": RealizationConstraintDocument.model_json_schema(),
+        "backend-realization-preparation-v1": BackendPreparationResponseModel.model_json_schema(),
+        "plan-realization-profiles-v1": PlanProfileAuthority.model_json_schema(),
+        "observation-demand-v1": ObservationDemandDocument.model_json_schema(),
+        "processor-manifest-v2": ProcessorManifestV2Model.model_json_schema(),
+        "participant-implementation-manifest-v1": ParticipantImplementationManifestModel.model_json_schema(),
+        "participant-implementation-provenance-v1": ParticipantImplementationProvenanceModel.model_json_schema(),
+        "concept-families-v1": ConceptFamilyCatalogModel.model_json_schema(),
+        "behavioral-relations-v1": BehavioralRelationCatalogModel.model_json_schema(),
+        "behavioral-relation-profile-v1": BehavioralRelationProfileModel.model_json_schema(),
+        "participant-opacity-analysis-input-v1": ParticipantOpacityAnalysisInputModel.model_json_schema(),
+        "participant-opacity-analysis-evidence-v1": ParticipantOpacityAnalysisEvidenceModel.model_json_schema(),
+        "participant-opacity-model-check-input-v1": ParticipantOpacityModelCheckInputModel.model_json_schema(),
+        "participant-opacity-model-check-evidence-v1": ParticipantOpacityModelCheckEvidenceModel.model_json_schema(),
+        "reference-models-v1": ReferenceModelCatalogModel.model_json_schema(),
+        "uco-alignment-v1": UcoAlignmentCatalogModel.model_json_schema(),
+        "controlled-vocabularies-v1": ControlledVocabularyCatalogModel.model_json_schema(),
+        "external-concept-bindings-v1": ExternalConceptBindingDocumentModel.model_json_schema(),
+        "semantic-projection-report-v1": semantic_projection.SemanticProjectionReportModel.model_json_schema(),
+        "attack-enterprise-tactics-source-v1": AttackEnterpriseTacticsSourceModel.model_json_schema(),
+        "atlas-tactics-source-v1": AtlasTacticsSourceModel.model_json_schema(),
+        "nist-csf-defensive-categories-source-v1": NistCsfDefensiveCategorySourceModel.model_json_schema(),
+        "w3c-activitystreams-activity-types-source-v1": ActivityStreamsActivityTypesSourceModel.model_json_schema(),
+        "fipa-communicative-acts-source-v1": FipaCommunicativeActsSourceModel.model_json_schema(),
+        "semantic-profile-v1": semantic_profiles.SemanticProfileModel.model_json_schema(),
+        "backend-profile-v1": _backend_profile_schema_for_bundle(),
+        "random-stream-profile-v1": RandomStreamProfileModel.model_json_schema(),
+        "participant-information-reconstruction-profile-v1": (
+            ParticipantInformationReconstructionProfileModel.model_json_schema()
+        ),
+        "participant-boundary-flow-policy-v1": ParticipantBoundaryFlowPolicyProfileModel.model_json_schema(),
+        "random-stream-vector-v1": RandomStreamVectorModel.model_json_schema(),
+        **_experiment_schema_bundle(),
     }
 
 

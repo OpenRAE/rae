@@ -1,4 +1,4 @@
 .PHONY: policy
 
 policy:
-	uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s policy $(if $(strip $(RAES_REQUIREMENT_UID)),,-- --skip-requirement)
+	uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s policy $(if $(strip $(RAES_REQUIREMENT_UID)),,-- --skip-requirement)

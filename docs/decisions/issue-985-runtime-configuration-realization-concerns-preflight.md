@@ -1,5 +1,11 @@
 # Issue 985 Runtime-Configuration Realization Concerns Preflight
 
+Correction recorded 2026-09-05: the aggregate weakest-child rule below records
+the #985 behavior, not the intended mixed-constraint contract. For #1200,
+[the corrective preflight](issue-1200-mixed-runtime-constraints-preflight.md)
+requires binding leaves and collection membership to survive open siblings,
+while inherited openness continues to delegate unspecified choices.
+
 ## Scope
 
 Issue #985 extends the existing SEM-218 concern authority; it does not create a

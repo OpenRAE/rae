@@ -41,6 +41,12 @@ from raes_runtime.registry import RuntimeTarget
 
 _SCENARIO = """\
 name: honesty
+realization:
+  constraints:
+    - field_pointer: /nodes/vm
+      concern: compute-substrate
+      posture: exact
+      domain: {kind: exact, value: virtual-machine}
 nodes:
   vm:
     type: compute
@@ -78,6 +84,13 @@ def _constructive_envelope(
                 mechanism="test-addressed-observer",
                 transformations=[],
             )
+        elif disclosure["concern"] == RealizationConcern.COMPUTE_SUBSTRATE.value:
+            disclosure.update(
+                disposition=ConcernDisposition.REALIZED.value,
+                observation_strength=ObservationStrength.DAEMON_OBSERVED.value,
+                mechanism="virtual-machine",
+                transformations=[],
+            )
         else:
             disclosure.update(
                 disposition=ConcernDisposition.UNSUPPORTED.value,
@@ -108,7 +121,7 @@ def _target(envelope: BackendRealizationEnvelopeModel | None = None) -> RuntimeT
     return RuntimeTarget(
         name="libvirt-qemu",
         manifest=_manifest_with_envelope(selected),
-        provisioner=StubProvisioner(),
+        provisioner=StubProvisioner(realization_envelope=selected),
     )
 
 

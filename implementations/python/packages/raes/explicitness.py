@@ -178,11 +178,20 @@ class _ExplicitnessClassifier:
     def _visit_model(self, model: BaseModel, path: str) -> ExplicitnessRecord | None:
         child_records: list[ExplicitnessRecord] = []
         fields_set = set(model.model_fields_set)
+        exact_fields_hook = getattr(model, "explicitness_exact_fields", None)
+        exact_fields = exact_fields_hook() if callable(exact_fields_hook) else frozenset()
         for field_name in model.__class__.model_fields:
             if field_name not in fields_set:
                 continue
             child_path = f"{path}.{field_name}" if path else field_name
             child_record = self.visit(getattr(model, field_name), child_path)
+            if field_name in exact_fields and child_record is not None and not child_record.variables:
+                child_record = ExplicitnessRecord(
+                    path=child_path,
+                    classification=ExplicitnessClass.EXACT,
+                    reason="owning model supplies exact extension identity",
+                )
+                self.records[child_path] = child_record
             if child_record is not None:
                 child_records.append(child_record)
         return self._record_container(path, child_records)

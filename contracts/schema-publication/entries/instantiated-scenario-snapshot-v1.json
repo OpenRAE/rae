@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-snapshot-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "f422afb4d7282b817fdc3cfe17fd99d72f708f08b42bcc56615b9fa834c44a2b",
+  "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c",
   "last_change": {
-    "summary": "Added the closed, SHA-256-pinned APT runtime package repository profile for issue #847.",
-    "content_hash": "f422afb4d7282b817fdc3cfe17fd99d72f708f08b42bcc56615b9fa834c44a2b"
+    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c"
   }
 }

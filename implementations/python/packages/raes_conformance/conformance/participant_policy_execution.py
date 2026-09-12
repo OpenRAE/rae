@@ -14,6 +14,7 @@ from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field, replace
 
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
+from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
 
@@ -132,7 +133,9 @@ def _drive_ingress(case: ParticipantPolicyProbeCase, plane: RuntimeControlPlane)
         crossing_evidence=case.crossing_evidence,
         idempotency_key=case.idempotency_key,
     )
-    return receipt.accepted, not receipt.accepted
+    status = plane.get_operation(receipt.operation_id)
+    allowed = status is not None and status.state is OperationState.SUCCEEDED
+    return allowed, not allowed
 
 
 def _drive_supervisory_control(case: ParticipantPolicyProbeCase, plane: RuntimeControlPlane) -> tuple[bool, bool]:
@@ -143,7 +146,9 @@ def _drive_supervisory_control(case: ParticipantPolicyProbeCase, plane: RuntimeC
         crossing_evidence=case.crossing_evidence,
         idempotency_key=case.idempotency_key,
     )
-    return receipt.accepted, not receipt.accepted
+    status = plane.get_operation(receipt.operation_id)
+    allowed = status is not None and status.state is OperationState.SUCCEEDED
+    return allowed, not allowed
 
 
 def _drive_egress(case: ParticipantPolicyProbeCase, plane: RuntimeControlPlane) -> tuple[bool, bool]:

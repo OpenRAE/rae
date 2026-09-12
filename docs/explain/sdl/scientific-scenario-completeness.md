@@ -4,6 +4,16 @@ An SDL document can be valid without being ready for deployment or scientific
 use. REV1 makes that distinction inspectable through five intended-use
 profiles, from a valid fragment through a reproducible benchmark/study input.
 
+Completeness is relative to the selected abstraction and intended-use claim.
+An abstract two-computer/three-action scenario can be complete without an OS,
+image or package inventory; an effective open materialization scope delegates
+choices to the backend rather than requiring the author to finish a concrete
+deployment recipe. Scenario specificity also does not select experimental
+capture or evidence strength. [#1201](https://github.com/OpenRAE/rae/issues/1201)
+deliberately corrects contrary design drift; see the
+[clarified intent](../../research/language-extensibility/design-intent.md).
+This clarification does not promote the current delivery assessment below.
+
 The normative
 {download}`scientific-scenario completeness specification <../../../specs/sdl/scientific-scenario-completeness.md>`
 defines the computation and links the canonical taxonomy and delivery

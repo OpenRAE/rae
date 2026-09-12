@@ -259,7 +259,10 @@ def test_report_mode_recognizes_no_issue_declaration() -> None:
     assert "declared that no issue was required" in report
 
 
-def test_cli_rejects_missing_or_malformed_events(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_rejects_missing_or_malformed_events(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("GITHUB_EVENT_PATH", raising=False)
     assert main([]) == 2
     assert main(["--event-path", str(tmp_path / "missing.json")]) == 2
     malformed = tmp_path / "event.json"

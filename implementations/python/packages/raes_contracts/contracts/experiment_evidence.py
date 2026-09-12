@@ -43,6 +43,7 @@ class ExperimentEvidenceRecordModel(ContractModel):
     record_version: NonEmptyString
     capture_spec_ref: ExperimentCaptureSpecReferenceModel
     capture_requirement_ref: NonEmptyString
+    output_contract: NonEmptyString
     run_ref: ExperimentReferenceModel
     task_ref: ExperimentTaskReferenceModel | None = None
     apparatus_context_ref: ExperimentReferenceModel | None = None
@@ -53,6 +54,7 @@ class ExperimentEvidenceRecordModel(ContractModel):
     raw_content: ExperimentRawEvidenceContentModel
     sensitivity: Literal["public", "internal", "restricted", "redacted"]
     redaction_state: Literal["none", "redacted", "withheld"]
+    redaction_policy: NonEmptyString | None = None
     provenance_refs: list[ExperimentReferenceModel] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -60,6 +62,8 @@ class ExperimentEvidenceRecordModel(ContractModel):
         _parse_rfc3339_datetime("captured_at", self.captured_at)
         if self.redaction_state != "none" and self.raw_content.loss_disclosure is None:
             raise ValueError("redacted or withheld evidence records must include raw_content.loss_disclosure")
+        if (self.redaction_state == "none") != (self.redaction_policy is None):
+            raise ValueError("redacted or withheld evidence records require exactly one redaction_policy")
         return self
 
     @classmethod
@@ -104,6 +108,24 @@ class ExperimentEvidenceRecordModel(ContractModel):
                     },
                 },
             }
+        )
+        json_schema.setdefault("allOf", []).extend(
+            [
+                {
+                    "if": {"properties": {"redaction_state": {"const": "none"}}, "required": ["redaction_state"]},
+                    "then": {"properties": {"redaction_policy": {"type": "null"}}},
+                },
+                {
+                    "if": {
+                        "properties": {"redaction_state": {"enum": ["redacted", "withheld"]}},
+                        "required": ["redaction_state"],
+                    },
+                    "then": {
+                        "required": ["redaction_policy"],
+                        "properties": {"redaction_policy": {"type": "string", "minLength": 1}},
+                    },
+                },
+            ]
         )
         _add_raes_plane(json_schema, "experiment-evidence-record-v1")
         return json_schema

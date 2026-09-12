@@ -295,7 +295,10 @@ def test_local_control_plane_store_roundtrips_envelope_identity(tmp_path):
     identity = BackendRealizationEnvelopeModel.model_validate(_payload()).identity
     store = LocalControlPlaneStore(tmp_path / "store")
 
-    store.save_snapshot(RuntimeSnapshot(realization_envelope=identity))
+    store.save_snapshot(
+        RuntimeSnapshot(realization_envelope=identity),
+        expected_revision=store.load_snapshot_state().revision,
+    )
 
     assert store.load_snapshot().realization_envelope == identity
 

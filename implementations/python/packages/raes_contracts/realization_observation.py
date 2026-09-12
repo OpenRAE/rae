@@ -3,16 +3,21 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Sequence
+from collections.abc import Sequence, Set
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from raes_contracts.addressing import require_compiled_address
-from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_value
 from raes_contracts.operating_systems import OS_VERSION_RE, validate_operating_system_pair
 from raes_contracts.realization_envelope import ConcernDisposition, ObservationStrength, RealizationConcern
 from raes_contracts.realization_observation_binding import operating_system_observation_binding_valid
+from raes_contracts.realization_operational_observation import (
+    _native_compute_substrate_observation_valid,
+    _prior_disclosure_reusable,
+    compute_substrate_readback_addresses,
+    missing_compute_substrate_readbacks,
+)
 from raes_contracts.vocabulary import RealizationVerificationScope
 
 if TYPE_CHECKING:
@@ -159,6 +164,7 @@ def bind_compute_substrate_observations(
     observations: Sequence[RealizationObservation],
     envelope: object,
     previous: Sequence[RealizationObservationDisclosure] = (),
+    selected_addresses: Set[str],
 ) -> tuple[RealizationObservationDisclosure, ...]:
     """Bind native substrate readback to one plan execution and apparatus.
 
@@ -169,7 +175,12 @@ def bind_compute_substrate_observations(
 
     _require_binding_inputs(plan, envelope, "substrate observation binding")
     non_substrate = tuple(item for item in previous if item.requirement_kind != "compute-substrate")
-    if not plan.realization_constraints:
+    if not selected_addresses:
+        return non_substrate
+    selected_constraints = tuple(
+        constraint for constraint in plan.realization_constraints if constraint.address in selected_addresses
+    )
+    if not selected_constraints:
         return non_substrate
     if plan.operation_id is None or plan.realization_envelope != envelope.identity:
         raise ValueError("substrate observation binding requires matching operation and envelope identity")
@@ -178,7 +189,7 @@ def bind_compute_substrate_observations(
     previous_by_address = {item.address: item for item in previous if item.requirement_kind == "compute-substrate"}
     disclosures = tuple(
         disclosure
-        for constraint in plan.realization_constraints
+        for constraint in selected_constraints
         if (
             disclosure := _bound_compute_substrate_disclosure(
                 constraint=constraint,
@@ -382,105 +393,6 @@ def _bound_compute_substrate_disclosure(
                 binding_verified=True,
             )
     return disclosure
-
-
-def compute_substrate_readback_addresses(
-    *,
-    plan: object,
-    envelope: object,
-    previous: Sequence[RealizationObservationDisclosure] = (),
-) -> tuple[str, ...]:
-    """Return addresses that require fresh native substrate observation."""
-
-    _require_binding_inputs(plan, envelope, "substrate readback selection")
-    operations = {operation.address: operation for operation in plan.operations}
-    previous_by_address = {item.address: item for item in previous if item.requirement_kind == "compute-substrate"}
-    addresses: list[str] = []
-    for constraint in plan.realization_constraints:
-        operation = operations.get(constraint.address)
-        if _requires_compute_substrate_readback(
-            operation,
-            previous_by_address.get(constraint.address),
-            constraint,
-            envelope,
-        ):
-            addresses.append(constraint.address)
-    return tuple(addresses)
-
-
-def _requires_compute_substrate_readback(
-    operation: object,
-    prior: RealizationObservationDisclosure | None,
-    constraint: object,
-    envelope: object,
-) -> bool:
-    from raes_contracts.planning import ChangeAction, PlanOperation
-
-    if not isinstance(operation, PlanOperation) or operation.action is ChangeAction.DELETE:
-        return False
-    if operation.action is not ChangeAction.UNCHANGED or prior is None:
-        return True
-    return not _prior_disclosure_reusable(prior, constraint, envelope)
-
-
-def missing_compute_substrate_readbacks(
-    *,
-    plan: object,
-    observations: Sequence[RealizationObservation],
-    envelope: object,
-    previous: Sequence[RealizationObservationDisclosure] = (),
-) -> tuple[str, ...]:
-    """Return required addresses without a valid fresh native observation."""
-
-    required = set(
-        compute_substrate_readback_addresses(
-            plan=plan,
-            envelope=envelope,
-            previous=previous,
-        )
-    )
-    observed = {item.address for item in observations if _native_compute_substrate_observation_valid(item, envelope)}
-    return tuple(sorted(required - observed))
-
-
-def _prior_disclosure_reusable(
-    disclosure: RealizationObservationDisclosure,
-    constraint: object,
-    envelope: object,
-) -> bool:
-    from raes_contracts.planning import PlannedRealizationConstraint
-    from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
-
-    if not isinstance(constraint, PlannedRealizationConstraint) or not isinstance(
-        envelope, BackendRealizationEnvelopeModel
-    ):
-        return False
-    if (
-        disclosure.field_path != constraint.field_path
-        or disclosure.envelope_digest != envelope.digest
-        or disclosure.configuration_digest != envelope.configuration.configuration_digest
-    ):
-        return False
-    return constraint.value_domain is None or scalar_in_domain(disclosure.observed_value, constraint.value_domain)
-
-
-def _native_compute_substrate_observation_valid(
-    observation: RealizationObservation,
-    envelope: object,
-) -> bool:
-    from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
-
-    return bool(
-        isinstance(envelope, BackendRealizationEnvelopeModel)
-        and isinstance(observation.value, str)
-        and observation.source is not ObservationStrength.NONE
-        and observation.envelope_digest == envelope.digest
-        and observation.configuration_digest == envelope.configuration.configuration_digest
-        and observation.observer_version
-        and observation.sequence is not None
-        and observation.sequence >= 0
-        and observation.binding_verified
-    )
 
 
 __all__ = [

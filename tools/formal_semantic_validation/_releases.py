@@ -11,8 +11,13 @@ from tools.formal_semantic_validation._baseline import _validate_baseline_drift
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._corpus import _validate_corpus
 from tools.formal_semantic_validation._protocol import _validate_protocol
-from tools.formal_semantic_validation._retest import _RetestScope, _validate_retest_snapshot
-from tools.formal_semantic_validation._satisfiability import validate_satisfiability_analysis
+from tools.formal_semantic_validation._retest import (
+    _RetestScope,
+    _validate_retest_snapshot,
+)
+from tools.formal_semantic_validation._satisfiability import (
+    validate_satisfiability_analysis,
+)
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
@@ -29,6 +34,7 @@ from tools.formal_semantic_validation._types import (
     EvidenceRelease,
 )
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
+from tools.research_evidence import source_state_failures
 
 
 def _stale_pin(repo_root: Path, path_value: object, digest_value: object) -> bool:
@@ -147,6 +153,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
+                replay_current=manifest.get("revision") == "9.0.0",
             )
         )
     else:
@@ -197,7 +204,15 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                     str(sat_analysis_pin.get("path")),
                     max_bytes=_MAX_FILE_BYTES,
                 )
-                failures.extend(validate_satisfiability_analysis(repo_root, legacy_manifest, snapshot, analysis))
+                failures.extend(
+                    validate_satisfiability_analysis(
+                        repo_root,
+                        legacy_manifest,
+                        snapshot,
+                        analysis,
+                        replay_current=False,
+                    )
+                )
     return failures
 
 
@@ -208,6 +223,8 @@ def validate_retest_bundle(
     corpus: dict[str, object],
     snapshot: dict[str, object],
     analysis: dict[str, object],
+    *,
+    replay_current: bool = True,
 ) -> list[PolicyFailure]:
     """Validate the integrated issue-828 evidence release."""
 
@@ -216,11 +233,27 @@ def validate_retest_bundle(
     corpus_path = str(release.manifest.get("corpus_path"))
     snapshot_path = str(release.manifest.get("snapshot_path"))
     analysis_path = str(release.manifest.get("analysis_path"))
-    if release.manifest.get("revision") != "3.0.0":
+    release_revision = release.manifest.get("revision")
+    if not replay_current and release_revision not in {
+        "3.0.0",
+        "4.0.0",
+        "5.0.0",
+        "6.0.0",
+        "7.0.0",
+        "8.0.0",
+    }:
+        return [
+            _failure(
+                "formal-validation-current-replay-required",
+                "only releases 3.0.0 through 8.0.0 can use integrated historical validation",
+                snapshot_path,
+            )
+        ]
+    if release_revision not in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}:
         failures.append(
             _failure(
                 "formal-validation-retest-release",
-                "the integrated issue-828 retest must be release 3.0.0",
+                "integrated retest requires an explicitly supported release revision",
                 release.manifest_path,
             )
         )
@@ -233,8 +266,83 @@ def validate_retest_bundle(
             )
         )
 
+    if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}:
+        _current_retest_source_failures(
+            repo_root,
+            snapshot,
+            failures,
+            snapshot_path,
+            release_revision=str(release_revision),
+            replay_current=replay_current,
+        )
     _validate_protocol(repo_root, protocol, failures, protocol_path)
     cases_by_id = _validate_corpus(repo_root, protocol, corpus, failures, corpus_path)
+    historical_cases = _retained_historical_cases(repo_root, cases_by_id, failures, corpus_path)
+    _validate_retest_snapshot(
+        _RetestScope(
+            repo_root=repo_root,
+            release=release,
+            protocol=protocol,
+            corpus=corpus,
+            snapshot=snapshot,
+            cases_by_id=cases_by_id,
+            replay_current=replay_current,
+        ),
+        failures,
+        snapshot_path,
+    )
+    baseline_cases = (
+        cases_by_id if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"} else historical_cases
+    )
+    _validate_baseline_drift(repo_root, snapshot, baseline_cases, failures, snapshot_path)
+    _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
+    return failures
+
+
+def _current_retest_source_failures(
+    repo_root: Path,
+    snapshot: dict[str, object],
+    failures: list[PolicyFailure],
+    path: str,
+    *,
+    release_revision: str,
+    replay_current: bool,
+) -> None:
+    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=replay_current))
+    state = snapshot.get("source_state")
+    if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
+        failures.append(
+            _failure(
+                "research-evidence-source-state",
+                "base revision must join source identity",
+                path,
+            )
+        )
+    baseline = snapshot.get("baseline")
+    expected_baseline = {
+        "4.0.0": "3.0.0",
+        "5.0.0": "4.0.0",
+        "6.0.0": "5.0.0",
+        "7.0.0": "6.0.0",
+        "8.0.0": "7.0.0",
+        "9.0.0": "8.0.0",
+    }[release_revision]
+    if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
+        failures.append(
+            _failure(
+                "formal-validation-baseline-selection",
+                f"release {release_revision} must retain the {expected_baseline} baseline",
+                path,
+            )
+        )
+
+
+def _retained_historical_cases(
+    repo_root: Path,
+    cases_by_id: Mapping[str, Mapping[str, object]],
+    failures: list[PolicyFailure],
+    corpus_path: str,
+) -> dict[object, Mapping[str, object]]:
     try:
         historical_corpus = load_bounded_json_object(
             repo_root,
@@ -274,24 +382,4 @@ def validate_retest_bundle(
             )
         )
 
-    _validate_retest_snapshot(
-        _RetestScope(
-            repo_root=repo_root,
-            release=release,
-            protocol=protocol,
-            corpus=corpus,
-            snapshot=snapshot,
-            cases_by_id=cases_by_id,
-        ),
-        failures,
-        snapshot_path,
-    )
-    _validate_baseline_drift(
-        repo_root,
-        snapshot,
-        historical_cases,
-        failures,
-        snapshot_path,
-    )
-    _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
-    return failures
+    return historical_cases

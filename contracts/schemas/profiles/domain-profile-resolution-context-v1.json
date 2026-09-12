@@ -1,0 +1,474 @@
+{
+  "$defs": {
+    "AdmittedDomainProfileDefinitionModel": {
+      "additionalProperties": false,
+      "description": "A definition paired with its separate local admission provenance.",
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/DomainProfileDefinitionModel"
+        },
+        "provenance": {
+          "$ref": "#/$defs/DomainProfileDefinitionProvenanceModel"
+        }
+      },
+      "required": [
+        "definition",
+        "provenance"
+      ],
+      "title": "AdmittedDomainProfileDefinitionModel",
+      "type": "object"
+    },
+    "DomainProfileCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact immutable definition coordinate.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "definition_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 253,
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "profile_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "title": "DomainProfileCoordinateModel",
+      "type": "object"
+    },
+    "DomainProfileDefinitionModel": {
+      "additionalProperties": false,
+      "description": "Immutable standard-or-private definition using the shared contract.",
+      "properties": {
+        "allowed_contexts": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Contexts",
+          "type": "array"
+        },
+        "coordinate": {
+          "$ref": "#/$defs/DomainProfileCoordinateModel"
+        },
+        "profile_schema": {
+          "$ref": "#/$defs/DomainProfileSchemaModel"
+        },
+        "schema_version": {
+          "const": "domain-profile-definition/v1",
+          "default": "domain-profile-definition/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "semantic_contract": {
+          "$ref": "#/$defs/DomainProfileSemanticContractModel"
+        }
+      },
+      "required": [
+        "coordinate",
+        "profile_schema",
+        "semantic_contract",
+        "allowed_contexts"
+      ],
+      "title": "DomainProfileDefinitionModel",
+      "type": "object"
+    },
+    "DomainProfileDefinitionProvenanceModel": {
+      "additionalProperties": false,
+      "description": "Source and trust decision for one locally admitted definition.",
+      "properties": {
+        "source_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_locator": {
+          "minLength": 1,
+          "title": "Source Locator",
+          "type": "string"
+        },
+        "trust_decision_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Trust Decision Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_locator",
+        "source_digest",
+        "trust_decision_id"
+      ],
+      "title": "DomainProfileDefinitionProvenanceModel",
+      "type": "object"
+    },
+    "DomainProfileLimitsModel": {
+      "additionalProperties": false,
+      "properties": {
+        "max_bindings": {
+          "default": 256,
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Max Bindings",
+          "type": "integer"
+        },
+        "max_definitions": {
+          "default": 256,
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Max Definitions",
+          "type": "integer"
+        },
+        "max_depth": {
+          "default": 16,
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "max_diagnostics": {
+          "default": 64,
+          "maximum": 256,
+          "minimum": 1,
+          "title": "Max Diagnostics",
+          "type": "integer"
+        },
+        "max_evaluations": {
+          "default": 65536,
+          "maximum": 1048576,
+          "minimum": 1,
+          "title": "Max Evaluations",
+          "type": "integer"
+        },
+        "max_nodes": {
+          "default": 4096,
+          "maximum": 65536,
+          "minimum": 1,
+          "title": "Max Nodes",
+          "type": "integer"
+        },
+        "max_references": {
+          "default": 128,
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Max References",
+          "type": "integer"
+        },
+        "max_scalar_bytes": {
+          "default": 1048576,
+          "maximum": 16777216,
+          "minimum": 1,
+          "title": "Max Scalar Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "DomainProfileLimitsModel",
+      "type": "object"
+    },
+    "DomainProfileNamespaceAdmissionModel": {
+      "additionalProperties": false,
+      "description": "Local trust decision binding a namespace to one authority.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 253,
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "trust_decision_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Trust Decision Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "authority",
+        "trust_decision_id"
+      ],
+      "title": "DomainProfileNamespaceAdmissionModel",
+      "type": "object"
+    },
+    "DomainProfileOperation": {
+      "enum": [
+        "structural-validation",
+        "semantic-validation",
+        "refinement",
+        "comparison",
+        "interpretation",
+        "execution",
+        "typed-report"
+      ],
+      "title": "DomainProfileOperation",
+      "type": "string"
+    },
+    "DomainProfileSchemaModel": {
+      "additionalProperties": false,
+      "description": "Pinned inert JSON Schema carried by a profile definition.",
+      "properties": {
+        "dialect": {
+          "const": "https://json-schema.org/draft/2020-12/schema",
+          "default": "https://json-schema.org/draft/2020-12/schema",
+          "title": "Dialect",
+          "type": "string"
+        },
+        "required_vocabularies": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Required Vocabularies",
+          "type": "array"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "schema_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Schema Digest",
+          "type": "string"
+        },
+        "schema_document": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Schema Document",
+          "type": "object"
+        },
+        "schema_id": {
+          "minLength": 1,
+          "title": "Schema Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_id",
+        "revision",
+        "schema_digest",
+        "schema_document"
+      ],
+      "title": "DomainProfileSchemaModel",
+      "type": "object"
+    },
+    "DomainProfileSemanticContractModel": {
+      "additionalProperties": false,
+      "description": "Exact identity of pre-installed semantic behavior, never executable data.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authority",
+        "contract_id",
+        "revision",
+        "digest"
+      ],
+      "title": "DomainProfileSemanticContractModel",
+      "type": "object"
+    },
+    "DomainProfileSupportDeclarationModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operations": {
+                "contains": {
+                  "const": "structural-validation"
+                }
+              }
+            },
+            "required": [
+              "operations"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supported_schema_dialects": {
+                "minItems": 1
+              },
+              "supported_schema_keywords": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "supported_schema_dialects",
+              "supported_schema_keywords"
+            ]
+          }
+        }
+      ],
+      "description": "Exact operation-specific support; never a handler or plugin record.",
+      "properties": {
+        "coordinate": {
+          "$ref": "#/$defs/DomainProfileCoordinateModel"
+        },
+        "operations": {
+          "items": {
+            "$ref": "#/$defs/DomainProfileOperation"
+          },
+          "minItems": 1,
+          "title": "Operations",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "domain-profile-support-declaration/v1",
+          "default": "domain-profile-support-declaration/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "semantic_contract": {
+          "$ref": "#/$defs/DomainProfileSemanticContractModel"
+        },
+        "supported_schema_dialects": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Supported Schema Dialects",
+          "type": "array"
+        },
+        "supported_schema_keywords": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Supported Schema Keywords",
+          "type": "array"
+        },
+        "supported_vocabularies": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Supported Vocabularies",
+          "type": "array"
+        }
+      },
+      "required": [
+        "coordinate",
+        "semantic_contract",
+        "operations"
+      ],
+      "title": "DomainProfileSupportDeclarationModel",
+      "type": "object"
+    },
+    "JsonValue": {}
+  },
+  "$id": "https://openrae.github.io/rae/schemas/domain-profile-resolution-context-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Immutable caller-supplied local definitions, trust, and support.",
+  "properties": {
+    "definitions": {
+      "items": {
+        "$ref": "#/$defs/AdmittedDomainProfileDefinitionModel"
+      },
+      "title": "Definitions",
+      "type": "array"
+    },
+    "limits": {
+      "$ref": "#/$defs/DomainProfileLimitsModel",
+      "default": {
+        "max_bindings": 256,
+        "max_definitions": 256,
+        "max_depth": 16,
+        "max_diagnostics": 64,
+        "max_evaluations": 65536,
+        "max_nodes": 4096,
+        "max_references": 128,
+        "max_scalar_bytes": 1048576
+      }
+    },
+    "namespace_admissions": {
+      "items": {
+        "$ref": "#/$defs/DomainProfileNamespaceAdmissionModel"
+      },
+      "title": "Namespace Admissions",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "domain-profile-resolution-context/v1",
+      "default": "domain-profile-resolution-context/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "support_declarations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DomainProfileSupportDeclarationModel"
+      },
+      "title": "Support Declarations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "namespace_admissions",
+    "definitions"
+  ],
+  "title": "DomainProfileResolutionContextModel",
+  "type": "object"
+}

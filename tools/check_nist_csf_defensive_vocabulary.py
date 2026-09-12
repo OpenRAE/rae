@@ -27,7 +27,6 @@ from raes_contracts.contracts import (  # noqa: E402
 )
 
 VOCABULARY_ID = "participant-defensive-behavior-activities"
-GOVERNED_SCOPE = "behavior_specifications.defensive_behavior_refs"
 CATALOG_RELATIVE_PATH = "contracts/concept-authority/controlled-vocabularies-v1.json"
 SOURCE_RELATIVE_PATH = "contracts/concept-authority/nist-csf-defensive-categories-source-v1.json"
 SOURCE_AUTHORITY = "NIST Cybersecurity Framework"
@@ -165,13 +164,13 @@ def _check_catalog(
                     f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.source.{field} is "
                     f"{actual_source[field]!r}; expected {expected_value!r}"
                 )
-    if vocabulary.governed_scopes != [GOVERNED_SCOPE]:
+    if vocabulary.governed_scopes != []:
         failures.append(
             f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID}.governed_scopes is "
-            f"{vocabulary.governed_scopes!r}; expected {[GOVERNED_SCOPE]!r}"
+            f"{vocabulary.governed_scopes!r}; expected {[]!r}"
         )
-    if vocabulary.extension_policy != "governed-extension":
-        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must keep governed-extension policy")
+    if vocabulary.extension_policy != "closed":
+        failures.append(f"{CATALOG_RELATIVE_PATH}: {VOCABULARY_ID} must remain a closed optional source catalog")
 
     expected_term_ids = [category.term_id for category in source.categories]
     if list(vocabulary.terms) != expected_term_ids:
@@ -187,16 +186,48 @@ def _check_catalog(
     return failures
 
 
+def _remote_url_failure(source: NistCsfDefensiveCategorySourceModel, selected_url: str) -> str | None:
+    failure = None
+    if source.source_url != selected_url:
+        failure = f"{SOURCE_RELATIVE_PATH}: source URL differs from the reviewed lock selection"
+    else:
+        parsed = urllib.parse.urlparse(selected_url)
+        if parsed.scheme != "https" or parsed.netloc != "csrc.nist.gov":
+            failure = f"{SOURCE_RELATIVE_PATH}: remote verification URL must stay on csrc.nist.gov HTTPS"
+    return failure
+
+
+def _remote_bytes_failure(data: bytes, *, size: int, sha256: str) -> str | None:
+    if len(data) != size or hashlib.sha256(data).hexdigest() != sha256:
+        return f"{SOURCE_RELATIVE_PATH}: retrieved bytes differ from the reviewed lock manifest"
+    return None
+
+
 def _check_remote(source: NistCsfDefensiveCategorySourceModel) -> list[str]:
-    parsed = urllib.parse.urlparse(source.source_url)
-    if parsed.scheme != "https" or parsed.netloc != "csrc.nist.gov":
-        return [f"{SOURCE_RELATIVE_PATH}: remote verification URL must stay on csrc.nist.gov HTTPS"]
+    from tools.tooling_policy_gate import load_tooling_artifact_selection
+
+    selection = load_tooling_artifact_selection(
+        artifact_id="nist-csf-defensive-categories-snapshot",
+        version=SOURCE_VERSION,
+        platform_id="source-any",
+        profile_id="source-snapshot",
+    )
+    if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1:
+        raise RuntimeError("NIST CSF lock selection must contain one source and raw snapshot")
+    raw = selection.raw_manifest[0]
+    url_failure = _remote_url_failure(source, selection.source_urls[0])
+    if url_failure is not None:
+        return [url_failure]
     request = urllib.request.Request(  # noqa: S310 - allowlisted NIST HTTPS endpoint above
-        source.source_url,
+        selection.source_urls[0],
         headers={"User-Agent": "RAES-NIST-CSF-verifier/1"},
     )
     with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310
-        categories = _extract_defensive_categories(response.read())
+        data = response.read()
+    bytes_failure = _remote_bytes_failure(data, size=raw.size, sha256=raw.sha256)
+    if bytes_failure is not None:
+        return [bytes_failure]
+    categories = _extract_defensive_categories(data)
     failures: list[str] = []
     if categories != _source_categories(source):
         failures.append(f"{SOURCE_RELATIVE_PATH}: category snapshot differs from the current NIST CSF 2.0 Core export")

@@ -3,5 +3,14 @@
   "domain": "orchestration",
   "submitted_at": "2026-04-02T22:00:00Z",
   "accepted": true,
+  "context": {
+    "actor_id": "operator-1",
+    "authorization_scope": ["role:operator"],
+    "target_scope": "target:stub",
+    "run_scope": "run:workflow-response",
+    "operation_kind": "orchestration",
+    "request_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "parent_operation_id": null
+  },
   "diagnostics": []
 }

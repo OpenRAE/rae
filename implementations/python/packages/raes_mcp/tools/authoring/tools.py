@@ -23,7 +23,6 @@ _VALID_SECTIONS = frozenset(
         "infrastructure",
         "features",
         "conditions",
-        "vulnerabilities",
         "entities",
         "injects",
         "events",

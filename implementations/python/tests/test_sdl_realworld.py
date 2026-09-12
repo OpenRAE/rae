@@ -44,7 +44,6 @@ nodes:
     os: linux
     resources: {ram: 2 gib, cpu: 1}
     features: {apache-struts: www}
-    vulnerabilities: [struts-rce]
     services:
       - {port: 443, name: https}
       - {port: 8080, name: http-alt}
@@ -56,7 +55,6 @@ nodes:
     os: linux
     resources: {ram: 2 gib, cpu: 1}
     features: {apache-struts: www}
-    vulnerabilities: [struts-rce]
     services:
       - {port: 443, name: https}
     roles: {www: www-data}
@@ -68,7 +66,6 @@ nodes:
     features: {java-backend: app}
     services:
       - {port: 8443, name: https}
-    vulnerabilities: [sudo-baron-samedit]
     roles: {app: appuser}
 
   db-primary:
@@ -133,18 +130,6 @@ features:
   postgres-db:
     type: Service
     source: postgresql-12
-
-vulnerabilities:
-  struts-rce:
-    name: "Apache Struts RCE (CVE-2017-5638)"
-    description: "Remote code execution via Content-Type header parsing"
-    technical: true
-    class: CWE-20
-  sudo-baron-samedit:
-    name: "Sudo Baron Samedit (CVE-2021-3156)"
-    description: "Heap overflow in sudoedit allows local privilege escalation"
-    technical: true
-    class: CWE-122
 
 content:
   pii-database:
@@ -235,7 +220,6 @@ nodes:
     services:
       - {port: 80, name: http}
       - {port: 443, name: https}
-    vulnerabilities: [joomla-sqli, joomla-rce]
     roles: {www: www-data}
 
   workstation:
@@ -257,7 +241,6 @@ nodes:
       - {port: 53, protocol: udp, name: dns}
       - {port: 389, name: ldap}
       - {port: 445, name: smb}
-    vulnerabilities: [eternalblue]
     roles: {admin: Administrator}
 
   fileshare:
@@ -299,11 +282,6 @@ features:
   dns-server: {type: Service, source: windows-dns, dependencies: [ad-ds]}
   smb-shares: {type: Service, source: samba-shares}
   mysql-server: {type: Service, source: mysql-5.7}
-
-vulnerabilities:
-  joomla-sqli: {name: Joomla SQL Injection, description: SQLi in com_content, technical: true, class: CWE-89}
-  joomla-rce: {name: Joomla RCE, description: Template injection leading to RCE, technical: true, class: CWE-94}
-  eternalblue: {name: EternalBlue, description: MS17-010 SMB RCE, technical: true, class: CWE-119}
 
 relationships:
   joomla-to-mysql:
@@ -452,7 +430,6 @@ nodes:
     resources: {ram: 2 gib, cpu: 1}
     features: {dotnet-webapp: www}
     services: [{port: 80, name: http}, {port: 443, name: https}]
-    vulnerabilities: [sqli-portal]
     roles: {www: www-data}
 
   mssql-server:
@@ -463,7 +440,6 @@ nodes:
     resources: {ram: 4 gib, cpu: 2}
     features: {mssql: dba}
     services: [{port: 1433, name: mssql}]
-    vulnerabilities: [xp-cmdshell]
     roles: {dba: sa}
 
   dc-corp:
@@ -474,7 +450,6 @@ nodes:
     resources: {ram: 4 gib, cpu: 2}
     features: {ad-corp: admin}
     services: [{port: 389, name: ldap}, {port: 88, name: kerberos}, {port: 445, name: smb}]
-    vulnerabilities: [asrep-roast, kerberoast-spn]
     roles: {admin: Administrator}
 
   dc-dev:
@@ -485,7 +460,6 @@ nodes:
     resources: {ram: 4 gib, cpu: 2}
     features: {ad-dev: admin}
     services: [{port: 389, name: ldap}, {port: 88, name: kerberos}]
-    vulnerabilities: [unconstrained-deleg]
     roles: {admin: Administrator}
 
   exchange:
@@ -494,7 +468,6 @@ nodes:
     resources: {ram: 8 gib, cpu: 4}
     features: {exchange-svc: admin}
     services: [{port: 443, name: https}, {port: 25, name: smtp}]
-    vulnerabilities: [ntlm-relay]
     roles: {admin: Administrator}
 
   jumpbox:
@@ -521,14 +494,6 @@ features:
   ad-corp: {type: Service, source: adds-forest, description: "corp.offshore.local"}
   ad-dev: {type: Service, source: adds-child, dependencies: [ad-corp], description: "dev.corp.offshore.local"}
   exchange-svc: {type: Service, source: exchange-2019, dependencies: [ad-corp]}
-
-vulnerabilities:
-  sqli-portal: {name: SQL Injection, description: "SQLi in login form leads to MSSQL access", technical: true, class: CWE-89}
-  xp-cmdshell: {name: xp_cmdshell Enabled, description: "MSSQL xp_cmdshell allows OS command execution", technical: true, class: CWE-78}
-  asrep-roast: {name: AS-REP Roasting, description: "Accounts without pre-auth", technical: true, class: CWE-287}
-  kerberoast-spn: {name: Kerberoastable SPN, description: "Service account with weak password", technical: true, class: CWE-916}
-  unconstrained-deleg: {name: Unconstrained Delegation, description: "Machine trusts for any service", technical: true, class: CWE-250}
-  ntlm-relay: {name: NTLM Relay, description: "NTLM auth relay to Exchange for privesc", technical: true, class: CWE-294}
 
 identity_domains:
   corp:
@@ -628,18 +593,6 @@ nodes:
       - {port: 6667, name: irc}
       - {port: 8009, name: ajp}
       - {port: 8180, name: tomcat}
-    vulnerabilities:
-      - vsftpd-backdoor
-      - unrealirc-backdoor
-      - samba-rce
-      - distccd-rce
-      - nfs-root-export
-      - weak-ssh-creds
-      - weak-mysql-creds
-      - weak-postgres-creds
-      - weak-vnc-creds
-      - tomcat-default-creds
-      - java-rmi-rce
     asset_value: {confidentiality: high}
 
   attacker:
@@ -665,19 +618,6 @@ features:
   java-rmi: {type: Service, source: java-rmi-registry}
   tomcat-mgr: {type: Service, source: tomcat-5.5}
   vnc-server: {type: Service, source: vnc4server}
-
-vulnerabilities:
-  vsftpd-backdoor: {name: "vsftpd 2.3.4 Backdoor", description: "Backdoor triggered by smiley face in username", technical: true, class: CWE-506}
-  unrealirc-backdoor: {name: "UnrealIRCd Backdoor", description: "Backdoor in IRC daemon allows RCE", technical: true, class: CWE-506}
-  samba-rce: {name: "Samba username map script RCE", description: "CVE-2007-2447 - command injection via username", technical: true, class: CWE-78}
-  distccd-rce: {name: "DistCC Daemon RCE", description: "CVE-2004-2687 - arbitrary command execution", technical: true, class: CWE-78}
-  nfs-root-export: {name: "NFS Root Export", description: "Root filesystem exported with no_root_squash", technical: true, class: CWE-732}
-  weak-ssh-creds: {name: "Weak SSH Credentials", description: "msfadmin:msfadmin", technical: false, class: CWE-521}
-  weak-mysql-creds: {name: "Weak MySQL Credentials", description: "root with no password", technical: false, class: CWE-521}
-  weak-postgres-creds: {name: "Weak PostgreSQL Credentials", description: "postgres:postgres", technical: false, class: CWE-521}
-  weak-vnc-creds: {name: "Weak VNC Password", description: "password: password", technical: false, class: CWE-521}
-  tomcat-default-creds: {name: "Tomcat Default Credentials", description: "tomcat:tomcat on manager app", technical: false, class: CWE-521}
-  java-rmi-rce: {name: "Java RMI RCE", description: "Deserialization attack on RMI registry", technical: true, class: CWE-502}
 
 accounts:
   msfadmin: {username: msfadmin, node: metasploitable, password_strength: weak}
@@ -937,8 +877,6 @@ def test_scenario_topology_integrity(label, yaml_str):
     for node_name, node in scenario.nodes.items():
         for feat_name in node.features:
             assert feat_name in scenario.features, f"{label}: node '{node_name}' refs missing feature '{feat_name}'"
-        for vuln_name in node.vulnerabilities:
-            assert vuln_name in scenario.vulnerabilities, f"{label}: node '{node_name}' refs missing vuln '{vuln_name}'"
 
 
 @pytest.mark.parametrize("label,yaml_str", SCENARIOS, ids=[s[0] for s in SCENARIOS])
@@ -953,7 +891,6 @@ def test_scenario_stats(label, yaml_str):
     scenario = parse_sdl(textwrap.dedent(yaml_str))
     nodes = len([n for n in scenario.nodes.values() if n.type.value == "compute"])
     nets = len([n for n in scenario.nodes.values() if n.type.value == "switch"])
-    vulns = len(scenario.vulnerabilities)
     features = len(scenario.features)
     accts = len(scenario.accounts)
     rels = len(scenario.relationships)
@@ -964,10 +901,10 @@ def test_scenario_stats(label, yaml_str):
     assert nets >= 1, f"{label}: no networks"
     assert features >= 1, f"{label}: no feature bindings"
 
-    # Vulnerabilities, accounts, and relationships are legitimately absent from
+    # Accounts and relationships are legitimately absent from
     # some fixtures (e.g. the CCDC defense scenario models none), so they are
     # folded into an overall richness floor instead of each asserted >= 1.
-    total_elements = nodes + nets + vulns + features + accts + rels
+    total_elements = nodes + nets + features + accts + rels
     assert total_elements >= 10, f"{label}: scenario too sparse ({total_elements} elements)"
 
 

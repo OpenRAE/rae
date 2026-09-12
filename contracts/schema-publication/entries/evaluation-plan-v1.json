@@ -2,9 +2,9 @@
   "contract_id": "evaluation-plan-v1",
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft",
-  "content_hash": "ec563c738d21e8b0be1c50572e1f5100c39869b2093abfa71d9fc73cab2dae83",
+  "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "ec563c738d21e8b0be1c50572e1f5100c39869b2093abfa71d9fc73cab2dae83"
+    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
+    "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560"
   }
 }

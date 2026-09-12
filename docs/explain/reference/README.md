@@ -27,6 +27,9 @@ themselves normative specifications or ADRs.
   - Implementer-facing reference for `SEM-207` declarative-objective semantics
 - [explicitness-realization-semantics.md](explicitness-realization-semantics.md)
   - Architecture guardrails for `SEM-218` explicitness and realization work
+- [domain-profiles.md](domain-profiles.md)
+  - Portable typed profile identity, offline resolution, support negotiation,
+    opaque preservation, and provenance boundaries
 - [scenario-variation-and-trial-realization.md](scenario-variation-and-trial-realization.md)
   - Complete SCE-002 phase, ownership, identity, random-stream, trial-plan,
     runtime-fact, migration, and follow-on architecture

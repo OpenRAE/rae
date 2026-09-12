@@ -1,30 +1,22 @@
 """Realization-requirement compilation (SEM-218)."""
 
 from collections.abc import Mapping
+from dataclasses import replace
 
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
 from raes.nodes import NodeType
-from raes.realization_designation import RealizationConstraintPosture
-from raes.runtime_resource_limits import (
-    RuntimeProcessResourceLimit,
-    process_resource_limit_identity_digest,
-)
 from raes.scenario import InstantiatedScenario
-from raes.semantics.domain_topology import (
-    DomainTopologyAnalysis,
-)
+from raes.semantics.domain_topology import DomainTopologyAnalysis
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
-from raes_contracts.vocabulary import ObservationStrength, ProcessResourceLimitScope, RealizationVerificationScope
 
 from ..semantics.realization import (
     REALIZATION_DOMAIN,
     CompiledRealizationAuthority,
     CompiledRealizationRequirement,
-    ProcessResourceLimitDemand,
-    RealizationValueConstraint,
     registered_realization_concern_descriptors,
 )
 from ..semantics.realization_concerns import CONCERN_PAYLOAD_PATH, RegisteredRealizationConcern
+from ..semantics.realization_operational_verification import operational_verification_requirement
 from .addresses import (
     _account_address,
     _condition_binding_address,
@@ -39,9 +31,11 @@ from .addresses import (
     _persistent_volume_address,
 )
 from .realization_authority_posture import designated_registered_posture, explicit_registered_posture
+from .realization_compute_substrate import append_compute_substrate_requirements
 from .realization_concern_binding import realization_requirement_address
+from .realization_concern_bounds import _concern_structure, _concern_value_bounds, _ConcernStructure
 from .realization_concern_explicitness import semantic_explicitness_record
-from .realization_value_domains import compiled_os_value_domain, nested_authored_value
+from .realization_value_domains import nested_authored_value
 
 
 def _append_source_artifact_requirement(
@@ -275,26 +269,11 @@ def _compiled_registered_realization(
         field_path=registered.field_path,
         excluded_fields=descriptor.explicitness_excluded_fields,
     )
-    declarations = getattr(scenario, section_name)
     authored_value = nested_authored_value(
-        declarations[declaration_name],
+        getattr(scenario, section_name)[declaration_name],
         descriptor.authored_path,
     )
-    value_constraints: tuple[RealizationValueConstraint, ...] = ()
-    process_resource_limits: tuple[ProcessResourceLimitDemand, ...] = ()
-    value_domain = None
-    constraint_provenance = None
-    if descriptor.concern_kind == "process-resource-limits":
-        value_constraints, process_resource_limits = _compiled_process_resource_limits(
-            scenario,
-            field_pointer=field_pointer,
-            authored_value=authored_value,
-        )
-    elif descriptor.concern_kind in {"os-family", "os-distribution", "os-version"}:
-        value_domain, constraint_provenance = compiled_os_value_domain(
-            scenario,
-            field_pointer=field_pointer,
-        )
+    bounds = _concern_value_bounds(scenario, descriptor, field_pointer=field_pointer, authored_value=authored_value)
     if record is not None and not descriptor.includes_authored_value(authored_value):
         return None, None
     posture = (
@@ -311,6 +290,23 @@ def _compiled_registered_realization(
         section_name=section_name,
         declaration_name=declaration_name,
     )
+    compiled = (
+        _ConcernStructure()
+        if record is None
+        else _concern_structure(
+            scenario,
+            registered,
+            explicitness,
+            authored_value=authored_value,
+            field_pointer=field_pointer,
+            value_domain=bounds.value_domain,
+        )
+    )
+    if compiled.root_open and (compiled.structure is not None or compiled.constraint_document is not None):
+        posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
+    verification_scope, observation_strength = operational_verification_requirement(
+        descriptor.concern_kind, authored_value
+    )
     authority = CompiledRealizationAuthority(
         field_path=registered.field_path,
         address=address,
@@ -322,8 +318,8 @@ def _compiled_registered_realization(
         provenance=posture.provenance,
         governing_scope=posture.governing_scope,
         delegated=posture.delegated,
-        verification_scope=descriptor.required_verification_scope(authored_value),
-        required_observation_strength=descriptor.required_observation_strength(),
+        verification_scope=verification_scope,
+        required_observation_strength=observation_strength,
     )
     if posture.explicitness is None and not posture.delegated:
         return None, authority
@@ -336,57 +332,19 @@ def _compiled_registered_realization(
         provenance=posture.provenance,
         governing_scope=posture.governing_scope,
         delegated=posture.delegated,
-        verification_scope=descriptor.required_verification_scope(authored_value),
-        required_observation_strength=descriptor.required_observation_strength(),
-        value_domain=value_domain,
-        constraint_provenance=constraint_provenance,
-        value_constraints=value_constraints,
-        process_resource_limits=process_resource_limits,
+        verification_scope=verification_scope,
+        required_observation_strength=observation_strength,
+        value_domain=bounds.value_domain,
+        constraint_provenance=bounds.constraint_provenance,
+        value_constraints=bounds.value_constraints,
+        process_resource_limits=bounds.process_resource_limits,
+        structure=compiled.structure,
+        constraint_document=compiled.constraint_document,
+        constraint_binding=compiled.constraint_binding,
+        structure_error=compiled.structure_error,
+        recursive_pending=compiled.recursive_pending,
     )
     return requirement, authority
-
-
-def _compiled_process_resource_limits(
-    scenario: InstantiatedScenario,
-    *,
-    field_pointer: str,
-    authored_value: object,
-) -> tuple[tuple[RealizationValueConstraint, ...], tuple[ProcessResourceLimitDemand, ...]]:
-    limits = tuple(authored_value) if isinstance(authored_value, list) else ()
-    typed_limits = tuple(
-        value if isinstance(value, RuntimeProcessResourceLimit) else RuntimeProcessResourceLimit.model_validate(value)
-        for value in limits
-    )
-    constraints: list[RealizationValueConstraint] = []
-    prefix = f"{field_pointer}/"
-    for constraint in scenario.instantiation_provenance.capability_constraints:
-        if not constraint.field_pointer.startswith(prefix):
-            continue
-        suffix = constraint.field_pointer.removeprefix(prefix).split("/")
-        if len(suffix) != 2 or not suffix[0].isdigit() or suffix[1] not in {"soft", "hard"}:
-            continue
-        index = int(suffix[0])
-        if index >= len(typed_limits):
-            continue
-        constraints.append(
-            RealizationValueConstraint(
-                identity_digest=process_resource_limit_identity_digest(typed_limits[index]),
-                leaf=suffix[1],
-                parameter=constraint.parameter,
-                allowed_values=constraint.allowed_values,
-            )
-        )
-    demands = tuple(
-        ProcessResourceLimitDemand(
-            identity_digest=process_resource_limit_identity_digest(value),
-            resource=value.resource,
-            scope=ProcessResourceLimitScope(value.scope.value),
-            soft=value.soft,
-            hard=value.hard,
-        )
-        for value in typed_limits
-    )
-    return tuple(constraints), demands
 
 
 def _compile_realization(
@@ -396,7 +354,7 @@ def _compile_realization(
     """Lower explicit leaves before typed fallbacks; omitted stays closed and explicit root delegation stays typed."""
 
     requirements: list[CompiledRealizationRequirement] = []
-    _append_compute_substrate_requirements(requirements, scenario)
+    append_compute_substrate_requirements(requirements, scenario)
     authority: list[CompiledRealizationAuthority] = []
     explicitness = scenario.explicitness
     for registered in registered_realization_concern_descriptors(
@@ -440,48 +398,3 @@ def _compile_realization_requirements(
     """Compatibility view over the SEM-218 realization demand graph."""
 
     return _compile_realization(scenario, domain_analysis)[0]
-
-
-def _append_compute_substrate_requirements(
-    requirements: list[CompiledRealizationRequirement],
-    scenario: InstantiatedScenario,
-) -> None:
-    """Lower addressed substrate intent independently of structural node kind."""
-
-    explicitness_by_posture = {
-        RealizationConstraintPosture.EXACT: ExplicitnessClass.EXACT,
-        RealizationConstraintPosture.CONSTRAINED: ExplicitnessClass.CONSTRAINED,
-        RealizationConstraintPosture.OPEN: ExplicitnessClass.OPEN,
-    }
-    records_by_pointer = {
-        record.field_pointer: record
-        for record in scenario.instantiation_provenance.realization_constraints
-        if record.concern.value == "compute-substrate"
-    }
-    for node_name, node in scenario.nodes.items():
-        if node.type is NodeType.SWITCH:
-            continue
-        pointer_name = node_name.replace("~", "~0").replace("/", "~1")
-        field_pointer = f"/nodes/{pointer_name}"
-        record = records_by_pointer.get(field_pointer)
-        posture = record.posture if record is not None else RealizationConstraintPosture.OPEN
-        required_strength = (
-            ObservationStrength.DRIVER_REPORTED
-            if posture is RealizationConstraintPosture.OPEN
-            else ObservationStrength.DAEMON_OBSERVED
-        )
-        requirements.append(
-            CompiledRealizationRequirement(
-                field_path=f"nodes.{node_name}.realization.compute-substrate",
-                address=_node_address(node_name),
-                domain=REALIZATION_DOMAIN,
-                requirement_kind="compute-substrate",
-                explicitness=explicitness_by_posture[posture],
-                provenance=ExplicitnessProvenance.AUTHOR_DECLARED,
-                governing_scope=record.governing_scope if record is not None else f"#{field_pointer}",
-                verification_scope=RealizationVerificationScope.PRESENCE,
-                required_observation_strength=required_strength,
-                value_domain=record.domain if record is not None else None,
-                constraint_provenance=record.provenance if record is not None else "author-declared",
-            )
-        )

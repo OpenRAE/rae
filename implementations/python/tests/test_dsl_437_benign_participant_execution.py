@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 
@@ -17,6 +18,7 @@ from raes.parser import parse_sdl
 from raes.participant_behavior import ParticipantFailureClass
 from raes.participant_execution import ParticipantAutonomousExecutionPolicyV2
 from raes_backend_protocols.capabilities import (
+    ObservationCaptureOffer,
     ParticipantExecutionBinding,
     ParticipantFeatureSupport,
 )
@@ -83,6 +85,24 @@ def _advance_stepped_clock_to_tick(manager: RuntimeManager, target_tick: int) ->
         assert advanced.success
         current_tick += SCENARIO_CLOCK_STEP_TICKS
     return advanced
+
+
+# The real-time clock driver advances on wall-clock ticks, so how long a driver
+# outcome takes is a property of the runner, not of the semantics under test.
+# The verify lane runs the suite under coverage tracing on a contended host,
+# where a driver thread is descheduled well past its nominal tick period. The
+# waits below poll for the outcome and return the moment it holds, so this
+# budget only ever changes the failing case: a driver that never recomputes
+# still fails the following assertion, while one that is merely slow does not.
+_DRIVER_OUTCOME_BUDGET_SECONDS = 15.0
+
+
+def _await_driver_outcome(condition: Callable[[], bool]) -> None:
+    """Wait for one real-time driver outcome without pinning it to the tick period."""
+
+    deadline = time.monotonic() + _DRIVER_OUTCOME_BUDGET_SECONDS
+    while not condition() and time.monotonic() < deadline:
+        time.sleep(0.01)
 
 
 def _scenario_yaml(*, role: str = "green") -> str:
@@ -608,10 +628,38 @@ def _autonomous_manifest(
         with_realization_envelope=with_realization_envelope,
     )
     assert base_manifest.participant_runtime is not None
+    assert base_manifest.observation is not None
+    capture_offers = tuple(
+        ObservationCaptureOffer(
+            offer_id=f"test-{demand.demand_id}",
+            offer_version="1.0.0",
+            output_contract=demand.output_contract or "experiment-evidence-record-v1",
+            field_selectors=demand.field_selectors or ("",),
+            artifact_roles=frozenset(demand.artifact_roles or ("observation",)),
+            media_types=frozenset(demand.media_types or ("application/json",)),
+            capture_kind=demand.capture_kind or "observation",
+            source_classes=frozenset(demand.source_classes or ("sdl-evidence-requirement",)),
+            source_refs=frozenset(demand.source_refs),
+            scopes=frozenset(demand.scopes or ("run",)),
+            channel_kinds=frozenset(demand.channel_kinds),
+            channel_refs=frozenset(demand.channel_refs),
+            window_kinds=frozenset(demand.window_kinds or ("run",)),
+            integrity_modes=frozenset(demand.integrity_modes or ("checksum",)),
+            sensitivity=demand.sensitivity or "internal",
+            availability="available",
+            fidelity="complete",
+            disclosure=demand.disclosure,
+            retention_policy_refs=frozenset(demand.retention_policy_refs),
+            export_policy=demand.export_policy,
+            redaction_policy=demand.redaction_policy,
+        )
+        for demand in runtime_model.capture_demands
+    )
     return replace(
         base_manifest,
         capabilities=replace(
             base_manifest.capabilities,
+            observation=replace(base_manifest.observation, capture_offers=capture_offers),
             participant_runtime=replace(
                 base_manifest.participant_runtime,
                 supported_behavior_features=(
@@ -1958,9 +2006,7 @@ def test_runtime_manager_automatically_drives_wall_paced_participant_clock() -> 
     manager = RuntimeManager(target)
 
     applied = manager.apply(manager.plan(scenario))
-    deadline = time.monotonic() + 1.0
-    while len(participant_runtime.native_actions) < 2 and time.monotonic() < deadline:
-        time.sleep(0.01)
+    _await_driver_outcome(lambda: len(participant_runtime.native_actions) >= 2)
 
     assert applied.success
     assert len(participant_runtime.native_actions) == 2
@@ -2050,9 +2096,7 @@ def test_wall_driver_recomputes_after_pause_and_resume() -> None:
     time.sleep(0.25)
     assert manager.read_time_state().clocks[policy.clock_address].coordinate.tick == 0
     assert manager.resume_time(policy.clock_address).success
-    deadline = time.monotonic() + 1.0
-    while len(participant_runtime.native_actions) < 2 and time.monotonic() < deadline:
-        time.sleep(0.01)
+    _await_driver_outcome(lambda: len(participant_runtime.native_actions) >= 2)
 
     assert len(participant_runtime.native_actions) == 2
     assert manager.participant_clock_driver_status()["failure"] is None
@@ -2184,9 +2228,7 @@ def test_wall_driver_records_an_unexpected_runtime_exception() -> None:
         lock=threading.RLock(),
     )
     driver.start()
-    deadline = time.monotonic() + 1.0
-    while driver.failure is None and time.monotonic() < deadline:
-        time.sleep(0.01)
+    _await_driver_outcome(lambda: driver.failure is not None)
 
     assert driver.failure is not None
     assert driver.failure.diagnostics[0].code == "runtime.participant-clock-driver-failed"

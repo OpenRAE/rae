@@ -63,6 +63,8 @@ from raes_contracts.planning import ProvisioningPlan as ProvisioningPlan
 from raes_contracts.planning import ProvisionOp as ProvisionOp
 from raes_contracts.planning import RuntimeDomain as RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult as ApplyResult
+from raes_contracts.runtime_state import OperationAdmissionContext as OperationAdmissionContext
+from raes_contracts.runtime_state import OperationKind as OperationKind
 from raes_contracts.runtime_state import OperationReceipt as OperationReceipt
 from raes_contracts.runtime_state import OperationState as OperationState
 from raes_contracts.runtime_state import OperationStatus as OperationStatus
@@ -256,6 +258,8 @@ __all__ = [
     "MixedControlDispositionRulesRuntime",
     "MixedControlTransitionRuntime",
     "OperationReceipt",
+    "OperationAdmissionContext",
+    "OperationKind",
     "OperationState",
     "OperationStatus",
     "OrchestrationOp",

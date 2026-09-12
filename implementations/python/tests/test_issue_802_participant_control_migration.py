@@ -287,6 +287,11 @@ def test_runtime_snapshot_fixture_preserves_incumbent_history_without_claim_prom
     RuntimeSnapshotEnvelopeModel.model_validate(after)
     (tmp_path / "snapshot.json").write_text(json.dumps(before), encoding="utf-8")
     legacy_snapshot = LocalControlPlaneStore(tmp_path).load_snapshot()
+    backups = list(tmp_path.glob("legacy-json-backup-*/snapshot.json"))
+    assert len(backups) == 1
+    assert json.loads(backups[0].read_text(encoding="utf-8")) == before
+    assert json.loads((tmp_path / "snapshot.json").read_text(encoding="utf-8")) == before
+    assert (tmp_path / "control-plane.sqlite3").is_file()
     assert participant_crossing_history_presence(before) is ParticipantCrossingHistoryPresence.ABSENT
     assert participant_crossing_history_presence(after) is ParticipantCrossingHistoryPresence.PRESENT_EMPTY
     assert legacy_snapshot.participant_crossing_history == {}

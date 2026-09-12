@@ -639,6 +639,27 @@ def test_effective_observation_rejects_unresolved_limit_variables() -> None:
     assert provenance == ()
 
 
+def test_mixed_constrained_collection_preserves_exact_sibling_member() -> None:
+    declared = [_exact_limit(soft=32768), {**_exact_limit(), "subject": {"name": "worker", "role": "primary"}}]
+    constraint = RealizationValueConstraint(
+        identity_digest=process_resource_limit_identity_digest(declared[0]),
+        leaf="soft",
+        parameter=("soft_limit",),
+        allowed_values=(32768, 65536),
+    )
+    requirement = _requirement(ExplicitnessClass.CONSTRAINED, constraints=(constraint,))
+    for hard, accepted in ((65536, True), (131072, False)):
+        realized = [{**declared[1], "hard": hard}, {**declared[0], "soft": 65536}]
+        diagnostics, provenance = realization_disclosure(
+            (requirement,),
+            _plan(declared),
+            _snapshot(realized, observation_strength=ObservationStrength.GUEST_OBSERVED),
+            manifest=_supporting_manifest(),
+        )
+        assert (not diagnostics) is accepted
+        assert bool(provenance) is accepted
+
+
 def test_open_backend_choice_requires_typed_apparatus_permission_and_is_disclosed() -> None:
     requirement = _requirement(ExplicitnessClass.OPEN)
     selected = [_exact_limit()]
@@ -803,3 +824,31 @@ def test_exact_runtime_gate_rejects_a_different_non_redacted_command_selector() 
 
     assert [diagnostic.code for diagnostic in diagnostics] == ["runtime.backend-contract-invalid"]
     assert provenance == ()
+
+
+def test_prepared_node_demands_project_typed_authored_process_limits() -> None:
+    from raes_processor.planner.prepared_node_support import _process_limit_demands
+
+    limit = RuntimeProcessResourceLimit.model_validate(_exact_limit())
+    demands = _process_limit_demands("process-resource-limits", [limit])
+
+    assert [(demand.resource, demand.soft, demand.hard) for demand in demands] == [
+        (limit.resource, limit.soft, limit.hard)
+    ]
+    assert demands[0].scope.value == limit.scope.value
+    assert demands[0].identity_digest
+
+
+@pytest.mark.parametrize(
+    ("value", "message"),
+    [
+        ({"resource": "open_file_descriptors"}, "typed collection"),
+        ("open_file_descriptors", "typed collection"),
+        ([_exact_limit()], "typed runtime limit records"),
+    ],
+)
+def test_prepared_node_demands_refuse_an_untyped_authored_collection(value: object, message: str) -> None:
+    from raes_processor.planner.prepared_node_support import _process_limit_demands
+
+    with pytest.raises(ValueError, match=message):
+        _process_limit_demands("process-resource-limits", value)

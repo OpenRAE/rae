@@ -168,11 +168,8 @@
         "license_notice": "Adapted from NIST CSF 2.0. Except for material marked as copyrighted, NIST site information is public information that may be distributed or copied; appropriate source credit is requested."
       },
       "kind": "vocabulary",
-      "governed_scopes": [
-        "behavior_specifications.defensive_behavior_refs"
-      ],
-      "extension_policy": "governed-extension",
-      "extension_pattern": "^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "governed_scopes": [],
+      "extension_policy": "closed",
       "terms": {
         "continuous-monitoring": {
           "title": "Continuous Monitoring",
@@ -242,14 +239,11 @@
           "https://attack.mitre.org/resources/legal-and-branding/terms-of-use/"
         ],
         "license_url": "https://attack.mitre.org/resources/legal-and-branding/terms-of-use/",
-        "license_notice": "\u00a9 2026 The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation."
+        "license_notice": "© 2026 The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation."
       },
       "kind": "vocabulary",
-      "governed_scopes": [
-        "behavior_specifications.offensive_behavior_refs"
-      ],
-      "extension_policy": "governed-extension",
-      "extension_pattern": "^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "governed_scopes": [],
+      "extension_policy": "closed",
       "terms": {
         "reconnaissance": {
           "title": "Reconnaissance",
@@ -295,7 +289,7 @@
         },
         "defense-impairment": {
           "title": "Defense Impairment",
-          "description": "The adversary is trying to break security mechanisms, pipelines, and tooling so defenders can\u2019t see or trust what\u2019s happening.\n\nDefense Impairment consists of techniques that degrade, disable, or undermine the effectiveness and trustworthiness of security controls and monitoring mechanisms. These techniques are characterized by direct interference with defensive systems. The goal is to reduce defenders\u2019 ability to detect, interpret, or respond to adversary activity.",
+          "description": "The adversary is trying to break security mechanisms, pipelines, and tooling so defenders can’t see or trust what’s happening.\n\nDefense Impairment consists of techniques that degrade, disable, or undermine the effectiveness and trustworthiness of security controls and monitoring mechanisms. These techniques are characterized by direct interference with defensive systems. The goal is to reduce defenders’ ability to detect, interpret, or respond to adversary activity.",
           "source_id": "TA0112",
           "source_url": "https://attack.mitre.org/tactics/TA0112"
         },
@@ -307,7 +301,7 @@
         },
         "discovery": {
           "title": "Discovery",
-          "description": "The adversary is trying to figure out your environment.\n\nDiscovery consists of techniques an adversary may use to gain knowledge about the system and internal network. These techniques help adversaries observe the environment and orient themselves before deciding how to act. They also allow adversaries to explore what they can control and what\u2019s around their entry point in order to discover how it could benefit their current objective. Native operating system tools are often used toward this post-compromise information-gathering objective. ",
+          "description": "The adversary is trying to figure out your environment.\n\nDiscovery consists of techniques an adversary may use to gain knowledge about the system and internal network. These techniques help adversaries observe the environment and orient themselves before deciding how to act. They also allow adversaries to explore what they can control and what’s around their entry point in order to discover how it could benefit their current objective. Native operating system tools are often used toward this post-compromise information-gathering objective. ",
           "source_id": "TA0007",
           "source_url": "https://attack.mitre.org/tactics/TA0007"
         },
@@ -325,19 +319,19 @@
         },
         "command-and-control": {
           "title": "Command and Control",
-          "description": "The adversary is trying to communicate with compromised systems to control them.\n\nCommand and Control consists of techniques that adversaries may use to communicate with systems under their control within a victim network. Adversaries commonly attempt to mimic normal, expected traffic to avoid detection. There are many ways an adversary can establish command and control with various levels of stealth depending on the victim\u2019s network structure and defenses.",
+          "description": "The adversary is trying to communicate with compromised systems to control them.\n\nCommand and Control consists of techniques that adversaries may use to communicate with systems under their control within a victim network. Adversaries commonly attempt to mimic normal, expected traffic to avoid detection. There are many ways an adversary can establish command and control with various levels of stealth depending on the victim’s network structure and defenses.",
           "source_id": "TA0011",
           "source_url": "https://attack.mitre.org/tactics/TA0011"
         },
         "exfiltration": {
           "title": "Exfiltration",
-          "description": "The adversary is trying to steal data.\n\nExfiltration consists of techniques that adversaries may use to steal data from your network. Once they\u2019ve collected data, adversaries often package it to avoid detection while removing it. This can include compression and encryption. Techniques for getting data out of a target network typically include transferring it over their command and control channel or an alternate channel and may also include putting size limits on the transmission.",
+          "description": "The adversary is trying to steal data.\n\nExfiltration consists of techniques that adversaries may use to steal data from your network. Once they’ve collected data, adversaries often package it to avoid detection while removing it. This can include compression and encryption. Techniques for getting data out of a target network typically include transferring it over their command and control channel or an alternate channel and may also include putting size limits on the transmission.",
           "source_id": "TA0010",
           "source_url": "https://attack.mitre.org/tactics/TA0010"
         },
         "impact": {
           "title": "Impact",
-          "description": "The adversary is trying to manipulate, interrupt, or destroy your systems and data.\n \nImpact consists of techniques that adversaries use to disrupt availability or compromise integrity by manipulating business and operational processes. Techniques used for impact can include destroying or tampering with data. In some cases, business processes can look fine, but may have been altered to benefit the adversaries\u2019 goals. These techniques might be used by adversaries to follow through on their end goal or to provide cover for a confidentiality breach.",
+          "description": "The adversary is trying to manipulate, interrupt, or destroy your systems and data.\n \nImpact consists of techniques that adversaries use to disrupt availability or compromise integrity by manipulating business and operational processes. Techniques used for impact can include destroying or tampering with data. In some cases, business processes can look fine, but may have been altered to benefit the adversaries’ goals. These techniques might be used by adversaries to follow through on their end goal or to provide cover for a confidentiality breach.",
           "source_id": "TA0040",
           "source_url": "https://attack.mitre.org/tactics/TA0040"
         }
@@ -364,11 +358,8 @@
         "license_notice": "Copyright 2021-2026 MITRE. Licensed under the Apache License, Version 2.0. Public Release Case Number 26-1162."
       },
       "kind": "vocabulary",
-      "governed_scopes": [
-        "behavior_specifications.ai_offensive_behavior_refs"
-      ],
-      "extension_policy": "governed-extension",
-      "extension_pattern": "^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "governed_scopes": [],
+      "extension_policy": "closed",
       "terms": {
         "reconnaissance": {
           "title": "Reconnaissance",

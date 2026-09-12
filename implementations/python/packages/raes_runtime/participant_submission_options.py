@@ -75,6 +75,7 @@ def submit_bound_participant_action(
         address=f"runtime.control-plane.participant.{request.participant_address}.admit-action",
         idempotency_key=options.idempotency_key,
         request_fingerprint=options.request_fingerprint,
+        identity=options.identity,
     )
 
 

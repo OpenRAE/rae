@@ -245,8 +245,9 @@ def test_canonical_verifier_requires_and_checks_out_an_exact_commit_sha() -> Non
 
 def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> None:
     workflow = _load(CANONICAL_PATH)
-    assert set(workflow["jobs"]) == {"verify"}
+    assert set(workflow["jobs"]) == {"generic-tool-local-inputs", "verify"}
     job = workflow["jobs"]["verify"]
+    assert job["needs"] == "generic-tool-local-inputs"
     assert job["runs-on"] == "ubuntu-22.04"
 
     step_names = [step.get("name") for step in job["steps"]]
@@ -278,8 +279,9 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     workflow = _load(CI_PATH)
-    assert workflow["permissions"] == {"contents": "read", "pull-requests": "write"}
+    assert workflow["permissions"] == {"contents": "read"}
     assert workflow["on"]["push"]["branches"] == ["main", "dev"]
+    assert workflow["on"]["pull_request"]["branches"] == ["main", "dev"]
     assert "continue-on-error" not in workflow["jobs"]["supply-chain"]
     canonical = workflow["jobs"]["canonical"]
     assert canonical["uses"] == LOCAL_CANONICAL_WORKFLOW
@@ -295,17 +297,25 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert result_join["env"]["CANONICAL_RESULT"] == "${{ needs.canonical.result }}"
     assert '"${CANONICAL_RESULT}" != "success"' in result_join["run"]
     assert "verify" in workflow["jobs"]["sonar"]["needs"]
+    assert workflow["jobs"]["sonar"]["if"] == (
+        "(github.event_name == 'push' "
+        "&& (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) "
+        "|| (github.event_name == 'pull_request' "
+        "&& github.event.pull_request.head.repo.full_name == github.repository "
+        "&& github.actor != 'dependabot[bot]')"
+    )
 
     interpreters = workflow["jobs"]["interpreters"]
-    assert interpreters["strategy"]["matrix"]["python-version"] == [
-        "3.11",
-        "3.12",
-        "3.13",
-        "3.14",
+    assert interpreters["strategy"]["matrix"]["python"] == [
+        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
+        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
+        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
+        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
     ]
     assert interpreters["env"] == {
-        "UV_PYTHON": "${{ matrix.python-version }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python-version }}",
+        "UV_PYTHON": "${{ matrix.python.payload }}",
+        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
+        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
     }
     compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]
@@ -323,6 +333,7 @@ def test_release_resolves_and_verifies_one_immutable_release_commit() -> None:
     assert resolve["needs"] == "release-please"
     assert "github.event_name == 'push'" in resolve["if"]
     assert "github.event_name == 'workflow_dispatch'" in resolve["if"]
+    assert "github.ref == 'refs/heads/main'" in resolve["if"]
     assert "needs.release-please.result == 'success'" in resolve["if"]
     assert "needs.release-please.outputs.release_created == 'true'" in resolve["if"]
     assert resolve["permissions"] == {"contents": "write"}
@@ -400,9 +411,17 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
     assert "tarfile.open(sdists[0]" in corpus
     assert "sdist is missing corpus payload" in corpus
 
+    build_script = _named_step(build, "Build constrained release distributions")["run"]
+    assert "tools.python_closure build" in build_script
+    assert "--profile public-linux-x86_64-cp312-all-extras" in build_script
+    assert "uv build" not in build_script
+
     for smoke_index, distribution in ((wheel_smoke_index, "wheel"), (sdist_smoke_index, "sdist")):
         smoke = build["steps"][smoke_index]["run"]
-        assert "uv pip install" in smoke
+        assert "tools.python_closure smoke" in smoke
+        assert "--wheelhouse" in smoke
+        assert "--offline" in smoke
+        assert "uv pip install" not in smoke
         assert "env -u PYTHONPATH -u PYTHONHOME" in smoke
         assert "conformance backend --profile provisioning-only" in smoke
         assert 'installed_version = version("raes")' in smoke
@@ -458,6 +477,7 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     assert "needs.verify-release.result == 'success'" in publish_pypi["if"]
     assert "needs.integration-docker-release.result == 'success'" in publish_pypi["if"]
     assert "needs.build-release.result == 'success'" in publish_pypi["if"]
+    assert "github.ref == 'refs/heads/main'" in publish_pypi["if"]
     assert publish_pypi["environment"] == "pypi"
     assert publish_pypi["permissions"] == {"contents": "write", "id-token": "write"}
 
@@ -500,6 +520,7 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
         "publish-pypi",
     }
     assert "needs.publish-pypi.result == 'success'" in publish_github["if"]
+    assert "github.ref == 'refs/heads/main'" in publish_github["if"]
     assert publish_github["permissions"] == {"contents": "write"}
     github_download = _named_step(publish_github, "Download the tested release distributions")
     assert github_download["with"]["name"] == upload["with"]["name"]
@@ -517,8 +538,10 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     sync = jobs["sync-dev"]
     assert set(sync["needs"]) == {"release-please", "publish-github"}
     assert "needs.publish-github.result == 'success'" in sync["if"]
+    assert "github.ref == 'refs/heads/main'" in sync["if"]
 
 
+@pytest.mark.integration
 def test_pre_pypi_identity_revalidation_dereferences_annotated_tag(tmp_path: Path) -> None:
     result = _run_pypi_identity_revalidation(
         tmp_path,
@@ -531,6 +554,7 @@ def test_pre_pypi_identity_revalidation_dereferences_annotated_tag(tmp_path: Pat
     assert "Revalidated Release 1234, v3.4.5" in result.stdout
 
 
+@pytest.mark.integration
 def test_pre_pypi_identity_revalidation_rejects_replaced_release(tmp_path: Path) -> None:
     result = _run_pypi_identity_revalidation(
         tmp_path,
@@ -542,6 +566,7 @@ def test_pre_pypi_identity_revalidation_rejects_replaced_release(tmp_path: Path)
     assert "Release object changed: expected id 1234, got 9999" in result.stderr
 
 
+@pytest.mark.integration
 def test_pre_pypi_identity_revalidation_rejects_moved_tag(tmp_path: Path) -> None:
     result = _run_pypi_identity_revalidation(
         tmp_path,
@@ -553,6 +578,7 @@ def test_pre_pypi_identity_revalidation_rejects_moved_tag(tmp_path: Path) -> Non
     assert f"Release tag moved: expected {'a' * 40}, got {'c' * 40}" in result.stderr
 
 
+@pytest.mark.integration
 def test_github_finalization_revalidates_release_object_after_attachment(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -567,6 +593,7 @@ def test_github_finalization_revalidates_release_object_after_attachment(tmp_pat
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["upload"]
 
 
+@pytest.mark.integration
 def test_github_finalization_rejects_moved_tag_before_attachment(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -579,6 +606,7 @@ def test_github_finalization_rejects_moved_tag_before_attachment(tmp_path: Path)
     assert not (tmp_path / "gh-calls.log").exists()
 
 
+@pytest.mark.integration
 def test_github_finalization_rejects_tampered_finalization_response(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -597,6 +625,7 @@ def test_github_finalization_rejects_tampered_finalization_response(tmp_path: Pa
     ]
 
 
+@pytest.mark.integration
 def test_github_finalization_uses_bound_id_and_accepts_verified_response(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -611,6 +640,7 @@ def test_github_finalization_uses_bound_id_and_accepts_verified_response(tmp_pat
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["upload", "patch"]
 
 
+@pytest.mark.integration
 def test_github_finalization_accepts_matching_already_public_retry(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,
@@ -625,6 +655,7 @@ def test_github_finalization_accepts_matching_already_public_retry(tmp_path: Pat
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["download"]
 
 
+@pytest.mark.integration
 def test_github_finalization_rejects_mismatched_already_public_assets(tmp_path: Path) -> None:
     result = _run_github_finalization(
         tmp_path,

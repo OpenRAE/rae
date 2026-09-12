@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 import asyncio
+import sqlite3
 import textwrap
 from collections.abc import Coroutine
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
+from dataclasses import replace
+from multiprocessing import get_context
 from pathlib import Path
+from threading import Barrier as ThreadBarrier
 from threading import Event
-from typing import Any, TypeVar
+from typing import Any, Protocol, TypeVar
 
 import httpx
 import pytest
-import raes_runtime.control_plane_store as control_plane_store_module
 from fastapi import HTTPException
 from raes import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
@@ -21,11 +25,23 @@ from raes_contracts.contracts import (
     ParticipantHistoryViewModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.plan_projection import evaluation_plan_model, provisioning_plan_model
-from raes_contracts.planning import ProvisioningPlan
+from raes_contracts.observation_demand import (
+    ObservationDemandDocument,
+    ObservationDemandRule,
+    ObservationSelector,
+    normalize_observation_demands,
+)
+from raes_contracts.plan_projection import (
+    evaluation_plan_model,
+    orchestration_plan_model,
+    provisioning_plan_model,
+)
+from raes_contracts.planning import ChangeAction, EvaluationPlan, OrchestrationOp, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import (
     ExplicitnessClass,
     ExplicitnessProvenance,
+    OperationAdmissionContext,
+    OperationKind,
     RealizationProvenanceEntry,
     RuntimeSnapshot,
 )
@@ -41,7 +57,11 @@ from raes_runtime.control_plane_security import (
     ControlPlaneRole,
     ControlPlaneSecurityConfig,
 )
-from raes_runtime.control_plane_store import ControlPlaneOperationRecord, LocalControlPlaneStore
+from raes_runtime.control_plane_store import (
+    ControlPlaneOperationRecord,
+    LocalControlPlaneStore,
+    SnapshotRevisionConflict,
+)
 from starlette.requests import Request
 from starlette.testclient import TestClient
 
@@ -67,6 +87,7 @@ def _provisioning_payload(plan_value: object) -> dict[str, object]:
 
 
 def _admit_workflow_prerequisites(control_plane: RuntimeControlPlane, execution_plan: object) -> None:
+    control_plane.register_planner_produced_plan(execution_plan)
     provisioning = control_plane.submit_provisioning(execution_plan.provisioning)
     evaluation = control_plane.submit_evaluation(execution_plan.evaluation)
     assert provisioning.accepted, provisioning.diagnostics
@@ -75,12 +96,21 @@ def _admit_workflow_prerequisites(control_plane: RuntimeControlPlane, execution_
 
 def _participant_operation_record(operation_id: str, participant_address: str) -> ControlPlaneOperationRecord:
     submitted_at = "2026-06-05T10:00:00Z"
+    context = OperationAdmissionContext(
+        actor_id="embedded-process",
+        authorization_scope=("process:trusted-embedder",),
+        target_scope="target:stub",
+        run_scope="run:test",
+        operation_kind=OperationKind.PARTICIPANT_ACTION,
+        request_commitment=f"sha256:{'a' * 64}",
+    )
     return ControlPlaneOperationRecord(
         receipt=OperationReceipt(
             operation_id=operation_id,
             domain=RuntimeDomain.PARTICIPANT,
             submitted_at=submitted_at,
             accepted=True,
+            context=context,
         ),
         status=OperationStatus(
             operation_id=operation_id,
@@ -88,9 +118,31 @@ def _participant_operation_record(operation_id: str, participant_address: str) -
             state=OperationState.RUNNING,
             submitted_at=submitted_at,
             updated_at=submitted_at,
+            context=context,
             changed_addresses=[participant_address],
         ),
     )
+
+
+class _BarrierLike(Protocol):
+    def wait(self, timeout: float | None = None) -> int: ...
+
+
+_CROSS_PROCESS_BARRIER_TIMEOUT_SECONDS = 60
+_CROSS_PROCESS_JOIN_TIMEOUT_SECONDS = 75
+
+
+def _save_operation_in_process(store_path: str, index: int, barrier: _BarrierLike) -> None:
+    record = replace(
+        _participant_operation_record(
+            f"process-operation-{index}",
+            f"participant.behavior.process-subject-{index}",
+        ),
+        idempotency_key=f"process-key-{index}",
+        request_fingerprint=f"process-fingerprint-{index}",
+    )
+    barrier.wait(timeout=_CROSS_PROCESS_BARRIER_TIMEOUT_SECONDS)
+    LocalControlPlaneStore(Path(store_path)).save_record(record)
 
 
 def _test_security(
@@ -197,6 +249,90 @@ def test_control_plane_api_openapi_documents_explicit_error_responses():
     assert "/apparatus/operational-summary" in operation_responses
 
 
+@pytest.mark.parametrize(
+    ("method_name", "path", "payload"),
+    (
+        (
+            "submit_provisioning",
+            "/operations/provisioning",
+            {"operations": [], "diagnostics": [], "realization_authority": []},
+        ),
+        (
+            "submit_evaluation",
+            "/operations/evaluation",
+            {"operations": [], "startup_order": [], "diagnostics": []},
+        ),
+        (
+            "cancel_workflow",
+            "/workflows/orchestration.workflow.response/cancel",
+            {"reason": "operator requested stop"},
+        ),
+        ("reconcile_workflow_timeouts", "/workflows/reconcile-timeouts", None),
+        (
+            "initialize_participant_episode",
+            "/participants/participant.alice/episodes/initialize",
+            {},
+        ),
+        (
+            "reset_participant_episode",
+            "/participants/participant.alice/episodes/reset",
+            {"reason": "operator reset"},
+        ),
+        (
+            "restart_participant_episode",
+            "/participants/participant.alice/episodes/restart",
+            {},
+        ),
+        (
+            "terminate_participant_episode",
+            "/participants/participant.alice/episodes/terminate",
+            {"terminal_reason": "interrupted"},
+        ),
+    ),
+)
+def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
+    monkeypatch: pytest.MonkeyPatch,
+    method_name: str,
+    path: str,
+    payload: dict[str, object] | None,
+) -> None:
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    def conflict(*_args: object, **_kwargs: object) -> None:
+        raise ValueError("forced mutation conflict")
+
+    monkeypatch.setattr(control_plane, method_name, conflict)
+    headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+
+    with TestClient(app) as client:
+        response = client.post(path, json=payload, headers=headers)
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "forced mutation conflict"}
+
+
+def test_control_plane_api_returns_not_found_for_unknown_operation() -> None:
+    target = create_stub_target()
+    app = create_control_plane_app(
+        RuntimeControlPlane(target),
+        security=_test_security(target.name),
+    )
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/operations/unknown-operation",
+            headers={"authorization": "Bearer test-auditor-token"},
+        )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Unknown operation: unknown-operation"}
+
+
 def test_control_plane_call_lookup_fails_closed_without_configured_executor() -> None:
     target = create_stub_target()
     app = create_control_plane_app(RuntimeControlPlane(target), security=_test_security(target.name))
@@ -233,9 +369,140 @@ nodes:
         )
 
     assert response.status_code == 200
-    status = control_plane.get_operation(response.json()["operation_id"])
+    receipt = response.json()
+    assert receipt["context"]["actor_id"] == "backend-service"
+    assert receipt["context"]["target_scope"] == f"target:{target.name}"
+    assert receipt["context"]["operation_kind"] == "evaluation"
+    assert receipt["context"]["request_commitment"].startswith("sha256:")
+    status = control_plane.get_operation(receipt["operation_id"])
     assert status is not None
     assert status.state is OperationState.SUCCEEDED
+    assert status.context.model_dump(mode="json") == receipt["context"]
+
+
+def test_control_plane_api_audits_denied_operation_receipt_as_denied() -> None:
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    submitted_plan = OrchestrationPlan(
+        operations=[
+            OrchestrationOp(
+                action=ChangeAction.CREATE,
+                address="orchestration.workflow.test",
+                resource_type="workflow",
+                payload={},
+                ordering_dependencies=("orchestration.workflow.missing",),
+            )
+        ],
+        startup_order=["orchestration.workflow.test"],
+    )
+    authorization_plan = plan(compile_runtime_model(_scenario("name: admission-authorization")), target.manifest)
+    # Planner validity is intentionally out of scope; this test targets the
+    # operation-admission rejection and its audit record after authorization.
+    control_plane.register_planner_produced_plan(replace(authorization_plan, orchestration=submitted_plan))
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+    headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/operations/orchestration",
+            json=orchestration_plan_model(submitted_plan).model_dump(mode="json", exclude_none=True),
+            headers=headers,
+        )
+
+    assert response.status_code == 200
+    assert response.json()["accepted"] is False
+    audits = [event for event in control_plane.audit_log() if event.operation_id == response.json()["operation_id"]]
+    assert len(audits) == 1
+    assert audits[0].action == "orchestration_admission"
+    assert all(event.identity == "backend-service" and event.allowed is False for event in audits)
+
+
+def test_control_plane_api_reports_snapshot_revision_conflict_without_revision_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    def stale_submission(*_args: object, **_kwargs: object) -> None:
+        raise SnapshotRevisionConflict()
+
+    monkeypatch.setattr(control_plane, "submit_orchestration", stale_submission)
+    with TestClient(app) as client:
+        response = client.post(
+            "/operations/orchestration",
+            json={"operations": [], "startup_order": [], "diagnostics": []},
+            headers={
+                "x-raes-client-verified": "true",
+                "x-raes-client-identity": "backend-service",
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "snapshot revision conflict"}
+
+
+@pytest.mark.parametrize("domain", ["orchestration", "evaluation"])
+def test_control_plane_api_rejects_unregistered_nonempty_phase_plan(domain: str) -> None:
+    scenario = _scenario("""
+name: authorization-gate
+nodes:
+  vm:
+    type: compute
+    resources: {ram: 1 gib, cpu: 1}
+    conditions: {health: ops}
+    roles: {ops: operator}
+conditions:
+  health: {command: /bin/true, interval: 15}
+propositions:
+  health:
+    description: The governed VM has declared runtime state.
+    subjects: [nodes.vm]
+    basis: declared_state
+    predicate: {kind: presence, property: runtime, semantic_ref: urn:raes:declared-property:runtime, operator: exists}
+assertions:
+  health: {proposition: health, role: postcondition, polarity: positive}
+entities:
+  blue: {role: blue}
+objectives:
+  validate:
+    entity: blue
+    success: {assertions: [health]}
+workflows:
+  response:
+    start: run
+    steps:
+      run:
+        type: objective
+        objective: validate
+        on_success: finish
+      finish: {type: end}
+""")
+    target = create_stub_target()
+    execution_plan = plan(compile_runtime_model(scenario), target.manifest)
+    submitted_plan = getattr(execution_plan, domain)
+    assert submitted_plan.operations
+    projector = orchestration_plan_model if domain == "orchestration" else evaluation_plan_model
+    payload = projector(submitted_plan).model_dump(mode="json", exclude_none=True)
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    with TestClient(app) as client:
+        response = client.post(
+            f"/operations/{domain}",
+            json=payload,
+            headers={
+                "x-raes-client-verified": "true",
+                "x-raes-client-identity": "backend-service",
+            },
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": f"{domain} plan is not planner-authorized"}
+    assert control_plane.audit_log()[-1].reason == "planner-authorization-mismatch"
 
 
 def test_control_plane_api_redacts_unexpected_route_errors(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -338,6 +605,9 @@ workflows:
         snapshot_response = client.get("/snapshot", headers=headers)
         assert snapshot_response.status_code == 200
         snapshot = snapshot_response.json()
+        assert snapshot_response.headers["x-raes-snapshot-revision"].isdigit()
+        assert "snapshot_revision" not in snapshot
+        assert "revision" not in snapshot["metadata"]
         assert snapshot["orchestration_results"]
         assert snapshot["orchestration_results"]["orchestration.workflow.response"]["workflow_status"] == "running"
 
@@ -414,6 +684,7 @@ workflows:
         response = client.get("/apparatus/operational-summary", headers=auditor_headers)
 
     assert response.status_code == 200
+    assert response.headers["x-raes-snapshot-revision"].isdigit()
     summary = response.json()
     assert summary["target"] == target.name
     assert summary["resources"]["total"] >= 1
@@ -452,7 +723,7 @@ def test_control_plane_api_operational_apparatus_summary_requires_read_role():
 def test_operational_apparatus_summary_snapshots_operations_safely_during_mutation() -> None:
     target = create_stub_target()
     control_plane = RuntimeControlPlane(target)
-    control_plane._persist_record(_participant_operation_record("existing", "participant.alice"))
+    control_plane._claim_record(_participant_operation_record("existing", "participant.alice"))
     iteration_started = Event()
     mutation_completed = Event()
 
@@ -473,13 +744,14 @@ def test_operational_apparatus_summary_snapshots_operations_safely_during_mutati
             super().__setitem__(key, value)
             mutation_completed.set()
 
-    control_plane._operations = PausingOperationRecords(control_plane._operations)
+    pausing_records = PausingOperationRecords(control_plane._operations)
+    control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         summary = executor.submit(control_plane.operational_apparatus_summary)
         assert iteration_started.wait(timeout=2)
         persistence = executor.submit(
-            control_plane._persist_record,
+            control_plane._claim_record,
             _participant_operation_record("concurrent", "participant.bob"),
         )
         result = summary.result(timeout=3)
@@ -507,8 +779,17 @@ def test_control_plane_api_rejects_unauthenticated_mutations():
 
 
 def test_control_plane_api_supports_idempotent_retries():
+    scenario = _scenario("""
+name: idempotent-provisioning
+nodes:
+  vm:
+    type: compute
+    resources: {ram: 1 gib, cpu: 1}
+""")
     target = create_stub_target()
+    execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
+    control_plane.register_planner_produced_provisioning_plan(execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -518,22 +799,36 @@ def test_control_plane_api_supports_idempotent_retries():
         "x-raes-client-identity": "backend-service",
         "idempotency-key": "same-request",
     }
+    payload = _provisioning_payload(execution_plan.provisioning)
 
     with TestClient(app) as client:
         first = client.post(
             "/operations/provisioning",
-            json={"operations": [], "diagnostics": [], "realization_authority": []},
+            json=payload,
             headers=headers,
         )
+        first_state = control_plane.get_snapshot()
+        first_status = control_plane.get_operation(first.json()["operation_id"])
         second = client.post(
             "/operations/provisioning",
-            json={"operations": [], "diagnostics": [], "realization_authority": []},
+            json=payload,
             headers=headers,
         )
+        second_state = control_plane.get_snapshot()
+        second_status = control_plane.get_operation(second.json()["operation_id"])
 
     assert first.status_code == 200
     assert second.status_code == 200
     assert first.json()["operation_id"] == second.json()["operation_id"]
+    assert first_status is not None
+    assert first_status.changed_addresses
+    assert second_status == first_status
+    assert second_state == first_state
+    assert set(first_status.changed_addresses) == set(first_state.snapshot.entries)
+    operation_audits = [
+        event for event in control_plane.audit_log() if event.operation_id == first.json()["operation_id"]
+    ]
+    assert len(operation_audits) == 1
 
 
 def test_slow_backend_submission_does_not_block_unrelated_http_reads(
@@ -555,6 +850,7 @@ def test_slow_backend_submission_does_not_block_unrelated_http_reads(
         base_snapshot: RuntimeSnapshot | None = None,
         idempotency_key: str = "",
         request_fingerprint: str = "",
+        identity: object | None = None,
     ) -> OperationReceipt:
         entered.set()
         if not release.wait(timeout=5):
@@ -564,6 +860,7 @@ def test_slow_backend_submission_does_not_block_unrelated_http_reads(
             base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=request_fingerprint,
+            identity=identity,
         )
 
     monkeypatch.setattr(control_plane, "submit_provisioning", blocking_submit)
@@ -617,6 +914,7 @@ def test_control_plane_rejects_mutation_queue_overload(
         base_snapshot: RuntimeSnapshot | None = None,
         idempotency_key: str = "",
         request_fingerprint: str = "",
+        identity: object | None = None,
     ) -> OperationReceipt:
         entered.set()
         if not release.wait(timeout=5):
@@ -626,6 +924,7 @@ def test_control_plane_rejects_mutation_queue_overload(
             base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=request_fingerprint,
+            identity=identity,
         )
 
     monkeypatch.setattr(control_plane, "submit_provisioning", blocking_submit)
@@ -664,7 +963,7 @@ def test_control_plane_rejects_mutation_queue_overload(
     _run(exercise())
 
 
-def test_control_plane_executor_serializes_target_mutations() -> None:
+def test_control_plane_executor_leaves_serialization_to_the_core_mutation_authority() -> None:
     executor = _ControlPlaneCallExecutor(max_pending_mutations=2)
     first_entered = Event()
     release_first = Event()
@@ -686,14 +985,15 @@ def test_control_plane_executor_serializes_target_mutations() -> None:
             assert await asyncio.to_thread(first_entered.wait, 2)
             second = asyncio.create_task(executor.mutate(mutation, "second"))
             await asyncio.sleep(0.05)
-            assert execution_order == ["start:first"]
+            assert execution_order == ["start:first", "start:second", "end:second"]
         finally:
             release_first.set()
         assert second is not None
         assert await asyncio.gather(first, second) == ["first", "second"]
+        assert execution_order == ["start:first", "start:second", "end:second", "end:first"]
 
     _run(exercise())
-    assert execution_order == ["start:first", "end:first", "start:second", "end:second"]
+    assert execution_order == ["start:first", "start:second", "end:second", "end:first"]
 
 
 def test_control_plane_executor_rejects_nonpositive_queue_bound() -> None:
@@ -713,7 +1013,7 @@ nodes:
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     store = LocalControlPlaneStore(tmp_path / "cp-store")
     control_plane = RuntimeControlPlane(target, store=store)
-    control_plane.register_planner_produced_provisioning_plan(execution_plan.provisioning)
+    control_plane.register_planner_produced_provisioning_plan(execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -730,9 +1030,11 @@ nodes:
             headers=headers,
         ).json()
 
+    control_plane.close()
     restarted = RuntimeControlPlane(target, store=store)
     assert restarted.get_operation(receipt["operation_id"]) is not None
     assert restarted.get_snapshot().snapshot.entries
+    restarted.close()
 
 
 def test_backend_principal_cannot_rewrite_registered_realization_authority() -> None:
@@ -748,7 +1050,7 @@ nodes:
     target = create_stub_target()
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
-    control_plane.register_planner_produced_provisioning_plan(execution_plan.provisioning)
+    control_plane.register_planner_produced_provisioning_plan(execution_plan)
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
     payload = _provisioning_payload(execution_plan.provisioning)
     closed_entry = next(
@@ -772,6 +1074,76 @@ nodes:
     assert control_plane.snapshot.entries == {}
 
 
+@pytest.mark.parametrize(
+    ("path", "plan_model", "expected_detail"),
+    [
+        (
+            "/operations/provisioning",
+            lambda demands: provisioning_plan_model(ProvisioningPlan(observation_demands=demands)),
+            "provisioning plan is not planner-authorized",
+        ),
+        (
+            "/operations/orchestration",
+            lambda demands: orchestration_plan_model(OrchestrationPlan(observation_demands=demands)),
+            "orchestration plan is not planner-authorized",
+        ),
+        (
+            "/operations/evaluation",
+            lambda demands: evaluation_plan_model(EvaluationPlan(observation_demands=demands)),
+            "evaluation plan is not planner-authorized",
+        ),
+    ],
+)
+def test_generic_operation_principal_cannot_mint_observation_policy(
+    path: str,
+    plan_model: object,
+    expected_detail: str,
+) -> None:
+    selector = ObservationSelector(
+        semantic_scope="/nodes/kali",
+        data_kind="stream",
+        names=("trace",),
+    )
+    resolution = normalize_observation_demands(
+        ObservationDemandDocument(
+            schema_version="observation-demand/v1",
+            document_id="api-forgery",
+            scope_profile="recursive-realization-constraint/v1",
+            rules=(
+                ObservationDemandRule(
+                    rule_id="trace",
+                    scope="/nodes/kali",
+                    purpose="experimental",
+                    mode="selected",
+                    selector=selector,
+                    collection="require",
+                    export="require",
+                    redaction="redact-sensitive",
+                    integrity="digest",
+                ),
+            ),
+        ),
+        target_scopes=("/nodes/kali",),
+    )
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+    model = plan_model(resolution.effective)
+
+    with TestClient(app) as client:
+        response = client.post(
+            path,
+            json=model.model_dump(mode="json", exclude_none=True),
+            headers={
+                "x-raes-client-verified": "true",
+                "x-raes-client-identity": "backend-service",
+            },
+        )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == expected_detail
+
+
 def test_authenticated_snapshot_preserves_realization_governing_scope_from_store(tmp_path: Path):
     target = create_stub_target()
     store = LocalControlPlaneStore(tmp_path / "cp-store")
@@ -787,8 +1159,9 @@ def test_authenticated_snapshot_preserves_realization_governing_scope_from_store
                     provenance=ExplicitnessProvenance.BACKEND_REALIZED,
                     governing_scope="#/",
                 ),
-            )
-        )
+            ),
+        ),
+        expected_revision=store.load_snapshot_state().revision,
     )
     restarted = RuntimeControlPlane(target, store=store)
     app = create_control_plane_app(
@@ -1077,45 +1450,126 @@ def test_request_size_guard_stops_reading_an_oversized_chunked_body():
     assert delivered <= 3
 
 
-def test_local_control_plane_store_saves_snapshot_with_atomic_replace(
+def test_local_control_plane_store_commits_snapshot_to_wal_database(tmp_path: Path):
+    store_path = tmp_path / "cp-store"
+    store = LocalControlPlaneStore(store_path)
+    store.save_snapshot(RuntimeSnapshot(), expected_revision=store.load_snapshot_state().revision)
+
+    with closing(sqlite3.connect(store_path / "control-plane.sqlite3")) as connection, connection:
+        journal_mode = connection.execute("PRAGMA journal_mode").fetchone()
+        state_count = connection.execute("SELECT COUNT(*) FROM state").fetchone()
+        integrity = connection.execute("PRAGMA quick_check").fetchone()
+
+    assert journal_mode == ("wal",)
+    assert state_count == (1,)
+    assert integrity == ("ok",)
+
+
+def test_local_control_plane_store_rolls_back_snapshot_transaction_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ):
     store = LocalControlPlaneStore(tmp_path / "cp-store")
-    replace_calls: list[tuple[Path, Path]] = []
-    real_replace = control_plane_store_module.os.replace
+    real_upsert = store._upsert_snapshot
 
-    def tracked_replace(source: str, destination: str) -> None:
-        replace_calls.append((Path(source), Path(destination)))
-        real_replace(source, destination)
+    def fail_upsert(
+        connection: sqlite3.Connection,
+        snapshot: RuntimeSnapshot,
+        *,
+        revision: int = 0,
+    ) -> None:
+        real_upsert(connection, snapshot, revision=revision)
+        raise OSError("commit failed")
 
-    monkeypatch.setattr(control_plane_store_module.os, "replace", tracked_replace)
+    monkeypatch.setattr(store, "_upsert_snapshot", fail_upsert)
+    snapshot = RuntimeSnapshot()
+    revision = store.load_snapshot_state().revision
 
-    store.save_snapshot(RuntimeSnapshot())
+    with pytest.raises(OSError, match="commit failed"):
+        store.save_snapshot(snapshot, expected_revision=revision)
 
-    assert replace_calls
-    assert replace_calls[0][1] == tmp_path / "cp-store" / "snapshot.json"
-    assert not replace_calls[0][0].exists()
-    assert not list((tmp_path / "cp-store").glob("*.tmp"))
+    assert store.load_snapshot() == RuntimeSnapshot()
 
 
-def test_local_control_plane_store_cleans_temp_file_after_atomic_replace_failure(
+def test_local_control_plane_store_preserves_concurrent_operation_writes(tmp_path: Path) -> None:
+    store_path = tmp_path / "cp-store"
+    stores = (LocalControlPlaneStore(store_path), LocalControlPlaneStore(store_path))
+    records = [
+        replace(
+            _participant_operation_record(
+                f"operation-{index}",
+                f"participant.behavior.subject-{index}",
+            ),
+            idempotency_key=f"key-{index}",
+            request_fingerprint=f"fingerprint-{index}",
+        )
+        for index in range(32)
+    ]
+
+    def save(index: int) -> None:
+        stores[index % len(stores)].save_record(records[index])
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        list(executor.map(save, range(len(records))))
+
+    assert set(LocalControlPlaneStore(store_path).load_records()) == {record.receipt.operation_id for record in records}
+
+
+def test_local_control_plane_store_preserves_cross_process_operation_writes(tmp_path: Path) -> None:
+    store_path = tmp_path / "cp-store"
+    LocalControlPlaneStore(store_path)
+    context = get_context("spawn")
+    barrier = context.Barrier(4)
+    processes = [
+        context.Process(
+            target=_save_operation_in_process,
+            args=(str(store_path), index, barrier),
+        )
+        for index in range(4)
+    ]
+
+    for process in processes:
+        process.start()
+    for process in processes:
+        process.join(timeout=_CROSS_PROCESS_JOIN_TIMEOUT_SECONDS)
+    for process in processes:
+        if process.is_alive():
+            process.terminate()
+            process.join(timeout=5)
+
+    assert [process.exitcode for process in processes] == [0, 0, 0, 0]
+    assert set(LocalControlPlaneStore(store_path).load_records()) == {
+        f"process-operation-{index}" for index in range(4)
+    }
+
+
+def test_local_control_plane_store_claims_idempotency_key_once_across_instances(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-):
-    store = LocalControlPlaneStore(tmp_path / "cp-store")
+) -> None:
+    store_path = tmp_path / "cp-store"
+    stores = (LocalControlPlaneStore(store_path), LocalControlPlaneStore(store_path))
+    records = tuple(
+        replace(
+            _participant_operation_record(
+                f"operation-{index}",
+                f"participant.behavior.subject-{index}",
+            ),
+            idempotency_key="shared-key",
+            request_fingerprint="same-request",
+        )
+        for index in range(2)
+    )
+    barrier = ThreadBarrier(2)
 
-    def fail_replace(source: str, destination: str) -> None:
-        del source, destination
-        raise OSError("replace failed")
+    def claim(index: int) -> ControlPlaneOperationRecord:
+        barrier.wait()
+        return stores[index].claim_record(records[index])
 
-    monkeypatch.setattr(control_plane_store_module.os, "replace", fail_replace)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        claimed = list(executor.map(claim, range(2)))
 
-    with pytest.raises(OSError, match="replace failed"):
-        store.save_snapshot(RuntimeSnapshot())
-
-    assert not (tmp_path / "cp-store" / "snapshot.json").exists()
-    assert not list((tmp_path / "cp-store").glob("*.tmp"))
+    assert len({record.receipt.operation_id for record in claimed}) == 1
+    assert len(LocalControlPlaneStore(store_path).load_records()) == 1
 
 
 def test_control_plane_api_cancels_workflow_runs():
@@ -1272,12 +1726,16 @@ workflows:
         seeded = dict(control_plane._snapshot.orchestration_results[workflow_address])
         seeded["started_at"] = "2000-01-01T00:00:00Z"
         seeded["updated_at"] = "2000-01-01T00:00:01Z"
-        control_plane._snapshot = control_plane._snapshot.with_entries(
+        seeded_snapshot = control_plane._snapshot.with_entries(
             dict(control_plane._snapshot.entries),
             orchestration_results={
                 **control_plane._snapshot.orchestration_results,
                 workflow_address: seeded,
             },
+        )
+        control_plane._store.save_snapshot(
+            seeded_snapshot,
+            expected_revision=control_plane._store.load_snapshot_state().revision,
         )
         reconcile = client.post(
             "/workflows/reconcile-timeouts",
@@ -1374,7 +1832,7 @@ workflows:
             **seeded["steps"],
             "run": {"lifecycle": "completed", "outcome": "succeeded", "attempts": 1},
         }
-        control_plane._snapshot = control_plane._snapshot.with_entries(
+        seeded_snapshot = control_plane._snapshot.with_entries(
             dict(control_plane._snapshot.entries),
             orchestration_results={
                 **control_plane._snapshot.orchestration_results,
@@ -1395,6 +1853,10 @@ workflows:
                     },
                 ],
             },
+        )
+        control_plane._store.save_snapshot(
+            seeded_snapshot,
+            expected_revision=control_plane._store.load_snapshot_state().revision,
         )
         cancel = client.post(
             "/workflows/orchestration.workflow.response/cancel",
@@ -1502,7 +1964,7 @@ workflows:
             **seeded["steps"],
             "run": {"lifecycle": "completed", "outcome": "succeeded", "attempts": 1},
         }
-        control_plane._snapshot = control_plane._snapshot.with_entries(
+        seeded_snapshot = control_plane._snapshot.with_entries(
             dict(control_plane._snapshot.entries),
             orchestration_results={
                 **control_plane._snapshot.orchestration_results,
@@ -1523,6 +1985,10 @@ workflows:
                     },
                 ],
             },
+        )
+        control_plane._store.save_snapshot(
+            seeded_snapshot,
+            expected_revision=control_plane._store.load_snapshot_state().revision,
         )
         client.post("/workflows/reconcile-timeouts", headers=headers)
         snapshot = client.get("/snapshot", headers=headers).json()
@@ -1719,6 +2185,8 @@ class TestParticipantEpisodeHttpRoutes:
 
         assert response.status_code == 200
         view = ParticipantStatusViewModel.model_validate(response.json())
+        revision = response.headers["x-raes-snapshot-revision"]
+        assert view.source_snapshot_ref == f"runtime.snapshot.revision.{revision}"
         assert view.participant_address == "participant.alice"
         assert view.episode_id == "participant.alice-episode-1"
         assert view.episode_state is not None
@@ -1729,10 +2197,8 @@ class TestParticipantEpisodeHttpRoutes:
         control_plane = RuntimeControlPlane(target)
         control_plane.initialize_participant_episode("participant.alice")
         control_plane.initialize_participant_episode("participant.bob")
-        control_plane._operations = {
-            "op-alice": _participant_operation_record("op-alice", "participant.alice"),
-            "op-bob": _participant_operation_record("op-bob", "participant.bob"),
-        }
+        control_plane._store.save_record(_participant_operation_record("op-alice", "participant.alice"))
+        control_plane._store.save_record(_participant_operation_record("op-bob", "participant.bob"))
         client = TestClient(
             create_control_plane_app(
                 control_plane,
@@ -1764,6 +2230,8 @@ class TestParticipantEpisodeHttpRoutes:
 
         assert response.status_code == 200
         view = ParticipantHistoryViewModel.model_validate(response.json())
+        revision = response.headers["x-raes-snapshot-revision"]
+        assert view.source_snapshot_ref == f"runtime.snapshot.revision.{revision}"
         assert view.participant_address == "participant.alice"
         assert view.episode_id == "participant.alice-episode-1"
         assert [event.event_type for event in view.episode_history] == [
@@ -1797,15 +2265,18 @@ class TestParticipantEpisodeHttpRoutes:
 
         assert response.status_code == 200
         view = ParticipantContextViewModel.model_validate(response.json())
+        revision = response.headers["x-raes-snapshot-revision"]
+        snapshot_ref = f"runtime.snapshot.revision.{revision}"
         assert view.participant_address == "participant.alice"
         assert view.view_ref == "views.context.network-posture.v1"
-        assert view.derived_from_refs == ["runtime.snapshot.current"]
+        assert view.source_snapshot_ref == snapshot_ref
+        assert view.derived_from_refs == [snapshot_ref]
         assert view.meaning_ref == "views.context.network-posture.v1"
         assert view.participant_scope == "participant_local"
         assert view.audience_scope == "participant_visible"
         assert view.observation_point == "participant.alice-episode-1"
         assert view.source_layers[0].source_layer == "source_snapshot"
-        assert view.source_layers[0].evidence_refs == ["runtime.snapshot.current"]
+        assert view.source_layers[0].evidence_refs == [snapshot_ref]
         assert view.transformation.transformation_rule_ref == "views.context.network-posture.v1"
         assert view.comparability.comparability_class == "portable_equivalent"
         assert view.comparability.backend_disclosure_refs == []

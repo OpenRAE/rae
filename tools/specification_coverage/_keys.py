@@ -25,33 +25,11 @@ IMPLEMENTATION_SURFACE_PATHS = {
     "sdl-pipeline": "implementations/python/packages/raes",
 }
 _PACKAGES_ROOT = "implementations/python/packages/"
-_EXECUTION_SNAPSHOT_PATH = "docs/research/specification-coverage/execution-snapshot-v1.json"
+_EXECUTION_SNAPSHOT_PATH = "docs/research/specification-coverage/execution-snapshot-v7.json"
 HISTORICAL_IMPLEMENTATION_SURFACE_PATHS = {
     "contract-models": _PACKAGES_ROOT + "a" + "ces_contracts",
     "processor-pipeline": _PACKAGES_ROOT + "a" + "ces_processor",
     "sdl-pipeline": _PACKAGES_ROOT + "a" + "ces_sdl",
-}
-RENAMED_ARTIFACT_DIGESTS = {
-    "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml": (
-        "54ba1a60220e27a55da9cd2a407d7d3ab836fa54460d0b0c6cad87c2e744ddbb",
-        "7d9c2b8222a71c168b1a644d083e3e165047802ca5b5c75e57aa3d3c9a73a530",
-    ),
-    "examples/scenarios/port-authority-surge-response.sdl.yaml": (
-        "c7f9374d87490145425e9ee3916d799ffac1b6a30fb97f50f7241f7ff9b6f21a",
-        "e126e678f9289635b40a2cc1a5b9773385bc46bed1c637a57ed50e9a0c45957e",
-    ),
-    "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json": (
-        "21952a752f4e8581a9fc3b872e4bc308150548170d38bcfc83dbbe35ff5e0b9f",
-        "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc",
-    ),
-    "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json": (
-        "9536d897a09cbc6920e667e4f8f9371e51307aa0b3b5ff3c7de682dd783420ab",
-        "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299",
-    ),
-    "docs/explain/sdl/limitations.md": (
-        "4a673316b341fd5beca10e3dd87aa35ba762e4668d78d1b48cb706074f0c720c",
-        "d74ac3b63a859b03b11b408cfd61ad7fd496a8d1ce781c220873f6478f9292e8",
-    ),
 }
 
 _MAX_FILE_BYTES = 2 * 1024 * 1024

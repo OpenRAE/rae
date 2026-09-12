@@ -23,19 +23,9 @@ def semantic_explicitness_record(
 ) -> ExplicitnessRecord | None:
     """Classify only authored leaves owned by one realization concern."""
 
-    candidates = {
-        path: record
-        for path, record in explicitness.items()
-        if (path == field_path or path.startswith((f"{field_path}.", f"{field_path}[")))
-        and not excluded_fields.intersection(_PATH_TOKEN_RE.findall(path[len(field_path) :]))
-    }
-    if not candidates:
+    leaf_records = semantic_explicitness_leaves(explicitness, field_path=field_path, excluded_fields=excluded_fields)
+    if not leaf_records:
         return None
-    leaf_records = [
-        record
-        for path, record in candidates.items()
-        if not any(other != path and other.startswith((f"{path}.", f"{path}[")) for other in candidates)
-    ]
     weakest = min(leaf_records, key=lambda item: _RANK[item.classification])
     variables = tuple(sorted({name for item in leaf_records for name in item.variables}))
     provenance = (
@@ -47,9 +37,32 @@ def semantic_explicitness_record(
         path=field_path,
         classification=weakest.classification,
         provenance=provenance,
-        reason="derived from realization-owned authored leaves",
+        reason="support summary of realization-owned leaves; child constraints remain binding",
         variables=variables,
     )
 
 
-__all__ = ["semantic_explicitness_record"]
+def semantic_explicitness_leaves(
+    explicitness: Mapping[str, ExplicitnessRecord],
+    *,
+    field_path: str,
+    excluded_fields: frozenset[str],
+) -> list[ExplicitnessRecord]:
+    """Select authored leaves without turning their support summary into authority."""
+
+    candidates = {
+        path: record
+        for path, record in explicitness.items()
+        if (path == field_path or path.startswith((f"{field_path}.", f"{field_path}[")))
+        and not excluded_fields.intersection(_PATH_TOKEN_RE.findall(path[len(field_path) :]))
+    }
+    if not candidates:
+        return []
+    return [
+        record
+        for path, record in candidates.items()
+        if not any(other != path and other.startswith((f"{path}.", f"{path}[")) for other in candidates)
+    ]
+
+
+__all__ = ["semantic_explicitness_record", "semantic_explicitness_leaves"]

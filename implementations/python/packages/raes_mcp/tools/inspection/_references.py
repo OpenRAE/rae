@@ -67,7 +67,7 @@ def _build_reference_map(scenario: Scenario) -> dict[tuple[str, str], list[str]]
 
 
 def _node_refs(scenario: Scenario) -> dict[tuple[str, str], list[str]]:
-    # Nodes -> features, conditions, vulnerabilities
+    # Nodes -> features, conditions
     refs: dict[tuple[str, str], list[str]] = {}
     for name, node in scenario.nodes.items():
         targets: list[str] = []
@@ -75,8 +75,6 @@ def _node_refs(scenario: Scenario) -> dict[tuple[str, str], list[str]]:
             targets.extend(node.features.keys())
         if node.conditions:
             targets.extend(node.conditions.keys())
-        if node.vulnerabilities:
-            targets.extend(node.vulnerabilities)
         if targets:
             refs[("nodes", name)] = targets
     return refs

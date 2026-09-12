@@ -2,9 +2,9 @@
   "contract_id": "operation-status-v1",
   "schema_path": "contracts/schemas/control-plane/operation-status-v1.json",
   "stability": "draft",
-  "content_hash": "179badc2f0bd77a0dd6d81bd17c36075bd5f1a183aa918d8252b79d1ea9c0315",
+  "content_hash": "b1d6549d3b091b43700f57b3908be24e7f484709edbcf16e74a7c032f9665f2a",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "179badc2f0bd77a0dd6d81bd17c36075bd5f1a183aa918d8252b79d1ea9c0315"
+    "summary": "Added closed lifecycle states, immutable admission context, and canonical terminal-diagnostic constraints for issue #1182.",
+    "content_hash": "b1d6549d3b091b43700f57b3908be24e7f484709edbcf16e74a7c032f9665f2a"
   }
 }

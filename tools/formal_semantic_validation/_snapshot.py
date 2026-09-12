@@ -237,7 +237,7 @@ def _validate_snapshot_replay(
                 )
             )
         else:
-            if not _replay_observation_matches(case_id, item, replayed):
+            if not _replay_observation_matches(item, replayed):
                 failures.append(
                     _failure(
                         "formal-validation-replay-drift",

@@ -24,7 +24,9 @@ from raes_contracts.contracts import (
     ExperimentRunModel,
     ExperimentStudyModel,
     ExperimentTaskModel,
-    validate_experiment_study_against_tasks_and_runs,
+)
+from raes_contracts.contracts import (
+    validate_experiment_study_structure_against_tasks_and_runs as validate_experiment_study_against_tasks_and_runs,
 )
 from raes_contracts.contracts.random_stream import (
     PublicSeedModel,

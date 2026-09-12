@@ -4,6 +4,9 @@
 
 accepted
 
+ADR-108 amends the scope as recorded below. The security profile and historical
+records retain their published meaning.
+
 ## Date
 
 2026-07-30
@@ -253,6 +256,37 @@ operations until a governed transformation or release exists.
   covert channels.
 - Positive runtime, backend, shielding, or intentional-subversion claims from
   this ADR alone.
+
+## Modular participant-control scope amendment
+
+[ADR-108](adr-108-modular-participant-control-and-governed-effects.md) places
+this security profile within a broader experimental and organizational
+participant-control architecture. SEM-233 and `sem-233/rev1` retain independent
+confidentiality/integrity coordinates, conservative propagation, exact-sink
+policy and explicit releases. Known in-world adversarial influence can be
+intentionally admitted by a sink policy and tracked without endorsement;
+unknown or missing flow authority retains the existing failure behavior.
+
+The general-purpose taint-engine/policy-language non-goal is preserved for the
+RAES runtime and portable executable surface. SEM-235 adds revisioned IFC
+domains and mechanism-composition semantics; independently chosen backend
+engines realize them behind a closed protocol. Labels and monitor results may
+request governed typed effects, including injects, only through independently
+authorized rules and ordinary downstream admission. They execute no hidden
+code and do not widen authority.
+
+Only attacks within the admitted world are participant occurrences here.
+Integrity and containment outside it remain backend/provider responsibilities;
+interference there fails or invalidates realization. A live environment can
+belong to the world when explicitly admitted. The DRAFT statements in this
+ADR describe the original #812 design cut; later requirement fulfillment and
+evidence records retain their own dates and scope.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-09-06 | #1068 | Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal. |
 
 ## References
 

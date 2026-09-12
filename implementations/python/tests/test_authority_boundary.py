@@ -760,6 +760,18 @@ def test_schema_outside_normative_root_is_flagged(tmp_path: Path) -> None:
     )
 
 
+def test_internal_tooling_schema_is_not_treated_as_published_contract(tmp_path: Path) -> None:
+    seeded = _seed_repo(
+        tmp_path,
+        extra_files={"implementations/tooling/schemas/tool.schema.json": "{}"},
+    )
+    failures = evaluate_authority_boundary(seeded)
+    assert not _flagged(failures, "authority-boundary-schema-misplaced"), (
+        "internal tooling schemas must remain non-normative implementation data; "
+        f"got: {[failure.render() for failure in failures]}"
+    )
+
+
 def test_schema_inside_normative_root_is_clean(tmp_path: Path) -> None:
     seeded = _seed_repo(
         tmp_path,

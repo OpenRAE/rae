@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from raes_contracts.contracts import OperationReceiptModel
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
@@ -17,7 +17,6 @@ from ..control_plane_api_models import (
     _ParticipantResetBody,
     _ParticipantRestartBody,
     _ParticipantTerminateBody,
-    _request_fingerprint,
 )
 from ..participant_control_intents import ParticipantControlIntent
 from ._auth import _MutatingIdentity, _ReadIdentity
@@ -27,6 +26,8 @@ from ._responses import (
     _CONFLICT_RESPONSES,
     _NOT_FOUND_RESPONSES,
     _receipt_response,
+    _record_operation_receipt_audit,
+    _set_snapshot_revision_header,
 )
 
 
@@ -56,20 +57,17 @@ def _register_participant_execution_routes(
                 control_plane.control_participant_execution,
                 control_request,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action=f"participant_execution_{body.action}",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
@@ -80,11 +78,15 @@ def _register_participant_execution_routes(
     async def get_participant_execution_state(
         execution_scope_ref: str,
         request: Request,
+        response: Response,
         identity: _ReadIdentity,
     ) -> ParticipantExecutionServiceStateModel:
         calls = _control_plane_calls(request)
         try:
-            state = await calls.run(control_plane.participant_execution_state, execution_scope_ref)
+            state, revision = await calls.run(
+                control_plane._project_snapshot_read,
+                lambda: control_plane.participant_execution_state(execution_scope_ref),
+            )
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         await calls.run(
@@ -94,6 +96,7 @@ def _register_participant_execution_routes(
             allowed=True,
             target=str(request.url.path),
         )
+        _set_snapshot_revision_header(response, revision)
         return state
 
 
@@ -168,20 +171,17 @@ def _register_participant_episode_start_routes(
                 participant_address,
                 episode_id=payload.episode_id,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="initialize_participant_episode",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
@@ -204,20 +204,17 @@ def _register_participant_episode_start_routes(
                 episode_id=payload.episode_id,
                 reason=payload.reason,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="reset_participant_episode",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
@@ -245,20 +242,17 @@ def _register_participant_episode_end_routes(
                 episode_id=payload.episode_id,
                 reason=payload.reason,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="restart_participant_episode",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)
 
@@ -285,19 +279,16 @@ def _register_participant_episode_end_routes(
                 terminal_reason=terminal_reason,
                 detail=payload.detail,
                 idempotency_key=request.headers.get("idempotency-key", ""),
-                request_fingerprint=_request_fingerprint(
-                    request,
-                    getattr(request.state, "raw_body", b""),
-                ),
+                identity=identity,
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        await calls.run(
-            control_plane.record_audit,
+        _record_operation_receipt_audit(
+            calls,
+            control_plane,
             action="terminate_participant_episode",
             identity=identity.identity,
-            allowed=True,
             target=str(request.url.path),
-            operation_id=receipt.operation_id,
+            receipt=receipt,
         )
         return _receipt_response(receipt)

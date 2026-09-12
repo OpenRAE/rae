@@ -5936,7 +5936,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_run_against_task"
+      "validator": "raes_contracts.contracts.validate_experiment_run_structure_against_task"
     },
     {
       "description": "When present, realized-time provenance must match the run id and its declared model digest.",
@@ -5951,7 +5951,7 @@
       "validator": "raes_contracts.contracts.ExperimentRunModel._validate_archival_run"
     },
     {
-      "description": "Run apparatus, result metric ids, and concrete evidence artifacts must satisfy the referenced task protocol.",
+      "description": "Run apparatus and result metric ids must satisfy the referenced task protocol. Content-backed evidence is additionally required by authoritative task/run validation.",
       "id": "task-run-protocol-binding-valid",
       "inputs": [
         {
@@ -5964,7 +5964,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.validate_experiment_run_against_task"
+      "validator": "raes_contracts.contracts.validate_experiment_run_structure_against_task"
     },
     {
       "description": "Run started_at, ended_at, invalidation invalidated_at, and evidence_artifacts created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",

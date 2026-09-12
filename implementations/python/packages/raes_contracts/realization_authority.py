@@ -17,6 +17,7 @@ from .planning import (
     ResolvedRealizationAuthority,
     planned_realization_authority,
 )
+from .realization_structure import structure_matches
 
 _MISSING_REALIZATION_SELECTION = object()
 _CLOSED_NEUTRAL_VALUES_BY_REQUIREMENT_KIND = {
@@ -146,6 +147,11 @@ def _planned_authority_selection_diagnostic(
 
 def _planned_selection_is_invalid(selected: object, authority: ResolvedRealizationAuthority) -> bool:
     invalid = False
+    if authority.structure is not None and (
+        selected is _MISSING_REALIZATION_SELECTION
+        or not structure_matches(authority.structure, selected, selected, observed=False)
+    ):
+        return True
     if selected is not _MISSING_REALIZATION_SELECTION:
         if authority.mode is RealizationAuthorityMode.CLOSED:
             typed_neutral_values = _CLOSED_NEUTRAL_VALUES_BY_REQUIREMENT_KIND.get(

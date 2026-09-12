@@ -1,0 +1,257 @@
+{
+  "revision": "participant-control-delivery/rev1",
+  "architecture": "OpenRAE/rae#1068",
+  "status_at_design_cut": "open",
+  "nodes": [
+    {
+      "id": "OpenRAE/rae#1068",
+      "requirements": [
+        "SEM-235",
+        "API-424",
+        "RUN-320",
+        "ASR-538",
+        "ASR-536"
+      ],
+      "requires_all": [],
+      "requires_any": []
+    },
+    {
+      "id": "OpenRAE/rae#1070",
+      "requirements": [
+        "SEM-235",
+        "SEM-230",
+        "SEM-233"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "OpenRAE/rae#1072",
+      "requirements": [
+        "API-424",
+        "SEM-235",
+        "API-407",
+        "API-409",
+        "API-423"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068",
+        "OpenRAE/rae#1070"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "OpenRAE/rae#1069",
+      "requirements": [
+        "RUN-320",
+        "API-424",
+        "RUN-319",
+        "RUN-310",
+        "API-404"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068",
+        "OpenRAE/rae#1070",
+        "OpenRAE/rae#1072"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "OpenRAE/rae#1071",
+      "requirements": [
+        "ASR-538",
+        "ASR-535",
+        "SEM-235",
+        "API-424",
+        "RUN-320"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068",
+        "OpenRAE/rae#1070",
+        "OpenRAE/rae#1072",
+        "OpenRAE/rae#1069"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "OpenRAE/lilrae#6",
+      "requirements": [
+        "SEM-235",
+        "API-424",
+        "ASR-538"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068"
+      ],
+      "requires_any": [],
+      "local_authority_gate": "Accept the independently selected mechanism and integrity envelope and name LilRAE requirement authority before #21 starts."
+    },
+    {
+      "id": "Brad-Edwards/shifter#1967",
+      "requirements": [
+        "SEM-235",
+        "API-424",
+        "ASR-538"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068"
+      ],
+      "requires_any": [],
+      "local_authority_gate": "Accept the independently selected mechanism and integrity envelope and name Shifter requirement authority before #1968 starts."
+    },
+    {
+      "id": "OpenRAE/lilrae#21",
+      "requirements": [
+        "SEM-235",
+        "API-424",
+        "RUN-320",
+        "ASR-538"
+      ],
+      "requires_all": [
+        "OpenRAE/lilrae#6",
+        "OpenRAE/rae#1070",
+        "OpenRAE/rae#1072",
+        "OpenRAE/rae#1069",
+        "OpenRAE/rae#1071"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "Brad-Edwards/shifter#1968",
+      "requirements": [
+        "SEM-235",
+        "API-424",
+        "RUN-320",
+        "ASR-538"
+      ],
+      "requires_all": [
+        "Brad-Edwards/shifter#1967",
+        "OpenRAE/rae#1070",
+        "OpenRAE/rae#1072",
+        "OpenRAE/rae#1069",
+        "OpenRAE/rae#1071"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "OpenRAE/lilrae#22",
+      "requirements": [
+        "ASR-538",
+        "SEM-235",
+        "RUN-320"
+      ],
+      "requires_all": [
+        "OpenRAE/lilrae#6",
+        "OpenRAE/lilrae#21",
+        "OpenRAE/rae#1071"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "Brad-Edwards/shifter#1969",
+      "requirements": [
+        "ASR-538",
+        "SEM-235",
+        "RUN-320"
+      ],
+      "requires_all": [
+        "Brad-Edwards/shifter#1967",
+        "Brad-Edwards/shifter#1968",
+        "OpenRAE/rae#1071"
+      ],
+      "requires_any": []
+    },
+    {
+      "id": "OpenRAE/rae#1007",
+      "requirements": [
+        "ASR-536",
+        "ASR-538",
+        "SEM-235",
+        "SEM-233",
+        "ASR-535",
+        "SEM-230"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1070",
+        "OpenRAE/rae#1072",
+        "OpenRAE/rae#1069",
+        "OpenRAE/rae#1071"
+      ],
+      "requires_any": [
+        [
+          "OpenRAE/lilrae#22",
+          "Brad-Edwards/shifter#1969"
+        ]
+      ],
+      "claim_gate": "Every backend used by an evaluation needs its own completed proof branch and exact released profile evidence."
+    },
+    {
+      "id": "OpenRAE/rae#1008",
+      "requirements": [
+        "ASR-536",
+        "ASR-538",
+        "SEM-235",
+        "SEM-233",
+        "ASR-535"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068",
+        "OpenRAE/rae#1070",
+        "OpenRAE/rae#1072",
+        "OpenRAE/rae#1069",
+        "OpenRAE/rae#1071",
+        "OpenRAE/rae#1007"
+      ],
+      "requires_any": [
+        [
+          "OpenRAE/lilrae#22",
+          "Brad-Edwards/shifter#1969"
+        ]
+      ],
+      "claim_gate": "Each published claim must use the same exact completed backend/profile/evaluation evidence, with Hub #36 current."
+    },
+    {
+      "id": "OpenRAE/hub#36",
+      "requirements": [
+        "SEM-235",
+        "API-424",
+        "RUN-320",
+        "ASR-538"
+      ],
+      "requires_all": [
+        "OpenRAE/rae#1068"
+      ],
+      "requires_any": [],
+      "coordination_only": true
+    },
+    {
+      "id": "OpenRAE/hub#37",
+      "requirements": [
+        "SEM-235",
+        "API-424",
+        "RUN-320",
+        "ASR-538",
+        "ASR-536"
+      ],
+      "requires_all": [
+        "OpenRAE/hub#36",
+        "OpenRAE/rae#1070",
+        "OpenRAE/rae#1072",
+        "OpenRAE/rae#1069",
+        "OpenRAE/rae#1071"
+      ],
+      "requires_any": [
+        [
+          "OpenRAE/lilrae#22",
+          "Brad-Edwards/shifter#1969"
+        ]
+      ],
+      "requires_for_adversarial_claims": [
+        "OpenRAE/rae#1007",
+        "OpenRAE/rae#1008"
+      ]
+    }
+  ]
+}

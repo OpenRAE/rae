@@ -1,5 +1,21 @@
 # SDL Design Precedents
 
+## Design-intent correction in progress
+
+The runtime inventory precedents below describe existing surfaces, not a
+requirement that every author specify or capture their full contents.
+[#1201](https://github.com/OpenRAE/rae/issues/1201) deliberately corrects the
+tendency to promote backend recipes and captured specimens into mandatory SDL
+detail or core catalogs. Open scopes delegate unspecified descendants to the
+backend while explicit constraints stay binding; abstract models can already
+be complete; observation/reporting demand is independent of scenario detail.
+Required-profile guards in the historical tables are remediation candidates,
+not universal authoring guidance. See [clarified design intent](../../research/language-extensibility/design-intent.md)
+and [scope inventory](../../research/language-extensibility/scope-inventory.md).
+Current syntax and validation are not changed by this note.
+
+## Sources and interpretation
+
 RAES combines externally influenced and RAES-native language families. This
 document summarizes design influences and comparisons; the revision-pinned,
 machine-readable provenance record is

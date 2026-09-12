@@ -13,6 +13,8 @@ from uuid import uuid4
 
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
+    OperationAdmissionContext,
+    OperationKind,
     OperationReceipt,
     OperationState,
     OperationStatus,
@@ -30,7 +32,10 @@ from .control_plane_execution import (
     _utc_now,
     persist_succeeded_operation,
 )
-from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_lifecycle import runtime_owned
+from .control_plane_mutation import control_plane_mutation, mutation_entry
+from .control_plane_operation_context import operation_admission_context
+from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
 from .control_plane_timeouts import _reconciliation_clock, workflow_timeout_update
 from .control_plane_workflows import maybe_apply_compensation
 
@@ -45,6 +50,8 @@ _TERMINAL_WORKFLOW_STATUSES = {
 class WorkflowControlMixin:
     """Workflow cancellation and timeout reconciliation operations."""
 
+    @runtime_owned
+    @mutation_entry(OperationKind.WORKFLOW_CANCELLATION)
     def cancel_workflow(
         self,
         workflow_address: str,
@@ -53,10 +60,70 @@ class WorkflowControlMixin:
         reason: str = "cancelled by operator",
         idempotency_key: str = "",
         request_fingerprint: str = "",
+        identity: object | None = None,
     ) -> OperationReceipt:
+        with self._operation_lock:
+            self._reload_derived_state()
+        operation_context = operation_admission_context(
+            self,
+            kind=OperationKind.WORKFLOW_CANCELLATION,
+            request={"workflow_address": workflow_address, "run_id": run_id, "reason": reason},
+            identity=identity,
+            run_scope=f"run:{run_id}" if run_id else None,
+        )
         existing = self._idempotent_receipt(
             idempotency_key=idempotency_key,
+            request_fingerprint=operation_context.request_commitment,
+            context=operation_context,
+        )
+        if existing is not None:
+            return existing
+        candidate = self._cancellable_workflow_state(
+            workflow_address,
+            run_id=run_id,
+            idempotency_key=idempotency_key,
             request_fingerprint=request_fingerprint,
+            operation_context=operation_context,
+        )
+        if isinstance(candidate, OperationReceipt):
+            return candidate
+        with control_plane_mutation(self, OperationKind.WORKFLOW_CANCELLATION):
+            with self._operation_lock:
+                self._reload_derived_state()
+            return self._cancel_workflow_locked(
+                workflow_address,
+                run_id=run_id,
+                reason=reason,
+                idempotency_key=idempotency_key,
+                request_fingerprint=request_fingerprint,
+                identity=identity,
+            )
+
+    def _cancel_workflow_locked(
+        self,
+        workflow_address: str,
+        *,
+        run_id: str | None,
+        reason: str,
+        idempotency_key: str,
+        request_fingerprint: str,
+        identity: object | None,
+    ) -> OperationReceipt:
+        operation_context = operation_admission_context(
+            self,
+            kind=OperationKind.WORKFLOW_CANCELLATION,
+            request={
+                "workflow_address": workflow_address,
+                "run_id": run_id,
+                "reason": reason,
+            },
+            identity=identity,
+            run_scope=f"run:{run_id}" if run_id else None,
+        )
+        existing = self._idempotent_receipt(
+            idempotency_key=idempotency_key,
+            request_fingerprint=operation_context.request_commitment,
+            context=operation_context,
         )
         if existing is not None:
             return existing
@@ -67,6 +134,7 @@ class WorkflowControlMixin:
             run_id=run_id,
             idempotency_key=idempotency_key,
             request_fingerprint=request_fingerprint,
+            operation_context=operation_context,
         )
         if isinstance(context, OperationReceipt):
             return context
@@ -78,7 +146,7 @@ class WorkflowControlMixin:
                     domain=RuntimeDomain.ORCHESTRATION,
                     submitted_at=submitted_at,
                     idempotency_key=idempotency_key,
-                    request_fingerprint=request_fingerprint,
+                    context=operation_context,
                 ),
             )
         else:
@@ -89,7 +157,7 @@ class WorkflowControlMixin:
                 operation_id=operation_id,
                 submitted_at=submitted_at,
                 idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
+                operation_context=operation_context,
             )
         return receipt
 
@@ -100,6 +168,7 @@ class WorkflowControlMixin:
         run_id: str | None,
         idempotency_key: str,
         request_fingerprint: str,
+        operation_context: OperationAdmissionContext,
     ) -> WorkflowExecutionState | OperationReceipt:
         result = dict(self._snapshot.orchestration_results.get(workflow_address, {}))
         rejection = None
@@ -116,6 +185,7 @@ class WorkflowControlMixin:
                 message=rejection,
                 idempotency_key=idempotency_key,
                 request_fingerprint=request_fingerprint,
+                context=operation_context,
             )
         assert normalized is not None
         return normalized
@@ -129,7 +199,7 @@ class WorkflowControlMixin:
         operation_id: str,
         submitted_at: str,
         idempotency_key: str,
-        request_fingerprint: str,
+        operation_context: OperationAdmissionContext,
     ) -> OperationReceipt:
         cancelled_state = WorkflowExecutionState(
             state_schema_version=normalized.state_schema_version,
@@ -159,7 +229,7 @@ class WorkflowControlMixin:
             history=history,
             submitted_at=submitted_at,
         )
-        self._snapshot = self._snapshot.with_entries(
+        next_snapshot = self._snapshot.with_entries(
             dict(self._snapshot.entries),
             orchestration_results={
                 **self._snapshot.orchestration_results,
@@ -170,12 +240,20 @@ class WorkflowControlMixin:
                 workflow_address: history,
             },
         )
-        self._store.save_snapshot(self._snapshot)
         receipt = OperationReceipt(
             operation_id=operation_id,
             domain=RuntimeDomain.ORCHESTRATION,
             submitted_at=submitted_at,
             accepted=True,
+            context=operation_context,
+        )
+        running_status = OperationStatus(
+            operation_id=operation_id,
+            domain=RuntimeDomain.ORCHESTRATION,
+            state=OperationState.RUNNING,
+            submitted_at=submitted_at,
+            updated_at=submitted_at,
+            context=operation_context,
         )
         status = OperationStatus(
             operation_id=operation_id,
@@ -183,28 +261,82 @@ class WorkflowControlMixin:
             state=OperationState.SUCCEEDED,
             submitted_at=submitted_at,
             updated_at=submitted_at,
+            context=operation_context,
             changed_addresses=[workflow_address],
         )
-        self._persist_record(
+        claimed = self._claim_record(
+            ControlPlaneOperationRecord(
+                receipt=receipt,
+                status=running_status,
+                idempotency_key=idempotency_key,
+                request_fingerprint=operation_context.request_commitment,
+            )
+        )
+        if claimed.receipt.operation_id != operation_id:
+            return claimed.receipt
+        self._commit_terminal_operation(
+            next_snapshot,
             ControlPlaneOperationRecord(
                 receipt=receipt,
                 status=status,
                 idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
+                request_fingerprint=operation_context.request_commitment,
+            ),
         )
         return receipt
 
+    @runtime_owned
+    @mutation_entry(OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION)
     def reconcile_workflow_timeouts(
         self,
         *,
         now: str | None = None,
         idempotency_key: str = "",
         request_fingerprint: str = "",
+        identity: object | None = None,
     ) -> OperationReceipt:
+        del request_fingerprint
+        with self._operation_lock:
+            self._reload_derived_state()
+        operation_context = operation_admission_context(
+            self,
+            kind=OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION,
+            request={"now": now or "runtime-clock"},
+            identity=identity,
+        )
         existing = self._idempotent_receipt(
             idempotency_key=idempotency_key,
-            request_fingerprint=request_fingerprint,
+            request_fingerprint=operation_context.request_commitment,
+            context=operation_context,
+        )
+        if existing is not None:
+            return existing
+        with control_plane_mutation(self, OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION):
+            with self._operation_lock:
+                self._reload_derived_state()
+            return self._reconcile_workflow_timeouts_locked(
+                now=now,
+                idempotency_key=idempotency_key,
+                identity=identity,
+            )
+
+    def _reconcile_workflow_timeouts_locked(
+        self,
+        *,
+        now: str | None,
+        idempotency_key: str,
+        identity: object | None,
+    ) -> OperationReceipt:
+        operation_context = operation_admission_context(
+            self,
+            kind=OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION,
+            request={"now": now or "runtime-clock"},
+            identity=identity,
+        )
+        existing = self._idempotent_receipt(
+            idempotency_key=idempotency_key,
+            request_fingerprint=operation_context.request_commitment,
+            context=operation_context,
         )
         if existing is not None:
             return existing
@@ -231,17 +363,25 @@ class WorkflowControlMixin:
             orchestration_history[workflow_address] = timed_out[1]
             changed.append(workflow_address)
         operation_id = str(uuid4())
-        self._snapshot = self._snapshot.with_entries(
+        next_snapshot = self._snapshot.with_entries(
             dict(self._snapshot.entries),
             orchestration_results=orchestration_results,
             orchestration_history=orchestration_history,
         )
-        self._store.save_snapshot(self._snapshot)
         receipt = OperationReceipt(
             operation_id=operation_id,
             domain=RuntimeDomain.ORCHESTRATION,
             submitted_at=submitted_at,
             accepted=True,
+            context=operation_context,
+        )
+        running_status = OperationStatus(
+            operation_id=operation_id,
+            domain=RuntimeDomain.ORCHESTRATION,
+            state=OperationState.RUNNING,
+            submitted_at=submitted_at,
+            updated_at=submitted_at,
+            context=operation_context,
         )
         status = OperationStatus(
             operation_id=operation_id,
@@ -249,14 +389,27 @@ class WorkflowControlMixin:
             state=OperationState.SUCCEEDED,
             submitted_at=submitted_at,
             updated_at=submitted_at,
+            context=operation_context,
             changed_addresses=changed,
         )
-        self._persist_record(
+        claimed = self._claim_record(
+            ControlPlaneOperationRecord(
+                receipt=receipt,
+                status=running_status,
+                idempotency_key=idempotency_key,
+                request_fingerprint=operation_context.request_commitment,
+            )
+        )
+        if claimed.receipt.operation_id != operation_id:
+            return claimed.receipt
+        self._commit_terminal_operation(
+            next_snapshot,
             ControlPlaneOperationRecord(
                 receipt=receipt,
                 status=status,
                 idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
-            )
+                request_fingerprint=operation_context.request_commitment,
+            ),
+            mode=(TerminalCommitMode.SNAPSHOT_BEARING if changed else TerminalCommitMode.OPERATION_ONLY),
         )
         return receipt

@@ -1,0 +1,16 @@
+{
+  "schema_version": "domain-profile-resolution-context/v1",
+  "namespace_admissions": [],
+  "definitions": [],
+  "support_declarations": [],
+  "limits": {
+    "max_definitions": 256,
+    "max_bindings": 256,
+    "max_depth": 16,
+    "max_nodes": 4096,
+    "max_scalar_bytes": 1048576,
+    "max_references": 128,
+    "max_evaluations": 65536,
+    "max_diagnostics": 64
+  }
+}

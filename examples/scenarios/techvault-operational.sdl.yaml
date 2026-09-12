@@ -313,13 +313,6 @@ features:
       version: local
     description: Wazuh, Suricata, MISP, TheHive, Cortex, and Shuffle services.
 
-vulnerabilities:
-  webapp-sqli-login:
-    name: SQL injection in login
-    description: Login form accepts intentionally vulnerable SQL input.
-    technical: true
-    class: CWE-89
-
 conditions:
   wazuh-manager-health:
     command: /usr/local/bin/check-wazuh-manager

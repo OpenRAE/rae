@@ -17,7 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.policy.common import REPO_ROOT as POLICY_REPO_ROOT, changed_paths
-from tools.tool_versions import CHECK_JSONSCHEMA_TOOL_SPEC
+from tools.python_closure_profiles import frozen_tool_command
 
 
 REPO_ROOT = POLICY_REPO_ROOT
@@ -169,7 +169,10 @@ def collect_validation_targets(
             targets.append(
                 ValidationTarget(
                     raw_path,
-                    _repo_rel_from(repo_root, _participant_information_reconstruction_profile_schema(repo_root, path)),
+                    _repo_rel_from(
+                        repo_root,
+                        _participant_information_reconstruction_profile_schema(repo_root, path),
+                    ),
                     "schema",
                 )
             )
@@ -281,15 +284,7 @@ def _dedupe_targets(targets: list[ValidationTarget]) -> list[ValidationTarget]:
 
 def _run_check_jsonschema(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [
-            "uv",
-            "tool",
-            "run",
-            "--from",
-            CHECK_JSONSCHEMA_TOOL_SPEC,
-            "check-jsonschema",
-            *args,
-        ],
+        frozen_tool_command(REPO_ROOT, "check-jsonschema", *args),
         cwd=REPO_ROOT,
         text=True,
         capture_output=True,

@@ -25,6 +25,10 @@ The staged legacy, opt-in, and required adoption of participant
 information-flow control is documented in
 [Participant Information-Flow Control Migration](participant-information-flow-control.md).
 
+The fail-closed adoption of coherent backend capture offers and content-backed
+evidence satisfaction is documented in
+[Required Capture Admission Migration](required-capture-admission.md).
+
 The reorganization moved existing material into the current long-term buckets:
 
 - root `schemas/` -> `contracts/schemas/`

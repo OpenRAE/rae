@@ -162,6 +162,11 @@ class DnsResourceRecordSet(SDLModel):
     provenance: DnsRecordProvenance | str = DnsRecordProvenance.UNKNOWN
     description: str = ""
 
+    def explicitness_exact_fields(self) -> frozenset[str]:
+        """The OTHER discriminator names an exact type when paired with its code."""
+
+        return frozenset({"record_type"}) if type(self.type_code) is int else frozenset()
+
     @field_validator("rrset_id")
     @classmethod
     def validate_rrset_id(cls, v: str) -> str:

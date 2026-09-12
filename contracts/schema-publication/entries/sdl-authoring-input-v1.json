@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "2a6f907c65d3b40051f3a38604607f0d57d0b6f277ea38c167eae6c2c7b750ac",
+  "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3",
   "last_change": {
-    "summary": "Added the closed, SHA-256-pinned APT runtime package repository profile for issue #847.",
-    "content_hash": "2a6f907c65d3b40051f3a38604607f0d57d0b6f277ea38c167eae6c2c7b750ac"
+    "summary": "Added scoped observation-demand authoring while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
+    "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3"
   }
 }

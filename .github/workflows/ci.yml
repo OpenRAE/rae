@@ -14,7 +14,6 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   canonical:
@@ -34,7 +33,7 @@ jobs:
   verify:
     needs: canonical
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -48,51 +47,88 @@ jobs:
           fi
 
   fuzz:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
       - name: Install uv
-        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v8
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
       - name: Run fuzz session
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s fuzz
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s fuzz
 
   interpreters:
-    name: CPython ${{ matrix.python-version }} compatibility
-    runs-on: ubuntu-latest
+    name: CPython ${{ matrix.python.feature }} compatibility
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python:
+          - {feature: "3.11", payload: "3.11.16", closure: public-linux-x86_64-cp311-all-extras}
+          - {feature: "3.12", payload: "3.12.14", closure: public-linux-x86_64-cp312-all-extras}
+          - {feature: "3.13", payload: "3.13.15", closure: public-linux-x86_64-cp313-all-extras}
+          - {feature: "3.14", payload: "3.14.7", closure: public-linux-x86_64-cp314-all-extras}
     env:
-      UV_PYTHON: ${{ matrix.python-version }}
-      RAES_EXPECTED_PYTHON: ${{ matrix.python-version }}
+      UV_PYTHON: ${{ matrix.python.payload }}
+      RAES_EXPECTED_PYTHON: ${{ matrix.python.feature }}
+      RAES_PYTHON_CLOSURE_PROFILE: ${{ matrix.python.closure }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python.payload }}
       - name: Install uv
-        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v8
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
       - name: Test exact interpreter and clean distribution
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s python-compatibility
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
+      - name: Record exact interpreter qualification
+        run: |
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile record-case T03 \
+            "${{ github.sha }}" noxfile.py --artifact-id "cpython-${{ matrix.python.feature }}" --artifact-id uv \
+            > t03-result.json
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile qualification-evidence \
+            public-ubuntu-24.04-x86_64 "${{ github.sha }}" \
+            "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
+            --python-artifact-id "cpython-${{ matrix.python.feature }}" --case-result t03-result.json \
+            > python-qualification.json
+      - name: Upload interpreter qualification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: python-${{ matrix.python.feature }}-${{ github.sha }}
+          path: python-qualification.json
+          if-no-files-found: error
 
   # Opt-in, non-blocking, runtime-gated container integration tests (RUN-314).
   # Kept out of the hermetic `verify` graph; the `docker` marker tests self-skip
   # when no runtime is present, and this whole job never fails the build.
   integration-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
       - name: Install uv
-        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v8
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
       - name: Probe for a container runtime
         id: runtime
         run: |
@@ -104,23 +140,28 @@ jobs:
           fi
       - name: Run docker integration session
         if: steps.runtime.outputs.available == 'true'
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s integration_docker
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s integration_docker
 
   # Gating OSV-scanner sweep over the Python dependency lockfile (issue #1098).
   # Kept out of the hermetic `verify` graph because the scanner is networked.
   # Findings and scanner/setup errors both fail, with distinct diagnostics; the
   # report upload remains unconditional so either failure is reviewable.
   supply-chain:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
       - name: Install uv
-        uses: astral-sh/setup-uv@ae62891fec2bb8e7d6c99fc78c9fec3a63790f8d # v8
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
       - name: Run OSV-scanner (gating)
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s osv_scan
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s osv_scan
       - name: Upload OSV-scanner report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -130,21 +171,22 @@ jobs:
           if-no-files-found: warn
 
   sonar:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [verify]
-    # SonarCloud needs SONAR_TOKEN, which GitHub withholds from both forked-PR
-    # runs and Dependabot-triggered runs (Actions secrets are unavailable in
-    # those contexts). Skip cleanly there so the required check reports
-    # "skipped" (treated as passing by branch protection) instead of a spurious
-    # "Not authorized" auth failure.
+    # GitHub withholds Actions secrets from forked and Dependabot pull requests.
+    # Run the quality gate for same-repository PRs so findings block the
+    # merge, while keeping the credential out of untrusted contribution paths.
     if: >-
-      (github.event_name != 'pull_request'
-      || github.event.pull_request.head.repo.full_name == github.repository)
-      && github.actor != 'dependabot[bot]'
+      (github.event_name == 'push'
+      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+      || (github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.actor != 'dependabot[bot]')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: coverage-report

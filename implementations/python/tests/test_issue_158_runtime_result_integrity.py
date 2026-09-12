@@ -8,20 +8,17 @@ Each case uses the real ``ReferenceProvisioner`` and perturbs only its returned
 ``ApplyResult``. The unmodified control proves that the shared target, scenario,
 and realization context are accepted before a result perturbation is evaluated.
 
-The predecessor-snapshot transition is currently rejected. Four other
-inconsistencies are admitted and are recorded as strict expected failures. The
-markers are limited to assertion failures so construction errors, API drift, and
-other unexpected exceptions remain visible.
+Every perturbation must reject with the violated invariant and preserve the
+entire trusted predecessor, without accepting rejected details or change claims.
 """
 
 from __future__ import annotations
 
 import dataclasses
 
-import pytest
 from raes import parse_sdl
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import ApplyResult
+from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_reference_backend import create_reference_backend_target
 from raes_reference_backend.provisioner import ReferenceProvisioner
 from raes_runtime.manager import RuntimeManager
@@ -37,6 +34,10 @@ infrastructure:
 """
 
 _UNPLANNED_ADDRESS = "provision.node.unplanned"
+
+
+def _predecessor():
+    return RuntimeSnapshot(metadata={"trusted": {"run": "predecessor"}})
 
 
 class _ReturnsPredecessorSnapshot(ReferenceProvisioner):
@@ -126,8 +127,18 @@ def _apply_with(provisioner_class=None):
                 realization_envelope=reference._realization_envelope,  # noqa: SLF001
             ),
         )
-    manager = RuntimeManager(target)
+    manager = RuntimeManager(target, initial_snapshot=_predecessor())
     return manager.apply(manager.plan(parse_sdl(_SCENARIO)))
+
+
+def _assert_rejected(result, address, message):
+    assert result.success is False
+    assert result.snapshot == _predecessor()
+    assert result.changed_addresses == []
+    assert result.details == {}
+    assert [(item.code, item.address, item.message) for item in result.diagnostics] == [
+        ("runtime.backend-contract-invalid", address, message)
+    ]
 
 
 def test_unmodified_reference_result_is_accepted():
@@ -156,47 +167,21 @@ def test_success_with_predecessor_snapshot_is_rejected_with_transition_diagnosti
     ]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="issue #158: an unplanned portable address is currently admitted",
-)
 def test_unplanned_portable_address_is_not_admitted_without_contract_authority():
     result = _apply_with(_AddsUnplannedPortableResource)
+    _assert_rejected(result, _UNPLANNED_ADDRESS, "Backend added a resource without admitted collection authority.")
 
-    assert result.success is False or _UNPLANNED_ADDRESS not in result.snapshot.entries
 
-
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="issue #158: a plan-owned resource type rewrite is currently admitted",
-)
 def test_plan_owned_resource_type_cannot_be_rewritten():
     result = _apply_with(_RewritesResourceType)
-
-    realized = {entry.resource_type for entry in result.snapshot.entries.values()}
-    assert result.success is False or realized == {"network", "node"}
+    _assert_rejected(result, "provision.node.web", "Backend changed a plan-owned resource type.")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="issue #158: omitted changed-address accounting is currently admitted",
-)
 def test_snapshot_transition_requires_changed_address_accounting():
     result = _apply_with(_OmitsChangedAddressAccounting)
+    _assert_rejected(result, "runtime.changed-addresses", "Backend omitted an authorized resource change.")
 
-    assert result.success is False or list(result.changed_addresses)
 
-
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="issue #158: a provisioning-domain rewrite is currently admitted",
-)
 def test_provisioning_result_cannot_rewrite_the_runtime_domain():
     result = _apply_with(_RewritesRuntimeDomain)
-
-    domains = {getattr(entry.domain, "value", entry.domain) for entry in result.snapshot.entries.values()}
-    assert result.success is False or domains == {"provisioning"}
+    _assert_rejected(result, "provision.network.lab", "Backend changed a plan-owned runtime domain.")

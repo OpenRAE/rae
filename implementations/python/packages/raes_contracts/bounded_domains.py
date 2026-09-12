@@ -24,6 +24,8 @@ __all__ = [
     "GovernedReferenceDomain",
     "NumericIntervalDomain",
     "NumericType",
+    "NullDomain",
+    "NullableDomainDescriptor",
     "RecordDomain",
     "scalar_in_domain",
     "scalar_matches_numeric_type",
@@ -68,6 +70,12 @@ class BooleanDomain(ContractModel):
 
     kind: Literal["boolean"] = "boolean"
     value: bool | None = None
+
+
+class NullDomain(ContractModel):
+    """The singleton JSON-null domain, distinct from omission or unknown."""
+
+    kind: Literal["null"] = "null"
 
 
 class NumericIntervalDomain(ContractModel):
@@ -130,6 +138,17 @@ DomainDescriptor = Annotated[
     Field(discriminator="kind"),
 ]
 
+NullableDomainDescriptor = Annotated[
+    ExactDomain
+    | EnumDomain
+    | BooleanDomain
+    | NullDomain
+    | NumericIntervalDomain
+    | GovernedReferenceDomain
+    | RecordDomain,
+    Field(discriminator="kind"),
+]
+
 
 def scalar_matches_numeric_type(value: object, numeric_type: NumericType) -> bool:
     """Return whether a value is a non-Boolean number of the declared type."""
@@ -160,6 +179,7 @@ _SCALAR_MEMBER_CHECKS: dict[type, Callable[..., bool]] = {
     BooleanDomain: lambda value, descriptor: (
         isinstance(value, bool) and (descriptor.value is None or value == descriptor.value)
     ),
+    NullDomain: lambda value, _descriptor: value is None,
     NumericIntervalDomain: _interval_member,
     GovernedReferenceDomain: lambda value, descriptor: isinstance(value, str) and value in descriptor.allowed_refs,
 }

@@ -1,0 +1,253 @@
+{
+  "analysis_profile": "raes-finite-domain-satisfiability-v1",
+  "authored_digest": {
+    "algorithm": "sha256",
+    "profile": "raes-sdl-semantic/v1",
+    "value": "sha256:5b6814a899aedd5d10d85a437d0e9253d785ccdf654ddc1e890988ad445bc280"
+  },
+  "diagnostics": [],
+  "imports": [],
+  "normalized_model": {
+    "authored_digest": {
+      "algorithm": "sha256",
+      "profile": "raes-sdl-semantic/v1",
+      "value": "sha256:5b6814a899aedd5d10d85a437d0e9253d785ccdf654ddc1e890988ad445bc280"
+    },
+    "clauses": [
+      {
+        "allowed_values": [
+          "linux",
+          "windows"
+        ],
+        "clause_id": "domain:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5",
+        "kind": "declared-domain",
+        "source_address": "/variables/platform",
+        "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5"
+      },
+      {
+        "allowed_values": [
+          "linux",
+          "windows"
+        ],
+        "clause_id": "target:9dc2b64c943ca097845e84d34e43e3bc07637339e595a080d7df391d837c0e08",
+        "kind": "target-domain",
+        "source_address": "/nodes/target/os",
+        "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5"
+      }
+    ],
+    "profile": "raes-finite-domain-constraints/v1",
+    "source_digest": "sha256:0ca9eaba9dc47171f7a042dc6753faa6c820c65ee966538f9d65fac5342202e8",
+    "symbols": [
+      {
+        "domain": [
+          "linux",
+          "windows"
+        ],
+        "sort": "string",
+        "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5",
+        "variable": "platform"
+      }
+    ],
+    "theory_profile": "raes-finite-domain-theory/v1",
+    "translation_profile": "raes-sdl-authoring-translation/v1"
+  },
+  "normalized_model_digest": "sha256:fbd664cb97b3f95d89220c967af0c9c55b3bcb60ff755442b54007dad6971423",
+  "outcome": "satisfiable",
+  "profile": "scenario-satisfiability-evidence/v1",
+  "solver_configuration": {
+    "auto_config": false,
+    "core_reduction": "sorted-deletion-subset-minimal/v1",
+    "engine": "z3",
+    "engine_version": "4.16.0",
+    "logic": "QF_LIA",
+    "model": true,
+    "package": "z3-solver",
+    "package_version": "4.16.0.0",
+    "profile": "raes-z3-finite-domain/v1",
+    "random_seed": 0,
+    "threads": 1,
+    "timeout_ms": 5000,
+    "unsat_core": true,
+    "witness_selection": "canonical-lexicographic/v1"
+  },
+  "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
+  "source": {
+    "byte_digest": "sha256:0ca9eaba9dc47171f7a042dc6753faa6c820c65ee966538f9d65fac5342202e8",
+    "source_id": "satisfiable-control.sdl.yaml"
+  },
+  "unsat_core": null,
+  "unsupported": null,
+  "witness": {
+    "profile": "raes-satisfiability-witness/v1",
+    "snapshot": {
+      "profile": "raes-sdl-instantiated-snapshot/v1",
+      "scenario": {
+        "accounts": {},
+        "action_contracts": {},
+        "agents": {},
+        "assertions": {},
+        "behavior_specifications": {},
+        "clocks": {},
+        "conditions": {},
+        "content": {},
+        "deployment_cells": {},
+        "deployment_tenants": {},
+        "description": "",
+        "entities": {},
+        "events": {},
+        "evidence_requirements": {},
+        "features": {},
+        "forwarding_agents": [],
+        "generated_artifacts": {},
+        "identity_domains": {},
+        "identity_facades": {},
+        "identity_forests": {},
+        "infrastructure": {},
+        "injects": {},
+        "instantiation_provenance": {
+          "authored_digest": {
+            "algorithm": "sha256",
+            "profile": "raes-sdl-semantic/v1",
+            "value": "sha256:5b6814a899aedd5d10d85a437d0e9253d785ccdf654ddc1e890988ad445bc280"
+          },
+          "bindings": [
+            {
+              "origin": "provided",
+              "parameter": [
+                "platform"
+              ],
+              "value": "linux"
+            }
+          ],
+          "capability_constraints": [
+            {
+              "allowed_values": [
+                "windows",
+                "linux"
+              ],
+              "field_pointer": "/nodes/target/os",
+              "kind": "allowed-values",
+              "parameter": [
+                "platform"
+              ]
+            }
+          ],
+          "explicitness": [
+            {
+              "classification": "exact",
+              "model_path": "name",
+              "parameters": [],
+              "provenance": "author-declared",
+              "reason": "authored concrete value"
+            },
+            {
+              "classification": "exact",
+              "model_path": "nodes.target.type",
+              "parameters": [],
+              "provenance": "author-declared",
+              "reason": "authored concrete value"
+            },
+            {
+              "classification": "constrained",
+              "model_path": "nodes.target.os",
+              "parameters": [
+                [
+                  "platform"
+                ]
+              ],
+              "provenance": "processor-derived",
+              "reason": "parameter/default substitution preserved authored explicitness class"
+            },
+            {
+              "classification": "constrained",
+              "model_path": "nodes.target",
+              "parameters": [
+                [
+                  "platform"
+                ]
+              ],
+              "provenance": "processor-derived",
+              "reason": "parameter/default substitution preserved authored explicitness class"
+            },
+            {
+              "classification": "constrained",
+              "model_path": "nodes",
+              "parameters": [
+                [
+                  "platform"
+                ]
+              ],
+              "provenance": "processor-derived",
+              "reason": "parameter/default substitution preserved authored explicitness class"
+            },
+            {
+              "classification": "exact",
+              "model_path": "variables",
+              "parameters": [],
+              "provenance": "author-declared",
+              "reason": "derived from child declarations"
+            }
+          ],
+          "imports": [],
+          "realization_constraints": [
+            {
+              "concern": "compute-substrate",
+              "domain": {
+                "kind": "exact",
+                "value": "virtual-machine"
+              },
+              "field_pointer": "/nodes/target",
+              "namespace": [],
+              "posture": "exact",
+              "provenance": "legacy-node-type-vm"
+            }
+          ],
+          "realization_designations": [
+            {
+              "field_pointer": "",
+              "namespace": [],
+              "posture": "unspecified"
+            }
+          ],
+          "selected_profile": "raes-finite-domain-satisfiability-v1"
+        },
+        "name": "satisfiable-control",
+        "nodes": {
+          "target": {
+            "architecture": null,
+            "asset_value": null,
+            "conditions": {},
+            "description": "",
+            "endpoint_persona": null,
+            "features": {},
+            "injects": {},
+            "os": "linux",
+            "os_distribution": null,
+            "os_version": "",
+            "resources": null,
+            "roles": {},
+            "runtime": null,
+            "services": [],
+            "source": null,
+            "type": "compute"
+          }
+        },
+        "objectives": {},
+        "observation_boundaries": {},
+        "outcome_interpretation_rules": {},
+        "persistent_volumes": {},
+        "propositions": {},
+        "relationships": {},
+        "scripts": {},
+        "stories": {},
+        "temporal_constraints": {},
+        "time_domain_mappings": {},
+        "time_domains": {},
+        "time_progression_policies": {},
+        "version": "*",
+        "workflows": {}
+      }
+    },
+    "snapshot_digest": "sha256:5538c078368c2219235b5c38cfc814ed5c77138879a0867d73d2b8acbef63aa9"
+  }
+}

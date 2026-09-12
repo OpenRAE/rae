@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import replace
 from pathlib import Path
 
@@ -9,7 +10,14 @@ import pytest
 from raes.participant_behavior_specification import MixedControlTransitionKind
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationReceipt, OperationState, OperationStatus, RuntimeSnapshot
+from raes_contracts.runtime_state import (
+    OperationAdmissionContext,
+    OperationKind,
+    OperationReceipt,
+    OperationState,
+    OperationStatus,
+    RuntimeSnapshot,
+)
 from raes_processor.models import (
     MixedControlControllerStateRuntime,
     MixedControlDispositionRulesRuntime,
@@ -96,11 +104,21 @@ def _control_event(event_id: str, *, revision: int = 1) -> dict[str, object]:
 
 
 def _operation_record(operation_id: str = "operation-1") -> ControlPlaneOperationRecord:
+    context = OperationAdmissionContext(
+        actor_id="operator",
+        authorization_scope=("role:operator",),
+        target_scope="target:stub",
+        run_scope="run:test",
+        operation_kind=OperationKind.PARTICIPANT_CONTROL,
+        request_commitment=f"sha256:{'a' * 64}",
+    )
     return ControlPlaneOperationRecord(
         receipt=OperationReceipt(
             operation_id=operation_id,
             domain=RuntimeDomain.PARTICIPANT,
             submitted_at="2026-07-26T10:00:00Z",
+            accepted=True,
+            context=context,
         ),
         status=OperationStatus(
             operation_id=operation_id,
@@ -108,6 +126,7 @@ def _operation_record(operation_id: str = "operation-1") -> ControlPlaneOperatio
             state=OperationState.SUCCEEDED,
             submitted_at="2026-07-26T10:00:00Z",
             updated_at="2026-07-26T10:00:00Z",
+            context=context,
             changed_addresses=["participant.behavior.red-agent"],
         ),
         request_fingerprint="fingerprint-1",
@@ -288,7 +307,7 @@ def test_control_history_round_trips_through_control_plane_store(
         participant_control_history={"participant.behavior.red-agent": [_control_event("control-event-1")]}
     )
 
-    store.save_snapshot(snapshot)
+    store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
 
     assert store.load_snapshot().participant_control_history == snapshot.participant_control_history
 
@@ -330,12 +349,19 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
     record = _operation_record()
     audit = _audit_event()
 
+    store.claim_record(
+        replace(
+            record,
+            status=replace(record.status, state=OperationState.RUNNING, changed_addresses=[]),
+        )
+    )
     store.commit_control_transition(
         participant_address="participant.behavior.red-agent",
         expected_head=None,
         snapshot=snapshot,
         record=record,
         audit_event=audit,
+        expected_revision=store.load_snapshot_state().revision,
     )
 
     restarted = store if store_kind == "memory" else LocalControlPlaneStore(tmp_path / "control-plane")
@@ -354,6 +380,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
     )
     conflicting_record = replace(record, idempotency_key="scope-key-2")
     conflicting_audit = replace(audit, operation_id="operation-2")
+    revision = restarted.load_snapshot_state().revision
     with pytest.raises(ValueError, match="expected control history head"):
         restarted.commit_control_transition(
             participant_address="participant.behavior.red-agent",
@@ -361,6 +388,7 @@ def test_atomic_control_transition_commit_checks_head_and_persists_all_outputs(
             snapshot=conflicting,
             record=conflicting_record,
             audit_event=conflicting_audit,
+            expected_revision=revision,
         )
 
     assert restarted.load_snapshot().participant_control_history == snapshot.participant_control_history
@@ -534,7 +562,8 @@ def test_supervisory_control_is_subject_bound_idempotent_and_state_revision_boun
         identity=_identity(),
         idempotency_key="key-stale",
     )
-    assert rejected.accepted is False
+    assert rejected.accepted is True
+    assert control_plane.get_operation(rejected.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     assert (
         control_plane.snapshot.participant_control_history[_PARTICIPANT][-1]["occurrence"]["reason_code"]
         == "stale-state"
@@ -594,7 +623,8 @@ def test_supervisory_control_records_bounded_policy_and_authority_rejections(
         idempotency_key=f"key-{failure}",
     )
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert control_plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     event = control_plane.snapshot.participant_control_history[_PARTICIPANT][-1]
     assert event["occurrence"]["reason_code"] == reason_code
     assert "2.0.0" not in str(receipt.diagnostics)
@@ -623,6 +653,7 @@ def test_supervisory_control_restarts_and_replays_before_the_next_transition(
         identity=_identity(),
         idempotency_key="key-proposal",
     ).accepted
+    first.close()
 
     restarted = RuntimeControlPlane(
         create_stub_target(),
@@ -644,6 +675,7 @@ def test_supervisory_control_restarts_and_replays_before_the_next_transition(
         idempotency_key="key-approval",
     ).accepted
     assert len(restarted.snapshot.participant_control_history[_PARTICIPANT]) == 2
+    restarted.close()
 
 
 def test_controller_state_replay_is_scoped_to_one_episode() -> None:
@@ -792,7 +824,8 @@ def test_unresolved_typed_target_appends_a_bounded_rejection_without_fallback() 
         idempotency_key="key-missing-target",
     )
 
-    assert receipt.accepted is False
+    assert receipt.accepted is True
+    assert control_plane.get_operation(receipt.operation_id).state is OperationState.FAILED  # type: ignore[union-attr]
     event = control_plane.snapshot.participant_control_history[_PARTICIPANT][-1]
     assert event["occurrence"]["reason_code"] == "invalid-target"
     assert event["predecessor_event_refs"] == []
@@ -816,11 +849,16 @@ def test_failed_atomic_control_commit_exposes_no_partial_transition(
         payload_ref="payload:proposal-1",
     )
 
-    def fail_atomic_write(path: Path, content: str) -> None:
-        del path, content
+    real_upsert = store._upsert_record
+
+    def fail_record_upsert(
+        connection: sqlite3.Connection,
+        record: ControlPlaneOperationRecord,
+    ) -> None:
+        real_upsert(connection, record)
         raise OSError("commit failed")
 
-    monkeypatch.setattr(store, "_atomic_write", fail_atomic_write)
+    monkeypatch.setattr(store, "_upsert_record", fail_record_upsert)
     identity = _identity()
     with pytest.raises(OSError, match="commit failed"):
         control_plane.record_participant_control(

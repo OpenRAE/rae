@@ -674,6 +674,38 @@ def test_runtime_pool_ledger_prevents_competing_policy_overcommit() -> None:
     assert "shared pool" in second.diagnostics[0].message
 
 
+def test_backend_cannot_rewrite_runtime_owned_budget_counters() -> None:
+    from copy import deepcopy
+
+    from raes_contracts.runtime_state import ApplyResult
+    from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
+
+    model = compile_runtime_model(parse_sdl(_budget_policy_yaml()))
+    policies = tuple(
+        item.autonomous_execution
+        for item in model.behavior_specifications.values()
+        if item.autonomous_execution is not None
+    )
+    initialized = initialize_participant_resource_budgets(
+        RuntimeSnapshot(), policies, _capabilities(), execution_generation=0
+    )
+    assert initialized.success
+    previous = initialized.snapshot
+    candidate = deepcopy(previous)
+    address = next(iter(candidate.participant_resource_budget_states))
+    candidate.participant_resource_budget_states[address]["rejected"] += 1
+    result = _call_backend_apply(
+        lambda *_: ApplyResult(True, candidate, changed_addresses=[address]),
+        previous,
+        address="runtime.participant.action",
+        snapshot=previous,
+        realization=_RealizationApplyContext(effect_owners=frozenset({"participant"})),
+    )
+    assert result.success is False
+    assert result.snapshot == previous
+    assert result.diagnostics[0].message == "Backend changed a snapshot carrier outside its runtime-domain authority."
+
+
 def test_runtime_reserve_commit_throttle_and_idempotency_are_generation_fenced(
     tmp_path: Path,
 ) -> None:
@@ -727,7 +759,10 @@ def test_runtime_reserve_commit_throttle_and_idempotency_are_generation_fenced(
     assert state.evidence_refs == ("evidence.resource-meter.action-1",)
 
     store = LocalControlPlaneStore(tmp_path / "control-plane")
-    store.save_snapshot(committed.snapshot)
+    store.save_snapshot(
+        committed.snapshot,
+        expected_revision=store.load_snapshot_state().revision,
+    )
     restored = store.load_snapshot()
     assert restored.participant_resource_budget_states == (committed.snapshot.participant_resource_budget_states)
     assert restored.participant_resource_budget_events == (committed.snapshot.participant_resource_budget_events)
@@ -815,7 +850,6 @@ def test_reset_reconciles_participant_window_without_erasing_persistent_owners()
 
 def test_runtime_manager_enforces_v3_budgets_and_reconciles_reset_generation() -> None:
     scenario = parse_sdl(_budget_policy_yaml())
-    runtime_model = compile_runtime_model(scenario)
     participant_runtime = _NativeParticipantRuntime()
     target = replace(
         create_stub_target(),
@@ -842,7 +876,6 @@ def test_runtime_manager_enforces_v3_budgets_and_reconciles_reset_generation() -
 
 def test_scheduler_releases_reservations_when_native_measurements_are_absent() -> None:
     scenario = parse_sdl(_budget_policy_yaml())
-    runtime_model = compile_runtime_model(scenario)
     target = replace(
         create_stub_target(),
         manifest=_governed_manifest(),
