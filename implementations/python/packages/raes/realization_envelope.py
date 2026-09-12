@@ -67,6 +67,7 @@ __all__ = [
     "generate_positive_probes",
     "effective_constraints",
     "member",
+    "member_projection",
     "subsumes",
     "tokenize_path",
     "witness",
@@ -161,9 +162,7 @@ def _member_sdl_invalid(instance: InstantiatedScenario, envelope: RealizationEnv
     return None
 
 
-def _member_constraint_diagnostics(
-    instance: InstantiatedScenario, constraints: dict[str, LeafConstraint]
-) -> list[Diagnostic]:
+def _member_constraint_diagnostics(instance: object, constraints: dict[str, LeafConstraint]) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for path, constraint in constraints.items():
         found, value = navigate(instance, tokenize_path(path))
@@ -188,7 +187,7 @@ def _member_constraint_diagnostics(
 _UNRESOLVED = object()
 
 
-def _resolve_scope_value(instance: InstantiatedScenario, scope_path: str) -> object:
+def _resolve_scope_value(instance: object, scope_path: str) -> object:
     """Value at ``scope_path`` (the whole instance for the root), or ``_UNRESOLVED``."""
 
     if not scope_path:
@@ -197,11 +196,17 @@ def _resolve_scope_value(instance: InstantiatedScenario, scope_path: str) -> obj
     return value if found else _UNRESOLVED
 
 
-def _closed_extra_diagnostics(scope_path: str, scope_value: object, admitted: set[str]) -> list[Diagnostic]:
+def _closed_extra_diagnostics(
+    scope_path: str,
+    scope_value: object,
+    admitted: set[str],
+    *,
+    children: set[str] | None = None,
+) -> list[Diagnostic]:
     """Diagnostics for realizable child dimensions not admitted under a closed scope."""
 
     diagnostics: list[Diagnostic] = []
-    for child in sorted(present_children(scope_value)):
+    for child in sorted(present_children(scope_value) if children is None else children):
         if child not in admitted:
             address = f"{scope_path}.{child}" if scope_path else child
             diagnostics.append(
@@ -214,7 +219,7 @@ def _closed_extra_diagnostics(scope_path: str, scope_value: object, admitted: se
     return diagnostics
 
 
-def _member_closed_diagnostics(instance: InstantiatedScenario, closed: dict[str, set[str]]) -> list[Diagnostic]:
+def _member_closed_diagnostics(instance: object, closed: dict[str, set[str]]) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for scope_path in sorted(closed):
         scope_value = _resolve_scope_value(instance, scope_path)
@@ -237,6 +242,20 @@ def member(instance: InstantiatedScenario, envelope: RealizationEnvelopeModel) -
     constraints, closed = effective_constraints(envelope)
     diagnostics = _member_constraint_diagnostics(instance, constraints) + _member_closed_diagnostics(instance, closed)
     return RelationResult(not diagnostics, tuple(diagnostics))
+
+
+def member_projection(
+    value: object,
+    field_path: str,
+    envelope: RealizationEnvelopeModel,
+    *,
+    typed_value: object = None,
+) -> RelationResult:
+    """Check an already admitted subtree, not whole-instance SDL membership."""
+
+    from ._realization_envelope_projection import projected_member
+
+    return projected_member(value, field_path, envelope, typed_value=typed_value)
 
 
 # --------------------------------------------------------------------------- #

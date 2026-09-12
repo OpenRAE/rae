@@ -526,6 +526,13 @@ adrs:
       - date: 2026-09-03
         ref: "#1151"
         summary: "Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation."
+  - id: ADR-105
+    path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
+    pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e
+    amendments:
+      - date: 2026-09-12
+        ref: "#1204"
+        summary: "Proposed acceptance with bounded compiler/runtime adoption, opt-in joint preparation, prepared portable membership, and the authenticated plan-level profile host. Ratification takes effect on merge."
   - id: ADR-106
     path: docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md
     pin: bc78a9a4b25f90572532084f1a4f5a254e969b21089b3c04a6876f84ee86536a

@@ -57,6 +57,7 @@ def _ordered_apply_ops(
                 payload=resource.payload,
                 ordering_dependencies=resource.ordering_dependencies,
                 refresh_dependencies=resource.refresh_dependencies,
+                profile_bindings=resource.profile_bindings,
             )
         )
     return ops

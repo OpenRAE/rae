@@ -39,14 +39,18 @@ def create_reference_backend_components(
     presence matches the manifest's declared capabilities.
     """
 
-    del config
     deployment_driver = driver if driver is not None else InProcessDriver()
     mode = ReferenceDriverMode(getattr(deployment_driver, "driver_mode", ""))
     envelope = manifest.realization_envelope
     if envelope is None or envelope.configuration.mode != mode.value:
         raise ValueError("reference manifest realization envelope does not match deployment driver mode")
     return RuntimeTargetComponents(
-        provisioner=ReferenceProvisioner(deployment_driver, envelope),
+        provisioner=ReferenceProvisioner(
+            deployment_driver,
+            envelope,
+            domain_profile_context=config.get("domain_profile_context"),
+            profile_choices=config.get("profile_choices"),
+        ),
         orchestrator=ReferenceOrchestrator() if manifest.has_orchestrator else None,
         evaluator=ReferenceEvaluator() if manifest.has_evaluator else None,
         participant_runtime=ReferenceParticipantRuntime() if manifest.has_participant_runtime else None,

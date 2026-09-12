@@ -58,7 +58,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = load_retest_bundle(ROOT)
-    assert release.manifest["revision"] == "6.0.0"
+    assert release.manifest["revision"] == "7.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -102,7 +102,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest():
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = load_bundle(ROOT)
-    assert manifest["revision"] == "4.0.0"
+    assert manifest["revision"] == "5.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == "port-range-sdl")
     artifact["sha256"] = "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"

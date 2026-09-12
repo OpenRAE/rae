@@ -13,16 +13,27 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools.policy.common import PolicyFailure, apply_exceptions, changed_paths, failures_to_json, load_exceptions
+from tools.policy.common import (
+    PolicyFailure,
+    apply_exceptions,
+    changed_paths,
+    failures_to_json,
+    load_exceptions,
+)
 from tools.policy.requirement_governance import (
     GroundControlAuthRequired,
     GroundControlError,
     GroundControlHttpClient,
     evaluate_requirement_governance,
+    load_policy,
     requirement_uid_from_context,
     resolve_base_url,
     resolve_timeout_seconds,
     resolve_token,
+)
+from tools.policy.repository_requirements import (
+    RepositoryRequirementClient,
+    RepositoryRequirementError,
 )
 
 GOVERNED_ROOTS = ("implementations/", "contracts/", "specs/", "docs/")
@@ -41,6 +52,7 @@ REQUIREMENT_CONTEXT_EXEMPT_PATHS = {
     "CHANGELOG.md",
     "implementations/python/tests/test_repo_policy_tools.py",
     "implementations/python/tests/test_requirement_governance.py",
+    "implementations/python/tests/test_issue_1204_repository_governance.py",
     "implementations/python/tests/test_semantic_coverage.py",
 }
 REQUIREMENT_CONTEXT_EXEMPT_PREFIXES = ("tools/",)
@@ -48,7 +60,11 @@ REQUIREMENT_CONTEXT_EXEMPT_PREFIXES = ("tools/",)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate requirement order and traceability against Ground Control.")
-    parser.add_argument("--staged", action="store_true", help="Check staged changes instead of working tree changes.")
+    parser.add_argument(
+        "--staged",
+        action="store_true",
+        help="Check staged changes instead of working tree changes.",
+    )
     parser.add_argument("--base-rev", help="Compare against a specific git revision.")
     parser.add_argument("--json", action="store_true", help="Emit JSON failures.")
     parser.add_argument("--requirement-uid", help="Explicit requirement UID override.")
@@ -80,7 +96,14 @@ def report_unevaluated(*, rule_id: str, message: str, require_governance: bool, 
     if as_json:
         print(
             json.dumps(
-                [{"rule_id": rule_id, "message": message, "path": None, "status": status}],
+                [
+                    {
+                        "rule_id": rule_id,
+                        "message": message,
+                        "path": None,
+                        "status": status,
+                    }
+                ],
                 indent=2,
             )
         )
@@ -137,7 +160,18 @@ def report_missing_uid(as_json: bool) -> int:
     """Report that a governed change lacks a resolvable requirement UID."""
     message = "requirement UID is missing; set RAES_REQUIREMENT_UID or include a UID like GOV-918 in the branch name"
     if as_json:
-        print(json.dumps([{"rule_id": "requirement-context-missing", "message": message, "path": None}], indent=2))
+        print(
+            json.dumps(
+                [
+                    {
+                        "rule_id": "requirement-context-missing",
+                        "message": message,
+                        "path": None,
+                    }
+                ],
+                indent=2,
+            )
+        )
     else:
         print(f"[requirement-context-missing] {message}", file=sys.stderr)
     return 1
@@ -146,7 +180,10 @@ def report_missing_uid(as_json: bool) -> int:
 def classify_ground_control_error(exc: GroundControlError) -> tuple[str, str]:
     """Map a Ground Control client error to a distinct (rule_id, message)."""
     if isinstance(exc, GroundControlAuthRequired):
-        return "ground-control-auth-required", f"Ground Control requires authentication ({exc})"
+        return (
+            "ground-control-auth-required",
+            f"Ground Control requires authentication ({exc})",
+        )
     return "ground-control-unavailable", str(exc)
 
 
@@ -187,7 +224,45 @@ def evaluate_against_ground_control(
     except GroundControlError as exc:
         rule_id, message = classify_ground_control_error(exc)
         return report_unevaluated(
-            rule_id=rule_id, message=message, require_governance=require_governance, as_json=as_json
+            rule_id=rule_id,
+            message=message,
+            require_governance=require_governance,
+            as_json=as_json,
+        )
+    failures = apply_exceptions(failures, load_exceptions(REPO_ROOT), requirement_uid=uid)
+    return emit_failures(failures, as_json=as_json)
+
+
+def evaluate_configured_governance(
+    effective_paths: list[str], uid: str, *, require_governance: bool, as_json: bool
+) -> int:
+    """Use the explicitly selected authority; unavailable local data never falls back."""
+
+    source = load_policy(REPO_ROOT).get("requirement_source", "ground-control-http")
+    if source == "ground-control-http":
+        return evaluate_against_ground_control(
+            effective_paths, uid, require_governance=require_governance, as_json=as_json
+        )
+    if source != "repository":
+        return report_unevaluated(
+            rule_id="requirement-source-invalid",
+            message="Unknown requirement authority source.",
+            require_governance=True,
+            as_json=as_json,
+        )
+    try:
+        failures = evaluate_requirement_governance(
+            REPO_ROOT,
+            effective_paths,
+            client=RepositoryRequirementClient(REPO_ROOT),
+            requirement_uid=uid,
+        )
+    except RepositoryRequirementError as exc:
+        return report_unevaluated(
+            rule_id="repository-requirement-invalid",
+            message=str(exc),
+            require_governance=True,
+            as_json=as_json,
         )
     failures = apply_exceptions(failures, load_exceptions(REPO_ROOT), requirement_uid=uid)
     return emit_failures(failures, as_json=as_json)
@@ -207,7 +282,7 @@ def main() -> int:
     if not uid:
         return report_missing_uid(args.json)
     require_governance = args.require_governance or _env_flag("GC_REQUIRE_GOVERNANCE")
-    return evaluate_against_ground_control(
+    return evaluate_configured_governance(
         effective_paths, uid, require_governance=require_governance, as_json=args.json
     )
 

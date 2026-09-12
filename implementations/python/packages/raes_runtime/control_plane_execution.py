@@ -25,6 +25,7 @@ from .backend_calls import _call_backend_apply, _RealizationApplyContext
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import ControlPlaneOperationRecord
+from .participant_effect_authority import participant_effect_authority
 
 
 def _utc_now() -> str:
@@ -47,6 +48,7 @@ def apply_authorized_participant_action(
         snapshot,
         address=address,
         snapshot=snapshot,
+        realization=participant_effect_authority(request, snapshot),
         information_state_context_resolver=information_state_context_resolver,
     )
 
@@ -141,6 +143,7 @@ def _execute_participant_action_locked(
         control_plane._snapshot,
         address=address,
         snapshot=control_plane._snapshot,
+        realization=participant_effect_authority(request, control_plane._snapshot),
         information_state_context_resolver=getattr(
             control_plane,
             "_information_state_context_resolver",
@@ -276,6 +279,14 @@ def _execute_operation_locked(
         return existing
     if request.base_snapshot is not None and request.base_snapshot != control_plane._snapshot:
         raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
+    if any(diagnostic.is_error for diagnostic in request.diagnostics):
+        return control_plane._reject_diagnostics(
+            domain=request.domain,
+            diagnostics=request.diagnostics,
+            idempotency_key=request.idempotency_key,
+            request_fingerprint=request.request_fingerprint,
+            context=request.context,
+        )
     operation_id = str(uuid4())
     submitted_at = _utc_now()
     snapshot = request.base_snapshot if request.base_snapshot is not None else control_plane._snapshot

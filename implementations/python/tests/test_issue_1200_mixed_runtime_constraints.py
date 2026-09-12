@@ -130,7 +130,8 @@ def _returned(plan_value, runtime):
                 observation_strength=authority.required_observation_strength,
             )
             for authority in plan_value.realization_authority
-            if authority.requirement_kind in {"runtime-database-services", "runtime-packages", "runtime-dns-services"}
+            if authority.requirement_kind
+            in {"runtime-database-services", "runtime-packages", "runtime-dns-services", "runtime-environment"}
             and authority.mode.value != "closed"
         ),
     )
@@ -145,7 +146,7 @@ def _apply(plan_value, manifest, runtime, *, observe=True):
         returned = _returned(submitted, runtime)
         if not observe:
             returned = replace(returned, realization_observations=())
-        return ApplyResult(success=True, snapshot=returned)
+        return ApplyResult(success=True, snapshot=returned, changed_addresses=list(returned.entries))
 
     result = _call_backend_apply(
         backend,
@@ -243,16 +244,15 @@ def test_dns_numeric_extension_is_exact_without_reclassifying_literal_strings():
     )
 
 
-def test_unrepresentable_mixed_collection_rejects_with_actionable_admission_diagnostic():
-    _, execution, _ = _fixture(
+def test_forwarding_taxonomies_carry_finite_choices_without_demanding_author_detail():
+    _, portable, _ = _fixture(
         {"forwarding_agents": [{"forwarding_agent_id": "agent", "agent_kind": "other", "implementation": "other"}]},
-        allow_invalid=True,
     )
-    assert not execution.is_valid
-    assert any(
-        d.code == "realization.authority-bound-unavailable" and "forwarding-agents" in d.message
-        for d in execution.diagnostics
-    )
+    authority = next(item for item in portable.realization_authority if item.requirement_kind == "forwarding-agents")
+    member = authority.constraint_document.root.members[0].constraint
+    assert member.fields["forwarding_agent_id"].value == "agent"
+    assert "log_forwarder" in member.fields["agent_kind"].domain.values
+    assert "other" not in member.fields["implementation"].domain.values
 
 
 @pytest.mark.parametrize("corruption", ["members", "baseline"])
@@ -264,7 +264,11 @@ def test_malformed_structural_demand_is_rejected_before_backend_mutation(corrupt
     )
     authority = next(a for a in portable.realization_authority if a.requirement_kind == "runtime-packages")
     if corruption == "members":
-        malformed = replace(authority, structure=authority.structure.model_copy(update={"members": {}}))
+        document = authority.constraint_document
+        malformed = replace(
+            authority,
+            constraint_document=document.model_copy(update={"root": document.root.model_copy(update={"members": ()})}),
+        )
         altered = replace(
             portable,
             realization_authority=tuple(malformed if a is authority else a for a in portable.realization_authority),
@@ -366,16 +370,16 @@ def test_published_plan_schema_and_closed_reader_preserve_structural_authority()
     schema = json.loads((Path(__file__).parents[3] / "contracts/schemas/plans/provisioning-plan-v1.json").read_text())
     Draft202012Validator(schema).validate(payload)
     authority = next(a for a in payload["realization_authority"] if a["requirement_kind"] == "runtime-packages")
-    assert "nmap" not in json.dumps(authority["structure"])
-    assert "7.95" not in json.dumps(authority["structure"])
+    assert authority["constraint_document"]["contract_id"] == "recursive-realization-constraint-v1"
+    assert "nmap" in json.dumps(authority["constraint_document"])
     legacy = deepcopy(schema)
-    del legacy["$defs"]["ResolvedRealizationAuthorityModel"]["properties"]["structure"]
+    del legacy["$defs"]["ResolvedRealizationAuthorityModel"]["properties"]["constraint_document"]
     assert list(Draft202012Validator(legacy).iter_errors(payload))
-    authority["structure"]["unrecognized_permission"] = True
+    authority["constraint_document"]["unrecognized_permission"] = True
     assert list(Draft202012Validator(schema).iter_errors(payload))
     with pytest.raises(ValidationError):
         ProvisioningPlanModel.model_validate(payload)
-    authority["structure"] = {"taxonomy_sentinel": True}
+    authority["constraint_document"] = {"taxonomy_sentinel": True}
     assert list(Draft202012Validator(schema).iter_errors(payload))
     with pytest.raises(ValidationError):
         ProvisioningPlanModel.model_validate(payload)

@@ -103,6 +103,7 @@ def realization_envelope_diagnostics(
     manifest: BackendManifest,
     *,
     apparatus_default: ApparatusRealizationDefaultResolver | None = None,
+    preparation: bool = False,
 ) -> list[Diagnostic]:
     """Check open compiled demand against the offered envelope via subsumption."""
 
@@ -131,7 +132,7 @@ def realization_envelope_diagnostics(
         if requirement.requirement_kind != "compute-substrate"
         and effective_realization_explicitness(requirement, manifest, apparatus_default) is ExplicitnessClass.OPEN
     )
-    if not open_paths:
+    if not open_paths or (preparation and "backend-realization-preparation-v1" in manifest.supported_contract_versions):
         return diagnostics
     requested = _open_request_envelope(open_paths)
     offered = _offered_open_projection(carrier.expression, open_paths)

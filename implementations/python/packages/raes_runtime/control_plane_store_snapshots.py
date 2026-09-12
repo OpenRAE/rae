@@ -12,6 +12,7 @@ from raes_contracts.account_credentials import (
 from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
 from raes_contracts.contracts import RealizationEnvelopeIdentityModel
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -97,12 +98,17 @@ def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
         "entries": {
             address: {
                 "address": entry.address,
-                "domain": entry.domain.value,
+                "domain": RuntimeDomain(entry.domain).value,
                 "resource_type": entry.resource_type,
                 "payload": dict(entry.payload),
                 "ordering_dependencies": list(entry.ordering_dependencies),
                 "refresh_dependencies": list(entry.refresh_dependencies),
                 "status": entry.status,
+                **(
+                    {"profile_bindings": [binding.model_dump(mode="json") for binding in entry.profile_bindings]}
+                    if entry.profile_bindings
+                    else {}
+                ),
             }
             for address, entry in snapshot.entries.items()
         },
@@ -182,6 +188,9 @@ def _snapshot_entries_from_payload(payload: dict[str, Any]) -> dict[str, Snapsho
             ordering_dependencies=tuple(entry.get("ordering_dependencies", ())),
             refresh_dependencies=tuple(entry.get("refresh_dependencies", ())),
             status=str(entry.get("status", "ready")),
+            profile_bindings=tuple(
+                DomainProfileBindingModel.model_validate(binding) for binding in entry.get("profile_bindings", ())
+            ),
         )
         for address, entry in entries_payload.items()
         if isinstance(entry, dict)

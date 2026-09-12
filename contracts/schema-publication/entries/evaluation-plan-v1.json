@@ -2,9 +2,9 @@
   "contract_id": "evaluation-plan-v1",
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft",
-  "content_hash": "fd21426337959a979bdc4bc5ee3002c5c4e24f16ef4a1ca1ba0c491950bd96a2",
+  "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560",
   "last_change": {
-    "summary": "Carried normalized scoped observation demand through evaluation plans for issue #1212.",
-    "content_hash": "fd21426337959a979bdc4bc5ee3002c5c4e24f16ef4a1ca1ba0c491950bd96a2"
+    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
+    "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560"
   }
 }

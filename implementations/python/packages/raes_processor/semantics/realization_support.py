@@ -53,17 +53,21 @@ def _realization_support_diagnostic(
     declarations = [
         declaration for declaration in manifest.realization_support if declaration.domain == requirement.domain
     ]
-    if isinstance(requirement.structure, (RealizationCollection, RealizationRecord)):
+    if requirement.requirement_kind == "process-resource-limits":
+        process_diagnostic = process_resource_limit_support_diagnostic(
+            requirement, declarations, explicitness, manifest.realization_envelope
+        )
+        if process_diagnostic is not None:
+            return process_diagnostic
+    if isinstance(requirement.structure, (RealizationCollection, RealizationRecord)) or (
+        requirement.constraint_document is not None
+        and requirement.constraint_document.root.kind in {"recursive-record", "keyed-collection", "sequence"}
+    ):
         exact_diagnostic = _exact_support_diagnostic(requirement, declarations)
         if exact_diagnostic is not None:
             return exact_diagnostic
     if requirement.requirement_kind == "process-resource-limits":
-        diagnostic = process_resource_limit_support_diagnostic(
-            requirement,
-            declarations,
-            explicitness,
-            manifest.realization_envelope,
-        )
+        diagnostic = None
     elif explicitness is ExplicitnessClass.OPEN:
         diagnostic = _open_support_diagnostic(requirement, declarations)
     elif explicitness is ExplicitnessClass.EXACT:

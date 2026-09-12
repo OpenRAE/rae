@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
     from raes_contracts.contracts import RealizationEnvelopeIdentityModel
     from raes_contracts.contracts.time_model import TimeRuntimeStateModel
+    from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,7 @@ class SnapshotEntry:
     ordering_dependencies: tuple[str, ...] = ()
     refresh_dependencies: tuple[str, ...] = ()
     status: str = "ready"
+    profile_bindings: tuple[DomainProfileBindingModel, ...] = ()
 
     def __post_init__(self) -> None:
         require_compiled_address(self.address)

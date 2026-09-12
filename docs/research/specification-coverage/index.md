@@ -36,7 +36,9 @@ this run does not repair them.
 - [`execution-snapshot-v3.json`](execution-snapshot-v3.json) and
   [`analysis-v3.json`](analysis-v3.json) preserve release 3.0.0.
 - [`execution-snapshot-v4.json`](execution-snapshot-v4.json) and
-  [`analysis-v4.json`](analysis-v4.json) are the current release 4.0.0, with
+  [`analysis-v4.json`](analysis-v4.json) preserve release 4.0.0.
+- [`execution-snapshot-v5.json`](execution-snapshot-v5.json) and
+  [`analysis-v5.json`](analysis-v5.json) are the current release 5.0.0, with
   exact current artifact pins, package digests, and source-state provenance.
   The original protocol and missing-concept denominator remain unchanged.
 
@@ -48,7 +50,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 4.0.0 and rejects duplicate or unsupported
+Current validation requires release 5.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

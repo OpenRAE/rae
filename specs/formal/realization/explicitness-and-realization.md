@@ -174,27 +174,32 @@ independently. Required members cannot be removed, renamed, duplicated or
 replaced. Closing a collection restricts additions in that modeled inventory,
 not all incidental state on the machine.
 
-The portable resolved-authority entry MAY carry a `structure` descriptor:
-exact leaves refer to the admitted operation's value, open leaves permit typed
-choices, records retain their authored fields and scoped additions, and keyed
-collections retain required members by canonical identity digest. The carrier
-does not copy exact values or arbitrary variable domains. It is checked against
-the operation during readmission and against canonical, validated observations
-after execution. Unknown or missing observations MUST NOT establish satisfaction
-of a required leaf. Existing scope/strength and manifest corroboration checks
-remain in force; this correction adds no observation, retention or export demand.
+The portable resolved-authority entry carries the source-bound
+`recursive-realization-constraint-v1` document for recursive constraints. It
+retains leaf domains, local closure, conditional presence, safe exact values and
+origins independently of the aggregate mode. The document and its source binding
+are authenticated together and validated against the operation at readmission
+and actual values at result admission. The earlier value-free `structure` remains
+a checked compatibility subset, not a second editable authority. Unknown or
+missing observations MUST NOT establish satisfaction of a required leaf.
+Existing selected scope/strength and corroboration contracts remain binding;
+precise declarations create no observation, retention or export demand.
 
 The initial mixed collection profiles are database services (service ID) and
 packages (required manager/name coordinates). Package architecture remains
 binding when authored; when omitted under an open scope it is delegated.
 Ambiguous multiple package rows with the same partial coordinates require a
 more expressive identity contract and MUST be rejected before mutation.
-Unchanged exact collections retain their legacy canonical comparison, including
-full package identities. Ordered nested sequences retain their owning exact
-comparison. Mixed nested collections or unsafe scalar domains lacking an
-owning comparison policy MUST produce an actionable
-`realization.authority-bound-unavailable` diagnostic. Existing process-limit
-finite domains retain their typed identity-bound comparison and exact siblings.
+All registered runtime concerns now use the recursive relation, including
+specialized safe mount, capability, process-limit, port, forwarding and listener
+projections. Their owning profiles supply semantic identities, not backend
+payload heuristics. Capability and mount-option sets use comparison-only keyed
+scalar records; bounded scalar choices use collision-free aliases while their
+actual value remains separately constrained. Compound process-limit identities
+retain the canonical selector and scope. Native persistence shapes remain
+unchanged. Ordered sequences remain ordered. Unsafe domains or ambiguous
+identities MUST produce an actionable `realization.authority-bound-unavailable`
+diagnostic before execution.
 This supported fragment includes an inherited open package scope with an exact
 nmap child: other packages may be added and unspecified fields chosen, while
 the nmap version and any other explicit leaf remain binding.
@@ -213,6 +218,31 @@ without structural-authority support MUST reject the new field through the
 existing closed contract, rather than ignore it. Trusted planner-plan digests
 bind the complete descriptor; a relay cannot strip or widen it. Schema
 publication entries and the reference bundle MUST remain identical.
+
+### Negotiated preparation and extension constraints (issue #1204)
+
+An opted-in backend may resolve a delegated request under
+[`backend-realization-preparation-v1`](../../sdl/backend-realization-preparation.md).
+Preparation is read-only and returns one completion bound to the authenticated
+plan, configured manifest and immediate predecessor. The runtime MUST admit its
+joint semantics, capabilities, original recursive constraints, dependencies and
+applicable observation requirements before apply. Apply MUST deliver those
+selected values; another permitted but unadmitted choice is not interchangeable.
+Unknown support never authorizes execution.
+
+Legacy backends retain universal-envelope admission; ADR-070 `subsumes(B, R)`
+still means full coverage. A prepared witness is not a universal coverage claim.
+No complete joint-offer catalog or mandatory author installation recipe is
+introduced. All additional portable nodes MUST be prepared under authenticated
+plan-owned collection authority, including namespace and membership closure.
+
+Optional standard and private extension constraints use
+[`plan-realization-profiles-v1`](../../sdl/plan-realization-profiles.md).
+Pinned local definitions, owner/binding coordinates and recursive constraints
+are plan-authenticated; backend support is independently pinned and checked by
+an installed semantic validator. These fields use the same relation as core
+fields. This adoption adds no SDL profile attachment syntax and grants no
+authority to opaque, unknown, unsupported or observation-only bindings.
 
 ### Scoped default cascade
 
@@ -269,14 +299,16 @@ it does not prove which substrate will be used. Exact and constrained demand
 MUST be admitted by the selected envelope's compute-substrate claim, and
 out-of-domain demand MUST be rejected before mutation.
 
-The actual selected substrate is runtime evidence, not authored or planned
-state. A value-bearing compute-substrate observation MUST identify the governed
+The actual selected substrate may be reported as a backend selection; the
+configured choice alone is not an independent observation. When effective
+observation demand requires collection, a value-bearing substrate observation MUST identify the governed
 selected value and bind it to the runtime operation, selected envelope digest,
 configuration digest, observer version, monotonic sequence, and a verified
 execution binding. Plan values, requested configuration, backend handles, and
 manifest capability declarations alone MUST NOT be treated as observations.
-Bounded demand requires daemon-observed or stronger independent readback; open
-demand requires at least driver-reported readback. A claimed value outside the
+Selected operational observation contracts retain their actual source/scope
+floors. Bounded realization detail alone MUST NOT manufacture collection demand.
+A claimed value outside the
 selected envelope or authored domain MUST reject the runtime result. An
 in-process emulator may disclose a governed extension value but does not count
 as an independent native container, virtual-machine, or physical mechanism.
@@ -299,11 +331,13 @@ resolved during planning; `apparatus-default` remains its source, not an
 unresolved fifth mode. Omitted legacy designation resolves closed with a
 distinct `legacy-default` source.
 
-Constrained entries MUST contain one or more publication-safe typed bounds;
-other modes MUST NOT contain bounds. Exact values remain in their owning
-operation payload and MUST NOT be duplicated in authority. Credentials,
-environment values, source bodies, backend-native state, and arbitrary
-authoring designation tables MUST NOT enter the authority collection.
+Constrained entries MUST contain publication-safe typed bounds or a bound
+recursive document. A recursive document may also accompany an exact or open
+summary and MUST preserve its exact descendants. Safe public literals may occur
+inside that document, bound to their owning operation projection; protected
+values use their existing presence/commitment contract. Raw credential material,
+protected environment values, source bodies, backend-native state and arbitrary
+authoring designation tables MUST NOT enter authority.
 
 Completeness and canonical payload pointers MUST be recomputed from the
 registered concern inventory at execution admission. The selected backend's
@@ -355,9 +389,10 @@ processor layer plays no realization role under SEM-218: it compiles
 the typed runtime requirement and plans against backend support, but
 does not pick values for underspecified concerns.
 
-For a registered non-executable inventory concern, value equality alone is not
-sufficient evidence of exact realization. The concern descriptor MAY declare a
-closed required verification scope. The backend manifest MUST then disclose a
+For a concern governed by an applicable operational verification or selected
+observation contract, value equality alone is not sufficient corroboration.
+That contract supplies the required verification scope and strength; exact
+inventory detail alone MUST NOT invent experimental capture. The manifest MUST disclose a
 concern-keyed observation capability whose scope covers that demand, and the
 returned runtime snapshot MUST carry a value-free observation disclosure for
 the same address, field path, domain, and requirement kind. The disclosure's
@@ -422,9 +457,11 @@ backend-contract diagnostic and MUST NOT replace the baseline snapshot.
 concern only at a point where the owning SDL schema or semantic rule
 explicitly designates that concern as realizable, *and* where the
 backend's manifest declares a per-domain `RealizationSupportMode` of
-`OPEN_REALIZATION` covering that open concern. When the backend also publishes
+`OPEN_REALIZATION` covering that open concern. When a legacy backend also publishes
 a finer realization envelope, its offered projection MUST subsume the compiled
-open request under the canonical envelope relation. Constrained declarations
+open request under the canonical envelope relation. The explicitly negotiated
+preparation contract instead validates one supported completion before apply,
+without changing universal subsumption. Constrained declarations
 use the separately declared constrained support surface. Silence
 outside such designated points is fail-closed: the authoring artifact
 MUST be rejected with a structured error rather than filled in.
@@ -488,7 +525,8 @@ realization decisions out of band. The provenance contract above is realized
 on the existing runtime snapshot contract. Backend-filled open slots carry a
 stable `governing_scope` reference; the provenance ledger never carries the
 realized value itself. Value-bearing concerns such as compute-substrate record
-the actual selection separately in the bound runtime observation surface.
+the actual selection with an honest selection or observation basis under the
+selected disclosure contract; selection alone never establishes observation.
 
 ### Phase responsibilities
 
@@ -507,7 +545,7 @@ substitute for that published contract.
 | Compilation | Lowers each declaration into a typed runtime requirement preserving class. Exact requirements carry their declared kind into the compiled representation; constrained requirements carry the typed constraint surface; open requirements are emitted as realizable slots tagged with the realization-and-disclosure family. Every compute node emits a separate compute-substrate requirement. | active — `compile_runtime_model` applies leaf precedence, retains realizable demand, and separately carries complete authority for closed, open, constrained, exact, legacy, and delegated concerns. |
 | Planning | Matches every compiled requirement against the candidate backend manifest and selected envelope. Structural node-kind support, compute-substrate mechanism constraints, and resolved backend authority remain separate. Unsupported demand MUST cause plan rejection before deployment. | active — support and envelope gates intersect author permission, delegation is resolved with its source retained, and the provisioning plan carries both the complete typed authority boundary and author substrate constraints. |
 | Execution | Backend realizers honor the compiled class. A runtime adapter MUST NOT silently broaden an exact requirement, silently narrow an open realization beyond its declared constraints, or add values at closed concerns. | active — direct-manager and control-plane execution validate plan-owned authority, envelope identity, backend support, typed bounds, and non-approximation before accepting a snapshot; operation-bearing plans are bound to trusted planner content. |
-| Observation | Realized values land in result, snapshot, history, and evidence surfaces with provenance per I5. Realization choices are observation data, not private backend state or plan echo. | active — admitted authority drives safe projection and value-free provenance, while bound compute-substrate observations carry the selected value and reject missing, weak, stale, unbound, or out-of-domain readback. |
+| Observation | Known backend choices are reportable at the requested depth with honest provenance per I5. Independent capture, retention, and export follow the selected demand contract; author detail alone creates none. | active — admitted authority drives safe projection and value-free provenance. When readback is required, bound observations carry the selected value and reject missing, weak, stale, unbound, or out-of-domain evidence. |
 
 ## Cross-Cutting Gates
 

@@ -5,7 +5,17 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated, Literal
 
-from pydantic import ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    StrictBool,
+    StrictFloat,
+    StrictInt,
+    StrictStr,
+    model_serializer,
+    model_validator,
+)
 
 from .._base import ContractModel
 from ..bounded_domains import GovernedReferenceDomain, NullableDomainDescriptor
@@ -115,6 +125,13 @@ class RealizationLiteral(RecursiveStructureModel):
             }
         ),
     ]
+
+    @model_serializer(mode="wrap")
+    def _retain_explicit_null(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        result = handler(self)
+        # Excluding absent optional metadata must never erase a literal null.
+        result["value"] = self.value
+        return result
 
 
 class RealizationKnowledgeValue(RecursiveStructureModel):
@@ -323,6 +340,7 @@ class RealizationConstraintLimits(StructureModel):
     max_identity_checks: int = Field(default=4096, ge=1, le=1_000_000)
     max_reference_hops: int = Field(default=256, ge=1, le=4096)
     max_scalar_bytes: int = Field(default=4096, ge=1, le=8 * 1024 * 1024)
+    max_total_scalar_bytes: int = Field(default=1024 * 1024, ge=1, le=64 * 1024 * 1024)
     max_diagnostics: int = Field(default=16, ge=1, le=256)
 
 

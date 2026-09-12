@@ -2,9 +2,9 @@
   "contract_id": "provisioning-plan-v1",
   "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
   "stability": "draft",
-  "content_hash": "7f4e82186b7221a0ae6f71e61b2d01818984bd22a498743e0b6819e47d411089",
+  "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15",
   "last_change": {
-    "summary": "Carried normalized scoped observation demand through provisioning plans for issue #1212.",
-    "content_hash": "7f4e82186b7221a0ae6f71e61b2d01818984bd22a498743e0b6819e47d411089"
+    "summary": "Carried recursive authority, prepared portable membership and authenticated profile constraints with pinned definitions for issue #1204.",
+    "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15"
   }
 }

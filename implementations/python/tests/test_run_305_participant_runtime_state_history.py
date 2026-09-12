@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel, schema_bundle
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
-from raes_runtime.backend_calls import _call_backend_apply
+from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from raes_runtime.control_plane_security import (
@@ -203,6 +203,9 @@ def test_backend_apply_path_rejects_invalid_participant_behavior_history():
         base_snapshot,
         address="runtime.control-plane.participant.alice",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({PARTICIPANT})
+        ),
     )
 
     assert result.success is False
@@ -237,6 +240,9 @@ def test_backend_apply_path_rejects_participant_behavior_history_rewrite():
         base_snapshot,
         address="runtime.control-plane.participant.alice",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({PARTICIPANT})
+        ),
     )
 
     assert result.success is False
@@ -268,6 +274,9 @@ def test_backend_apply_path_rejects_in_place_participant_behavior_history_rewrit
         base_snapshot,
         address="runtime.control-plane.participant.alice",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({PARTICIPANT})
+        ),
     )
 
     assert result.success is False
@@ -301,6 +310,9 @@ def test_backend_apply_path_rejects_participant_episode_history_removal():
         base_snapshot,
         address="runtime.control-plane.participant.alice",
         snapshot=base_snapshot,
+        realization=_RealizationApplyContext(
+            effect_owners=frozenset({"participant"}), effect_targets=frozenset({PARTICIPANT})
+        ),
     )
 
     assert result.success is False

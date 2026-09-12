@@ -4,8 +4,9 @@ The legacy subset remains import-compatible while the versioned recursive
 contract is split into focused implementation modules behind this public owner.
 """
 
+from ._binding import realization_constraint_binding
 from ._build import RealizationConstraintBuildResult
-from ._common import RealizationRelationResult
+from ._common import RealizationRelationResult, validate_realization_value
 from ._compatibility import (
     RealizationCompatibilityResult,
     downgrade_recursive_realization_structure,
@@ -94,4 +95,6 @@ __all__ = [
     "realization_member_identity",
     "structure_matches",
     "upgrade_legacy_realization_structure",
+    "validate_realization_value",
+    "realization_constraint_binding",
 ]

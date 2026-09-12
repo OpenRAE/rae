@@ -287,11 +287,12 @@ class RuntimeControlPlane(
                 request_fingerprint=context.request_commitment,
                 context=context,
             )
-        diagnostics = _call_backend_diagnostics(
-            self._target.provisioner.validate,
-            plan,
-            address="runtime.control-plane.provisioning.validate",
-        )
+        if plan.preparation is None:
+            diagnostics = _call_backend_diagnostics(
+                self._target.provisioner.validate,
+                plan,
+                address="runtime.control-plane.provisioning.validate",
+            )
         return execute_operation(
             self,
             OperationExecutionRequest(

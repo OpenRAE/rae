@@ -55,6 +55,7 @@ def _plan_operation_model(operation: PlanOperation) -> PlanOperationModel:
         payload=dict(operation.payload),
         ordering_dependencies=list(operation.ordering_dependencies),
         refresh_dependencies=list(operation.refresh_dependencies),
+        profile_bindings=getattr(operation, "profile_bindings", ()),
     )
 
 
@@ -86,6 +87,8 @@ def _realization_authority_model(
         verification_scope=authority.verification_scope,
         required_observation_strength=authority.required_observation_strength,
         structure=authority.structure,
+        constraint_document=authority.constraint_document,
+        constraint_binding=authority.constraint_binding,
     )
 
 
@@ -93,6 +96,8 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
     """Project a provisioning plan into its published contract model."""
 
     return ProvisioningPlanModel(
+        preparation=plan.preparation,
+        profile_authority=plan.profile_authority,
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         diagnostics=_diagnostic_payloads(plan.diagnostics),
         realization_authority=[_realization_authority_model(entry) for entry in plan.realization_authority],

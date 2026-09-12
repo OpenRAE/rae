@@ -2,9 +2,9 @@
   "contract_id": "backend-profile-v1",
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft",
-  "content_hash": "4f9db6e82a6cec80e3f1f64c9fdc20bd87005bafd29c6ce817d41ceee301db85",
+  "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36",
   "last_change": {
-    "summary": "Added participant-flow-control-relation-v1 to the backend-facing supported-contract enum for issue #1004, so a backend can declare it as the owning realization contract for the adversarial-control flow, final-sink, and quarantine feature terms.",
-    "content_hash": "4f9db6e82a6cec80e3f1f64c9fdc20bd87005bafd29c6ce817d41ceee301db85"
+    "summary": "Negotiated read-only backend preparation and optional plan-level profile support for issue #1204.",
+    "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36"
   }
 }

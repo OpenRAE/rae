@@ -1212,12 +1212,14 @@ def _fixed_topology_manifest() -> BackendManifest:
     return BackendManifest(
         name="fixed-topology",
         version="1.0.0",
+        realization_envelope=create_stub_manifest(with_realization_envelope=True).realization_envelope,
         supported_contract_versions=frozenset(
             {
                 "backend-manifest-v2",
                 "operation-receipt-v1",
                 "operation-status-v1",
                 "runtime-snapshot-v1",
+                "realization-envelope-v1",
             }
         ),
         compatible_processors=frozenset({"raes-reference-processor"}),
@@ -1229,7 +1231,7 @@ def _fixed_topology_manifest() -> BackendManifest:
             RealizationSupportDeclaration(
                 domain="runtime-realization",
                 support_mode=RealizationSupportMode.CONSTRAINED,
-                supported_constraint_kinds=frozenset({"node-type", "os-family"}),
+                supported_constraint_kinds=frozenset({"node-type", "os-family", "compute-substrate"}),
                 supported_exact_requirement_kinds=frozenset({"declared-capability-match"}),
                 disclosure_kinds=frozenset({"backend-manifest-v2", "runtime-snapshot-v1", "operation-status-v1"}),
             ),
@@ -1276,7 +1278,13 @@ class _FixedTopologyProvisioner:
                 status="applied",
             )
             changed.append(op.address)
-        return ApplyResult(success=True, snapshot=snapshot.with_entries(entries), changed_addresses=changed)
+        return ApplyResult(
+            success=True,
+            snapshot=snapshot.with_entries(
+                entries, realization_envelope=_fixed_topology_manifest().realization_envelope.identity
+            ),
+            changed_addresses=changed,
+        )
 
 
 class _NoopProvisioner(_FixedTopologyProvisioner):
@@ -1345,18 +1353,25 @@ def test_target_conformance_default_scenario_fails_fixed_topology_backend():
 
 def test_target_conformance_accepts_supplied_reference_scenario():
     """Issue #663: a backend-supplied scenario it can realize passes, and full
-    realization (issue #606 mutation guard) is still required and met."""
+    provisioning (issue #606 mutation guard) is still required and met.
+
+    This fixture supplies no independent realization-honesty harness; successful
+    provisioning must not upgrade the inherited non-constructive envelope claim.
+    """
 
     report = run_target_conformance(
         _fixed_topology_target(),
         reference_scenario=_reference_scenario(_FIXED_TOPOLOGY_PREBUILT_NODE),
     )
 
-    assert report.passed is True
     provisioning = next(case for case in report.cases if case.name == "target-provisioning")
     assert provisioning.passed is True
     snapshot_case = next(case for case in report.cases if case.name == "target-snapshot")
     assert snapshot_case.passed is True
+    assert report.passed is False
+    failures = [case for case in report.cases if not case.passed]
+    assert [case.name for case in failures] == ["realization-envelope-constructive"]
+    assert failures[0].outcome == "unsupported"
 
 
 def test_supplied_reference_scenario_still_enforces_mutation_guard():

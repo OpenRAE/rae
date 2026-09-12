@@ -85,8 +85,11 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         parameters: dict[str, object] | None = None,
         profile: str | None = None,
         artifact_availability: ArtifactAvailabilityContext | None = None,
+        profile_authority=None,
     ) -> ExecutionPlan:
-        model = compile_scenario_runtime_model(scenario, parameters=parameters, profile=profile)
+        model = compile_scenario_runtime_model(
+            scenario, parameters=parameters, profile=profile, profile_authority=profile_authority
+        )
         effective_snapshot = snapshot if snapshot is not None else self._snapshot
         return plan(
             model,
@@ -94,6 +97,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
             effective_snapshot,
             target_name=self._target.name,
             artifact_availability=artifact_availability,
+            profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
         )
 
     def apply(self, execution_plan: ExecutionPlan) -> ApplyResult:
@@ -144,9 +148,11 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
     ) -> None:
         services_to_rollback = []
         if execution_plan.orchestration.actionable_operations and self._target.orchestrator is not None:
-            services_to_rollback.append((_ROLLBACK_ORCHESTRATOR_ADDRESS, self._target.orchestrator))
+            services_to_rollback.append(
+                (_ROLLBACK_ORCHESTRATOR_ADDRESS, self._target.orchestrator, RuntimeDomain.ORCHESTRATION)
+            )
         if state.started_evaluator and self._target.evaluator is not None:
-            services_to_rollback.append((_ROLLBACK_EVALUATOR_ADDRESS, self._target.evaluator))
+            services_to_rollback.append((_ROLLBACK_EVALUATOR_ADDRESS, self._target.evaluator, RuntimeDomain.EVALUATION))
         rollback_result = rollback_services(
             state.working_snapshot,
             services_to_rollback,
@@ -218,7 +224,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 )
                 rollback_result = rollback_services(
                     state.working_snapshot,
-                    [(_ROLLBACK_EVALUATOR_ADDRESS, self._target.evaluator)],
+                    [(_ROLLBACK_EVALUATOR_ADDRESS, self._target.evaluator, RuntimeDomain.EVALUATION)],
                     information_state_context_resolver=self._information_state_context_resolver,
                 )
                 self._record_phase_result(state, rollback_result)
@@ -251,10 +257,12 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                     message="Orchestrator failed to start.",
                 )
                 services_to_rollback = [
-                    (_ROLLBACK_ORCHESTRATOR_ADDRESS, self._target.orchestrator),
+                    (_ROLLBACK_ORCHESTRATOR_ADDRESS, self._target.orchestrator, RuntimeDomain.ORCHESTRATION),
                 ]
                 if state.started_evaluator and self._target.evaluator is not None:
-                    services_to_rollback.append((_ROLLBACK_EVALUATOR_ADDRESS, self._target.evaluator))
+                    services_to_rollback.append(
+                        (_ROLLBACK_EVALUATOR_ADDRESS, self._target.evaluator, RuntimeDomain.EVALUATION)
+                    )
                 rollback_result = rollback_services(
                     state.working_snapshot,
                     services_to_rollback,
@@ -325,7 +333,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 snapshot=self._snapshot,
                 diagnostics=diagnostics,
             )
-        else:
+        elif execution_plan.provisioning.preparation is None:
             validation = _call_backend_diagnostics(
                 self._target.provisioner.validate,
                 execution_plan.provisioning,
@@ -389,6 +397,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 working_snapshot,
                 address="runtime.destroy.orchestrator",
                 snapshot=working_snapshot,
+                realization=_RealizationApplyContext(stop_domain=RuntimeDomain.ORCHESTRATION),
                 information_state_context_resolver=self._information_state_context_resolver,
             )
             diagnostics.extend(stop_result.diagnostics)
@@ -410,6 +419,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 working_snapshot,
                 address="runtime.destroy.evaluator",
                 snapshot=working_snapshot,
+                realization=_RealizationApplyContext(stop_domain=RuntimeDomain.EVALUATION),
                 information_state_context_resolver=self._information_state_context_resolver,
             )
             diagnostics.extend(stop_result.diagnostics)
