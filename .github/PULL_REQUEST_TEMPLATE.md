@@ -7,8 +7,12 @@
 ## Issue tracking
 
 <!-- Use one route. Keep the former heading "Issues closed" only on existing PRs.
-For tracked work, add one standalone line per open same-repository issue:
+For tracked work, add one standalone line per open same-repository issue.
+If its Requirements section declares requirement UIDs, use a non-closing link:
+Refs #N
+Otherwise use:
 Closes #N
+Requirement-backed issues stay open until post-merge requirement verification.
 For a small docs fix, typo, or narrow test improvement without an issue, add:
 No issue: Briefly explain why separate issue tracking is unnecessary.
 -->

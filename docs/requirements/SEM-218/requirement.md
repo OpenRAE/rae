@@ -21,6 +21,8 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_pr_body_guard.py` (Ancillary delivery-policy repair: preserve post-merge verification before requirement-backed issue closure; not software semantics)
+- TESTS → TEST `implementations/python/tests/test_pr_body_policy_migration.py` (Ancillary delivery-policy migration: execute only the pinned replacement of the exact legacy guard)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_typed_runtime_projection.py` (Comparison-only repository-reference sets with native snapshot values)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_mapping_key_analyzer.py` (Preserve typed profile JSON key identity)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_mapping_scopes.py` (Separate profile data from structural SDL keys)

@@ -22,6 +22,7 @@ from tools.check_pr_body import (  # noqa: E402
     RULE_SECTION,
     RULE_SUMMARY,
     RULE_VERIFICATION,
+    IssueFacts,
     closing_issue_numbers,
     is_exempt_automation,
     main,
@@ -50,9 +51,9 @@ Closes #{issue}
 
 
 def _lookup(states: dict[int, str]):
-    def lookup(number: int) -> tuple[bool, bool]:
+    def lookup(number: int) -> IssueFacts:
         state = states.get(number)
-        return state is not None, state == "open"
+        return IssueFacts(state is not None, state == "open")
 
     return lookup
 
@@ -64,6 +65,138 @@ def _rules(body: str, states: dict[int, str] | None = None) -> set[str]:
 
 def test_complete_body_passes() -> None:
     assert validate_pr_body(_body(), _lookup({123: "open"})) == []
+
+
+def test_requirement_backed_refs_pass_through_real_issue_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Opener:
+        def open(self, *_args, **_kwargs) -> io.StringIO:
+            return io.StringIO(json.dumps({"state": "open", "body": "## Requirements\n- SEM-218"}))
+
+    monkeypatch.setattr(pr_body.urllib.request, "build_opener", lambda *_args: Opener())
+    lookup = pr_body.GitHubIssueLookup("OpenRAE/rae", "test-token")
+    body = _body().replace("Closes #123", "Refs #123")
+    assert validate_pr_body(body, lookup) == []
+
+
+def test_requirement_backed_closing_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Opener:
+        def open(self, *_args, **_kwargs) -> io.StringIO:
+            return io.StringIO(json.dumps({"state": "open", "body": "## Requirements\n- SEM-218"}))
+
+    monkeypatch.setattr(pr_body.urllib.request, "build_opener", lambda *_args: Opener())
+    lookup = pr_body.GitHubIssueLookup("OpenRAE/rae", "test-token")
+    assert RULE_ISSUES in {item.rule_id for item in validate_pr_body(_body(), lookup)}
+
+
+@pytest.mark.parametrize("heading", ["Issue tracking", "Related Issues", "Issues closed"])
+@pytest.mark.parametrize("requirements", [(), ("SEM-218",)])
+@pytest.mark.parametrize("keyword", ["Refs", "Closes"])
+def test_issue_lifecycle_route_matrix(heading: str, requirements: tuple[str, ...], keyword: str) -> None:
+    body = _body().replace("Issue tracking", heading).replace("Closes", keyword)
+    violations = validate_pr_body(body, lambda _number: IssueFacts(True, True, requirements))
+    assert bool(violations) is (keyword != ("Refs" if requirements else "Closes"))
+
+
+@pytest.mark.parametrize("reference", ["Refs #123", "Closes #123", "fixes #123", "Resolves OpenRAE/rae#123"])
+def test_refs_cannot_hide_a_second_closing_route(reference: str) -> None:
+    body = _body().replace("Closes #123", "Refs #123") + f"\n## Notes\n{reference}\n"
+    violations = validate_pr_body(body, lambda _number: IssueFacts(True, True, ("SEM-218",)))
+    # Repeating a non-closing reference is harmless; every closing variant is not.
+    assert bool(violations) is (reference != "Refs #123")
+
+
+@pytest.mark.parametrize(
+    "keyword", ["close", "closes", "closed", "fix", "fixes", "fixed", "resolve", "resolves", "resolved"]
+)
+@pytest.mark.parametrize("separator", [" ", ": ", ":"])
+@pytest.mark.parametrize("target", ["#123", "OpenRAE/rae#123", "https://github.com/OpenRAE/rae/issues/123"])
+def test_all_closing_aliases_are_rejected_for_requirement_backed_work(
+    keyword: str, separator: str, target: str
+) -> None:
+    body = _body().replace("Closes #123", "Refs #123") + f"\n## Notes\n{keyword}{separator}{target}\n"
+    assert validate_pr_body(body, lambda _number: IssueFacts(True, True, ("SEM-218",)))
+
+
+@pytest.mark.parametrize(
+    "declaration",
+    [
+        "Refs #123\nCloses #123",
+        "Refs #123\nNo issue: Small documentation typo correction.",
+        "Refs OpenRAE/rae#123",
+        "Refs #0123",
+        "Refs #123 extra",
+        "Refs #１２３",
+        "<!-- Refs #123 -->",
+        "```\nRefs #123\n```",
+    ],
+)
+def test_requirement_routes_reject_ambiguous_or_hidden_tracking(declaration: str) -> None:
+    body = _body().replace("Closes #123", declaration)
+    assert validate_pr_body(body, lambda _number: IssueFacts(True, True, ("SEM-218",)))
+
+
+@pytest.mark.parametrize("facts", [IssueFacts(False, False), IssueFacts(True, False, ("SEM-218",))])
+def test_refs_still_require_an_open_issue(facts: IssueFacts) -> None:
+    body = _body().replace("Closes #123", "Refs #123")
+    assert validate_pr_body(body, lambda _number: facts)
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        ("## Requirements\n- SEM-218 — title", ("SEM-218",)),
+        ("### REQUIREMENTS\n* `APP-2`, SEM-218; (GC-O007). title\n* APP-2", ("APP-2", "SEM-218", "GC-O007")),
+        ("## Requirements\n### Group\n+ SEM-218\n## Other\n- RUN-311", ("SEM-218",)),
+        ("## Requirements\nNo requirements.\n## Requirements\n- SEM-218", ()),
+        ("# Requirements\n- SEM-218", ()),
+        ("##### Requirements\n- SEM-218", ()),
+        ("## Requirements\n- Some prose about SEM-218", ()),
+        ("## Requirements\n- SEM-218 description mentions RUN-311", ("SEM-218",)),
+        ("## Requirements\n- [ ] SEM-218", ()),
+        ("## Requirements\n- sem-218\n- GOV-ABC\n- " + "A" * 49 + "-1", ()),
+        ("## Other\n- SEM-218", ()),
+    ],
+)
+def test_authoritative_requirement_scope_convention(body: str, expected: tuple[str, ...]) -> None:
+    assert pr_body.requirement_uids(body) == expected
+
+
+@pytest.mark.parametrize("payload", [{"state": "open"}, {"state": "open", "body": []}])
+def test_missing_or_malformed_issue_body_cannot_be_treated_as_requirement_free(
+    payload: dict, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class Opener:
+        def open(self, *_args, **_kwargs) -> io.StringIO:
+            return io.StringIO(json.dumps(payload))
+
+    monkeypatch.setattr(pr_body.urllib.request, "build_opener", lambda *_args: Opener())
+    lookup = pr_body.GitHubIssueLookup("OpenRAE/rae", "test-token")
+    assert validate_pr_body(_body(), lookup)
+
+
+def test_refs_audit_distinguishes_deliberately_non_closing_links() -> None:
+    body = _body().replace("Closes #123", "Refs #123")
+    report = pr_body._open_issue_report(body, _lookup({123: "open"}), 7)
+    assert "Non-closing references" in report
+    assert "post-merge requirement verification" in report
+    assert "#123" in report
+    assert "No issue-tracking declaration" not in report
+
+
+def test_failed_audit_lookup_never_claims_all_issues_closed() -> None:
+    def fail(_number: int) -> IssueFacts:
+        raise RuntimeError("unavailable")
+
+    report = pr_body._open_issue_report(_body(), fail, 7)
+    assert "All declared closing issues are closed" not in report
+    assert "No issue-tracking declaration" not in report
+    assert "Inspection errors" in report
+
+
+def test_missing_audit_issue_is_not_reported_as_closed() -> None:
+    report = pr_body._open_issue_report(_body(), _lookup({}), 7)
+    assert "All declared closing issues are closed" not in report
+    assert "Inspection errors" in report
 
 
 @pytest.mark.parametrize("heading", ["Plain-language summary", "Issue tracking", "Verification"])
@@ -111,7 +244,7 @@ def test_closing_line_allows_whitespace_and_deduplicates() -> None:
 def test_substantive_no_issue_declaration_passes_without_lookup() -> None:
     body = _body().replace("Closes #123", "No issue: Corrects a small documentation typo.")
 
-    def unexpected_lookup(_number: int) -> tuple[bool, bool]:
+    def unexpected_lookup(_number: int) -> IssueFacts:
         raise AssertionError("no issue declaration must not query GitHub")
 
     assert no_issue_reasons(body) == ("Corrects a small documentation typo.",)
@@ -160,9 +293,9 @@ def test_comments_and_fenced_examples_do_not_add_fake_issue_references() -> None
     body = _body() + "\n<!-- Closes #999 -->\n```text\nCloses #888\n```\n"
     seen: list[int] = []
 
-    def lookup(number: int) -> tuple[bool, bool]:
+    def lookup(number: int) -> IssueFacts:
         seen.append(number)
-        return number == 123, number == 123
+        return IssueFacts(number == 123, number == 123)
 
     assert validate_pr_body(body, lookup) == []
     assert seen == [123]
@@ -231,17 +364,17 @@ def test_lookup_failures_and_http_shapes_fail_closed(monkeypatch: pytest.MonkeyP
         pr_body.GitHubIssueLookup("OpenRAE/rae", "")
 
     lookup = pr_body.GitHubIssueLookup("OpenRAE/rae", "token")
-    use_payload('{"state":"open"}')
-    assert lookup(12) == (True, True)
-    use_payload('{"state":"open","pull_request":{}}')
-    assert lookup(12) == (False, False)
+    use_payload('{"state":"open","body":null}')
+    assert lookup(12) == IssueFacts(True, True)
+    use_payload('{"state":"open","body":null,"pull_request":{}}')
+    assert lookup(12) == IssueFacts(False, False)
     use_payload("[]")
     with pytest.raises(RuntimeError, match="malformed"):
         lookup(12)
 
 
 def test_validation_and_report_record_lookup_errors() -> None:
-    def failing(_number: int) -> tuple[bool, bool]:
+    def failing(_number: int) -> IssueFacts:
         raise RuntimeError("offline")
 
     violations = validate_pr_body(_body(), failing)
