@@ -223,7 +223,41 @@ def control_interface_path_or_var(value: str, *, field_name: str) -> str:
 
 
 def parse_runtime_enum_or_var(value: Any, enum_cls: type[Enum], *, field_name: str):
-    return parse_enum_or_var(value, enum_cls, field_name=field_name)
+    if value is None or isinstance(value, enum_cls) or is_variable_ref(value):
+        return value
+    try:
+        return parse_enum_or_var(value, enum_cls, field_name=field_name)
+    except ValueError:
+        pass
+    # The contracts facade also exposes SDL-shaped DTOs. Resolve its catalog
+    # after model construction, as the incumbent account vocabulary does.
+    from raes_contracts.controlled_vocabularies import (
+        controlled_vocabulary_id_for_scope,
+        validate_controlled_vocabulary_value,
+    )
+
+    vocabulary = controlled_vocabulary_id_for_scope(f"sdl.definitions.{enum_cls.__name__}")
+    if vocabulary is None:
+        return parse_enum_or_var(value, enum_cls, field_name=field_name)
+    if isinstance(value, str):
+        try:
+            validate_controlled_vocabulary_value(vocabulary, value)
+        except ValueError:
+            pass
+        else:
+            return value
+    # Catalog exceptions contain rejected inputs; they must not escape through
+    # the SDL diagnostics surface. Private identity is never normalized away.
+    raise ValueError(f"{field_name} must be one of the known terms, a governed x-<owner>:<term> identity, or ${{var}}")
+
+
+def parse_runtime_enum_identity(value: object, enum_cls: type[Enum], *, field_name: str) -> str:
+    """Validate a concrete vocabulary-domain member and retain exact identity."""
+    parsed = parse_runtime_enum_or_var(value, enum_cls, field_name=field_name)
+    token = getattr(parsed, "value", parsed)
+    if not isinstance(token, str) or is_variable_ref(token):
+        raise ValueError(f"{field_name} requires a concrete vocabulary identity")
+    return token
 
 
 def parse_optional_bool_or_var(value: Any, *, field_name: str) -> bool | str | None:

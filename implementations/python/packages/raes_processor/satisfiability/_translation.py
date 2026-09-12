@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from functools import partial
 from typing import cast
 
 import rfc8785
-from raes.architectures import NodeArchitecture
+from raes.architectures import normalize_architecture
 from raes.canonical import canonical_sdl_digest
 from raes.infrastructure import ACLAction
 from raes.nodes import OSFamily
+from raes.runtime_values import parse_runtime_enum_identity
 from raes.scenario import ExpandedScenario, Scenario
 from raes.value_parsing import extract_variable_name, normalize_enum_value, variable_names_in_value
 from raes.variables import Variable, VariableType
@@ -276,9 +278,9 @@ def _target_domain(
     result: tuple[str | int | bool, ...] | None = None
     match parts:
         case ["nodes", _, "os"] if symbol.sort is ConstraintSort.STRING:
-            result = _string_vocabulary_domain(symbol, {item.value for item in OSFamily})
+            result = _identity_domain(symbol, partial(parse_runtime_enum_identity, enum_cls=OSFamily, field_name="os"))
         case ["nodes", _, "architecture"] if symbol.sort is ConstraintSort.STRING:
-            result = _string_vocabulary_domain(symbol, {item.value for item in NodeArchitecture})
+            result = _identity_domain(symbol, normalize_architecture)
         case ["infrastructure", _, "acls", _, "action"] if symbol.sort is ConstraintSort.STRING:
             result = _string_vocabulary_domain(symbol, {item.value for item in ACLAction})
         case ["infrastructure", _, "count"] if symbol.sort is ConstraintSort.INTEGER:
@@ -287,6 +289,18 @@ def _target_domain(
         case ["infrastructure", _, "properties", "internal"] if symbol.sort is ConstraintSort.BOOLEAN:
             result = symbol.domain
     return result
+
+
+def _identity_domain(symbol: ConstraintSymbolModel, normalizer: Callable[[object], object]) -> tuple[str, ...]:
+    values = []
+    for value in cast(tuple[str, ...], symbol.domain):
+        try:
+            parsed = normalizer(value)
+        except ValueError:
+            continue
+        if isinstance(parsed, str) and extract_variable_name(parsed) is None:
+            values.append(value)
+    return tuple(values)
 
 
 def _string_vocabulary_domain(

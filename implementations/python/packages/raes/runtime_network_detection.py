@@ -4,6 +4,8 @@ from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, parse_int_or_var
 from .runtime_values import (
     absolute_path_or_var,
@@ -196,8 +198,8 @@ class RuntimeNetworkDetectionRuleSource(SDLModel):
     """A loaded rule, IOC, script, or managed detection-content source."""
 
     source_id: str
-    kind: RuntimeNetworkDetectionRuleSourceKind | str = RuntimeNetworkDetectionRuleSourceKind.UNKNOWN
-    format: RuntimeNetworkDetectionRuleFormat | str = RuntimeNetworkDetectionRuleFormat.UNKNOWN
+    kind: GovernedVocabulary[RuntimeNetworkDetectionRuleSourceKind] = RuntimeNetworkDetectionRuleSourceKind.UNKNOWN
+    format: GovernedVocabulary[RuntimeNetworkDetectionRuleFormat] = RuntimeNetworkDetectionRuleFormat.UNKNOWN
     name: str = ""
     rule_count: int | str | None = None
     file_refs: list[str] = Field(default_factory=list)
@@ -245,7 +247,7 @@ class RuntimeNetworkDetectionNetworkSet(SDLModel):
     """A network zoning or service-group address-set variable."""
 
     set_id: str
-    kind: RuntimeNetworkDetectionNetworkSetKind | str = RuntimeNetworkDetectionNetworkSetKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeNetworkDetectionNetworkSetKind] = RuntimeNetworkDetectionNetworkSetKind.UNKNOWN
     name: str = ""
     selector_values: list[str] = Field(default_factory=list)
     network_refs: list[str] = Field(default_factory=list)
@@ -277,9 +279,9 @@ class RuntimeNetworkDetectionOutputStream(SDLModel):
     """A detection alert, telemetry, or summary output stream."""
 
     stream_id: str
-    format: RuntimeNetworkDetectionOutputFormat | str = RuntimeNetworkDetectionOutputFormat.UNKNOWN
+    format: GovernedVocabulary[RuntimeNetworkDetectionOutputFormat] = RuntimeNetworkDetectionOutputFormat.UNKNOWN
     path: str = ""
-    event_types: list[RuntimeNetworkDetectionEventType | str] = Field(default_factory=list)
+    event_types: list[GovernedVocabulary[RuntimeNetworkDetectionEventType]] = Field(default_factory=list)
     enabled: bool | str | None = None
     description: str = ""
 
@@ -324,10 +326,12 @@ class RuntimeNetworkDetectionControlChannel(SDLModel):
     """A bounded detection-engine control or reload channel."""
 
     channel_id: str
-    kind: RuntimeNetworkDetectionControlChannelKind | str = RuntimeNetworkDetectionControlChannelKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeNetworkDetectionControlChannelKind] = (
+        RuntimeNetworkDetectionControlChannelKind.UNKNOWN
+    )
     path: str = ""
     service: str = ""
-    capabilities: list[RuntimeNetworkDetectionControlCapability | str] = Field(default_factory=list)
+    capabilities: list[GovernedVocabulary[RuntimeNetworkDetectionControlCapability]] = Field(default_factory=list)
     auth_required: bool | str | None = None
     description: str = ""
 
@@ -372,10 +376,10 @@ class RuntimeNetworkDetectionEngine(SDLModel):
     """Node-scoped runtime inventory for an IDS/NDR detection engine."""
 
     network_detection_engine_id: str
-    implementation: RuntimeNetworkDetectionEngineImplementation | str = (
+    implementation: GovernedVocabulary[RuntimeNetworkDetectionEngineImplementation] = (
         RuntimeNetworkDetectionEngineImplementation.UNKNOWN
     )
-    engine_kind: RuntimeNetworkDetectionEngineKind | str = RuntimeNetworkDetectionEngineKind.UNKNOWN
+    engine_kind: GovernedVocabulary[RuntimeNetworkDetectionEngineKind] = RuntimeNetworkDetectionEngineKind.UNKNOWN
     version: str = ""
     revision: str = ""
     name: str = ""
@@ -384,7 +388,7 @@ class RuntimeNetworkDetectionEngine(SDLModel):
     configuration_file_refs: list[str] = Field(default_factory=list)
     log_file_refs: list[str] = Field(default_factory=list)
     evidence_refs: list[str] = Field(default_factory=list)
-    app_layer_protocols: list[RuntimeNetworkDetectionAppProtocol | str] = Field(default_factory=list)
+    app_layer_protocols: list[GovernedVocabulary[RuntimeNetworkDetectionAppProtocol]] = Field(default_factory=list)
     rule_sources: list[RuntimeNetworkDetectionRuleSource] = Field(default_factory=list)
     network_sets: list[RuntimeNetworkDetectionNetworkSet] = Field(default_factory=list)
     output_streams: list[RuntimeNetworkDetectionOutputStream] = Field(default_factory=list)

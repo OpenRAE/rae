@@ -6,6 +6,8 @@ from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validat
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel
 from .runtime_generated_value import (
     GeneratedArtifactValueSource,
@@ -51,8 +53,10 @@ class RuntimeEnvironmentVariable(SDLModel):
     name: str
     value: str = ""
     value_from: GeneratedArtifactValueSource | None = Field(default=None, exclude_if=lambda v: v is None)
-    value_classification: RuntimeEnvironmentValueClassification | str = RuntimeEnvironmentValueClassification.UNKNOWN
-    provenance: RuntimeEnvironmentVariableProvenance | str = RuntimeEnvironmentVariableProvenance.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeEnvironmentValueClassification] = (
+        RuntimeEnvironmentValueClassification.UNKNOWN
+    )
+    provenance: GovernedVocabulary[RuntimeEnvironmentVariableProvenance] = RuntimeEnvironmentVariableProvenance.UNKNOWN
     source: str = ""
     description: str = ""
 

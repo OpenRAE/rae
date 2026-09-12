@@ -25,6 +25,8 @@ closed enrollment lattice because they intentionally carry no raw value field.
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from ._identifiers import require_qualified_identifier
 from .runtime_forwarding_agent_vocab import (
@@ -41,6 +43,7 @@ from .runtime_forwarding_agent_vocab import (
     RuntimeForwardingSourceKind,
     RuntimeForwardingTransformKind,
 )
+from .runtime_forwarding_buffer import RuntimeForwardingBufferPolicy
 from .runtime_security_monitoring import RuntimeSecurityMonitoringListenerRole
 from .runtime_values import (
     enforce_observed_value_redaction,
@@ -89,9 +92,9 @@ class RuntimeForwardingSource(SDLModel):
     """An observed forwarder input source (tailed path, API pull, or queue)."""
 
     source_id: str
-    kind: RuntimeForwardingSourceKind | str = RuntimeForwardingSourceKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeForwardingSourceKind] = RuntimeForwardingSourceKind.UNKNOWN
     location: str = ""
-    parse_format: RuntimeForwardingParseFormat | str = RuntimeForwardingParseFormat.UNKNOWN
+    parse_format: GovernedVocabulary[RuntimeForwardingParseFormat] = RuntimeForwardingParseFormat.UNKNOWN
     selector: str = ""
     description: str = ""
 
@@ -115,7 +118,7 @@ class RuntimeForwardingTransform(SDLModel):
     """An observed transform applied between a source and a ship target."""
 
     transform_id: str
-    kind: RuntimeForwardingTransformKind | str = RuntimeForwardingTransformKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeForwardingTransformKind] = RuntimeForwardingTransformKind.UNKNOWN
     sid_namespace: str = ""
     description: str = ""
 
@@ -145,8 +148,8 @@ class RuntimeForwardingShipTarget(SDLModel):
     target_service_ref: str = ""
     ingestion_port: int | str | None = None
     enrollment_port: int | str | None = None
-    protocol: RuntimeForwardingProtocol | str = RuntimeForwardingProtocol.UNKNOWN
-    enrollment_identity_classification: RuntimeForwardingEnrollmentClassification | str = (
+    protocol: GovernedVocabulary[RuntimeForwardingProtocol] = RuntimeForwardingProtocol.UNKNOWN
+    enrollment_identity_classification: GovernedVocabulary[RuntimeForwardingEnrollmentClassification] = (
         RuntimeForwardingEnrollmentClassification.NONE
     )
     description: str = ""
@@ -188,37 +191,6 @@ class RuntimeForwardingShipTarget(SDLModel):
         )
 
 
-class RuntimeForwardingBufferPolicy(SDLModel):
-    """The single observed buffer / back-pressure posture of a forwarder.
-
-    Captures the ``client_buffer`` shape: queue capacity, events-per-second
-    ceiling, at-rest/in-transit crypto, and reconnect interval. Its presence is
-    the defining profile a ``log_forwarder`` must carry.
-    """
-
-    buffer_policy_id: str
-    queue_capacity: int | str | None = None
-    eps: int | str | None = None
-    crypto: RuntimeForwardingBufferCrypto | str = RuntimeForwardingBufferCrypto.UNKNOWN
-    reconnect_seconds: int | str | None = None
-    description: str = ""
-
-    @field_validator("buffer_policy_id")
-    @classmethod
-    def validate_buffer_policy_id(cls, v: str) -> str:
-        return require_symbol(v, field_name="buffer_policy_id")
-
-    @field_validator("queue_capacity", "eps", "reconnect_seconds", mode="before")
-    @classmethod
-    def parse_counts(cls, v: object, info: ValidationInfo) -> int | str | None:
-        return parse_int_or_var(v, minimum=0, field_name=info.field_name) if v is not None else v
-
-    @field_validator("crypto", mode="before")
-    @classmethod
-    def normalize_crypto(cls, v: RuntimeForwardingBufferCrypto | str) -> object:
-        return parse_runtime_enum_or_var(v, RuntimeForwardingBufferCrypto, field_name="crypto")
-
-
 class RuntimeForwardingReloadChannel(SDLModel):
     """An observed downstream reload channel a content-sync agent drives.
 
@@ -229,7 +201,7 @@ class RuntimeForwardingReloadChannel(SDLModel):
 
     reload_channel_id: str
     target_ref: str = ""
-    kind: RuntimeForwardingReloadChannelKind | str = RuntimeForwardingReloadChannelKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeForwardingReloadChannelKind] = RuntimeForwardingReloadChannelKind.UNKNOWN
     description: str = ""
 
     @field_validator("reload_channel_id")
@@ -254,8 +226,10 @@ class RuntimeForwardingSetting(SDLModel):
     setting_id: str
     name: str = ""
     value: str = ""
-    provenance: RuntimeForwardingSettingProvenance | str = RuntimeForwardingSettingProvenance.UNKNOWN
-    classification: RuntimeForwardingSettingClassification | str = RuntimeForwardingSettingClassification.PLAIN
+    provenance: GovernedVocabulary[RuntimeForwardingSettingProvenance] = RuntimeForwardingSettingProvenance.UNKNOWN
+    classification: GovernedVocabulary[RuntimeForwardingSettingClassification] = (
+        RuntimeForwardingSettingClassification.PLAIN
+    )
     description: str = ""
 
     @field_validator("setting_id")
@@ -294,9 +268,13 @@ class RuntimeForwardingAgent(SDLModel):
     """
 
     forwarding_agent_id: str
-    implementation: RuntimeForwardingAgentImplementation | str = RuntimeForwardingAgentImplementation.UNKNOWN
-    agent_kind: RuntimeForwardingAgentKind | str = RuntimeForwardingAgentKind.UNKNOWN
-    ownership_role: RuntimeForwardingAgentOwnershipRole | str = RuntimeForwardingAgentOwnershipRole.SYSTEM_UNDER_TEST
+    implementation: GovernedVocabulary[RuntimeForwardingAgentImplementation] = (
+        RuntimeForwardingAgentImplementation.UNKNOWN
+    )
+    agent_kind: GovernedVocabulary[RuntimeForwardingAgentKind] = RuntimeForwardingAgentKind.UNKNOWN
+    ownership_role: GovernedVocabulary[RuntimeForwardingAgentOwnershipRole] = (
+        RuntimeForwardingAgentOwnershipRole.SYSTEM_UNDER_TEST
+    )
     version: str = ""
     name: str = ""
     sources: list[RuntimeForwardingSource] = Field(default_factory=list)
@@ -445,14 +423,16 @@ class RelationshipForwardingEdge(SDLModel):
     """
 
     forwarder_ref: str
-    target_listener_role: RuntimeSecurityMonitoringListenerRole | str = RuntimeSecurityMonitoringListenerRole.OTHER
+    target_listener_role: GovernedVocabulary[RuntimeSecurityMonitoringListenerRole] = (
+        RuntimeSecurityMonitoringListenerRole.OTHER
+    )
     enrollment_identity_ref: str = ""
-    enrollment_identity_classification: RuntimeForwardingEnrollmentClassification | str = (
+    enrollment_identity_classification: GovernedVocabulary[RuntimeForwardingEnrollmentClassification] = (
         RuntimeForwardingEnrollmentClassification.NONE
     )
     protocol: str = ""
     crypto_method: str = ""
-    parse_format: RuntimeForwardingParseFormat | str = RuntimeForwardingParseFormat.UNKNOWN
+    parse_format: GovernedVocabulary[RuntimeForwardingParseFormat] = RuntimeForwardingParseFormat.UNKNOWN
     description: str = ""
 
     @field_validator("forwarder_ref")

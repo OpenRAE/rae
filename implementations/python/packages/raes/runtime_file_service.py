@@ -23,6 +23,8 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel
 from .runtime_filesystem import RuntimeSensitivityClassification
 from .runtime_values import (
@@ -207,7 +209,7 @@ class RuntimeFileServiceShare(SDLModel):
 
     share_id: str
     name: str
-    kind: RuntimeFileShareKind | str = RuntimeFileShareKind.DISK
+    kind: GovernedVocabulary[RuntimeFileShareKind] = RuntimeFileShareKind.DISK
     backing_path: str = ""
     comment: str = ""
     read_only: bool | str | None = None
@@ -275,14 +277,14 @@ class RuntimeFileServicePrincipal(SDLModel):
     """
 
     principal_id: str
-    kind: RuntimeFileServicePrincipalKind | str = RuntimeFileServicePrincipalKind.OTHER
+    kind: GovernedVocabulary[RuntimeFileServicePrincipalKind] = RuntimeFileServicePrincipalKind.OTHER
     name: str
     external_id: str = ""
-    status: RuntimeFileServicePrincipalStatus | str = RuntimeFileServicePrincipalStatus.UNKNOWN
-    credential_classification: RuntimeFileServiceCredentialClassification | str = (
+    status: GovernedVocabulary[RuntimeFileServicePrincipalStatus] = RuntimeFileServicePrincipalStatus.UNKNOWN
+    credential_classification: GovernedVocabulary[RuntimeFileServiceCredentialClassification] = (
         RuntimeFileServiceCredentialClassification.UNKNOWN
     )
-    origin: RuntimeFileServicePrincipalOrigin | str = RuntimeFileServicePrincipalOrigin.UNKNOWN
+    origin: GovernedVocabulary[RuntimeFileServicePrincipalOrigin] = RuntimeFileServicePrincipalOrigin.UNKNOWN
     local_user_ref: str = ""
     directory_subject_ref: str = ""
     description: str = ""
@@ -341,9 +343,9 @@ class RuntimeFileServiceAccessRule(SDLModel):
     rule_id: str
     subject_ref: str
     resource_ref: str
-    action: RuntimeFileServiceAccessAction | str = RuntimeFileServiceAccessAction.OTHER
-    effect: RuntimeFileServiceAccessEffect | str = RuntimeFileServiceAccessEffect.UNKNOWN
-    basis: RuntimeFileServiceAccessBasis | str = RuntimeFileServiceAccessBasis.UNKNOWN
+    action: GovernedVocabulary[RuntimeFileServiceAccessAction] = RuntimeFileServiceAccessAction.OTHER
+    effect: GovernedVocabulary[RuntimeFileServiceAccessEffect] = RuntimeFileServiceAccessEffect.UNKNOWN
+    basis: GovernedVocabulary[RuntimeFileServiceAccessBasis] = RuntimeFileServiceAccessBasis.UNKNOWN
     description: str = ""
 
     @field_validator("rule_id")
@@ -382,10 +384,10 @@ class RuntimeFileServiceAccessObservation(SDLModel):
     observation_id: str
     subject_ref: str
     resource_ref: str
-    action: RuntimeFileServiceAccessAction | str = RuntimeFileServiceAccessAction.OTHER
-    outcome: RuntimeFileServiceAccessOutcome | str = RuntimeFileServiceAccessOutcome.UNKNOWN
-    basis: RuntimeFileServiceAccessBasis | str = RuntimeFileServiceAccessBasis.OBSERVED_PROBE
-    sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
+    action: GovernedVocabulary[RuntimeFileServiceAccessAction] = RuntimeFileServiceAccessAction.OTHER
+    outcome: GovernedVocabulary[RuntimeFileServiceAccessOutcome] = RuntimeFileServiceAccessOutcome.UNKNOWN
+    basis: GovernedVocabulary[RuntimeFileServiceAccessBasis] = RuntimeFileServiceAccessBasis.OBSERVED_PROBE
+    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
     description: str = ""
 
     @field_validator("observation_id")
@@ -434,7 +436,7 @@ class RuntimeFileService(SDLModel):
 
     file_service_id: str
     service: str = ""
-    protocol: RuntimeFileServiceProtocol | str = RuntimeFileServiceProtocol.OTHER
+    protocol: GovernedVocabulary[RuntimeFileServiceProtocol] = RuntimeFileServiceProtocol.OTHER
     backend: str = ""
     description: str = ""
     shares: list[RuntimeFileServiceShare] = Field(default_factory=list)

@@ -4,6 +4,8 @@ from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel
 from .runtime_values import (
     coerce_string_list,
@@ -81,10 +83,12 @@ class RuntimeNetworkSensor(SDLModel):
     """Node-scoped runtime inventory for a passive or inline network sensor."""
 
     network_sensor_id: str
-    implementation: RuntimeNetworkSensorImplementation | str = RuntimeNetworkSensorImplementation.UNKNOWN
-    sensor_kind: RuntimeNetworkSensorKind | str = RuntimeNetworkSensorKind.UNKNOWN
-    monitoring_posture: RuntimeNetworkSensorMonitoringPosture | str = RuntimeNetworkSensorMonitoringPosture.UNKNOWN
-    capture_mode: RuntimeNetworkSensorCaptureMode | str = RuntimeNetworkSensorCaptureMode.UNKNOWN
+    implementation: GovernedVocabulary[RuntimeNetworkSensorImplementation] = RuntimeNetworkSensorImplementation.UNKNOWN
+    sensor_kind: GovernedVocabulary[RuntimeNetworkSensorKind] = RuntimeNetworkSensorKind.UNKNOWN
+    monitoring_posture: GovernedVocabulary[RuntimeNetworkSensorMonitoringPosture] = (
+        RuntimeNetworkSensorMonitoringPosture.UNKNOWN
+    )
+    capture_mode: GovernedVocabulary[RuntimeNetworkSensorCaptureMode] = RuntimeNetworkSensorCaptureMode.UNKNOWN
     capture_interfaces: list[str] = Field(default_factory=list)
     monitored_network_refs: list[str] = Field(default_factory=list)
     process_ref: str = ""

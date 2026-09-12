@@ -17,6 +17,7 @@ from raes_contracts.realization_structure import (
     RealizationConstraintDocument,
     RealizationDelegatedValue,
     RealizationDomainValue,
+    RealizationKnowledgeValue,
     RealizationNormalizationMetadata,
     RealizationOrigin,
     RealizationRelationStatus,
@@ -243,16 +244,6 @@ class _SourceMetadata:
         else:
             self.leaf(source, pointer, record, source_pointer)
 
-    def _open_taxonomy_domain(self, source: object) -> EnumDomain:
-        """Require an open taxonomy leaf to keep its typed finite domain."""
-
-        if not isinstance(source, Enum):
-            raise ValueError("open taxonomy must retain its typed finite domain")
-        values = [member.value for member in type(source) if member.value not in ("unknown", "other")]
-        if not values:
-            raise ValueError("open taxonomy has no known completion")
-        return EnumDomain(values=values)
-
     def _constrained_domain(self, pointer: str, source_pointer: str) -> EnumDomain:
         """Resolve the publication-safe domain one constrained leaf narrows to."""
 
@@ -275,9 +266,13 @@ class _SourceMetadata:
     def leaf(self, source: object, pointer: str, record: ExplicitnessRecord | None, source_pointer: str) -> None:
         classification = None if record is None else record.classification
         if classification is ExplicitnessClass.OPEN:
-            self.leaf_constraints[pointer] = RealizationDomainValue(
-                kind="domain", domain=self._open_taxonomy_domain(source)
-            )
+            # Legacy authoring specificity calls taxonomy sentinels "open".
+            # They report unrecovered knowledge, not an enumerated permission
+            # to substitute one of the products known to this core release.
+            # DNS numeric extensions already mark their discriminator exact.
+            if not isinstance(source, Enum) or source.value not in ("unknown", "other"):
+                raise ValueError("taxonomy knowledge must retain its typed source")
+            self.leaf_constraints[pointer] = RealizationKnowledgeValue(kind="knowledge", state="unknown")
         elif classification is ExplicitnessClass.CONSTRAINED:
             self.leaf_constraints[pointer] = RealizationDomainValue(
                 kind="domain", domain=self._constrained_domain(pointer, source_pointer)

@@ -326,6 +326,12 @@ observables, actions-and-events, and tools-and-artifacts.
 `GOV-922` implements the portable term-authority layer for fields where
 cross-artifact comparison depends on stable shared values.
 
+The corrective runtime migration is governed by the
+[issue #1206 architecture preflight](issue-1206-runtime-vocabulary-preflight.md).
+It preserves exact private identities and closed operational semantics without
+requiring a product/profile declaration for an unmentioned backend choice under
+an open scope. The note records integration guardrails, not delivered migration.
+
 For this repo, that means:
 
 - a controlled vocabulary is not a concept family. Concept families govern

@@ -6,6 +6,8 @@ Split out of ``runtime_datastore_partitions.py`` (ADR-015 file-size governance).
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, parse_int_or_var
 from ._runtime_datastore_support import _reject_duplicate_values, _require_object_name
 from .runtime_datastore_vocab import (
@@ -56,7 +58,7 @@ class RuntimeDatastoreNodeEndpoint(SDLModel):
     """
 
     endpoint_id: str
-    role: RuntimeDatastoreNodeEndpointRole | str = RuntimeDatastoreNodeEndpointRole.UNKNOWN
+    role: GovernedVocabulary[RuntimeDatastoreNodeEndpointRole] = RuntimeDatastoreNodeEndpointRole.UNKNOWN
     protocol: str = ""
     address: str = ""
     port: int | str | None = None
@@ -91,7 +93,7 @@ class RuntimeDatastoreNode(SDLModel):
 
     node_id: str
     name: str = ""
-    roles: list[RuntimeDatastoreNodeRole | str] = Field(default_factory=list)
+    roles: list[GovernedVocabulary[RuntimeDatastoreNodeRole]] = Field(default_factory=list)
     is_coordinator: bool | str | None = None
     engine_version: str = ""
     build_hash: str = ""

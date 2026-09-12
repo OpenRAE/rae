@@ -287,13 +287,13 @@ def test_ownership_mismatch_is_reported(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     client = make_client()
     write_text(
-        repo_root / "implementations" / "python" / "packages" / "raes" / "parser.py",
+        repo_root / "implementations" / "python" / "packages" / "raes_backend_libvirt" / "driver.py",
         "VALUE = 1\n",
     )
 
     failures = evaluate_requirement_governance(
         repo_root,
-        ["implementations/python/packages/raes/parser.py"],
+        ["implementations/python/packages/raes_backend_libvirt/driver.py"],
         client=client,
         requirement_uid="GOV-918",
     )

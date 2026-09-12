@@ -10,6 +10,9 @@ from pydantic import Field, field_validator, model_validator
 from pydantic.json_schema import GetJsonSchemaHandler, JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from raes.runtime_values import parse_runtime_enum_or_var
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import (
     SDLModel,
     is_variable_ref,
@@ -308,7 +311,7 @@ class Node(LegacyClassificationGuard):
         return normalize_enum_value(v)
 
     resources: Resources | None = None
-    os: OSFamily | str | None = None
+    os: GovernedVocabulary[OSFamily] | None = None
     os_distribution: OSDistribution | AuthoredOSDistributionString | None = None
     os_version: AuthoredOSVersionString = ""
     architecture: NodeArchitecture | AuthoredNodeArchitectureString | None = None
@@ -359,7 +362,7 @@ class Node(LegacyClassificationGuard):
     @field_validator("os", mode="before")
     @classmethod
     def normalize_os(cls, v):
-        return parse_enum_or_var(v, OSFamily, field_name="os") if v is not None else v
+        return parse_runtime_enum_or_var(v, OSFamily, field_name="os") if v is not None else v
 
     @field_validator("os_distribution", mode="before")
     @classmethod

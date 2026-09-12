@@ -123,7 +123,13 @@ phases:
 ownership:
   gov-concept-authority:
     - specs/concept-authority
+    - specs/sdl
     - contracts/concept-authority
+    - contracts/schema-publication
+    - contracts/schema-publication-manifest.json
+    - contracts/schemas/sdl
+    - contracts/schemas/artifact-requirements/artifact-requirement-v1.json
+    - contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json
     - contracts/schemas/concept-authority
     - contracts/schemas/README.md
     - contracts/schemas/backend-manifest
@@ -136,7 +142,12 @@ ownership:
     - contracts/profiles
     - docs/explain/reference
     - docs/explain/sdl
+    - docs/research/language-extensibility
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - docs/requirements/GOV-922
     - docs/decisions/adrs
+    - implementations/python/packages/raes
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_backend_protocols
     - implementations/python/packages/raes_backend_stubs

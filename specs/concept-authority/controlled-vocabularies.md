@@ -216,6 +216,29 @@ under:
 
 ## Validation Expectations
 
+### SDL runtime identity definitions
+
+The `sdl.definitions.<EnumName>` scopes bind the named shared enum definitions
+in published SDL schemas, across every field that uses that definition. They
+identify language surfaces, not a registry of products or executable handlers.
+The runtime migration adds policies for existing external identity vocabularies
+and reuses `provisioner-os-families` for `OSFamily`. Each policy preserves its
+existing core terms and admits exact lowercase `x-<owner>:<term>` identities.
+Private tokens are not case-folded or converted from native provider IDs.
+
+Core aliases continue to normalize to their existing enum members. An unknown
+unqualified string, malformed extension or trailing control character is invalid.
+Whole-field variables remain subject to instantiation validation. Closed runtime
+operators and protection classes have no extension policy and reject new tokens
+in both Python and JSON Schema.
+
+Catalog membership is not proof of external ownership or semantic support. A
+private token needs no new catalog entry; typed operational meaning uses the
+existing domain-profile definition, binding, resolution and support contract.
+Omitted identity under an open scope requires neither a token nor a profile.
+Legacy knowledge sentinels cannot establish realization conformance; numeric
+DNS type identity remains an explicit exception in its owning field contract.
+
 Contract and runtime validation must treat the catalog as the authority for
 the governed surfaces it declares.
 

@@ -28,6 +28,7 @@ from .runtime_values import (
     parse_optional_bool_or_var,
     parse_runtime_enum_or_var,
 )
+from .runtime_vocabulary import GovernedVocabulary
 
 __all__ = [
     "ContainerImageBuildProvenance",
@@ -112,13 +113,15 @@ class DockerfileInstruction(SDLModel):
     ``${...}`` strings that collide with RAES variable substitution.
     """
 
-    instruction: DockerfileInstructionKind | str
+    instruction: GovernedVocabulary[DockerfileInstructionKind]
     arguments: list[str] = Field(default_factory=list)
     description: str = ""
 
     @field_validator("instruction", mode="before")
     @classmethod
-    def normalize_instruction(cls, v: DockerfileInstructionKind | str) -> DockerfileInstructionKind | str:
+    def normalize_instruction(
+        cls, v: GovernedVocabulary[DockerfileInstructionKind]
+    ) -> GovernedVocabulary[DockerfileInstructionKind]:
         return parse_runtime_enum_or_var(v, DockerfileInstructionKind, field_name="instruction")
 
     @field_validator("arguments", mode="before")
@@ -156,7 +159,9 @@ class ImageBuildArg(SDLModel):
 
     name: str
     value: str = ""
-    value_classification: RuntimeEnvironmentValueClassification | str = RuntimeEnvironmentValueClassification.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeEnvironmentValueClassification] = (
+        RuntimeEnvironmentValueClassification.UNKNOWN
+    )
     description: str = ""
 
     @field_validator("name")
@@ -172,8 +177,8 @@ class ImageBuildArg(SDLModel):
     @classmethod
     def normalize_value_classification(
         cls,
-        v: RuntimeEnvironmentValueClassification | str,
-    ) -> RuntimeEnvironmentValueClassification | str:
+        v: GovernedVocabulary[RuntimeEnvironmentValueClassification],
+    ) -> GovernedVocabulary[RuntimeEnvironmentValueClassification]:
         return parse_runtime_enum_or_var(
             v,
             RuntimeEnvironmentValueClassification,
@@ -200,7 +205,9 @@ class ImageEnvironmentDefault(SDLModel):
 
     name: str
     value: str = ""
-    value_classification: RuntimeEnvironmentValueClassification | str = RuntimeEnvironmentValueClassification.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeEnvironmentValueClassification] = (
+        RuntimeEnvironmentValueClassification.UNKNOWN
+    )
     description: str = ""
 
     @field_validator("name")
@@ -216,8 +223,8 @@ class ImageEnvironmentDefault(SDLModel):
     @classmethod
     def normalize_value_classification(
         cls,
-        v: RuntimeEnvironmentValueClassification | str,
-    ) -> RuntimeEnvironmentValueClassification | str:
+        v: GovernedVocabulary[RuntimeEnvironmentValueClassification],
+    ) -> GovernedVocabulary[RuntimeEnvironmentValueClassification]:
         return parse_runtime_enum_or_var(
             v,
             RuntimeEnvironmentValueClassification,
@@ -340,21 +347,25 @@ class ImageAttestation(SDLModel):
     state as a failed verification (ADR-023 §5).
     """
 
-    status: ImageAttestationStatus | str = ImageAttestationStatus.UNKNOWN
-    verification: ImageVerificationStatus | str = ImageVerificationStatus.UNKNOWN
-    attestation_type: ImageAttestationType | str = ImageAttestationType.UNKNOWN
+    status: GovernedVocabulary[ImageAttestationStatus] = ImageAttestationStatus.UNKNOWN
+    verification: GovernedVocabulary[ImageVerificationStatus] = ImageVerificationStatus.UNKNOWN
+    attestation_type: GovernedVocabulary[ImageAttestationType] = ImageAttestationType.UNKNOWN
     predicate_type: str = ""
     evidence_reference: str = ""
     description: str = ""
 
     @field_validator("status", mode="before")
     @classmethod
-    def normalize_status(cls, v: ImageAttestationStatus | str) -> ImageAttestationStatus | str:
+    def normalize_status(
+        cls, v: GovernedVocabulary[ImageAttestationStatus]
+    ) -> GovernedVocabulary[ImageAttestationStatus]:
         return parse_runtime_enum_or_var(v, ImageAttestationStatus, field_name="status")
 
     @field_validator("verification", mode="before")
     @classmethod
-    def normalize_verification(cls, v: ImageVerificationStatus | str) -> ImageVerificationStatus | str:
+    def normalize_verification(
+        cls, v: GovernedVocabulary[ImageVerificationStatus]
+    ) -> GovernedVocabulary[ImageVerificationStatus]:
         return parse_runtime_enum_or_var(v, ImageVerificationStatus, field_name="verification")
 
     @field_validator("attestation_type", mode="before")

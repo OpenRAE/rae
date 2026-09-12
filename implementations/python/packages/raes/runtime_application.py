@@ -19,6 +19,8 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import (
     SDLModel,
     is_variable_ref,
@@ -134,7 +136,7 @@ class RuntimeApplicationParameter(SDLModel):
     """
 
     name: str
-    location: RuntimeApplicationParameterLocation | str = RuntimeApplicationParameterLocation.OTHER
+    location: GovernedVocabulary[RuntimeApplicationParameterLocation] = RuntimeApplicationParameterLocation.OTHER
     required: bool | str | None = None
     data_type: str = ""
     description: str = ""
@@ -221,7 +223,7 @@ class RuntimeApplicationDisclosure(SDLModel):
     trigger: str = ""
     status_code: int | str | None = None
     disclosure: str = ""
-    sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
+    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
     description: str = ""
 
     @field_validator("status_code", mode="before")
@@ -255,7 +257,7 @@ class RuntimeApplicationExposedField(SDLModel):
     """
 
     name: str
-    sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
+    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
     value: str = ""
     description: str = ""
 
@@ -299,7 +301,7 @@ class RuntimeApplicationRouteUpstreamTarget(SDLModel):
 
     target_node_ref: str = ""
     target_service: str = ""
-    scheme: RuntimeApplicationRouteUpstreamScheme | str = RuntimeApplicationRouteUpstreamScheme.HTTP
+    scheme: GovernedVocabulary[RuntimeApplicationRouteUpstreamScheme] = RuntimeApplicationRouteUpstreamScheme.HTTP
     tls_terminated_here: bool | str | None = None
 
     @field_validator("scheme", mode="before")
@@ -415,7 +417,7 @@ class RuntimeApplicationSurface(SDLModel):
 
     application_id: str
     service: str = ""
-    protocol: RuntimeApplicationProtocol | str = RuntimeApplicationProtocol.HTTP
+    protocol: GovernedVocabulary[RuntimeApplicationProtocol] = RuntimeApplicationProtocol.HTTP
     name: str = ""
     base_path: str = ""
     framework: str = ""
