@@ -9,6 +9,7 @@ from typing import Any
 
 from tools.policy.common import PolicyFailure
 from tools.tooling_artifact_policy_common import (
+    ACTIONS_POLICY_PATH,
     ARTIFACT_LOCK_PATH,
     SELECTOR_BINDINGS_PATH,
     as_list,
@@ -87,7 +88,9 @@ def _binding_consumer_failures(
     return failures
 
 
-def _runtime_declarations(bindings: Mapping[str, Any]) -> tuple[dict[str, set[str]], list[PolicyFailure]]:
+def _runtime_declarations(
+    bindings: Mapping[str, Any],
+) -> tuple[dict[str, set[str]], list[PolicyFailure]]:
     declared: dict[str, set[str]] = {}
     failures: list[PolicyFailure] = []
     for selection_value in as_list(bindings.get("runtime_selections")):
@@ -112,6 +115,8 @@ def _runtime_declarations(bindings: Mapping[str, Any]) -> tuple[dict[str, set[st
 def _runtime_observations(
     tracked_paths: Sequence[str],
     python_scans: Mapping[str, PythonScan | None],
+    action_policy: Mapping[str, Any],
+    eligible_action_artifact_ids: set[str],
 ) -> tuple[dict[str, set[str]], list[PolicyFailure]]:
     observed: dict[str, set[str]] = {}
     failures: list[PolicyFailure] = []
@@ -138,6 +143,11 @@ def _runtime_observations(
             )
         for artifact_id in scan.selected_artifact_ids:
             observed.setdefault(artifact_id, set()).add(path)
+    for action_value in as_list(action_policy.get("actions")):
+        for input_value in as_list(as_mapping(action_value).get("transitive_inputs")):
+            artifact_id = as_mapping(input_value).get("artifact_ref")
+            if isinstance(artifact_id, str) and artifact_id in eligible_action_artifact_ids:
+                observed.setdefault(artifact_id, set()).add(ACTIONS_POLICY_PATH)
     return observed, failures
 
 
@@ -146,6 +156,7 @@ def _runtime_selection_failures(
     bindings: Mapping[str, Any],
     tracked_paths: Sequence[str],
     python_scans: Mapping[str, PythonScan | None],
+    action_policy: Mapping[str, Any],
 ) -> list[PolicyFailure]:
     locked_ids = {
         artifact.get("artifact_id")
@@ -155,7 +166,12 @@ def _runtime_selection_failures(
         and artifact.get("artifact_class") != "bootstrap"
     }
     declared, failures = _runtime_declarations(bindings)
-    observed, observation_failures = _runtime_observations(tracked_paths, python_scans)
+    observed, observation_failures = _runtime_observations(
+        tracked_paths,
+        python_scans,
+        action_policy,
+        locked_ids,
+    )
     failures.extend(observation_failures)
     failures.extend(
         failure(
@@ -280,6 +296,14 @@ def selector_failures(
     if lock is None or bindings is None:
         return []
     failures = _binding_failures(repo_root, bindings, _locked_versions(lock))
-    failures.extend(_runtime_selection_failures(lock, bindings, tracked_paths, python_scans))
+    failures.extend(
+        _runtime_selection_failures(
+            lock,
+            bindings,
+            tracked_paths,
+            python_scans,
+            documents.get(ACTIONS_POLICY_PATH) or {},
+        )
+    )
     failures.extend(_tracked_literal_failures(repo_root, bindings, tracked_paths))
     return failures

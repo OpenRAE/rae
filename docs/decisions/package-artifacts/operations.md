@@ -204,6 +204,15 @@ issues #1137 and #1217–#1228 have landed.
   is the first repository-policy stage and is called directly by each current
   generic-tool and vocabulary acquisition entry point.
 
+Issue #839 extends T04/T23 through the same gate. Tests independently change an
+action source, transitive payload/capability/service disposition, literal
+use-site input, origin, credential class, permission, runner, protected manual
+path, cache role, reusable-workflow contract, and Dependabot target/group. The
+v2 policy also treats action-referenced locked payloads as runtime selection
+consumers. T08 continues to use the maintained real-curl fixture below; T10
+continues to describe maintained-client enterprise evidence and is not claimed
+by the action policy's bounded service exceptions.
+
 Native client failure tests may use a controlled test server or a commodity
 fault-injection proxy. Test fixture protocol handling is not a production
 acquisition implementation. Maintain a few meaningful end-to-end cases against

@@ -25,7 +25,7 @@ IMPLEMENTATION_SURFACE_PATHS = {
     "sdl-pipeline": "implementations/python/packages/raes",
 }
 _PACKAGES_ROOT = "implementations/python/packages/"
-_EXECUTION_SNAPSHOT_PATH = "docs/research/specification-coverage/execution-snapshot-v4.json"
+_EXECUTION_SNAPSHOT_PATH = "docs/research/specification-coverage/execution-snapshot-v5.json"
 HISTORICAL_IMPLEMENTATION_SURFACE_PATHS = {
     "contract-models": _PACKAGES_ROOT + "a" + "ces_contracts",
     "processor-pipeline": _PACKAGES_ROOT + "a" + "ces_processor",

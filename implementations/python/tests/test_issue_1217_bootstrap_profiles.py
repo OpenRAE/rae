@@ -20,7 +20,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-from tools import bootstrap_profile
+from tools import bootstrap_profile, maintained_client_acquisition
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -265,11 +265,10 @@ def test_curl_qualification_classifies_transfer_outcomes(
     responses = iter(
         [
             SimpleNamespace(returncode=0, stdout="curl 8.4.0", stderr=""),
-            SimpleNamespace(returncode=0, stdout="curl 8.4.0", stderr=""),
             SimpleNamespace(returncode=returncode, stdout="", stderr=""),
         ]
     )
-    monkeypatch.setattr(bootstrap_profile.subprocess, "run", lambda *args, **kwargs: next(responses))
+    monkeypatch.setattr(maintained_client_acquisition.subprocess, "run", lambda *args, **kwargs: next(responses))
     output = tmp_path / "payload"
     output.write_bytes(b"ok")
     result = bootstrap_profile.run_curl_qualification(
@@ -301,11 +300,11 @@ def test_curl_qualification_sanitizes_transfer_exceptions(
     def fake_run(*args: object, **kwargs: object) -> SimpleNamespace:
         nonlocal calls
         calls += 1
-        if calls == 3:
+        if calls == 2:
             raise failure
         return SimpleNamespace(returncode=0, stdout="curl 8.4.0", stderr="")
 
-    monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
+    monkeypatch.setattr(maintained_client_acquisition.subprocess, "run", fake_run)
     output = tmp_path / "payload"
     output.write_bytes(b"partial")
     result = bootstrap_profile.run_curl_qualification(
@@ -372,20 +371,19 @@ def test_curl_qualification_rejects_preflight_failures(
     mode: str,
 ) -> None:
     if mode == "preflight":
-        monkeypatch.setattr(bootstrap_profile, "inspect_executable", lambda *args, **kwargs: {"outcome": "failed"})
-    else:
         monkeypatch.setattr(
-            bootstrap_profile,
-            "inspect_executable",
-            lambda *args, **kwargs: {"outcome": "passed"},
+            maintained_client_acquisition,
+            "_curl_preflight_failure",
+            lambda _executable: "curl-version-inadequate",
         )
+    else:
 
         def fake_run(*args: object, **kwargs: object) -> SimpleNamespace:
             if mode == "version-exception":
                 raise OSError("private detail")
             return SimpleNamespace(returncode=0, stdout="curl 8.3.0", stderr="")
 
-        monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
+        monkeypatch.setattr(maintained_client_acquisition.subprocess, "run", fake_run)
     result = bootstrap_profile.run_curl_qualification(
         Path("/usr/bin/curl"),
         "https://example.test/payload",

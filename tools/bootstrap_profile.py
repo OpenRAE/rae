@@ -25,8 +25,8 @@ import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from urllib.parse import urlsplit
 
+from tools import maintained_client_acquisition
 from tools.tooling_policy_gate import (
     load_tooling_host_profile_selection,
     safe_tooling_cache_parent,
@@ -38,10 +38,17 @@ MAX_CASE_RESULT_BYTES = 65536
 MAX_OFFLINE_MANIFEST_BYTES = 32 * 1024 * 1024
 _CASE_IDS = {"T01", "T02", "T03", "T08", "T12"}
 _MINIMUM_CURL = (8, 4, 0)
-_VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})[.](\d{1,10})")
 _OBSERVED_VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})(?:[.](\d{1,10}))?")
 _PROBE_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
-_SYSTEM_CURL = Path("/usr/bin/curl")
+_SYSTEM_CURL = maintained_client_acquisition.SYSTEM_CURL
+_GENERIC_TOOL_HOST_PROFILES = {
+    "linux-x86_64": "public-ubuntu-24.04-x86_64",
+    "linux-arm64": "public-linux-arm64",
+    "macos-x86_64": "public-macos-x86_64",
+    "macos-arm64": "public-macos-arm64",
+}
+curl_qualification_argv = maintained_client_acquisition.curl_transfer_argv
+curl_version_is_supported = maintained_client_acquisition.curl_version_is_supported
 
 
 @dataclass(frozen=True)
@@ -57,63 +64,6 @@ class QualificationEvidenceOptions:
 _DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS = QualificationEvidenceOptions()
 
 
-def curl_version_is_supported(value: str) -> bool:
-    """Return whether a curl version meets the unknown-length size floor."""
-
-    match = _VERSION_RE.search(value)
-    return match is not None and tuple(int(part) for part in match.groups()) >= _MINIMUM_CURL
-
-
-def curl_qualification_argv(
-    executable: Path,
-    url: str,
-    output: Path,
-    *,
-    ca_cert: Path | None,
-    max_bytes: int,
-    max_time_seconds: int = 30,
-) -> list[str]:
-    """Build the fixed native-client argv used by behavioral qualification."""
-
-    parsed = urlsplit(url)
-    if parsed.scheme != "https" or not parsed.hostname or parsed.username is not None or parsed.password is not None:
-        raise ValueError("curl qualification requires a credential-free HTTPS URL")
-    if max_bytes < 1:
-        raise ValueError("curl qualification size limit must be positive")
-    if not 1 <= max_time_seconds <= 30:
-        raise ValueError("curl qualification deadline must be between 1 and 30 seconds")
-    argv = [
-        str(executable),
-        "--disable",
-        "--silent",
-        "--show-error",
-        "--fail",
-        "--location",
-        "--proto",
-        "=https",
-        "--proto-redir",
-        "=https",
-        "--max-redirs",
-        "5",
-        "--retry",
-        "2",
-        "--retry-delay",
-        "1",
-        "--retry-max-time",
-        "15",
-        "--connect-timeout",
-        "5",
-        "--max-time",
-        str(max_time_seconds),
-        "--max-filesize",
-        str(max_bytes),
-    ]
-    if ca_cert is not None:
-        argv.extend(("--cacert", str(ca_cert)))
-    argv.extend(("--output", str(output), url))
-    return argv
-
-
 def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
     executable: Path,
     url: str,
@@ -125,66 +75,17 @@ def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part
 ) -> dict[str, str]:
     """Exercise the real selected curl and classify only sanitized outcomes."""
 
-    version_result = inspect_executable("curl", executable, ("--version",), expected_version="curl ")
-    if version_result.get("outcome") != "passed":
-        return {"outcome": "failed", "reason_code": "curl-unavailable"}
-    try:
-        version_probe = subprocess.run(
-            [str(executable), "--version"],
-            stdin=subprocess.DEVNULL,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=PROBE_TIMEOUT_SECONDS,
-            env=dict(_PROBE_ENV),
-        )
-    except (OSError, subprocess.SubprocessError):
-        return {"outcome": "failed", "reason_code": "curl-unavailable"}
-    if version_probe.returncode != 0 or not curl_version_is_supported(version_probe.stdout):
-        return {"outcome": "failed", "reason_code": "curl-version-inadequate"}
-    try:
-        completed = subprocess.run(
-            curl_qualification_argv(
-                executable,
-                url,
-                output,
-                ca_cert=ca_cert,
-                max_bytes=max_bytes,
-                max_time_seconds=max_time_seconds,
-            ),
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-            timeout=max_time_seconds + 5,
-            env=dict(_PROBE_ENV),
-        )
-    except subprocess.TimeoutExpired:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-wall-deadline"}
-    except OSError:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-unavailable"}
-    if completed.returncode == 63:
-        output.unlink(missing_ok=True)
-        return {"outcome": "passed", "reason_code": "curl-size-limit-enforced"}
-    if completed.returncode in {35, 51, 58, 60, 77, 82, 83, 90, 91}:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-tls-rejected"}
-    if completed.returncode == 28:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-transfer-deadline"}
-    if completed.returncode != 0:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-transfer-failed"}
-    try:
-        within_limit = output.is_file() and output.stat().st_size <= max_bytes
-    except OSError:
-        within_limit = False
-    if not within_limit:
-        output.unlink(missing_ok=True)
-        return {"outcome": "failed", "reason_code": "curl-size-limit-bypassed"}
-    return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
+    result = maintained_client_acquisition.run_curl_transfer(
+        executable,
+        url,
+        output,
+        ca_cert=ca_cert,
+        max_bytes=max_bytes,
+        max_time_seconds=max_time_seconds,
+    )
+    if result["reason_code"] == "curl-size-limit-enforced":
+        return {"outcome": "passed", "reason_code": result["reason_code"]}
+    return result
 
 
 def inspect_executable(  # NOSONAR -- explicit fail-closed outcomes are part of the qualification record.
@@ -393,7 +294,47 @@ def proof_support_outcome(platform_id: str) -> str:
     return "required" if platform_id == "linux-x86_64" else "unsupported"
 
 
-def _default_generic_tool_selections() -> tuple[tuple[str, Path, tuple[str, ...], str], ...]:
+def _generic_tool_local_artifacts(local_input_root: Path | None) -> dict[str, dict[str, object]]:
+    if local_input_root is None:
+        return {}
+    if not local_input_root.is_dir() or local_input_root.is_symlink():
+        raise ValueError("generic-tool local input root must be a regular directory")
+
+    from tools.tooling_policy_gate import host_platform_id
+
+    host_profile_id = _GENERIC_TOOL_HOST_PROFILES.get(host_platform_id())
+    if host_profile_id is None:
+        raise RuntimeError("generic-tool local inputs do not support this host platform")
+    _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
+    return artifacts
+
+
+def _generic_tool_local_input(
+    local_input_root: Path | None,
+    local_artifacts: dict[str, dict[str, object]],
+    artifact_id: str,
+    version: str,
+) -> Path | None:
+    if local_input_root is None:
+        return None
+    artifact = local_artifacts.get(artifact_id)
+    if artifact is None or artifact.get("version") != version:
+        raise RuntimeError(f"{artifact_id} is not selected by the reviewed host profile")
+    platform = artifact.get("platform")
+    if not isinstance(platform, dict):
+        raise RuntimeError(f"{artifact_id} host selection has an invalid platform")
+    raw_manifest = platform.get("raw_manifest")
+    if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
+        raise RuntimeError(f"{artifact_id} lock selection must contain one raw asset")
+    raw = raw_manifest[0]
+    if not isinstance(raw, dict) or not isinstance(raw.get("path"), str):
+        raise RuntimeError(f"{artifact_id} lock selection has an invalid raw asset")
+    return local_input_root / "archives" / artifact_id / raw["path"]
+
+
+def _default_generic_tool_selections(
+    local_input_root: Path | None = None,
+) -> tuple[tuple[str, Path, tuple[str, ...], str], ...]:
     from tools.gitleaks_tool import ensure_gitleaks
     from tools.osv_scanner_tool import ensure_osv_scanner
     from tools.policy.conftest_tool import ensure_conftest
@@ -405,11 +346,36 @@ def _default_generic_tool_selections() -> tuple[tuple[str, Path, tuple[str, ...]
     )
     from tools.vale_tool import ensure_vale
 
+    local_artifacts = _generic_tool_local_artifacts(local_input_root)
+
+    def local_input(artifact_id: str, version: str) -> Path | None:
+        return _generic_tool_local_input(local_input_root, local_artifacts, artifact_id, version)
+
     return (
-        ("conftest", ensure_conftest(), ("--version",), CONTFEST_VERSION),
-        ("gitleaks", ensure_gitleaks(), ("version",), GITLEAKS_VERSION),
-        ("osv-scanner", ensure_osv_scanner(), ("--version",), OSV_SCANNER_VERSION),
-        ("vale", ensure_vale(), ("--version",), VALE_VERSION),
+        (
+            "conftest",
+            ensure_conftest(local_input=local_input("conftest", CONTFEST_VERSION)),
+            ("--version",),
+            CONTFEST_VERSION,
+        ),
+        (
+            "gitleaks",
+            ensure_gitleaks(local_input=local_input("gitleaks", GITLEAKS_VERSION)),
+            ("version",),
+            GITLEAKS_VERSION,
+        ),
+        (
+            "osv-scanner",
+            ensure_osv_scanner(local_input=local_input("osv-scanner", OSV_SCANNER_VERSION)),
+            ("--version",),
+            OSV_SCANNER_VERSION,
+        ),
+        (
+            "vale",
+            ensure_vale(local_input=local_input("vale", VALE_VERSION)),
+            ("--version",),
+            VALE_VERSION,
+        ),
     )
 
 
@@ -452,10 +418,13 @@ def _offline_generic_tool_selections(
 def qualify_generic_tools(
     *,
     selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None,
+    local_input_root: Path | None = None,
 ) -> dict[str, object]:
     """Execute every selected generic tool and return bounded logical evidence."""
 
-    selected = tuple(selections) if selections is not None else _default_generic_tool_selections()
+    if selections is not None and local_input_root is not None:
+        raise ValueError("generic-tool selections and local input root are mutually exclusive")
+    selected = tuple(selections) if selections is not None else _default_generic_tool_selections(local_input_root)
     results: list[dict[str, str]] = []
     with tempfile.TemporaryDirectory(prefix="raes-generic-tool-probe-") as probe_root:
         probe_environment = {
@@ -1247,7 +1216,8 @@ def _parse_args() -> argparse.Namespace:
     setup.add_argument("host_profile_id")
     inspect = subparsers.add_parser("inspect-profile", help="run the reviewed read-only host probes")
     inspect.add_argument("host_profile_id")
-    subparsers.add_parser("generic-tools", help="execute the four locked generic tools")
+    generic = subparsers.add_parser("generic-tools", help="execute the four locked generic tools")
+    generic.add_argument("--local-input-root", type=Path)
     evidence = subparsers.add_parser("qualification-evidence", help="execute tools and emit host-bound evidence")
     evidence.add_argument("host_profile_id")
     evidence.add_argument("implementation_revision")
@@ -1300,7 +1270,12 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
         print(json.dumps(result, sort_keys=True))
         return 0 if all(item["outcome"] == "passed" for item in result) else 1
     elif args.operation == "generic-tools":
-        result = qualify_generic_tools()
+        local_input_root = getattr(args, "local_input_root", None)
+        result = (
+            qualify_generic_tools(local_input_root=local_input_root)
+            if local_input_root is not None
+            else qualify_generic_tools()
+        )
         print(json.dumps(result, sort_keys=True))
         return 0 if result["outcome"] == "passed" else 1
     elif args.operation == "qualification-evidence":
