@@ -10,6 +10,7 @@ from pydantic_core import to_jsonable_python
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
 from raes.scenario import InstantiatedScenario
 from raes_contracts.bounded_domains import EnumDomain
+from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -81,7 +82,9 @@ def compile_registered_constraint(
     except _PendingRecursiveClosure:
         return None, None, None, False, False, True
     binding = (
-        realization_constraint_binding(document, to_jsonable_python(descriptor.project(authored_value, recursive=True)))
+        realization_constraint_binding(
+            document, to_jsonable_python(descriptor.project(authored_value, recursive=True), fallback=jsonable_fallback)
+        )
         if document is not None
         else None
     )
@@ -236,7 +239,9 @@ def compile_recursive_realization_constraint(
 
     metadata = _SourceMetadata(scenario, registered, records, field_pointer, value_domain, apparatus_closure)
     try:
-        projected = to_jsonable_python(registered.descriptor.project(authored_value, recursive=True))
+        projected = to_jsonable_python(
+            registered.descriptor.project(authored_value, recursive=True), fallback=jsonable_fallback
+        )
         if validate_realization_value(projected).status is not RealizationRelationStatus.CONFORMANT:
             raise ValueError("recursive projection exceeds the admitted value bounds")
         metadata.collect(projected, authored_value, "", registered.field_path)

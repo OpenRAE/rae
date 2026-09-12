@@ -44,9 +44,9 @@ def test_response_aggregate_is_bounded_before_portable_serialization(monkeypatch
     calls = []
     serialize = backend_preparation.to_jsonable_python
 
-    def recording_serialize(value):
+    def recording_serialize(value, **kwargs):
         calls.append(True)
-        return serialize(value)
+        return serialize(value, **kwargs)
 
     monkeypatch.setattr(backend_preparation, "to_jsonable_python", recording_serialize)
     response = RealizationPreparation(

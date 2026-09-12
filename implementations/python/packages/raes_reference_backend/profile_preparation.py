@@ -5,6 +5,9 @@ observations. The semantic implementation is installed code; profile documents
 and target choices cannot name or load handlers.
 """
 
+from __future__ import annotations
+
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
 
@@ -12,12 +15,13 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import (
     DomainProfileBindingBasis,
+    DomainProfileBindingModel,
     DomainProfileBindingProvenanceModel,
     DomainProfileResolutionContextModel,
     DomainProfileSemanticContractModel,
     resolve_domain_profile_definition,
 )
-from raes_contracts.planning import ChangeAction
+from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_profiles import (
     profile_binding_tree,
@@ -25,6 +29,7 @@ from raes_contracts.realization_profiles import (
     profile_selection_violation,
 )
 from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.runtime_state import RuntimeSnapshot
 
 RESOURCE_LABEL_SEMANTICS = DomainProfileSemanticContractModel(
     authority="https://openrae.org/profiles",
@@ -40,7 +45,10 @@ RESOURCE_LABEL_SEMANTICS = DomainProfileSemanticContractModel(
 )
 
 
-def reference_profile_configuration(context, choices):
+def reference_profile_configuration(
+    context: DomainProfileResolutionContextModel | None,
+    choices: Mapping[str, object] | None,
+) -> tuple[DomainProfileResolutionContextModel | None, dict[str, object]]:
     """Revalidate explicit local configuration; never infer semantic support."""
 
     if context is None:
@@ -60,13 +68,16 @@ def reference_profile_configuration(context, choices):
     return deepcopy(context), deepcopy(choices)
 
 
-def _labels(value):
+def _labels(value: object) -> bool:
     return isinstance(value, dict) and all(
         isinstance(key, str) and key and isinstance(item, str) for key, item in value.items()
     )
 
 
-def reference_profile_diagnostics(plan, context):
+def reference_profile_diagnostics(
+    plan: ProvisioningPlan,
+    context: DomainProfileResolutionContextModel | None,
+) -> list[Diagnostic]:
     """Execute the installed semantic validator over the entire binding tree."""
 
     try:
@@ -92,7 +103,12 @@ def reference_profile_diagnostics(plan, context):
     return []
 
 
-def prepare_reference_profiles(plan, snapshot, context, choices):
+def prepare_reference_profiles(
+    plan: ProvisioningPlan,
+    snapshot: RuntimeSnapshot,
+    context: DomainProfileResolutionContextModel | None,
+    choices: Mapping[str, object],
+) -> RealizationPreparation:
     """Return one configured completion, preserving still-admitted current choices."""
 
     if plan.profile_authority is None:
@@ -102,7 +118,7 @@ def prepare_reference_profiles(plan, snapshot, context, choices):
         bindings = existing
     else:
 
-        def select(binding):
+        def select(binding: DomainProfileBindingModel) -> DomainProfileBindingModel:
             value = choices.get(binding.coordinate.definition_digest, binding.value)
             return binding.model_copy(
                 update={
