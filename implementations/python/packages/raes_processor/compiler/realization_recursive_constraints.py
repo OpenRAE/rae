@@ -165,7 +165,8 @@ class _SourceMetadata:
             profile=self.profile,
         )
 
-    def _origin(self, record: ExplicitnessRecord | None) -> RealizationOrigin:
+    @staticmethod
+    def _origin(record: ExplicitnessRecord | None) -> RealizationOrigin:
         """Attribute one projected pointer to the authority that supplied it."""
 
         if record is None:

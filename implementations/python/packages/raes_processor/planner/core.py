@@ -1,6 +1,7 @@
 """Top-level planning pipeline that reconciles a runtime model against a snapshot."""
 
 from dataclasses import replace
+from typing import cast
 
 from raes.realization_envelope import member
 from raes_backend_protocols.capabilities import BackendManifest
@@ -14,7 +15,7 @@ from raes_backend_protocols.service_materialization import service_materializati
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.planning import RuntimeDomain
+from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
@@ -252,7 +253,10 @@ def plan(
                 )
             )
     provisioning = retain_open_collection_nodes(
-        replace(provisioning, preparation=preparation, profile_authority=model.profile_authority)
+        cast(
+            "ProvisioningPlan",
+            replace(provisioning, preparation=preparation, profile_authority=model.profile_authority),
+        )
     )
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,

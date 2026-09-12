@@ -795,3 +795,66 @@ def test_runtime_manager_remains_outside_control_plane_store_authority() -> None
     assert not hasattr(manager, "_store")
     assert not hasattr(manager, "_store_commits")
     assert not hasattr(manager, "_mutation_authority")
+
+
+def test_settling_a_worker_absorbs_cancellation_until_the_mutation_commits() -> None:
+    from raes_runtime.control_plane_api._offload import _settle_worker
+
+    async def exercise() -> None:
+        release = asyncio.Event()
+
+        async def commit() -> str:
+            await release.wait()
+            return "committed"
+
+        worker = asyncio.create_task(commit())
+        settler = asyncio.create_task(_settle_worker(worker))
+        await asyncio.sleep(0.05)
+        for _ in range(2):
+            settler.cancel()
+            await asyncio.sleep(0.05)
+            assert not settler.done(), "a committing mutation must not be abandoned"
+        release.set()
+        await asyncio.wait_for(settler, timeout=2)
+        assert worker.result() == "committed"
+
+    asyncio.run(exercise())
+
+
+def test_settling_stops_waiting_once_the_worker_fails() -> None:
+    from raes_runtime.control_plane_api._offload import _settle_worker
+
+    async def exercise() -> None:
+        release = asyncio.Event()
+
+        async def commit() -> str:
+            await release.wait()
+            raise RuntimeError("backend refused the commit")
+
+        worker = asyncio.create_task(commit())
+        settler = asyncio.create_task(_settle_worker(worker))
+        await asyncio.sleep(0.05)
+        release.set()
+        await asyncio.wait_for(settler, timeout=2)
+        assert isinstance(worker.exception(), RuntimeError)
+
+    asyncio.run(exercise())
+
+
+def test_settling_propagates_cancellation_that_arrives_after_the_commit_lands() -> None:
+    from raes_runtime.control_plane_api._offload import _settle_worker
+
+    async def exercise() -> None:
+        # A bare future stands in for the worker so the commit can be settled at
+        # an exact instant: ``set_result`` marks it done synchronously while the
+        # shield it is wrapped in is still pending, which is the window where a
+        # cancellation must stop being absorbed and propagate instead.
+        worker = asyncio.get_running_loop().create_future()
+        settler = asyncio.create_task(_settle_worker(worker))
+        await asyncio.sleep(0.05)
+        worker.set_result("committed")
+        settler.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await settler
+
+    asyncio.run(exercise())

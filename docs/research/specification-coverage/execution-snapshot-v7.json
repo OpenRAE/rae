@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-12T19:33:40+00:00",
+  "captured_at": "2026-09-12T21:20:14+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -646,7 +646,7 @@
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "3fdef333e03625a1e1884d0ab7920fc8b8525235f77176e549d26a067fbbd0de",
+      "content_sha256": "1209facecbded8e89a31e9ff420108cf383535075c35e80801c43d899f38ecd0",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
@@ -665,13 +665,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "c899612298f8d061e4e864c9b67b6fde2b913da0",
+  "raes_revision": "ca30f4c2dd8f8cdc61a88661645a6eb8e78bfc2f",
   "snapshot_id": "raes-standardized-specification-coverage-issue-1204-v7",
   "snapshot_revision": "7.0.0",
   "source_state": {
-    "base_revision": "c899612298f8d061e4e864c9b67b6fde2b913da0",
+    "base_revision": "ca30f4c2dd8f8cdc61a88661645a6eb8e78bfc2f",
     "checkout_state": "modified",
-    "implementation_digest": "618b0a0504df22d7b7826d64ee4e12f1afccda504a74ba3960e8dd83ae540c7a",
+    "implementation_digest": "534e43e4d8ce20c0d83017f2388a5463584a016727356d9da843cbf9b013cc23",
     "profile": "python-reference-source/v1"
   }
 }
