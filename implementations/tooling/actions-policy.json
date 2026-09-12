@@ -3124,7 +3124,7 @@
       "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "inputs": {
         "name": "release-distributions-${{ needs.resolve-release.outputs.release_sha }}",
-        "path": "dist/",
+        "path": "${{ runner.temp }}/raes-release-dist/raes-*.whl\n${{ runner.temp }}/raes-release-dist/raes-*.tar.gz\n",
         "if-no-files-found": "error",
         "retention-days": 7
       },

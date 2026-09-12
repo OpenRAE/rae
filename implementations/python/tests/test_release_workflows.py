@@ -302,14 +302,15 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
 
     interpreters = workflow["jobs"]["interpreters"]
     assert interpreters["strategy"]["matrix"]["python"] == [
-        {"feature": "3.11", "payload": "3.11.16"},
-        {"feature": "3.12", "payload": "3.12.14"},
-        {"feature": "3.13", "payload": "3.13.15"},
-        {"feature": "3.14", "payload": "3.14.7"},
+        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
+        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
+        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
+        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
     ]
     assert interpreters["env"] == {
         "UV_PYTHON": "${{ matrix.python.payload }}",
         "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
+        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
     }
     compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]
@@ -405,9 +406,17 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
     assert "tarfile.open(sdists[0]" in corpus
     assert "sdist is missing corpus payload" in corpus
 
+    build_script = _named_step(build, "Build constrained release distributions")["run"]
+    assert "tools.python_closure build" in build_script
+    assert "--profile public-linux-x86_64-cp312-all-extras" in build_script
+    assert "uv build" not in build_script
+
     for smoke_index, distribution in ((wheel_smoke_index, "wheel"), (sdist_smoke_index, "sdist")):
         smoke = build["steps"][smoke_index]["run"]
-        assert "uv pip install" in smoke
+        assert "tools.python_closure smoke" in smoke
+        assert "--wheelhouse" in smoke
+        assert "--offline" in smoke
+        assert "uv pip install" not in smoke
         assert "env -u PYTHONPATH -u PYTHONHOME" in smoke
         assert "conformance backend --profile provisioning-only" in smoke
         assert 'installed_version = version("raes")' in smoke

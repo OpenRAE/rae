@@ -61,7 +61,7 @@ jobs:
           enable-cache: false
           version: "0.12.4"
       - name: Run fuzz session
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s fuzz
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s fuzz
 
   interpreters:
     name: CPython ${{ matrix.python.feature }} compatibility
@@ -71,13 +71,14 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - {feature: "3.11", payload: "3.11.16"}
-          - {feature: "3.12", payload: "3.12.14"}
-          - {feature: "3.13", payload: "3.13.15"}
-          - {feature: "3.14", payload: "3.14.7"}
+          - {feature: "3.11", payload: "3.11.16", closure: public-linux-x86_64-cp311-all-extras}
+          - {feature: "3.12", payload: "3.12.14", closure: public-linux-x86_64-cp312-all-extras}
+          - {feature: "3.13", payload: "3.13.15", closure: public-linux-x86_64-cp313-all-extras}
+          - {feature: "3.14", payload: "3.14.7", closure: public-linux-x86_64-cp314-all-extras}
     env:
       UV_PYTHON: ${{ matrix.python.payload }}
       RAES_EXPECTED_PYTHON: ${{ matrix.python.feature }}
+      RAES_PYTHON_CLOSURE_PROFILE: ${{ matrix.python.closure }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -91,7 +92,7 @@ jobs:
           enable-cache: false
           version: "0.12.4"
       - name: Test exact interpreter and clean distribution
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s python-compatibility
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
       - name: Record exact interpreter qualification
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile record-case T03 \
@@ -139,7 +140,7 @@ jobs:
           fi
       - name: Run docker integration session
         if: steps.runtime.outputs.available == 'true'
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s integration_docker
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s integration_docker
 
   # Gating OSV-scanner sweep over the Python dependency lockfile (issue #1098).
   # Kept out of the hermetic `verify` graph because the scanner is networked.
@@ -160,7 +161,7 @@ jobs:
           enable-cache: false
           version: "0.12.4"
       - name: Run OSV-scanner (gating)
-        run: uv tool run --from 'nox[uv]==2026.4.10' nox -f noxfile.py -s osv_scan
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s osv_scan
       - name: Upload OSV-scanner report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
