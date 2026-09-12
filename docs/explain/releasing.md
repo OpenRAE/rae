@@ -89,16 +89,30 @@ Use `feat:`/`fix:` for consumer-visible changes so release-please cuts a release
 - `release-please-config.json` creates releases as drafts and forces the tag to
   exist immediately. Only the gated GitHub publication job removes draft state.
 
-## Caveat: the release PR and required checks
+## Release bookkeeping does not re-run checks
 
-The release PR is opened by `GITHUB_TOKEN`, so **required status checks do not
-auto-run on the PR** (GitHub's recursion guard). Two review options remain:
+The release PR, the `main` → `dev` back-merge PR opened by the `sync-dev` job,
+and the pushes that merging them produces change only the files Release Please
+manages: `CHANGELOG.md`, `.release-please-manifest.json`, and
+`implementations/python/packages/raes/_version.py`. Every check already ran on
+the `dev` → `main` promotion, so the check workflows list exactly those files
+under `paths-ignore` and do not trigger on these events (#1266). The Docs
+deployment on the `main` push is not filtered, because the published docs
+render the release version. `test_release_workflows.py` keeps the ignored set
+identical across workflows and equal to the Release Please configuration.
 
-- **Admin-merge** the release PR (bypass the required checks for that PR), or
-- Give release-please a **PAT** (repo `contents`+`pull_requests`) as the `token`
-  input so its PRs trigger checks normally.
+Because the check workflows do not trigger, the required status checks never
+report on either bot PR. **Admin-merge** both. Adding any other change to
+either PR brings the full check suite back.
 
-Neither option can bypass publication verification. After the release PR lands,
+Research evidence captures bind a digest of the reference-package sources
+(source profile `python-reference-source/v2`). That digest replaces the marked
+Release Please version literal with a placeholder, so the release commit's
+version bump cannot invalidate the evidence. Any other change to `_version.py`
+still changes the digest, and a version file without exactly one marked literal
+fails closed.
+
+Skipping checks cannot bypass publication verification. After the release PR lands,
 the release workflow keeps the GitHub Release private as a draft while it runs
 the canonical graph against the exact tagged commit. PyPI upload,
 GitHub artifact attachment, and public Release finalization depend directly on

@@ -1,11 +1,25 @@
 name: CI
 
+# Release Please bookkeeping (the release PR, the main->dev back-merge PR, and
+# their merge pushes) changes only the release-managed files below. Every check
+# already ran on the dev->main promotion, and release-please.yml re-runs the
+# canonical verifier on the exact release SHA before publishing, so those events
+# do not trigger this workflow. The list is kept identical across workflows and
+# equal to the files Release Please manages (#1266).
 on:
   push:
     branches: [main, dev]
     tags: ["v*"]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
   pull_request:
     branches: [main, dev]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
   workflow_dispatch:
 
 concurrency:
