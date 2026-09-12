@@ -49,18 +49,6 @@ async def _record_operation_receipt_audit(
     target: str,
     receipt: OperationReceipt,
 ) -> None:
-    """Record the admission outcome without treating acknowledgement as execution success."""
+    """Retain the route seam; core persistence owns operation audit."""
 
-    if not receipt.accepted:
-        # The runtime admission boundary already persisted the single denial
-        # audit before returning its non-persisted receipt.
-        return
-    await calls.run(
-        control_plane.record_audit,
-        action=action,
-        identity=identity,
-        allowed=True,
-        target=target,
-        operation_id=receipt.operation_id,
-        reason="operation-admitted",
-    )
+    del calls, control_plane, action, identity, target, receipt

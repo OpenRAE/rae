@@ -10,6 +10,7 @@ exposed, and it disposes of those surfaces explicitly.
 
 - [Architecture preflight](../../decisions/issue-1151-runtime-control-plane-architecture-preflight.md)
 - [ADR-104](../../decisions/adrs/adr-104-runtime-control-plane-architecture.md)
+- [CP-2 unified-mutation preflight](../../decisions/issue-1181-unified-control-plane-mutations-preflight.md)
 - [Current-state assessment](current-state-assessment.md)
 - [Composition architecture](composition-architecture.md)
 - [Requirement and surface disposition](requirement-disposition.md)

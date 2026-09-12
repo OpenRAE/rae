@@ -21,8 +21,9 @@ from raes_contracts.contracts.participant_crossing import (
 from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
-from raes_contracts.runtime_state import OperationState
+from raes_contracts.runtime_state import OperationKind, OperationState
 
+from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import (
     ParticipantCrossingEvidence,
@@ -76,6 +77,7 @@ class ParticipantViewSerialization:
         )
 
 
+@mutation_entry(OperationKind.PARTICIPANT_CROSSING)
 def serialize_participant_view(
     control_plane: object,
     view: _ViewT,
@@ -85,6 +87,15 @@ def serialize_participant_view(
 
     if serialization.crossing_evidence is None:
         raise ValueError("configured participant egress requires crossing evidence")
+    with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CROSSING):
+        return _serialize_participant_view_authorized(control_plane, view, serialization)
+
+
+def _serialize_participant_view_authorized(
+    control_plane: object,
+    view: _ViewT,
+    serialization: ParticipantViewSerialization,
+) -> _ViewT:
     with control_plane._participant_control_lock:
         control_plane._reload_derived_state_if_unpinned()
         subject = _view_subject(
@@ -170,7 +181,8 @@ def _governed_egress_view(
     transformer = getattr(control_plane._crossing_policy_resolver, "transform_egress", None)
     if not callable(transformer):
         raise ValueError("transformed participant egress requires a trusted view transformer")
-    candidate = transformer(prepared.intent, prepared.governed_subject, view)
+    with external_control_plane_call(control_plane):
+        candidate = transformer(prepared.intent, prepared.governed_subject, view)
     if not isinstance(candidate, type(view)):
         raise ValueError("participant egress transformation returned an invalid governed view")
     actual = _view_subject(
@@ -276,10 +288,11 @@ def _with_opacity_egress_observation(
             participant_address: candidate,
         },
     )
-    context = control_plane._crossing_policy_resolver.validation_context(
-        control_plane._snapshot,
-        participant_address,
-    )
+    with external_control_plane_call(control_plane):
+        context = control_plane._crossing_policy_resolver.validation_context(
+            control_plane._snapshot,
+            participant_address,
+        )
     validate_participant_crossing_occurrence_context(
         [ParticipantCrossingOccurrenceModel.model_validate(item) for item in candidate],
         known_subjects=context.known_subjects,

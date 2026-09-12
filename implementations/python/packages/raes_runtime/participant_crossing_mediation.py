@@ -40,6 +40,7 @@ from raes_contracts.runtime_state import (
 )
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 
+from .control_plane_mutation import external_control_plane_call
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity, ParticipantAudienceSubjectBinding
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
@@ -193,15 +194,16 @@ def _resolve_crossing_policy(
     incumbent_carrier: object | None,
 ) -> ParticipantCrossingPolicyResolution:
     operation_resolver = getattr(resolver, "resolve_operation", None)
-    resolution = (
-        operation_resolver(intent, control_plane._snapshot, incumbent_carrier)
-        if callable(operation_resolver)
-        else resolver.resolve(intent, control_plane._snapshot)
-    )
-    context = resolver.validation_context(
-        control_plane._snapshot,
-        intent.participant_address,
-    )
+    with external_control_plane_call(control_plane):
+        resolution = (
+            operation_resolver(intent, control_plane._snapshot, incumbent_carrier)
+            if callable(operation_resolver)
+            else resolver.resolve(intent, control_plane._snapshot)
+        )
+        context = resolver.validation_context(
+            control_plane._snapshot,
+            intent.participant_address,
+        )
     resolution = bind_active_participant_opacity_support(
         resolution,
         context.opacity_enforcement_supports,

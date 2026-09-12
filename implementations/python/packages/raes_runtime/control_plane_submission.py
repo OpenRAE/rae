@@ -82,6 +82,26 @@ def _submitted_plan_diagnostics(
     return diagnostics
 
 
+def control_plane_plan_diagnostics(
+    control_plane: object,
+    plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    domain: RuntimeDomain,
+) -> list[Diagnostic]:
+    """Evaluate repeatable admission checks against the control plane's current cut."""
+
+    diagnostics = _submitted_plan_diagnostics(
+        plan,
+        domain,
+        control_plane._snapshot,
+        control_plane._target.manifest,
+        control_plane._target.observation_runtime,
+        durable_lifecycle_available=control_plane._store_commits.crash_atomic,
+    )
+    if not diagnostics:
+        diagnostics.extend(control_plane._plan_authorization_diagnostics(plan))
+    return diagnostics
+
+
 def _provisioning_submission_diagnostics(
     plan: ProvisioningPlan,
     snapshot: RuntimeSnapshot,

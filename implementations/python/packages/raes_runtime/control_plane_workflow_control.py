@@ -33,8 +33,9 @@ from .control_plane_execution import (
     persist_succeeded_operation,
 )
 from .control_plane_lifecycle import runtime_owned
+from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
-from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
 from .control_plane_timeouts import _reconciliation_clock, workflow_timeout_update
 from .control_plane_workflows import maybe_apply_compensation
 
@@ -50,6 +51,7 @@ class WorkflowControlMixin:
     """Workflow cancellation and timeout reconciliation operations."""
 
     @runtime_owned
+    @mutation_entry(OperationKind.WORKFLOW_CANCELLATION)
     def cancel_workflow(
         self,
         workflow_address: str,
@@ -62,6 +64,32 @@ class WorkflowControlMixin:
     ) -> OperationReceipt:
         with self._operation_lock:
             self._reload_derived_state()
+        operation_context = operation_admission_context(
+            self,
+            kind=OperationKind.WORKFLOW_CANCELLATION,
+            request={"workflow_address": workflow_address, "run_id": run_id, "reason": reason},
+            identity=identity,
+            run_scope=f"run:{run_id}" if run_id else None,
+        )
+        existing = self._idempotent_receipt(
+            idempotency_key=idempotency_key,
+            request_fingerprint=operation_context.request_commitment,
+            context=operation_context,
+        )
+        if existing is not None:
+            return existing
+        candidate = self._cancellable_workflow_state(
+            workflow_address,
+            run_id=run_id,
+            idempotency_key=idempotency_key,
+            request_fingerprint=request_fingerprint,
+            operation_context=operation_context,
+        )
+        if isinstance(candidate, OperationReceipt):
+            return candidate
+        with control_plane_mutation(self, OperationKind.WORKFLOW_CANCELLATION):
+            with self._operation_lock:
+                self._reload_derived_state()
             return self._cancel_workflow_locked(
                 workflow_address,
                 run_id=run_id,
@@ -258,6 +286,7 @@ class WorkflowControlMixin:
         return receipt
 
     @runtime_owned
+    @mutation_entry(OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION)
     def reconcile_workflow_timeouts(
         self,
         *,
@@ -269,6 +298,22 @@ class WorkflowControlMixin:
         del request_fingerprint
         with self._operation_lock:
             self._reload_derived_state()
+        operation_context = operation_admission_context(
+            self,
+            kind=OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION,
+            request={"now": now or "runtime-clock"},
+            identity=identity,
+        )
+        existing = self._idempotent_receipt(
+            idempotency_key=idempotency_key,
+            request_fingerprint=operation_context.request_commitment,
+            context=operation_context,
+        )
+        if existing is not None:
+            return existing
+        with control_plane_mutation(self, OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION):
+            with self._operation_lock:
+                self._reload_derived_state()
             return self._reconcile_workflow_timeouts_locked(
                 now=now,
                 idempotency_key=idempotency_key,
@@ -365,5 +410,6 @@ class WorkflowControlMixin:
                 idempotency_key=idempotency_key,
                 request_fingerprint=operation_context.request_commitment,
             ),
+            mode=(TerminalCommitMode.SNAPSHOT_BEARING if changed else TerminalCommitMode.OPERATION_ONLY),
         )
         return receipt

@@ -249,6 +249,90 @@ def test_control_plane_api_openapi_documents_explicit_error_responses():
     assert "/apparatus/operational-summary" in operation_responses
 
 
+@pytest.mark.parametrize(
+    ("method_name", "path", "payload"),
+    (
+        (
+            "submit_provisioning",
+            "/operations/provisioning",
+            {"operations": [], "diagnostics": [], "realization_authority": []},
+        ),
+        (
+            "submit_evaluation",
+            "/operations/evaluation",
+            {"operations": [], "startup_order": [], "diagnostics": []},
+        ),
+        (
+            "cancel_workflow",
+            "/workflows/orchestration.workflow.response/cancel",
+            {"reason": "operator requested stop"},
+        ),
+        ("reconcile_workflow_timeouts", "/workflows/reconcile-timeouts", None),
+        (
+            "initialize_participant_episode",
+            "/participants/participant.alice/episodes/initialize",
+            {},
+        ),
+        (
+            "reset_participant_episode",
+            "/participants/participant.alice/episodes/reset",
+            {"reason": "operator reset"},
+        ),
+        (
+            "restart_participant_episode",
+            "/participants/participant.alice/episodes/restart",
+            {},
+        ),
+        (
+            "terminate_participant_episode",
+            "/participants/participant.alice/episodes/terminate",
+            {"terminal_reason": "interrupted"},
+        ),
+    ),
+)
+def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
+    monkeypatch: pytest.MonkeyPatch,
+    method_name: str,
+    path: str,
+    payload: dict[str, object] | None,
+) -> None:
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    def conflict(*_args: object, **_kwargs: object) -> None:
+        raise ValueError("forced mutation conflict")
+
+    monkeypatch.setattr(control_plane, method_name, conflict)
+    headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+
+    with TestClient(app) as client:
+        response = client.post(path, json=payload, headers=headers)
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "forced mutation conflict"}
+
+
+def test_control_plane_api_returns_not_found_for_unknown_operation() -> None:
+    target = create_stub_target()
+    app = create_control_plane_app(
+        RuntimeControlPlane(target),
+        security=_test_security(target.name),
+    )
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/operations/unknown-operation",
+            headers={"authorization": "Bearer test-auditor-token"},
+        )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Unknown operation: unknown-operation"}
+
+
 def test_control_plane_call_lookup_fails_closed_without_configured_executor() -> None:
     target = create_stub_target()
     app = create_control_plane_app(RuntimeControlPlane(target), security=_test_security(target.name))
@@ -695,8 +779,17 @@ def test_control_plane_api_rejects_unauthenticated_mutations():
 
 
 def test_control_plane_api_supports_idempotent_retries():
+    scenario = _scenario("""
+name: idempotent-provisioning
+nodes:
+  vm:
+    type: compute
+    resources: {ram: 1 gib, cpu: 1}
+""")
     target = create_stub_target()
+    execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
+    control_plane.register_planner_produced_provisioning_plan(execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -706,22 +799,36 @@ def test_control_plane_api_supports_idempotent_retries():
         "x-raes-client-identity": "backend-service",
         "idempotency-key": "same-request",
     }
+    payload = _provisioning_payload(execution_plan.provisioning)
 
     with TestClient(app) as client:
         first = client.post(
             "/operations/provisioning",
-            json={"operations": [], "diagnostics": [], "realization_authority": []},
+            json=payload,
             headers=headers,
         )
+        first_state = control_plane.get_snapshot()
+        first_status = control_plane.get_operation(first.json()["operation_id"])
         second = client.post(
             "/operations/provisioning",
-            json={"operations": [], "diagnostics": [], "realization_authority": []},
+            json=payload,
             headers=headers,
         )
+        second_state = control_plane.get_snapshot()
+        second_status = control_plane.get_operation(second.json()["operation_id"])
 
     assert first.status_code == 200
     assert second.status_code == 200
     assert first.json()["operation_id"] == second.json()["operation_id"]
+    assert first_status is not None
+    assert first_status.changed_addresses
+    assert second_status == first_status
+    assert second_state == first_state
+    assert set(first_status.changed_addresses) == set(first_state.snapshot.entries)
+    operation_audits = [
+        event for event in control_plane.audit_log() if event.operation_id == first.json()["operation_id"]
+    ]
+    assert len(operation_audits) == 1
 
 
 def test_slow_backend_submission_does_not_block_unrelated_http_reads(
@@ -856,7 +963,7 @@ def test_control_plane_rejects_mutation_queue_overload(
     _run(exercise())
 
 
-def test_control_plane_executor_serializes_target_mutations() -> None:
+def test_control_plane_executor_leaves_serialization_to_the_core_mutation_authority() -> None:
     executor = _ControlPlaneCallExecutor(max_pending_mutations=2)
     first_entered = Event()
     release_first = Event()
@@ -878,14 +985,15 @@ def test_control_plane_executor_serializes_target_mutations() -> None:
             assert await asyncio.to_thread(first_entered.wait, 2)
             second = asyncio.create_task(executor.mutate(mutation, "second"))
             await asyncio.sleep(0.05)
-            assert execution_order == ["start:first"]
+            assert execution_order == ["start:first", "start:second", "end:second"]
         finally:
             release_first.set()
         assert second is not None
         assert await asyncio.gather(first, second) == ["first", "second"]
+        assert execution_order == ["start:first", "start:second", "end:second", "end:first"]
 
     _run(exercise())
-    assert execution_order == ["start:first", "end:first", "start:second", "end:second"]
+    assert execution_order == ["start:first", "start:second", "end:second", "end:first"]
 
 
 def test_control_plane_executor_rejects_nonpositive_queue_bound() -> None:

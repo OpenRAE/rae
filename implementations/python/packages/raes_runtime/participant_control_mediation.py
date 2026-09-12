@@ -28,6 +28,7 @@ from raes_processor.models import (
     ParticipantBehaviorSpecificationRuntime,
 )
 
+from .control_plane_mutation import control_plane_mutation
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
@@ -83,7 +84,10 @@ def record_participant_control(
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
         raise PermissionError("participant control identity is not authorized for this target")
     _require_participant_binding(identity, participant_address)
-    with control_plane._participant_control_lock:
+    with (
+        control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL),
+        control_plane._participant_control_lock,
+    ):
         control_plane._reload_derived_state()
         bound = bind_participant_control_request(
             control_plane,

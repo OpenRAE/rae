@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import model_validator
+from pydantic import ConfigDict, Field, model_validator
 from raes_contracts.contracts import OperationReceiptModel, OperationStatusModel
-from raes_contracts.contracts.base import ContractModel
+from raes_contracts.contracts.base import ContractModel, Rfc3339DateTimeString
 from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt, OperationStatus
 
@@ -52,6 +52,24 @@ class _OperationRecordModel(ContractModel):
         if self.receipt.context != self.status.context:
             raise ValueError("operation receipt and status contexts do not match")
         return self
+
+
+_AuditString = Annotated[str, Field(min_length=1, max_length=512)]
+
+
+class _AuditEventModel(ContractModel):
+    """Closed, strict persisted audit carrier."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    timestamp: Rfc3339DateTimeString
+    action: _AuditString
+    identity: _AuditString
+    allowed: bool
+    target: _AuditString
+    operation_id: str
+    reason: str
+    details: dict[str, Any]
 
 
 def _record_payload(record: ControlPlaneOperationRecord) -> dict[str, Any]:
@@ -118,15 +136,16 @@ def _record_from_payload(payload: dict[str, Any]) -> ControlPlaneOperationRecord
 
 
 def _audit_event_from_payload(payload: dict[str, Any]) -> AuditEvent:
+    carrier = _AuditEventModel.model_validate(payload)
     return AuditEvent(
-        timestamp=str(payload.get("timestamp", "")),
-        action=str(payload.get("action", "")),
-        identity=str(payload.get("identity", "")),
-        allowed=bool(payload.get("allowed", False)),
-        target=str(payload.get("target", "")),
-        operation_id=str(payload.get("operation_id", "")),
-        reason=str(payload.get("reason", "")),
-        details=dict(payload.get("details", {})),
+        timestamp=carrier.timestamp,
+        action=carrier.action,
+        identity=carrier.identity,
+        allowed=carrier.allowed,
+        target=carrier.target,
+        operation_id=carrier.operation_id,
+        reason=carrier.reason,
+        details=carrier.details,
     )
 
 
