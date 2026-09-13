@@ -186,7 +186,8 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert "UV_OFFLINE=1" in workflow_text
     assert 'RAES_PYTHON_CLOSURE_WHEELHOUSE="${restored_root}/project-wheelhouse"' in workflow_text
     assert 'UV_FIND_LINKS="${restored_root}/tool-wheelhouse,${restored_root}/project-wheelhouse"' in workflow_text
-    assert 'runtime_root="$(mktemp -d "${RUNNER_TEMP}/raes-bootstrap-runtime.XXXXXX")"' in workflow_text
+    assert 'runtime_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-bootstrap-runtime.XXXXXX")"' in workflow_text
+    assert 'qualification_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-local-installation.XXXXXX")"' in workflow_text
     assert 'export UV_CACHE_DIR="${runtime_root}/uv-cache"' in workflow_text
     assert 'restored_tool_environment="${runtime_root}/tool-environment"' in workflow_text
     assert 'from importlib.metadata import version; print(version("nox"))' in workflow_text
