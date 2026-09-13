@@ -32,6 +32,11 @@
           "locator_id": "github-container-registry",
           "kind": "oci-digest",
           "trust_root_ref": "ghcr-immutable-manifest-digest"
+        },
+        {
+          "locator_id": "docker-official-images-registry",
+          "kind": "oci-digest",
+          "trust_root_ref": "docker-official-images-index-digest"
         }
       ],
       "supported_artifact_ids": [
@@ -41,6 +46,7 @@
         "cpython-3.13",
         "cpython-3.14",
         "cpython-3.14t",
+        "devcontainer-base-image",
         "gitleaks",
         "osv-scanner",
         "scorecard-action-image",
@@ -649,6 +655,91 @@
       "qualification_record_ids": [
         "proof-ubuntu-22.04-x86_64-t01-issue-839-pending"
       ]
+    },
+    {
+      "host_profile_id": "container-ubuntu-24.04-x86_64",
+      "platform_id": "linux-x86_64",
+      "contexts": [
+        "public-contributor",
+        "maintainer"
+      ],
+      "native_family": "ubuntu-apt",
+      "base_image_identity": "docker.io/library/ubuntu:24.04",
+      "base_image_artifact_ref": "devcontainer-base-image",
+      "native_repository_identity": "ubuntu-noble-archive-snapshot",
+      "native_repository_snapshot": "20260912T000000Z",
+      "trust_root_refs": [
+        "ubuntu-archive-keyring",
+        "docker-official-images-index-digest"
+      ],
+      "credential_refs": [],
+      "bootstrap_payload_ids": [
+        "conftest",
+        "cpython-3.14",
+        "gitleaks",
+        "osv-scanner",
+        "uv",
+        "vale"
+      ],
+      "required_capability_ids": [
+        "base-image",
+        "native-repository",
+        "git",
+        "ca-roots",
+        "sha256",
+        "curl-unknown-length-max-filesize",
+        "uv",
+        "cpython",
+        "gh-cli",
+        "generic-tools"
+      ],
+      "proof_support": "unsupported",
+      "host_security_control_changes": "prohibited",
+      "offline_kit": {
+        "kit_id": "container-ubuntu-24.04-x86_64-bootstrap",
+        "credential_free": true,
+        "network_fallback": "prohibited",
+        "artifact_ids": [
+          "conftest",
+          "cpython-3.14",
+          "gitleaks",
+          "osv-scanner",
+          "uv",
+          "vale"
+        ],
+        "host_prerequisite_package_ids": [
+          "ca-certificates",
+          "coreutils",
+          "curl",
+          "gh",
+          "git",
+          "python3",
+          "python3-jsonschema",
+          "python3-packaging",
+          "python3-yaml"
+        ],
+        "host_trust_root_refs": [
+          "ubuntu-archive-keyring"
+        ]
+      },
+      "development_package_ids": [
+        "bash-completion",
+        "gnupg",
+        "jq",
+        "less",
+        "make",
+        "nano",
+        "openssh-client",
+        "procps"
+      ],
+      "development_user": {
+        "name": "raes",
+        "uid": 1000,
+        "gid": 1000
+      },
+      "qualification_record_ids": [
+        "container-ubuntu-24.04-x86_64-t02-t08-issue-1238-pending"
+      ]
     }
   ],
   "qualification_records": [
@@ -666,7 +757,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "84a023ead48bd58cccaf9c40920c834927da47d737251f9b4e5c0fefd855be23",
+      "policy_sha256": "e9b01cb918df632835a239124c9ea01940c4bcb96ae90cebd379dd4268da60b6",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -696,7 +787,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "84a023ead48bd58cccaf9c40920c834927da47d737251f9b4e5c0fefd855be23",
+      "policy_sha256": "e9b01cb918df632835a239124c9ea01940c4bcb96ae90cebd379dd4268da60b6",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -726,7 +817,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "84a023ead48bd58cccaf9c40920c834927da47d737251f9b4e5c0fefd855be23",
+      "policy_sha256": "e9b01cb918df632835a239124c9ea01940c4bcb96ae90cebd379dd4268da60b6",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -754,7 +845,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "84a023ead48bd58cccaf9c40920c834927da47d737251f9b4e5c0fefd855be23",
+      "policy_sha256": "e9b01cb918df632835a239124c9ea01940c4bcb96ae90cebd379dd4268da60b6",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -769,6 +860,34 @@
       ],
       "evidence_location": ".github/workflows/canonical-verification.yml",
       "evidence_sha256": "39a854de4e391050b7e769a3fefb9f26b6da9daff3b48e9359e906205bbba2df"
+    },
+    {
+      "evidence_id": "container-ubuntu-24.04-x86_64-t02-t08-issue-1238-pending",
+      "host_profile_id": "container-ubuntu-24.04-x86_64",
+      "test_case_ids": [
+        "T02",
+        "T08"
+      ],
+      "implementation_revision": "4914612d108f06ff9db2eb69a14449a830a20848",
+      "observed_at": "2026-09-12T00:00:00Z",
+      "context": "clean-image qualification is pending execution on the delivery revision",
+      "outcome": "not-run",
+      "base_image_identity": "unobserved",
+      "native_repository_identity": "unobserved",
+      "policy_sha256": "e9b01cb918df632835a239124c9ea01940c4bcb96ae90cebd379dd4268da60b6",
+      "capability_results": [
+        {
+          "capability_id": "qualification-workflow",
+          "outcome": "not-run",
+          "observed_identity": "delivery-revision",
+          "reason_code": "awaiting-delivery-revision"
+        }
+      ],
+      "limitations": [
+        "The clean-image build, dev-container lifecycle setup, host-capability probe, and locked generic-tool execution have not been recorded on this delivery revision."
+      ],
+      "evidence_location": ".github/workflows/bootstrap-qualification.yml",
+      "evidence_sha256": "0d407b8dcf936e693df5e4c456a32a199ee08a25b4ce266a8728dfd366ea9688"
     }
   ]
 }

@@ -536,7 +536,7 @@
           "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -620,7 +620,7 @@
           "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -701,6 +701,37 @@
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "devcontainer-base-image",
+      "artifact_class": "oci-image",
+      "version": "24.04",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": ["development-container"],
+      "trust_root_refs": ["docker-official-images-index-digest"],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {"spdx": "NOASSERTION", "redistribution": "not-applicable", "review_ref": "issue-1238"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "issue-1238-development-container-review"},
+      "policy_refs": ["oci-input-v1"],
+      "source": {
+        "repository": "https://github.com/canonical/ubuntu-docker-images",
+        "release": "sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254",
+        "asset": "docker.io/library/ubuntu",
+        "locator_refs": ["docker-official-images-registry"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://registry-1.docker.io/v2/library/ubuntu/manifests/sha256:a61567bd31828687156d735ea8eb01ba4e37636e225dd6a48ba94136a70d9d61"],
+          "raw_manifest": [{"path": "ubuntu-24.04-linux-amd64-manifest.json", "sha256": "a61567bd31828687156d735ea8eb01ba4e37636e225dd6a48ba94136a70d9d61", "size": 424}],
+          "installed_identity": {"implementation": "OCI image", "version": "24.04", "abi": "oci-manifest-v1", "target": "linux-x86_64"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64"]
         }
       ]
     }

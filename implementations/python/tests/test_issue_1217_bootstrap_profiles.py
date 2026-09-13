@@ -36,6 +36,7 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
         "public-linux-arm64",
         "public-macos-arm64",
         "proof-ubuntu-22.04-x86_64",
+        "container-ubuntu-24.04-x86_64",
     }
     proof = profiles["proof-ubuntu-22.04-x86_64"]
     assert proof["proof_support"] == "linux-x86_64-required"

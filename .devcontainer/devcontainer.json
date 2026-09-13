@@ -1,0 +1,43 @@
+{
+  "name": "RAES development",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "remoteUser": "raes",
+  "containerUser": "raes",
+  "updateRemoteUserUID": true,
+  "mounts": [
+    "source=raes-${devcontainerId}-cache,target=/home/raes/.cache,type=volume"
+  ],
+  "updateContentCommand": "/usr/bin/python3 -m tools.devcontainer_setup",
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/implementations/tooling/python/.venv/bin:${containerEnv:PATH}"
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "32gb"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/implementations/python/.venv/bin/python",
+        "python.terminal.activateEnvironment": false,
+        "ruff.importStrategy": "fromEnvironment",
+        "ruff.path": [
+          "${containerWorkspaceFolder}/implementations/tooling/python/.venv/bin/ruff"
+        ],
+        "ruff.configuration": "${containerWorkspaceFolder}/implementations/python/pyproject.toml",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        }
+      }
+    }
+  }
+}
