@@ -893,7 +893,7 @@ def test_offline_tool_seed_export_and_private_restore_use_canonical_installation
         binary = source_tree / artifact_id
         binary.write_bytes(payload)
         binary.chmod(0o500)
-        source_tree.chmod(0o500)
+        source_tree.chmod(0o700)
 
     monkeypatch.setattr(
         bootstrap_profile,

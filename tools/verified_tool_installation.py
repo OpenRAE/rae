@@ -10,7 +10,6 @@ import json
 import logging
 import os
 import platform
-import plistlib
 import pwd
 import re
 import shutil
@@ -283,20 +282,30 @@ def _filesystem_type(path: Path) -> str:
     if platform.system() == "Darwin":
         try:
             completed = subprocess.run(
-                ["/usr/sbin/diskutil", "info", "-plist", str(canonical)],
+                ["/sbin/mount", "-p"],
                 check=True,
                 capture_output=True,
+                text=True,
                 timeout=10,
             )
-            if len(completed.stdout) > 1024 * 1024:
-                raise ValueError("diskutil response exceeds the admission bound")
-            details = plistlib.loads(completed.stdout)
-            filesystem_type = details.get("FilesystemType") if isinstance(details, dict) else None
-            if not isinstance(filesystem_type, str) or not filesystem_type.strip():
-                raise ValueError("diskutil response lacks FilesystemType")
-        except (OSError, ValueError, plistlib.InvalidFileException, subprocess.SubprocessError) as exc:
+            if not isinstance(completed.stdout, str) or len(completed.stdout.encode("utf-8")) > 1024 * 1024:
+                raise ValueError("mount response exceeds the admission bound")
+            candidates = []
+            for line in completed.stdout.splitlines():
+                fields = line.split()
+                if len(fields) < 3:
+                    continue
+                mount = Path(_decode_mount_path(fields[1]))
+                try:
+                    canonical.relative_to(mount)
+                except ValueError:
+                    continue
+                candidates.append((len(mount.parts), fields[2]))
+            if not candidates:
+                raise ValueError("mount response has no matching filesystem")
+        except (OSError, UnicodeError, ValueError, subprocess.SubprocessError) as exc:
             raise RuntimeError("tool-installation: unsupported-filesystem") from exc
-        return filesystem_type.strip().lower()
+        return max(candidates)[1].lower()
     raise RuntimeError("tool-installation: unsupported-filesystem")
 
 
@@ -508,7 +517,7 @@ def _validate_tree(
     valid_owners = {0, os.geteuid()} if mode == "seed" else {os.geteuid()}
     if state.st_uid not in valid_owners or (mode == "seed" and permissions & 0o222):
         raise RuntimeError("tool-installation: tree-integrity-failure")
-    if mode == "installed" and permissions != 0o500:
+    if mode == "installed" and permissions not in {0o500, 0o700}:
         raise RuntimeError("tool-installation: tree-integrity-failure")
     if mode == "staged" and permissions != 0o700:
         raise RuntimeError("tool-installation: tree-integrity-failure")
@@ -524,7 +533,7 @@ def _validate_tree(
             child_permissions = child_state.st_mode & 0o777
             if child_state.st_uid not in valid_owners:
                 raise RuntimeError("tool-installation: tree-integrity-failure")
-            if mode == "installed" and child_permissions != 0o500:
+            if mode == "installed" and child_permissions not in {0o500, 0o700}:
                 raise RuntimeError("tool-installation: tree-integrity-failure")
             if mode == "staged" and child_permissions != 0o700:
                 raise RuntimeError("tool-installation: tree-integrity-failure")
@@ -680,9 +689,9 @@ def _publish_tree(
             reverse=True,
         )
         for directory in directories:
-            directory.chmod(0o500)
+            directory.chmod(0o700)
             _fsync_directory(directory)
-        stage.chmod(0o500)
+        stage.chmod(0o700)
         _fsync_directory(stage)
         _publication_checkpoint("staged-durable", stage)
         os.rename(stage, target)

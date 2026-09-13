@@ -6,7 +6,7 @@ import hashlib
 import io
 import json
 import os
-import plistlib
+import shutil
 import subprocess
 import tarfile
 import threading
@@ -189,11 +189,14 @@ def test_publish_is_atomic_private_and_warm_hits_are_revalidated(
     installed = _direct_install(monkeypatch, tmp_path, selection, payload, acquire=acquire)
     assert installed.read_bytes() == payload
     assert installed.stat().st_mode & 0o777 == 0o500
-    assert installed.parent.stat().st_mode & 0o777 == 0o500
+    assert installed.parent.stat().st_mode & 0o777 == 0o700
     assert acquisitions == 1
 
     assert _direct_install(monkeypatch, tmp_path, selection, payload, acquire=acquire) == installed
     assert acquisitions == 1
+
+    shutil.rmtree(installation.default_installation_root(tmp_path))
+    assert not installation.default_installation_root(tmp_path).exists()
 
 
 def test_acquired_raw_bytes_are_reverified_before_materialization(
@@ -210,6 +213,31 @@ def test_acquired_raw_bytes_are_reverified_before_materialization(
             b"reviewed tool",
             acquire=lambda: b"different raw carrier",
         )
+
+
+def test_historical_owner_only_directory_modes_remain_valid_cache_hits(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    selection = _selection()
+    tree = installation.installation_tree_path(installation.default_installation_root(tmp_path), selection)
+    binary = tree / "bin" / "tool"
+    binary.parent.mkdir(parents=True)
+    binary.write_bytes(b"reviewed tool")
+    binary.chmod(0o500)
+    _make_private_cache_chain(binary.parent, tmp_path)
+    binary.parent.chmod(0o500)
+    tree.chmod(0o500)
+
+    installed = _direct_install(
+        monkeypatch,
+        tmp_path,
+        selection,
+        b"reviewed tool",
+        acquire=lambda: pytest.fail("valid historical cache triggered acquisition"),
+    )
+
+    assert installed == binary
 
 
 def test_cross_user_writable_installation_root_is_rejected(
@@ -244,16 +272,16 @@ def test_group_writable_repository_root_rejects_another_principal(
 ) -> None:
     group_id = tmp_path.stat().st_gid
     tmp_path.chmod(0o770)
-    monkeypatch.setattr(installation.pwd, "getpwuid", lambda _uid: SimpleNamespace(pw_name="current"))
+    monkeypatch.setattr(installation.pwd, "getpwuid", lambda _uid: SimpleNamespace(pw_name="fixture_owner"))
     monkeypatch.setattr(
         installation.grp,
         "getgrgid",
-        lambda _gid: SimpleNamespace(gr_mem=("current", "other")),
+        lambda _gid: SimpleNamespace(gr_mem=("fixture_owner", "fixture_peer")),
     )
     monkeypatch.setattr(
         installation.pwd,
         "getpwall",
-        lambda: [SimpleNamespace(pw_name="current", pw_gid=group_id)],
+        lambda: [SimpleNamespace(pw_name="fixture_owner", pw_gid=group_id)],
     )
 
     with pytest.raises(RuntimeError, match="unsafe-private-root"):
@@ -266,16 +294,16 @@ def test_group_writable_repository_root_allows_the_current_principal_only(
 ) -> None:
     group_id = tmp_path.stat().st_gid
     tmp_path.chmod(0o770)
-    monkeypatch.setattr(installation.pwd, "getpwuid", lambda _uid: SimpleNamespace(pw_name="current"))
+    monkeypatch.setattr(installation.pwd, "getpwuid", lambda _uid: SimpleNamespace(pw_name="fixture_owner"))
     monkeypatch.setattr(
         installation.grp,
         "getgrgid",
-        lambda _gid: SimpleNamespace(gr_mem=("current",)),
+        lambda _gid: SimpleNamespace(gr_mem=("fixture_owner",)),
     )
     monkeypatch.setattr(
         installation.pwd,
         "getpwall",
-        lambda: [SimpleNamespace(pw_name="current", pw_gid=group_id)],
+        lambda: [SimpleNamespace(pw_name="fixture_owner", pw_gid=group_id)],
     )
 
     installed = _direct_install(monkeypatch, tmp_path, _selection(), b"reviewed tool")
@@ -295,12 +323,12 @@ def test_group_membership_lookup_failure_rejects_group_writable_root(
 ) -> None:
     group_id = tmp_path.stat().st_gid
     tmp_path.chmod(0o770)
-    monkeypatch.setattr(installation.pwd, "getpwuid", lambda _uid: SimpleNamespace(pw_name="current"))
-    monkeypatch.setattr(installation.grp, "getgrgid", lambda _gid: SimpleNamespace(gr_mem=("current",)))
+    monkeypatch.setattr(installation.pwd, "getpwuid", lambda _uid: SimpleNamespace(pw_name="fixture_owner"))
+    monkeypatch.setattr(installation.grp, "getgrgid", lambda _gid: SimpleNamespace(gr_mem=("fixture_owner",)))
     monkeypatch.setattr(
         installation.pwd,
         "getpwall",
-        lambda: [SimpleNamespace(pw_name="current", pw_gid=group_id)],
+        lambda: [SimpleNamespace(pw_name="fixture_owner", pw_gid=group_id)],
     )
 
     def fail_lookup(*_args: object) -> None:
@@ -327,7 +355,7 @@ def test_tampered_cache_is_quarantined_and_terminal_without_acquisition(
     binary.write_bytes(b"tampered")
     binary.chmod(0o500)
     _make_private_cache_chain(binary.parent, tmp_path)
-    tree.chmod(0o500)
+    tree.chmod(0o700)
 
     with pytest.raises(RuntimeError, match="cache-integrity-failure"):
         _direct_install(
@@ -356,7 +384,7 @@ def test_invalid_observer_revalidates_a_concurrent_repair_under_the_lock(
     binary.write_bytes(b"tampered")
     binary.chmod(0o500)
     _make_private_cache_chain(binary.parent, tmp_path)
-    tree.chmod(0o500)
+    tree.chmod(0o700)
     observer_waiting = threading.Event()
     repair_published = threading.Event()
     observer_result: list[Path | BaseException] = []
@@ -520,7 +548,7 @@ def test_unqualified_shared_filesystem_is_rejected_before_cache_or_acquisition(
         )
 
 
-def test_darwin_filesystem_qualification_reads_diskutil_plist(
+def test_darwin_filesystem_qualification_reads_the_mount_table(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -529,23 +557,23 @@ def test_darwin_filesystem_qualification_reads_diskutil_plist(
 
     def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
         observed.append(command)
-        return SimpleNamespace(stdout=plistlib.dumps({"FilesystemType": "apfs"}))
+        return SimpleNamespace(stdout="/dev/disk3s1s1 / apfs rw 1 1\n")
 
     monkeypatch.setattr(installation.subprocess, "run", run)
 
     installation._require_qualified_filesystem(tmp_path)
 
-    assert observed == [["/usr/sbin/diskutil", "info", "-plist", str(tmp_path.resolve())]]
+    assert observed == [["/sbin/mount", "-p"]]
 
 
 @pytest.mark.parametrize(
     "payload",
-    [b"not a plist", plistlib.dumps({"FilesystemName": "APFS"})],
+    ["not a mount table", "/dev/disk3s1s1 /elsewhere apfs rw 1 1\n"],
 )
-def test_darwin_filesystem_qualification_fails_closed_on_invalid_diskutil_output(
+def test_darwin_filesystem_qualification_fails_closed_on_invalid_mount_output(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    payload: bytes,
+    payload: str,
 ) -> None:
     monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
     monkeypatch.setattr(
@@ -571,7 +599,7 @@ def test_hardlinked_installed_leaf_is_quarantined_and_terminal(
     _make_private_cache_chain(binary.parent, tmp_path)
     alias = tmp_path / "alias"
     os.link(binary, alias)
-    tree.chmod(0o500)
+    tree.chmod(0o700)
 
     with pytest.raises(RuntimeError, match="cache-integrity-failure"):
         _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
