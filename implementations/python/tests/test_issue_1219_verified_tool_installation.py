@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import io
 import json
@@ -557,6 +558,41 @@ def test_darwin_filesystem_qualification_fails_closed_on_invalid_mount_output(
         installation._require_qualified_filesystem(tmp_path)
 
 
+def test_darwin_directory_sync_uses_the_system_fallback_when_unsupported(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    synced: list[bool] = []
+    monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(
+        installation.os,
+        "fsync",
+        lambda _descriptor: (_ for _ in ()).throw(OSError(errno.EINVAL, "unsupported")),
+    )
+    monkeypatch.setattr(installation.os, "sync", lambda: synced.append(True))
+
+    installation._fsync_directory(tmp_path)
+
+    assert synced == [True]
+
+
+def test_directory_sync_does_not_mask_unsupported_non_darwin_filesystems(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(installation.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(
+        installation.os,
+        "fsync",
+        lambda _descriptor: (_ for _ in ()).throw(OSError(errno.EINVAL, "unsupported")),
+    )
+
+    with pytest.raises(OSError) as caught:
+        installation._fsync_directory(tmp_path)
+
+    assert caught.value.errno == errno.EINVAL
+
+
 def test_hardlinked_installed_leaf_is_quarantined_and_terminal(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -719,6 +755,8 @@ def test_bootstrap_qualification_retains_local_evidence_without_overclaiming() -
 
     assert "issue_1219_installation_harness.py" in workflow
     assert "local-installation-qualification.json" in workflow
-    assert "chmod -R u+w .qualification-kit/.cache/raes-sdl/tooling/installations" in workflow
+    assert ".qualification-kit/.cache/raes-sdl/tooling/installations" in workflow
+    assert ".cache/raes-sdl/tooling/installations" in workflow
+    assert 'chmod -R u+w "${cleanup_root}"' in workflow
     for case_id in ("T05", "T06", "T07", "T16"):
         assert f"record-case {case_id}" not in workflow

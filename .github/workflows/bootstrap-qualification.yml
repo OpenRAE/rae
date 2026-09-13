@@ -90,9 +90,13 @@ jobs:
           tar -cf bootstrap-offline-kit.tar .qualification-kit
       - name: Restore and exercise the payload kit without network fallback
         run: |
-          if [ -d .qualification-kit/.cache/raes-sdl/tooling/installations ]; then
-            chmod -R u+w .qualification-kit/.cache/raes-sdl/tooling/installations
-          fi
+          for cleanup_root in \
+            .qualification-kit/.cache/raes-sdl/tooling/installations \
+            .cache/raes-sdl/tooling/installations; do
+            if [ -d "${cleanup_root}" ]; then
+              chmod -R u+w "${cleanup_root}"
+            fi
+          done
           rm -rf .qualification-kit .cache/raes-sdl/tooling .qualification-restored \
             implementations/python/.venv implementations/tooling/python/.venv
           mkdir .qualification-restored

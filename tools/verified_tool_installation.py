@@ -444,7 +444,12 @@ def _fsync_directory(path: Path) -> None:
     flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_CLOEXEC", 0)
     descriptor = os.open(path, flags)
     try:
-        os.fsync(descriptor)
+        try:
+            os.fsync(descriptor)
+        except OSError as exc:
+            if platform.system() != "Darwin" or exc.errno != errno.EINVAL or not hasattr(os, "sync"):
+                raise
+            os.sync()
     finally:
         os.close(descriptor)
 
