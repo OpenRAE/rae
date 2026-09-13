@@ -463,10 +463,9 @@ class RuntimeDatabaseService(SDLModel):
         expected = _ENGINE_TO_PROTOCOLS.get(self.engine)
         if expected is None or is_variable_ref(self.protocol):
             return
-        if self.protocol in expected:
-            return
-        allowed = ", ".join(sorted(p.value for p in expected))
-        raise ValueError(f"database engine '{self.engine.value}' requires protocol to be one of: {allowed}")
+        if self.protocol not in expected:
+            allowed = ", ".join(sorted(p.value for p in expected))
+            raise ValueError(f"database engine '{self.engine.value}' requires protocol to be one of: {allowed}")
 
 
 class RelationshipDatabaseAccess(SDLModel):

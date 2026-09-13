@@ -47,4 +47,3 @@ class _RuntimeOrchestrationMixin:
                 f"{owner_label} control_interface_ref '{ref}' does not resolve to a "
                 f"control interface in the same node's runtime.local_control_interfaces"
             )
-            return

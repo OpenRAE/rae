@@ -61,9 +61,13 @@ this run does not repair them.
   protocol replays without changing its classifications or claims; this is not
   native backend or downstream qualification.
 - [`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
-  [`analysis-v10.json`](analysis-v10.json) are current release 10.0.0. They bind
+  [`analysis-v10.json`](analysis-v10.json) preserve release 10.0.0. They bind
   partial inventory descriptions integrated with software refinements to fresh
   source and package hashes, without changing the protocol's claim limits.
+- [`execution-snapshot-v11.json`](execution-snapshot-v11.json) and
+  [`analysis-v11.json`](analysis-v11.json) are current release 11.0.0. Fresh
+  replay of the inventory lookup and validator maintainability refactor retains
+  the same classifications and claim limits while preserving prior captures.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -73,7 +77,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 10.0.0 and rejects duplicate or unsupported
+Current validation requires release 11.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -81,9 +85,9 @@ it does not claim the capture was made at a clean base commit. Implementation
 changes require a new explicitly supported capture, never edits to an old
 capture or old/new digest allowances.
 
-Release 10.0.0 records issue #1207 in
-[`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
-[`analysis-v10.json`](analysis-v10.json). All 16 retained concepts were checked
+Release 11.0.0 records issue #1207 in
+[`execution-snapshot-v11.json`](execution-snapshot-v11.json) and
+[`analysis-v11.json`](analysis-v11.json). All 16 retained concepts were checked
 against current source and package digests. Classifications, the missing-concept
 denominator and claim limits are unchanged; partial inventory acceptance is
 not promoted into new claims outside the preregistered protocol.

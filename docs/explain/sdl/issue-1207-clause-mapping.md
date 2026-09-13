@@ -64,7 +64,7 @@ the owning implementation entry, with focused test files naming the assertions.
 - [x] DSL-137: independently authorized supported selected privileged access — existing `raes_runtime/backend_preparation.py:228`; `raes_runtime/control_plane_plan_authorization.py:1`; `test_issue_1207_profile_admission.py:1`; `test_issue_1204_reference_profiles.py:1`.
 - [x] SEM-218: distinguish binding supplied declarations from open descendants — `raes_processor/compiler/realization_recursive_constraints.py:1`; `raes_contracts/realization_structure/_evaluation.py:1`; `test_issue_1207_recursive_inventory.py:1`.
 - [x] SEM-218: realization permitted only under resolved authority, explicit choices honored and unsupported exact requests rejected — existing `raes_processor/planner/realization_preparation.py:153`; `raes_runtime/backend_preparation.py:228`; `test_issue_1207_profile_admission.py:1`.
-- [x] SEM-218: stable nested identity without positional weakening — `raes/runtime_inventory.py:6`; `raes_processor/semantics/realization_runtime_concern_profiles.py:1`; `raes_processor/semantics/realization_specialized_projection.py:1`; `test_issue_1207_recursive_inventory.py:1`.
+- [x] SEM-218: stable nested identity without positional weakening — `raes/runtime_inventory.py:15`; `raes_processor/semantics/realization_runtime_concern_profiles.py:1`; `raes_processor/semantics/realization_specialized_projection.py:1`; `test_issue_1207_recursive_inventory.py:1`.
 - [x] Issue: partial datastore/forwarding/orchestration descriptions do not invent facts or authorization — `test_issue_1207_partial_descriptions.py:1`.
 - [x] Issue: selected completeness, trust/authority and required evidence remain enforced — `test_issue_1207_profile_admission.py:1`; `test_issue_1207_description_lifecycle.py:1`; existing authenticated and durable-carriage tests in `test_issue_1204_reference_profiles.py:1`.
 - [x] Issue: nonpersistent cache, partial search/wide-column, non-IOC synchronization and incomplete privileged interface counterexamples — `test_issue_1207_partial_descriptions.py:1`.
@@ -90,8 +90,8 @@ Ownership adds only the exact affected contract and documentation records to
 SEM-218's existing policy phase, with an exclusion regression; no gate exception
 or union of unrelated requirement links is used.
 
-Source-bound research gates also required fresh captures. Formal release 12
-and specification-coverage release 10 retain their preregistered cases,
+Source-bound research gates also required fresh captures. Formal release 13
+and specification-coverage release 11 retain their preregistered cases,
 classifications and claim limits after replay of the merged tree. The formal
 index documents preservation of the incoming historical releases and their
 baseline-link repair; no historical observation is relabeled as current evidence.
