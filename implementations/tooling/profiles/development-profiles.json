@@ -75,17 +75,11 @@
           "locator_id": "official-github-release",
           "kind": "official-https",
           "trust_root_ref": "system-ca"
-        },
-        {
-          "locator_id": "docker-official-images-registry",
-          "kind": "oci-digest",
-          "trust_root_ref": "docker-official-images-index-digest"
         }
       ],
       "supported_artifact_ids": [
         "conftest",
         "cpython-3.14",
-        "devcontainer-base-image",
         "gitleaks",
         "osv-scanner",
         "uv",
@@ -865,91 +859,6 @@
       "qualification_record_ids": [
         "container-ubuntu-24.04-x86_64-t02-t08-issue-1238-pending"
       ]
-    },
-    {
-      "host_profile_id": "container-ubuntu-24.04-arm64",
-      "platform_id": "linux-arm64",
-      "contexts": [
-        "public-contributor",
-        "maintainer"
-      ],
-      "native_family": "ubuntu-apt",
-      "base_image_identity": "docker.io/library/ubuntu:24.04",
-      "base_image_artifact_ref": "devcontainer-base-image",
-      "native_repository_identity": "ubuntu-noble-archive-snapshot",
-      "native_repository_snapshot": "20260912T000000Z",
-      "trust_root_refs": [
-        "ubuntu-archive-keyring",
-        "docker-official-images-index-digest"
-      ],
-      "credential_refs": [],
-      "bootstrap_payload_ids": [
-        "conftest",
-        "cpython-3.14",
-        "gitleaks",
-        "osv-scanner",
-        "uv",
-        "vale"
-      ],
-      "required_capability_ids": [
-        "base-image",
-        "native-repository",
-        "git",
-        "ca-roots",
-        "sha256",
-        "curl-unknown-length-max-filesize",
-        "uv",
-        "cpython",
-        "gh-cli",
-        "generic-tools"
-      ],
-      "proof_support": "unsupported",
-      "host_security_control_changes": "prohibited",
-      "offline_kit": {
-        "kit_id": "container-ubuntu-24.04-arm64-bootstrap",
-        "credential_free": true,
-        "network_fallback": "prohibited",
-        "artifact_ids": [
-          "conftest",
-          "cpython-3.14",
-          "gitleaks",
-          "osv-scanner",
-          "uv",
-          "vale"
-        ],
-        "host_prerequisite_package_ids": [
-          "ca-certificates",
-          "coreutils",
-          "curl",
-          "gh",
-          "git",
-          "python3",
-          "python3-jsonschema",
-          "python3-packaging",
-          "python3-yaml"
-        ],
-        "host_trust_root_refs": [
-          "ubuntu-archive-keyring"
-        ]
-      },
-      "development_package_ids": [
-        "bash-completion",
-        "gnupg",
-        "jq",
-        "less",
-        "make",
-        "nano",
-        "openssh-client",
-        "procps"
-      ],
-      "development_user": {
-        "name": "raes",
-        "uid": 1000,
-        "gid": 1000
-      },
-      "qualification_record_ids": [
-        "container-ubuntu-24.04-arm64-t02-t08-issue-1238-pending"
-      ]
     }
   ],
   "qualification_records": [
@@ -967,7 +876,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "eee99c659aa3c82002bafa8198ff1f9f3086381bde8a0292ff5805279db46bf0",
+      "policy_sha256": "8e451f1ac0f6318ca51a1f977fe1bae36442b070b69e2defb3e7fd8b918800f0",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -997,7 +906,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "eee99c659aa3c82002bafa8198ff1f9f3086381bde8a0292ff5805279db46bf0",
+      "policy_sha256": "8e451f1ac0f6318ca51a1f977fe1bae36442b070b69e2defb3e7fd8b918800f0",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -1026,7 +935,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "eee99c659aa3c82002bafa8198ff1f9f3086381bde8a0292ff5805279db46bf0",
+      "policy_sha256": "8e451f1ac0f6318ca51a1f977fe1bae36442b070b69e2defb3e7fd8b918800f0",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -1056,7 +965,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "eee99c659aa3c82002bafa8198ff1f9f3086381bde8a0292ff5805279db46bf0",
+      "policy_sha256": "8e451f1ac0f6318ca51a1f977fe1bae36442b070b69e2defb3e7fd8b918800f0",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -1084,7 +993,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "eee99c659aa3c82002bafa8198ff1f9f3086381bde8a0292ff5805279db46bf0",
+      "policy_sha256": "8e451f1ac0f6318ca51a1f977fe1bae36442b070b69e2defb3e7fd8b918800f0",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -1113,7 +1022,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "eee99c659aa3c82002bafa8198ff1f9f3086381bde8a0292ff5805279db46bf0",
+      "policy_sha256": "8e451f1ac0f6318ca51a1f977fe1bae36442b070b69e2defb3e7fd8b918800f0",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -1124,34 +1033,6 @@
       ],
       "limitations": [
         "The clean-image build, dev-container lifecycle setup, host-capability probe, and locked generic-tool execution have not been recorded on this delivery revision."
-      ],
-      "evidence_location": ".github/workflows/bootstrap-qualification.yml",
-      "evidence_sha256": "0d407b8dcf936e693df5e4c456a32a199ee08a25b4ce266a8728dfd366ea9688"
-    },
-    {
-      "evidence_id": "container-ubuntu-24.04-arm64-t02-t08-issue-1238-pending",
-      "host_profile_id": "container-ubuntu-24.04-arm64",
-      "test_case_ids": [
-        "T02",
-        "T08"
-      ],
-      "implementation_revision": "4914612d108f06ff9db2eb69a14449a830a20848",
-      "observed_at": "2026-09-12T00:00:00Z",
-      "context": "clean-image qualification is pending execution on the delivery revision",
-      "outcome": "not-run",
-      "base_image_identity": "unobserved",
-      "native_repository_identity": "unobserved",
-      "policy_sha256": "eee99c659aa3c82002bafa8198ff1f9f3086381bde8a0292ff5805279db46bf0",
-      "capability_results": [
-        {
-          "capability_id": "qualification-workflow",
-          "outcome": "not-run",
-          "observed_identity": "delivery-revision",
-          "reason_code": "awaiting-delivery-revision"
-        }
-      ],
-      "limitations": [
-        "The native linux-arm64 clean-image build and dev-container lifecycle setup have not been recorded on this delivery revision; an emulated build is not qualification."
       ],
       "evidence_location": ".github/workflows/bootstrap-qualification.yml",
       "evidence_sha256": "0d407b8dcf936e693df5e4c456a32a199ee08a25b4ce266a8728dfd366ea9688"

@@ -24,7 +24,7 @@ Pick one:
 The first open builds the image and runs the repository setup. Setup prints each
 step and finishes with `Ready.`:
 
-1. selects the reviewed container profile for your architecture;
+1. confirms the reviewed container profile for the platform;
 2. downloads and verifies the locked uv and CPython against the artifact lock;
 3. syncs `implementations/python` and `implementations/tooling/python` from
    their `uv.lock` files;
@@ -62,15 +62,21 @@ as on a native setup.
 
 ## Supported platforms
 
-The container runs natively on **Linux x86_64 (`linux/amd64`)** and **Linux
-arm64 (`linux/arm64`)**, which includes Apple silicon Macs with Docker Desktop.
-Each architecture has its own reviewed host profile and is qualified by a
-native clean build in continuous integration; an emulated build is never used as
-qualification. The image build refuses any other architecture.
+The container is a **Linux x86_64 (`linux/amd64`)** image, qualified by a clean
+native build in continuous integration. Every build stage pins the reviewed
+`linux/amd64` base manifest, so any client builds the same image.
+
+On **Apple silicon** and other arm64 hosts, Docker Desktop runs that same image
+under emulation (Rosetta or QEMU), with no extra configuration. Expect builds and test
+runs to be slower than native. A native arm64 image isn't offered because Ubuntu
+publishes immutable package snapshots only for x86_64; building arm64 from the
+moving ports archive would give up reproducible images. An arm64 variant can be
+added as its own reviewed host profile once an immutable package source
+exists.
 
 ## What is in the image
 
-- Ubuntu 24.04, pinned by its multi-architecture index digest.
+- Ubuntu 24.04, pinned by its `linux/amd64` manifest digest.
 - Native packages from one immutable Ubuntu snapshot, authenticated by the
   Ubuntu archive keyring: the bootstrap prerequisites (`git`, `curl`, `gh`,
   `python3` with `jsonschema`, `packaging`, and `yaml`, CA certificates) and
@@ -86,7 +92,7 @@ forbidden from downloading any interpreter the lock did not admit.
 Every version, digest, package, and architecture comes from
 [`development-profiles.json`](../../implementations/tooling/profiles/development-profiles.json)
 and [`artifacts.lock.json`](../../implementations/tooling/artifacts.lock.json)
-through the `container-ubuntu-24.04-*` host profiles.
+through the `container-ubuntu-24.04-x86_64` host profile.
 `tools/tooling_artifact_policy_container.py` and
 `tools/tooling_artifact_policy_devcontainer.py` refuse any Dockerfile or
 `devcontainer.json` value that disagrees with them, and refuse host-side
@@ -154,17 +160,17 @@ repository.
 
 The image follows its authorities, so an update is a reviewed change to them:
 
-1. Change the base index digest and per-platform manifests in
+1. Change the base index digest and `linux/amd64` manifest in
    `artifacts.lock.json`, or the `native_repository_snapshot`, prerequisite
-   packages, or `development_package_ids` in the container host profiles. Pick a
+   packages, or `development_package_ids` in the container host profile. Pick a
    snapshot no older than the base image, or apt can't install packages that
    depend on its newer libraries.
-2. Render each profile's expected values with
-   `python3 -m tools.devcontainer_image --host-profile-id <profile>` and apply
-   them to `.devcontainer/Dockerfile`.
+2. Render the expected values with
+   `python3 -m tools.devcontainer_image --host-profile-id container-ubuntu-24.04-x86_64`
+   and apply them to `.devcontainer/Dockerfile`.
 3. Regenerate the qualification records' `policy_sha256`.
-4. Let the `development-image` jobs of the bootstrap qualification workflow
-   build both architectures from empty caches and exercise the lifecycle.
+4. Let the `development-image` job of the bootstrap qualification workflow
+   build from an empty cache and exercise the lifecycle.
 
 `make policy` refuses the change whenever the image and its authorities
 disagree.

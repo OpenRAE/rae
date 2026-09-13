@@ -1,7 +1,7 @@
 # Reviewed RAES development container.
 #
 # This file owns no version, digest, package, or platform fact. Every literal
-# below is derived from the reviewed `container-ubuntu-24.04-*` host profiles in
+# below is derived from the reviewed `container-ubuntu-24.04-x86_64` host profile in
 # implementations/tooling/profiles/development-profiles.json and from
 # implementations/tooling/artifacts.lock.json; the drift gate in
 # tools/tooling_artifact_policy_container.py refuses any literal here that
@@ -13,20 +13,24 @@
 # verified installers, so no payload, checkout, credential, or reusable cache is
 # baked into a layer. Isabelle proof execution is unsupported here
 # (`proof_support: unsupported`); use the native proof host profile.
+#
+# Linux x86_64 is the one qualified platform: Ubuntu publishes immutable package
+# snapshots only for it. Every stage pins the reviewed linux/amd64 manifest, so
+# arm64 hosts such as Apple silicon run this same image under emulation instead
+# of silently substituting an unqualified native build.
 
 # The package snapshot is served only over HTTPS and the pinned base carries no
 # CA bundle. This throwaway stage obtains one from the base image's own signed
 # archive purely as TLS transport trust; none of its bytes reach the image.
-FROM docker.io/library/ubuntu@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254 AS transport-trust
+FROM --platform=linux/amd64 docker.io/library/ubuntu@sha256:a61567bd31828687156d735ea8eb01ba4e37636e225dd6a48ba94136a70d9d61 AS transport-trust
 RUN set -eu; \
-    case "$(dpkg --print-architecture)" in amd64|arm64) ;; *) echo "no reviewed development container profile for this architecture" >&2; exit 1 ;; esac; \
     export DEBIAN_FRONTEND=noninteractive; \
     apt-get update; \
     apt-get install -y --no-install-recommends ca-certificates
 
 # Every installed package comes from the immutable reviewed snapshot and is
 # authenticated by the Ubuntu archive keyring inside the digest-pinned base.
-FROM docker.io/library/ubuntu@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254
+FROM --platform=linux/amd64 docker.io/library/ubuntu@sha256:a61567bd31828687156d735ea8eb01ba4e37636e225dd6a48ba94136a70d9d61
 RUN --mount=type=bind,from=transport-trust,source=/etc/ssl/certs/ca-certificates.crt,target=/run/raes-transport-ca.crt \
     set -eu; \
     export DEBIAN_FRONTEND=noninteractive; \

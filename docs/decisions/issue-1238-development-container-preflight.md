@@ -127,9 +127,11 @@ frozen `uv sync` for both projects, the verified generic-tool installers, and
 `pre-commit install`. It treats the cache volume as untrusted, re-verifies every
 cached archive against the lock, and swaps rebuilt clients in atomically.
 
-Both Linux architectures are declared: `container-ubuntu-24.04-x86_64` and
-`container-ubuntu-24.04-arm64` bind their per-platform manifests of one pinned
-base index, and each is qualified only by a native clean build in the
-`development-image` workflow matrix. The Dockerfile's first step refuses any
-other architecture, and the drift gate requires that guard to equal the
-qualified profile set.
+Only Linux x86_64 is declared. Ubuntu publishes immutable archive snapshots for
+`archive.ubuntu.com` and `security.ubuntu.com` but not for `ports.ubuntu.com`,
+so an arm64 image could only be built from a moving archive, giving up
+reproducible package selection; the supported set is narrowed instead of
+weakened. Every Dockerfile stage pins the reviewed `linux/amd64` manifest with an
+explicit `--platform`, so arm64 hosts run the same qualified image under
+emulation rather than silently building an unqualified native variant, and the
+drift gate refuses any stage without that platform.

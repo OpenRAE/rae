@@ -2,8 +2,8 @@
 
 The image configuration is a consumer of the reviewed development artifact
 policy, never a second authority. Every base digest, package snapshot, package
-selection, architecture, and account below is joined from the container host
-profiles and the artifact lock; a literal in the Dockerfile that disagrees with
+selection, platform, and account below is joined from the container host
+profile and the artifact lock; a literal in the Dockerfile that disagrees with
 that join fails closed here, before any build or acquisition. The dev-container
 entry point is checked by `tools.tooling_artifact_policy_devcontainer`.
 
@@ -69,19 +69,15 @@ _ENVIRONMENT_NAMES = frozenset(
 )
 # uv must never download an interpreter the lock did not admit.
 _REQUIRED_ENVIRONMENT = {"UV_PYTHON_DOWNLOADS": "never"}
-_DPKG_ARCHITECTURES = {"linux-x86_64": "amd64", "linux-arm64": "arm64"}
+# Canonical platform to the OCI platform every stage must pin. Linux x86_64 is the
+# only platform with an immutable Ubuntu package snapshot to build from.
+_OCI_PLATFORMS = {"linux-x86_64": "linux/amd64"}
 
-_INDEX_DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
-# The one reviewed shell construct refuses unqualified architectures. It is
-# matched whole and removed before the rest of a RUN body is held to plain commands.
-_ARCHITECTURE_GUARD_RE = re.compile(
-    r'case "\$\(dpkg --print-architecture\)" in (?P<arches>[a-z0-9]+(?:\|[a-z0-9]+)*)\) ;; '
-    r'\*\) echo "[A-Za-z0-9 ,.-]+" >&2; exit 1 ;; esac;'
-)
-# Outside that guard a RUN body is a `;`-separated list of plain commands. Any
-# quoting, escaping, expansion, substitution, redirection, grouping, globbing,
-# pipeline, or background job could hide an unreviewed command from this parser,
-# so such syntax is refused outright rather than interpreted.
+_DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
+# A RUN body is a `;`-separated list of plain commands. Any quoting, escaping,
+# expansion, substitution, redirection, grouping, globbing, pipeline, or
+# background job could hide an unreviewed command from this parser, so such
+# syntax is refused outright rather than interpreted.
 _SHELL_SYNTAX_RE = re.compile(r"[\\`'\"$<>(){}|&*?\[\]~#!]")
 _APT_OPTION_RE = re.compile(r"^(?:APT::Snapshot=[0-9]{8}T[0-9]{6}Z|Acquire::https::CAInfo=/run/[a-z0-9.-]+)$")
 _PACKAGE_RE = re.compile(r"^[a-z0-9][a-z0-9.+-]*$")
@@ -95,6 +91,7 @@ _INSTALL_RE = re.compile(rf"^-d -o (?P<owner>{_NAME_RE}) -g (?P=owner)(?: /home/
 @dataclass
 class _Stage:
     reference: str
+    platform: str | None
     alias: str | None
     runs: list[tuple[list[str], str]] = field(default_factory=list)
     users: list[str] = field(default_factory=list)
@@ -108,7 +105,7 @@ class _Expected:
     user: str
     uid: int
     gid: int
-    architectures: frozenset[str]
+    platform: str
 
 
 def _image_failure(rule: str, message: str) -> PolicyFailure:
@@ -137,8 +134,11 @@ def _stages(instructions: Sequence[tuple[str, str]]) -> tuple[list[_Stage], list
             continue
         if keyword == "FROM":
             tokens = arguments.split()
+            platform = (
+                tokens.pop(0).removeprefix("--platform=") if tokens and tokens[0].startswith("--platform=") else None
+            )
             alias = tokens[2] if len(tokens) == 3 and tokens[1].upper() == "AS" else None
-            stages.append(_Stage(tokens[0] if len(tokens) in {1, 3} else arguments, alias))
+            stages.append(_Stage(tokens[0] if len(tokens) in {1, 3} else arguments, platform, alias))
         elif not stages:
             failures.append(_image_failure(RULE_BUILD, "image instruction precedes its base image"))
         elif keyword == "RUN":
@@ -176,7 +176,7 @@ def _environment_failures(instructions: Sequence[tuple[str, str]]) -> list[Polic
 def _plain_commands(body: str) -> list[list[str]] | None:
     """Return a RUN body's commands as argv tokens, or None if it uses any other shell syntax."""
 
-    text = _ARCHITECTURE_GUARD_RE.sub(" ", " ".join(body.split()), count=1)
+    text = " ".join(body.split())
     if _SHELL_SYNTAX_RE.search(text):
         return None
     return [segment.split() for segment in text.split(";") if segment.split()]
@@ -268,23 +268,17 @@ def _stage_package_failures(stage: _Stage, expected: _Expected, *, final: bool) 
 def _base_failures(stages: Sequence[_Stage], expected: _Expected) -> list[PolicyFailure]:
     if not stages:
         return [_image_failure(RULE_BASE, "image definition declares no base image")]
-    return [
-        _image_failure(RULE_BASE, "image base reference is not the reviewed digest-pinned base index")
+    failures = [
+        _image_failure(RULE_BASE, "image base reference is not the reviewed digest-pinned platform manifest")
         for stage in stages
         if stage.reference != expected.reference
     ]
-
-
-def _architecture_failures(stages: Sequence[_Stage], expected: _Expected) -> list[PolicyFailure]:
-    """The first build step must refuse every architecture without a qualified container profile."""
-
-    first_body = stages[0].runs[0][1] if stages and stages[0].runs else ""
-    guard = _ARCHITECTURE_GUARD_RE.match(" ".join(first_body.split()).removeprefix("set -eu; "))
-    if guard is None or frozenset(guard.group("arches").split("|")) != expected.architectures:
-        return [
-            _image_failure(RULE_PLATFORM, "image must refuse every architecture without a qualified container profile")
-        ]
-    return []
+    failures.extend(
+        _image_failure(RULE_PLATFORM, "every image stage must pin the qualified container platform")
+        for stage in stages
+        if stage.platform != expected.platform
+    )
+    return failures
 
 
 def _mount_failures(stages: Sequence[_Stage]) -> list[PolicyFailure]:
@@ -358,7 +352,6 @@ def _dockerfile_failures(text: str, expected: _Expected) -> list[PolicyFailure]:
         failures.append(
             _image_failure(RULE_PACKAGES, "image native package selection differs from the reviewed container profiles")
         )
-    failures.extend(_architecture_failures(stages, expected))
     failures.extend(_mount_failures(stages))
     failures.extend(_command_failures(stages))
     failures.extend(_account_failures(stages[-1], expected))
@@ -373,8 +366,8 @@ def _container_host_profiles(documents: Mapping[str, dict[str, Any]]) -> list[Ma
     ]
 
 
-def _host_join(documents: Mapping[str, dict[str, Any]], host: Mapping[str, Any]) -> tuple[Any, ...] | None:
-    """Join one container host profile to its locked base image index, or return None."""
+def _expected(documents: Mapping[str, dict[str, Any]], host: Mapping[str, Any]) -> _Expected | None:
+    """Join the container host profile to its locked platform manifest, or return None."""
 
     platform_id = normalize_platform_id(str(host.get("platform_id", "")))
     user = as_mapping(host.get("development_user"))
@@ -385,52 +378,39 @@ def _host_join(documents: Mapping[str, dict[str, Any]], host: Mapping[str, Any])
             or artifact.get("artifact_class") != "oci-image"
         ):
             continue
-        source = as_mapping(artifact.get("source"))
-        repository, index = source.get("asset"), source.get("release")
-        platforms = [
-            platform
+        repository = as_mapping(artifact.get("source")).get("asset")
+        manifests = [
+            as_mapping(entry)
             for value in as_list(artifact.get("platforms"))
             if normalize_platform_id(str((platform := as_mapping(value)).get("platform_id", ""))) == platform_id
+            for entry in as_list(platform.get("raw_manifest"))
         ]
+        digest = manifests[0].get("sha256") if len(manifests) == 1 else None
         admitted = (
             isinstance(repository, str)
-            and isinstance(index, str)
-            and _INDEX_DIGEST_RE.fullmatch(index) is not None
-            and len(platforms) == 1
-            and len(as_list(platforms[0].get("raw_manifest"))) == 1
+            and isinstance(digest, str)
+            and _DIGEST_RE.fullmatch(digest) is not None
             # The human-readable identity must name the same locked repository.
             and str(host.get("base_image_identity", "")).startswith(f"{repository}:")
             and isinstance(host.get("native_repository_snapshot"), str)
             and isinstance(user.get("name"), str)
             and all(isinstance(user.get(key), int) for key in ("uid", "gid"))
-            and platform_id in _DPKG_ARCHITECTURES
+            and platform_id in _OCI_PLATFORMS
         )
         if admitted:
             packages = string_set(as_mapping(host.get("offline_kit")).get("host_prerequisite_package_ids")) | (
                 string_set(host.get("development_package_ids"))
             )
-            snapshot = host["native_repository_snapshot"]
-            return (f"{repository}@{index}", snapshot, frozenset(packages), user["name"], user["uid"], user["gid"])
+            return _Expected(
+                reference=f"{repository}@sha256:{digest}",
+                snapshot=str(host["native_repository_snapshot"]),
+                packages=frozenset(packages),
+                user=str(user["name"]),
+                uid=int(user["uid"]),
+                gid=int(user["gid"]),
+                platform=_OCI_PLATFORMS[platform_id],
+            )
     return None
-
-
-def _expected(documents: Mapping[str, dict[str, Any]], hosts: Sequence[Mapping[str, Any]]) -> _Expected | None:
-    """Return the one image every container profile agrees on, or None if they cannot share it."""
-
-    platforms = [normalize_platform_id(str(host.get("platform_id", ""))) for host in hosts]
-    joins = {_host_join(documents, host) for host in hosts}
-    if len(set(platforms)) != len(platforms) or len(joins) != 1 or None in joins:
-        return None
-    reference, snapshot, packages, user, uid, gid = next(iter(joins))
-    return _Expected(
-        reference=reference,
-        snapshot=snapshot,
-        packages=packages,
-        user=user,
-        uid=uid,
-        gid=gid,
-        architectures=frozenset(_DPKG_ARCHITECTURES[platform] for platform in platforms),
-    )
 
 
 def container_failures(
@@ -446,18 +426,18 @@ def container_failures(
     present = dockerfile is not None or (repo_root / DEVCONTAINER_CONFIG_PATH).exists()
     if not hosts:
         return [_image_failure(RULE_PROFILE, "container configuration has no reviewed host profile")] if present else []
-    expected = _expected(documents, hosts)
+    expected = _expected(documents, hosts[0]) if len(hosts) == 1 else None
     if expected is None:
         return [
             failure(
                 RULE_PROFILE,
-                "container host profiles must each bind a distinct platform of one locked OCI base index "
-                "and agree on the package snapshot, packages, and development user",
+                "exactly one container host profile must bind a qualified platform manifest in the lock, "
+                "a package snapshot, and a development user",
                 PROFILES_PATH,
             )
         ]
     if dockerfile is None:
-        return [_image_failure(RULE_PROFILE, "reviewed container host profiles have no image definition")]
+        return [_image_failure(RULE_PROFILE, "the reviewed container host profile has no image definition")]
     failures = _dockerfile_failures(dockerfile, expected)
     document, config_failure = load_devcontainer_config(repo_root)
     if document is None:

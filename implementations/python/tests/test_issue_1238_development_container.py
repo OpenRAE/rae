@@ -18,7 +18,6 @@ from tools.check_tooling_artifact_policy import (
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 CONTAINER_HOST_PROFILE_ID = "container-ubuntu-24.04-x86_64"
-CONTAINER_HOST_PROFILE_IDS = ("container-ubuntu-24.04-x86_64", "container-ubuntu-24.04-arm64")
 BASE_IMAGE_ARTIFACT_ID = "devcontainer-base-image"
 DOCKERFILE_PATH = ".devcontainer/Dockerfile"
 DEVCONTAINER_PATH = ".devcontainer/devcontainer.json"
@@ -35,9 +34,8 @@ def _container_host_profile(host_profile_id: str = CONTAINER_HOST_PROFILE_ID) ->
     return hosts[0]
 
 
-@pytest.mark.parametrize("host_profile_id", CONTAINER_HOST_PROFILE_IDS)
-def test_each_container_host_profile_resolves_one_reviewed_selection(host_profile_id: str) -> None:
-    selection = select_tooling_host_profile(REPO_ROOT, host_profile_id=host_profile_id)
+def test_the_container_host_profile_resolves_one_reviewed_selection() -> None:
+    selection = select_tooling_host_profile(REPO_ROOT, host_profile_id=CONTAINER_HOST_PROFILE_ID)
     host = selection["host_profile"]
     assert host["proof_support"] == "unsupported"
     assert host["host_security_control_changes"] == "prohibited"
@@ -45,31 +43,23 @@ def test_each_container_host_profile_resolves_one_reviewed_selection(host_profil
     assert {item["artifact_id"] for item in selection["artifacts"]} == set(host["bootstrap_payload_ids"])
 
 
-@pytest.mark.parametrize("host_profile_id", CONTAINER_HOST_PROFILE_IDS)
-def test_each_container_host_profile_binds_its_platform_manifest_in_one_base_index(host_profile_id: str) -> None:
-    host = _container_host_profile(host_profile_id)
+def test_the_container_host_profile_binds_its_platform_manifest_in_the_lock() -> None:
+    host = _container_host_profile()
     artifact = next(
         item for item in _load(ARTIFACT_LOCK_PATH)["artifacts"] if item["artifact_id"] == BASE_IMAGE_ARTIFACT_ID
     )
     assert artifact["artifact_class"] == "oci-image"
     assert artifact["policy_refs"] == ["oci-input-v1"]
     assert artifact["source"]["release"].startswith("sha256:")
-    platforms = [platform for platform in artifact["platforms"] if platform["platform_id"] == host["platform_id"]]
-    assert len(platforms) == 1
-    assert platforms[0]["host_profile_ids"] == [host_profile_id]
-    assert len(platforms[0]["raw_manifest"]) == 1
+    assert [platform["platform_id"] for platform in artifact["platforms"]] == [host["platform_id"]]
+    assert artifact["platforms"][0]["host_profile_ids"] == [CONTAINER_HOST_PROFILE_ID]
+    assert len(artifact["platforms"][0]["raw_manifest"]) == 1
 
 
-def test_the_container_host_profiles_cover_both_linux_architectures_with_one_shared_image() -> None:
-    hosts = [_container_host_profile(host_profile_id) for host_profile_id in CONTAINER_HOST_PROFILE_IDS]
-    assert {host["platform_id"] for host in hosts} == {"linux-x86_64", "linux-arm64"}
-    shared = ("native_repository_snapshot", "development_user", "development_package_ids", "base_image_artifact_ref")
-    for key in shared:
-        assert hosts[0][key] == hosts[1][key]
-    assert (
-        hosts[0]["offline_kit"]["host_prerequisite_package_ids"]
-        == hosts[1]["offline_kit"]["host_prerequisite_package_ids"]
-    )
+def test_only_linux_x86_64_is_declared_for_the_container() -> None:
+    profiles = _load(PROFILES_PATH)
+    containers = [host for host in profiles["host_profiles"] if "base_image_artifact_ref" in host]
+    assert [host["platform_id"] for host in containers] == ["linux-x86_64"]
 
 
 def test_the_container_supplies_what_a_maintainer_needs_for_git_signing_and_review() -> None:
@@ -173,7 +163,7 @@ def _config_refusals(tmp_path: Path, key: str, value: object) -> set[str]:
 
 
 def _final_stage_marker(build_plan: dict) -> str:
-    return f"FROM {build_plan['base_image_reference']}\n"
+    return f"FROM --platform={build_plan['oci_platform']} {build_plan['base_image_reference']}\n"
 
 
 def _mutate_profiles(root: Path, host_profile_id: str, key: str, value: object) -> None:
@@ -189,11 +179,13 @@ def test_committed_container_configuration_is_admitted(tmp_path: Path) -> None:
     assert _container_failures(_stage(tmp_path)) == set()
 
 
-def test_every_stage_is_pinned_to_the_reviewed_base_index(build_plan: dict) -> None:
-    references = [line.split()[1] for line in _dockerfile_text().splitlines() if line.startswith("FROM ")]
-    assert references
-    assert set(references) == {build_plan["base_image_reference"]}
-    assert build_plan["base_image_reference"].endswith(build_plan["base_image_index_digest"])
+def test_every_stage_is_pinned_to_the_reviewed_platform_manifest(build_plan: dict) -> None:
+    stages = [line.split() for line in _dockerfile_text().splitlines() if line.startswith("FROM ")]
+    assert stages
+    assert {tuple(tokens[1:3]) for tokens in stages} == {
+        (f"--platform={build_plan['oci_platform']}", build_plan["base_image_reference"])
+    }
+    assert build_plan["base_image_reference"].endswith(build_plan["base_image_digest"])
 
 
 def test_a_floating_base_tag_is_refused(tmp_path: Path, build_plan: dict) -> None:
@@ -201,30 +193,25 @@ def test_a_floating_base_tag_is_refused(tmp_path: Path, build_plan: dict) -> Non
     assert "tooling-container-base-drift" in refused
 
 
-def test_a_substituted_base_index_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    refused = _dockerfile_refusals(tmp_path, build_plan["base_image_index_digest"], "sha256:" + "b" * 64)
+def test_a_substituted_base_manifest_is_refused(tmp_path: Path, build_plan: dict) -> None:
+    refused = _dockerfile_refusals(tmp_path, build_plan["base_image_digest"], "sha256:" + "b" * 64)
     assert "tooling-container-base-drift" in refused
 
 
-def test_a_single_platform_manifest_in_place_of_the_index_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    refused = _dockerfile_refusals(tmp_path, build_plan["base_image_index_digest"], build_plan["base_image_digest"])
+def test_the_multi_architecture_index_in_place_of_the_platform_manifest_is_refused(
+    tmp_path: Path, build_plan: dict
+) -> None:
+    refused = _dockerfile_refusals(tmp_path, build_plan["base_image_digest"], build_plan["base_image_index_digest"])
     assert "tooling-container-base-drift" in refused
 
 
-def test_a_platform_override_on_the_base_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    marker = _final_stage_marker(build_plan)
-    refused = _dockerfile_refusals(tmp_path, marker, marker.replace("FROM ", "FROM --platform=linux/arm64 "))
-    assert "tooling-container-base-drift" in refused
-
-
-@pytest.mark.parametrize("arches", ["amd64", "amd64|arm64|riscv64", "arm64|s390x"])
-def test_an_architecture_guard_that_differs_from_the_qualified_profiles_is_refused(tmp_path: Path, arches: str) -> None:
-    assert "tooling-container-platform" in _dockerfile_refusals(tmp_path, " in amd64|arm64) ;;", f" in {arches}) ;;")
-
-
-def test_a_dropped_architecture_guard_is_refused(tmp_path: Path) -> None:
-    guard = _dockerfile_text().split("\n    case ", maxsplit=1)[1].split("\n", maxsplit=1)[0]
-    assert "tooling-container-platform" in _dockerfile_refusals(tmp_path, f"\n    case {guard}", "")
+@pytest.mark.parametrize("replacement", ["FROM --platform=linux/arm64 ", "FROM "])
+def test_a_stage_without_the_qualified_platform_is_refused(tmp_path: Path, build_plan: dict, replacement: str) -> None:
+    marker = f"FROM --platform={build_plan['oci_platform']} "
+    text = _dockerfile_text()
+    mutated = text.replace(marker, replacement, 1)
+    assert mutated != text
+    assert "tooling-container-platform" in _container_failures(_stage(tmp_path, dockerfile=mutated))
 
 
 def test_a_drifting_package_snapshot_is_refused(tmp_path: Path, build_plan: dict) -> None:
@@ -345,18 +332,21 @@ def test_an_unreviewed_build_input_is_refused(tmp_path: Path, build_plan: dict, 
     assert "tooling-container-unsafe-build" in _dockerfile_refusals(tmp_path, user, injected + user)
 
 
-@pytest.mark.parametrize(
-    ("key", "value"),
-    [
-        ("native_repository_snapshot", "20260101T000000Z"),
-        ("development_package_ids", ["less"]),
-        ("development_user", {"name": "other", "uid": 1001, "gid": 1001}),
-        ("platform_id", "linux-x86_64"),
-    ],
-)
-def test_container_profiles_that_cannot_share_one_image_are_refused(tmp_path: Path, key: str, value: object) -> None:
+def test_a_second_container_host_profile_is_refused(tmp_path: Path) -> None:
     root = _stage(tmp_path)
-    _mutate_profiles(root, "container-ubuntu-24.04-arm64", key, value)
+    path = root / PROFILES_PATH
+    profiles = json.loads(path.read_text(encoding="utf-8"))
+    second = json.loads(json.dumps(_container_host_profile()))
+    second["host_profile_id"] = "container-ubuntu-24.04-arm64"
+    second["platform_id"] = "linux-arm64"
+    profiles["host_profiles"].append(second)
+    path.write_text(json.dumps(profiles, indent=2) + "\n", encoding="utf-8")
+    assert "tooling-container-profile" in _container_failures(root)
+
+
+def test_a_container_profile_on_a_platform_without_immutable_packages_is_refused(tmp_path: Path) -> None:
+    root = _stage(tmp_path)
+    _mutate_profiles(root, CONTAINER_HOST_PROFILE_ID, "platform_id", "linux-arm64")
     assert "tooling-container-profile" in _container_failures(root)
 
 
@@ -545,23 +535,18 @@ def test_the_editor_uses_the_locked_interpreter_and_formatter() -> None:
 # --------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    ("platform_id", "host_profile_id"),
-    [("linux-x86_64", "container-ubuntu-24.04-x86_64"), ("linux-arm64", "container-ubuntu-24.04-arm64")],
-)
-def test_setup_selects_the_container_profile_for_the_running_architecture(
-    platform_id: str, host_profile_id: str
-) -> None:
+def test_setup_selects_the_container_profile_for_the_running_platform() -> None:
     from tools.devcontainer_setup import container_host_profile_id
 
-    assert container_host_profile_id(REPO_ROOT, platform_id) == host_profile_id
+    assert container_host_profile_id(REPO_ROOT, "linux-x86_64") == CONTAINER_HOST_PROFILE_ID
 
 
 def test_setup_refuses_an_architecture_without_a_qualified_container_profile() -> None:
     from tools.devcontainer_setup import DevcontainerSetupError, container_host_profile_id
 
-    with pytest.raises(DevcontainerSetupError, match="no reviewed development container profile"):
-        container_host_profile_id(REPO_ROOT, "macos-arm64")
+    for platform_id in ("linux-arm64", "macos-arm64"):
+        with pytest.raises(DevcontainerSetupError, match="no reviewed development container profile"):
+            container_host_profile_id(REPO_ROOT, platform_id)
 
 
 class _FakeBootstrap:
@@ -840,7 +825,7 @@ def test_setup_runs_each_step_in_order_and_announces_readiness(
     from tools import devcontainer_setup, tooling_policy_gate
 
     order: list[str] = []
-    monkeypatch.setattr(tooling_policy_gate, "host_platform_id", lambda: "linux-arm64")
+    monkeypatch.setattr(tooling_policy_gate, "host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr(
         devcontainer_setup, "container_host_profile_id", lambda _root, platform: order.append(platform) or "profile"
     )
@@ -851,9 +836,9 @@ def test_setup_runs_each_step_in_order_and_announces_readiness(
         devcontainer_setup, "install_git_hooks", lambda _root, _kit: order.append("hooks") or "installed"
     )
     devcontainer_setup.setup(REPO_ROOT, kit_root=tmp_path / "raes-bootstrap")
-    assert order == ["linux-arm64", "kit:profile:raes-bootstrap", "sync", "tools", "hooks"]
+    assert order == ["linux-x86_64", "kit:profile:raes-bootstrap", "sync", "tools", "hooks"]
     output = capsys.readouterr().out
-    assert output.startswith("RAES development container setup (linux-arm64)\n")
+    assert output.startswith("RAES development container setup (linux-x86_64)\n")
     assert output.rstrip().endswith("`nox -s verify-changed` before pushing.")
 
 

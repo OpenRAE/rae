@@ -1745,9 +1745,8 @@
     {
       "workflow": ".github/workflows/bootstrap-qualification.yml",
       "job": "development-image",
-      "runner": "${{ matrix.runner }}",
+      "runner": "ubuntu-24.04",
       "host_profile_ids": [
-        "public-linux-arm64",
         "public-ubuntu-24.04-x86_64"
       ],
       "trust_classes": [
@@ -3777,7 +3776,7 @@
       "action": "actions/upload-artifact",
       "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "inputs": {
-        "name": "development-image-${{ matrix.profile }}-${{ github.sha }}",
+        "name": "development-image-${{ github.sha }}",
         "path": "development-image-qualification.json",
         "if-no-files-found": "error"
       },

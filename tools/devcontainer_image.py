@@ -23,7 +23,7 @@ from tools.tool_versions import DEVCONTAINER_BASE_IMAGE_VERSION  # noqa: E402
 
 BASE_IMAGE_ARTIFACT_ID = "devcontainer-base-image"
 _DIGEST_PREFIX = "sha256:"
-_OCI_PLATFORMS = {"linux-x86_64": "linux/amd64", "linux-arm64": "linux/arm64"}
+_OCI_PLATFORMS = {"linux-x86_64": "linux/amd64"}
 
 
 def build_plan(  # NOSONAR -- explicit closed-response checks keep the plan fail-closed.
@@ -64,7 +64,7 @@ def build_plan(  # NOSONAR -- explicit closed-response checks keep the plan fail
         "host_profile_id": host_profile_id,
         "platform_id": platform_id,
         "oci_platform": _OCI_PLATFORMS[platform_id],
-        "base_image_reference": f"{registry_reference}@{selection.release}",
+        "base_image_reference": f"{registry_reference}@{_DIGEST_PREFIX}{selection.raw_manifest[0].sha256}",
         "base_image_index_digest": selection.release,
         "base_image_digest": f"{_DIGEST_PREFIX}{selection.raw_manifest[0].sha256}",
         "native_repository_snapshot": snapshot,

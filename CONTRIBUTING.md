@@ -39,9 +39,10 @@ Changing these migration pins is an explicit, reviewable workflow trust change.
 The fastest start is the
 [development container](docs/explain/development-container.md): open the
 repository in VS Code with the Dev Containers extension, or create a GitHub
-Codespace, and setup runs by itself. It works on Linux x86_64 and arm64,
-including Apple silicon. The container cannot run the Isabelle proof lane, so
-continuous integration runs the full `verify` gate for container users.
+Codespace, and setup runs by itself. It is an x86_64 image; on Apple silicon,
+Docker Desktop runs it under emulation. The container cannot run the Isabelle
+proof lane, so continuous integration runs the full `verify` gate for container
+users.
 
 To set up natively instead:
 

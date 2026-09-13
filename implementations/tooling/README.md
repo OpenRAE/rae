@@ -134,32 +134,30 @@ An action commit identifies orchestration code; it never identifies the Python
 or uv bytes selected by that action. Standard CPython 3.11–3.14 payloads are
 blocking. The separately locked 3.14t payload remains advisory.
 
-`container-ubuntu-24.04-x86_64` and `container-ubuntu-24.04-arm64` are the
-reviewed container host profiles behind the
-[development container](../../docs/explain/development-container.md). They add
-closed fields the native profiles do not carry: a `base_image_artifact_ref`
-naming the multi-architecture base index in the artifact lock, a
+`container-ubuntu-24.04-x86_64` is the reviewed container host profile behind
+the [development container](../../docs/explain/development-container.md). It
+adds closed fields the native profiles do not carry: a `base_image_artifact_ref`
+naming the digest-pinned OCI base in the artifact lock, a
 `native_repository_snapshot` fixing the immutable package snapshot,
 `development_package_ids` for maintainer tools, and a non-root
-`development_user`. Both profiles must agree on everything but their platform,
-because one image definition serves both.
-`tools/tooling_artifact_policy_container.py` joins them to
+`development_user`. Only Linux x86_64 is declared, because Ubuntu publishes
+immutable package snapshots only for it; arm64 hosts run the same image under
+emulation. `tools/tooling_artifact_policy_container.py` joins the profile to
 `.devcontainer/Dockerfile` and fails closed on a floating or substituted base, a
-drifting or bypassed snapshot, an unreviewed or missing package, an architecture
-guard that differs from the qualified profiles, a root or drifting account, an
-unverified download, or any build argument, environment input, instruction, or
-mount outside the closed reviewed set.
-`tools/tooling_artifact_policy_devcontainer.py` holds `devcontainer.json` to
-its closed shape: the single `tools.devcontainer_setup` lifecycle command, the
-tool path, one named cache volume, editor customizations without commands or
-environment, and no host-side commands, extra environment, host mounts, or
-container capabilities. The container profiles declare
-`proof_support: unsupported` and supply no container daemon. The
-`development-image` matrix jobs in the bootstrap qualification workflow validate
-this policy before building, build each architecture natively from an empty
-builder cache, run the dev-container lifecycle setup twice, then run
-`nox -s policy`, `nox -s lint`, and `nox -s tests` in a new terminal and confirm
-the proof lane fails with its bubblewrap capability diagnosis.
+stage without the qualified `--platform`, a drifting or bypassed snapshot, an
+unreviewed or missing package, a root or drifting account, or any build
+argument, environment input, instruction, mount, or RUN command outside the
+closed reviewed forms. `tools/tooling_artifact_policy_devcontainer.py` holds
+`devcontainer.json` to its closed shape: the single `tools.devcontainer_setup`
+lifecycle command, the tool path, one named cache volume, editor customizations
+without commands or environment, and no host-side commands, extra environment,
+host mounts, or container capabilities. The profile declares
+`proof_support: unsupported` and supplies no container daemon. The
+`development-image` job in the bootstrap qualification workflow validates this
+policy before building, builds from an empty builder cache, runs the
+dev-container lifecycle setup twice, then runs `nox -s policy`, `nox -s lint`,
+and `nox -s tests` in a new terminal and confirms the proof lane fails with its
+bubblewrap capability diagnosis.
 
 Use the fixed inspection surface for a reviewed host profile:
 
