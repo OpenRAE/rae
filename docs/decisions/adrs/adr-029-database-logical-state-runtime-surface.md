@@ -91,6 +91,14 @@ Database engine, protocol, and version are distinct facts:
 - `version` records the observed engine version string.
 - listener facts record DB-process listener observations, not host exposure.
 
+A known engine does not require an authored protocol merely to describe partial
+state. Omitted protocol defaults to `unknown`, not an asserted `other` protocol,
+and remains omitted in source-preserving serialization. This permits
+instantiation and portable compilation without inventing a contradictory fact.
+An explicitly supplied incompatible known protocol (including `other` for a
+canonical engine) still fails validation. Selected connection operations enforce
+their necessary concrete protocol and support at admission.
+
 PostgreSQL must not be represented as `runtime.applications[].protocol: other`.
 Likewise, a database listener must not replace `Node.services` or
 `runtime.network.published_ports`; those surfaces remain the transport and
@@ -161,9 +169,9 @@ The implementation must reuse the repository's existing gates:
   concrete revalidation.
 - `Relationship` as the owning relationship graph; extend that model or its
   validators narrowly if database access requires typed relationship metadata.
-- `schema_bundle()`, `tools/generate_contract_schemas.py`, and
-  `tools/check_generated_schemas.py`; generated schemas under
-  `contracts/schemas/` must not be edited directly.
+- Published normative schemas under `contracts/schemas/` and their reviewed
+  publication ledger; `schema_bundle()` and `tools/check_generated_schemas.py`
+  prove reference implementation parity with that authority (ADR-009).
 - existing `aces_processor.models.Diagnostic` and published control-plane or
   runtime envelopes if database facts later flow into snapshots, reports, or
   backend diagnostics.
@@ -205,8 +213,8 @@ database schema elsewhere.
 - Instantiation gate: variable placeholders may stand in ordinary value fields,
   but not symbol-defining ids, relationship endpoint identities, or mapping
   keys. Concrete instantiated scenarios must revalidate.
-- Contract/schema gate: schema changes come from Python model sources and
-  regeneration, never direct edits under `contracts/schemas/`.
+- Contract/schema gate: reviewed normative schema changes carry publication
+  ledger entries and identical reference implementation output (ADR-009).
 - Host/OS exposure gate: host-published ports remain
   `runtime.network.published_ports`; DB listeners and settings must not hide
   externally reachable attack surface or duplicate host binding state.
@@ -292,3 +300,4 @@ database schema elsewhere.
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-05-30 | d0b4332 | Corrected the runtime field reference `runtime.process` to `runtime.processes` during the DSL-139 family reconciliation. |
+| 2026-09-13 | #1207 | Preserve omitted protocol knowledge through instantiation while retaining explicit engine/protocol contradiction checks. |

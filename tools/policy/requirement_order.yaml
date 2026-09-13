@@ -237,6 +237,12 @@ ownership:
   # SEM-218 uses shared semantic contracts and their generated/evidence closure.
   # It does not own backend implementations or downstream scenarios.
   software-requirement-semantics:
+    # Issue 1207: exact additional records for shared partial-inventory semantics.
+    - docs/requirements/DSL-132/requirement.md
+    - docs/requirements/DSL-134/requirement.md
+    - docs/requirements/DSL-136/requirement.md
+    - docs/requirements/DSL-137/requirement.md
+    - docs/research/language-extensibility/adr-follow-ups.md
     - contracts/schemas/sdl
     - contracts/schemas/realization-constraints
     - contracts/schemas/plans

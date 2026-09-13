@@ -114,7 +114,7 @@
             "implementation": {"const": "cpython"},
             "version": {"enum": ["3.11", "3.12", "3.13", "3.14"]},
             "abi": {"pattern": "^cp3(11|12|13|14)$"},
-            "platform": {"enum": ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "aarch64-apple-darwin"]}
+            "platform": {"enum": ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin"]}
           }
         },
         "project_extras": {"type": "array", "uniqueItems": true, "items": {"enum": ["dev", "docs"]}},

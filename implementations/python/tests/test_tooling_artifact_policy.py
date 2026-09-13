@@ -354,7 +354,6 @@ def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
     expected_tools = {
         "public-linux-x86_64-cp314-tools",
         "public-linux-arm64-cp314-tools",
-        "public-macos-x86_64-cp314-tools",
         "public-macos-arm64-cp314-tools",
     }
     document = _load(REPO_ROOT, PROFILES_PATH)
@@ -371,12 +370,15 @@ def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
     assert all(profiles[profile_id]["purposes"] == ["tool", "build"] for profile_id in expected_tools)
     assert all(profiles[profile_id]["project_extras"] == [] for profile_id in expected_tools)
     assert all(profiles[profile_id]["tool_groups"] == ["default", "build"] for profile_id in expected_tools)
-    macos_x86_tools = json.loads(
-        (REPO_ROOT / profiles["public-macos-x86_64-cp314-tools"]["wheelhouse_manifest"]).read_text(encoding="utf-8")
-    )
-    artifacts = {item["name"]: item for item in macos_x86_tools["artifacts"]}
-    assert {"cryptography", "hatchling", "pathspec", "trove-classifiers"} <= artifacts.keys()
-    assert "macosx_10_9_universal2" in artifacts["cryptography"]["filename"]
+    # cryptography 50 ships no macOS x86_64 wheel, so no tool closure may target
+    # that platform; every closure carries the patched releases (#1268).
+    assert all(profile["python"]["platform"] != "x86_64-apple-darwin" for profile in profiles.values())
+    for profile_id in expected_tools:
+        manifest = json.loads((REPO_ROOT / profiles[profile_id]["wheelhouse_manifest"]).read_text(encoding="utf-8"))
+        artifacts = {item["name"]: item for item in manifest["artifacts"]}
+        assert {"cryptography", "hatchling", "pathspec", "trove-classifiers"} <= artifacts.keys()
+        assert artifacts["cryptography"]["version"] == "50.0.1"
+        assert artifacts["pip"]["version"] == "26.2.1"
     loaded = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp312-all-extras")
     assert loaded.build_constraints.name == "build-constraints.txt"
     assert loaded.test_case_ids == ("T03", "T10", "T11", "T13", "T23")

@@ -60,8 +60,8 @@ The authorization owns typed child collections for:
 - `roles`: named local roles.
 - `permission_grants`: the defining resource-scoped grant — a role reference,
   bounded `actions`, `resource_patterns`, an `allow`/`deny` effect, and a
-  `resource_kind`. The grant's `resource_kind` is the single author-settable
-  source of truth for the resource vocabulary.
+  `resource_kind`. The grant's `resource_kind` identifies that grant's resource space;
+  the store's scalar vocabulary need not be covered by a partial grant inventory.
 - `role_mappings`: bindings of backend roles, users, or hosts onto a local role.
 - `tenants`: namespace/tenancy scopes within the store.
 
@@ -73,9 +73,8 @@ promoted into a bounded field above.
 
 A principal never carries a raw credential value. Its posture is recorded purely
 via a `credential_classification` (`none`, `redacted`, `operator_secret`), and
-the model has no field that can hold a raw bcrypt hash, API key, or password. A
-principal whose `name` matches the shared secret-name vocabulary must declare a
-`redacted` or `operator_secret` classification rather than `none`.
+the model has no field that can hold a raw bcrypt hash, API key, or password. Principal names are identities, not setting keys; name-based secret
+classification does not apply to them (ADR-057).
 
 ### 4. Keep authorization inventory targetable but not executable
 
@@ -97,17 +96,20 @@ These refs are inventory targets. They do not imply access-decision execution.
   not variables. Duplicate authorization ids and duplicate authorization-local
   child ids (across the authorization and its principal/role/grant/mapping/tenant
   collections) fail early.
-- Semantic validation gate: an authorization declaring a concrete (non-`unknown`)
-  `resource_vocabulary` must carry at least one permission grant whose
-  `resource_kind` matches; `permission_grants` and `role_mappings` `role_ref`
-  values resolve to roles declared within the same authorization.
+- Semantic validation gate: supplied concrete `permission_grants` and
+  `role_mappings` `role_ref` values resolve within the same authorization.
+  A scalar vocabulary declaration does not require a matching grant: empty,
+  omitted, deny-only, and partially captured inventories remain descriptions.
+- Selected-operation gate: an operation that needs grant coverage or effective
+  access must enforce its installed, independently admitted profile before
+  execution; merely recording a matching grant does not authorize access.
 - Relationship/reference gate: authorization and child qualified refs resolve in
   generic relationships and survive module import namespacing.
 - Secret/credential gate: raw bcrypt hashes, API keys, and passwords stay out of
-  SDL model data; only a `credential_classification` is recorded, and
-  secret-bearing principal names must be redaction-classified.
-- Contract/schema gate: published schemas are regenerated from Python model
-  sources; generated JSON schemas are not edited by hand.
+  SDL model data; only a `credential_classification` is recorded.
+- Contract/schema gate: published schemas are hand-governed normative authority
+  (ADR-009); the reference schema bundle must match their reviewed contract
+  changes and publication ledger.
 
 ## Guardrails
 
@@ -115,7 +117,7 @@ These refs are inventory targets. They do not imply access-decision execution.
   directory, a `database_services` GRANT surface, OS-local identities, or
   prose-only relationships.
 - Do not store raw credentials of any kind; use the classification only.
-- Do not declare a `resource_vocabulary` member that no grant uses.
+- Do not fabricate a matching grant to make a partial inventory parse.
 - Do not make OpenSearch, Cassandra, Redis, MISP, TheHive, Cortex, or any one
   product the schema authority. They motivate the surface; the model is
   product-neutral.
@@ -146,10 +148,9 @@ These refs are inventory targets. They do not imply access-decision execution.
 
 ### Risks
 
-- The open `other` `resource_vocabulary` member is a watched seam: an exotic
-  ABAC store could route everything through it; the require-grants guard forces
-  matching grants for any declared member, and any new concrete member must ship
-  its own grant validation.
+- A vocabulary name or structurally valid grant is not an access-decision
+  engine. Selected operations must disclose and enforce their actual supported
+  semantics; unknown coverage is not permission.
 
 ## References
 
@@ -158,3 +159,9 @@ These refs are inventory targets. They do not imply access-decision execution.
 - [Scenario/Delivery Boundary for Runtime Node State](adr-033-scenario-delivery-boundary-for-runtime-node-state.md)
 - [Lineage and Prior Work](../../explain/sdl/lineage.md) and
   [Design Precedents](../../explain/sdl/precedents.md)
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-13 | #1207 | Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants. |

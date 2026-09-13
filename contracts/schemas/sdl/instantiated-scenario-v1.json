@@ -14386,7 +14386,7 @@
               "type": "string"
             }
           ],
-          "default": "other",
+          "default": "unknown",
           "title": "Protocol"
         },
         "roles": {
@@ -15507,7 +15507,7 @@
     },
     "RuntimeDatastoreService": {
       "additionalProperties": false,
-      "description": "An observed datastore service hosted by a transport service on a node.\n\nThe single non-relational datastore spine. ``service`` references the owning\nsame-node ``Node.services[].name`` (bare name or the qualified\n``nodes.<node>.services.<name>`` form). The ``data_model`` discriminator\nselects the required profile the ``require_profile_for_data_model`` guard\nenforces.",
+      "description": "An observed datastore service hosted by a transport service on a node.\n\nThe single non-relational datastore spine. ``service`` references the owning\nsame-node ``Node.services[].name`` (bare name or the qualified\n``nodes.<node>.services.<name>`` form). The ``data_model`` discriminator\ndescribes the logical model without imposing a complete deployment recipe.",
       "properties": {
         "aliases": {
           "items": {
@@ -17532,7 +17532,7 @@
     },
     "RuntimeForwardingAgent": {
       "additionalProperties": false,
-      "description": "Node-scoped runtime inventory for a forwarding / intel-sync agent.\n\nThe single forwarder spine. The ``agent_kind`` discriminator selects the\nrequired profile the ``require_profile_for_agent_kind`` guard enforces.\nCadence composes a ``runtime.scheduled_jobs`` entry; the inter-node trust\nedge composes a ``RelationshipForwardingEdge`` \u2014 neither is re-typed here.",
+      "description": "Node-scoped runtime inventory for a forwarding / intel-sync agent.\n\nThe single forwarder spine permits partial descriptions and composed pipelines.\nCadence composes a ``runtime.scheduled_jobs`` entry; the inter-node trust\nedge composes a ``RelationshipForwardingEdge`` \u2014 neither is re-typed here.",
       "properties": {
         "agent_kind": {
           "anyOf": [
@@ -22296,7 +22296,7 @@
     },
     "RuntimeOrchestrationAuthority": {
       "additionalProperties": false,
-      "description": "Node-scoped runtime inventory for a container-spawn control authority.\n\n``control_interface_ref`` is the ``control_interface_id`` of a same-node\n``RuntimeControlInterface`` (the docker.sock shell), resolved by\n``validator.py`` \u2014 referenced, never duplicated. The\n``privilege_class`` discriminator selects the required profile the\n``require_profile_for_privilege_class`` guard enforces.",
+      "description": "Node-scoped runtime inventory for a container-spawn control authority.\n\n``control_interface_ref`` is the ``control_interface_id`` of a same-node\n``RuntimeControlInterface`` (the docker.sock shell), resolved by\n``validator.py`` \u2014 referenced, never duplicated. The privilege classification\nis descriptive and does not select or authorize a privileged operation.",
       "properties": {
         "control_interface_ref": {
           "default": "",

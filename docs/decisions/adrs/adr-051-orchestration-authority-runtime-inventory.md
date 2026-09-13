@@ -57,17 +57,17 @@ The authority owns typed `spawn_templates` (image + purpose), an optional
 `realized_children` (observed spawned workloads with image, count, and evidence
 ref). Each carries a stable local id.
 
-### 4. Make the discriminator executable
+### 4. Separate descriptive privilege from execution authorization
 
-A `require_profile_for_privilege_class` after-validator makes the host-root
-privilege-escalation fact executable: a `host_root_equivalent` authority that
-does not carry a concrete `control_interface_ref` fails validation. A `${var}`
-discriminator is exempt; `namespaced`/`unknown`/`other` are permissive. At
-scenario scope, `control_interface_ref` resolves to a same-node
-`RuntimeControlInterface`, and for `host_root_equivalent` the referenced
-interface must additionally be a read-write docker socket (access `read_write`,
-kind `unix_socket`, path ending in `docker.sock`), with `${var}` interface
-access/kind/path treated as deferred and therefore permissive.
+`privilege_class` records a fact, not permission for the runtime to execute it.
+A partial `host_root_equivalent` description may omit its control-interface
+reference; a supplied concrete reference must resolve on the same node.
+A socket filename, declared mount mode, or engine name does not prove effective
+privilege. Docker, Podman and other engine interfaces can be described without
+a Docker-specific path rule. Read-only and unknown access remain describable.
+A selected privileged operation must independently establish authorized,
+supported control access and enforce its installed profile before execution;
+unknown access is not sufficient to admit that operation.
 
 ### 5. Keep orchestration inventory targetable but not executable
 
@@ -82,14 +82,14 @@ These refs are inventory targets; they do not imply spawn execution.
   variables; duplicate authority ids and duplicate authority-local child ids
   fail early; realized-child `count` is a non-negative integer, a `${var}`, or
   none.
-- Profile gate: the model-local `require_profile_for_privilege_class` guard
-  rejects a `host_root_equivalent` authority with no concrete
-  `control_interface_ref`.
-- Semantic validation gate: `control_interface_ref` resolves to a same-node
-  `RuntimeControlInterface`; a `host_root_equivalent` interface must be a
-  read-write docker socket.
-- Contract/schema gate: published schemas are regenerated from Python model
-  sources; generated JSON schemas are not edited by hand.
+- Selected-operation gate: descriptive privilege never supplies execution
+  authority. Required control access belongs to the selected operation's
+  admitted profile, not a model-local completeness guard.
+- Semantic validation gate: any concrete `control_interface_ref` resolves to
+  a same-node `RuntimeControlInterface`; no filename implies privilege.
+- Contract/schema gate: published schemas are hand-governed normative authority
+  (ADR-009); the reference schema bundle must match their reviewed contract
+  changes and publication ledger.
 
 ## Guardrails
 
@@ -115,8 +115,8 @@ These refs are inventory targets; they do not imply spawn execution.
 - The container-spawn authority and its host-root privilege fact become typed,
   targetable, and validation-backed, with the docker.sock shell referenced
   rather than duplicated.
-- The `host_root_equivalent` profile makes the docker.sock privilege-escalation
-  fact (ATT&CK T1610/T1611) executable rather than implied.
+- Host-root privilege is representable without conflating a partial observation
+  with authorization for container execution.
 
 ### Negative
 
@@ -136,3 +136,9 @@ These refs are inventory targets; they do not imply spawn execution.
 - [Scenario/Delivery Boundary for Runtime Node State](adr-033-scenario-delivery-boundary-for-runtime-node-state.md)
 - [Lineage and Prior Work](../../explain/sdl/lineage.md) and
   [Design Precedents](../../explain/sdl/precedents.md)
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-13 | #1207 | Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants. |

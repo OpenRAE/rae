@@ -1,9 +1,15 @@
 name: PR Body Policy
 
+# The bot-authored main->dev back-merge PR changes only Release Please-managed
+# files and is not subject to the human PR body policy (#1266).
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
     branches: [dev]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
 
 permissions:
   contents: read
