@@ -8,6 +8,7 @@ import socket
 import ssl
 import subprocess
 import tarfile
+import tempfile
 import threading
 import time
 from contextlib import nullcontext
@@ -1045,6 +1046,10 @@ def test_offline_kit_requires_external_trust_before_executing_installed_payloads
     manifest_path = kit_root / "offline-kit-manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     trusted_digest = bootstrap_profile._sha256(manifest_path)
+    unsafe_ambient_temp = tmp_path / "unsafe-ambient-temp"
+    unsafe_ambient_temp.mkdir()
+    unsafe_ambient_temp.chmod(0o777)
+    monkeypatch.setattr(tempfile, "tempdir", str(unsafe_ambient_temp))
     result = bootstrap_profile.verify_offline_kit(
         "host-a",
         kit_root,

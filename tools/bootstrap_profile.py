@@ -950,7 +950,10 @@ def verify_offline_kit(  # NOSONAR -- explicit payload checks preserve the audit
     if generic_ids and generic_ids != {"conftest", "gitleaks", "osv-scanner", "vale"}:
         raise ValueError("offline kit must contain either all four generic tools or none")
     if generic_ids:
-        with tempfile.TemporaryDirectory(prefix="raes-offline-tool-runtime-") as runtime_directory:
+        with tempfile.TemporaryDirectory(
+            prefix=".raes-offline-tool-runtime-",
+            dir=kit_root.parent,
+        ) as runtime_directory:
             runtime_root = Path(runtime_directory)
             generic = qualify_generic_tools(
                 selections=_offline_generic_tool_selections(
