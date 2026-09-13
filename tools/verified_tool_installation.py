@@ -282,9 +282,10 @@ def _filesystem_type(path: Path) -> str:
     if platform.system() == "Darwin":
         try:
             completed = subprocess.run(
-                ["/sbin/mount", "-p"],
+                ["/sbin/mount"],
                 check=True,
                 capture_output=True,
+                env={"LC_ALL": "C", "PATH": "/usr/bin:/bin:/usr/sbin:/sbin"},
                 text=True,
                 timeout=10,
             )
@@ -292,15 +293,19 @@ def _filesystem_type(path: Path) -> str:
                 raise ValueError("mount response exceeds the admission bound")
             candidates = []
             for line in completed.stdout.splitlines():
-                fields = line.split()
-                if len(fields) < 3:
+                _device, on_separator, mounted = line.partition(" on ")
+                mount_value, options_separator, options = mounted.rpartition(" (")
+                if not on_separator or not options_separator or not options.endswith(")"):
                     continue
-                mount = Path(_decode_mount_path(fields[1]))
+                filesystem_type = options[:-1].partition(",")[0].strip()
+                if not filesystem_type:
+                    continue
+                mount = Path(_decode_mount_path(mount_value))
                 try:
                     canonical.relative_to(mount)
                 except ValueError:
                     continue
-                candidates.append((len(mount.parts), fields[2]))
+                candidates.append((len(mount.parts), filesystem_type))
             if not candidates:
                 raise ValueError("mount response has no matching filesystem")
         except (OSError, UnicodeError, ValueError, subprocess.SubprocessError) as exc:

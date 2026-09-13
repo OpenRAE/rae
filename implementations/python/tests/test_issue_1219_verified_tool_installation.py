@@ -557,18 +557,18 @@ def test_darwin_filesystem_qualification_reads_the_mount_table(
 
     def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
         observed.append(command)
-        return SimpleNamespace(stdout="/dev/disk3s1s1 / apfs rw 1 1\n")
+        return SimpleNamespace(stdout="/dev/disk3s1s1 on / (apfs, local, journaled)\n")
 
     monkeypatch.setattr(installation.subprocess, "run", run)
 
     installation._require_qualified_filesystem(tmp_path)
 
-    assert observed == [["/sbin/mount", "-p"]]
+    assert observed == [["/sbin/mount"]]
 
 
 @pytest.mark.parametrize(
     "payload",
-    ["not a mount table", "/dev/disk3s1s1 /elsewhere apfs rw 1 1\n"],
+    ["not a mount table", "/dev/disk3s1s1 on /elsewhere (apfs, local)\n"],
 )
 def test_darwin_filesystem_qualification_fails_closed_on_invalid_mount_output(
     monkeypatch: pytest.MonkeyPatch,
