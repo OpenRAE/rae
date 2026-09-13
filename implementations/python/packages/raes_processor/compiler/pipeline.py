@@ -51,6 +51,7 @@ from .provisioning import (
     _metadata_specs,
 )
 from .realization_requirements import _compile_realization
+from .software_profiles import compile_software_profiles
 from .stateful_resources import _compile_generated_artifacts, _compile_persistent_volumes
 from .time_model import compile_time_model
 from .workflows import _compile_workflows
@@ -168,6 +169,7 @@ def compile_runtime_model(
         else instantiate_scenario(scenario)
     )
     declaration_index = build_declaration_index(scenario)
+    authority = compile_software_profiles(scenario, authority)
     diagnostics: list[Diagnostic] = []
     domain_analysis = analyze_domain_topology(
         identity_domains=scenario.identity_domains,

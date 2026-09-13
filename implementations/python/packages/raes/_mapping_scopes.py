@@ -10,6 +10,10 @@ class MappingScope(str, Enum):
 
     STRUCTURAL = "structural"
     LITERAL = "literal"
+    DATA = "data"
+
+
+PROFILE_JSON_FIELDS = frozenset({"schema_document", "profile_value"})
 
 
 HASHMAP_SECTIONS = frozenset(

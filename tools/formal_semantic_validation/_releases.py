@@ -153,7 +153,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "10.0.0",
+                replay_current=manifest.get("revision") == "11.0.0",
             )
         )
     else:
@@ -242,11 +242,12 @@ def validate_retest_bundle(
         "7.0.0",
         "8.0.0",
         "9.0.0",
+        "10.0.0",
     }:
         return [
             _failure(
                 "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 9.0.0 can use integrated historical validation",
+                "only releases 3.0.0 through 10.0.0 can use integrated historical validation",
                 snapshot_path,
             )
         ]
@@ -259,6 +260,7 @@ def validate_retest_bundle(
         "8.0.0",
         "9.0.0",
         "10.0.0",
+        "11.0.0",
     }:
         failures.append(
             _failure(
@@ -284,6 +286,7 @@ def validate_retest_bundle(
         "8.0.0",
         "9.0.0",
         "10.0.0",
+        "11.0.0",
     }:
         _current_retest_source_failures(
             repo_root,
@@ -311,7 +314,7 @@ def validate_retest_bundle(
     )
     baseline_cases = (
         cases_by_id
-        if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0"}
+        if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0", "11.0.0"}
         else historical_cases
     )
     _validate_baseline_drift(repo_root, snapshot, baseline_cases, failures, snapshot_path)
@@ -347,6 +350,7 @@ def _current_retest_source_failures(
         "8.0.0": "7.0.0",
         "9.0.0": "8.0.0",
         "10.0.0": "9.0.0",
+        "11.0.0": "10.0.0",
     }[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(
