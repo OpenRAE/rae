@@ -1,7 +1,7 @@
-"""Reference implementation of public portable resource-label profiles.
+"""Installed reference profile semantics and authority-preserving preparation.
 
-Labels are typed portable resource state, not guest settings, access grants or
-observations. The semantic implementation is installed code; profile documents
+Public bindings select labels, fixture mailbox materialization, or digest
+artifacts. Their semantic implementations are installed code; profile documents
 and target choices cannot name or load handlers.
 """
 
@@ -12,6 +12,8 @@ from copy import deepcopy
 from dataclasses import replace
 from typing import cast
 
+from raes_contracts.account_materialization import ACCOUNT_MAILBOX_SEMANTICS, AccountMailboxSelection
+from raes_contracts.artifact_generation import DIGEST_ARTIFACT_SEMANTICS, DigestArtifactParameters
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import (
@@ -23,6 +25,7 @@ from raes_contracts.domain_profiles import (
     resolve_domain_profile_definition,
 )
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
+from raes_contracts.profile_selections import authored_resource_profiles, selected_profile_authority
 from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_profiles import (
     profile_binding_tree,
@@ -62,7 +65,10 @@ def reference_profile_configuration(
     ):
         raise ValueError("Reference profile configuration exceeds bounded input limits")
     context = DomainProfileResolutionContextModel.model_validate(context.model_dump(mode="json"))
-    if any(row.semantic_contract != RESOURCE_LABEL_SEMANTICS for row in context.support_declarations):
+    if any(
+        row.semantic_contract not in (RESOURCE_LABEL_SEMANTICS, ACCOUNT_MAILBOX_SEMANTICS, DIGEST_ARTIFACT_SEMANTICS)
+        for row in context.support_declarations
+    ):
         raise ValueError("Reference provisioner does not implement the declared profile semantics")
     if not isinstance(choices, dict) or any(not _labels(value) for value in choices.values()):
         raise ValueError("Reference profile choices must be public resource-label records")
@@ -82,13 +88,23 @@ def reference_profile_diagnostics(
     """Execute the installed semantic validator over the entire binding tree."""
 
     try:
+        source = authored_resource_profiles(op for op in plan.operations if op.action is not ChangeAction.DELETE)
+        selected_profile_authority(source, None, plan.profile_authority)
+        selected = tuple(binding for op in plan.operations for binding in getattr(op, "profile_bindings", ()))
+        if plan.profile_authority is None:
+            if selected:
+                raise ValueError("Selected profiles require admitted authority")
+        elif profile_selection_violation(plan.profile_authority, selected, context):
+            raise ValueError("Selected profiles contradict admitted authority")
         for operation in plan.operations:
             for binding in profile_binding_tree(getattr(operation, "profile_bindings", ())).values():
                 resolved = resolve_domain_profile_definition(binding.coordinate, context)
                 if (
-                    not resolved.resolved
-                    or resolved.definition.semantic_contract != RESOURCE_LABEL_SEMANTICS
-                    or not _labels(binding.value)
+                    operation.action is ChangeAction.DELETE
+                    or not resolved.resolved
+                    or not _reference_semantics_valid(
+                        resolved.definition.semantic_contract, binding, operation.resource_type
+                    )
                     or profile_resource_address(binding) != operation.address
                 ):
                     raise ValueError("Unsupported resource labels")
@@ -102,6 +118,31 @@ def reference_profile_diagnostics(
             )
         ]
     return []
+
+
+def _reference_semantics_valid(semantics: object, binding: DomainProfileBindingModel, resource_type: str) -> bool:
+    if semantics == RESOURCE_LABEL_SEMANTICS:
+        return binding.owner.context not in {
+            "account-materialization",
+            "artifact-generation",
+            "service-materialization",
+            "identity-domain",
+        } and _labels(binding.value)
+    if (
+        semantics == ACCOUNT_MAILBOX_SEMANTICS
+        and binding.owner.context == "account-materialization"
+        and resource_type == "account-placement"
+    ):
+        AccountMailboxSelection.model_validate(binding.value)
+        return not binding.children
+    if (
+        semantics == DIGEST_ARTIFACT_SEMANTICS
+        and binding.owner.context == "artifact-generation"
+        and resource_type == "generated-artifact"
+    ):
+        DigestArtifactParameters.model_validate(binding.value)
+        return not binding.children
+    return False
 
 
 def prepare_reference_profiles(

@@ -2,9 +2,9 @@
   "contract_id": "participant-resource-pool-capacity-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-resource-pool-capacity-v1.json",
   "stability": "draft",
-  "content_hash": "b69b63eabb1e3d5cc00b70f132ec7bc2f95fec0f815012733b82420aabe99649",
+  "content_hash": "0b0c8709d646d4b6c62c3ed45c57aced56fd5eac97f05d6981bb63f11f91d4cf",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "b69b63eabb1e3d5cc00b70f132ec7bc2f95fec0f815012733b82420aabe99649"
+    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
+    "content_hash": "0b0c8709d646d4b6c62c3ed45c57aced56fd5eac97f05d6981bb63f11f91d4cf"
   }
 }

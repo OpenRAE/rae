@@ -8,6 +8,7 @@ from raes.semantics.domain_topology import (
     DomainTopologyAnalysis,
 )
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 from ..models import (
     AccountPlacement,
@@ -86,6 +87,10 @@ def _compile_service_materialization(
 ):
     binding = content.service_materialization
     if binding is None:
+        return None, []
+    if isinstance(binding, DomainProfileBindingModel):
+        # Preserve the authored binding in spec for exact profile admission;
+        # only the two built-in contracts use the legacy compiled carrier.
         return None, []
     split = _resolve_node_service_ref(scenario, binding.target_service_ref)
     if split is None or split[0] != content.target:

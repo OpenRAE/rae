@@ -53,9 +53,15 @@ this run does not repair them.
   retaining the exact historical captures and original coverage denominator.
 
 - [`execution-snapshot-v8.json`](execution-snapshot-v8.json) and
-  [`analysis-v8.json`](analysis-v8.json) are current release 8.0.0. They bind
+  [`analysis-v8.json`](analysis-v8.json) preserve release 8.0.0. They bind
   partial description contracts to freshly replayed evidence with the same
   preregistered classifications and missing-concept denominator.
+
+- [`execution-snapshot-v9.json`](execution-snapshot-v9.json) and
+  [`analysis-v9.json`](analysis-v9.json) are current release 9.0.0. They bind
+  the typed selection implementation to fresh source and package digests.
+  The retained artifacts execute through their production boundaries; the
+  recomputed analysis retains the original classifications and denominator.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -65,7 +71,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 8.0.0 and rejects duplicate or unsupported
+Current validation requires release 9.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

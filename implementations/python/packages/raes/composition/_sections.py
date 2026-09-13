@@ -10,6 +10,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from raes_contracts.profile_selections import profile_selection_binding
+
 from .._errors import SDLParseError
 from .._identifiers import QualifiedName
 from .._module_symbols import FORWARDING_AGENTS_SECTION
@@ -101,6 +103,12 @@ def _rewrite_node(payload: dict[str, Any], symbols: dict[str, dict[str, str] | s
     if isinstance(runtime, dict):
         _rewrite_node_network_namespace(runtime, symbols)
         _rewrite_generated_environment_sources(runtime, symbols)
+        for service in runtime.get("mail_services", []):
+            for mailbox in service.get("mailboxes", []):
+                if mailbox.get("account_ref"):
+                    mailbox["account_ref"] = _rewrite_section_ref(
+                        mailbox["account_ref"], "accounts", symbols["accounts"]
+                    )
 
 
 def _rewrite_infrastructure(payload: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
@@ -250,7 +258,7 @@ def _rewrite_content_sections(
         if content.get("target"):
             content["target"] = _rewrite_section_ref(str(content["target"]), "nodes", symbols["nodes"])
         materialization = content.get("service_materialization")
-        if isinstance(materialization, dict):
+        if isinstance(materialization, dict) and profile_selection_binding(materialization) is None:
             _rewrite_service_materialization(materialization, symbols)
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.domain_profiles import DomainProfileCoordinateModel
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier
@@ -57,35 +58,10 @@ class ParticipantResourceFairness(SDLModel):
     starvation_bound_ticks: int = Field(ge=1, le=1_000_000_000)
 
 
-_RESOURCE_UNITS = {
-    ParticipantResourceKind.ACTION_RATE: "actions",
-    ParticipantResourceKind.CONCURRENT_ACTIONS: "actions",
-    ParticipantResourceKind.STORAGE_GROWTH: "bytes",
-    ParticipantResourceKind.INFERENCE_TOKENS: "tokens",
-    ParticipantResourceKind.IMAGE_GENERATIONS: "images",
-    ParticipantResourceKind.ACCELERATOR: "accelerator_milliseconds",
-}
-
-_RESOURCE_ACCOUNTING = {
-    ParticipantResourceKind.ACTION_RATE: {ParticipantResourceAccountingMode.WINDOWED_COUNTER},
-    ParticipantResourceKind.CONCURRENT_ACTIONS: {ParticipantResourceAccountingMode.RESERVABLE_GAUGE},
-    ParticipantResourceKind.STORAGE_GROWTH: {ParticipantResourceAccountingMode.GROWTH_COUNTER},
-    ParticipantResourceKind.INFERENCE_TOKENS: {
-        ParticipantResourceAccountingMode.WINDOWED_COUNTER,
-        ParticipantResourceAccountingMode.CUMULATIVE_COUNTER,
-    },
-    ParticipantResourceKind.IMAGE_GENERATIONS: {
-        ParticipantResourceAccountingMode.WINDOWED_COUNTER,
-        ParticipantResourceAccountingMode.CUMULATIVE_COUNTER,
-    },
-    ParticipantResourceKind.ACCELERATOR: {ParticipantResourceAccountingMode.LEASE},
-}
-
-
 class ParticipantResourceBudgetDimension(SDLModel):
     owner_ref: PortableIdentifier
     pool_ref: str = Field(min_length=1)
-    resource_kind: ParticipantResourceKind
+    resource_kind: ParticipantResourceKind | DomainProfileCoordinateModel
     unit: str = Field(min_length=1)
     accounting_mode: ParticipantResourceAccountingMode
     meter_profile_ref: str = Field(min_length=1)
@@ -107,14 +83,11 @@ class ParticipantResourceBudgetDimension(SDLModel):
 
     @model_validator(mode="after")
     def _validate_dimension(self) -> ParticipantResourceBudgetDimension:
-        expected_unit = _RESOURCE_UNITS[self.resource_kind]
-        if self.unit != expected_unit:
-            raise ValueError(f"{self.resource_kind.value} resource budget requires unit {expected_unit!r}")
-        if self.accounting_mode not in _RESOURCE_ACCOUNTING[self.resource_kind]:
-            raise ValueError(
-                f"{self.resource_kind.value} resource budget does not support accounting mode "
-                f"{self.accounting_mode.value!r}"
-            )
+        from raes_contracts.contracts.participant_resource_types import require_quantity_semantics
+
+        require_quantity_semantics(
+            getattr(self.resource_kind, "value", self.resource_kind), self.unit, self.accounting_mode.value
+        )
         if self.reservation > self.limit:
             raise ValueError("resource-budget reservation cannot exceed limit")
         windowed = self.accounting_mode == ParticipantResourceAccountingMode.WINDOWED_COUNTER

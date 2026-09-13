@@ -11,6 +11,7 @@ from raes_contracts.apparatus import RUNTIME_REALIZATION_DOMAIN, RealizationSupp
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
+from raes_contracts.profile_selections import profile_selection_binding
 from raes_contracts.realization_envelope import (
     BackendRealizationEnvelopeModel,
     ConcernDisposition,
@@ -99,6 +100,26 @@ def service_materialization_plan_diagnostics(
     diagnostics: list[Diagnostic] = []
     for operation in plan.operations:
         if operation.resource_type != "content-placement" or operation.action is ChangeAction.DELETE:
+            continue
+        spec = operation.payload.get("spec")
+        selected = spec.get("service_materialization") if isinstance(spec, Mapping) else None
+        try:
+            private = profile_selection_binding(selected)
+            if private is not None and (
+                operation.payload.get("service_materialization") is not None
+                or private.coordinate not in capabilities.supported_service_materialization_profiles
+            ):
+                raise ValueError("Unadvertised private service profile")
+        except (TypeError, ValueError):
+            diagnostics.append(
+                _diagnostic(
+                    "provisioner.unsupported-service-materialization-profile",
+                    operation.address,
+                    "Provisioner does not support the selected service materialization profile.",
+                )
+            )
+            continue
+        if private is not None:
             continue
         binding = operation.payload.get("service_materialization")
         if binding is None:

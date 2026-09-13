@@ -209,7 +209,9 @@ def plan(
         model, manifest, apparatus_realization_default
     )
     resources = _collect_resources(effective_model)
-    resources, profile_diagnostics = profile_resources(effective_model, resources, manifest, snapshot, profile_context)
+    resources, profile_diagnostics, profile_authority = profile_resources(
+        effective_model, resources, manifest, snapshot, profile_context
+    )
     preparation = preparation_authority(manifest)
     diagnostics = [
         *profile_diagnostics,
@@ -255,7 +257,7 @@ def plan(
     provisioning = retain_open_collection_nodes(
         cast(
             "ProvisioningPlan",
-            replace(provisioning, preparation=preparation, profile_authority=model.profile_authority),
+            replace(provisioning, preparation=preparation, profile_authority=profile_authority),
         )
     )
     materialization_diagnostics = service_materialization_plan_diagnostics(

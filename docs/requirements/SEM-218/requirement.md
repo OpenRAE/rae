@@ -246,3 +246,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - TESTS → TEST `implementations/python/tests/test_specification_coverage_units.py` (Independent evidence arithmetic and integrity fixtures)
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation_review.py` (Replay, provenance and anti-fabrication evidence controls)
 - TESTS → TEST `implementations/python/tests/evidence_test_fixtures.py` (Isolated shared evidence fixtures)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/profile_selections.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1208_self_review.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1208_overcap.py`

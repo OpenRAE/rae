@@ -31,3 +31,5 @@ Scenarios need coherent pre-existing files and application data across real prod
 - IMPLEMENTS → SPEC `specs/sdl/initial-service-state.md` (Initial service state normative SDL specification)
 - TESTS → TEST `implementations/python/tests/test_initial_service_state.py` (Initial service state and search-index schema verification)
 - IMPLEMENTS → GITHUB_ISSUE `1011` (Issue #1011: portable search-index schema profile)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/profile_selections.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1208_profile_selections.py`

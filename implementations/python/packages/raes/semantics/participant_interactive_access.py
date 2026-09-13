@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
+from raes_contracts.domain_profiles import DomainProfileBindingModel
+
 from ._domain_topology_types import resolve_section_ref
 
 
@@ -30,6 +32,8 @@ class _ParticipantAccountContext:
 def _concrete_channel(value: object, *, is_unresolved: Callable[[object], bool]) -> str | None:
     if is_unresolved(value):
         return None
+    if isinstance(value, DomainProfileBindingModel):
+        return value.coordinate.model_dump_json()
     channel = getattr(value, "value", value)
     return channel if isinstance(channel, str) else None
 

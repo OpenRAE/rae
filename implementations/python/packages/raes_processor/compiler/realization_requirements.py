@@ -5,8 +5,10 @@ from dataclasses import replace
 
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
 from raes.nodes import NodeType
+from raes.profile_selections import profile_owned_mailbox_inventory
 from raes.scenario import InstantiatedScenario
 from raes.semantics.domain_topology import DomainTopologyAnalysis
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
 
 from ..semantics.realization import (
@@ -234,7 +236,7 @@ def _append_service_materialization_requirements(
 ) -> None:
     for name, content in scenario.content.items():
         binding = content.service_materialization
-        if binding is None:
+        if binding is None or isinstance(binding, DomainProfileBindingModel):
             continue
         requirement_kind = (
             "service-search-index-schema-materialization"
@@ -307,6 +309,10 @@ def _compiled_registered_realization(
     verification_scope, observation_strength = operational_verification_requirement(
         descriptor.concern_kind, authored_value
     )
+    if descriptor.concern_kind == "runtime-mail-services" and profile_owned_mailbox_inventory(
+        scenario, declaration_name
+    ):
+        verification_scope, observation_strength = None, None
     authority = CompiledRealizationAuthority(
         field_path=registered.field_path,
         address=address,

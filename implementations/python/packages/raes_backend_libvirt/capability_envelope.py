@@ -18,7 +18,9 @@ from raes_backend_protocols.account_features import provisioner_account_features
 from raes_backend_protocols.capabilities import ProvisionerCapabilities
 from raes_backend_protocols.domain_topology import domain_topology_profile
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.domain_profiles import DomainProfileCoordinateModel
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, RuntimeDomain
+from raes_contracts.profile_selections import profile_selection_binding
 
 from ._payload import (
     ACCOUNT_PLACEMENT_RESOURCE_TYPE,
@@ -36,6 +38,7 @@ from ._payload import (
 )
 
 _DOMAIN = "runtime"
+_EnvelopeTerm = str | DomainProfileCoordinateModel
 
 # A network resource is realized as a libvirt switch, so its node-kind envelope
 # term is fixed.
@@ -66,8 +69,8 @@ class _EnvelopeDimension:
     resource_types: frozenset[str]
     code: str
     noun: str
-    extract: Callable[[Mapping[str, object]], tuple[str, ...]]
-    supported: Callable[[ProvisionerCapabilities], frozenset[str]]
+    extract: Callable[[Mapping[str, object]], tuple[_EnvelopeTerm, ...]]
+    supported: Callable[[ProvisionerCapabilities], frozenset[_EnvelopeTerm]]
 
 
 _ENVELOPE_DIMENSIONS: tuple[_EnvelopeDimension, ...] = (
@@ -136,7 +139,15 @@ _ENVELOPE_DIMENSIONS: tuple[_EnvelopeDimension, ...] = (
 )
 
 
-def _service_materialization_profile(payload: Mapping[str, object]) -> str:
+def _service_materialization_profile(payload: Mapping[str, object]) -> str | DomainProfileCoordinateModel:
+    spec = payload.get("spec")
+    private = spec.get("service_materialization") if isinstance(spec, Mapping) else None
+    try:
+        selected = profile_selection_binding(private)
+    except (TypeError, ValueError):
+        return "invalid-profile"
+    if selected is not None:
+        return selected.coordinate
     binding = payload.get("service_materialization")
     if not isinstance(binding, Mapping):
         return ""
@@ -145,7 +156,7 @@ def _service_materialization_profile(payload: Mapping[str, object]) -> str:
     return f"{profile}-v{version}" if profile and version else ""
 
 
-def _requested_domain_profiles(payload: Mapping[str, object]) -> tuple[str, ...]:
+def _requested_domain_profiles(payload: Mapping[str, object]) -> tuple[_EnvelopeTerm, ...]:
     profile = domain_topology_profile(payload)
     return (profile,) if profile else ()
 
@@ -163,7 +174,7 @@ def capability_envelope_diagnostics(
     DELETE never realizes a term, so its payload is not gated.
     """
 
-    deduped: dict[tuple[str, str, str], Diagnostic] = {}
+    deduped: dict[tuple[str, str, _EnvelopeTerm], Diagnostic] = {}
     for address, resource_type, payload in _materialized_payloads(plan):
         for key, diagnostic in _out_of_envelope_terms(address, resource_type, payload, capabilities):
             deduped.setdefault(key, diagnostic)
@@ -175,7 +186,7 @@ def _out_of_envelope_terms(
     resource_type: str,
     payload: Mapping[str, object],
     capabilities: ProvisionerCapabilities,
-) -> Iterator[tuple[tuple[str, str, str], Diagnostic]]:
+) -> Iterator[tuple[tuple[str, str, _EnvelopeTerm], Diagnostic]]:
     """Yield ``((code, address, term), diagnostic)`` for each unsupported term of a payload."""
 
     for dimension in _ENVELOPE_DIMENSIONS:
@@ -193,7 +204,7 @@ def _out_of_envelope_operating_system(
     address: str,
     payload: Mapping[str, object],
     capabilities: ProvisionerCapabilities,
-) -> Iterator[tuple[tuple[str, str, str], Diagnostic]]:
+) -> Iterator[tuple[tuple[str, str, _EnvelopeTerm], Diagnostic]]:
     """Yield the unsupported operating-system identity of a node payload, if any."""
 
     family = _os_family(payload)
@@ -232,7 +243,7 @@ def _materialized_payloads(plan: ProvisioningPlan) -> Iterator[tuple[str, str, M
             yield op.address, op.resource_type, op.payload
 
 
-def _envelope_diagnostic(dimension: _EnvelopeDimension, address: str, term: str) -> Diagnostic:
+def _envelope_diagnostic(dimension: _EnvelopeDimension, address: str, term: _EnvelopeTerm) -> Diagnostic:
     return Diagnostic(
         code=dimension.code,
         domain=_DOMAIN,

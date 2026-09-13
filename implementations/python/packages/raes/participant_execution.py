@@ -212,7 +212,7 @@ class ParticipantAutonomousExecutionPolicyV3(ParticipantAutonomousExecutionPolic
         participant_concurrency = [
             dimension
             for dimension in self.resource_budget.dimensions.values()
-            if dimension.resource_kind.value == "concurrent_actions"
+            if dimension.resource_kind == "concurrent_actions"
             and self.resource_budget.owners[dimension.owner_ref].kind.value == "participant"
         ]
         if len(participant_concurrency) != 1:

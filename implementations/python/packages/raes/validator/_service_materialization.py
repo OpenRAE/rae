@@ -1,5 +1,7 @@
 """Semantic validation for service-owned content materialization."""
 
+from raes_contracts.domain_profiles import DomainProfileBindingModel
+
 from ..deployment_tenancy import StateOwner
 from ..propositions import AssertionRole, PropositionBasis
 from ..relationships import RelationshipType
@@ -8,6 +10,10 @@ from ..relationships import RelationshipType
 class _ServiceMaterializationMixin:
     def _verify_service_materialization(self, name: str, item: object) -> None:
         binding = item.service_materialization
+        if isinstance(binding, DomainProfileBindingModel):
+            # The selected semantic contract owns its parameters. The content
+            # target and relationship authority are still validated by core.
+            return
         label = f"Content '{name}' service_materialization"
         service_target = binding.target_service_ref
         target_owner = self._split_node_service_ref(service_target)

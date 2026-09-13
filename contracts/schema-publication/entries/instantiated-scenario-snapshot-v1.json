@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-snapshot-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "ac6e5284e94023a1dbc2769ba4fb8fee4581d8f37fd6397455dfa78c2244a0d6",
+  "content_hash": "9d6a3dc9b9baafcd35e5502c043f940dab0f212b0db23311545e390492b2883a",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "ac6e5284e94023a1dbc2769ba4fb8fee4581d8f37fd6397455dfa78c2244a0d6"
+    "summary": "Extend containing artifact, service, identity and access selections with the common typed profile contract and resource kinds with pinned coordinates; retain built-in controls and conditional AD names for issue #1208.",
+    "content_hash": "9d6a3dc9b9baafcd35e5502c043f940dab0f212b0db23311545e390492b2883a"
   }
 }

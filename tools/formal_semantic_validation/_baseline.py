@@ -24,7 +24,46 @@ from tools.formal_semantic_validation._types import (
 )
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
 
+_ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/historical-artifacts/pins-v1.json"
+_ARCHIVE_PINS_SHA256 = "bcb61fa1f0bce5411eb4d3f9583b51df47798ac955d85b6dd3eadf50c14599f2"
+
 _DRIFT_COMPARISON_KEYS = ("actual_outcome", "diagnostic_kind", "result_digest")
+
+
+def _baseline_document(repo_root: Path, path_value: object, digest: object) -> Mapping[str, object] | None:
+    """Read the exact captured bytes, including a preserved historical copy."""
+    if not isinstance(path_value, str) or not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
+        return None
+    if safe_repo_path(repo_root, path_value) is None:
+        return None
+    candidates = [path_value]
+    pins_path = safe_repo_path(repo_root, _ARCHIVE_PINS_PATH)
+    if (
+        pins_path is not None
+        and pins_path.is_file()
+        and pins_path.stat().st_size <= _MAX_FILE_BYTES
+        and _sha256_file(pins_path) == _ARCHIVE_PINS_SHA256
+    ):
+        pins = load_bounded_json_object(repo_root, _ARCHIVE_PINS_PATH, max_bytes=_MAX_FILE_BYTES)
+        if any(
+            (row[f"{kind}_path"], row[f"{kind}_sha256"]) == (path_value, digest)
+            for row in pins["releases"]
+            for kind in ("release", "snapshot")
+        ):
+            candidates.append(f"docs/research/formal-semantic-validation/historical-artifacts/{digest}.json")
+    for candidate in candidates:
+        path = safe_repo_path(repo_root, candidate)
+        if (
+            path is not None
+            and path.is_file()
+            and path.stat().st_size <= _MAX_FILE_BYTES
+            and _sha256_file(path) == digest
+        ):
+            try:
+                return load_bounded_json_object(repo_root, candidate, max_bytes=_MAX_FILE_BYTES)
+            except (OSError, ValueError):
+                return None
+    return None
 
 
 def _validated_baseline_pin(
@@ -86,13 +125,13 @@ def _selected_baseline_manifest(
             )
         )
         return None
-    baseline_manifest = indexed_records.get(baseline_path)
-    resolved_baseline_path = safe_repo_path(repo_root, baseline_path)
+    indexed = indexed_records.get(baseline_path)
+    baseline_manifest = _baseline_document(repo_root, baseline_path, baseline.get("release_sha256"))
     if (
         not isinstance(baseline_manifest, Mapping)
-        or resolved_baseline_path is None
-        or not resolved_baseline_path.is_file()
-        or _sha256_file(resolved_baseline_path) != baseline.get("release_sha256")
+        or not isinstance(indexed, Mapping)
+        or baseline_manifest.get("bundle_id") != indexed.get("bundle_id")
+        or baseline_manifest.get("revision") != indexed.get("revision")
         or baseline_manifest.get("revision") != baseline.get("release_revision")
         or (
             baseline_manifest.get("protocol_path"),
@@ -100,10 +139,12 @@ def _selected_baseline_manifest(
         )
         != (
             "docs/research/formal-semantic-validation/protocol-v2.json"
-            if baseline.get("release_revision") in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}
+            if baseline.get("release_revision")
+            in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0"}
             else "docs/research/formal-semantic-validation/protocol-v1.json",
             "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
-            if baseline.get("release_revision") in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}
+            if baseline.get("release_revision")
+            in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0"}
             else "docs/research/formal-semantic-validation/corpus/manifest-v1.json",
         )
     ):
@@ -127,34 +168,12 @@ def _loaded_baseline_snapshot(
 ) -> Mapping[str, object] | None:
     baseline_snapshot_path = baseline_manifest.get("snapshot_path")
     baseline_snapshot_digest = baseline_manifest.get("snapshot_sha256")
-    resolved_snapshot_path = (
-        safe_repo_path(repo_root, baseline_snapshot_path) if isinstance(baseline_snapshot_path, str) else None
-    )
-    if (
-        resolved_snapshot_path is None
-        or not resolved_snapshot_path.is_file()
-        or not isinstance(baseline_snapshot_digest, str)
-        or _sha256_file(resolved_snapshot_path) != baseline_snapshot_digest
-    ):
+    baseline_snapshot = _baseline_document(repo_root, baseline_snapshot_path, baseline_snapshot_digest)
+    if baseline_snapshot is None:
         failures.append(
             _failure(
                 "formal-validation-baseline-selection",
                 "selected baseline release has a stale execution-snapshot pin",
-                path,
-            )
-        )
-        return None
-    try:
-        baseline_snapshot = load_bounded_json_object(
-            repo_root,
-            str(baseline_snapshot_path),
-            max_bytes=_MAX_FILE_BYTES,
-        )
-    except (OSError, ValueError) as exc:
-        failures.append(
-            _failure(
-                "formal-validation-baseline-selection",
-                f"could not load the selected baseline snapshot ({type(exc).__name__})",
                 path,
             )
         )

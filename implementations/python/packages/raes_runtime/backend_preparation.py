@@ -275,6 +275,13 @@ def prepare_backend_apply(
 def _unprepared_execution_refusal(plan: ProvisioningPlan) -> Diagnostic | None:
     """Refuse execution that requires negotiated preparation but carries none."""
 
+    from raes_contracts.profile_selections import authored_resource_profiles
+
+    try:
+        if authored_resource_profiles(op for op in plan.operations if op.action is not ChangeAction.DELETE):
+            return _preparation_failure("Authored profile execution requires negotiated preparation.")
+    except (AttributeError, TypeError, ValueError):
+        return _preparation_failure("Authored profile selection is invalid.")
     if plan.profile_authority is not None:
         return _preparation_failure("Profile execution requires negotiated preparation.")
     if any(getattr(operation, "profile_bindings", ()) for operation in plan.operations):

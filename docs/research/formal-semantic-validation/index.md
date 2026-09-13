@@ -83,11 +83,16 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   closures. Retained observations replay without drift from release 8.0.0.
   Previously pinned baseline captures retain their exact bytes; the new source
   identity is recorded here rather than repinning historical evidence.
-- [`bundles/retest-v9.json`](bundles/retest-v9.json) is current release 10.0.0.
+- [`bundles/retest-v9.json`](bundles/retest-v9.json) preserves release 10.0.0.
   It binds [`execution-snapshot-v9.json`](execution-snapshot-v9.json) and
   [`analysis-v9.json`](analysis-v9.json) to the partial description contracts.
   Every retained observation replays without drift from release 9.0.0; prior
   captures and claim ceilings remain intact.
+- [`bundles/retest-v10.json`](bundles/retest-v10.json) is current release 11.0.0.
+  It binds [`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
+  [`analysis-v10.json`](analysis-v10.json) to the typed selection implementation.
+  Production commands and participant fixtures replay without observation
+  drift from release 10.0.0; the preregistered claim limits remain unchanged.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -132,11 +137,19 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 10.0.0, rejects unsupported future
+Current validation requires explicit release 11.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
 code. Only the current release supports a current-code claim.
+
+Release 10.0.0 pins baseline bytes that were superseded in the working
+repository. The two JSON files in [`historical-artifacts/`](historical-artifacts/)
+preserve its exact baseline manifest and snapshot, recovered from Git revision
+`106b195e3dc0048a647e845876e8eaefe08e3d1b`. Validation reads those bounded
+local copies only when their SHA-256 matches the original capture's pin.
+Recovery does not change a recorded observation, timestamp or source identity,
+and validation needs no Git history or network access.
 
 The current capture's `source_state` records a base Git commit, the modified
 checkout state, and a deterministic digest of all reference-package Python
@@ -160,3 +173,10 @@ exploitability, or real-world non-exploitability.
 The production exploit-path JSON loader currently accepts duplicate keys. The
 research loader rejects duplicate keys at the artifact boundary, but this
 release does not claim that the production input boundary is stronger.
+
+The historical fallback is restricted by the immutable
+[`pins-v1.json`](historical-artifacts/pins-v1.json) record. The baseline gate pins
+that complete record's checksum independently of the submitted capture. It joins
+each indexed release path to the exact original manifest and snapshot bytes;
+new self-chosen archive digests cannot replace those observations. Future archive
+records must append a reviewed version and retain this record unchanged.

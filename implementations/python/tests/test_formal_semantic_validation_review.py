@@ -15,6 +15,24 @@ from tools.check_formal_semantic_validation import (
 from tools.formal_semantic_validation import _production, _retest, _snapshot
 
 
+def test_frozen_baseline_archive_requires_exact_captured_bytes(tmp_path):
+    import hashlib
+
+    from tools.formal_semantic_validation._baseline import _baseline_document
+
+    captured = b'{"execution_id":"frozen-observation"}\n'
+    digest = hashlib.sha256(captured).hexdigest()
+    current = tmp_path / "snapshot.json"
+    current.write_text('{"execution_id":"later-observation"}\n')
+    archive = tmp_path / "docs/research/formal-semantic-validation/historical-artifacts" / (digest + ".json")
+    archive.parent.mkdir(parents=True)
+    archive.write_bytes(captured)
+    assert _baseline_document(tmp_path, "snapshot.json", digest) is None
+    assert _baseline_document(tmp_path, "../snapshot.json", digest) is None
+    archive.write_text('{"execution_id":"forged-observation"}\n')
+    assert _baseline_document(tmp_path, "snapshot.json", digest) is None
+
+
 def identities(failures):
     return {(f.rule_id, f.message, f.path) for f in failures}
 
@@ -215,3 +233,46 @@ def test_unsupported_case_cannot_acquire_a_fabricated_outcome():
     case["expected_outcome"] = "accepted"
     failures = validate_bundle(REPO_ROOT, manifest, protocol, corpus, snapshot, analysis, replay_cases=False)
     assert "formal-validation-unsupported-case" in {f.rule_id for f in failures}
+
+
+def test_archive_cannot_substitute_snapshot_pins_for_an_indexed_release(tmp_path):
+    import hashlib
+    import json
+    from shutil import copytree
+
+    from tools.formal_semantic_validation._baseline import _selected_baseline_manifest
+    from tools.formal_semantic_validation._types import MANIFEST_PATH
+
+    root = REPO_ROOT / "docs/research/formal-semantic-validation"
+    copytree(root, tmp_path / root.relative_to(REPO_ROOT))
+    snapshot = json.loads((root / "execution-snapshot-v9.json").read_text())
+    baseline = dict(snapshot["baseline"])
+    archive = tmp_path / "docs/research/formal-semantic-validation/historical-artifacts"
+    original = json.loads((archive / (baseline["release_sha256"] + ".json")).read_text())
+    original["snapshot_sha256"] = "a" * 64
+    forged = (json.dumps(original, sort_keys=True) + "\n").encode()
+    digest = hashlib.sha256(forged).hexdigest()
+    (archive / (digest + ".json")).write_bytes(forged)
+    baseline["release_sha256"] = digest
+    failures = []
+    assert _selected_baseline_manifest(tmp_path, baseline, failures, MANIFEST_PATH) is None
+    assert {failure.rule_id for failure in failures} == {"formal-validation-baseline-selection"}
+
+
+def test_historical_archive_pin_record_cannot_be_rewritten(tmp_path):
+    import json
+    from shutil import copytree
+
+    from tools.formal_semantic_validation._baseline import _selected_baseline_manifest
+    from tools.formal_semantic_validation._types import MANIFEST_PATH
+
+    root = REPO_ROOT / "docs/research/formal-semantic-validation"
+    copied = tmp_path / root.relative_to(REPO_ROOT)
+    copytree(root, copied)
+    baseline = json.loads((copied / "execution-snapshot-v9.json").read_text())["baseline"]
+    assert _selected_baseline_manifest(tmp_path, baseline, [], MANIFEST_PATH) is not None
+    pins_path = copied / "historical-artifacts/pins-v1.json"
+    pins = json.loads(pins_path.read_text())
+    pins["source_revision"] = "a" * 40
+    pins_path.write_text(json.dumps(pins))
+    assert _selected_baseline_manifest(tmp_path, baseline, [], MANIFEST_PATH) is None

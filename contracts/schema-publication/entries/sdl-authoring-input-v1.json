@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062",
+  "content_hash": "d7447fb285309aa6517db5ab80671ad495c4d35e3bfa688d2f043970c367b069",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062"
+    "summary": "Extend containing artifact, service, identity and access selections with the common typed profile contract and resource kinds with pinned coordinates; retain built-in controls and conditional AD names for issue #1208.",
+    "content_hash": "d7447fb285309aa6517db5ab80671ad495c4d35e3bfa688d2f043970c367b069"
   }
 }
