@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3",
+  "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062",
   "last_change": {
-    "summary": "Added scoped observation-demand authoring while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
-    "content_hash": "5f0c72aaf4f3116ab7057b14b5c04db414dddf65e96970507ab457532467d8a3"
+    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
+    "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062"
   }
 }

@@ -48,9 +48,14 @@ this run does not repair them.
   after integration with the unified control-plane mutation lifecycle.
   The original protocol and missing-concept denominator remain unchanged.
 - [`execution-snapshot-v7.json`](execution-snapshot-v7.json) and
-  [`analysis-v7.json`](analysis-v7.json) are current release 7.0.0. They bind
+  [`analysis-v7.json`](analysis-v7.json) preserve release 7.0.0. They bind
   the integrated Python dependency closures to fresh source-state evidence,
   retaining the exact historical captures and original coverage denominator.
+
+- [`execution-snapshot-v8.json`](execution-snapshot-v8.json) and
+  [`analysis-v8.json`](analysis-v8.json) are current release 8.0.0. They bind
+  partial description contracts to freshly replayed evidence with the same
+  preregistered classifications and missing-concept denominator.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -60,7 +65,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 7.0.0 and rejects duplicate or unsupported
+Current validation requires release 8.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

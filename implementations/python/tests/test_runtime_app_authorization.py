@@ -232,7 +232,7 @@ def test_declared_vocabulary_with_matching_grant_is_valid() -> None:
 def test_declared_vocabulary_without_matching_grant_is_rejected() -> None:
     with pytest.raises(
         ValidationError,
-        match="declares resource_vocabulary 'cql_resource' but no permission_grant has a matching resource_kind",
+        match="declares a resource_vocabulary but no permission_grant has a matching resource_kind",
     ):
         RuntimeAppAuthorization(
             app_authorization_id="cassandra-rbac",

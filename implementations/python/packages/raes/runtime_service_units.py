@@ -21,6 +21,8 @@ from enum import Enum
 
 from pydantic import ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import (
     SDLModel,
     is_variable_ref,
@@ -189,7 +191,7 @@ class ServiceUnitExecStart(SDLModel):
     operator-only arguments, the surface stores only the redacted shape.
     """
 
-    command_kind: ServiceUnitExecStartKind | str = ServiceUnitExecStartKind.ABSOLUTE_PATH
+    command_kind: GovernedVocabulary[ServiceUnitExecStartKind] = ServiceUnitExecStartKind.ABSOLUTE_PATH
     command: str = ""
     command_redacted: bool | str = False
     description: str = ""
@@ -262,14 +264,14 @@ class ServiceManagerUnit(SDLModel):
     """
 
     unit_id: str
-    manager_kind: ServiceManagerKind | str = ServiceManagerKind.SYSTEMD
+    manager_kind: GovernedVocabulary[ServiceManagerKind] = ServiceManagerKind.SYSTEMD
     unit_name: str
-    unit_type: ServiceUnitKind | str = ServiceUnitKind.OTHER
-    load_state: ServiceUnitLoadState | str = ServiceUnitLoadState.UNKNOWN
-    active_state: ServiceUnitActiveState | str = ServiceUnitActiveState.UNKNOWN
+    unit_type: GovernedVocabulary[ServiceUnitKind] = ServiceUnitKind.OTHER
+    load_state: GovernedVocabulary[ServiceUnitLoadState] = ServiceUnitLoadState.UNKNOWN
+    active_state: GovernedVocabulary[ServiceUnitActiveState] = ServiceUnitActiveState.UNKNOWN
     sub_state: str = ""
-    enabled_state: ServiceUnitEnabledState | str = ServiceUnitEnabledState.UNKNOWN
-    result: ServiceUnitResult | str = ServiceUnitResult.UNKNOWN
+    enabled_state: GovernedVocabulary[ServiceUnitEnabledState] = ServiceUnitEnabledState.UNKNOWN
+    result: GovernedVocabulary[ServiceUnitResult] = ServiceUnitResult.UNKNOWN
     exit_code: int | str | None = None
     status_text: str = ""
     main_pid: int | str | None = None

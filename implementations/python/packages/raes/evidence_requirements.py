@@ -15,6 +15,7 @@ from raes_contracts.observation_demand import ObservationDemandRule
 from ._base import SDLModel, parse_enum_or_var
 from .runtime_filesystem import RuntimeSensitivityClassification
 from .runtime_values import coerce_string_list, reject_duplicates
+from .runtime_vocabulary import GovernedVocabulary
 
 
 class EvidenceRequirementSourceClass(str, Enum):
@@ -120,7 +121,7 @@ class EvidenceRequirement(SDLModel):
     channel_refs: list[str] = Field(default_factory=list)
     artifact_role: str = ""
     media_types: list[str] = Field(default_factory=list)
-    sensitivity: RuntimeSensitivityClassification | str
+    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification]
     redaction: EvidenceRedactionExpectation | str
     integrity: EvidenceIntegrityExpectation | str
     retention: EvidenceRetentionExpectation | str

@@ -4,6 +4,8 @@ from enum import Enum
 
 from pydantic import Field, field_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel
 from .runtime_values import (
     absolute_path_or_var,
@@ -64,8 +66,8 @@ class RuntimeSoftwareComponent(SDLModel):
     component_id: str
     name: str
     version: str = ""
-    component_type: RuntimeSoftwareComponentType | str = RuntimeSoftwareComponentType.UNKNOWN
-    provenance: RuntimeSoftwareComponentProvenance | str = RuntimeSoftwareComponentProvenance.UNKNOWN
+    component_type: GovernedVocabulary[RuntimeSoftwareComponentType] = RuntimeSoftwareComponentType.UNKNOWN
+    provenance: GovernedVocabulary[RuntimeSoftwareComponentProvenance] = RuntimeSoftwareComponentProvenance.UNKNOWN
     ecosystem: str = ""
     purl: str = ""
     cpe: str = ""

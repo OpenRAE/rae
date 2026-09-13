@@ -77,12 +77,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   lifecycle. Two compiler result digests change from the pinned release
   7.0.0 baseline; the replayed stability and distinguishability outcomes do not.
   The original protocol and unsupported claims remain unchanged.
-- [`bundles/retest-v8.json`](bundles/retest-v8.json) is current release 9.0.0.
+- [`bundles/retest-v8.json`](bundles/retest-v8.json) preserves release 9.0.0.
   It binds [`execution-snapshot-v8.json`](execution-snapshot-v8.json) and
   [`analysis-v8.json`](analysis-v8.json) to the integrated Python dependency
   closures. Retained observations replay without drift from release 8.0.0.
   Previously pinned baseline captures retain their exact bytes; the new source
   identity is recorded here rather than repinning historical evidence.
+- [`bundles/retest-v9.json`](bundles/retest-v9.json) is current release 10.0.0.
+  It binds [`execution-snapshot-v9.json`](execution-snapshot-v9.json) and
+  [`analysis-v9.json`](analysis-v9.json) to the partial description contracts.
+  Every retained observation replays without drift from release 9.0.0; prior
+  captures and claim ceilings remain intact.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -127,7 +132,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 9.0.0, rejects unsupported future
+Current validation requires explicit release 10.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

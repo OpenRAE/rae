@@ -11,6 +11,8 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, parse_int_or_var
 from .runtime_filesystem import RuntimeSensitivityClassification
 from .runtime_values import (
@@ -163,9 +165,11 @@ class RuntimeIdentityAttribute(SDLModel):
 
     name: str
     values: list[str] = Field(default_factory=list)
-    value_classification: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    origin: RuntimeIdentityRecordOrigin | str = RuntimeIdentityRecordOrigin.UNKNOWN
-    provenance: RuntimeIdentityRecordOrigin | str = RuntimeIdentityRecordOrigin.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeSensitivityClassification] = (
+        RuntimeSensitivityClassification.UNKNOWN
+    )
+    origin: GovernedVocabulary[RuntimeIdentityRecordOrigin] = RuntimeIdentityRecordOrigin.UNKNOWN
+    provenance: GovernedVocabulary[RuntimeIdentityRecordOrigin] = RuntimeIdentityRecordOrigin.UNKNOWN
     description: str = ""
 
     @field_validator("name")
@@ -238,7 +242,7 @@ class RuntimeIdentityAuthorityService(SDLModel):
 
     service_id: str
     service: str = ""
-    protocol: RuntimeIdentityAuthorityProtocol | str = RuntimeIdentityAuthorityProtocol.OTHER
+    protocol: GovernedVocabulary[RuntimeIdentityAuthorityProtocol] = RuntimeIdentityAuthorityProtocol.OTHER
     address: str = ""
     port: int | str | None = None
     description: str = ""
@@ -266,14 +270,14 @@ class RuntimeIdentitySubject(SDLModel):
     """An authority-local user, group, device, role, or service principal."""
 
     subject_id: str
-    kind: RuntimeIdentitySubjectKind | str = RuntimeIdentitySubjectKind.OTHER
+    kind: GovernedVocabulary[RuntimeIdentitySubjectKind] = RuntimeIdentitySubjectKind.OTHER
     name: str
     display_name: str = ""
     principal_name: str = ""
     distinguished_name: str = ""
     domain: str = ""
     enabled: bool | str | None = None
-    origin: RuntimeIdentityRecordOrigin | str = RuntimeIdentityRecordOrigin.UNKNOWN
+    origin: GovernedVocabulary[RuntimeIdentityRecordOrigin] = RuntimeIdentityRecordOrigin.UNKNOWN
     service_principal_names: list[str] = Field(default_factory=list)
     attributes: list[RuntimeIdentityAttribute] = Field(default_factory=list)
     description: str = ""
@@ -329,7 +333,7 @@ class RuntimeIdentityPolicy(SDLModel):
     """Observed identity authority policy or bounded policy setting group."""
 
     policy_id: str
-    policy_kind: RuntimeIdentityPolicyKind | str = RuntimeIdentityPolicyKind.OTHER
+    policy_kind: GovernedVocabulary[RuntimeIdentityPolicyKind] = RuntimeIdentityPolicyKind.OTHER
     name: str = ""
     applies_to_refs: list[str] = Field(default_factory=list)
     settings: list[RuntimeIdentityAttribute] = Field(default_factory=list)
@@ -371,7 +375,7 @@ class RuntimeIdentityRelationship(SDLModel):
     """Observed membership, trust, federation, or delegation relationship."""
 
     relationship_id: str
-    relationship_type: RuntimeIdentityRelationshipKind | str = RuntimeIdentityRelationshipKind.OTHER
+    relationship_type: GovernedVocabulary[RuntimeIdentityRelationshipKind] = RuntimeIdentityRelationshipKind.OTHER
     source_ref: str
     target_ref: str = ""
     external_target: str = ""
@@ -411,7 +415,7 @@ class RuntimeIdentityAuthority(SDLModel):
     """A node-scoped identity authority inventory."""
 
     identity_authority_id: str
-    kind: RuntimeIdentityAuthorityKind | str = RuntimeIdentityAuthorityKind.OTHER
+    kind: GovernedVocabulary[RuntimeIdentityAuthorityKind] = RuntimeIdentityAuthorityKind.OTHER
     name: str = ""
     namespace: str = ""
     domain_name: str = ""

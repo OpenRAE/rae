@@ -6,6 +6,8 @@ from pydantic import Field, GetJsonSchemaHandler, ValidationInfo, field_validato
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref, parse_bool_or_var
 from .runtime_filesystem import (
     RuntimeFilesystemStability,
@@ -76,14 +78,14 @@ class RuntimeMount(SDLModel):
 
     target: str
     source: str = ""
-    source_sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    source_kind: RuntimeMountSourceKind | str = RuntimeMountSourceKind.OTHER
+    source_sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
+    source_kind: GovernedVocabulary[RuntimeMountSourceKind] = RuntimeMountSourceKind.OTHER
     filesystem_type: str = ""
     read_only: bool | str = False
     options: list[str] = Field(default_factory=list)
-    options_sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    propagation: RuntimeMountPropagation | str = RuntimeMountPropagation.UNKNOWN
-    stability: RuntimeFilesystemStability | str = RuntimeFilesystemStability.UNKNOWN
+    options_sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
+    propagation: GovernedVocabulary[RuntimeMountPropagation] = RuntimeMountPropagation.UNKNOWN
+    stability: GovernedVocabulary[RuntimeFilesystemStability] = RuntimeFilesystemStability.UNKNOWN
     backend_generated: bool | str | None = None
     description: str = ""
 
@@ -178,11 +180,13 @@ class RuntimeControlInterface(SDLModel):
 
     control_interface_id: str
     path: str
-    kind: RuntimeControlInterfaceKind | str = RuntimeControlInterfaceKind.UNIX_SOCKET
+    kind: GovernedVocabulary[RuntimeControlInterfaceKind] = RuntimeControlInterfaceKind.UNIX_SOCKET
     protocol: str = ""
     bind_source: str = ""
-    bind_source_sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    access: RuntimeControlInterfaceAccess | str = RuntimeControlInterfaceAccess.UNKNOWN
+    bind_source_sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = (
+        RuntimeSensitivityClassification.UNKNOWN
+    )
+    access: GovernedVocabulary[RuntimeControlInterfaceAccess] = RuntimeControlInterfaceAccess.UNKNOWN
     description: str = ""
 
     @field_validator("control_interface_id")

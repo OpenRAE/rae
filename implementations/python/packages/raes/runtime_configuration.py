@@ -5,6 +5,8 @@ from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from . import runtime_app_authorization as _runtime_app_authorization
 from . import runtime_application as _runtime_application
 from . import runtime_database as _runtime_database
@@ -228,7 +230,7 @@ class RuntimeResourceLimits(SDLModel):
 class RuntimeOperationalPolicy(SDLModel):
     """Required restart and resource-limit policy for a runtime node."""
 
-    restart: RuntimeRestartPolicy | str = RuntimeRestartPolicy.UNKNOWN
+    restart: GovernedVocabulary[RuntimeRestartPolicy] = RuntimeRestartPolicy.UNKNOWN
     resource_limits: RuntimeResourceLimits | None = None
     description: str = ""
 

@@ -7,6 +7,8 @@ mail-access detail on a top-level relationship edge.
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from .._base import SDLModel
 from ..runtime_mail_vocab import (
     RuntimeMailAuthMechanism,
@@ -112,9 +114,9 @@ class RuntimeMailService(SDLModel):
 class RelationshipMailAccess(SDLModel):
     """Typed mail-access detail carried by a top-level relationship edge."""
 
-    protocol: RuntimeMailProtocol | str = RuntimeMailProtocol.OTHER
-    auth_mechanism: RuntimeMailAuthMechanism | str = RuntimeMailAuthMechanism.OTHER
-    tls_mode: RuntimeMailTlsMode | str = RuntimeMailTlsMode.UNKNOWN
+    protocol: GovernedVocabulary[RuntimeMailProtocol] = RuntimeMailProtocol.OTHER
+    auth_mechanism: GovernedVocabulary[RuntimeMailAuthMechanism] = RuntimeMailAuthMechanism.OTHER
+    tls_mode: GovernedVocabulary[RuntimeMailTlsMode] = RuntimeMailTlsMode.UNKNOWN
     listener_ref: str = ""
     mailbox_ref: str = ""
     domain_ref: str = ""

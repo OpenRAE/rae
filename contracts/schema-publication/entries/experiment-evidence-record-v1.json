@@ -2,9 +2,9 @@
   "contract_id": "experiment-evidence-record-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json",
   "stability": "draft",
-  "content_hash": "2b52c1c7fa28fa939aa3b1baeee830522ffc0467eda945e0857b504c5a7df43c",
+  "content_hash": "582402d01e9d6af721d8df20cedfd40096df6e580bd4231e01b2544d37113196",
   "last_change": {
-    "summary": "Bound emitted evidence records to their required output contract and exact redaction policy for issue #1112.",
-    "content_hash": "2b52c1c7fa28fa939aa3b1baeee830522ffc0467eda945e0857b504c5a7df43c"
+    "summary": "Carry non-authoritative partial typed descriptions, coverage and provenance in the existing lifecycle envelope (#1209).",
+    "content_hash": "582402d01e9d6af721d8df20cedfd40096df6e580bd4231e01b2544d37113196"
   }
 }
