@@ -1,9 +1,15 @@
 name: Post-merge Closing Issue Audit
 
+# The main->dev back-merge PR changes only Release Please-managed files and
+# closes no issues, so it is not audited (#1266).
 on:
   pull_request:
     types: [closed]
     branches: [dev]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
 
 permissions:
   contents: read

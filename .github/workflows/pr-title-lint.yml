@@ -12,11 +12,17 @@ name: PR Title Lint
 # Scoped to PRs targeting `dev` (feature PRs). On a squash-merged feature PR the
 # conventional title becomes the commit release-please reads, so it is enforced
 # there. `dev`->`main` promotion PRs are not squashed and their title never
-# becomes a release commit, so linting them is noise (#684).
+# becomes a release commit, so linting them is noise (#684). The bot-authored
+# main->dev back-merge PR changes only Release Please-managed files and is
+# likewise not linted (#1266).
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
     branches: [dev]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
 
 permissions:
   contents: read
