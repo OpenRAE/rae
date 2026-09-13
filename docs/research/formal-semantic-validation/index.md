@@ -88,6 +88,22 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v9.json`](analysis-v9.json) to the partial description contracts.
   Every retained observation replays without drift from release 9.0.0; prior
   captures and claim ceilings remain intact.
+  Integration with the concurrent software work corrected this capture's stale
+  baseline-release hash to the release 9.0.0 bytes already present on `dev`.
+  Only that linkage and its enclosing digest changed; observations, timestamps,
+  source-state provenance and claim ceilings were preserved.
+- [`bundles/retest-v10.json`](bundles/retest-v10.json) preserves release 11.0.0.
+  It binds [`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
+  [`analysis-v10.json`](analysis-v10.json) to generic software refinements.
+  Exactly two compiler result digests change from release 10.0.0; their
+  stability and distinguishability outcomes remain unchanged. Prior captures,
+  the retained protocol and claim ceilings remain intact. This capture adds
+  no native backend or downstream qualification claim.
+- [`bundles/retest-v11.json`](bundles/retest-v11.json) is current release 12.0.0.
+  It binds [`execution-snapshot-v11.json`](execution-snapshot-v11.json) and
+  [`analysis-v11.json`](analysis-v11.json) to partial inventory descriptions
+  integrated with the software refinements. Retained outcomes and digests do
+  not drift from release 11.0.0; no additional claim class is inferred.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -132,7 +148,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 11.0.0, rejects unsupported future
+Current validation requires explicit release 12.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -147,19 +163,18 @@ not rewriting history or extending a digest allowlist. Classification migration
 is not a claim class in the retained preregistration and is not promoted to
 `demonstrated` by these controls.
 
-Release 11.0.0, [`bundles/retest-v10.json`](bundles/retest-v10.json), records
+Release 12.0.0, [`bundles/retest-v11.json`](bundles/retest-v11.json), records
 issue #1207's partial-inventory implementation against the same 20 corpus cases
 and freshly executed participant checks. Outcome and result digests retain
 their previous values; source identity and the Python version record this
 capture's actual modified checkout. No new claim class is inferred.
 
-The release-10 baseline exposed a historical integrity defect: release 9's
-manifest and snapshot had been rewritten after release 10 pinned them.
-The exact pinned bytes were recovered from Git revision `106b195e`, restoring
-manifest hash `e7dde274931590d8cc0c8543e1d4785d8a7373f704a2694747fece3de76dd95c`
-and snapshot hash `29bab7d876143153f2652c5d702bad34fddc3f5d63b95fe482c1365a34c177f3`.
-This is restoration of the cited historical artifact, not a fresh observation
-or a change to its recorded outcomes. Release 11 carries the new capture.
+The pre-synchronization issue-1207 capture is retained in feature commit
+`b7d124a41518a7e9465f056ca25e25689eb4edda`, not selected as current evidence.
+Synchronization preserves the incoming release-9/10/11 bytes, including the
+baseline-link repair described above, and records the combined source in a new
+release. Neither branch's historical observation is relabeled as a merged-tree
+observation.
 
 ## Bounded conclusions
 

@@ -30,7 +30,7 @@ def test_partial_inventory_contract_records_have_bounded_semantics_ownership():
     )
     forbidden = [
         "docs/requirements/GOV-941/requirement.md",
-        "docs/decisions/adrs/adr-001-unrelated.md",
+        "docs/research/unrelated-study/results.md",
         "implementations/python/packages/raes_reference_backend/target.py",
     ]
     failures = _check_path_ownership(policy, phase, forbidden)

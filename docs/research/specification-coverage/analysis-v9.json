@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1207-v9",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1205-v9",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -32,57 +32,57 @@
     ]
   },
   "classification_counts": {
-    "directly-expressible": 10,
-    "profile-or-manifest-constraint": 2,
     "deliberately-backend-specific": 1,
-    "missing": 3
+    "directly-expressible": 10,
+    "missing": 3,
+    "profile-or-manifest-constraint": 2
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-13T01:10:03.058154+00:00",
+  "generated_at": "2026-09-13",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
     "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation."
   ],
   "load_bearing_results": {
-    "total": 10,
-    "passed": 10,
     "failed": 0,
-    "missing": 0
+    "missing": 0,
+    "passed": 10,
+    "total": 10
   },
   "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
-      "request_id": "survey-representative-range",
-      "status": "demonstrated",
       "concept_count": 6,
+      "failed_stage_count": 0,
       "missing_count": 0,
-      "failed_stage_count": 0
+      "request_id": "survey-representative-range",
+      "status": "demonstrated"
     },
     {
-      "request_id": "cyborg-participant-evaluation",
-      "status": "partial",
       "concept_count": 5,
+      "failed_stage_count": 1,
       "missing_count": 1,
-      "failed_stage_count": 1
+      "request_id": "cyborg-participant-evaluation",
+      "status": "partial"
     },
     {
-      "request_id": "vsdl-configurable-infrastructure",
-      "status": "partial",
       "concept_count": 3,
+      "failed_stage_count": 1,
       "missing_count": 1,
-      "failed_stage_count": 1
+      "request_id": "vsdl-configurable-infrastructure",
+      "status": "partial"
     },
     {
-      "request_id": "cyber-dem-federation",
-      "status": "partial",
       "concept_count": 2,
+      "failed_stage_count": 1,
       "missing_count": 1,
-      "failed_stage_count": 1
+      "request_id": "cyber-dem-federation",
+      "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1207-v9",
-  "snapshot_sha256": "f820cf50465e0b6d4ccb77262688c01947722136f1fb30f1f8e1f96312398ba6"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1205-v9",
+  "snapshot_sha256": "5fa719be8d6b2ef31bc1e85209dcc19fc5fa2d0f5e1d21c064379a3a85e7b376"
 }

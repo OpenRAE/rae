@@ -38,11 +38,11 @@ def _runtime_descriptors():
     )
 
 
-def test_runtime_boundary_inventory_partitions_all_32_fields_once() -> None:
+def test_runtime_boundary_inventory_partitions_all_runtime_fields_once() -> None:
     inventory = runtime_configuration_boundary_inventory()
 
     assert tuple(item.field_name for item in inventory) == tuple(RuntimeConfiguration.model_fields)
-    assert len(inventory) == 32
+    assert len(inventory) == 33
     assert all(item.concern_kinds or item.delegated_paths or item.observation_only_paths for item in inventory)
     assert all(
         item.semantic_owner

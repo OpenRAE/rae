@@ -201,7 +201,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 3,
-      "content_sha256": "f8e0b10c7ac583a40f1db2420fa6bc7553c4aa10a73ba7baf9c59ad74fe14b8e"
+      "content_sha256": "9e0b0e452f1cb8661c0aa09b3c4a9d3ab3d3c61a0bf1d67af8ec74b421715343"
     },
     {
       "path": "docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "dd2e1c26b6ef04ec063a4ce178b0c6b3d6393aaab18398641fda690fe327c9b3"
+      "content_sha256": "088f1bdf4a66d475937d2edd3c3d7fd60351a411da32afabba5cfe4ac2420c06"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

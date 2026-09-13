@@ -247,6 +247,19 @@ _REALIZATION_CONCERNS: tuple[RealizationConcernDescriptor, ...] = (
                 concern_kind=profile.concern_kind,
                 excluded_fields=profile.excluded_fields,
                 preserve_sequence_order=True,
+                scalar_identity_fields=("repository_refs",)
+                if profile.concern_kind == "runtime-software-components"
+                else (),
+            ),
+            sanitizer=(
+                typed_runtime_projector(
+                    runtime_path_annotation(profile.authored_path),
+                    concern_kind=profile.concern_kind,
+                    excluded_fields=profile.excluded_fields,
+                    preserve_sequence_order=True,
+                )
+                if profile.concern_kind == "runtime-software-components"
+                else None
             ),
         )
         for profile in RUNTIME_CONCERN_PROFILES

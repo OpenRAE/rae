@@ -1,10 +1,10 @@
 {
+  "content_hash": "40c046c84140564e94ad2378996ac9de79e760d20e3ec81f460474a6c43d7270",
   "contract_id": "instantiated-scenario-v1",
-  "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
-  "stability": "draft",
-  "content_hash": "c5bd97bebf7d1ab6bf030ce637ed8a0c0aa58de661f5e1ec45eaa021108849f1",
   "last_change": {
-    "summary": "Allow partial runtime inventory descriptions and preserve unknown database protocol defaults; selected operations retain completeness and authority checks (#1207).",
-    "content_hash": "c5bd97bebf7d1ab6bf030ce637ed8a0c0aa58de661f5e1ec45eaa021108849f1"
-  }
+    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206. Allow partial runtime inventory descriptions and preserve unknown database protocol defaults without weakening selected-operation admission (#1207).",
+    "content_hash": "40c046c84140564e94ad2378996ac9de79e760d20e3ec81f460474a6c43d7270"
+  },
+  "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
+  "stability": "draft"
 }

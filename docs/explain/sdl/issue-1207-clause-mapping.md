@@ -90,11 +90,11 @@ Ownership adds only the exact affected contract and documentation records to
 SEM-218's existing policy phase, with an exclusion regression; no gate exception
 or union of unrelated requirement links is used.
 
-Source-bound research gates also required fresh captures. Formal release 11
-and specification-coverage release 9 retain their preregistered cases,
-classifications and claim limits after current replay. The formal index documents
-exact recovery of the release-9 bytes already pinned by release 10; no historical
-observation is relabeled as current evidence.
+Source-bound research gates also required fresh captures. Formal release 12
+and specification-coverage release 10 retain their preregistered cases,
+classifications and claim limits after replay of the merged tree. The formal
+index documents preservation of the incoming historical releases and their
+baseline-link repair; no historical observation is relabeled as current evidence.
 
 TDD recorded failing partial-description cases and positional-identity cases
 before production changes, plus a failing omitted-protocol instantiation case

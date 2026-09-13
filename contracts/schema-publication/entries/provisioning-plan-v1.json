@@ -2,9 +2,9 @@
   "contract_id": "provisioning-plan-v1",
   "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
   "stability": "draft",
-  "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15",
+  "content_hash": "9c008f0f907bcff455c26c58a311083eea5232fffeed54e99eef8ac45aa28b1f",
   "last_change": {
-    "summary": "Carried recursive authority, prepared portable membership and authenticated profile constraints with pinned definitions for issue #1204.",
-    "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15"
+    "summary": "Added named bounded version predicates to carried recursive constraints (#1205).",
+    "content_hash": "9c008f0f907bcff455c26c58a311083eea5232fffeed54e99eef8ac45aa28b1f"
   }
 }

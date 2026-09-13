@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from ..bounded_domains import scalar_in_domain
+from ..software_versions import VersionDomain, version_membership
 from ._common import (
     RealizationRelationResult,
     RelationBudget,
@@ -112,6 +113,9 @@ def _evaluate_domain(
     _depth: int,
 ) -> RealizationRelationResult:
     assert isinstance(rule, RealizationDomainValue)
+    if isinstance(rule.domain, VersionDomain):
+        status = RealizationRelationStatus(version_membership(actual, rule.domain))
+        return relation_result(status, pointer(path), "Version predicate evaluated under its selected relation.")
     return _comparison_result(
         scalar_in_domain(actual, rule.domain),
         pointer(path),

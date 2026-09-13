@@ -51,11 +51,19 @@ this run does not repair them.
   [`analysis-v7.json`](analysis-v7.json) preserve release 7.0.0. They bind
   the integrated Python dependency closures to fresh source-state evidence,
   retaining the exact historical captures and original coverage denominator.
-
 - [`execution-snapshot-v8.json`](execution-snapshot-v8.json) and
   [`analysis-v8.json`](analysis-v8.json) preserve release 8.0.0. They bind
   partial description contracts to freshly replayed evidence with the same
   preregistered classifications and missing-concept denominator.
+- [`execution-snapshot-v9.json`](execution-snapshot-v9.json) and
+  [`analysis-v9.json`](analysis-v9.json) preserve release 9.0.0. They bind
+  generic software refinements to fresh source and package hashes. The retained
+  protocol replays without changing its classifications or claims; this is not
+  native backend or downstream qualification.
+- [`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
+  [`analysis-v10.json`](analysis-v10.json) are current release 10.0.0. They bind
+  partial inventory descriptions integrated with software refinements to fresh
+  source and package hashes, without changing the protocol's claim limits.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -65,7 +73,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 9.0.0 and rejects duplicate or unsupported
+Current validation requires release 10.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -73,9 +81,9 @@ it does not claim the capture was made at a clean base commit. Implementation
 changes require a new explicitly supported capture, never edits to an old
 capture or old/new digest allowances.
 
-Release 9.0.0 records issue #1207 in
-[`execution-snapshot-v9.json`](execution-snapshot-v9.json) and
-[`analysis-v9.json`](analysis-v9.json). All 16 retained concepts were checked
+Release 10.0.0 records issue #1207 in
+[`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
+[`analysis-v10.json`](analysis-v10.json). All 16 retained concepts were checked
 against current source and package digests. Classifications, the missing-concept
 denominator and claim limits are unchanged; partial inventory acceptance is
 not promoted into new claims outside the preregistered protocol.
