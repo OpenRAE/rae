@@ -83,13 +83,22 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   closures. Retained observations replay without drift from release 8.0.0.
   Previously pinned baseline captures retain their exact bytes; the new source
   identity is recorded here rather than repinning historical evidence.
-- [`bundles/retest-v9.json`](bundles/retest-v9.json) is current release 10.0.0.
+- [`bundles/retest-v9.json`](bundles/retest-v9.json) preserves release 10.0.0.
   It binds [`execution-snapshot-v9.json`](execution-snapshot-v9.json) and
-  [`analysis-v9.json`](analysis-v9.json) to generic software refinements.
-  Exactly two compiler result digests change from release 9.0.0; their
-  stability and distinguishability outcomes remain unchanged. The original
-  protocol, production controls, unsupported claims and historical bytes remain
-  intact. This capture adds no native backend or downstream qualification claim.
+  [`analysis-v9.json`](analysis-v9.json) to the partial description contracts.
+  Every retained observation replays without drift from release 9.0.0; prior
+  captures and claim ceilings remain intact.
+  Integration with the concurrent software work corrected this capture's stale
+  baseline-release hash to the release 9.0.0 bytes already present on `dev`.
+  Only that linkage and its enclosing digest changed; observations, timestamps,
+  source-state provenance and claim ceilings were preserved.
+- [`bundles/retest-v10.json`](bundles/retest-v10.json) is current release 11.0.0.
+  It binds [`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
+  [`analysis-v10.json`](analysis-v10.json) to generic software refinements.
+  Exactly two compiler result digests change from release 10.0.0; their
+  stability and distinguishability outcomes remain unchanged. Prior captures,
+  the retained protocol and claim ceilings remain intact. This capture adds
+  no native backend or downstream qualification claim.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.

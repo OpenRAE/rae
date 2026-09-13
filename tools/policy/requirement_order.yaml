@@ -255,6 +255,10 @@ ownership:
     - implementations/python/packages/raes_processor
     - implementations/python/packages/raes
     - implementations/python/packages/raes_contracts
+    # Retain SEM-218's exact shared description-evidence owners from issue #1209.
+    - implementations/python/packages/raes_runtime/observation_execution.py
+    - implementations/python/packages/raes_runtime/observation_results.py
+    - contracts/fixtures/experiment-core/experiment-evidence-record-v1
     - implementations/python/tests
     - implementations/python/pyproject.toml
     - implementations/python/uv.lock
@@ -266,6 +270,21 @@ ownership:
     - specs/sdl
   semantics-expansion:
     - contracts/schemas/sdl
+    # Shared description semantics and existing evidence lifecycle owners (SEM-218).
+    - contracts/schemas/experiment-core/experiment-evidence-record-v1.json
+    - contracts/schemas/experiment-core/experiment-run-v1.json
+    - contracts/schema-publication/entries/experiment-evidence-record-v1.json
+    - contracts/schema-publication/entries/experiment-run-v1.json
+    - contracts/fixtures/experiment-core/experiment-evidence-record-v1
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_runtime/observation_execution.py
+    - implementations/python/packages/raes_runtime/observation_results.py
+    - docs/requirements/SEM-218
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
+    - docs/decisions/issue-1209-clause-mapping.md
+    - docs/decisions/issue-1209-partial-capture-descriptions-preflight.md
+    - specs/sdl/recursive-realization-constraints.md
     - docs/explain/reference
     - implementations/python/packages/raes_processor
     - implementations/python/packages/raes

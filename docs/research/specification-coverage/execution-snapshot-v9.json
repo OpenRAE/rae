@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-12T23:18:04+00:00",
+  "captured_at": "2026-09-13T00:41:55.528647+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -641,17 +641,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "9ff1fda3a745967ab89ea58da78c7f33ce12cfa51246e2094528476c9145f82a",
+      "content_sha256": "0aac3552065e9e7b1ce2c18f40bc9c03e094bb9c2ff9d9be4cb69b3d3c32ae31",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "769c7b6aa71a04ec638215288b9268c04e45f265d81df855e420e009773262b7",
+      "content_sha256": "08757cad99415ee43f196bb115288ff753500c4b248fdae2174d6258b2d10152",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "06bb7e348db6e9409a668ea4a9ca846cee8bde4f93913399d7310aa4aaf67ce8",
+      "content_sha256": "cb516b14cce9a30b9e2a6d4050c18aeeb9b727a5ac071e51c306316d5774be8d",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -661,17 +661,17 @@
     "Repository-owned examples are exact execution artifacts but are not themselves the literature-derived request corpus; the protocol's requests and concepts are.",
     "No live range, participant, simulator federation, or provider provisioning engine was executed.",
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
-    "This current capture re-executes the retained specification-coverage protocol against the recursive realization implementation; it does not add recursive realization or plan-profile support claims to that preregistered protocol."
+    "This capture re-executes the retained protocol against generic software refinements; it adds no software-specific, native backend, or downstream qualification claims to that protocol."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "e00a7b2ed9965b6411916803a02691719c5a557d",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1209-v8",
-  "snapshot_revision": "8.0.0",
+  "raes_revision": "2b9a697b858e8f7a156302bc143d710a9476c736",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1205-v9",
+  "snapshot_revision": "9.0.0",
   "source_state": {
-    "base_revision": "e00a7b2ed9965b6411916803a02691719c5a557d",
+    "base_revision": "2b9a697b858e8f7a156302bc143d710a9476c736",
     "checkout_state": "modified",
-    "implementation_digest": "7b85254bcd9254e12527ac94c365ed95afe9c230b93743c73d979ad055c009d3",
+    "implementation_digest": "99158045fb2c141cffe24b4bb9c9f4a98213ace60fa1020eb3c9068de7051d7a",
     "profile": "python-reference-source/v1"
   }
 }
