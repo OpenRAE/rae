@@ -182,6 +182,48 @@ future implementation, not tests claimed to have passed in the design change.
 | T23 | A tool's version/digest/platform mapping changes in one entry point but not its authority | Deterministic policy failure across Nox, hooks, workflows, docs/bootstrap and release; failed coverage of a new path blocks qualification |
 | T24 | Current protected release from admitted inputs with configured external controls | Wheel/sdist consumption from PyPI and GitHub works, corpus/CLI/conformance smoke passes, SBOM/provenance resolve, evidence retained; docs-only promotion creates no release |
 
+### Verified local CLI installation qualification
+
+Issue #1219 implements the local generic-CLI slices of T05, T06, T07 and T16
+for Conftest, Gitleaks, Vale and OSV-Scanner. All four wrappers use
+`tools/verified_tool_installation.py`; raw acquisition remains owned by the
+maintained client. The installed-tree key binds artifact, canonical platform,
+raw SHA-256, `install-v1`, active policy references and the canonical installed
+manifest. Version-keyed files are migration inputs only.
+
+The implementation uses a native `filelock` lock from the frozen tooling
+closure, private same-filesystem staging, full opened-inode verification,
+immutable file/tree modes, file and directory fsync, and atomic directory
+rename. Invalid current or legacy content is quarantined without reacquisition.
+Immutable seeds are explicit read-only inputs copied into a private job tree.
+NFS, SMB, FUSE and unknown filesystem semantics are rejected.
+
+Run the local evidence harness through the existing integration suite:
+
+```console
+RAES_REQUIREMENT_UID= uv run --project implementations/python --frozen \
+  python -m pytest -q -m integration \
+  implementations/python/tests/test_issue_1219_verified_tool_installation.py
+```
+
+The harness emits the exact OS, Python, filesystem, lock-library and install-
+policy identities plus elapsed case results. It runs 32 cold processes, 100
+warm local clients, kills a publisher at every durable checkpoint, verifies
+live-publisher exclusion and dead-owner recovery, and injects disk exhaustion.
+The adjacent unit cases cover archive traversal, links, special files,
+duplicates, bombs, cache/seed tampering, hardlinks, private-root modes and
+legacy quarantine.
+
+The existing bootstrap qualification matrix runs the mechanism-level harness
+on every supported Linux and macOS host profile and retains its measured JSON
+beside the canonical bootstrap evidence. The harness output uses local slice
+names and is not projected into canonical passed T05/T06/T07/T16 records.
+Those cases also cover distinct OS principals, proof, repository services, OCI,
+export and program-wide GC and remain assigned to their downstream migration
+owners until complete case harnesses exist. A multi-user deployment must use an
+immutable root-owned seed and private job trees; it must not turn this local
+installed tree into a shared writable cache.
+
 ### Issue #1216 policy-gate evidence
 
 T22 and T23 are implemented as deterministic, offline policy coverage for this

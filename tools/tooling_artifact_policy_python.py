@@ -34,6 +34,7 @@ PYTHON_AUTHORITY_PATHS = (
 _EXPECTED_TOOLS = {
     "check-jsonschema": "0.37.1",
     "cryptography": "46.0.3",
+    "filelock": "3.32.6",
     "nox": "2026.4.10",
     "pip": "26.0.1",
     "pre-commit": "4.3.0",

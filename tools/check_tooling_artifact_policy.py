@@ -216,6 +216,7 @@ def select_tooling_artifact(
         "artifact_id": artifact["artifact_id"],
         "artifact_class": artifact["artifact_class"],
         "version": artifact["version"],
+        "policy_refs": artifact["policy_refs"],
         "source": artifact["source"],
         "platform": platform,
     }
@@ -268,6 +269,7 @@ def select_tooling_host_profile(  # NOSONAR -- selection checks mirror the close
                 "artifact_class": artifact["artifact_class"],
                 "version": artifact["version"],
                 "support_level": artifact.get("support_level", "blocking"),
+                "policy_refs": artifact["policy_refs"],
                 "source": artifact["source"],
                 "platform": platform,
             }

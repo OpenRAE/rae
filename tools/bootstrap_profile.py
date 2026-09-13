@@ -61,6 +61,7 @@ class QualificationEvidenceOptions:
     offline_kit_archive_path: Path | None = None
     offline_kit_manifest_sha256: str | None = None
     generic_selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None
+    limitations: Sequence[str] = ()
 
 
 _DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS = QualificationEvidenceOptions()
@@ -384,11 +385,14 @@ def _default_generic_tool_selections(
 
 
 def _offline_generic_tool_selections(
-    repo_root: Path,
+    kit_root: Path,
+    runtime_root: Path,
     platform_id: str,
     artifacts: dict[str, dict[str, object]],
 ) -> tuple[tuple[str, Path, tuple[str, ...], str], ...]:
-    """Select a verified imported tool kit without entering acquisition code."""
+    """Copy verified immutable kit seeds into one private runtime tree."""
+
+    from tools import verified_tool_installation as installation
 
     version_args = {
         "conftest": ("--version",),
@@ -402,21 +406,103 @@ def _offline_generic_tool_selections(
         platform = artifact["platform"]
         if platform["platform_id"] != platform_id:
             raise ValueError(f"offline {artifact_id} does not match the selected platform")
-        installed = platform["installed_manifest"]
-        if len(installed) != 1:
-            raise ValueError(f"offline {artifact_id} must select exactly one installed binary")
-        entry = installed[0]
-        path = repo_root / ".cache" / "raes-sdl" / "tooling" / artifact_id / artifact["version"] / entry["path"]
         try:
-            mode = path.lstat().st_mode
-        except OSError as exc:
-            raise ValueError(f"offline {artifact_id} binary is unavailable") from exc
-        if not stat.S_ISREG(mode) or stat.S_ISLNK(mode):
-            raise ValueError(f"offline {artifact_id} binary is not a regular file")
-        if path.stat().st_size != entry["size"] or _sha256(path) != entry["sha256"]:
-            raise ValueError(f"offline {artifact_id} binary differs from the lock")
+            selection = _generic_locked_selection(artifact, profile_id="offline-kit")
+            path = installation.ensure_verified_installation(
+                runtime_root,
+                selection,
+                acquire=lambda: (_ for _ in ()).throw(RuntimeError("offline acquisition disabled")),
+                materialize=installation.materialize_direct,
+                installation_root=runtime_root / "installations",
+                immutable_seed_root=kit_root / ".cache" / "raes-sdl" / "tooling" / "installations",
+            )
+        except (KeyError, TypeError, ValueError, RuntimeError) as exc:
+            raise ValueError(f"offline {artifact_id} seed differs from the lock") from exc
         selections.append((artifact_id, path, args, artifact["version"]))
     return tuple(selections)
+
+
+def _generic_locked_selection(artifact: dict[str, object], *, profile_id: str):
+    """Build the shared installer DTO from one validated host selection."""
+
+    from tools.tooling_policy_gate import LockedArtifactSelection, LockedManifestEntry
+
+    platform = artifact["platform"]
+    source = artifact["source"]
+
+    def entries(values: object) -> tuple[LockedManifestEntry, ...]:
+        if not isinstance(values, list):
+            raise ValueError("generic tool manifest is invalid")
+        return tuple(
+            LockedManifestEntry(
+                path=entry["path"],
+                sha256=entry["sha256"],
+                size=entry["size"],
+                executable=entry.get("executable", False),
+            )
+            for entry in values
+        )
+
+    return LockedArtifactSelection(
+        artifact_id=artifact["artifact_id"],
+        artifact_class=artifact["artifact_class"],
+        version=artifact["version"],
+        profile_id=profile_id,
+        platform_id=platform["platform_id"],
+        policy_refs=tuple(artifact["policy_refs"]),
+        repository=source["repository"],
+        release=source["release"],
+        source_urls=tuple(platform["source_urls"]),
+        raw_manifest=entries(platform["raw_manifest"]),
+        installed_manifest=entries(platform["installed_manifest"]),
+    )
+
+
+def export_immutable_tool_seeds(host_profile_id: str, source_root: Path, destination_root: Path) -> None:
+    """Export only exact installed generic-tool trees as an immutable seed set."""
+
+    from tools import verified_tool_installation as installation
+
+    _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
+    generic_ids = ("conftest", "gitleaks", "osv-scanner", "vale")
+    if destination_root.exists() or destination_root.is_symlink():
+        raise ValueError("immutable tool seed destination must be new")
+    destination_root.mkdir(parents=True, mode=0o700)
+    try:
+        for artifact_id in generic_ids:
+            selection = _generic_locked_selection(artifacts[artifact_id], profile_id="offline-kit")
+            source_tree = installation.installation_tree_path(source_root, selection)
+            installation._validate_tree(source_tree, selection.installed_manifest, mode="installed")
+            destination_tree = installation.installation_tree_path(destination_root, selection)
+            destination_tree.parent.mkdir(parents=True, mode=0o700)
+            shutil.copytree(source_tree, destination_tree, symlinks=False)
+        paths = sorted(destination_root.rglob("*"), key=lambda path: len(path.parts), reverse=True)
+        for path in paths:
+            mode = path.lstat().st_mode
+            if stat.S_ISLNK(mode):
+                raise ValueError("immutable tool seed export retained a symbolic link")
+            if stat.S_ISREG(mode):
+                path.chmod(0o500 if mode & 0o111 else 0o400)
+                descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+                try:
+                    os.fsync(descriptor)
+                finally:
+                    os.close(descriptor)
+            elif stat.S_ISDIR(mode):
+                path.chmod(0o500)
+                installation._fsync_directory(path)
+            else:
+                raise ValueError("immutable tool seed export contains an unsupported entry")
+        destination_root.chmod(0o500)
+        installation._fsync_directory(destination_root)
+        installation._fsync_directory(destination_root.parent)
+        for artifact_id in generic_ids:
+            selection = _generic_locked_selection(artifacts[artifact_id], profile_id="offline-kit")
+            seed_tree = installation.installation_tree_path(destination_root, selection)
+            installation._assert_immutable_seed_chain(destination_root, seed_tree)
+            installation._validate_tree(seed_tree, selection.installed_manifest, mode="seed")
+    except (KeyError, OSError, RuntimeError, TypeError, ValueError) as exc:
+        raise ValueError("immutable tool seed export failed exact verification") from exc
 
 
 def qualify_generic_tools(
@@ -806,11 +892,19 @@ def verify_offline_kit(  # NOSONAR -- explicit payload checks preserve the audit
     generic_ids = {"conftest", "gitleaks", "osv-scanner", "vale"} & set(manifest["artifact_ids"])
     if generic_ids and generic_ids != {"conftest", "gitleaks", "osv-scanner", "vale"}:
         raise ValueError("offline kit must contain either all four generic tools or none")
-    generic = (
-        qualify_generic_tools(selections=_offline_generic_tool_selections(kit_root, host["platform_id"], artifacts))
-        if generic_ids
-        else {"outcome": "not-run", "results": []}
-    )
+    if generic_ids:
+        with tempfile.TemporaryDirectory(prefix="raes-offline-tool-runtime-") as runtime_directory:
+            runtime_root = Path(runtime_directory)
+            generic = qualify_generic_tools(
+                selections=_offline_generic_tool_selections(
+                    kit_root,
+                    runtime_root,
+                    host["platform_id"],
+                    artifacts,
+                )
+            )
+    else:
+        generic = {"outcome": "not-run", "results": []}
     outcome = (
         "passed" if uv_identity_passed and python_passed and generic["outcome"] in {"passed", "not-run"} else "failed"
     )
@@ -1036,6 +1130,8 @@ def build_qualification_evidence(  # NOSONAR -- closed-schema evidence checks re
         raise ValueError("implementation revision must be an exact commit SHA")
     if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}", evidence_location) is None:
         raise ValueError("evidence location must be a bounded public identifier")
+    if any(not isinstance(value, str) or not value or len(value) > 500 for value in options.limitations):
+        raise ValueError("qualification limitations must be bounded non-empty strings")
     host, artifacts, policy_sha256 = _load_host_selection(host_profile_id)
     case_results = _load_case_results(repo_root, case_result_paths, implementation_revision)
     passed_case_ids = {result["test_case_id"] for result in case_results}
@@ -1200,6 +1296,8 @@ def build_qualification_evidence(  # NOSONAR -- closed-schema evidence checks re
         "case_results": case_results,
         "outcome": outcome,
     }
+    if options.limitations:
+        record["limitations"] = sorted(set(options.limitations))
     if options.offline_kit_archive_path is not None:
         if not options.offline_kit_archive_path.is_file() or options.offline_kit_archive_path.is_symlink():
             raise ValueError("offline kit archive must be a regular file")
@@ -1231,6 +1329,7 @@ def _parse_args() -> argparse.Namespace:
     evidence.add_argument("--offline-kit-root", type=Path)
     evidence.add_argument("--offline-kit", type=Path)
     evidence.add_argument("--offline-kit-manifest-sha256")
+    evidence.add_argument("--limitation", action="append", default=[])
     case = subparsers.add_parser("record-case", help="bind a passed case to its exact harness")
     case.add_argument("test_case_id", choices=sorted(_CASE_IDS))
     case.add_argument("implementation_revision")
@@ -1249,6 +1348,13 @@ def _parse_args() -> argparse.Namespace:
     kit_copy = subparsers.add_parser("offline-kit-copy-tree", help="copy and relocate an installed payload tree")
     kit_copy.add_argument("source_root", type=Path)
     kit_copy.add_argument("destination_root", type=Path)
+    kit_tool_seeds = subparsers.add_parser(
+        "offline-kit-export-tool-seeds",
+        help="export exact generic-tool trees as immutable seeds",
+    )
+    kit_tool_seeds.add_argument("host_profile_id")
+    kit_tool_seeds.add_argument("source_root", type=Path)
+    kit_tool_seeds.add_argument("destination_root", type=Path)
     kit_python = subparsers.add_parser("offline-kit-install-python", help="verify and extract locked CPython")
     kit_python.add_argument("host_profile_id")
     kit_python.add_argument("kit_root", type=Path)
@@ -1294,6 +1400,7 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
                 offline_kit_root=args.offline_kit_root,
                 offline_kit_archive_path=args.offline_kit,
                 offline_kit_manifest_sha256=args.offline_kit_manifest_sha256,
+                limitations=args.limitation,
             ),
         )
         print(json.dumps(result, sort_keys=True))
@@ -1338,6 +1445,8 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
         print(_sha256(args.manifest_path))
     elif args.operation == "offline-kit-copy-tree":
         copy_relocatable_tree(args.source_root, args.destination_root)
+    elif args.operation == "offline-kit-export-tool-seeds":
+        export_immutable_tool_seeds(args.host_profile_id, args.source_root, args.destination_root)
     elif args.operation == "offline-kit-install-python":
         print(
             json.dumps(

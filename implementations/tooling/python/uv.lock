@@ -668,6 +668,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "check-jsonschema" },
     { name = "cryptography" },
+    { name = "filelock" },
     { name = "nox", extra = ["uv"] },
     { name = "pip" },
     { name = "pre-commit" },
@@ -687,6 +688,7 @@ build = [
 requires-dist = [
     { name = "check-jsonschema", specifier = "==0.37.1" },
     { name = "cryptography", specifier = "==46.0.3" },
+    { name = "filelock", specifier = "==3.32.6" },
     { name = "nox", extras = ["uv"], specifier = "==2026.4.10" },
     { name = "pip", specifier = "==26.0.1" },
     { name = "pre-commit", specifier = "==4.3.0" },
