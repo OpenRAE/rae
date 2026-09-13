@@ -5,6 +5,8 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, parse_int_or_var
 from .runtime_values import (
     absolute_path_or_var,
@@ -76,7 +78,7 @@ class RuntimeSecurityMonitoringFieldPredicate(SDLModel):
     """A normalized field predicate extracted from a detection definition."""
 
     field: str
-    operator: RuntimeSecurityMonitoringFieldPredicateOperator | str = (
+    operator: GovernedVocabulary[RuntimeSecurityMonitoringFieldPredicateOperator] = (
         RuntimeSecurityMonitoringFieldPredicateOperator.OTHER
     )
     value: str = ""
@@ -100,8 +102,10 @@ class RuntimeSecurityMonitoringDetectionDefinition(SDLModel):
     """A parsed detection definition loaded by a security-monitoring manager."""
 
     definition_id: str
-    engine: RuntimeSecurityMonitoringDetectionEngine | str = RuntimeSecurityMonitoringDetectionEngine.UNKNOWN
-    definition_kind: RuntimeSecurityMonitoringDetectionDefinitionKind | str = (
+    engine: GovernedVocabulary[RuntimeSecurityMonitoringDetectionEngine] = (
+        RuntimeSecurityMonitoringDetectionEngine.UNKNOWN
+    )
+    definition_kind: GovernedVocabulary[RuntimeSecurityMonitoringDetectionDefinitionKind] = (
         RuntimeSecurityMonitoringDetectionDefinitionKind.OTHER
     )
     native_id: str = ""

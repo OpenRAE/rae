@@ -60,6 +60,11 @@ phases:
       - ASR-538
     blocked_until:
       - modular-control-runtime
+  - id: software-requirement-semantics
+    requirements:
+      - SEM-218
+    blocked_until:
+      - reference-implementations
   - id: semantics-expansion
     patterns:
       - ^SEM-
@@ -126,7 +131,13 @@ phases:
 ownership:
   gov-concept-authority:
     - specs/concept-authority
+    - specs/sdl
     - contracts/concept-authority
+    - contracts/schema-publication
+    - contracts/schema-publication-manifest.json
+    - contracts/schemas/sdl
+    - contracts/schemas/artifact-requirements/artifact-requirement-v1.json
+    - contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json
     - contracts/schemas/concept-authority
     - contracts/schemas/README.md
     - contracts/schemas/backend-manifest
@@ -139,7 +150,12 @@ ownership:
     - contracts/profiles
     - docs/explain/reference
     - docs/explain/sdl
+    - docs/research/language-extensibility
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - docs/requirements/GOV-922
     - docs/decisions/adrs
+    - implementations/python/packages/raes
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_backend_protocols
     - implementations/python/packages/raes_backend_stubs
@@ -218,8 +234,60 @@ ownership:
     - implementations/python/tests
     - contracts/fixtures
     - CHANGELOG.md
+  # SEM-218 uses shared semantic contracts and their generated/evidence closure.
+  # It does not own backend implementations or downstream scenarios.
+  software-requirement-semantics:
+    - contracts/schemas/sdl
+    - contracts/schemas/realization-constraints
+    - contracts/schemas/plans
+    - contracts/schemas/satisfiability
+    - contracts/schemas/backend-manifest
+    - contracts/schemas/processor-manifest
+    - contracts/schemas/experiment-core
+    - contracts/schemas/participant-implementation-configuration
+    - contracts/schemas/participant-implementation-manifest
+    - contracts/schemas/participant-runtime
+    - contracts/schema-publication/entries
+    - docs/decisions
+    - docs/explain/reference
+    - docs/explain/sdl
+    - docs/requirements/SEM-218
+    - docs/requirements/ASR-530
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_contracts
+    # Retain SEM-218's exact shared description-evidence owners from issue #1209.
+    - implementations/python/packages/raes_runtime/observation_execution.py
+    - implementations/python/packages/raes_runtime/observation_results.py
+    - contracts/fixtures/experiment-core/experiment-evidence-record-v1
+    - implementations/python/tests
+    - implementations/python/pyproject.toml
+    - implementations/python/uv.lock
+    - implementations/tooling/python/smoke
+    - implementations/tooling/profiles/development-profiles.json
+    # Delivery-guard repair retains its existing external-service inventory owner.
+    - implementations/tooling/inventory-coverage.json
+    - specs/formal
+    - specs/sdl
   semantics-expansion:
     - contracts/schemas/sdl
+    # Shared description semantics and existing evidence lifecycle owners (SEM-218).
+    - contracts/schemas/experiment-core/experiment-evidence-record-v1.json
+    - contracts/schemas/experiment-core/experiment-run-v1.json
+    - contracts/schema-publication/entries/experiment-evidence-record-v1.json
+    - contracts/schema-publication/entries/experiment-run-v1.json
+    - contracts/fixtures/experiment-core/experiment-evidence-record-v1
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_runtime/observation_execution.py
+    - implementations/python/packages/raes_runtime/observation_results.py
+    - docs/requirements/SEM-218
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
+    - docs/decisions/issue-1209-clause-mapping.md
+    - docs/decisions/issue-1209-partial-capture-descriptions-preflight.md
+    - specs/sdl/recursive-realization-constraints.md
     - docs/explain/reference
     - implementations/python/packages/raes_processor
     - implementations/python/packages/raes

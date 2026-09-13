@@ -12,6 +12,8 @@ from typing import Any
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, parse_int_or_var
 from .runtime_platform_application_vocab import (
     RuntimePlatformApplicationCapabilityKind,
@@ -92,7 +94,9 @@ class RuntimePlatformApplicationCapability(SDLModel):
     """
 
     capability_id: str
-    kind: RuntimePlatformApplicationCapabilityKind | str = RuntimePlatformApplicationCapabilityKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimePlatformApplicationCapabilityKind] = (
+        RuntimePlatformApplicationCapabilityKind.UNKNOWN
+    )
     evidence_refs: list[str] = Field(default_factory=list)
     description: str = ""
 
@@ -127,7 +131,9 @@ class RuntimePlatformApplicationContentObject(SDLModel):
     """
 
     content_object_id: str
-    kind: RuntimePlatformApplicationContentObjectKind | str = RuntimePlatformApplicationContentObjectKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimePlatformApplicationContentObjectKind] = (
+        RuntimePlatformApplicationContentObjectKind.UNKNOWN
+    )
     name: str = ""
     attributes: dict[str, Any] = Field(default_factory=dict)
     references: list[str] = Field(default_factory=list)
@@ -162,7 +168,7 @@ class RuntimePlatformApplicationMarking(SDLModel):
     """A releasability marking (TLP/PAP/distribution) defined by the platform."""
 
     marking_id: str
-    scheme: RuntimePlatformApplicationMarkingScheme | str = RuntimePlatformApplicationMarkingScheme.TLP
+    scheme: GovernedVocabulary[RuntimePlatformApplicationMarkingScheme] = RuntimePlatformApplicationMarkingScheme.TLP
     level: str = ""
     value: str = ""
     description: str = ""
@@ -182,7 +188,9 @@ class RuntimePlatformApplicationUpstreamBinding(SDLModel):
     """An outbound binding to an upstream node/service (data source, backend)."""
 
     binding_id: str
-    role: RuntimePlatformApplicationUpstreamBindingRole | str = RuntimePlatformApplicationUpstreamBindingRole.UNKNOWN
+    role: GovernedVocabulary[RuntimePlatformApplicationUpstreamBindingRole] = (
+        RuntimePlatformApplicationUpstreamBindingRole.UNKNOWN
+    )
     target_node_ref: str = ""
     target_service_ref: str = ""
     description: str = ""
@@ -206,10 +214,10 @@ class RuntimePlatformApplicationConnector(SDLModel):
     """
 
     connector_id: str
-    kind: RuntimePlatformApplicationConnectorKind | str = RuntimePlatformApplicationConnectorKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimePlatformApplicationConnectorKind] = RuntimePlatformApplicationConnectorKind.UNKNOWN
     name: str = ""
     enabled: bool | str | None = None
-    credential_classification: RuntimePlatformApplicationSettingClassification | str = (
+    credential_classification: GovernedVocabulary[RuntimePlatformApplicationSettingClassification] = (
         RuntimePlatformApplicationSettingClassification.PLAIN
     )
     description: str = ""
@@ -277,8 +285,10 @@ class RuntimePlatformApplicationSetting(SDLModel):
     setting_id: str
     name: str = ""
     value: str = ""
-    provenance: RuntimePlatformApplicationSettingProvenance | str = RuntimePlatformApplicationSettingProvenance.UNKNOWN
-    classification: RuntimePlatformApplicationSettingClassification | str = (
+    provenance: GovernedVocabulary[RuntimePlatformApplicationSettingProvenance] = (
+        RuntimePlatformApplicationSettingProvenance.UNKNOWN
+    )
+    classification: GovernedVocabulary[RuntimePlatformApplicationSettingClassification] = (
         RuntimePlatformApplicationSettingClassification.PLAIN
     )
     redaction: str = ""

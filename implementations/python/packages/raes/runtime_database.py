@@ -26,6 +26,8 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import (
     SDLModel,
     is_variable_ref,
@@ -176,7 +178,7 @@ class DatabaseSchema(SDLModel):
 
     schema_id: str
     name: str
-    origin: DatabaseObjectOrigin | str = DatabaseObjectOrigin.UNKNOWN
+    origin: GovernedVocabulary[DatabaseObjectOrigin] = DatabaseObjectOrigin.UNKNOWN
     tables: list[DatabaseTable] = Field(default_factory=list)
     description: str = ""
 
@@ -210,7 +212,7 @@ class Database(SDLModel):
 
     database_id: str
     name: str
-    origin: DatabaseObjectOrigin | str = DatabaseObjectOrigin.UNKNOWN
+    origin: GovernedVocabulary[DatabaseObjectOrigin] = DatabaseObjectOrigin.UNKNOWN
     schemas: list[DatabaseSchema] = Field(default_factory=list)
     description: str = ""
 
@@ -248,8 +250,8 @@ class DatabaseRole(SDLModel):
 
     role_id: str
     name: str
-    role_type: DatabaseRoleType | str = DatabaseRoleType.OTHER
-    origin: DatabaseObjectOrigin | str = DatabaseObjectOrigin.UNKNOWN
+    role_type: GovernedVocabulary[DatabaseRoleType] = DatabaseRoleType.OTHER
+    origin: GovernedVocabulary[DatabaseObjectOrigin] = DatabaseObjectOrigin.UNKNOWN
     can_login: bool | str | None = None
     description: str = ""
 
@@ -288,7 +290,7 @@ class DatabaseGrant(SDLModel):
     """
 
     grantee_role_ref: str
-    object_type: DatabaseObjectType | str
+    object_type: GovernedVocabulary[DatabaseObjectType]
     object_ref: str
     privileges: list[str] = Field(default_factory=list)
     with_grant_option: bool | str = False
@@ -339,8 +341,10 @@ class DatabaseSetting(SDLModel):
 
     name: str
     value: str = ""
-    value_classification: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    provenance: DatabaseSettingProvenance | str = DatabaseSettingProvenance.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeSensitivityClassification] = (
+        RuntimeSensitivityClassification.UNKNOWN
+    )
+    provenance: GovernedVocabulary[DatabaseSettingProvenance] = DatabaseSettingProvenance.UNKNOWN
     description: str = ""
 
     @field_validator("name")
@@ -384,8 +388,8 @@ class RuntimeDatabaseService(SDLModel):
 
     database_service_id: str
     service: str = ""
-    engine: DatabaseEngine | str = DatabaseEngine.OTHER
-    protocol: DatabaseProtocol | str = DatabaseProtocol.OTHER
+    engine: GovernedVocabulary[DatabaseEngine] = DatabaseEngine.OTHER
+    protocol: GovernedVocabulary[DatabaseProtocol] = DatabaseProtocol.OTHER
     version: str = ""
     name: str = ""
     description: str = ""
@@ -453,15 +457,12 @@ class RuntimeDatabaseService(SDLModel):
         if not isinstance(self.engine, DatabaseEngine):
             return
         expected = _ENGINE_TO_PROTOCOLS.get(self.engine)
-        if expected is None or not isinstance(self.protocol, DatabaseProtocol):
+        if expected is None or is_variable_ref(self.protocol):
             return
         if self.protocol in expected:
             return
         allowed = ", ".join(sorted(p.value for p in expected))
-        raise ValueError(
-            f"database service '{self.database_service_id}' engine '{self.engine.value}' "
-            f"requires protocol to be one of: {allowed} (not '{self.protocol.value}')"
-        )
+        raise ValueError(f"database engine '{self.engine.value}' requires protocol to be one of: {allowed}")
 
 
 class RelationshipDatabaseAccess(SDLModel):
@@ -474,7 +475,7 @@ class RelationshipDatabaseAccess(SDLModel):
     """
 
     role_ref: str = ""
-    auth_method: DatabaseAuthMethod | str = DatabaseAuthMethod.OTHER
+    auth_method: GovernedVocabulary[DatabaseAuthMethod] = DatabaseAuthMethod.OTHER
     description: str = ""
 
     @field_validator("auth_method", mode="before")

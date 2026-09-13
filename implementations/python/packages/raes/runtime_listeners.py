@@ -15,6 +15,8 @@ from typing import Any
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from .runtime_values import (
     coerce_string_list,
@@ -204,16 +206,16 @@ class RuntimeServiceListener(SDLModel):
     service: str = ""
     address: str = ""
     port: int | str | None = None
-    protocol: RuntimeListenerProtocol | str = RuntimeListenerProtocol.TCP
-    address_family: RuntimeListenerAddressFamily | str = RuntimeListenerAddressFamily.UNSPECIFIED
-    scope: RuntimeListenerScope | str = RuntimeListenerScope.UNKNOWN
+    protocol: GovernedVocabulary[RuntimeListenerProtocol] = RuntimeListenerProtocol.TCP
+    address_family: GovernedVocabulary[RuntimeListenerAddressFamily] = RuntimeListenerAddressFamily.UNSPECIFIED
+    scope: GovernedVocabulary[RuntimeListenerScope] = RuntimeListenerScope.UNKNOWN
     bind_interface: str = ""
     socket_path: str = ""
     process_ref: str = ""
     process_name: str = ""
     published_port_refs: list[RuntimePublishedPortRef] = Field(default_factory=list)
     readiness: RuntimeListenerReadiness | None = None
-    provenance: RuntimeListenerProvenance | str = RuntimeListenerProvenance.UNKNOWN
+    provenance: GovernedVocabulary[RuntimeListenerProvenance] = RuntimeListenerProvenance.UNKNOWN
     evidence_refs: list[str] = Field(default_factory=list)
     description: str = ""
 

@@ -162,7 +162,10 @@ def _apply(plan_value, manifest, runtime, *, observe=True):
 
 @pytest.mark.parametrize("identity, accepted", [("db", True), ("different-db", False)])
 def test_exact_database_identity_survives_open_engine_through_apply(identity, accepted):
-    _, portable, manifest = _fixture({"database_services": [{"database_service_id": "db", "engine": "other"}]})
+    _, portable, manifest = _fixture(
+        {"database_services": [{"database_service_id": "db"}]},
+        scope="/nodes/host/runtime/database_services/0/engine",
+    )
     result = _apply(portable, manifest, {"database_services": [{"database_service_id": identity, "engine": "sqlite"}]})
     assert result.success is accepted, result.diagnostics
     if not accepted:
@@ -244,15 +247,16 @@ def test_dns_numeric_extension_is_exact_without_reclassifying_literal_strings():
     )
 
 
-def test_forwarding_taxonomies_carry_finite_choices_without_demanding_author_detail():
+def test_forwarding_taxonomy_knowledge_does_not_authorize_product_choices():
     _, portable, _ = _fixture(
         {"forwarding_agents": [{"forwarding_agent_id": "agent", "agent_kind": "other", "implementation": "other"}]},
     )
     authority = next(item for item in portable.realization_authority if item.requirement_kind == "forwarding-agents")
     member = authority.constraint_document.root.members[0].constraint
     assert member.fields["forwarding_agent_id"].value == "agent"
-    assert "log_forwarder" in member.fields["agent_kind"].domain.values
-    assert "other" not in member.fields["implementation"].domain.values
+    for field in ("agent_kind", "implementation"):
+        assert member.fields[field].kind == "knowledge"
+        assert member.fields[field].state == "unknown"
 
 
 @pytest.mark.parametrize("corruption", ["members", "baseline"])
@@ -398,8 +402,8 @@ def test_mixed_database_collection_preserves_membership_across_reordering(identi
     _, portable, manifest = _fixture(
         {
             "database_services": [
-                {"database_service_id": "second", "engine": "other"},
-                {"database_service_id": "first", "engine": "other"},
+                {"database_service_id": "second", "engine": "x-owner:private"},
+                {"database_service_id": "first", "engine": "x-owner:private"},
             ]
         }
     )
@@ -407,7 +411,11 @@ def test_mixed_database_collection_preserves_membership_across_reordering(identi
         _apply(
             portable,
             manifest,
-            {"database_services": [{"database_service_id": identity, "engine": "sqlite"} for identity in identities]},
+            {
+                "database_services": [
+                    {"database_service_id": identity, "engine": "x-owner:private"} for identity in identities
+                ]
+            },
         ).success
         is accepted
     )

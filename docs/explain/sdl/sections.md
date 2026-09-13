@@ -861,8 +861,8 @@ digest verification, rendering, locking, installation, and independent
 readback. The SDL cannot supply a `signed-by` path, an options map, a command,
 credentials, or private key material. `source` remains an opaque provenance
 label and `purl` remains package identity metadata; neither is parsed as a
-repository or executable value. Future package managers use their own closed
-profile and version rather than adding manager-specific options to this one.
+repository or executable value. New acquisition semantics use optional pinned
+domain profiles; they do not extend the legacy APT options surface.
 
 `software_components` records
 node-local software identity at component granularity with stable RAES ids,
@@ -874,6 +874,40 @@ capture method (see
 [ADR-056](../../decisions/adrs/adr-056-runtime-observed-values-and-credential-posture.md)
 for the cross-surface observed-value and credential-posture inventory, and
 [ADR-034](../../decisions/adrs/adr-034-runtime-software-component-inventory.md)).
+
+For progressive authoring, use `software_components` with an enclosing open
+scope and add only the choices that matter:
+
+```yaml
+name: software-outcome
+realization: {default: open}
+nodes:
+  host:
+    type: compute
+    os: linux
+    os_distribution: x-kali:kali
+    runtime:
+      software_components:
+        - {component_id: scanner, name: scanner}
+        - {component_id: editor, name: editor, presence: optional, version: "2.0"}
+```
+
+The distribution uses the governed extension form, not a new core catalog
+entry. A component can add an exact `version`, an independently named
+`version_constraint`, or an exact `package` refinement. `package_version` is
+not its application version. `package_ref` names a legacy package row explicitly;
+equal names do not imply a relation. Optional acquisition `refinements` carry
+pinned public profile definitions and bounded values through the existing plan
+host. The target must independently support their semantics before execution.
+
+`runtime.repository_state` separately records shared repository and trust
+identities; component `repository_refs` and repository `trust_ref` resolve there.
+Use `presence: forbidden` for explicit final absence. An internal cache, private
+route or prebuilt image needs no authored repository, digest or acquisition
+telemetry. Requested software/OS descriptions use observation demand without
+promoting backend selections to evidence or authorizing retention/export.
+See the normative [software requirement contract](../../../specs/sdl/software-requirements.md)
+for version relation identities, compatibility, support and security boundaries.
 
 Container health results are evidence, not `runtime` fields. Put the authored
 healthcheck definition in `conditions`, bind it through `Node.conditions`, and

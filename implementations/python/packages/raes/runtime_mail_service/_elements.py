@@ -9,6 +9,8 @@ import re
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from .._base import SDLModel, is_variable_ref, parse_int_or_var
 from ..runtime_filesystem import RuntimeSensitivityClassification
 from ..runtime_mail_vocab import (
@@ -65,7 +67,7 @@ class RuntimeMailComponent(SDLModel):
     """A mail-service engine/component such as Postfix, Dovecot, or a filter."""
 
     component_id: str
-    kind: RuntimeMailComponentKind | str = RuntimeMailComponentKind.OTHER
+    kind: GovernedVocabulary[RuntimeMailComponentKind] = RuntimeMailComponentKind.OTHER
     name: str
     version: str = ""
     description: str = ""
@@ -91,14 +93,14 @@ class RuntimeMailListener(SDLModel):
 
     listener_id: str
     service: str = ""
-    protocol: RuntimeMailProtocol | str = RuntimeMailProtocol.OTHER
-    role: RuntimeMailListenerRole | str = RuntimeMailListenerRole.OTHER
+    protocol: GovernedVocabulary[RuntimeMailProtocol] = RuntimeMailProtocol.OTHER
+    role: GovernedVocabulary[RuntimeMailListenerRole] = RuntimeMailListenerRole.OTHER
     component_ref: str = ""
     banner: str = ""
     advertised_identity: str = ""
     capabilities: list[str] = Field(default_factory=list)
-    auth_mechanisms: list[RuntimeMailAuthMechanism | str] = Field(default_factory=list)
-    tls_mode: RuntimeMailTlsMode | str = RuntimeMailTlsMode.UNKNOWN
+    auth_mechanisms: list[GovernedVocabulary[RuntimeMailAuthMechanism]] = Field(default_factory=list)
+    tls_mode: GovernedVocabulary[RuntimeMailTlsMode] = RuntimeMailTlsMode.UNKNOWN
     tls_versions: list[str] = Field(default_factory=list)
     description: str = ""
 
@@ -143,7 +145,7 @@ class RuntimeMailDomain(SDLModel):
 
     domain_id: str
     name: str
-    role: RuntimeMailDomainRole | str = RuntimeMailDomainRole.OTHER
+    role: GovernedVocabulary[RuntimeMailDomainRole] = RuntimeMailDomainRole.OTHER
     description: str = ""
 
     @field_validator("domain_id")
@@ -166,7 +168,7 @@ class RuntimeMailMailboxStore(SDLModel):
     """Mailbox storage backing for service-local mailboxes."""
 
     store_id: str
-    kind: RuntimeMailMailboxStoreKind | str = RuntimeMailMailboxStoreKind.OTHER
+    kind: GovernedVocabulary[RuntimeMailMailboxStoreKind] = RuntimeMailMailboxStoreKind.OTHER
     path: str = ""
     description: str = ""
 
@@ -199,10 +201,12 @@ class RuntimeMailMailbox(SDLModel):
     address: str
     local_part: str = ""
     domain_ref: str = ""
-    role: RuntimeMailMailboxRole | str = RuntimeMailMailboxRole.USER
-    status: RuntimeMailMailboxStatus | str = RuntimeMailMailboxStatus.UNKNOWN
-    auth_mechanisms: list[RuntimeMailAuthMechanism | str] = Field(default_factory=list)
-    credential_classification: RuntimeMailCredentialClassification | str = RuntimeMailCredentialClassification.UNKNOWN
+    role: GovernedVocabulary[RuntimeMailMailboxRole] = RuntimeMailMailboxRole.USER
+    status: GovernedVocabulary[RuntimeMailMailboxStatus] = RuntimeMailMailboxStatus.UNKNOWN
+    auth_mechanisms: list[GovernedVocabulary[RuntimeMailAuthMechanism]] = Field(default_factory=list)
+    credential_classification: GovernedVocabulary[RuntimeMailCredentialClassification] = (
+        RuntimeMailCredentialClassification.UNKNOWN
+    )
     store_ref: str = ""
     account_ref: str = ""
     local_user_ref: str = ""
@@ -288,7 +292,7 @@ class RuntimeMailRoutingRule(SDLModel):
     """A portable routing, aliasing, local-delivery, or relay rule."""
 
     rule_id: str
-    kind: RuntimeMailRoutingKind | str = RuntimeMailRoutingKind.OTHER
+    kind: GovernedVocabulary[RuntimeMailRoutingKind] = RuntimeMailRoutingKind.OTHER
     source_ref: str = ""
     target_ref: str = ""
     relay_host: str = ""
@@ -309,10 +313,10 @@ class RuntimeMailQueue(SDLModel):
     """Shape of a mail queue; dynamic content is explicitly classified."""
 
     queue_id: str
-    kind: RuntimeMailQueueKind | str = RuntimeMailQueueKind.OTHER
+    kind: GovernedVocabulary[RuntimeMailQueueKind] = RuntimeMailQueueKind.OTHER
     name: str = ""
     message_count: int | str | None = None
-    stability: RuntimeMailQueueStability | str = RuntimeMailQueueStability.DYNAMIC
+    stability: GovernedVocabulary[RuntimeMailQueueStability] = RuntimeMailQueueStability.DYNAMIC
     description: str = ""
 
     @field_validator("queue_id")
@@ -343,8 +347,10 @@ class RuntimeMailSetting(SDLModel):
     component_ref: str = ""
     name: str
     value: str = ""
-    value_classification: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    provenance: RuntimeMailSettingProvenance | str = RuntimeMailSettingProvenance.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeSensitivityClassification] = (
+        RuntimeSensitivityClassification.UNKNOWN
+    )
+    provenance: GovernedVocabulary[RuntimeMailSettingProvenance] = RuntimeMailSettingProvenance.UNKNOWN
     source_path: str = ""
     description: str = ""
 

@@ -406,47 +406,50 @@ surface or external contracts exist.
 
 ## Enum normalization convention
 
-All SDL enum-or-var parsers share one author-facing normalization rule:
-concrete strings are lowercased and hyphen aliases are mapped to underscore
-enum values before matching, while full-value `${var}` placeholders and `None`
-remain deferred. Runtime fields continue to call
-`parse_runtime_enum_or_var`, but that helper delegates to the canonical
-`parse_enum_or_var` implementation in `_base.py`, so runtime and non-runtime
-enum fields cannot drift on accepted spellings. The shared behavior is covered by
-`test_enum_or_var_helpers_share_hyphen_alias_normalization` in
-`tests/test_runtime_family_invariants.py`.
+Core enum aliases use the existing case-insensitive, hyphen-to-underscore
+normalizer. Whole-field `${var}` references remain subject to instantiation
+validation. `runtime_values.parse_runtime_enum_or_var` retains that behavior and
+consults the shared controlled-vocabulary catalog only for a declared external
+identity scope. Valid private `x-<owner>:<term>` tokens remain exact; malformed or
+unqualified names fail without embedding the rejected value in the diagnostic.
+
+`GovernedVocabulary` applies the same parser to field adapters and publishes the
+matching JSON Schema grammar. It admits extensions only for scopes explicitly
+owned by the catalog. Finite operators, grant effects, profile discriminators
+and sensitivity classes keep their existing closed semantics. Their schemas
+admit core aliases and variables, not arbitrary strings or private operations.
+A private sensitivity token therefore cannot bypass protected-value validation.
+
+Native provider identifiers whose own contract permits case or punctuation use
+their native string fields; this token grammar is not a lossy native-ID encoder.
+Identity acceptance does not establish operation support. Richer meaning uses
+existing typed domain-profile admission, without an executable token registry.
 
 ## Runtime enum sentinel convention
 
-Runtime service-family enums (every `Enum` defined in an `raes` module whose
-name starts with `runtime_`, including the `*_vocab` and `*_definitions`
-modules) follow a single, executable sentinel convention:
+The existing paired `unknown`/`other` convention remains a legacy serialization
+and drift rule for runtime enums. It does **not** determine whether a vocabulary
+accepts extensions: the catalog's explicit scope policy determines that. Some
+finite state/profile enums retain both sentinels to describe knowledge while
+still rejecting new operations. The existing
+`test_runtime_enums_open_or_closed_not_single_sentinel` guard preserves the
+paired legacy spelling convention; the issue-1206 schema/consumer suites verify
+actual extension and operation boundaries.
 
-- An **open** observed-value taxonomy carries **both** `unknown` and `other`.
-  `unknown` is the "not yet classified / not captured" value (and is typically
-  the field default), and `other` is the escape hatch for an observed value that
-  does not match a named member. Most runtime inventory enums are open, because
-  capture is best-effort and the named member list is never closed against the
-  real world.
-- A **closed** structural, protocol, or redaction-lattice vocabulary carries
-  **neither** `unknown` nor `other`. A value outside the fixed set is not a
-  member of the concept at all (for example
-  `RuntimeApplicationRouteUpstreamScheme`, which is exactly `http`/`https`: a
-  proxy-to-origin hop that is neither is not an application route upstream).
+An authored `unknown`, or `other` without recoverable identity, is knowledge.
+The legacy authoring-specificity label `open` is not realization permission:
+recursive compilation emits the existing knowledge node, which cannot establish
+conformance. An inherited open realization scope instead delegates **omitted**
+fields and keeps exact descendants binding. DNS `other` with an integer
+`type_code` remains an exact numeric identity, including through projection and
+comparison. No conversion may invent an identity for a legacy sentinel or
+collapse a known private identity into one.
 
-The single-sentinel state — exactly one of `{unknown, other}` — is forbidden.
-It is ambiguous: it neither commits to a closed set nor offers the full
-open-taxonomy pair, so consumers cannot tell whether an unmatched observed value
-should round-trip as `other` or be treated as `unknown`.
-
-This convention is enforced as an executable drift guard by
-`test_runtime_enums_open_or_closed_not_single_sentinel` in
-`tests/test_runtime_family_invariants.py`. The test introspects every enum
-defined in a runtime-family module and asserts
-`("unknown" in values) == ("other" in values)` for each, so any future runtime
-enum introduced in a single-sentinel state fails the suite immediately. When a
-new enum is genuinely closed, it must carry neither sentinel; otherwise it must
-carry both.
+See the [runtime inventory](../../../specs/sdl/runtime-inventory.md) and
+[dispositions](../../research/language-extensibility/scope-inventory.md).
+Neither an omitted implementation choice nor a complete abstract model needs a
+compulsory product/profile declaration. Identity and provenance fields do not
+create observation, retention or export demand.
 
 ## Runtime required-profile guard convention
 

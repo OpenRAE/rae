@@ -4,6 +4,8 @@ import ipaddress
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from .runtime_dns_vocab import DnsRecordClass, DnsRecordProvenance, DnsRecordType
 from .runtime_values import coerce_string_list, parse_runtime_enum_or_var, require_non_empty, require_symbol
@@ -154,12 +156,12 @@ class DnsResourceRecordSet(SDLModel):
 
     rrset_id: str
     owner: str
-    record_type: DnsRecordType | str
-    zone_class: DnsRecordClass | str = DnsRecordClass.IN
+    record_type: GovernedVocabulary[DnsRecordType]
+    zone_class: GovernedVocabulary[DnsRecordClass] = DnsRecordClass.IN
     ttl: int | str | None = None
     type_code: int | str | None = None
     records: list[DnsResourceRecord] = Field(default_factory=list)
-    provenance: DnsRecordProvenance | str = DnsRecordProvenance.UNKNOWN
+    provenance: GovernedVocabulary[DnsRecordProvenance] = DnsRecordProvenance.UNKNOWN
     description: str = ""
 
     def explicitness_exact_fields(self) -> frozenset[str]:

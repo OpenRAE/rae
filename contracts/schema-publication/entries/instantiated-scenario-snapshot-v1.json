@@ -1,10 +1,10 @@
 {
+  "content_hash": "9e4af05fb7184b42a8f848f68a778c34e5abc3c1a0884c683d17991ae859d0e9",
   "contract_id": "instantiated-scenario-snapshot-v1",
-  "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
-  "stability": "draft",
-  "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c",
   "last_change": {
-    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
-    "content_hash": "091073afe652a53a0ce183bc0e322235f4cc90e20d85c1903044e1fdc4e3728c"
-  }
+    "content_hash": "9e4af05fb7184b42a8f848f68a778c34e5abc3c1a0884c683d17991ae859d0e9",
+    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206."
+  },
+  "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
+  "stability": "draft"
 }

@@ -123,8 +123,8 @@ def test_compiler_and_portable_plan_share_the_recursive_database_authority():
     assert authority.structure is None
     member = authority.constraint_document.root.members[0].constraint
     assert member.fields["database_service_id"].value == "db"
-    assert "sqlite" in member.fields["engine"].domain.values
-    assert "unknown" not in member.fields["engine"].domain.values
+    assert member.fields["engine"].kind == "knowledge"
+    assert member.fields["engine"].state == "unknown"
     assert member.fields["version"].origin.value == "default"
 
 
