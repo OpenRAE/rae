@@ -62,16 +62,15 @@ optional `buffer_policy` (queue/back-pressure posture), `reload_channels`
 (downstream rule-reload sockets), and bounded `settings`. Each carries a stable
 local id; native config stanzas, raw events, and rule bodies remain evidence.
 
-### 3. Make the discriminator executable
+### 3. Keep functional categories separate from selected operation recipes
 
-A `require_profile_for_agent_kind` after-validator makes each member's defining
-profile executable so an under-populated instance fails validation. A
-`log_forwarder` requires a `buffer_policy` and at least one `ship_target`
-carrying an ingestion endpoint and rejects any `ioc_to_rule` transform; a
-`content_sync` requires at least one `api_pull` source, one `ioc_to_rule`
-transform, and one `reload_channel`, and rejects a `buffer_policy` and any
-`ship_target` enrollment endpoint. A `${var}` discriminator is exempt and the
-`unknown`/`other` tail is permissive.
+`agent_kind` names a function, not a universal completeness requirement.
+A log forwarder may have unknown buffering or destination details, and a
+content synchronizer need not pull APIs, transform IOCs, or reload a consumer.
+Buffers, enrollment endpoints and non-IOC or IOC transforms may compose with
+either kind. Their typed values, references and protection classifications
+remain validated. A selected shipping or synchronization operation enforces
+its actual prerequisites through installed profile admission before execution.
 
 ### 4. Keep forwarding inventory targetable but not executable
 
@@ -129,17 +128,19 @@ evidence-reference fields.
   variables; duplicate agent-local child ids fail early and semantic validation
   rejects duplicate `forwarding_agent_id` values across node-hosted and
   scenario-level registries.
-- Profile gate: the `require_profile_for_agent_kind` guard rejects an
-  under-populated `log_forwarder`/`content_sync` instance.
+- Selected-operation gate: an incomplete description remains valid; an operation
+  lacking its admitted destination or other required configuration fails before
+  apply. Unknown endpoint protocol/port facts do not assert a contradiction.
 - Semantic validation gate: ship-target `target_node_ref`/`target_service_ref`
   resolve at scenario scope, and scenario-level agents cannot use an implicit
   owning node for service refs.
 - Secret/payload gate: ship-target enrollment identities (closed
   `none`/`redacted`/`operator_secret` lattice) and secret-bearing settings
-  never carry raw values; the shared `name_indicates_secret` helper enforces
-  redaction even when the submitter left the classification at its default.
-- Contract/schema gate: published schemas are regenerated from Python model
-  sources; generated JSON schemas are not edited by hand.
+  never carry raw values. Secret-name classification applies to setting keys,
+  not source, target, or principal identity names (ADR-057).
+- Contract/schema gate: published schemas are hand-governed normative authority
+  (ADR-009); the reference schema bundle must match their reviewed contract
+  changes and publication ledger.
 
 ## Guardrails
 
@@ -197,3 +198,4 @@ evidence-reference fields.
 |------|-----------|---------|
 | 2026-05-31 | e815f27 | Added scenario-level forwarding agents (top-level `Scenario.forwarding_agents`) with cross-registry ref resolution and uniqueness. |
 | 2026-08-01 | #1043 | Defined corroborated inventory realization, closed ownership roles, and evidence-plane binding for forwarding agents. |
+| 2026-09-13 | #1207 | Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants. |

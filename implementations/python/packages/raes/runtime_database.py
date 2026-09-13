@@ -389,7 +389,7 @@ class RuntimeDatabaseService(SDLModel):
     database_service_id: str
     service: str = ""
     engine: GovernedVocabulary[DatabaseEngine] = DatabaseEngine.OTHER
-    protocol: GovernedVocabulary[DatabaseProtocol] = DatabaseProtocol.OTHER
+    protocol: GovernedVocabulary[DatabaseProtocol] = DatabaseProtocol.UNKNOWN
     version: str = ""
     name: str = ""
     description: str = ""
@@ -451,6 +451,10 @@ class RuntimeDatabaseService(SDLModel):
         )
 
     def _enforce_engine_protocol_pairing(self) -> None:
+        # Omission and unknown describe missing knowledge, not an incompatible
+        # protocol. Supplied concrete pairings still have to agree.
+        if "protocol" not in self.model_fields_set or self.protocol is DatabaseProtocol.UNKNOWN:
+            return
         # An engine with a canonical wire protocol may not carry
         # ``protocol: other`` (ADR-029 §3). ``${var}`` engines or protocols are
         # deferred to instantiation revalidation.
@@ -459,10 +463,9 @@ class RuntimeDatabaseService(SDLModel):
         expected = _ENGINE_TO_PROTOCOLS.get(self.engine)
         if expected is None or is_variable_ref(self.protocol):
             return
-        if self.protocol in expected:
-            return
-        allowed = ", ".join(sorted(p.value for p in expected))
-        raise ValueError(f"database engine '{self.engine.value}' requires protocol to be one of: {allowed}")
+        if self.protocol not in expected:
+            allowed = ", ".join(sorted(p.value for p in expected))
+            raise ValueError(f"database engine '{self.engine.value}' requires protocol to be one of: {allowed}")
 
 
 class RelationshipDatabaseAccess(SDLModel):

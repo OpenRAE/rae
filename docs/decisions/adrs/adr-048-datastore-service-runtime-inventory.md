@@ -51,21 +51,16 @@ discriminator (`search_index` / `wide_column` / `key_value` / `relational` /
 `unknown` / `other`). The owning node is implicit; transport exposure stays in
 `Node.services` and `runtime.network`; raw files remain evidence.
 
-### 2. Make the discriminator executable with a required-profile guard
+### 2. Describe partial state without a deployment recipe
 
-A model-local `require_profile_for_data_model` after-validator fails an
-under-populated instance. A `${var}` placeholder discriminator is exempt and the
-open `unknown` / `other` / `relational` tail imposes no profile, but each
-concrete structural data model requires its defining geometry:
-
-- `search_index` requires at least one `partition` with `kind: index` carrying
-  shard/replica counts. Search-index clusters and partitions may also carry
-  native UUIDs, aggregate and per-index document counts, deleted-document counts,
-  byte-normalized store sizes, creation timestamps, and open/closed status.
-- `wide_column` requires at least one `keyspace` partition with a concrete
-  replication strategy and a replication factor.
-- `key_value` requires a `persistence` profile and rejects relational /
-  wide-column (`keyspace` / `column_family`) partitions.
+The `data_model` identifies described state, not a mandatory complete profile.
+Search services may have no configured indexes, mappings, or known shard
+geometry; wide-column replication may be unknown; key-value persistence may be
+omitted or explicitly disabled. Exact supplied counts and choices remain binding.
+The structural contradiction between `key_value` and `keyspace`/`column_family`
+partitions remains invalid. Selected operations may require persistence,
+replication, or geometry through an installed profile's admission contract,
+not through universal parser completeness.
 
 ### 3. Preserve typed child inventories
 
@@ -111,10 +106,9 @@ replication, or persistence behavior.
   fields are normalized through the single runtime enum-parse helper. Duplicate
   service ids and duplicate service-local child ids fail early. Count and byte
   fields accept only non-negative integers or `${var}` placeholders.
-- Required-profile gate: the `require_profile_for_data_model` guard fails an
-  under-populated `search_index` / `wide_column` / `key_value` instance. A
-  concrete `search_index` also requires at least one structured mapping manifest
-  so index schema inventory cannot collapse to a name-only partition.
+- Selected-operation gate: base descriptions impose no universal completeness
+  threshold. Installed profiles enforce prerequisites on the selected completion
+  before apply, without weakening exact declarations or configured trust/support.
 - Semantic validation gate: the owning `service` ref resolves to a same-node
   binding; a non-empty, non-variable `authorization_ref` resolves to a same-node
   `app_authorization`.
@@ -123,8 +117,9 @@ replication, or persistence behavior.
 - Secret/payload gate: raw key material, credentials, secret-bearing setting
   values, and raw `_mapping` / `_template` response bodies stay out of SDL model
   data; bounded manifests retain digests and evidence refs instead.
-- Contract/schema gate: published schemas are regenerated from Python model
-  sources; generated JSON schemas are not edited by hand.
+- Contract/schema gate: published schemas are hand-governed normative authority
+  (ADR-009); the reference schema bundle must match their reviewed contract
+  changes and publication ledger.
 
 ## Guardrails
 
@@ -154,8 +149,8 @@ replication, or persistence behavior.
 
 - Non-relational datastore facts become typed, targetable, and
   validation-backed without corrupting the relational surface.
-- The required-profile guard makes a defining datastore fact impossible to
-  silently omit.
+- Unknown configuration remains expressible without fabricating persistence,
+  replication, or mapping facts.
 
 ### Negative
 
@@ -166,8 +161,8 @@ replication, or persistence behavior.
 
 - Over-expanding the model into a query/replication engine would recreate the
   original ambiguity under a new name.
-- Treating evidence presence as proof of a data-model profile would overclaim
-  what the SDL can validate; the required-profile guard exists to prevent this.
+- Description presence does not prove deployment capability or successful
+  persistence. Execution admission and independent observation remain separate.
 
 ## References
 
@@ -184,3 +179,4 @@ replication, or persistence behavior.
 |------|-----------|---------|
 | 2026-06-07 | e782722 | Added structured datastore mapping manifests. |
 | 2026-06-07 | adf63e5 | Added datastore cardinality fields. |
+| 2026-09-13 | #1207 | Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants. |
