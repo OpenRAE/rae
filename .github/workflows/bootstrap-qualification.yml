@@ -168,3 +168,153 @@ jobs:
             bootstrap-qualification.json
             bootstrap-offline-kit.tar
           if-no-files-found: error
+
+  development-image:
+    name: ${{ matrix.profile }} dev-container smoke
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {profile: container-ubuntu-24.04-x86_64, runner: ubuntu-24.04}
+          - {profile: container-ubuntu-24.04-arm64, runner: ubuntu-24.04-arm}
+    env:
+      RAES_REQUIREMENT_UID: GOV-913
+      UV_PYTHON: "3.14.7"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14.7"
+      - name: Install exact uv payload
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          version: "0.12.4"
+          enable-cache: false
+      - name: Validate the image definition before building
+        env:
+          HOST_PROFILE_ID: ${{ matrix.profile }}
+        run: |
+          tool_python=(uv run --project implementations/tooling/python --frozen --no-default-groups python)
+          uv sync --project implementations/tooling/python --frozen --no-default-groups
+          "${tool_python[@]}" tools/check_tooling_artifact_policy.py
+          plan="${RUNNER_TEMP}/development-image-plan.json"
+          "${tool_python[@]}" -m tools.devcontainer_image --host-profile-id "${HOST_PROFILE_ID}" > "${plan}"
+          architecture="$(jq -r '.oci_platform | split("/")[1]' "${plan}")"
+          resolved="$(docker buildx imagetools inspect --raw "$(jq -r .base_image_reference "${plan}")" \
+            | jq -r --arg architecture "${architecture}" \
+              '.manifests[] | select(.platform.os == "linux" and .platform.architecture == $architecture) | .digest')"
+          test "${resolved}" = "$(jq -r .base_image_digest "${plan}")"
+      - name: Build this platform from an empty builder cache
+        id: image
+        run: |
+          plan="${RUNNER_TEMP}/development-image-plan.json"
+          docker buildx create --name raes-clean-builder --driver docker-container
+          docker buildx build --builder raes-clean-builder --no-cache --pull --platform "$(jq -r .oci_platform "${plan}")" \
+            --load --tag raes-development-image:smoke --file .devcontainer/Dockerfile .devcontainer
+          echo "image_id=$(docker image inspect raes-development-image:smoke --format '{{.Id}}')" >> "${GITHUB_OUTPUT}"
+      - name: Prepare a clean checkout owned by the development user
+        run: |
+          git clone --no-local --no-hardlinks "${GITHUB_WORKSPACE}" "${RUNNER_TEMP}/rae"
+          sudo chown -R "$(jq -r '"\(.development_user.uid):\(.development_user.gid)"' \
+            "${RUNNER_TEMP}/development-image-plan.json")" "${RUNNER_TEMP}/rae"
+      - name: Open the container as a dev-container client does
+        run: |
+          workspace=/workspaces/rae
+          image_path="$(docker image inspect raes-development-image:smoke \
+            --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^PATH=//p')"
+          remote_path="$(jq -r .remoteEnv.PATH .devcontainer/devcontainer.json)"
+          remote_path="${remote_path//'${containerWorkspaceFolder}'/${workspace}}"
+          remote_path="${remote_path//'${containerEnv:PATH}'/${image_path}}"
+          {
+            echo "workspace=${workspace}"
+            echo "remote_path=${remote_path}"
+            echo "setup_command=$(jq -r .updateContentCommand .devcontainer/devcontainer.json)"
+          } > "${RUNNER_TEMP}/client.env"
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/client.env"
+          for attempt in first repeated; do
+            echo "::group::${attempt} lifecycle setup"
+            docker run --rm --volume "${RUNNER_TEMP}/rae:${workspace}" --volume raes-development-cache:/home/raes/.cache \
+              --workdir "${workspace}" --env PATH="${remote_path}" raes-development-image:smoke bash -c "${setup_command}"
+            echo "::endgroup::"
+          done
+      - name: Work in a new terminal as a maintainer would
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/client.env"
+          docker run --rm --volume "${RUNNER_TEMP}/rae:${workspace}" --volume raes-development-cache:/home/raes/.cache \
+            --workdir "${workspace}" --env PATH="${remote_path}" raes-development-image:smoke bash -euo pipefail -c '
+              test "$(id -u)" -ne 0
+              for tool in uv python nox pre-commit ruff gh git ssh gpg make jq less nano; do
+                command -v "${tool}"
+              done
+              test -x .git/hooks/pre-commit
+              test -x .git/hooks/pre-push
+              nox -s policy -- --skip-requirement
+              nox -s lint
+              nox -s tests
+            '
+      - name: Confirm proof and container-daemon capabilities are refused, not implied
+        run: |
+          # shellcheck disable=SC1091
+          source "${RUNNER_TEMP}/client.env"
+          docker run --rm --volume "${RUNNER_TEMP}/rae:${workspace}" --volume raes-development-cache:/home/raes/.cache \
+            --workdir "${workspace}" --env PATH="${remote_path}" raes-development-image:smoke bash -euo pipefail -c '
+              for absent in bwrap docker podman isabelle; do
+                if command -v "${absent}" >/dev/null; then
+                  echo "development image must not supply ${absent}" >&2
+                  exit 1
+                fi
+              done
+              test ! -e /var/run/docker.sock
+              if nox -s participant-opacity-proof > /tmp/proof.log 2>&1; then
+                echo "unsupported proof execution must fail" >&2
+                exit 1
+              fi
+              grep -Fx "participant-opacity-proof: bubblewrap is required to enforce offline proof replay" /tmp/proof.log
+            '
+      - name: Record bounded clean-image evidence
+        env:
+          IMAGE_ID: ${{ steps.image.outputs.image_id }}
+        run: |
+          jq -S \
+            --arg source_revision "${GITHUB_SHA}" \
+            --arg image_id "${IMAGE_ID}" \
+            --arg lock_sha256 "$(sha256sum implementations/tooling/artifacts.lock.json | cut -d ' ' -f 1)" \
+            --arg profiles_sha256 "$(sha256sum implementations/tooling/profiles/development-profiles.json | cut -d ' ' -f 1)" \
+            '{
+              host_profile_id,
+              platform_id,
+              oci_platform,
+              source_revision: $source_revision,
+              declared_base_image_index_digest: .base_image_index_digest,
+              declared_base_image_digest: .base_image_digest,
+              native_repository_snapshot,
+              resulting_image_id: $image_id,
+              policy_sha256,
+              artifact_lock_sha256: $lock_sha256,
+              development_profiles_sha256: $profiles_sha256,
+              commands: [
+                "tools/check_tooling_artifact_policy.py",
+                "docker buildx imagetools inspect --raw <base index> (platform manifest matches the lock)",
+                "docker buildx build --no-cache --pull --platform <plan oci_platform>",
+                "devcontainer.json updateContentCommand with remoteEnv PATH (first and repeated)",
+                "nox -s policy -- --skip-requirement",
+                "nox -s lint",
+                "nox -s tests",
+                "nox -s participant-opacity-proof (expected capability refusal)"
+              ],
+              outcome: "passed"
+            }' \
+            "${RUNNER_TEMP}/development-image-plan.json" > development-image-qualification.json
+      - name: Retain bounded clean-image evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: development-image-${{ matrix.profile }}-${{ github.sha }}
+          path: development-image-qualification.json
+          if-no-files-found: error

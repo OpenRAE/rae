@@ -119,6 +119,9 @@ phases:
   - id: decision-record-governance
     requirements:
       - GOV-941
+  - id: reusable-asset-integrity
+    requirements:
+      - GOV-913
 
 ownership:
   gov-concept-authority:

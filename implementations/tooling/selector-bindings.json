@@ -68,6 +68,17 @@
       "consumers": [{"path": "tools/tool_versions.py", "template": "GITLEAKS_VERSION = \"{selector}\""}]
     },
     {
+      "binding_id": "devcontainer-base-image-version",
+      "artifact_id": "devcontainer-base-image",
+      "authority_field": "version",
+      "consumers": [
+        {
+          "path": "tools/tool_versions.py",
+          "template": "DEVCONTAINER_BASE_IMAGE_VERSION = \"{selector}\""
+        }
+      ]
+    },
+    {
       "binding_id": "isabelle-tool-version",
       "artifact_id": "isabelle",
       "authority_field": "version",
@@ -156,6 +167,12 @@
     {
       "artifact_id": "fipa-communicative-acts-snapshot",
       "consumers": ["tools/check_autonomous_behavior_vocabularies.py"]
+    },
+    {
+      "artifact_id": "devcontainer-base-image",
+      "consumers": [
+        "tools/devcontainer_image.py"
+      ]
     },
     {
       "artifact_id": "scorecard-action-image",

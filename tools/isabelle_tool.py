@@ -37,6 +37,7 @@ ISABELLE_FILE_LIMIT_BYTES = 4 * 1024 * 1024 * 1024
 ISABELLE_PROCESS_ADDRESS_SPACE_LIMIT_MIB = 32768
 ISABELLE_JAVA_MAX_HEAP_MIB = 2048
 ISABELLE_ML_MAX_HEAP_MIB = 2048
+ISABELLE_BUBBLEWRAP_PATH = Path("/usr/bin/bwrap")
 ISABELLE_REQUIRED_FONTCONFIG_PATHS = (
     Path("/etc/fonts"),
     Path("/usr/share/fonts"),
@@ -373,14 +374,22 @@ def _bubblewrap_setup_failed(output: str) -> bool:
     return output.lstrip().startswith("bwrap:")
 
 
-def run_isabelle_build(repo_root: Path = REPO_ROOT) -> dict[str, object]:
-    """Kernel-check the fixed session in a network-isolated, bounded process."""
+def _require_bubblewrap(bwrap: Path = ISABELLE_BUBBLEWRAP_PATH) -> Path:
+    """Fail before any proof work when the offline isolation boundary is unavailable."""
 
-    home = require_isabelle(repo_root)
-    bwrap = Path("/usr/bin/bwrap")
     if not bwrap.is_file():
         raise IsabelleToolError("bubblewrap is required to enforce offline proof replay")
+    return bwrap
+
+
+def run_isabelle_build(repo_root: Path = REPO_ROOT, *, bwrap: Path = ISABELLE_BUBBLEWRAP_PATH) -> dict[str, object]:
+    """Kernel-check the fixed session in a network-isolated, bounded process."""
+
+    # Host isolation capabilities are diagnosed before the distribution is
+    # resolved, so an unsupported host fails on the missing capability itself.
+    bwrap = _require_bubblewrap(bwrap)
     _require_fontconfig_runtime()
+    home = require_isabelle(repo_root)
     session_root = (repo_root / ISABELLE_SESSION_RELATIVE_PATH).resolve()
     if not session_root.is_dir() or repo_root.resolve() not in session_root.parents:
         raise IsabelleToolError("the fixed Isabelle session root is unavailable")
