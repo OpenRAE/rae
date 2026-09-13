@@ -16,7 +16,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
 from tools import bootstrap_profile, gitleaks_tool, osv_scanner_tool, vale_tool
 from tools import verified_tool_installation as installation
 from tools.policy import conftest_tool
