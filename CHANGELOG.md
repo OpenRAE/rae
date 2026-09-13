@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [4.1.0](https://github.com/OpenRAE/rae/compare/v4.0.0...v4.1.0) (2026-09-13)
+
+
+### Features
+
+* add typed partial realization descriptions ([#1263](https://github.com/OpenRAE/rae/issues/1263)) ([d36608e](https://github.com/OpenRAE/rae/commit/d36608e89dbaa964ac0b6078fa4ab97e7bbfc0b2))
+* **sdl:** separate software requirements and acquisition constraints ([#1265](https://github.com/OpenRAE/rae/issues/1265)) ([0e2f6f4](https://github.com/OpenRAE/rae/commit/0e2f6f44be26b3d4928cd968006fae6a4990e29b))
+
+
+### Bug Fixes
+
+* **release:** keep release bookkeeping from failing verification or re-running checks ([#1267](https://github.com/OpenRAE/rae/issues/1267)) ([8ffcf6e](https://github.com/OpenRAE/rae/commit/8ffcf6ea2d3bff9e7ba12199a2af35262d4e22fa))
+* **sdl:** preserve governed runtime vocabulary identities ([#1262](https://github.com/OpenRAE/rae/issues/1262)) ([9311d27](https://github.com/OpenRAE/rae/commit/9311d27c2c02d2edc3ca203e66a8356305faa073))
+
 ## [4.0.0](https://github.com/OpenRAE/rae/compare/v3.5.0...v4.0.0) (2026-09-12)
 
 
