@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-12T23:56:51.659678+00:00",
+  "captured_at": "2026-09-13T00:29:45.711311+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -651,7 +651,7 @@
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "0ecac39c6b65c42261b16d6d418af46074db608fc3d9e74121f50605a57221bb",
+      "content_sha256": "cb516b14cce9a30b9e2a6d4050c18aeeb9b727a5ac071e51c306316d5774be8d",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -665,13 +665,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "f2f608966fa3561e253a4d9f4f6070341a82c0e1",
+  "raes_revision": "61da4e3c99a931eb546aef92d8a472375cc1f44f",
   "snapshot_id": "raes-standardized-specification-coverage-issue-1205-v8",
   "snapshot_revision": "8.0.0",
   "source_state": {
-    "base_revision": "f2f608966fa3561e253a4d9f4f6070341a82c0e1",
+    "base_revision": "61da4e3c99a931eb546aef92d8a472375cc1f44f",
     "checkout_state": "modified",
-    "implementation_digest": "31ab8256ed984f7009efc47c8beb13101cfe50143fd2415e159225bf42c83cca",
+    "implementation_digest": "bc910d7f82942345be7f4587936a54cd8e2a474c91337dde999a708b1734fbc2",
     "profile": "python-reference-source/v1"
   }
 }

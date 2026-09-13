@@ -149,7 +149,7 @@ def _normalize_keys(data: Any, is_hashmap: bool = False) -> Any:
     return data
 
 
-def _normalize_child(value: Any, key: Any, is_hashmap: bool, child_is_hashmap: bool) -> Any:
+def _normalize_child(value: object, key: object, is_hashmap: bool, child_is_hashmap: bool) -> object:
     if not is_hashmap and key in PROFILE_JSON_FIELDS:
         return value
     return _normalize_keys(value, is_hashmap=child_is_hashmap)
