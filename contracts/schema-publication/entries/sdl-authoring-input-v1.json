@@ -1,10 +1,10 @@
 {
+  "content_hash": "966842eeb5a34db24fbf3836e638ea5076ab592c16c92ff464623c38f40aa7c9",
   "contract_id": "sdl-authoring-input-v1",
-  "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
-  "stability": "draft",
-  "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062"
-  }
+    "content_hash": "966842eeb5a34db24fbf3836e638ea5076ab592c16c92ff464623c38f40aa7c9",
+    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206."
+  },
+  "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+  "stability": "draft"
 }

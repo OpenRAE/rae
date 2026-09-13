@@ -1,10 +1,10 @@
 {
+  "content_hash": "1588418b989a637595a2615d1186b81d949cf2f55ab8373104a45306b273304f",
   "contract_id": "scenario-satisfiability-evidence-v1",
-  "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
-  "stability": "draft",
-  "content_hash": "981f59e47f3da2058ddcc83a520ca9469959f5e46e8e4868829dcfc8f082181a",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "981f59e47f3da2058ddcc83a520ca9469959f5e46e8e4868829dcfc8f082181a"
-  }
+    "content_hash": "1588418b989a637595a2615d1186b81d949cf2f55ab8373104a45306b273304f",
+    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206."
+  },
+  "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
+  "stability": "draft"
 }
