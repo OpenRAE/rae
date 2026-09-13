@@ -6,7 +6,6 @@ import hashlib
 import io
 import json
 import os
-import shutil
 import subprocess
 import tarfile
 import threading
@@ -189,14 +188,11 @@ def test_publish_is_atomic_private_and_warm_hits_are_revalidated(
     installed = _direct_install(monkeypatch, tmp_path, selection, payload, acquire=acquire)
     assert installed.read_bytes() == payload
     assert installed.stat().st_mode & 0o777 == 0o500
-    assert installed.parent.stat().st_mode & 0o777 == 0o700
+    assert installed.parent.stat().st_mode & 0o777 == 0o500
     assert acquisitions == 1
 
     assert _direct_install(monkeypatch, tmp_path, selection, payload, acquire=acquire) == installed
     assert acquisitions == 1
-
-    shutil.rmtree(installation.default_installation_root(tmp_path))
-    assert not installation.default_installation_root(tmp_path).exists()
 
 
 def test_acquired_raw_bytes_are_reverified_before_materialization(
@@ -213,31 +209,6 @@ def test_acquired_raw_bytes_are_reverified_before_materialization(
             b"reviewed tool",
             acquire=lambda: b"different raw carrier",
         )
-
-
-def test_historical_owner_only_directory_modes_remain_valid_cache_hits(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    selection = _selection()
-    tree = installation.installation_tree_path(installation.default_installation_root(tmp_path), selection)
-    binary = tree / "bin" / "tool"
-    binary.parent.mkdir(parents=True)
-    binary.write_bytes(b"reviewed tool")
-    binary.chmod(0o500)
-    _make_private_cache_chain(binary.parent, tmp_path)
-    binary.parent.chmod(0o500)
-    tree.chmod(0o500)
-
-    installed = _direct_install(
-        monkeypatch,
-        tmp_path,
-        selection,
-        b"reviewed tool",
-        acquire=lambda: pytest.fail("valid historical cache triggered acquisition"),
-    )
-
-    assert installed == binary
 
 
 def test_cross_user_writable_installation_root_is_rejected(
@@ -355,7 +326,7 @@ def test_tampered_cache_is_quarantined_and_terminal_without_acquisition(
     binary.write_bytes(b"tampered")
     binary.chmod(0o500)
     _make_private_cache_chain(binary.parent, tmp_path)
-    tree.chmod(0o700)
+    tree.chmod(0o500)
 
     with pytest.raises(RuntimeError, match="cache-integrity-failure"):
         _direct_install(
@@ -384,7 +355,7 @@ def test_invalid_observer_revalidates_a_concurrent_repair_under_the_lock(
     binary.write_bytes(b"tampered")
     binary.chmod(0o500)
     _make_private_cache_chain(binary.parent, tmp_path)
-    tree.chmod(0o700)
+    tree.chmod(0o500)
     observer_waiting = threading.Event()
     repair_published = threading.Event()
     observer_result: list[Path | BaseException] = []
@@ -599,7 +570,7 @@ def test_hardlinked_installed_leaf_is_quarantined_and_terminal(
     _make_private_cache_chain(binary.parent, tmp_path)
     alias = tmp_path / "alias"
     os.link(binary, alias)
-    tree.chmod(0o700)
+    tree.chmod(0o500)
 
     with pytest.raises(RuntimeError, match="cache-integrity-failure"):
         _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
@@ -748,5 +719,6 @@ def test_bootstrap_qualification_retains_local_evidence_without_overclaiming() -
 
     assert "issue_1219_installation_harness.py" in workflow
     assert "local-installation-qualification.json" in workflow
+    assert "chmod -R u+w .qualification-kit/.cache/raes-sdl/tooling/installations" in workflow
     for case_id in ("T05", "T06", "T07", "T16"):
         assert f"record-case {case_id}" not in workflow

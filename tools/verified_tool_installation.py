@@ -522,7 +522,7 @@ def _validate_tree(
     valid_owners = {0, os.geteuid()} if mode == "seed" else {os.geteuid()}
     if state.st_uid not in valid_owners or (mode == "seed" and permissions & 0o222):
         raise RuntimeError("tool-installation: tree-integrity-failure")
-    if mode == "installed" and permissions not in {0o500, 0o700}:
+    if mode == "installed" and permissions != 0o500:
         raise RuntimeError("tool-installation: tree-integrity-failure")
     if mode == "staged" and permissions != 0o700:
         raise RuntimeError("tool-installation: tree-integrity-failure")
@@ -538,7 +538,7 @@ def _validate_tree(
             child_permissions = child_state.st_mode & 0o777
             if child_state.st_uid not in valid_owners:
                 raise RuntimeError("tool-installation: tree-integrity-failure")
-            if mode == "installed" and child_permissions not in {0o500, 0o700}:
+            if mode == "installed" and child_permissions != 0o500:
                 raise RuntimeError("tool-installation: tree-integrity-failure")
             if mode == "staged" and child_permissions != 0o700:
                 raise RuntimeError("tool-installation: tree-integrity-failure")
@@ -694,9 +694,9 @@ def _publish_tree(
             reverse=True,
         )
         for directory in directories:
-            directory.chmod(0o700)
+            directory.chmod(0o500)
             _fsync_directory(directory)
-        stage.chmod(0o700)
+        stage.chmod(0o500)
         _fsync_directory(stage)
         _publication_checkpoint("staged-durable", stage)
         os.rename(stage, target)
