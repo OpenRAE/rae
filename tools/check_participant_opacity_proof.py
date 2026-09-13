@@ -29,6 +29,7 @@ from tools.isabelle_tool import (  # noqa: E402
     ISABELLE_PROCESS_ADDRESS_SPACE_LIMIT_MIB,
     ISABELLE_SESSION,
     ISABELLE_SESSION_RELATIVE_PATH,
+    IsabelleToolError,
     expected_isabelle_result,
     run_isabelle_build,
 )
@@ -539,7 +540,7 @@ def main() -> int:
     try:
         manifest = load_proof_manifest()
         validate_proof_manifest(manifest)
-    except ProofEvidenceError as exc:
+    except (ProofEvidenceError, IsabelleToolError) as exc:
         print(f"participant-opacity-proof: {exc}", file=sys.stderr)
         return 1
     print("participant-opacity-proof: verified")

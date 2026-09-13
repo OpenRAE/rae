@@ -39,6 +39,7 @@ from tools.tooling_artifact_policy_common import (
     normalize_platform_id,
     string_set,
 )
+from tools.tooling_artifact_policy_container import container_failures
 from tools.tooling_artifact_policy_discovery import tracked_python_scans
 from tools.tooling_artifact_policy_inventory import inventory_failures
 from tools.tooling_artifact_policy_python import (
@@ -116,6 +117,7 @@ def evaluate_tooling_artifact_policy(
     failures.extend(selector_failures(repo_root, documents, paths, python_scans))
     failures.extend(inventory_failures(repo_root, documents, paths, python_scans))
     failures.extend(python_closure_failures(repo_root, documents, paths))
+    failures.extend(container_failures(repo_root, documents, paths))
     if all(path in documents for path in POLICY_SCHEMAS):
         expected_policy_sha256 = tooling_policy_sha256(repo_root)
         profiles = documents[PROFILES_PATH]

@@ -721,6 +721,64 @@ def install_offline_python_payload(  # NOSONAR -- archive validation is intentio
     }
 
 
+def install_offline_uv_payload(  # NOSONAR -- archive validation is intentionally explicit and auditable.
+    host_profile_id: str, kit_root: Path, uv_artifact_id: str
+) -> dict[str, str]:
+    """Verify and extract the locked uv client from an imported payload kit.
+
+    The offline and container bootstrap paths have no host-supplied uv to copy,
+    so the reviewed raw archive is the only admitted source of the client that
+    later runs the frozen validator.
+    """
+
+    _host, artifacts, _policy_sha256 = _load_host_selection(host_profile_id)
+    artifact = artifacts.get(uv_artifact_id)
+    if artifact is None:
+        raise ValueError("offline kit uv payload is not selected by the host profile")
+    raw_manifest = artifact["platform"]["raw_manifest"]
+    if not isinstance(raw_manifest, list) or len(raw_manifest) != 1:
+        raise ValueError("offline kit uv payload must have exactly one raw archive")
+    raw = raw_manifest[0]
+    archive = kit_root / "archives" / uv_artifact_id / raw["path"]
+    if (
+        not archive.is_file()
+        or archive.is_symlink()
+        or archive.stat().st_size != raw["size"]
+        or _sha256(archive) != raw["sha256"]
+    ):
+        raise ValueError("offline kit uv archive differs from the validated lock")
+    destination = kit_root / "bin"
+    destination.mkdir(parents=True, exist_ok=True)
+    installed: list[str] = []
+    with tempfile.TemporaryDirectory(prefix=".uv-extract-", dir=kit_root) as temporary_dir:
+        temporary_root = Path(temporary_dir)
+        try:
+            with tarfile.open(archive, mode="r:gz") as bundle:
+                members = bundle.getmembers()
+                roots = {PurePosixPath(member.name).parts[:1] for member in members}
+                if not members or len(roots) != 1 or any(not (member.isfile() or member.isdir()) for member in members):
+                    raise ValueError("offline kit uv archive has an unexpected shape")
+                bundle.extractall(temporary_root, filter="data")
+        except (OSError, tarfile.TarError) as exc:
+            raise ValueError("offline kit uv archive could not be extracted safely") from exc
+        extracted = temporary_root / next(iter(roots))[0]
+        for name in ("uv", "uvx"):
+            source = extracted / name
+            target = destination / name
+            if not source.is_file() or source.is_symlink():
+                raise ValueError(f"offline kit uv archive omits its {name} client")
+            if target.exists() or target.is_symlink():
+                raise ValueError(f"offline kit uv destination {name} must be new")
+            source.rename(target)
+            target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+            installed.append(target.relative_to(kit_root).as_posix())
+    return {
+        "artifact_id": uv_artifact_id,
+        "path": installed[0],
+        "extra_path": installed[1],
+    }
+
+
 def build_offline_kit_manifest(
     host_profile_id: str,
     kit_root: Path,
@@ -1358,6 +1416,10 @@ def _parse_args() -> argparse.Namespace:
     kit_python.add_argument("host_profile_id")
     kit_python.add_argument("kit_root", type=Path)
     kit_python.add_argument("--python-artifact-id", required=True)
+    kit_uv = subparsers.add_parser("offline-kit-install-uv", help="verify and extract the locked uv client")
+    kit_uv.add_argument("host_profile_id")
+    kit_uv.add_argument("kit_root", type=Path)
+    kit_uv.add_argument("--uv-artifact-id", required=True)
     kit_verify = subparsers.add_parser("offline-kit-verify", help="verify and execute an imported payload kit")
     kit_verify.add_argument("host_profile_id")
     kit_verify.add_argument("kit_root", type=Path)
@@ -1450,6 +1512,13 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
         print(
             json.dumps(
                 install_offline_python_payload(args.host_profile_id, args.kit_root, args.python_artifact_id),
+                sort_keys=True,
+            )
+        )
+    elif args.operation == "offline-kit-install-uv":
+        print(
+            json.dumps(
+                install_offline_uv_payload(args.host_profile_id, args.kit_root, args.uv_artifact_id),
                 sort_keys=True,
             )
         )

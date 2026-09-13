@@ -39,6 +39,7 @@ class LockedArtifactSelection:
     installed_manifest: tuple[LockedManifestEntry, ...]
     artifact_class: str = "generic-cli"
     policy_refs: tuple[str, ...] = ("artifact-integrity-v1",)
+    installed_identity: tuple[tuple[str, str], ...] = ()
 
 
 def _is_portable_manifest_path(path: str) -> bool:
@@ -68,6 +69,18 @@ def _locked_manifest_entry(value: object) -> LockedManifestEntry:
     if not isinstance(executable, bool):
         raise RuntimeError("development artifact policy failed before acquisition: invalid executable intent")
     return LockedManifestEntry(path, digest, size, executable)
+
+
+def _locked_installed_identity(value: object) -> tuple[tuple[str, str], ...]:
+    """Return the closed installed identity of an image-class selection."""
+
+    if not isinstance(value, dict):
+        raise RuntimeError("development artifact policy failed before acquisition: invalid installed identity")
+    fields = ("implementation", "version", "abi", "target")
+    entries = tuple((name, value.get(name)) for name in fields)
+    if any(not isinstance(item, str) or not item for _, item in entries):
+        raise RuntimeError("development artifact policy failed before acquisition: invalid installed identity")
+    return tuple((name, str(item)) for name, item in entries)
 
 
 def safe_tooling_cache_parent(repo_root: Path, target: Path, *, artifact_id: str) -> Path:
@@ -225,22 +238,32 @@ def _selection_from_document(
         if not isinstance(source, dict) or not isinstance(platform, dict):
             raise TypeError
         raw_values = platform["raw_manifest"]
-        installed_values = platform["installed_manifest"]
         source_urls = platform["source_urls"]
         policy_refs = selection["policy_refs"]
         artifact_class = selection["artifact_class"]
         if (
             not isinstance(raw_values, list)
-            or not isinstance(installed_values, list)
             or not isinstance(source_urls, list)
             or not all(isinstance(value, str) and value for value in source_urls)
             or not isinstance(policy_refs, list)
             or not all(isinstance(value, str) and value for value in policy_refs)
             or not isinstance(artifact_class, str)
+            or not artifact_class
         ):
             raise TypeError
         raw_manifest = tuple(_locked_manifest_entry(item) for item in raw_values)
-        installed_manifest = tuple(_locked_manifest_entry(item) for item in installed_values)
+        # Only an OCI image is admitted by its immutable manifest digest and a
+        # closed installed identity; every other class must keep an extracted
+        # per-file installed manifest for its consumer to verify.
+        if artifact_class == "oci-image":
+            installed_identity = _locked_installed_identity(platform["installed_identity"])
+            installed_manifest: tuple[LockedManifestEntry, ...] = ()
+        else:
+            installed_identity = ()
+            installed_values = platform["installed_manifest"]
+            if not isinstance(installed_values, list):
+                raise TypeError
+            installed_manifest = tuple(_locked_manifest_entry(item) for item in installed_values)
         result = LockedArtifactSelection(
             artifact_id=selection["artifact_id"],
             version=selection["version"],
@@ -253,6 +276,7 @@ def _selection_from_document(
             installed_manifest=installed_manifest,
             artifact_class=artifact_class,
             policy_refs=tuple(policy_refs),
+            installed_identity=installed_identity,
         )
         selected_profile_ids = platform["profile_ids"]
     except (KeyError, TypeError) as exc:
@@ -287,7 +311,9 @@ def _selection_is_valid(
     required_collections = (
         selection.source_urls,
         selection.raw_manifest,
-        selection.installed_manifest,
+        # Exactly one installed shape is admitted: an extracted per-file manifest,
+        # or the closed installed identity an OCI image is verified by.
+        selection.installed_manifest or selection.installed_identity,
     )
     return all(
         (

@@ -36,6 +36,16 @@ Changing these migration pins is an explicit, reviewable workflow trust change.
 
 ## Set up the repository
 
+The fastest start is the
+[development container](docs/explain/development-container.md): open the
+repository in VS Code with the Dev Containers extension, or create a GitHub
+Codespace, and setup runs by itself. It is an x86_64 image; on Apple silicon,
+Docker Desktop runs it under emulation. The container cannot run the Isabelle
+proof lane, so continuous integration runs the full `verify` gate for container
+users.
+
+To set up natively instead:
+
 Prerequisites:
 
 - a standard CPython 3.11, 3.12, 3.13, or 3.14 payload admitted by the
