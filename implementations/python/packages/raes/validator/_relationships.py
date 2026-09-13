@@ -3,8 +3,6 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
-from ..runtime_security_monitoring import RuntimeSecurityMonitoringListenerRole
-
 
 class _RelationshipsMixin:
     def _verify_relationship_database_access(self) -> None:
@@ -103,15 +101,18 @@ class _RelationshipsMixin:
             return
         agent_id = agent.forwarding_agent_id
         self._check_forwarding_edge_protocol_agreement(edge, ship_targets, agent_id, label)
-        self._check_forwarding_edge_role_agreement(edge, ship_targets, agent_id, label)
 
     def _check_forwarding_edge_protocol_agreement(
         self, edge: object, ship_targets: list[object], agent_id: str, label: str
     ) -> None:
         # Private protocol identities are as binding as core enum members.
-        # Only unresolved variables defer agreement to instantiation.
+        # Unknown protocol knowledge and unresolved variables defer agreement.
         edge_protocol = getattr(edge, "protocol", "")
-        if not edge_protocol or self._is_unresolved_var(edge_protocol):
+        if not edge_protocol or edge_protocol == "unknown" or self._is_unresolved_var(edge_protocol):
+            return
+        # An unobserved target may be the agreeing endpoint. Missing knowledge
+        # cannot prove disagreement; execution must resolve its prerequisites.
+        if any(target.protocol == "unknown" or self._is_unresolved_var(target.protocol) for target in ship_targets):
             return
         target_protocols = [
             getattr(target.protocol, "value", target.protocol)
@@ -125,28 +126,6 @@ class _RelationshipsMixin:
                 f"{label} forwarding_edge protocol does not match any ship_target protocol "
                 f"on forwarding agent '{agent_id}'"
             )
-
-    def _check_forwarding_edge_role_agreement(
-        self, edge: object, ship_targets: list[object], agent_id: str, label: str
-    ) -> None:
-        # An ``agent_event_ingestion`` listener role requires a ship_target with
-        # an ingestion endpoint; an ``agent_enrollment`` role requires one with
-        # an enrollment endpoint. Other roles impose no ship_target shape.
-        role = getattr(edge, "target_listener_role", None)
-        if not isinstance(role, RuntimeSecurityMonitoringListenerRole):
-            return
-        if role is RuntimeSecurityMonitoringListenerRole.AGENT_EVENT_INGESTION:
-            if not any(t.has_ingestion_endpoint() for t in ship_targets):
-                self._err(
-                    f"{label} forwarding_edge target_listener_role 'agent_event_ingestion' has no agreeing "
-                    f"ship_target carrying an ingestion endpoint on forwarding agent '{agent_id}'"
-                )
-        elif role is RuntimeSecurityMonitoringListenerRole.AGENT_ENROLLMENT:
-            if not any(t.has_enrollment_endpoint() for t in ship_targets):
-                self._err(
-                    f"{label} forwarding_edge target_listener_role 'agent_enrollment' has no agreeing "
-                    f"ship_target carrying an enrollment endpoint on forwarding agent '{agent_id}'"
-                )
 
     def _verify_relationship_service_integrations(self) -> None:
         """Validate typed ``service_integration`` blocks on relationship edges.

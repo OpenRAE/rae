@@ -248,7 +248,7 @@ def test_typed_projection_canonicalizes_model_defaults() -> None:
     assert isinstance(minimal, list)
     assert isinstance(minimal[0], dict)
     assert minimal[0]["engine"] == "other"
-    assert minimal[0]["protocol"] == "other"
+    assert minimal[0]["protocol"] == "unknown"
     assert minimal == project_realization_concern("runtime-database-services", minimal)
 
 

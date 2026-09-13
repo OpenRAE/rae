@@ -70,11 +70,11 @@ first verifies that the wheelhouse contains exactly the named regular files at
 the recorded sizes and SHA-256 digests.
 
 The supported project closure tuples are Linux x86_64 on CPython 3.11–3.14,
-Linux arm64 on CPython 3.14, and macOS arm64 on CPython 3.14. macOS x86_64 has a
-tool-and-build closure, including the reviewed universal cryptography wheel for
-the T08 fixture, but no project all-extras closure: the current project lock has
-no compatible cryptography wheel, and ambient source fallback is not admitted.
-A new tuple requires a lock/export/profile update and qualification evidence.
+Linux arm64 on CPython 3.14, and macOS arm64 on CPython 3.14. macOS x86_64 is
+not a supported tooling platform: cryptography 50.0.0 and later, required for
+the advisories fixed in #1268, publish no macOS x86_64 or universal wheel, and
+ambient source fallback is not admitted. A new tuple requires a
+lock/export/profile update and qualification evidence.
 
 These locks make dependency selection repeatable. They do not claim that wheel
 builds are byte-for-byte reproducible across host SDKs, compilers, operating
@@ -164,7 +164,7 @@ path. The Ubuntu 22.04 proof host never treats its stock curl as a generic-tool
 acquisition capability.
 
 `bootstrap-qualification.yml` executes the four locked generic tools on Linux
-x86_64/arm64 and macOS x86_64/arm64, runs the maintained curl against controlled
+x86_64/arm64 and macOS arm64, runs the maintained curl against controlled
 TLS, redirect, retry, disconnect, deadline and unknown-length size fixtures,
 exports exact raw uv/CPython objects plus an installed managed interpreter, uv,
 target-specific raw Python wheelhouses and the four generic tools. It measures
@@ -172,7 +172,7 @@ every kit entry, deletes the seeded copies, restores the target-specific
 archive, verifies raw and installed identities, disables uv downloads and
 network fallback, recreates environments from the verified wheels, then repeats
 the frozen Python and tool checks. Linux arm64 and macOS arm64 bind that clean
-restore to T12; all four platforms bind their tool/ABI run to T02.
+restore to T12; all three platforms bind their tool/ABI run to T02.
 Native packages and trust roots remain reviewed base-image prerequisites. The
 workflow retains the bounded result and payload-kit artifacts under the exact
 workflow commit. Public profiles contain no credential reference; enterprise

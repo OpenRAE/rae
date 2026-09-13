@@ -25,7 +25,6 @@ jobs:
         include:
           - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu, tool_closure: public-linux-x86_64-cp314-tools, tool_requirements: implementations/tooling/python/smoke/tools-linux-x86_64-cp314.txt, project_closure: public-linux-x86_64-cp314-all-extras}
           - {profile: public-linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, tool_closure: public-linux-arm64-cp314-tools, tool_requirements: implementations/tooling/python/smoke/tools-linux-arm64-cp314.txt, project_closure: public-linux-arm64-cp314-all-extras}
-          - {profile: public-macos-x86_64, runner: macos-15-intel, target: x86_64-apple-darwin, tool_closure: public-macos-x86_64-cp314-tools, tool_requirements: implementations/tooling/python/smoke/tools-macos-x86_64-cp314.txt, project_closure: ""}
           - {profile: public-macos-arm64, runner: macos-15, target: aarch64-apple-darwin, tool_closure: public-macos-arm64-cp314-tools, tool_requirements: implementations/tooling/python/smoke/tools-macos-arm64-cp314.txt, project_closure: public-macos-arm64-cp314-all-extras}
     env:
       UV_PYTHON: "3.14.7"

@@ -57,9 +57,11 @@ def test_grant_schema_does_not_admit_a_new_effect():
     assert not Draft202012Validator(RuntimeAppAuthorizationGrant.model_json_schema()).is_valid(payload)
 
 
-def test_private_resource_vocabulary_keeps_grant_agreement():
-    with pytest.raises(ValidationError):
-        RuntimeAppAuthorization(app_authorization_id="authorization", resource_vocabulary="x-lab:resource")
+def test_private_resource_vocabulary_preserves_partial_knowledge_and_grant_effect():
+    partial = RuntimeAppAuthorization(app_authorization_id="authorization", resource_vocabulary="x-lab:resource")
+    assert partial.resource_vocabulary == "x-lab:resource"
+    assert partial.permission_grants == []
+    assert "permission_grants" not in partial.model_dump(exclude_unset=True)
     authorization = RuntimeAppAuthorization(
         app_authorization_id="authorization",
         resource_vocabulary="x-lab:resource",

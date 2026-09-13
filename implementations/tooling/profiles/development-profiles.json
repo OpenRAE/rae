@@ -81,37 +81,6 @@
       ]
     },
     {
-      "profile_id": "public-macos-x86_64",
-      "contexts": [
-        "public-contributor",
-        "maintainer"
-      ],
-      "platform": {
-        "canonical_id": "macos-x86_64",
-        "aliases": [
-          "Darwin-amd64",
-          "Darwin-x86_64",
-          "macOS-amd64",
-          "macos-x86_64"
-        ]
-      },
-      "locator_classes": [
-        {
-          "locator_id": "official-github-release",
-          "kind": "official-https",
-          "trust_root_ref": "system-ca"
-        }
-      ],
-      "supported_artifact_ids": [
-        "conftest",
-        "cpython-3.14",
-        "gitleaks",
-        "osv-scanner",
-        "uv",
-        "vale"
-      ]
-    },
-    {
       "profile_id": "public-macos-arm64",
       "contexts": [
         "public-contributor",
@@ -370,23 +339,6 @@
       "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
     },
     {
-      "python_closure_profile_id": "public-macos-x86_64-cp314-tools",
-      "owner_roles": ["Tooling", "Release"],
-      "purposes": ["tool", "build"],
-      "host_profile_id": "public-macos-x86_64",
-      "python": {"implementation": "cpython", "version": "3.14", "abi": "cp314", "platform": "x86_64-apple-darwin"},
-      "project_extras": [],
-      "tool_groups": ["default", "build"],
-      "acquisition_context_ids": ["python-public", "python-enterprise-mirror-only", "python-offline"],
-      "project_lock": "implementations/python/uv.lock",
-      "tool_lock": "implementations/tooling/python/uv.lock",
-      "build_constraints": "implementations/tooling/python/build-constraints.txt",
-      "smoke_requirements": "implementations/tooling/python/smoke/tools-macos-x86_64-cp314.txt",
-      "wheelhouse_manifest": "implementations/tooling/python/smoke/tools-macos-x86_64-cp314.wheelhouse-manifest.json",
-      "source_build_disposition": "wheels-only",
-      "test_case_ids": ["T03", "T10", "T11", "T13", "T23"]
-    },
-    {
       "python_closure_profile_id": "public-macos-arm64-cp314-tools",
       "owner_roles": ["Tooling", "Release"],
       "purposes": ["tool", "build"],
@@ -557,77 +509,6 @@
       ]
     },
     {
-      "host_profile_id": "public-macos-x86_64",
-      "platform_id": "macos-x86_64",
-      "contexts": [
-        "public-contributor",
-        "maintainer",
-        "offline"
-      ],
-      "native_family": "macos-brew",
-      "base_image_identity": "github-hosted-runner:macos15:X64",
-      "native_repository_identity": "github-hosted-runner-package-set:macos15:X64",
-      "trust_root_refs": [
-        "apple-system-roots",
-        "github-runner-image-release",
-        "homebrew-bottle-attestation"
-      ],
-      "credential_refs": [],
-      "bootstrap_payload_ids": [
-        "conftest",
-        "cpython-3.14",
-        "gitleaks",
-        "osv-scanner",
-        "uv",
-        "vale"
-      ],
-      "required_capability_ids": [
-        "base-image",
-        "native-repository",
-        "git",
-        "ca-roots",
-        "sha256",
-        "curl-unknown-length-max-filesize",
-        "uv",
-        "cpython",
-        "gh-cli",
-        "generic-tools"
-      ],
-      "optional_capability_ids": [
-        "container-cli",
-        "container-daemon"
-      ],
-      "proof_support": "unsupported",
-      "host_security_control_changes": "prohibited",
-      "offline_kit": {
-        "kit_id": "macos-x86_64-bootstrap",
-        "credential_free": true,
-        "network_fallback": "prohibited",
-        "artifact_ids": [
-          "conftest",
-          "cpython-3.14",
-          "gitleaks",
-          "osv-scanner",
-          "uv",
-          "vale"
-        ],
-        "host_prerequisite_package_ids": [
-          "git",
-          "ca-certificates",
-          "coreutils",
-          "curl",
-          "gh"
-        ],
-        "host_trust_root_refs": [
-          "apple-system-roots",
-          "homebrew-bottle-attestation"
-        ]
-      },
-      "qualification_record_ids": [
-        "macos-x86_64-t02-t08-issue-839-pending"
-      ]
-    },
-    {
       "host_profile_id": "public-macos-arm64",
       "platform_id": "macos-arm64",
       "contexts": [
@@ -785,7 +666,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "8b24f8ae356373c2e018d37f15020b41037fed6377e18afa8e3da734272f94a9",
+      "policy_sha256": "df104e53958d6d3dfc6aebc51ea4885485675eb5cc74ead0a46671aee2938821",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -815,41 +696,12 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "8b24f8ae356373c2e018d37f15020b41037fed6377e18afa8e3da734272f94a9",
+      "policy_sha256": "df104e53958d6d3dfc6aebc51ea4885485675eb5cc74ead0a46671aee2938821",
       "capability_results": [
         {
           "capability_id": "native-proof",
           "outcome": "unsupported",
           "observed_identity": "linux-arm64",
-          "reason_code": "proof-requires-linux-x86_64"
-        }
-      ],
-      "limitations": [
-        "The v2 action-source, payload-closure, origin, credential, and use-site policy has not been executed on this delivery revision.",
-        "Native proof execution is unsupported; use the qualified Linux x86_64 proof profile."
-      ],
-      "evidence_location": ".github/workflows/bootstrap-qualification.yml",
-      "evidence_sha256": "0d407b8dcf936e693df5e4c456a32a199ee08a25b4ce266a8728dfd366ea9688"
-    },
-    {
-      "evidence_id": "macos-x86_64-t02-t08-issue-839-pending",
-      "host_profile_id": "public-macos-x86_64",
-      "test_case_ids": [
-        "T02",
-        "T08"
-      ],
-      "implementation_revision": "4914612d108f06ff9db2eb69a14449a830a20848",
-      "observed_at": "2026-09-11T00:00:00Z",
-      "context": "v2 action-input policy qualification is pending execution on the delivery revision",
-      "outcome": "not-run",
-      "base_image_identity": "unobserved",
-      "native_repository_identity": "unobserved",
-      "policy_sha256": "8b24f8ae356373c2e018d37f15020b41037fed6377e18afa8e3da734272f94a9",
-      "capability_results": [
-        {
-          "capability_id": "native-proof",
-          "outcome": "unsupported",
-          "observed_identity": "macos-x86_64",
           "reason_code": "proof-requires-linux-x86_64"
         }
       ],
@@ -874,7 +726,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "8b24f8ae356373c2e018d37f15020b41037fed6377e18afa8e3da734272f94a9",
+      "policy_sha256": "df104e53958d6d3dfc6aebc51ea4885485675eb5cc74ead0a46671aee2938821",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -902,7 +754,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "8b24f8ae356373c2e018d37f15020b41037fed6377e18afa8e3da734272f94a9",
+      "policy_sha256": "df104e53958d6d3dfc6aebc51ea4885485675eb5cc74ead0a46671aee2938821",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",

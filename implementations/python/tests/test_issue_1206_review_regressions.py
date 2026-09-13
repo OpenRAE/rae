@@ -77,8 +77,8 @@ def test_private_os_variable_domain_is_satisfiable(tmp_path, field, token):
     assert token in evidence.model_dump_json()
 
 
-@pytest.mark.parametrize("strategy,accepted", [("x-owner:replication", True), ("unknown", False), ("other", False)])
-def test_replication_profile_distinguishes_private_identity_from_knowledge(strategy, accepted):
+@pytest.mark.parametrize("strategy", ["x-owner:replication", "unknown", "other"])
+def test_replication_profile_preserves_private_identity_and_partial_knowledge(strategy):
     payload = {
         "datastore_service_id": "data",
         "data_model": "wide_column",
@@ -86,12 +86,8 @@ def test_replication_profile_distinguishes_private_identity_from_knowledge(strat
             {"partition_id": "space", "kind": "keyspace", "replication_strategy": strategy, "replication_factor": 1}
         ],
     }
-    if accepted:
-        service = RuntimeDatastoreService.model_validate(payload)
-        assert service.partitions[0].replication_strategy == strategy
-    else:
-        with pytest.raises(ValidationError, match="replication_strategy"):
-            RuntimeDatastoreService.model_validate(payload)
+    service = RuntimeDatastoreService.model_validate(payload)
+    assert service.partitions[0].replication_strategy == strategy
 
 
 @pytest.mark.parametrize(

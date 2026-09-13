@@ -32,13 +32,12 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
     )
     assert document["schema_version"] == "raes-development-profiles/v2"
     profiles = {item["host_profile_id"]: item for item in document["host_profiles"]}
-    assert {
+    assert profiles.keys() == {
         "public-ubuntu-24.04-x86_64",
         "public-linux-arm64",
-        "public-macos-x86_64",
         "public-macos-arm64",
         "proof-ubuntu-22.04-x86_64",
-    } <= profiles.keys()
+    }
     proof = profiles["proof-ubuntu-22.04-x86_64"]
     assert proof["proof_support"] == "linux-x86_64-required"
     assert {"bubblewrap", "fontconfig", "fonts", "locale-c-utf-8"} <= set(proof["required_capability_ids"])
@@ -70,7 +69,6 @@ def test_standard_python_and_uv_payloads_are_exact_and_preview_is_advisory() -> 
     assert {(item["platform_id"], item["distribution_id"]) for item in artifacts["cpython-3.14"]["platforms"]} == {
         ("linux-x86_64", "ubuntu-24.04"),
         ("linux-arm64", "ubuntu-24.04"),
-        ("macos-x86_64", "macos-15"),
         ("macos-arm64", "macos-15"),
     }
     assert {
@@ -83,7 +81,6 @@ def test_standard_python_and_uv_payloads_are_exact_and_preview_is_advisory() -> 
     assert {item["platform_id"] for item in artifacts["uv"]["platforms"]} == {
         "linux-x86_64",
         "linux-arm64",
-        "macos-x86_64",
         "macos-arm64",
     }
 
@@ -150,14 +147,6 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
             "tool_closure": "public-linux-arm64-cp314-tools",
             "tool_requirements": "implementations/tooling/python/smoke/tools-linux-arm64-cp314.txt",
             "project_closure": "public-linux-arm64-cp314-all-extras",
-        },
-        {
-            "profile": "public-macos-x86_64",
-            "runner": "macos-15-intel",
-            "target": "x86_64-apple-darwin",
-            "tool_closure": "public-macos-x86_64-cp314-tools",
-            "tool_requirements": "implementations/tooling/python/smoke/tools-macos-x86_64-cp314.txt",
-            "project_closure": "",
         },
         {
             "profile": "public-macos-arm64",
@@ -448,7 +437,7 @@ def test_native_client_results_cover_reviewed_linux_and_macos_capabilities(
     assert {result["capability_id"] for result in linux} == linux_capabilities
     macos = bootstrap_profile._native_client_results(
         {
-            "platform_id": "macos-x86_64",
+            "platform_id": "macos-arm64",
             "required_capability_ids": {"git", "curl-unknown-length-max-filesize", "sha256", "gh-cli"},
         }
     )
@@ -563,7 +552,6 @@ def test_host_identity_fails_closed_on_runner_release_or_architecture_drift(
 def test_proof_capability_is_explicitly_unsupported_outside_linux_x86_64() -> None:
     assert bootstrap_profile.proof_support_outcome("linux-x86_64") == "required"
     assert bootstrap_profile.proof_support_outcome("linux-arm64") == "unsupported"
-    assert bootstrap_profile.proof_support_outcome("macos-x86_64") == "unsupported"
     assert bootstrap_profile.proof_support_outcome("macos-arm64") == "unsupported"
 
 

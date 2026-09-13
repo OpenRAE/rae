@@ -20,6 +20,7 @@ from .realization_concern_projections import (
     project_published_ports,
     project_service_listeners,
 )
+from .realization_runtime_concern_profiles import runtime_collection_identity
 
 _CAPABILITY_IDENTITY_FIELDS = frozenset({"required", "effective", "add", "drop", "process_overrides"})
 _FORWARDING_IDENTITY_KEYS = {
@@ -114,6 +115,9 @@ def _specialized_identity_key(kind: str, field: str) -> str | None:
 def specialized_collection_identity(kind: str, pointer: str) -> tuple[str, ...]:
     """Nested identity belongs to the concern, never inferred from backend data."""
 
+    identity = runtime_collection_identity(kind, pointer)
+    if identity:
+        return identity
     key = _specialized_identity_key(kind, pointer.rsplit("/", 1)[-1])
     keys = [] if key is None else [key]
     return tuple(keys)

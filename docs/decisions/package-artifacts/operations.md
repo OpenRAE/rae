@@ -158,7 +158,7 @@ future implementation, not tests claimed to have passed in the design change.
 | Test | Context / stimulus | Required result |
 |---|---|---|
 | T01 | Fresh public Linux x86_64 runner, empty caches, no enterprise credentials | Bootstrap through trusted native/setup clients; exact locked inputs; full required core/proof checks |
-| T02 | Public local Linux arm64, macOS x86_64 and arm64 | All four CLI tools execute with matching raw/installed hashes; supported Python wheel/ABI closure works; native Isabelle unsupported diagnosis is explicit |
+| T02 | Public local Linux arm64 and macOS arm64 | All four CLI tools execute with matching raw/installed hashes; supported Python wheel/ABI closure works; native Isabelle unsupported diagnosis is explicit |
 | T03 | CPython 3.11–3.14 clean build and install, all declared extras and target ABI | Frozen project/tool closure, hashed isolated build closure, wheel and sdist smokes outside checkout. Preview interpreters do not satisfy release support |
 | T04 | Fork PR changes tool URL, lock, action or arbitrary install hook and runs malicious code | No private mirror credential, trusted cache write, promotion capability or publication token available; privileged jobs never execute candidate policy/scripts |
 | T05 | 32 processes install same cold CLI/proof object; kill publisher at each durable step | Complete matching installed tree or explicit failure; no partial executable, shared temp collision, stale-marker success or stuck lock; a survivor can finish |
@@ -323,11 +323,10 @@ as qualified.
   extras/groups, manifest bindings, tracked invocation surfaces, and generated
   projection bytes before acquisition.
 
-The supported project closure does not include macOS x86_64 because the current
-all-extras lock has no compatible cryptography wheel and no reviewed source
-fallback. The macOS x86_64 bootstrap profile instead qualifies the tool and
-isolated-build closure, including the separately pinned universal cryptography
-wheel used by the T08 fixture.
+Neither the project closure nor the tool closure includes macOS x86_64. The
+patched cryptography releases have no macOS x86_64 or universal wheel and there
+is no reviewed source fallback, so the macOS x86_64 bootstrap profile was
+retired rather than kept on a vulnerable pin (#1268).
 Input locks improve repeatability but do not prove byte-identical distributions
 across host SDKs, compilers, operating systems, or build times; candidate output
 digests are evidence, not release admission.

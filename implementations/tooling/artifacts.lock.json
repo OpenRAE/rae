@@ -38,14 +38,6 @@
           "profile_ids": ["public-linux-arm64"]
         },
         {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/open-policy-agent/conftest/releases/download/v0.68.0/conftest_0.68.0_Darwin_x86_64.tar.gz"],
-          "raw_manifest": [{"path": "conftest_0.68.0_Darwin_x86_64.tar.gz", "sha256": "c7b27ddefc23a63f50c19a50f316b33306098f8e0943c219864fb7feece26570", "size": 22055485}],
-          "installed_manifest": [{"path": "conftest", "sha256": "8dde2524dd532a3d850169fd0c133fbdbf20cf4034115557afb50d92aaafeab6", "size": 73332496, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
-        },
-        {
           "platform_id": "macos-arm64",
           "source_urls": ["https://github.com/open-policy-agent/conftest/releases/download/v0.68.0/conftest_0.68.0_Darwin_arm64.tar.gz"],
           "raw_manifest": [{"path": "conftest_0.68.0_Darwin_arm64.tar.gz", "sha256": "b310f79dc838e8cdbc582935e1507c0db70ac22dd5d7d93eb17487c126743807", "size": 20565866}],
@@ -89,14 +81,6 @@
           "installed_manifest": [{"path": "gitleaks", "sha256": "00e91bbe655bd7c47753e8cfe61cb76ea1a5d7e7702fe161ee40102b46b3823b", "size": 20775096, "executable": true}],
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"]
-        },
-        {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_x64.tar.gz"],
-          "raw_manifest": [{"path": "gitleaks_8.30.1_darwin_x64.tar.gz", "sha256": "dfe101a4db2255fc85120ac7f3d25e4342c3c20cf749f2c20a18081af1952709", "size": 8359235}],
-          "installed_manifest": [{"path": "gitleaks", "sha256": "cee01fea7173f1b779dff188e1c26ecbcb4027d394acc573b23aaf0be260e291", "size": 22398576, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
         },
         {
           "platform_id": "macos-arm64",
@@ -144,14 +128,6 @@
           "profile_ids": ["public-linux-arm64"]
         },
         {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_macOS_64-bit.tar.gz"],
-          "raw_manifest": [{"path": "vale_3.15.2_macOS_64-bit.tar.gz", "sha256": "5d56b292f1612758f6d9e8d735dd739aec4e475830d0ba8c1e0ef7d8f08fa198", "size": 10721173}],
-          "installed_manifest": [{"path": "vale", "sha256": "666f407823b567cce1f71df3b7edd311c6de4ac68a2cf8a03e5cbde77dd07f6b", "size": 40833432, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
-        },
-        {
           "platform_id": "macos-arm64",
           "source_urls": ["https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_macOS_arm64.tar.gz"],
           "raw_manifest": [{"path": "vale_3.15.2_macOS_arm64.tar.gz", "sha256": "d3f613ff9226935ace08895fc8557206f309cdbd3a81881d86b6ab5b8b408757", "size": 10282217}],
@@ -195,14 +171,6 @@
           "installed_manifest": [{"path": "osv-scanner", "sha256": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9", "size": 52756642, "executable": true}],
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"]
-        },
-        {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_amd64"],
-          "raw_manifest": [{"path": "osv-scanner_darwin_amd64", "sha256": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66", "size": 57832640}],
-          "installed_manifest": [{"path": "osv-scanner", "sha256": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66", "size": 57832640, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
         },
         {
           "platform_id": "macos-arm64",
@@ -581,16 +549,6 @@
           "host_profile_ids": ["public-linux-arm64"]
         },
         {
-          "platform_id": "macos-x86_64",
-          "distribution_id": "macos-15",
-          "source_urls": ["https://releases.astral.sh/github/python-build-standalone/releases/download/20260807/cpython-3.14.7%2B20260807-x86_64-apple-darwin-install_only_stripped.tar.gz"],
-          "raw_manifest": [{"path": "cpython-3.14.7+20260807-x86_64-apple-darwin-install_only_stripped.tar.gz", "sha256": "9964e2d618ebea03be8ea3e65ab0ecc0f2b030ce203345b8f92654641fd4de66", "size": 26601297}],
-          "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-apple-darwin"},
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"],
-          "host_profile_ids": ["public-macos-x86_64"]
-        },
-        {
           "platform_id": "macos-arm64",
           "distribution_id": "macos-15",
           "source_urls": ["https://releases.astral.sh/github/python-build-standalone/releases/download/20260807/cpython-3.14.7%2B20260807-aarch64-apple-darwin-install_only_stripped.tar.gz"],
@@ -672,15 +630,6 @@
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"],
           "host_profile_ids": ["public-linux-arm64"]
-        },
-        {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-x86_64-apple-darwin.tar.gz"],
-          "raw_manifest": [{"path": "uv-x86_64-apple-darwin.tar.gz", "sha256": "e603f1eb634ca97a2a125539b983891f53235e901511ed10c32c08c86e253ecd", "size": 20796751}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-apple-darwin"},
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"],
-          "host_profile_ids": ["public-macos-x86_64"]
         },
         {
           "platform_id": "macos-arm64",
