@@ -841,9 +841,8 @@ def test_endpoint_role_normalizes_hyphen_alias_and_open_sentinels() -> None:
 
 
 def test_endpoint_role_rejects_unrecognized_value() -> None:
-    # An unrecognized (non-var) role must raise with the closed-set error
-    # envelope, never silently pass through as an arbitrary string.
-    with pytest.raises(ValidationError, match="role must be one of: client, peer, unknown, other"):
+    # An unqualified private role must fail the governed identity grammar.
+    with pytest.raises(ValidationError, match="role must be one of the known terms"):
         RuntimeDatastoreNodeEndpoint(endpoint_id="e1", role="gossip")
 
 

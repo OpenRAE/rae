@@ -634,3 +634,80 @@ base. The most load-bearing criteria are:
   retention storage, or query services.
 - Orchestration or execution of authored experiment specifications, or
   producing archival run/study records from an `experiment-authoring-input-v1`.
+
+## Partial realization descriptions
+
+`experiment-evidence-record-v1` and realized-form disclosures in
+`experiment-run-v1` MAY carry `typed_description`. Its embedded
+`realization-description/v1` revision describes facts; it is not a new capture
+specification or authoring root. Omission preserves the existing contract.
+Consumers that do not support the embedded revision MUST reject it rather than
+silently replacing its meaning with a summary string.
+
+The description MUST bind the original authored reference by identity, version
+and digest. Each fact has an explicit semantic pointer, stable fact identity,
+knowledge state, and optional recursive value. Source identity/version, time,
+window and actual basis are inherited from description provenance unless the
+fact overrides them. Operation, configuration and evidence references retain
+their existing reference contracts. Backend selection is distinct from observed
+or independently verified evidence; observed bases require evidence references.
+
+Known values reuse the literal, record, keyed-collection and sequence structures
+from recursive realization constraints. Their role is descriptive: every node
+has an explicit backend or observation origin, neutral presence/cardinality,
+and undefined author closure. No authoring or deployment defaults fill missing
+fields. Known null, false, zero, empty text and empty collections remain values.
+Not observed, known absent, withheld, contradictory and not applicable are
+separate states without values. Keyed members MUST agree with their semantic
+identity fields. Ordered sequences retain order and duplicates.
+
+Coverage names its field or collection universe, profile, subject, subset of
+fact identities, completeness and limitations. Recursive coverage is explicit.
+Partial coverage does not close a collection, establish global machine
+completeness, or prove absence outside its scope. Incompatible assertions retain
+their individual identities and provenance. Equal subject/time/window and
+execution/configuration bindings permit conflict detection; different windows
+require explicit reconciliation and are not automatically contradictions.
+
+Private detail reuses exact domain-profile coordinates and descriptive bindings.
+Offline profile admission uses the existing namespace trust, local definitions,
+operation support and explicit opaque-exchange policy. Opaque carriage is not
+comparison or promotion support. Descriptive schema validity is not proof of
+successful realization, required emitted capture, or independent verification.
+The existing capture-offer and content-backed evidence validators remain binding.
+
+Typed detail follows the same demand selectors, protection callbacks, retention
+decision and terminal operation transaction as other descriptions. Producers
+receive the selected scope before acquisition. Retention-disabled reports MUST
+NOT enter durable results and recovery MUST NOT reacquire them. No experimental
+demand creates no experimental collection, regardless of author detail. Export
+and required observation with mutation remain unsupported where their existing
+delivery or compensation owner is unavailable. RAE supplies these semantics and
+conformance boundaries; concrete collection and realization remain backend work.
+
+Profile bindings in a typed description MUST name their enclosing fact's
+semantic subtree and the actual lifecycle carrier. Evidence-record bindings
+use owner `experiment-evidence-record-v1` and phase `capture`; realized-form
+bindings use owner `experiment-run-v1` and phase `realization-description`.
+Nested bindings MUST retain the carrier and remain within their parent's scope.
+Their provenance MUST agree with the fact's achieved basis. Observed profile
+reference IDs MUST join the fact's evidence references and the evidence
+reference accepted by the outer report verifier.
+
+The reference reporting API's evidence identifier denotes an unqualified
+`evidence-record` reference. Every effective retained fact and coverage
+provenance MUST match that complete identity: kind and ID agree, and version,
+digest and path are absent. Matching only the ID MUST NOT authorize additional
+qualifiers or differently qualified references sharing that ID. Profile
+provenance IDs resolve through the same boundary. A fact or coverage override
+replaces the default provenance for that claim; the default participates in
+verification only where a retained claim inherits it.
+
+A protection callback MUST preserve the typed description carrier. The protected
+value is admitted and projected again before reporting or retention. Complete
+coverage MUST match the requested scope, field/collection kind and coverage
+profile, respect exclusions, and cover all requested facts with a compatible
+window and basis. A required exhaustive description without this coverage fails;
+an optional one emits no successful description. Partial descriptions remain
+available for selected demand. A narrow report MUST NOT retain a complete claim
+for a broader scope.

@@ -22,7 +22,17 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
     assert "pull_request_target" not in triggers
     assert "workflow_dispatch" not in triggers
     assert triggers["schedule"] == [{"cron": "17 3 * * 1"}]
-    assert triggers["push"] == {"branches": ["main"]}
+    # A release commit only touches Release Please-managed files (#1266); the set
+    # is kept identical across workflows by test_release_workflows.py.
+    assert triggers["push"] == {
+        "branches": ["main"],
+        "paths-ignore": [
+            "CHANGELOG.md",
+            ".release-please-manifest.json",
+            "implementations/python/packages/raes/_version.py",
+        ],
+    }
+    assert triggers["branch_protection_rule"] is None
     analysis = workflow["jobs"]["analysis"]
     assert analysis["runs-on"] == "ubuntu-24.04"
     assert analysis["permissions"] == {

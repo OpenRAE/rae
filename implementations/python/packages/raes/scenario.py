@@ -17,6 +17,7 @@ from typing import ClassVar
 from pydantic import ConfigDict, Field, PrivateAttr, model_validator
 
 from ._base import SDLModel
+from ._capability_binding_normalization import normalize_capability_binding
 from ._classification_guard import LegacyClassificationGuard
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
@@ -482,6 +483,9 @@ class InstantiatedScenario(ScenarioContent):
                 ) from exc
             if constraint.parameter not in binding_values:
                 raise ValueError("Capability constraint references an unresolved parameter identity")
-            if not _json_value_equal(concrete_value, binding_values[constraint.parameter]):
-                raise ValueError("Capability constraint binding does not match the concrete field value")
+            binding = binding_values[constraint.parameter]
+            if not _json_value_equal(concrete_value, binding):
+                binding = normalize_capability_binding(self, constraint.field_pointer, binding)
+                if not _json_value_equal(concrete_value, binding):
+                    raise ValueError("Capability constraint binding does not match the concrete field value")
         return self

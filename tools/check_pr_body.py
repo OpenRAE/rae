@@ -13,12 +13,16 @@ import json
 import os
 import re
 import sys
-import urllib.error
-import urllib.request
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+# Resolve only the script's own base-owned bundle, including under python -I.
+if not __package__:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from tools.pr_body_issue_scope import GitHubIssueLookup, IssueFacts, requirement_uids  # noqa: E402
 
 RULE_SECTION = "required-section"
 RULE_SUMMARY = "plain-language-summary"
@@ -37,7 +41,8 @@ _EVIDENCE_HINT = re.compile(
     re.IGNORECASE,
 )
 
-IssueLookup = Callable[[int], tuple[bool, bool]]
+
+IssueLookup = Callable[[int], IssueFacts]
 
 
 @dataclass(frozen=True)
@@ -117,19 +122,25 @@ def _meaningful(text: str, *, minimum_words: int = 3) -> bool:
     return len(normalized) >= 12 and len(words) >= minimum_words and not _PLACEHOLDER.search(normalized)
 
 
-def closing_issue_numbers(body: str) -> tuple[int, ...]:
-    """Return unique standalone ``Closes #N`` references in source order."""
+def _issue_numbers(body: str, keyword: str) -> tuple[int, ...]:
+    """Return unique standalone same-repository references in source order."""
 
     cleaned = _strip_ignored(body)
     numbers: list[int] = []
     for line in cleaned.splitlines():
         parts = line.strip(" \t").split()
-        if len(parts) != 2 or parts[0] != "Closes" or not parts[1].startswith("#"):
+        if len(parts) != 2 or parts[0] != keyword or not parts[1].startswith("#"):
             continue
         reference = parts[1].removeprefix("#")
-        if reference.isdecimal() and not reference.startswith("0"):
+        if reference.isascii() and reference.isdecimal() and not reference.startswith("0"):
             numbers.append(int(reference))
     return tuple(dict.fromkeys(numbers))
+
+
+def closing_issue_numbers(body: str) -> tuple[int, ...]:
+    """Return unique standalone ``Closes #N`` references in source order."""
+
+    return _issue_numbers(body, "Closes")
 
 
 def no_issue_reasons(body: str) -> tuple[str, ...]:
@@ -161,7 +172,9 @@ def is_exempt_automation(event: dict[str, Any]) -> bool:
 def _tracking_sections(sections: dict[str, list[str]]) -> list[str]:
     """Accept the former heading while existing PRs and tooling migrate."""
 
-    return [*sections.get("issue tracking", []), *sections.get("issues closed", [])]
+    return [
+        content for name in ("issue tracking", "issues closed", "related issues") for content in sections.get(name, [])
+    ]
 
 
 def _validate_required_sections(sections: dict[str, list[str]]) -> list[BodyViolation]:
@@ -181,7 +194,7 @@ def _validate_required_sections(sections: dict[str, list[str]]) -> list[BodyViol
             BodyViolation(
                 RULE_SECTION,
                 "PR body must contain exactly one '## Issue Tracking' section; "
-                f"found {tracking_count} (the former '## Issues Closed' heading is also accepted).",
+                f"found {tracking_count} ('## Related Issues' and the former '## Issues Closed' are also accepted).",
             )
         )
     return violations
@@ -202,52 +215,80 @@ def _validate_summary(sections: dict[str, list[str]]) -> list[BodyViolation]:
     ]
 
 
-def _inspect_issue(number: int, issue_lookup: IssueLookup) -> BodyViolation | None:
+def _inspect_issue(number: int, keyword: str, issue_lookup: IssueLookup) -> BodyViolation | None:
     # Fail closed on API and configuration errors from the injected lookup.
     try:
-        exists, is_open = issue_lookup(number)
+        issue = issue_lookup(number)
     except Exception as exc:
         violation = BodyViolation(RULE_ISSUES, f"Could not verify issue #{number}: {exc}")
     else:
         violation = None
-        if not exists:
+        if not issue.exists:
             violation = BodyViolation(
                 RULE_ISSUES,
-                f"Closes #{number} does not target an issue in this repository.",
+                f"{keyword} #{number} does not target an issue in this repository.",
             )
-        elif not is_open:
+        elif not issue.is_open:
             violation = BodyViolation(
                 RULE_ISSUES,
-                f"Closes #{number} targets an issue that is not open.",
+                f"{keyword} #{number} targets an issue that is not open.",
+            )
+        elif keyword != (expected := "Refs" if issue.requirement_uids else "Closes"):
+            violation = BodyViolation(
+                RULE_ISSUES,
+                f"Issue #{number} requires '{expected} #{number}' for its requirement scope.",
             )
     return violation
 
 
-def _validate_issues(sections: dict[str, list[str]], issue_lookup: IssueLookup) -> list[BodyViolation]:
+def _validate_issues(sections: dict[str, list[str]], issue_lookup: IssueLookup, body: str) -> list[BodyViolation]:
     tracking = _tracking_sections(sections)
     violations: list[BodyViolation] = []
     if len(tracking) == 1:
         content = tracking[0]
-        numbers = closing_issue_numbers(content)
+        declarations = [
+            (keyword, number) for keyword in ("Closes", "Refs") for number in _issue_numbers(content, keyword)
+        ]
         reasons = no_issue_reasons(content)
-        if numbers and reasons:
+        if declarations and reasons:
             violations.append(
                 BodyViolation(
                     RULE_ISSUES,
-                    "Issue tracking must use either 'Closes #N' lines or one 'No issue: ...' declaration, not both.",
+                    "Issue tracking must use either issue references or one 'No issue: ...' declaration, not both.",
                 )
             )
-        elif numbers:
+        elif declarations:
             violations.extend(
-                violation for number in numbers if (violation := _inspect_issue(number, issue_lookup)) is not None
+                violation
+                for keyword, number in declarations
+                if (violation := _inspect_issue(number, keyword, issue_lookup)) is not None
             )
         elif len(reasons) != 1 or not _meaningful(reasons[0], minimum_words=2):
             violations.append(
                 BodyViolation(
                     RULE_ISSUES,
-                    "Issue tracking needs open same-repository 'Closes #N' lines or one substantive "
+                    "Issue tracking needs open same-repository 'Closes #N' or 'Refs #N' lines or one substantive "
                     "'No issue: ...' declaration.",
                 )
+            )
+        violations.extend(_validate_closing_routes(body, content))
+    return violations
+
+
+def _validate_closing_routes(body: str, content: str) -> list[BodyViolation]:
+    # Another section or alternate GitHub closing keyword cannot bypass the
+    # declared lifecycle route. Comments and examples have already been removed.
+    tracking_lines = {line.strip() for line in content.splitlines()}
+    violations: list[BodyViolation] = []
+    for line in body.splitlines():
+        keywords = re.finditer(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\b[:\s]+", line, re.IGNORECASE)
+        closing = any(
+            re.match(r"(?:https://github\.com/|[\w.-]+/[\w.-]+#|#)\w", line[keyword.end() :], re.IGNORECASE)
+            for keyword in keywords
+        )
+        if closing and (not closing_issue_numbers(line) or line.strip() not in tracking_lines):
+            violations.append(
+                BodyViolation(RULE_ISSUES, "Closing references must use standalone 'Closes #N' in Issue tracking.")
             )
     return violations
 
@@ -274,46 +315,9 @@ def validate_pr_body(body: str, issue_lookup: IssueLookup) -> list[BodyViolation
     sections = _sections(cleaned)
     violations = _validate_required_sections(sections)
     violations.extend(_validate_summary(sections))
-    violations.extend(_validate_issues(sections, issue_lookup))
+    violations.extend(_validate_issues(sections, issue_lookup, cleaned))
     violations.extend(_validate_verification(sections))
     return violations
-
-
-class GitHubIssueLookup:
-    """Read-only lookup for issues in exactly one GitHub repository."""
-
-    def __init__(self, repository: str, token: str) -> None:
-        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
-            raise ValueError("GITHUB_REPOSITORY must have owner/repository form")
-        if not token:
-            raise ValueError("GH_TOKEN is required to verify closing issues")
-        self._repository = repository
-        self._token = token
-
-    def __call__(self, number: int) -> tuple[bool, bool]:
-        request = urllib.request.Request(
-            f"https://api.github.com/repos/{self._repository}/issues/{number}",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {self._token}",
-                "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "OpenRAE-pr-body-guard",
-            },
-        )
-        try:
-            opener = urllib.request.build_opener(urllib.request.HTTPSHandler())
-            with opener.open(request, timeout=15) as response:
-                payload = json.load(response)
-        except urllib.error.HTTPError as exc:
-            if exc.code == 404:
-                return False, False
-            raise RuntimeError(f"GitHub returned HTTP {exc.code}") from exc
-        if not isinstance(payload, dict):
-            raise RuntimeError("GitHub returned a malformed issue response")
-        # Pull requests also appear through the issues endpoint and cannot be
-        # used to satisfy an issue-closing requirement.
-        exists = "pull_request" not in payload
-        return exists, exists and payload.get("state") == "open"
 
 
 def _read_json_object(path: Path, description: str) -> dict[str, Any]:
@@ -337,39 +341,54 @@ def _event(path: Path) -> dict[str, Any]:
 def _fixture_lookup(path: Path) -> IssueLookup:
     payload = _read_json_object(path, "issues fixture")
 
-    def lookup(number: int) -> tuple[bool, bool]:
-        state = payload.get(str(number))
-        return state is not None, state == "open"
+    def lookup(number: int) -> IssueFacts:
+        value = payload.get(str(number))
+        state = value.get("state") if isinstance(value, dict) else value
+        body = value.get("body", "") if isinstance(value, dict) else ""
+        if not isinstance(body, str):
+            raise ValueError("fixture issue body must be a string")
+        return IssueFacts(state is not None, state == "open", requirement_uids(body))
 
     return lookup
 
 
 def _open_issue_report(body: str, issue_lookup: IssueLookup, pr_number: int | str) -> str:
     numbers = closing_issue_numbers(body)
+    references = _issue_numbers(body, "Refs")
     reasons = no_issue_reasons(body)
     open_numbers: list[int] = []
     errors: list[str] = []
     for number in numbers:
         # A failed lookup must be visible in the audit without mutating issues.
         try:
-            exists, is_open = issue_lookup(number)
+            issue = issue_lookup(number)
         except Exception as exc:
             errors.append(f"- Could not inspect `#{number}`: {exc}")
             continue
-        if exists and is_open:
+        if not issue.exists:
+            errors.append(f"- Could not inspect `#{number}`: no same-repository issue found")
+        elif issue.is_open:
             open_numbers.append(number)
     lines = [f"## Closing-issue audit for PR #{pr_number}", ""]
     if open_numbers:
         lines.append("The following declared closing issues remain open:")
         lines.extend(f"- `#{number}`" for number in open_numbers)
-    elif numbers:
+    elif numbers and not errors:
         lines.append("All declared closing issues are closed.")
     elif reasons:
         lines.append("The pull request declared that no issue was required.")
-    else:
+    elif not numbers and not references:
         lines.append("No issue-tracking declaration was found.")
     if errors:
         lines.extend(("", "Inspection errors:", *errors))
+    if references:
+        lines.extend(
+            (
+                "",
+                "Non-closing references (closure requires post-merge requirement verification):",
+            )
+        )
+        lines.extend(f"- `#{number}`" for number in references)
     lines.extend(("", "This audit is read-only and never closes issues."))
     return "\n".join(lines) + "\n"
 

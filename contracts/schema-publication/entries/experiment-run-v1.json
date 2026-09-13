@@ -2,9 +2,9 @@
   "contract_id": "experiment-run-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft",
-  "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75",
+  "content_hash": "fd999638beb626786aaafc9610abad5e251d3c643bac4a8cc0d7793419418417",
   "last_change": {
-    "summary": "Separated structural task/run validation from authoritative content-backed evidence satisfaction for issue #1112.",
-    "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75"
+    "content_hash": "fd999638beb626786aaafc9610abad5e251d3c643bac4a8cc0d7793419418417",
+    "summary": "Reconcile issue #1209 partial realization descriptions with issue #1205 named version predicates in their shared recursive domain contract."
   }
 }

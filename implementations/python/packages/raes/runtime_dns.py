@@ -16,6 +16,8 @@ import ipaddress
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, is_variable_ref
 from .runtime_dns_records import (
     DnsMxRdata,
@@ -106,7 +108,7 @@ class DnsForwarder(SDLModel):
 
     address: str
     port: int | str = 53
-    transport: DnsForwarderTransport | str = DnsForwarderTransport.UDP
+    transport: GovernedVocabulary[DnsForwarderTransport] = DnsForwarderTransport.UDP
     tls_server_name: str = ""
     description: str = ""
 
@@ -132,8 +134,8 @@ class DnsResolverPolicy(SDLModel):
     recursion_enabled: bool | str | None = None
     allow_recursion: list[str] = Field(default_factory=list)
     forwarders: list[DnsForwarder] = Field(default_factory=list)
-    forwarding_policy: DnsForwardingPolicy | str = DnsForwardingPolicy.UNKNOWN
-    dnssec_validation: DnssecValidationMode | str = DnssecValidationMode.UNKNOWN
+    forwarding_policy: GovernedVocabulary[DnsForwardingPolicy] = DnsForwardingPolicy.UNKNOWN
+    dnssec_validation: GovernedVocabulary[DnssecValidationMode] = DnssecValidationMode.UNKNOWN
     query_logging: bool | str | None = None
     default_logging: bool | str | None = None
     description: str = ""
@@ -229,8 +231,10 @@ class DnsRuntimeSetting(SDLModel):
 
     name: str
     value: str = ""
-    value_classification: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    provenance: DnsSettingProvenance | str = DnsSettingProvenance.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeSensitivityClassification] = (
+        RuntimeSensitivityClassification.UNKNOWN
+    )
+    provenance: GovernedVocabulary[DnsSettingProvenance] = DnsSettingProvenance.UNKNOWN
     description: str = ""
 
     @field_validator("name")
@@ -267,10 +271,10 @@ class DnsZone(SDLModel):
 
     zone_id: str
     name: str
-    kind: DnsZoneKind | str = DnsZoneKind.UNKNOWN
-    purpose: DnsZonePurpose | str = DnsZonePurpose.UNKNOWN
-    zone_class: DnsRecordClass | str = DnsRecordClass.IN
-    provenance: DnsRecordProvenance | str = DnsRecordProvenance.UNKNOWN
+    kind: GovernedVocabulary[DnsZoneKind] = DnsZoneKind.UNKNOWN
+    purpose: GovernedVocabulary[DnsZonePurpose] = DnsZonePurpose.UNKNOWN
+    zone_class: GovernedVocabulary[DnsRecordClass] = DnsRecordClass.IN
+    provenance: GovernedVocabulary[DnsRecordProvenance] = DnsRecordProvenance.UNKNOWN
     zone_file_refs: list[str] = Field(default_factory=list)
     transfer: DnsZoneTransferPolicy | None = None
     rrsets: list[DnsResourceRecordSet] = Field(default_factory=list)
@@ -346,10 +350,10 @@ class RuntimeDnsService(SDLModel):
 
     dns_service_id: str
     service: str = ""
-    implementation: DnsServerImplementation | str = DnsServerImplementation.UNKNOWN
+    implementation: GovernedVocabulary[DnsServerImplementation] = DnsServerImplementation.UNKNOWN
     version: str = ""
     name: str = ""
-    roles: list[DnsServiceRole | str] = Field(default_factory=list)
+    roles: list[GovernedVocabulary[DnsServiceRole]] = Field(default_factory=list)
     configuration_file_refs: list[str] = Field(default_factory=list)
     log_file_refs: list[str] = Field(default_factory=list)
     resolver_policy: DnsResolverPolicy | None = None

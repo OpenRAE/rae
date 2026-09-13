@@ -665,6 +665,7 @@
               "$ref": "#/$defs/DockerfileInstructionKind"
             },
             {
+              "pattern": "^(?:[fF][rR][oO][mM]|[aA][rR][gG]|[eE][nN][vV]|[rR][uU][nN]|[cC][oO][pP][yY]|[aA][dD][dD]|[wW][oO][rR][kK][dD][iI][rR]|[eE][nN][tT][rR][yY][pP][oO][iI][nN][tT]|[cC][mM][dD]|[hH][eE][aA][lL][tT][hH][cC][hH][eE][cC][kK]|[lL][aA][bB][eE][lL]|[eE][xX][pP][oO][sS][eE]|[uU][sS][eE][rR]|[vV][oO][lL][uU][mM][eE]|[sS][hH][eE][lL][lL]|[sS][tT][oO][pP][sS][iI][gG][nN][aA][lL]|[oO][nN][bB][uU][iI][lL][dD]|[mM][aA][iI][nN][tT][aA][iI][nN][eE][rR]|[oO][tT][hH][eE][rR]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -723,6 +724,7 @@
               "$ref": "#/$defs/ImageAttestationType"
             },
             {
+              "pattern": "^(?:[oO][cC][iI]|[iI][nN][-_][tT][oO][tT][oO]|[sS][lL][sS][aA]|[oO][tT][hH][eE][rR]|[nN][oO][nN][eE]|[uU][nN][kK][nN][oO][wW][nN]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -750,6 +752,7 @@
               "$ref": "#/$defs/ImageAttestationStatus"
             },
             {
+              "pattern": "^(?:[pP][rR][eE][sS][eE][nN][tT]|[aA][bB][sS][eE][nN][tT]|[uU][nN][kK][nN][oO][wW][nN]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -762,6 +765,7 @@
               "$ref": "#/$defs/ImageVerificationStatus"
             },
             {
+              "pattern": "^(?:[vV][eE][rR][iI][fF][iI][eE][dD]|[fF][aA][iI][lL][eE][dD]|[uU][nN][vV][eE][rR][iI][fF][iI][eE][dD]|[nN][oO][tT][-_][aA][pP][pP][lL][iI][cC][aA][bB][lL][eE]|[uU][nN][kK][nN][oO][wW][nN]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -819,6 +823,7 @@
               "$ref": "#/$defs/RuntimeEnvironmentValueClassification"
             },
             {
+              "pattern": "^(?:[pP][lL][aA][iI][nN]|[rR][eE][dD][aA][cC][tT][eE][dD]|[sS][eE][cC][rR][eE][tT][-_][fF][iI][xX][tT][uU][rR][eE]|[oO][pP][eE][rR][aA][tT][oO][rR][-_][sS][eE][cC][rR][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -939,6 +944,7 @@
               "$ref": "#/$defs/RuntimeEnvironmentValueClassification"
             },
             {
+              "pattern": "^(?:[pP][lL][aA][iI][nN]|[rR][eE][dD][aA][cC][tT][eE][dD]|[sS][eE][cC][rR][eE][tT][-_][fF][iI][xX][tT][uU][rR][eE]|[oO][pP][eE][rR][aA][tT][oO][rR][-_][sS][eE][cC][rR][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],

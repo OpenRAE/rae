@@ -680,3 +680,58 @@ def test_publishing_workflows_pin_every_third_party_action_to_a_full_sha() -> No
             if action_ref.startswith("./"):
                 continue
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
+
+
+def _release_managed_paths() -> list[str]:
+    package = _load(RELEASE_CONFIG_PATH)["packages"]["."]
+    (release_please,) = [
+        step for step in _load(RELEASE_PATH)["jobs"]["release-please"]["steps"] if step.get("id") == "rp"
+    ]
+    manifest = release_please["with"]["manifest-file"]
+    return sorted([package["changelog-path"], manifest, *(item["path"] for item in package["extra-files"])])
+
+
+# Events that must still run when only release-managed files change: Release
+# Please itself publishes, and the main Docs push redeploys the release version.
+_RELEASE_BOOKKEEPING_RUNS = {("release-please.yml", "push"), ("docs.yml", "push")}
+
+
+def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
+    expected = _release_managed_paths()
+    assert expected == [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "implementations/python/packages/raes/_version.py",
+    ]
+
+    filtered: set[tuple[str, str]] = set()
+    unfiltered: set[tuple[str, str]] = set()
+    for path in sorted(WORKFLOWS.glob("*.yml")):
+        triggers = _load(path)["on"]
+        if isinstance(triggers, str):
+            triggers = {triggers: None}
+        elif isinstance(triggers, list):
+            triggers = dict.fromkeys(triggers)
+        for event in ("push", "pull_request"):
+            if event not in triggers:
+                continue
+            config = triggers[event] or {}
+            assert "paths" not in config, f"{path.name} {event}: positive path filters would hide real changes"
+            if "paths-ignore" in config:
+                assert sorted(config["paths-ignore"]) == expected, f"{path.name} {event}: ignored paths drifted"
+                assert len(config["paths-ignore"]) == len(set(config["paths-ignore"]))
+                filtered.add((path.name, event))
+            else:
+                unfiltered.add((path.name, event))
+
+    assert unfiltered == _RELEASE_BOOKKEEPING_RUNS
+    assert filtered == {
+        ("bootstrap-qualification.yml", "pull_request"),
+        ("ci.yml", "pull_request"),
+        ("ci.yml", "push"),
+        ("docs.yml", "pull_request"),
+        ("post-merge-closing-issue-audit.yml", "pull_request"),
+        ("pr-body-policy.yml", "pull_request"),
+        ("pr-title-lint.yml", "pull_request"),
+        ("scorecard.yml", "push"),
+    }

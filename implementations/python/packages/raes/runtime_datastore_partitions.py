@@ -13,6 +13,8 @@ value, exactly as the relational ``DatabaseSetting`` does.
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel, parse_int_or_var
 from ._runtime_datastore_support import _REDACTED_SENSITIVITIES, _reject_duplicate_values, _require_object_name
 from .runtime_datastore_nodes import RuntimeDatastoreEnginePlugin, RuntimeDatastoreNode, RuntimeDatastoreNodeEndpoint
@@ -91,7 +93,7 @@ class RuntimeDatastorePartition(SDLModel):
     """
 
     partition_id: str
-    kind: RuntimeDatastorePartitionKind | str = RuntimeDatastorePartitionKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeDatastorePartitionKind] = RuntimeDatastorePartitionKind.UNKNOWN
     name: str = ""
     uuid: str = ""
     shard_count: int | str | None = None
@@ -101,7 +103,9 @@ class RuntimeDatastorePartition(SDLModel):
     store_size_bytes: int | str | None = None
     creation_timestamp: str = ""
     open_closed_status: str = ""
-    replication_strategy: RuntimeDatastoreReplicationStrategy | str = RuntimeDatastoreReplicationStrategy.UNKNOWN
+    replication_strategy: GovernedVocabulary[RuntimeDatastoreReplicationStrategy] = (
+        RuntimeDatastoreReplicationStrategy.UNKNOWN
+    )
     replication_factor: int | str | None = None
     per_dc_factor_map: dict[str, int | str] = Field(default_factory=dict)
     durable_writes: bool | str | None = None
@@ -247,7 +251,7 @@ class RuntimeDatastorePersistence(SDLModel):
     persistence_id: str
     rdb_save_points: list[str] = Field(default_factory=list)
     aof: bool | str | None = None
-    eviction: RuntimeDatastoreEvictionPolicy | str = RuntimeDatastoreEvictionPolicy.UNKNOWN
+    eviction: GovernedVocabulary[RuntimeDatastoreEvictionPolicy] = RuntimeDatastoreEvictionPolicy.UNKNOWN
     maxmemory: str = ""
     description: str = ""
 
@@ -281,7 +285,7 @@ class RuntimeDatastoreTransportSecurity(SDLModel):
     """
 
     transport_security_id: str
-    mode: RuntimeDatastoreTransportSecurityMode | str = RuntimeDatastoreTransportSecurityMode.NONE
+    mode: GovernedVocabulary[RuntimeDatastoreTransportSecurityMode] = RuntimeDatastoreTransportSecurityMode.NONE
     client_verification: bool | str | None = None
     node_verification: bool | str | None = None
     description: str = ""
@@ -311,9 +315,9 @@ class RuntimeDatastoreSetting(SDLModel):
     """
 
     setting_id: str
-    scope: RuntimeDatastoreSettingScope | str = RuntimeDatastoreSettingScope.ENGINE
-    provenance: RuntimeDatastoreSettingProvenance | str = RuntimeDatastoreSettingProvenance.UNKNOWN
-    classification: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
+    scope: GovernedVocabulary[RuntimeDatastoreSettingScope] = RuntimeDatastoreSettingScope.ENGINE
+    provenance: GovernedVocabulary[RuntimeDatastoreSettingProvenance] = RuntimeDatastoreSettingProvenance.UNKNOWN
+    classification: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
     name: str = ""
     value: str = ""
     description: str = ""

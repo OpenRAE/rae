@@ -18,6 +18,8 @@ from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import (
     SDLModel,
     is_variable_ref,
@@ -125,7 +127,7 @@ class SshForcedCommand(SDLModel):
       be true.
     """
 
-    command_kind: SshForcedCommandKind | str = SshForcedCommandKind.ABSOLUTE_PATH
+    command_kind: GovernedVocabulary[SshForcedCommandKind] = SshForcedCommandKind.ABSOLUTE_PATH
     command: str = ""
     command_redacted: bool | str = False
     description: str = ""
@@ -184,7 +186,7 @@ class SshForcedCommand(SDLModel):
 class SshMatchCriterion(SDLModel):
     """A single sshd ``Match`` criterion (one ``kind`` + one ``pattern``)."""
 
-    kind: SshMatchCriterionKind | str
+    kind: GovernedVocabulary[SshMatchCriterionKind]
     pattern: str
 
     @field_validator("kind", mode="before")
