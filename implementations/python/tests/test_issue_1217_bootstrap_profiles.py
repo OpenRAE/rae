@@ -31,12 +31,12 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
     )
     assert document["schema_version"] == "raes-development-profiles/v2"
     profiles = {item["host_profile_id"]: item for item in document["host_profiles"]}
-    assert {
+    assert profiles.keys() == {
         "public-ubuntu-24.04-x86_64",
         "public-linux-arm64",
         "public-macos-arm64",
         "proof-ubuntu-22.04-x86_64",
-    } == profiles.keys()
+    }
     proof = profiles["proof-ubuntu-22.04-x86_64"]
     assert proof["proof_support"] == "linux-x86_64-required"
     assert {"bubblewrap", "fontconfig", "fonts", "locale-c-utf-8"} <= set(proof["required_capability_ids"])
