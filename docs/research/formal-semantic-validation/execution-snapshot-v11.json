@@ -3,9 +3,9 @@
     "execution_id": "issue-1205-execution-v10",
     "release_path": "docs/research/formal-semantic-validation/bundles/retest-v10.json",
     "release_revision": "11.0.0",
-    "release_sha256": "7246ba93a09e26c4f6270de15e9158b9b2090bfcfd77ae1c6f7cb1b6066ee13c"
+    "release_sha256": "fd7355a0d16d18b179e3a4f94f31fcffdf590ba5eb4ce17e46fd26351d703b94"
   },
-  "captured_at": "2026-09-13T01:51:02.338842+00:00",
+  "captured_at": "2026-09-13T02:02:42.733697+00:00",
   "commands": [
     {
       "argv": [
@@ -641,12 +641,12 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "b7d124a41518a7e9465f056ca25e25689eb4edda",
+  "raes_revision": "ec86b6f6de1ae71252ed76c662a753e3b88a9da9",
   "source_state": {
-    "profile": "python-reference-source/v1",
-    "base_revision": "b7d124a41518a7e9465f056ca25e25689eb4edda",
+    "profile": "python-reference-source/v2",
+    "base_revision": "ec86b6f6de1ae71252ed76c662a753e3b88a9da9",
     "checkout_state": "modified",
-    "implementation_digest": "2a9fdb49e24ccefba1143c72a5a8673056c64beb36b3f4b7b2ca05b886a68143"
+    "implementation_digest": "fa552134dc22e05d3bcdd948680847e2183a3425a943f928dd52e1c49cb6ba80"
   },
   "versions": {
     "python": "3.14.4",
