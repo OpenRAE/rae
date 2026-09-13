@@ -558,22 +558,26 @@ def test_darwin_filesystem_qualification_fails_closed_on_invalid_mount_output(
         installation._require_qualified_filesystem(tmp_path)
 
 
-def test_darwin_directory_sync_uses_the_system_fallback_when_unsupported(
+def test_darwin_directory_sync_uses_the_supported_system_command(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    synced: list[bool] = []
+    observed: list[list[str]] = []
     monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
     monkeypatch.setattr(
-        installation.os,
-        "fsync",
-        lambda _descriptor: (_ for _ in ()).throw(OSError(errno.EINVAL, "unsupported")),
+        installation.subprocess,
+        "run",
+        lambda command, **_kwargs: observed.append(command),
     )
-    monkeypatch.setattr(installation.os, "sync", lambda: synced.append(True))
+    monkeypatch.setattr(
+        installation.os,
+        "open",
+        lambda *_args, **_kwargs: pytest.fail("Darwin directory sync opened the directory"),
+    )
 
     installation._fsync_directory(tmp_path)
 
-    assert synced == [True]
+    assert observed == [["/bin/sync"]]
 
 
 def test_directory_sync_does_not_mask_unsupported_non_darwin_filesystems(

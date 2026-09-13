@@ -441,15 +441,23 @@ def _ensure_private_subdirectory(path: Path, root: Path) -> None:
 
 
 def _fsync_directory(path: Path) -> None:
+    if platform.system() == "Darwin":
+        try:
+            subprocess.run(
+                ["/bin/sync"],
+                check=True,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise OSError(errno.EIO, "directory synchronization failed") from exc
+        return
     flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_CLOEXEC", 0)
     descriptor = os.open(path, flags)
     try:
-        try:
-            os.fsync(descriptor)
-        except OSError as exc:
-            if platform.system() != "Darwin" or exc.errno != errno.EINVAL or not hasattr(os, "sync"):
-                raise
-            os.sync()
+        os.fsync(descriptor)
     finally:
         os.close(descriptor)
 
