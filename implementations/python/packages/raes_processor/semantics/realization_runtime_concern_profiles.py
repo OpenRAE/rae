@@ -12,8 +12,22 @@ from typing import get_args
 
 from pydantic import BaseModel
 from raes.runtime_configuration import RuntimeConfiguration
+from raes.runtime_inventory import runtime_inventory_collection_identity
 
 RUNTIME_NON_REALIZATION_FIELDS = frozenset({"description", "evidence_refs", "readiness"})
+
+# This adoption uses the existing portable reference identities. Other concern
+# families keep their negotiated comparison contract until explicitly migrated.
+_KEYED_INVENTORIES = frozenset(
+    {"runtime-datastore-services", "runtime-app-authorizations", "runtime-orchestration-authorities"}
+)
+
+
+def runtime_collection_identity(kind: str, pointer: str = "") -> tuple[str, ...]:
+    """Resolve a collection's canonical ID from its registered reference tree."""
+    if kind not in _KEYED_INVENTORIES:
+        return ()
+    return runtime_inventory_collection_identity(kind.removeprefix("runtime-"), pointer)
 
 
 @dataclass(frozen=True)
@@ -56,7 +70,7 @@ def _profile(
         concern_kind=kind,
         excluded_fields=frozenset(excluded),
         sort_scalar_sequence=sort_scalars,
-        collection_identity_fields=identity,
+        collection_identity_fields=identity or runtime_collection_identity(kind),
     )
 
 

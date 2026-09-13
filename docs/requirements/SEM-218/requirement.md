@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-09-12T00:00:00Z
+updated_at: 2026-09-13T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -20,6 +20,30 @@ The ecosystem shall define semantics distinguishing binding author declarations 
 Current state: identified gap. Honest portability requires normative semantics for what is binding, what may be realized later, and when approximation is forbidden.
 
 ## Traceability
+
+- TESTS → TEST `implementations/python/tests/test_issue_1206_review_regressions.py` (Unknown replication remains knowledge while private identities retain exact matching)
+
+- TESTS → TEST `implementations/python/tests/test_issue_1207_policy_ownership.py` (Bounded ownership of the partial-inventory contract delivery)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_app_authorization.py` (Partial-description binding and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_database.py` (Partial-description binding and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_datastore.py` (Partial-description binding and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_orchestration.py` (Partial-description binding and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_relationships.py` (Partial-description binding and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_runtime_orchestration.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_runtime_app_authorization.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_runtime_datastore.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_runtime_forwarding_agent.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_runtime_orchestration.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_sdl_models.py` (Partial-description binding and admission boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_inventory.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1207_description_lifecycle.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1207_partial_descriptions.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1207_profile_admission.py` (Partial-description binding and admission boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1207_recursive_inventory.py` (Partial-description binding and admission boundary)
+- IMPLEMENTS → GITHUB_ISSUE `1207` (Partial inventory descriptions and selected-operation admission)
+- IMPLEMENTS → SPEC `specs/sdl/runtime-inventory.md` (Binding partial facts and delegated prerequisites)
+- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/issue-1207-clause-mapping.md`
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/__init__.py` (Public owner and compatibility facade for realization authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_models.py` (Versioned recursive authority, closure, collection, reference, provenance, and limit contracts)
@@ -124,6 +148,7 @@ Current state: identified gap. Honest portability requires normative semantics f
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1078-runtime-configuration-boundary-remediation.md` (Issue 1078 implementation and backend-boundary decision)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_runtime_concern_profiles.py` (Executable RuntimeConfiguration ownership and enforcement inventory)
 - TESTS → TEST `implementations/python/tests/test_issue_1078_runtime_boundary_coverage.py` (Complete runtime concern, posture, closure, observation, and secret conformance)
+- TESTS → TEST `implementations/python/tests/test_issue_1206_runtime_vocabularies.py` (Private resource identity preserves partial grant knowledge without weakening closed grant effects)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-847-runtime-package-repositories-preflight.md` (Typed package-repository profile and existing runtime-packages authority boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/runtime_packages.py` (Closed, pinned APT repository profile within the runtime-packages concern)
 - TESTS → TEST `implementations/python/tests/test_issue_847_runtime_package_repositories.py` (Repository validation, compilation, projection, schema, and compatibility coverage)

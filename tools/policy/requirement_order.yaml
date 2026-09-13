@@ -228,6 +228,30 @@ ownership:
     - CHANGELOG.md
   semantics-expansion:
     - contracts/schemas/sdl
+    # Issue 1207: reviewed partial-inventory contracts and their exact records.
+    - docs/decisions/adrs/adr-029-database-logical-state-runtime-surface.md
+    - contracts/schema-publication/entries/instantiated-scenario-snapshot-v1.json
+    - contracts/schema-publication/entries/instantiated-scenario-v1.json
+    - contracts/schema-publication/entries/scenario-satisfiability-evidence-v1.json
+    - contracts/schema-publication/entries/sdl-authoring-input-v1.json
+    - contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json
+    - docs/decisions/adrs/adr-046-app-authorization-runtime-inventory.md
+    - docs/decisions/adrs/adr-048-datastore-service-runtime-inventory.md
+    - docs/decisions/adrs/adr-050-forwarding-agent-runtime-inventory.md
+    - docs/decisions/adrs/adr-051-orchestration-authority-runtime-inventory.md
+    - docs/decisions/adrs/adr-index.yaml
+    - docs/decisions/issue-1207-app-authorization-preflight.md
+    - docs/decisions/issue-1207-partial-profile-descriptions-preflight.md
+    - docs/decisions/issue-1207-runtime-profile-completeness-preflight.md
+    - docs/explain/sdl/issue-1207-clause-mapping.md
+    - tools/policy/historical_identity_records.json
+    - docs/explain/sdl/issue-1207-datastore-preflight.md
+    - docs/requirements/DSL-132/requirement.md
+    - docs/requirements/DSL-134/requirement.md
+    - docs/requirements/DSL-136/requirement.md
+    - docs/requirements/DSL-137/requirement.md
+    - docs/research/language-extensibility/adr-follow-ups.md
+    - specs/sdl/runtime-inventory.md
     # Shared description semantics and existing evidence lifecycle owners (SEM-218).
     - contracts/schemas/experiment-core/experiment-evidence-record-v1.json
     - contracts/schemas/experiment-core/experiment-run-v1.json

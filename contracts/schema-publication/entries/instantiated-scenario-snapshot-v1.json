@@ -2,9 +2,9 @@
   "contract_id": "instantiated-scenario-snapshot-v1",
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft",
-  "content_hash": "ac6e5284e94023a1dbc2769ba4fb8fee4581d8f37fd6397455dfa78c2244a0d6",
+  "content_hash": "2621ce41c250eeaf540d67beebc955d9bfe2c7c87ef54b95605e9744cb6c7c50",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "ac6e5284e94023a1dbc2769ba4fb8fee4581d8f37fd6397455dfa78c2244a0d6"
+    "summary": "Allow partial runtime inventory descriptions and preserve unknown database protocol defaults; selected operations retain completeness and authority checks (#1207).",
+    "content_hash": "2621ce41c250eeaf540d67beebc955d9bfe2c7c87ef54b95605e9744cb6c7c50"
   }
 }

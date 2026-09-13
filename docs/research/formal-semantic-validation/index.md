@@ -83,7 +83,7 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   closures. Retained observations replay without drift from release 8.0.0.
   Previously pinned baseline captures retain their exact bytes; the new source
   identity is recorded here rather than repinning historical evidence.
-- [`bundles/retest-v9.json`](bundles/retest-v9.json) is current release 10.0.0.
+- [`bundles/retest-v9.json`](bundles/retest-v9.json) preserves release 10.0.0.
   It binds [`execution-snapshot-v9.json`](execution-snapshot-v9.json) and
   [`analysis-v9.json`](analysis-v9.json) to the partial description contracts.
   Every retained observation replays without drift from release 9.0.0; prior
@@ -132,7 +132,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 10.0.0, rejects unsupported future
+Current validation requires explicit release 11.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -146,6 +146,20 @@ digest. A changed implementation requires a new explicitly supported release,
 not rewriting history or extending a digest allowlist. Classification migration
 is not a claim class in the retained preregistration and is not promoted to
 `demonstrated` by these controls.
+
+Release 11.0.0, [`bundles/retest-v10.json`](bundles/retest-v10.json), records
+issue #1207's partial-inventory implementation against the same 20 corpus cases
+and freshly executed participant checks. Outcome and result digests retain
+their previous values; source identity and the Python version record this
+capture's actual modified checkout. No new claim class is inferred.
+
+The release-10 baseline exposed a historical integrity defect: release 9's
+manifest and snapshot had been rewritten after release 10 pinned them.
+The exact pinned bytes were recovered from Git revision `106b195e`, restoring
+manifest hash `e7dde274931590d8cc0c8543e1d4785d8a7373f704a2694747fece3de76dd95c`
+and snapshot hash `29bab7d876143153f2652c5d702bad34fddc3f5d63b95fe482c1365a34c177f3`.
+This is restoration of the cited historical artifact, not a fresh observation
+or a change to its recorded outcomes. Release 11 carries the new capture.
 
 ## Bounded conclusions
 

@@ -2,9 +2,9 @@
   "contract_id": "sdl-authoring-input-v1",
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft",
-  "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062",
+  "content_hash": "21e3b7e744a587626c1d1b03d3f2cebc9ae135d619cb9ffbf40009511e653e7a",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "9f8ba96a011a6005aca1f42d55aab5f255d52672e8ed2e8aadee8a3fec200062"
+    "summary": "Allow partial runtime inventory descriptions and preserve unknown database protocol defaults; selected operations retain completeness and authority checks (#1207).",
+    "content_hash": "21e3b7e744a587626c1d1b03d3f2cebc9ae135d619cb9ffbf40009511e653e7a"
   }
 }

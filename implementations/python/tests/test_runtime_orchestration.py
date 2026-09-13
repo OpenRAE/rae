@@ -151,14 +151,14 @@ def test_unknown_enum_value_is_rejected() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_host_root_equivalent_requires_control_interface_ref() -> None:
-    with pytest.raises(ValidationError, match="host_root_equivalent"):
-        RuntimeOrchestrationAuthority(**_host_root_authority(control_interface_ref=""))
+def test_host_root_description_allows_missing_interface_knowledge() -> None:
+    authority = RuntimeOrchestrationAuthority(**_host_root_authority(control_interface_ref=""))
+    assert authority.control_interface_ref == ""
 
 
-def test_host_root_equivalent_rejects_variable_control_interface_ref() -> None:
-    with pytest.raises(ValidationError, match="host_root_equivalent"):
-        RuntimeOrchestrationAuthority(**_host_root_authority(control_interface_ref="${sock}"))
+def test_host_root_template_allows_variable_interface_ref() -> None:
+    authority = RuntimeOrchestrationAuthority(**_host_root_authority(control_interface_ref="${sock}"))
+    assert authority.control_interface_ref == "${sock}"
 
 
 def test_host_root_equivalent_with_concrete_ref_passes() -> None:
@@ -340,37 +340,34 @@ def test_control_interface_ref_must_resolve_to_same_node_interface() -> None:
     assert any("control_interface_ref 'missing-sock'" in error for error in errors)
 
 
-def test_host_root_interface_must_be_read_write_docker_socket() -> None:
+def test_host_root_description_preserves_observed_access_without_granting_it() -> None:
     scenario = Scenario(
         name="orchestration",
         nodes={
             "soar": _authority_node(
-                authority=_host_root_authority(),
-                interfaces=[_docker_sock_interface(access="read_only")],
+                authority=_host_root_authority(), interfaces=[_docker_sock_interface(access="read_only")]
             )
         },
     )
-    errors = _validate(scenario)
-    assert any("must resolve to a read-write docker socket" in error for error in errors)
+    assert _validate(scenario) == []
+    assert scenario.nodes["soar"].runtime.local_control_interfaces[0].access == "read_only"
 
 
-def test_host_root_interface_must_be_unix_socket_docker_sock_path() -> None:
+def test_host_root_interface_is_not_identified_by_docker_filename() -> None:
     scenario = Scenario(
         name="orchestration",
         nodes={
             "soar": _authority_node(
-                authority=_host_root_authority(),
-                interfaces=[_docker_sock_interface(path="/var/run/other.sock")],
+                authority=_host_root_authority(), interfaces=[_docker_sock_interface(path="/run/podman/podman.sock")]
             )
         },
     )
-    errors = _validate(scenario)
-    assert any("must resolve to a read-write docker socket" in error for error in errors)
+    assert _validate(scenario) == []
 
 
 def test_namespaced_authority_control_interface_is_resolved_but_not_docker_constrained() -> None:
-    # A namespaced authority's control_interface_ref must still resolve, but the
-    # read-write docker-socket constraint applies only to host_root_equivalent.
+    # Every supplied concrete interface reference must resolve, independently
+    # of descriptive privilege or the selected operation's access requirements.
     authority = _namespaced_authority(control_interface_ref="docker-sock")
     scenario = Scenario(
         name="orchestration",

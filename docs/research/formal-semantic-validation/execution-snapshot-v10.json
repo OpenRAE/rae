@@ -1,11 +1,11 @@
 {
   "baseline": {
-    "execution_id": "issue-1204-execution-v7",
-    "release_path": "docs/research/formal-semantic-validation/bundles/retest-v7.json",
-    "release_revision": "8.0.0",
-    "release_sha256": "a47f54e0f911f9ff165fe3918879577a1f473530a0ab527ff96daa2caab17347"
+    "execution_id": "issue-1209-execution-v9",
+    "release_path": "docs/research/formal-semantic-validation/bundles/retest-v9.json",
+    "release_revision": "10.0.0",
+    "release_sha256": "4e8960fd3034e18875abbffa5d703b0e4878e605432a3a2a8c00e41ef2d5f490"
   },
-  "captured_at": "2026-09-12T05:16:23+00:00",
+  "captured_at": "2026-09-13T01:10:03.058154+00:00",
   "commands": [
     {
       "argv": [
@@ -86,10 +86,10 @@
       "network": "disabled"
     }
   ],
-  "configuration_id": "raes-python-reference-offline-v8",
+  "configuration_id": "raes-python-reference-offline-v10",
   "corpus_revision": "2.0.0",
   "deviations": [],
-  "execution_id": "issue-1204-execution-v8",
+  "execution_id": "issue-1207-execution-v10",
   "execution_status": "complete",
   "observations": [
     {
@@ -97,7 +97,7 @@
       "analysis_profile": null,
       "case_id": "schema-valid-control",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -106,7 +106,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-valid.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "A passing minimal source does not establish semantic correctness."
       ],
@@ -119,7 +119,7 @@
       "analysis_profile": null,
       "case_id": "schema-unknown-field",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "SDLParseError",
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -128,7 +128,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-invalid-unknown-field.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The observation covers one unknown-field defect only."
       ],
@@ -141,7 +141,7 @@
       "analysis_profile": null,
       "case_id": "semantic-resolved-objective",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -150,7 +150,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-valid.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "This is a positive control for one objective-reference slice."
       ],
@@ -163,7 +163,7 @@
       "analysis_profile": null,
       "case_id": "semantic-dangling-assertion",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "SDLValidationError",
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -172,7 +172,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-dangling-ref.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "A single dangling reference does not prove complete semantic coverage."
       ],
@@ -185,7 +185,7 @@
       "analysis_profile": null,
       "case_id": "semantic-ambiguous-reference",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "SDLValidationError",
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -194,7 +194,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-ambiguous-ref.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "One namespace collision does not enumerate every ambiguity surface."
       ],
@@ -207,7 +207,7 @@
       "analysis_profile": null,
       "case_id": "semantic-feature-cycle",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "SDLValidationError",
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -216,7 +216,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-feature-cycle.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "One static dependency cycle does not establish general constraint satisfiability."
       ],
@@ -229,7 +229,7 @@
       "analysis_profile": null,
       "case_id": "workflow-reachable-control",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -240,7 +240,7 @@
         "implementations/python/tests/test_semantics_planner.py",
         "specs/formal/workflows/state-machine.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The graph is workflow control flow only."
       ],
@@ -253,7 +253,7 @@
       "analysis_profile": null,
       "case_id": "workflow-unreachable-step",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "SDLValidationError",
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -264,7 +264,7 @@
         "implementations/python/tests/test_semantics_planner.py",
         "specs/formal/workflows/state-machine.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The result does not establish network, service, participant, or exploit reachability."
       ],
@@ -277,7 +277,7 @@
       "analysis_profile": null,
       "case_id": "whole-scenario-satisfiable-request",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -286,7 +286,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "No governed whole-scenario constraint theory or solver exists."
       ],
@@ -299,7 +299,7 @@
       "analysis_profile": null,
       "case_id": "whole-scenario-unsatisfiable-request",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -308,7 +308,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Local checks cannot produce a whole-scenario unsat certificate."
       ],
@@ -321,7 +321,7 @@
       "analysis_profile": null,
       "case_id": "valid-exploit-path-request",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -330,7 +330,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The issue-168 baseline had no canonical typed attack graph or path-query entrypoint."
       ],
@@ -343,7 +343,7 @@
       "analysis_profile": null,
       "case_id": "invalid-exploit-path-request",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -352,7 +352,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Vulnerability and topology declarations are not an invalid-path proof."
       ],
@@ -365,7 +365,7 @@
       "analysis_profile": null,
       "case_id": "compile-repeatability-control",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -375,7 +375,7 @@
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml",
         "implementations/python/tests/test_pipeline_determinism.py"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The witness ends at compiled output."
       ],
@@ -388,7 +388,7 @@
       "analysis_profile": null,
       "case_id": "compile-non-vacuity-control",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -398,7 +398,7 @@
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml",
         "docs/research/formal-semantic-validation/corpus/determinism-b.sdl.yaml"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Distinct digests are a non-vacuity control, not semantic non-equivalence proof."
       ],
@@ -411,7 +411,7 @@
       "analysis_profile": null,
       "case_id": "necessity-witness-request",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -420,7 +420,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "No governed intervention or ablation protocol exists."
       ],
@@ -433,7 +433,7 @@
       "analysis_profile": null,
       "case_id": "non-necessity-control-request",
       "configuration_digest": null,
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": null,
       "evidence_artifact_path": null,
       "evidence_artifact_sha256": null,
@@ -442,7 +442,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Attribution and negative fixtures do not demonstrate non-necessity."
       ],
@@ -455,7 +455,7 @@
       "analysis_profile": "raes-finite-domain-satisfiability-v1",
       "case_id": "finite-domain-satisfiable-v2",
       "configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "scenario-satisfiability-evidence/v1",
       "evidence_artifact_path": "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v3.json",
       "evidence_artifact_sha256": "7d1f05f634f0b36e763de1ece6598641006c2dd570531aa7a1cfc23c74784146",
@@ -466,7 +466,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v3.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Demonstrates only the pinned finite-domain theory, translation, solver profile, and source."
       ],
@@ -479,7 +479,7 @@
       "analysis_profile": "raes-finite-domain-satisfiability-v1",
       "case_id": "finite-domain-unsatisfiable-v2",
       "configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "scenario-satisfiability-evidence/v1",
       "evidence_artifact_path": "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v3.json",
       "evidence_artifact_sha256": "e31bb7245d62e25810e394008da3ef4dcbbb6dad85f6363138cedef93ddc5c47",
@@ -490,7 +490,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v3.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The subset-minimal core is evidence for the pinned translation and solver, not a proof certificate for arbitrary SDL."
       ],
@@ -503,7 +503,7 @@
       "analysis_profile": "raes-exploit-path-analysis-v1",
       "case_id": "typed-exploit-path-valid-v2",
       "configuration_digest": "sha256:7f8876d81feb77d3a3239be2fb8337de8885e2744f8786728ba23e4e6027bc0a",
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "exploit-path-analysis-evidence/v1",
       "evidence_artifact_path": "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v3.json",
       "evidence_artifact_sha256": "800c36e9e2415c3187c7bf16b781b1c7f2515829e205d40673a3fa1acf76d33f",
@@ -514,7 +514,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v3.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The witness is bounded to the admitted snapshot, normalized graph, query, semantics, and search profile; it does not establish backend execution."
       ],
@@ -527,7 +527,7 @@
       "analysis_profile": "raes-exploit-path-analysis-v1",
       "case_id": "typed-exploit-path-invalid-v2",
       "configuration_digest": "sha256:7f8876d81feb77d3a3239be2fb8337de8885e2744f8786728ba23e4e6027bc0a",
-      "configuration_id": "raes-python-reference-offline-v8",
+      "configuration_id": "raes-python-reference-offline-v10",
       "diagnostic_kind": "exploit-path-analysis-evidence/v1",
       "evidence_artifact_path": "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v3.json",
       "evidence_artifact_sha256": "01a611834924d0fb2c48fb9a6795441e1281ad12bd8dd128ffaa5756b452da0f",
@@ -538,7 +538,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v3.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Structured rejection proves only that this bounded graph/query cannot reach its goal; it does not establish real-world non-exploitability."
       ],
@@ -553,7 +553,7 @@
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_disclosure_is_separate_from_observable_projection",
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_cannot_be_observed_without_explicit_disclosure_rule"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Covers the reference SDL/contract path, not every backend projection."
       ],
@@ -566,7 +566,7 @@
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_contract_declares_sem_211_classes_and_compiles_them",
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_result_rejects_success_when_preconditions_are_unresolved"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Covers declared applicability and one unresolved-precondition failure."
       ],
@@ -579,7 +579,7 @@
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_runtime_snapshot_publishes_joint_action_and_time_context_records",
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_joint_action_record_contract_rejects_unordered_conflicting_writes"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Contract evidence does not prove every backend's live concurrency fidelity."
       ],
@@ -592,7 +592,7 @@
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_accepts_supported_order_claim_strengths",
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_rejects_wall_clock_causality"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Rejecting timestamp-only causality does not supply counterfactual proof."
       ],
@@ -605,7 +605,7 @@
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_attribution_edge_round_trips_on_terminal_observation",
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_timestamp_adjacency_cannot_be_reported_as_strong_causality"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Attribution labels disclose basis; they do not demonstrate necessity."
       ],
@@ -618,7 +618,7 @@
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_outcome_interpretation_rule_parses_and_compiles_explicit_layers",
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_local_action_success_does_not_imply_objective_success_without_rule_record"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "The fixtures establish layer separation, not outcome validity in every realization."
       ],
@@ -631,7 +631,7 @@
         "implementations/python/tests/test_realization_honesty_conformance.py::test_constructive_envelope_runs_positive_and_negative_honesty_probes",
         "implementations/python/tests/test_realization_honesty_conformance.py::test_only_native_live_can_support_native_conformance"
       ],
-      "execution_id": "issue-1204-execution-v8",
+      "execution_id": "issue-1207-execution-v10",
       "limitations": [
         "Reference conformance evidence remains bounded to declared realization profiles."
       ],
@@ -641,15 +641,15 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "9b69eb211afd0785809fc9db053f5799dc36eae9",
+  "raes_revision": "d36608e89dbaa964ac0b6078fa4ab97e7bbfc0b2",
   "source_state": {
-    "base_revision": "9b69eb211afd0785809fc9db053f5799dc36eae9",
+    "profile": "python-reference-source/v1",
+    "base_revision": "d36608e89dbaa964ac0b6078fa4ab97e7bbfc0b2",
     "checkout_state": "modified",
-    "implementation_digest": "b47bceb748a1450d1532d547d73e6f427ed17c8d4319f1871666419731a0a55d",
-    "profile": "python-reference-source/v1"
+    "implementation_digest": "57989b1304346f1f4a621c9070680547785ab5fdc70d48c9a1187dc023bad9e1"
   },
   "versions": {
-    "python": "3.13.13",
+    "python": "3.14.4",
     "raes": "3.5.0",
     "z3_engine": "4.16.0",
     "z3_solver": "4.16.0.0"
