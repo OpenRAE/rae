@@ -16,6 +16,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+
 from tools import bootstrap_profile, gitleaks_tool, osv_scanner_tool, vale_tool
 from tools import verified_tool_installation as installation
 from tools.policy import conftest_tool
@@ -194,6 +195,35 @@ def test_publish_is_atomic_private_and_warm_hits_are_revalidated(
 
     assert _direct_install(monkeypatch, tmp_path, selection, payload, acquire=acquire) == installed
     assert acquisitions == 1
+
+
+def test_publication_seals_the_root_after_rename_for_macos_compatibility(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    payload = b"reviewed tool"
+    selection = _selection(payload)
+    target = installation.installation_tree_path(tmp_path, selection)
+    target.parent.mkdir(parents=True, mode=0o700)
+    real_rename = os.rename
+    observed_checkpoints: list[str] = []
+
+    def macos_rename(source: Path, destination: Path) -> None:
+        assert source.stat().st_mode & 0o200
+        real_rename(source, destination)
+
+    def checkpoint(name: str, path: Path) -> None:
+        observed_checkpoints.append(name)
+        if name == "published":
+            assert path.stat().st_mode & 0o777 == 0o500
+
+    monkeypatch.setattr(installation.os, "rename", macos_rename)
+    monkeypatch.setattr(installation, "_publication_checkpoint", checkpoint)
+
+    installation._publish_tree(target, selection.installed_manifest, {"bin/tool": payload})
+
+    assert observed_checkpoints == ["staged-written", "staged-durable", "published", "parent-durable"]
+    assert target.stat().st_mode & 0o777 == 0o500
 
 
 def test_acquired_raw_bytes_are_reverified_before_materialization(

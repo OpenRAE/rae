@@ -709,10 +709,11 @@ def _publish_tree(
         for directory in directories:
             directory.chmod(0o500)
             _fsync_directory(directory)
-        stage.chmod(0o500)
         _fsync_directory(stage)
         _publication_checkpoint("staged-durable", stage)
         os.rename(stage, target)
+        target.chmod(0o500)
+        _fsync_directory(target)
         _publication_checkpoint("published", target)
         _fsync_directory(target.parent)
         _publication_checkpoint("parent-durable", target)
