@@ -46,7 +46,6 @@ _SYSTEM_CURL = maintained_client_acquisition.SYSTEM_CURL
 _GENERIC_TOOL_HOST_PROFILES = {
     "linux-x86_64": "public-ubuntu-24.04-x86_64",
     "linux-arm64": "public-linux-arm64",
-    "macos-x86_64": "public-macos-x86_64",
     "macos-arm64": "public-macos-arm64",
 }
 curl_qualification_argv = maintained_client_acquisition.curl_transfer_argv
@@ -228,7 +227,7 @@ def _native_client_results(  # NOSONAR -- audited capability map is intentionall
             "gh-cli": Path("/usr/bin/gh"),
         }
     else:
-        brew_root = Path("/usr/local") if platform_id == "macos-x86_64" else Path("/opt/homebrew")
+        brew_root = Path("/opt/homebrew")
         paths = {
             "git": Path("/usr/bin/git"),
             "curl-unknown-length-max-filesize": _SYSTEM_CURL,
