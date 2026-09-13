@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import platform
+import plistlib
 import pwd
 import re
 import shutil
@@ -282,15 +283,20 @@ def _filesystem_type(path: Path) -> str:
     if platform.system() == "Darwin":
         try:
             completed = subprocess.run(
-                ["stat", "-f", "%T", str(canonical)],
+                ["/usr/sbin/diskutil", "info", "-plist", str(canonical)],
                 check=True,
                 capture_output=True,
-                text=True,
                 timeout=10,
             )
-        except (OSError, subprocess.SubprocessError) as exc:
+            if len(completed.stdout) > 1024 * 1024:
+                raise ValueError("diskutil response exceeds the admission bound")
+            details = plistlib.loads(completed.stdout)
+            filesystem_type = details.get("FilesystemType") if isinstance(details, dict) else None
+            if not isinstance(filesystem_type, str) or not filesystem_type.strip():
+                raise ValueError("diskutil response lacks FilesystemType")
+        except (OSError, ValueError, plistlib.InvalidFileException, subprocess.SubprocessError) as exc:
             raise RuntimeError("tool-installation: unsupported-filesystem") from exc
-        return completed.stdout.strip().lower()
+        return filesystem_type.strip().lower()
     raise RuntimeError("tool-installation: unsupported-filesystem")
 
 

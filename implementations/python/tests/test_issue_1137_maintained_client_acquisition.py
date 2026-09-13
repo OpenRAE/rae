@@ -328,6 +328,17 @@ def test_canonical_proof_job_consumes_same_run_locked_generic_tool_inputs() -> N
     assert "--artifact-id osv-scanner" in workflow_text
     assert "--artifact-id vale" in workflow_text
     assert "generic-tools --local-input-root .canonical-tool-inputs" in workflow_text
+    install = next(
+        step for step in verify["steps"] if step.get("name") == "Install locked generic tools from local inputs"
+    )
+    assert str(install["run"]).split()[:6] == [
+        "uv",
+        "run",
+        "--project",
+        "implementations/tooling/python",
+        "--frozen",
+        "--no-default-groups",
+    ]
     upload = next(step for step in prepare["steps"] if str(step.get("uses", "")).startswith("actions/upload-artifact@"))
     assert upload["with"]["include-hidden-files"] is True
 

@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 import os
+import plistlib
 import subprocess
 import tarfile
 import threading
@@ -517,6 +518,44 @@ def test_unqualified_shared_filesystem_is_rejected_before_cache_or_acquisition(
             b"reviewed tool",
             acquire=lambda: pytest.fail("unqualified filesystem triggered acquisition"),
         )
+
+
+def test_darwin_filesystem_qualification_reads_diskutil_plist(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    observed: list[list[str]] = []
+    monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
+
+    def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
+        observed.append(command)
+        return SimpleNamespace(stdout=plistlib.dumps({"FilesystemType": "apfs"}))
+
+    monkeypatch.setattr(installation.subprocess, "run", run)
+
+    installation._require_qualified_filesystem(tmp_path)
+
+    assert observed == [["/usr/sbin/diskutil", "info", "-plist", str(tmp_path.resolve())]]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [b"not a plist", plistlib.dumps({"FilesystemName": "APFS"})],
+)
+def test_darwin_filesystem_qualification_fails_closed_on_invalid_diskutil_output(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    payload: bytes,
+) -> None:
+    monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(
+        installation.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(stdout=payload),
+    )
+
+    with pytest.raises(RuntimeError, match="unsupported-filesystem"):
+        installation._require_qualified_filesystem(tmp_path)
 
 
 def test_hardlinked_installed_leaf_is_quarantined_and_terminal(
