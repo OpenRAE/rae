@@ -22,15 +22,16 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 PYTHON_LINK_NAME = "current"
+_Result = TypeVar("_Result")
 _PROJECTS = (
     ("implementations/python", ("--all-extras", "--frozen")),
     ("implementations/tooling/python", ("--frozen", "--no-default-groups")),
@@ -219,7 +220,7 @@ def setup(repo_root: Path = REPO_ROOT, *, kit_root: Path | None = None) -> None:
     )
 
 
-def _step(label: str, action: Any) -> Any:
+def _step(label: str, action: Callable[[], _Result]) -> _Result:
     print(f"==> {label}", flush=True)
     return action()
 
@@ -229,7 +230,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.parse_args(argv)
     try:
         setup()
-    except (DevcontainerSetupError, RuntimeError, ValueError) as exc:
+    # DevcontainerSetupError is a RuntimeError; policy and installer refusals raise ValueError.
+    except (RuntimeError, ValueError) as exc:
         print(f"devcontainer-setup: {exc}", file=sys.stderr)
         return 1
     return 0

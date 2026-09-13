@@ -99,7 +99,7 @@ def test_qualification_records_bind_the_current_policy_digest() -> None:
 def build_plan() -> dict:
     from tools.devcontainer_image import build_plan as render
 
-    return render(REPO_ROOT, host_profile_id=CONTAINER_HOST_PROFILE_ID)
+    return render(host_profile_id=CONTAINER_HOST_PROFILE_ID)
 
 
 def _container_failures(root: Path) -> set[str]:

@@ -79,12 +79,12 @@ _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 # background job could hide an unreviewed command from this parser, so such
 # syntax is refused outright rather than interpreted.
 _SHELL_SYNTAX_RE = re.compile(r"[\\`'\"$<>(){}|&*?\[\]~#!]")
-_APT_OPTION_RE = re.compile(r"^(?:APT::Snapshot=[0-9]{8}T[0-9]{6}Z|Acquire::https::CAInfo=/run/[a-z0-9.-]+)$")
+_APT_OPTION_RE = re.compile(r"^(?:APT::Snapshot=\d{8}T\d{6}Z|Acquire::https::CAInfo=/run/[a-z0-9.-]+)$", re.ASCII)
 _PACKAGE_RE = re.compile(r"^[a-z0-9][a-z0-9.+-]*$")
 _SNAPSHOT_OPTION_RE = re.compile(r"^APT::Snapshot=(?P<snapshot>\S+)$")
 _NAME_RE = r"[a-z_][a-z0-9_-]{0,31}"
-_GROUPADD_RE = re.compile(rf"^--gid [0-9]+ {_NAME_RE}$")
-_USERADD_RE = re.compile(rf"^--uid [0-9]+ --gid [0-9]+ --create-home --shell /bin/bash {_NAME_RE}$")
+_GROUPADD_RE = re.compile(rf"^--gid \d+ {_NAME_RE}$", re.ASCII)
+_USERADD_RE = re.compile(rf"^--uid \d+ --gid \d+ --create-home --shell /bin/bash {_NAME_RE}$", re.ASCII)
 _INSTALL_RE = re.compile(rf"^-d -o (?P<owner>{_NAME_RE}) -g (?P=owner)(?: /home/(?P=owner)(?:/[a-z0-9._-]+)*)+$")
 
 
@@ -125,20 +125,23 @@ def _instructions(text: str) -> list[tuple[str, str]]:
     return parsed
 
 
+def _stage_from(arguments: str) -> _Stage:
+    """Parse `FROM [--platform=<platform>] <reference> [AS <alias>]`; any other shape keeps its raw text."""
+
+    tokens = arguments.split()
+    platform = tokens.pop(0).removeprefix("--platform=") if tokens and tokens[0].startswith("--platform=") else None
+    alias = tokens[2] if len(tokens) == 3 and tokens[1].upper() == "AS" else None
+    return _Stage(tokens[0] if len(tokens) in {1, 3} else arguments, platform, alias)
+
+
 def _stages(instructions: Sequence[tuple[str, str]]) -> tuple[list[_Stage], list[PolicyFailure]]:
     stages: list[_Stage] = []
     failures: list[PolicyFailure] = []
     for keyword, arguments in instructions:
         if keyword not in _INSTRUCTIONS:
             failures.append(_image_failure(RULE_BUILD, f"image uses unreviewed instruction {keyword}"))
-            continue
-        if keyword == "FROM":
-            tokens = arguments.split()
-            platform = (
-                tokens.pop(0).removeprefix("--platform=") if tokens and tokens[0].startswith("--platform=") else None
-            )
-            alias = tokens[2] if len(tokens) == 3 and tokens[1].upper() == "AS" else None
-            stages.append(_Stage(tokens[0] if len(tokens) in {1, 3} else arguments, platform, alias))
+        elif keyword == "FROM":
+            stages.append(_stage_from(arguments))
         elif not stages:
             failures.append(_image_failure(RULE_BUILD, "image instruction precedes its base image"))
         elif keyword == "RUN":
@@ -182,22 +185,26 @@ def _plain_commands(body: str) -> list[list[str]] | None:
     return [segment.split() for segment in text.split(";") if segment.split()]
 
 
-def _apt_arguments_admitted(arguments: Sequence[str]) -> bool:
-    operation = ""
+def _apt_operands(arguments: Sequence[str]) -> list[str] | None:
+    """Return apt's operation and package operands, or None if any `-o` option is unreviewed."""
+
+    operands: list[str] = []
     iterator = iter(arguments)
     for argument in iterator:
-        if argument == "-o":
-            if _APT_OPTION_RE.fullmatch(next(iterator, "")) is None:
-                return False
-        elif argument in {"-y", "--no-install-recommends"}:
-            continue
-        elif not operation:
-            if argument not in {"update", "install", "clean"}:
-                return False
-            operation = argument
-        elif operation != "install" or _PACKAGE_RE.fullmatch(argument) is None:
-            return False
-    return bool(operation)
+        if argument == "-o" and _APT_OPTION_RE.fullmatch(next(iterator, "")) is None:
+            return None
+        if argument not in {"-o", "-y", "--no-install-recommends"}:
+            operands.append(argument)
+    return operands
+
+
+def _apt_arguments_admitted(arguments: Sequence[str]) -> bool:
+    operation, *packages = _apt_operands(arguments) or [""]
+    return (
+        operation in {"update", "install", "clean"}
+        and (operation == "install" or not packages)
+        and all(_PACKAGE_RE.fullmatch(package) for package in packages)
+    )
 
 
 def _command_admitted(tokens: Sequence[str]) -> bool:
@@ -241,27 +248,43 @@ def _apt_options(tokens: Sequence[str]) -> tuple[str | None, str, set[str]]:
     return snapshot, operation, packages
 
 
+def _apt_installs(stage: _Stage) -> list[tuple[str | None, set[str]]]:
+    """Return the snapshot and packages of every apt command in a stage that reaches a repository."""
+
+    return [
+        (snapshot, packages)
+        for _flags, body in stage.runs
+        for tokens in _plain_commands(body) or []
+        if tokens[0] == "apt-get"
+        for snapshot, operation, packages in [_apt_options(tokens)]
+        if operation != "clean"
+    ]
+
+
+def _apt_install_failures(
+    snapshot: str | None, packages: set[str], expected: _Expected, *, final: bool
+) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
+    unreviewed_builder_packages = not final and bool(packages - TRANSPORT_TRUST_PACKAGES)
+    transport_bootstrap = not final and snapshot is None and not unreviewed_builder_packages
+    if snapshot != expected.snapshot and not transport_bootstrap:
+        message = (
+            "image package source differs from the reviewed repository snapshot"
+            if snapshot is not None
+            else "image installs packages without the reviewed repository snapshot"
+        )
+        failures.append(_image_failure(RULE_SNAPSHOT, message))
+    if unreviewed_builder_packages:
+        failures.append(_image_failure(RULE_PACKAGES, "image builder stage installs an unreviewed package"))
+    return failures
+
+
 def _stage_package_failures(stage: _Stage, expected: _Expected, *, final: bool) -> tuple[set[str], list[PolicyFailure]]:
     installed: set[str] = set()
     failures: list[PolicyFailure] = []
-    for _flags, body in stage.runs:
-        for tokens in _plain_commands(body) or []:
-            if tokens[0] != "apt-get":
-                continue
-            snapshot, operation, packages = _apt_options(tokens)
-            if operation == "clean":
-                continue
-            transport_bootstrap = not final and snapshot is None and packages <= TRANSPORT_TRUST_PACKAGES
-            if snapshot != expected.snapshot and not transport_bootstrap:
-                message = (
-                    "image package source differs from the reviewed repository snapshot"
-                    if snapshot is not None
-                    else "image installs packages without the reviewed repository snapshot"
-                )
-                failures.append(_image_failure(RULE_SNAPSHOT, message))
-            if not final and not packages <= TRANSPORT_TRUST_PACKAGES:
-                failures.append(_image_failure(RULE_PACKAGES, "image builder stage installs an unreviewed package"))
-            installed |= packages
+    for snapshot, packages in _apt_installs(stage):
+        failures.extend(_apt_install_failures(snapshot, packages, expected, final=final))
+        installed |= packages
     return installed, failures
 
 
@@ -281,26 +304,28 @@ def _base_failures(stages: Sequence[_Stage], expected: _Expected) -> list[Policy
     return failures
 
 
+def _mount_flag_admitted(flag: str, builders: set[str]) -> bool:
+    name, _, value = flag.partition("=")
+    options = {key: option for key, _, option in (part.partition("=") for part in value.split(","))}
+    return (
+        name == "--mount"
+        and options.get("type") == "bind"
+        and options.get("from") in builders
+        and options.get("target", "").startswith("/run/")
+        and set(options) <= {"type", "from", "source", "target"}
+    )
+
+
 def _mount_failures(stages: Sequence[_Stage]) -> list[PolicyFailure]:
     """Admit only read-only bind mounts from an earlier builder stage."""
 
-    failures: list[PolicyFailure] = []
-    for index, stage in enumerate(stages):
-        builders = {earlier.alias for earlier in stages[:index] if earlier.alias}
-        for flags, _body in stage.runs:
-            for flag in flags:
-                name, _, value = flag.partition("=")
-                options = dict(part.partition("=")[::2] for part in value.split(","))
-                admitted = (
-                    name == "--mount"
-                    and options.get("type") == "bind"
-                    and options.get("from") in builders
-                    and options.get("target", "").startswith("/run/")
-                    and set(options) <= {"type", "from", "source", "target"}
-                )
-                if not admitted:
-                    failures.append(_image_failure(RULE_BUILD, "image build step requests an unreviewed capability"))
-    return failures
+    return [
+        _image_failure(RULE_BUILD, "image build step requests an unreviewed capability")
+        for index, stage in enumerate(stages)
+        for flags, _body in stage.runs
+        for flag in flags
+        if not _mount_flag_admitted(flag, {earlier.alias for earlier in stages[:index] if earlier.alias})
+    ]
 
 
 def _command_failures(stages: Sequence[_Stage]) -> list[PolicyFailure]:
@@ -366,51 +391,54 @@ def _container_host_profiles(documents: Mapping[str, dict[str, Any]]) -> list[Ma
     ]
 
 
+def _locked_platform_manifest(
+    documents: Mapping[str, dict[str, Any]], artifact_ref: object, platform_id: str
+) -> tuple[str, str] | None:
+    """Return the locked OCI repository and the one manifest digest for a platform, or None."""
+
+    for artifact_value in as_list((documents.get(ARTIFACT_LOCK_PATH) or {}).get("artifacts")):
+        artifact = as_mapping(artifact_value)
+        if artifact.get("artifact_id") != artifact_ref or artifact.get("artifact_class") != "oci-image":
+            continue
+        repository = as_mapping(artifact.get("source")).get("asset")
+        digests = [
+            as_mapping(entry).get("sha256")
+            for value in as_list(artifact.get("platforms"))
+            if normalize_platform_id(str((platform := as_mapping(value)).get("platform_id", ""))) == platform_id
+            for entry in as_list(platform.get("raw_manifest"))
+        ]
+        if isinstance(repository, str) and len(digests) == 1 and _DIGEST_RE.fullmatch(str(digests[0])):
+            return repository, str(digests[0])
+    return None
+
+
 def _expected(documents: Mapping[str, dict[str, Any]], host: Mapping[str, Any]) -> _Expected | None:
     """Join the container host profile to its locked platform manifest, or return None."""
 
     platform_id = normalize_platform_id(str(host.get("platform_id", "")))
     user = as_mapping(host.get("development_user"))
-    for artifact_value in as_list((documents.get(ARTIFACT_LOCK_PATH) or {}).get("artifacts")):
-        artifact = as_mapping(artifact_value)
-        if (
-            artifact.get("artifact_id") != host["base_image_artifact_ref"]
-            or artifact.get("artifact_class") != "oci-image"
-        ):
-            continue
-        repository = as_mapping(artifact.get("source")).get("asset")
-        manifests = [
-            as_mapping(entry)
-            for value in as_list(artifact.get("platforms"))
-            if normalize_platform_id(str((platform := as_mapping(value)).get("platform_id", ""))) == platform_id
-            for entry in as_list(platform.get("raw_manifest"))
-        ]
-        digest = manifests[0].get("sha256") if len(manifests) == 1 else None
-        admitted = (
-            isinstance(repository, str)
-            and isinstance(digest, str)
-            and _DIGEST_RE.fullmatch(digest) is not None
-            # The human-readable identity must name the same locked repository.
-            and str(host.get("base_image_identity", "")).startswith(f"{repository}:")
-            and isinstance(host.get("native_repository_snapshot"), str)
-            and isinstance(user.get("name"), str)
-            and all(isinstance(user.get(key), int) for key in ("uid", "gid"))
-            and platform_id in _OCI_PLATFORMS
-        )
-        if admitted:
-            packages = string_set(as_mapping(host.get("offline_kit")).get("host_prerequisite_package_ids")) | (
-                string_set(host.get("development_package_ids"))
-            )
-            return _Expected(
-                reference=f"{repository}@sha256:{digest}",
-                snapshot=str(host["native_repository_snapshot"]),
-                packages=frozenset(packages),
-                user=str(user["name"]),
-                uid=int(user["uid"]),
-                gid=int(user["gid"]),
-                platform=_OCI_PLATFORMS[platform_id],
-            )
-    return None
+    locked = _locked_platform_manifest(documents, host.get("base_image_artifact_ref"), platform_id)
+    admitted = (
+        locked is not None
+        # The human-readable identity must name the same locked repository.
+        and str(host.get("base_image_identity", "")).startswith(f"{locked[0]}:")
+        and isinstance(host.get("native_repository_snapshot"), str)
+        and isinstance(user.get("name"), str)
+        and all(isinstance(user.get(key), int) for key in ("uid", "gid"))
+        and platform_id in _OCI_PLATFORMS
+    )
+    if not admitted or locked is None:
+        return None
+    packages = string_set(as_mapping(host.get("offline_kit")).get("host_prerequisite_package_ids"))
+    return _Expected(
+        reference=f"{locked[0]}@sha256:{locked[1]}",
+        snapshot=str(host["native_repository_snapshot"]),
+        packages=frozenset(packages | string_set(host.get("development_package_ids"))),
+        user=str(user["name"]),
+        uid=int(user["uid"]),
+        gid=int(user["gid"]),
+        platform=_OCI_PLATFORMS[platform_id],
+    )
 
 
 def container_failures(
@@ -420,28 +448,31 @@ def container_failures(
 ) -> list[PolicyFailure]:
     """Return deterministic container-configuration failures without building."""
 
-    del tracked_paths  # The container artifacts are at fixed reviewed paths.
+    # The container artifacts are at fixed reviewed paths.
+    del tracked_paths
     hosts = _container_host_profiles(documents)
     dockerfile = safe_text(repo_root, CONTAINER_DOCKERFILE_PATH)
-    present = dockerfile is not None or (repo_root / DEVCONTAINER_CONFIG_PATH).exists()
-    if not hosts:
-        return [_image_failure(RULE_PROFILE, "container configuration has no reviewed host profile")] if present else []
     expected = _expected(documents, hosts[0]) if len(hosts) == 1 else None
-    if expected is None:
-        return [
+    failures: list[PolicyFailure] = []
+    if not hosts:
+        if dockerfile is not None or (repo_root / DEVCONTAINER_CONFIG_PATH).exists():
+            failures.append(_image_failure(RULE_PROFILE, "container configuration has no reviewed host profile"))
+    elif expected is None:
+        failures.append(
             failure(
                 RULE_PROFILE,
                 "exactly one container host profile must bind a qualified platform manifest in the lock, "
                 "a package snapshot, and a development user",
                 PROFILES_PATH,
             )
-        ]
-    if dockerfile is None:
-        return [_image_failure(RULE_PROFILE, "the reviewed container host profile has no image definition")]
-    failures = _dockerfile_failures(dockerfile, expected)
-    document, config_failure = load_devcontainer_config(repo_root)
-    if document is None:
-        failures.append(config_failure or failure(RULE_PROFILE, "dev-container configuration is unavailable"))
-        return failures
-    failures.extend(devcontainer_failures(document, expected.user))
+        )
+    elif dockerfile is None:
+        failures.append(_image_failure(RULE_PROFILE, "the reviewed container host profile has no image definition"))
+    else:
+        failures.extend(_dockerfile_failures(dockerfile, expected))
+        document, config_failure = load_devcontainer_config(repo_root)
+        if document is None:
+            failures.append(config_failure or failure(RULE_PROFILE, "dev-container configuration is unavailable"))
+        else:
+            failures.extend(devcontainer_failures(document, expected.user))
     return failures

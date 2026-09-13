@@ -49,7 +49,7 @@ _UNSAFE_RUNTIME_KEYS = frozenset(
 )
 _VOLUME_SOURCE_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]*(?:\$\{devcontainerId\}[a-z0-9_.-]*)?$")
 _EXTENSION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]*\.[A-Za-z0-9][A-Za-z0-9-]*$")
-_SIZE_RE = re.compile(r"^[1-9][0-9]*gb$")
+_SIZE_RE = re.compile(r"^[1-9]\d*gb$", re.ASCII)
 # Editor settings that inject terminal environment, shells, or commands.
 _UNSAFE_SETTING_RE = re.compile(
     r"^terminal\.integrated\.|(?:^|\.)env(?:File)?(?:\.|$)|command|shell|args$|automationProfile", re.IGNORECASE
@@ -82,7 +82,7 @@ def _build_admitted(build: object) -> bool:
 def _mount_admitted(mount: object, cache_root: str) -> bool:
     if not isinstance(mount, str):
         return False
-    parts = dict(part.partition("=")[::2] for part in mount.split(","))
+    parts = {key: value for key, _, value in (part.partition("=") for part in mount.split(","))}
     return (
         set(parts) == {"source", "target", "type"}
         and parts["type"] == "volume"
@@ -140,33 +140,55 @@ def _customizations_admitted(value: object) -> bool:
 def devcontainer_failures(document: Mapping[str, Any], user: str) -> list[PolicyFailure]:
     """Return every way the entry point departs from its closed reviewed shape."""
 
-    failures: list[PolicyFailure] = []
-
-    def refuse(rule: str, message: str) -> None:
-        failures.append(failure(rule, message, DEVCONTAINER_CONFIG_PATH))
-
     keys = set(document)
-    if keys & _UNSAFE_RUNTIME_KEYS:
-        refuse(RULE_RUNTIME, "dev-container requests host execution, extra capabilities, or a host mount")
-    if not keys <= _KEYS or not keys >= _REQUIRED_KEYS:
-        refuse(RULE_SHAPE, "dev-container configuration departs from its reviewed key set")
-    if not _build_admitted(document.get("build")):
-        refuse(RULE_SHAPE, "dev-container build must select the reviewed image definition without extra inputs")
-    if document.get("updateContentCommand") != SETUP_COMMAND:
-        refuse(RULE_SHAPE, "dev-container setup must run only the reviewed repository setup command")
-    if document.get("remoteEnv") != {"PATH": REMOTE_PATH}:
-        refuse(RULE_SHAPE, "dev-container environment may only put the locked tool environment on PATH")
-    if document.get("updateRemoteUserUID", True) is not True:
-        refuse(RULE_SHAPE, "dev-container must keep the development user aligned with the checkout owner")
-    if "hostRequirements" in document and not _host_requirements_admitted(document["hostRequirements"]):
-        refuse(RULE_SHAPE, "dev-container host requirements must be positive CPU, memory, and storage sizes")
-    if "customizations" in document and not _customizations_admitted(document["customizations"]):
-        refuse(RULE_SHAPE, "dev-container editor customizations may not configure commands, shells, or environment")
-    if any(not _mount_admitted(mount, f"/home/{user}/.cache") for mount in as_list(document.get("mounts"))):
-        refuse(RULE_RUNTIME, "dev-container mounts anything other than a named development cache volume")
-    if "mounts" in document and not isinstance(document["mounts"], list):
-        refuse(RULE_SHAPE, "dev-container mounts must be a list")
-    for key in ("remoteUser", "containerUser"):
-        if document.get(key) != user:
-            refuse(RULE_USER, "dev-container must run as the reviewed non-root development user")
-    return failures
+    mounts = document.get("mounts", [])
+    checks = (
+        (
+            not keys & _UNSAFE_RUNTIME_KEYS,
+            RULE_RUNTIME,
+            "dev-container requests host execution, extra capabilities, or a host mount",
+        ),
+        (_KEYS >= keys >= _REQUIRED_KEYS, RULE_SHAPE, "dev-container configuration departs from its reviewed key set"),
+        (
+            _build_admitted(document.get("build")),
+            RULE_SHAPE,
+            "dev-container build must select the reviewed image definition without extra inputs",
+        ),
+        (
+            document.get("updateContentCommand") == SETUP_COMMAND,
+            RULE_SHAPE,
+            "dev-container setup must run only the reviewed repository setup command",
+        ),
+        (
+            document.get("remoteEnv") == {"PATH": REMOTE_PATH},
+            RULE_SHAPE,
+            "dev-container environment may only put the locked tool environment on PATH",
+        ),
+        (
+            document.get("updateRemoteUserUID", True) is True,
+            RULE_SHAPE,
+            "dev-container must keep the development user aligned with the checkout owner",
+        ),
+        (
+            "hostRequirements" not in document or _host_requirements_admitted(document["hostRequirements"]),
+            RULE_SHAPE,
+            "dev-container host requirements must be positive CPU, memory, and storage sizes",
+        ),
+        (
+            "customizations" not in document or _customizations_admitted(document["customizations"]),
+            RULE_SHAPE,
+            "dev-container editor customizations may not configure commands, shells, or environment",
+        ),
+        (isinstance(mounts, list), RULE_SHAPE, "dev-container mounts must be a list"),
+        (
+            all(_mount_admitted(mount, f"/home/{user}/.cache") for mount in as_list(mounts)),
+            RULE_RUNTIME,
+            "dev-container mounts anything other than a named development cache volume",
+        ),
+        (
+            all(document.get(key) == user for key in ("remoteUser", "containerUser")),
+            RULE_USER,
+            "dev-container must run as the reviewed non-root development user",
+        ),
+    )
+    return [failure(rule, message, DEVCONTAINER_CONFIG_PATH) for admitted, rule, message in checks if not admitted]

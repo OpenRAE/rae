@@ -27,7 +27,6 @@ _OCI_PLATFORMS = {"linux-x86_64": "linux/amd64"}
 
 
 def build_plan(  # NOSONAR -- explicit closed-response checks keep the plan fail-closed.
-    repo_root: Path = REPO_ROOT,
     *,
     host_profile_id: str,
 ) -> dict[str, Any]:
