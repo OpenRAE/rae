@@ -28,10 +28,11 @@ from pathlib import Path, PurePosixPath
 
 from tools import maintained_client_acquisition
 from tools.tooling_policy_gate import (
-    load_tooling_host_profile_selection_with_current_interpreter as load_tooling_host_profile_selection,
+    LockedArtifactSelection,
+    safe_tooling_cache_parent,
 )
 from tools.tooling_policy_gate import (
-    safe_tooling_cache_parent,
+    load_tooling_host_profile_selection_with_current_interpreter as load_tooling_host_profile_selection,
 )
 
 PROBE_TIMEOUT_SECONDS = 15
@@ -410,7 +411,7 @@ def _offline_generic_tool_selections(
             path = installation.ensure_verified_installation(
                 runtime_root,
                 selection,
-                acquire=lambda: (_ for _ in ()).throw(RuntimeError("offline acquisition disabled")),
+                acquire=_offline_acquisition_disabled,
                 materialize=installation.materialize_direct,
                 installation_root=runtime_root / "installations",
                 immutable_seed_root=kit_root / ".cache" / "raes-sdl" / "tooling" / "installations",
@@ -421,10 +422,14 @@ def _offline_generic_tool_selections(
     return tuple(selections)
 
 
-def _generic_locked_selection(artifact: dict[str, object], *, profile_id: str):
+def _offline_acquisition_disabled() -> bytes:
+    raise RuntimeError("offline acquisition disabled")
+
+
+def _generic_locked_selection(artifact: dict[str, object], *, profile_id: str) -> LockedArtifactSelection:
     """Build the shared installer DTO from one validated host selection."""
 
-    from tools.tooling_policy_gate import LockedArtifactSelection, LockedManifestEntry
+    from tools.tooling_policy_gate import LockedManifestEntry
 
     platform = artifact["platform"]
     source = artifact["source"]
@@ -466,7 +471,8 @@ def export_immutable_tool_seeds(host_profile_id: str, source_root: Path, destina
     generic_ids = ("conftest", "gitleaks", "osv-scanner", "vale")
     if destination_root.exists() or destination_root.is_symlink():
         raise ValueError("immutable tool seed destination must be new")
-    destination_root.mkdir(parents=True, mode=0o700)
+    # The destination is the operator-selected output of this export command and must be new.
+    destination_root.mkdir(parents=True, mode=0o700)  # NOSONAR
     try:
         for artifact_id in generic_ids:
             selection = _generic_locked_selection(artifacts[artifact_id], profile_id="offline-kit")

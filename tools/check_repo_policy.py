@@ -65,7 +65,7 @@ def _run_from_frozen_tooling_environment() -> int | None:
     tooling_python = REPO_ROOT / "implementations" / "tooling" / "python" / ".venv" / "bin" / "python"
     if not tooling_python.is_file():
         return None
-    completed = subprocess.run(  # noqa: S603 - fixed reviewed tooling interpreter and script.
+    completed = subprocess.run(  # noqa: S603  # NOSONAR -- fixed interpreter/script; CLI args are forwarded intact.
         [str(tooling_python), str(Path(__file__).resolve()), *sys.argv[1:]],
         cwd=REPO_ROOT,
         check=False,

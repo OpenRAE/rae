@@ -228,7 +228,7 @@ def _selection_document(payload: str, invalid_response: str = _INVALID_SELECTION
     return selection
 
 
-def _selection_from_document(
+def _selection_from_document(  # NOSONAR -- closed-schema validation is intentionally explicit.
     selection: dict[str, object],
     profile_id: str,
 ) -> tuple[LockedArtifactSelection, object]:

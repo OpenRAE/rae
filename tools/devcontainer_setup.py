@@ -31,10 +31,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 PYTHON_LINK_NAME = "current"
+_TOOLING_PROJECT = "implementations/tooling/python"
 _Result = TypeVar("_Result")
 _PROJECTS = (
     ("implementations/python", ("--all-extras", "--frozen")),
-    ("implementations/tooling/python", ("--frozen", "--no-default-groups")),
+    (_TOOLING_PROJECT, ("--frozen", "--no-default-groups")),
 )
 _SUBPROCESS_TIMEOUT_SECONDS = 1800
 
@@ -184,7 +185,7 @@ def install_generic_tools(repo_root: Path, kit_root: Path) -> None:
             str(kit_root / "bin" / "uv"),
             "run",
             "--project",
-            "implementations/tooling/python",
+            _TOOLING_PROJECT,
             "--frozen",
             "--no-default-groups",
             "python",
@@ -218,7 +219,7 @@ def install_git_hooks(repo_root: Path, kit_root: Path) -> str:
             str(kit_root / "bin" / "uv"),
             "run",
             "--project",
-            "implementations/tooling/python",
+            _TOOLING_PROJECT,
             "--frozen",
             "--no-default-groups",
             "pre-commit",

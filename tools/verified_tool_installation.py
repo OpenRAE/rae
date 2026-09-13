@@ -121,7 +121,7 @@ def _policy_identity(selection: ArtifactSelection) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def installation_tree_path(installation_root: Path, selection: ArtifactSelection) -> Path:
+def installation_tree_path(installation_root: Path, selection: ArtifactSelection) -> Path:  # NOSONAR
     """Return the content-addressed tree path for a validated selection."""
 
     manifests = (*selection.raw_manifest, *selection.installed_manifest)
@@ -163,7 +163,7 @@ def _executable_entry(selection: ArtifactSelection) -> ManifestEntry:
     return next(entry for entry in selection.installed_manifest if entry.executable)
 
 
-def _validate_archive_shape(members: list[tarfile.TarInfo]) -> None:
+def _validate_archive_shape(members: list[tarfile.TarInfo]) -> None:  # NOSONAR -- explicit archive limits fail closed.
     if len(members) > MAX_ARCHIVE_MEMBERS:
         raise RuntimeError("tool-installation: archive-member-limit")
     seen: set[PurePosixPath] = set()
@@ -193,7 +193,7 @@ def _validate_materialized(
 ) -> dict[str, bytes]:
     expected_paths = {entry.path for entry in installed_manifest}
     if set(materialized) != expected_paths or len(expected_paths) != len(installed_manifest):
-        raise RuntimeError("tool-installation: installed-manifest-mismatch")
+        raise RuntimeError("tool-installation: installed-manifest-mismatch")  # NOSONAR -- stable reason code.
     result: dict[str, bytes] = {}
     for entry in installed_manifest:
         payload = materialized[entry.path]
@@ -249,13 +249,13 @@ def _decode_mount_path(value: str) -> str:
     return value.replace("\\040", " ").replace("\\011", "\t").replace("\\012", "\n").replace("\\134", "\\")
 
 
-def _filesystem_type(path: Path) -> str:
+def _filesystem_type(path: Path) -> str:  # NOSONAR -- Linux and Darwin parsers deliberately fail closed.
     """Return a stable local filesystem type without consulting ambient config."""
 
     existing = path
     while not existing.exists():
         if existing == existing.parent:
-            raise RuntimeError("tool-installation: unsupported-filesystem")
+            raise RuntimeError("tool-installation: unsupported-filesystem")  # NOSONAR -- stable reason code.
         existing = existing.parent
     canonical = existing.resolve()
     if platform.system() == "Linux":
@@ -308,7 +308,7 @@ def _filesystem_type(path: Path) -> str:
                 candidates.append((len(mount.parts), filesystem_type))
             if not candidates:
                 raise ValueError("mount response has no matching filesystem")
-        except (OSError, UnicodeError, ValueError, subprocess.SubprocessError) as exc:
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
             raise RuntimeError("tool-installation: unsupported-filesystem") from exc
         return max(candidates)[1].lower()
     raise RuntimeError("tool-installation: unsupported-filesystem")
@@ -345,7 +345,7 @@ def _cross_principal_writable(state: os.stat_result) -> bool:
 
 def _assert_private_directory_state(state: os.stat_result, *, exact_mode: int | None = None) -> None:
     if not stat.S_ISDIR(state.st_mode) or state.st_uid != os.geteuid() or _cross_principal_writable(state):
-        raise RuntimeError("tool-installation: unsafe-private-root")
+        raise RuntimeError("tool-installation: unsafe-private-root")  # NOSONAR -- stable reason code.
     if exact_mode is not None and state.st_mode & 0o777 != exact_mode:
         raise RuntimeError("tool-installation: unsafe-private-root")
 
@@ -381,7 +381,7 @@ def _directory_open_flags() -> int:
 
 
 @contextmanager
-def _private_root_guard(repo_root: Path, path: Path) -> Iterator[None]:
+def _private_root_guard(repo_root: Path, path: Path) -> Iterator[None]:  # NOSONAR
     """Hold no-follow descriptors for the trusted namespace during installation."""
 
     anchor = _assert_trusted_anchor_chain(repo_root)
@@ -462,7 +462,7 @@ def _fsync_directory(path: Path) -> None:
         os.close(descriptor)
 
 
-def _read_verified_file(
+def _read_verified_file(  # NOSONAR -- paired before/open/after checks resist substitution races.
     path: Path,
     entry: ManifestEntry,
     *,
@@ -488,7 +488,7 @@ def _read_verified_file(
         or before.st_nlink != 1
         or before.st_size != entry.size
     ):
-        raise RuntimeError("tool-installation: file-integrity-failure")
+        raise RuntimeError("tool-installation: file-integrity-failure")  # NOSONAR -- stable reason code.
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
     flags |= getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOINHERIT", 0)
     descriptor = os.open(path, flags)
@@ -522,7 +522,7 @@ def _expected_directories(entries: tuple[ManifestEntry, ...]) -> set[str]:
     return result
 
 
-def _validate_tree(
+def _validate_tree(  # NOSONAR -- the full tree shape and every leaf are checked explicitly.
     tree: Path,
     entries: tuple[ManifestEntry, ...],
     *,
@@ -530,7 +530,7 @@ def _validate_tree(
 ) -> dict[str, bytes]:
     state = tree.lstat()
     if not stat.S_ISDIR(state.st_mode) or tree.is_symlink():
-        raise RuntimeError("tool-installation: tree-integrity-failure")
+        raise RuntimeError("tool-installation: tree-integrity-failure")  # NOSONAR -- stable reason code.
     permissions = state.st_mode & 0o777
     valid_owners = {0, os.geteuid()} if mode == "seed" else {os.geteuid()}
     if state.st_uid not in valid_owners or (mode == "seed" and permissions & 0o222):
@@ -565,7 +565,7 @@ def _validate_tree(
     return {entry.path: _read_verified_file(tree / entry.path, entry, mode=mode) for entry in entries}
 
 
-def _make_quarantine_non_executable(path: Path) -> None:
+def _make_quarantine_non_executable(path: Path) -> None:  # NOSONAR -- every file type fails non-executable.
     state = _lstat(path)
     if state is None or path.is_symlink():
         return
@@ -753,7 +753,7 @@ def _assert_immutable_seed_chain(seed_root: Path, seed_tree: Path) -> None:
     try:
         relative = seed_tree.relative_to(seed_root)
     except ValueError as exc:
-        raise RuntimeError("tool-installation: seed-integrity-failure") from exc
+        raise RuntimeError("tool-installation: seed-integrity-failure") from exc  # NOSONAR -- stable reason code.
     current = seed_root
     for part in ("", *relative.parts):
         if part:
@@ -768,7 +768,7 @@ def _assert_immutable_seed_chain(seed_root: Path, seed_tree: Path) -> None:
             raise RuntimeError("tool-installation: seed-integrity-failure")
 
 
-def _ensure_verified_installation(
+def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are explicit security states.
     repo_root: Path,
     selection: ArtifactSelection,
     *,
@@ -798,7 +798,7 @@ def _ensure_verified_installation(
             return _validated_installed_executable(target, selection)
         except (OSError, RuntimeError):
             with _portable_lock(identity_lock):
-                if _tree_present(target):
+                if _tree_present(target):  # NOSONAR -- recheck under the lock closes the publication race.
                     try:
                         return _validated_installed_executable(target, selection)
                     except (OSError, RuntimeError):

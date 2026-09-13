@@ -118,9 +118,10 @@ def test_archive_admission_rejects_traversal_before_selected_member_read(
 ) -> None:
     member.size = 0
     selection = _selection()
+    archive = _tar([(member, b"")])
 
     with pytest.raises(RuntimeError, match="unsafe-archive-member"):
-        installation.materialize_tar_gz(_tar([(member, b"")]), selection)
+        installation.materialize_tar_gz(archive, selection)
 
 
 @pytest.mark.parametrize("member_type", [tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.CHRTYPE, tarfile.FIFOTYPE])
@@ -129,9 +130,10 @@ def test_archive_admission_rejects_links_and_special_members(member_type: bytes)
     member.type = member_type
     member.linkname = "bin/tool"
     selection = _selection()
+    archive = _tar([(member, None)])
 
     with pytest.raises(RuntimeError, match="unsafe-archive-member"):
-        installation.materialize_tar_gz(_tar([(member, None)]), selection)
+        installation.materialize_tar_gz(archive, selection)
 
 
 def test_archive_admission_rejects_duplicate_members() -> None:
@@ -140,12 +142,10 @@ def test_archive_admission_rejects_duplicate_members() -> None:
     duplicate = tarfile.TarInfo("bin/tool")
     duplicate.size = len(b"reviewed tool")
     selection = _selection()
+    archive = _tar([(first, b"reviewed tool"), (duplicate, b"reviewed tool")])
 
     with pytest.raises(RuntimeError, match="duplicate-archive-member"):
-        installation.materialize_tar_gz(
-            _tar([(first, b"reviewed tool"), (duplicate, b"reviewed tool")]),
-            selection,
-        )
+        installation.materialize_tar_gz(archive, selection)
 
 
 def test_archive_admission_rejects_parent_after_descendant() -> None:
@@ -153,12 +153,11 @@ def test_archive_admission_rejects_parent_after_descendant() -> None:
     descendant.size = len(b"reviewed tool")
     conflicting_parent = tarfile.TarInfo("bin")
     conflicting_parent.size = len(b"xx")
+    selection = _selection()
+    archive = _tar([(descendant, b"reviewed tool"), (conflicting_parent, b"xx")])
 
     with pytest.raises(RuntimeError, match="conflicting-archive-member"):
-        installation.materialize_tar_gz(
-            _tar([(descendant, b"reviewed tool"), (conflicting_parent, b"xx")]),
-            _selection(),
-        )
+        installation.materialize_tar_gz(archive, selection)
 
 
 def test_archive_admission_rejects_declared_expansion_bomb(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -167,10 +166,11 @@ def test_archive_admission_rejects_declared_expansion_bomb(monkeypatch: pytest.M
     extra = tarfile.TarInfo("large")
     extra.size = 2
     selection = _selection()
+    archive = _tar([(selected, b"reviewed tool"), (extra, b"xx")])
     monkeypatch.setattr(installation, "MAX_ARCHIVE_EXPANDED_BYTES", 1)
 
     with pytest.raises(RuntimeError, match="archive-size-limit"):
-        installation.materialize_tar_gz(_tar([(selected, b"reviewed tool"), (extra, b"xx")]), selection)
+        installation.materialize_tar_gz(archive, selection)
 
 
 def test_publish_is_atomic_private_and_warm_hits_are_revalidated(
@@ -248,9 +248,10 @@ def test_cross_user_writable_installation_root_is_rejected(
     install_root = installation.default_installation_root(tmp_path)
     install_root.mkdir(parents=True, mode=0o777)
     install_root.chmod(0o777)
+    selection = _selection()
 
     with pytest.raises(RuntimeError, match="unsafe-private-root"):
-        _direct_install(monkeypatch, tmp_path, _selection(), b"reviewed tool")
+        _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
 
 
 def test_cross_user_writable_repository_ancestor_is_rejected(
@@ -262,9 +263,10 @@ def test_cross_user_writable_repository_ancestor_is_rejected(
     repo_root.mkdir(parents=True, mode=0o700)
     repo_root.chmod(0o700)
     outer.chmod(0o777)
+    selection = _selection()
 
     with pytest.raises(RuntimeError, match="unsafe-private-root"):
-        _direct_install(monkeypatch, repo_root, _selection(), b"reviewed tool")
+        _direct_install(monkeypatch, repo_root, selection, b"reviewed tool")
 
 
 def test_group_writable_repository_root_rejects_another_principal(
@@ -284,9 +286,10 @@ def test_group_writable_repository_root_rejects_another_principal(
         "getpwall",
         lambda: [SimpleNamespace(pw_name="fixture_owner", pw_gid=group_id)],
     )
+    selection = _selection()
 
     with pytest.raises(RuntimeError, match="unsafe-private-root"):
-        _direct_install(monkeypatch, tmp_path, _selection(), b"reviewed tool")
+        _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
 
 
 def test_group_writable_repository_root_allows_the_current_principal_only(
@@ -339,9 +342,10 @@ def test_group_membership_lookup_failure_rejects_group_writable_root(
         monkeypatch.setattr(installation.grp, "getgrgid", fail_lookup)
     else:
         monkeypatch.setattr(installation.pwd, "getpwall", fail_lookup)
+    selection = _selection()
 
     with pytest.raises(RuntimeError, match="unsafe-private-root"):
-        _direct_install(monkeypatch, tmp_path, _selection(), b"reviewed tool")
+        _direct_install(monkeypatch, tmp_path, selection, b"reviewed tool")
 
 
 def test_tampered_cache_is_quarantined_and_terminal_without_acquisition(
