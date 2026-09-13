@@ -17,7 +17,11 @@ _GUEST_CONFIGURATION_KINDS = frozenset(
         "process-resource-limits",
         "published-ports",
         "service-listeners",
-        *(profile.concern_kind for profile in RUNTIME_CONCERN_PROFILES),
+        *(
+            profile.concern_kind
+            for profile in RUNTIME_CONCERN_PROFILES
+            if profile.concern_kind not in {"runtime-software-components", "runtime-repository-state"}
+        ),
     }
 )
 

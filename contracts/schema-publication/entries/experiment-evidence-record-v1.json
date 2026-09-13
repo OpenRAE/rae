@@ -2,9 +2,9 @@
   "contract_id": "experiment-evidence-record-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json",
   "stability": "draft",
-  "content_hash": "582402d01e9d6af721d8df20cedfd40096df6e580bd4231e01b2544d37113196",
+  "content_hash": "b22bd7b5db37e8040c20245b89f916115afef4ccdbdc5bf27b387769aac554b5",
   "last_change": {
-    "summary": "Carry non-authoritative partial typed descriptions, coverage and provenance in the existing lifecycle envelope (#1209).",
-    "content_hash": "582402d01e9d6af721d8df20cedfd40096df6e580bd4231e01b2544d37113196"
+    "content_hash": "b22bd7b5db37e8040c20245b89f916115afef4ccdbdc5bf27b387769aac554b5",
+    "summary": "Reconcile issue #1209 partial realization descriptions with issue #1205 named version predicates in their shared recursive domain contract."
   }
 }

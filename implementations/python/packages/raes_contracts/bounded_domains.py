@@ -14,6 +14,7 @@ from typing import Annotated, Literal
 from pydantic import Field, model_validator
 
 from raes_contracts._base import ContractModel, NonEmptyString
+from raes_contracts.software_versions import VersionDomain, version_membership
 
 __all__ = [
     "BooleanDomain",
@@ -143,6 +144,7 @@ NullableDomainDescriptor = Annotated[
     | EnumDomain
     | BooleanDomain
     | NullDomain
+    | VersionDomain
     | NumericIntervalDomain
     | GovernedReferenceDomain
     | RecordDomain,
@@ -181,6 +183,7 @@ _SCALAR_MEMBER_CHECKS: dict[type, Callable[..., bool]] = {
     ),
     NullDomain: lambda value, _descriptor: value is None,
     NumericIntervalDomain: _interval_member,
+    VersionDomain: lambda value, descriptor: version_membership(value, descriptor) == "conformant",
     GovernedReferenceDomain: lambda value, descriptor: isinstance(value, str) and value in descriptor.allowed_refs,
 }
 

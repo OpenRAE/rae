@@ -1,10 +1,10 @@
 {
+  "content_hash": "9e4af05fb7184b42a8f848f68a778c34e5abc3c1a0884c683d17991ae859d0e9",
   "contract_id": "instantiated-scenario-snapshot-v1",
-  "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
-  "stability": "draft",
-  "content_hash": "ac6e5284e94023a1dbc2769ba4fb8fee4581d8f37fd6397455dfa78c2244a0d6",
   "last_change": {
-    "summary": "Preserve governed private runtime identities and close finite operation string branches for issue #1206.",
-    "content_hash": "ac6e5284e94023a1dbc2769ba4fb8fee4581d8f37fd6397455dfa78c2244a0d6"
-  }
+    "content_hash": "9e4af05fb7184b42a8f848f68a778c34e5abc3c1a0884c683d17991ae859d0e9",
+    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206."
+  },
+  "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
+  "stability": "draft"
 }
