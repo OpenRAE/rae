@@ -40,15 +40,16 @@ def profile_resources(
     except (AttributeError, TypeError, ValueError):
         return resources, [diagnostic], authority
     if authority is None:
-        return resources, [], None
-    if (
+        diagnostics = []
+    elif (
         not {PLAN_PROFILE_CONTRACT, BACKEND_PREPARATION_CONTRACT} <= manifest.supported_contract_versions
         or profile_authority_violation(authority, context)
         or profile_context_digest(context) != manifest.domain_profile_context_digest
     ):
-        return resources, [diagnostic], authority
-    retained, diagnostics = _retained_profile_resources(authority, resources, snapshot, context, diagnostic)
-    return retained, diagnostics, authority
+        diagnostics = [diagnostic]
+    else:
+        resources, diagnostics = _retained_profile_resources(authority, resources, snapshot, context, diagnostic)
+    return resources, diagnostics, authority
 
 
 def _retained_profile_resources(

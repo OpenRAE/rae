@@ -373,3 +373,17 @@ now-corrected release-10 baseline pointer. Both tests now explicitly select the
 frozen archive from its pin record, prove that original selection succeeds, and
 then reject the forged manifest or altered pin record. This preserves their
 intended tampering boundary without changing production validation or history.
+
+## Sonar maintenance repair
+
+The first hosted analysis reported 40 maintainability findings and no security
+hotspots. The repair separates source/profile recognition, owner lookup, mailbox
+posture, service capability admission, generated-output projection, and archive
+loading into bounded helpers. It reduces unnecessary early returns, supplies
+composition mapping type arguments, and isolates exception-test subjects.
+Existing authority, credential, readback, cleanup, and archive-tampering
+regressions remain binding; 655 focused tests and the static lane pass.
+
+Formal release 15.0.0 and coverage release 13.0.0 record fresh replay for this
+refactor without modifying earlier captures. Formal observations have zero
+deviations from release 14.0.0.

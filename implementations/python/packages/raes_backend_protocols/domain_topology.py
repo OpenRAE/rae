@@ -202,20 +202,25 @@ def _collect_bindings(
             )
         else:
             bindings[address] = binding
-            profile = (
-                binding.profile.coordinate
-                if isinstance(binding.profile, DomainProfileBindingModel)
-                else binding.profile
-            )
-            if supported_domain_profiles is not None and profile not in supported_domain_profiles:
-                diagnostics.append(
-                    _diagnostic(
-                        "provisioner.unsupported-domain-profile",
-                        address,
-                        "Provisioner does not support the selected identity-domain profile.",
-                    )
-                )
+            diagnostic = _profile_support_diagnostic(binding, address, supported_domain_profiles)
+            if diagnostic is not None:
+                diagnostics.append(diagnostic)
     return bindings, diagnostics
+
+
+def _profile_support_diagnostic(
+    binding: DomainTopologyBinding,
+    address: str,
+    supported: frozenset[str | DomainProfileCoordinateModel] | None,
+) -> Diagnostic | None:
+    profile = binding.profile.coordinate if isinstance(binding.profile, DomainProfileBindingModel) else binding.profile
+    if supported is not None and profile not in supported:
+        return _diagnostic(
+            "provisioner.unsupported-domain-profile",
+            address,
+            "Provisioner does not support the selected identity-domain profile.",
+        )
+    return None
 
 
 def _domain_definition_diagnostics(bindings: Mapping[str, DomainTopologyBinding]) -> list[Diagnostic]:

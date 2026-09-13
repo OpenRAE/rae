@@ -152,9 +152,11 @@ class Content(SDLModel):
         if not isinstance(value, dict):
             return value
         binding = value.get("service_materialization")
-        if not isinstance(binding, dict):
-            return value
-        if profile_selection_binding(binding) is not None or "interface_profile" in binding:
+        if (
+            not isinstance(binding, dict)
+            or profile_selection_binding(binding) is not None
+            or "interface_profile" in binding
+        ):
             return value
         normalized = dict(value)
         normalized["service_materialization"] = {

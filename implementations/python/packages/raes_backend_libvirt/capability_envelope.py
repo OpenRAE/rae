@@ -148,6 +148,10 @@ def _service_materialization_profile(payload: Mapping[str, object]) -> str | Dom
         return "invalid-profile"
     if selected is not None:
         return selected.coordinate
+    return _legacy_service_materialization_profile(payload)
+
+
+def _legacy_service_materialization_profile(payload: Mapping[str, object]) -> str:
     binding = payload.get("service_materialization")
     if not isinstance(binding, Mapping):
         return ""

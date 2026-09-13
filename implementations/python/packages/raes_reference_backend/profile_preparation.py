@@ -134,15 +134,17 @@ def _reference_semantics_valid(semantics: object, binding: DomainProfileBindingM
         and resource_type == "account-placement"
     ):
         AccountMailboxSelection.model_validate(binding.value)
-        return not binding.children
-    if (
+        valid = not binding.children
+    elif (
         semantics == DIGEST_ARTIFACT_SEMANTICS
         and binding.owner.context == "artifact-generation"
         and resource_type == "generated-artifact"
     ):
         DigestArtifactParameters.model_validate(binding.value)
-        return not binding.children
-    return False
+        valid = not binding.children
+    else:
+        valid = False
+    return valid
 
 
 def prepare_reference_profiles(

@@ -86,9 +86,7 @@ def _compile_service_materialization(
     | None
 ):
     binding = content.service_materialization
-    if binding is None:
-        return None, []
-    if isinstance(binding, DomainProfileBindingModel):
+    if binding is None or isinstance(binding, DomainProfileBindingModel):
         # Preserve the authored binding in spec for exact profile admission;
         # only the two built-in contracts use the legacy compiled carrier.
         return None, []

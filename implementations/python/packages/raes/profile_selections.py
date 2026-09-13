@@ -26,21 +26,23 @@ def profile_owned_mailbox_inventory(scenario: object, node_name: str) -> bool:
     runtime = scenario.nodes[node_name].runtime
     if runtime is None or not runtime.mail_services:
         return False
-    for service in runtime.mail_services:
-        other = service.model_dump(exclude={"mail_service_id", "mailboxes", "description"})
-        if any(other.values()) or not service.mailboxes:
-            return False
-        for mailbox in service.mailboxes:
-            account = scenario.accounts.get(mailbox.account_ref.removeprefix("accounts."))
-            binding = getattr(account, "materialization_profile", None)
-            reference = (
-                f"nodes.{node_name}.runtime.mail_services.{service.mail_service_id}.mailboxes.{mailbox.mailbox_id}"
-            )
-            if (
-                not isinstance(binding, DomainProfileBindingModel)
-                or binding.owner.context != "account-materialization"
-                or not isinstance(binding.value, dict)
-                or binding.value.get("mailbox_ref") != reference
-            ):
-                return False
-    return True
+    return all(_profile_owned_service(scenario, node_name, service) for service in runtime.mail_services)
+
+
+def _profile_owned_service(scenario: object, node_name: str, service: object) -> bool:
+    other = service.model_dump(exclude={"mail_service_id", "mailboxes", "description"})
+    if any(other.values()) or not service.mailboxes:
+        return False
+    return all(_profile_owned_mailbox(scenario, node_name, service.mail_service_id, row) for row in service.mailboxes)
+
+
+def _profile_owned_mailbox(scenario: object, node_name: str, service_id: str, mailbox: object) -> bool:
+    account = scenario.accounts.get(mailbox.account_ref.removeprefix("accounts."))
+    binding = getattr(account, "materialization_profile", None)
+    reference = f"nodes.{node_name}.runtime.mail_services.{service_id}.mailboxes.{mailbox.mailbox_id}"
+    return (
+        isinstance(binding, DomainProfileBindingModel)
+        and binding.owner.context == "account-materialization"
+        and isinstance(binding.value, dict)
+        and binding.value.get("mailbox_ref") == reference
+    )

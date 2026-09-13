@@ -23,12 +23,14 @@ def test_private_access_preserves_typing_and_cannot_expand_account_authority():
     assert participant.interactive_access[0].channel == binding
     assert participant.interactive_access[0].account_address == "provision.account.operator"
     agent["starting_accounts"] = []
+    invalid_source = yaml.safe_dump(source)
     with pytest.raises(SDLValidationError, match="not in starting_accounts"):
-        parse_sdl(yaml.safe_dump(source))
+        parse_sdl(invalid_source)
     agent["starting_accounts"] = ["operator"]
     agent["interactive_access"]["duplicate"] = dict(agent["interactive_access"]["console"])
+    duplicate_source = yaml.safe_dump(source)
     with pytest.raises(SDLValidationError, match="duplicates interactive_access"):
-        parse_sdl(yaml.safe_dump(source))
+        parse_sdl(duplicate_source)
 
 
 def test_mailbox_public_plan_api_and_durable_snapshot_keep_typed_selection_without_material():
@@ -136,8 +138,9 @@ def test_profile_capabilities_round_trip_exact_coordinates_alongside_builtins():
     )
     model = ProvisionerCapabilitiesModel.model_validate(provisioner_capability_payload(capabilities))
     assert provisioner_from_model(model) == capabilities
+    invalid_profiles = frozenset({123})
     with pytest.raises(ValueError, match="pinned coordinates"):
-        replace(base, supported_domain_profiles=frozenset({123}))
+        replace(base, supported_domain_profiles=invalid_profiles)
 
 
 def test_private_domain_schema_keeps_active_directory_names_conditional():

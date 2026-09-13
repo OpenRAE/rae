@@ -30,40 +30,43 @@ _ARCHIVE_PINS_SHA256 = "bcb61fa1f0bce5411eb4d3f9583b51df47798ac955d85b6dd3eadf50
 _DRIFT_COMPARISON_KEYS = ("actual_outcome", "diagnostic_kind", "result_digest")
 
 
+def _pinned_document(repo_root: Path, relative: str, digest: str) -> Mapping[str, object] | None:
+    path = safe_repo_path(repo_root, relative)
+    if path is None or not path.is_file() or path.stat().st_size > _MAX_FILE_BYTES or _sha256_file(path) != digest:
+        return None
+    try:
+        return load_bounded_json_object(repo_root, relative, max_bytes=_MAX_FILE_BYTES)
+    except (OSError, ValueError):
+        return None
+
+
+def _archive_allowed(repo_root: Path, relative: str, digest: str) -> bool:
+    pins = _pinned_document(repo_root, _ARCHIVE_PINS_PATH, _ARCHIVE_PINS_SHA256)
+    return pins is not None and any(
+        (row[f"{kind}_path"], row[f"{kind}_sha256"]) == (relative, digest)
+        for row in pins["releases"]
+        for kind in ("release", "snapshot")
+    )
+
+
 def _baseline_document(repo_root: Path, path_value: object, digest: object) -> Mapping[str, object] | None:
     """Read the exact captured bytes, including a preserved historical copy."""
-    if not isinstance(path_value, str) or not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
-        return None
-    if safe_repo_path(repo_root, path_value) is None:
+    if (
+        not isinstance(path_value, str)
+        or not isinstance(digest, str)
+        or not _SHA256_RE.fullmatch(digest)
+        or safe_repo_path(repo_root, path_value) is None
+    ):
         return None
     candidates = [path_value]
-    pins_path = safe_repo_path(repo_root, _ARCHIVE_PINS_PATH)
-    if (
-        pins_path is not None
-        and pins_path.is_file()
-        and pins_path.stat().st_size <= _MAX_FILE_BYTES
-        and _sha256_file(pins_path) == _ARCHIVE_PINS_SHA256
-    ):
-        pins = load_bounded_json_object(repo_root, _ARCHIVE_PINS_PATH, max_bytes=_MAX_FILE_BYTES)
-        if any(
-            (row[f"{kind}_path"], row[f"{kind}_sha256"]) == (path_value, digest)
-            for row in pins["releases"]
-            for kind in ("release", "snapshot")
-        ):
-            candidates.append(f"docs/research/formal-semantic-validation/historical-artifacts/{digest}.json")
+    if _archive_allowed(repo_root, path_value, digest):
+        candidates.append(f"docs/research/formal-semantic-validation/historical-artifacts/{digest}.json")
+    document = None
     for candidate in candidates:
-        path = safe_repo_path(repo_root, candidate)
-        if (
-            path is not None
-            and path.is_file()
-            and path.stat().st_size <= _MAX_FILE_BYTES
-            and _sha256_file(path) == digest
-        ):
-            try:
-                return load_bounded_json_object(repo_root, candidate, max_bytes=_MAX_FILE_BYTES)
-            except (OSError, ValueError):
-                return None
-    return None
+        document = _pinned_document(repo_root, candidate, digest)
+        if document is not None:
+            break
+    return document
 
 
 def _validated_baseline_pin(
@@ -140,11 +143,37 @@ def _selected_baseline_manifest(
         != (
             "docs/research/formal-semantic-validation/protocol-v2.json"
             if baseline.get("release_revision")
-            in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0", "11.0.0", "12.0.0", "13.0.0"}
+            in {
+                "3.0.0",
+                "4.0.0",
+                "5.0.0",
+                "6.0.0",
+                "7.0.0",
+                "8.0.0",
+                "9.0.0",
+                "10.0.0",
+                "11.0.0",
+                "12.0.0",
+                "13.0.0",
+                "14.0.0",
+            }
             else "docs/research/formal-semantic-validation/protocol-v1.json",
             "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
             if baseline.get("release_revision")
-            in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0", "10.0.0", "11.0.0", "12.0.0", "13.0.0"}
+            in {
+                "3.0.0",
+                "4.0.0",
+                "5.0.0",
+                "6.0.0",
+                "7.0.0",
+                "8.0.0",
+                "9.0.0",
+                "10.0.0",
+                "11.0.0",
+                "12.0.0",
+                "13.0.0",
+                "14.0.0",
+            }
             else "docs/research/formal-semantic-validation/corpus/manifest-v1.json",
         )
     ):

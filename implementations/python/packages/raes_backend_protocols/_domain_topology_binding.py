@@ -15,9 +15,7 @@ def domain_topology_profile(payload: Mapping[str, object]) -> str | DomainProfil
     """Return the concrete domain profile carried by a resource payload."""
 
     binding = payload.get("domain_topology")
-    if not isinstance(binding, Mapping):
-        return ""
-    profile = binding.get("profile")
+    profile = binding.get("profile") if isinstance(binding, Mapping) else None
     if isinstance(profile, (Mapping, DomainProfileBindingModel)):
         try:
             return DomainProfileBindingModel.model_validate(profile).coordinate

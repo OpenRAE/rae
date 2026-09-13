@@ -131,7 +131,8 @@ def test_selected_mailbox_does_not_claim_unrelated_inventory(ordinary_location):
         for row in execution.model.realization_authority
         if row.address == f"provision.node.{ordinary_node}" and row.requirement_kind == "runtime-mail-services"
     ]
-    assert ordinary_authority and all(row.verification_scope is not None for row in ordinary_authority)
+    assert ordinary_authority
+    assert all(row.verification_scope is not None for row in ordinary_authority)
 
 
 def test_unselected_mail_inventory_creates_no_materialization_request():

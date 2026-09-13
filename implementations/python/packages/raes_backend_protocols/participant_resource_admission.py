@@ -225,13 +225,13 @@ def _assess_demand(
     key = _pool_key(pool)
     if key in policy_pool_keys:
         state.gaps.append(f"participant policy {policy.address} aliases canonical resource pool {pool.pool_ref}")
-        return
-    policy_pool_keys.add(key)
-    state.pools_by_key[key] = pool
-    state.aggregate_limits[key] = state.aggregate_limits.get(key, 0) + demand.limit
-    if policy.resource_fairness.protected:
-        state.aggregate_protected_limits[key] = state.aggregate_protected_limits.get(key, 0) + demand.limit
-    state.gaps.extend(_pool_policy_gaps(demand, policy.resource_fairness, pool))
+    else:
+        policy_pool_keys.add(key)
+        state.pools_by_key[key] = pool
+        state.aggregate_limits[key] = state.aggregate_limits.get(key, 0) + demand.limit
+        if policy.resource_fairness.protected:
+            state.aggregate_protected_limits[key] = state.aggregate_protected_limits.get(key, 0) + demand.limit
+        state.gaps.extend(_pool_policy_gaps(demand, policy.resource_fairness, pool))
 
 
 def _assess_policy(

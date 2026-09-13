@@ -40,6 +40,45 @@ def profile_selection_binding(value: object) -> DomainProfileBindingModel | None
     return DomainProfileBindingModel.model_validate(value)
 
 
+def _authored_domain_profile(resource: object, by_address: Mapping[str, object]) -> DomainProfileBindingModel | None:
+    payload = resource.payload
+    topology = payload.get("domain_topology") if isinstance(payload, Mapping) else None
+    profile = topology.get("profile") if isinstance(topology, Mapping) else None
+    if not isinstance(profile, (Mapping, DomainProfileBindingModel)):
+        return None
+    binding = DomainProfileBindingModel.model_validate(profile)
+    owner_resource = by_address.get(profile_resource_address(binding))
+    if owner_resource is None or owner_resource.resource_type != "domain-controller-placement":
+        raise ValueError("Identity profile requires its existing controller-placement owner")
+    if owner_resource.payload.get("domain_topology", {}).get("domain_id") != topology.get("domain_id"):
+        raise ValueError("Identity profile cannot cross domain authority")
+    return binding
+
+
+def _authored_placement_profile(resource: object) -> DomainProfileBindingModel | None:
+    selection = {
+        "account-placement": ("materialization_profile", "account-materialization"),
+        "generated-artifact": ("generator", "artifact-generation"),
+        "content-placement": ("service_materialization", "service-materialization"),
+    }.get(resource.resource_type)
+    if selection is None:
+        return None
+    field_name, expected_context = selection
+    payload = resource.payload
+    spec = payload.get("spec") if isinstance(payload, Mapping) else None
+    raw = spec.get(field_name) if isinstance(spec, Mapping) else None
+    if raw is None or (field_name == "generator" and isinstance(raw, str)):
+        return None
+    binding = (
+        profile_selection_binding(raw)
+        if field_name == "service_materialization"
+        else DomainProfileBindingModel.model_validate(raw)
+    )
+    if binding is not None:
+        _require_selection_owner(binding, resource.address, expected_context)
+    return binding
+
+
 def authored_resource_profiles(resources: Iterable[object]) -> tuple[DomainProfileBindingModel, ...]:
     """Read only explicit typed selections at their closed core owner paths."""
 
@@ -48,39 +87,12 @@ def authored_resource_profiles(resources: Iterable[object]) -> tuple[DomainProfi
     by_address = {resource.address: resource for resource in resources}
     domains = {}
     for resource in resources:
-        payload = resource.payload
-        topology = payload.get("domain_topology") if isinstance(payload, Mapping) else None
-        profile = topology.get("profile") if isinstance(topology, Mapping) else None
-        if isinstance(profile, (Mapping, DomainProfileBindingModel)):
-            domain_binding = DomainProfileBindingModel.model_validate(profile)
-            owner_resource = by_address.get(profile_resource_address(domain_binding))
-            if owner_resource is None or owner_resource.resource_type != "domain-controller-placement":
-                raise ValueError("Identity profile requires its existing controller-placement owner")
-            if owner_resource.payload.get("domain_topology", {}).get("domain_id") != topology.get("domain_id"):
-                raise ValueError("Identity profile cannot cross domain authority")
-            domains[profile_resource_address(domain_binding)] = domain_binding
-        selection = {
-            "account-placement": ("materialization_profile", "account-materialization"),
-            "generated-artifact": ("generator", "artifact-generation"),
-            "content-placement": ("service_materialization", "service-materialization"),
-        }.get(resource.resource_type)
-        if selection is None:
-            continue
-        field_name, expected_context = selection
-        spec = payload.get("spec") if isinstance(payload, Mapping) else None
-        raw = spec.get(field_name) if isinstance(spec, Mapping) else None
-        if field_name == "generator" and isinstance(raw, str):
-            continue
-        if raw is None:
-            continue
-        if field_name == "service_materialization":
-            binding = profile_selection_binding(raw)
-            if binding is None:
-                continue
-        else:
-            binding = DomainProfileBindingModel.model_validate(raw)
-        _require_selection_owner(binding, resource.address, expected_context)
-        bindings.append(binding)
+        domain = _authored_domain_profile(resource, by_address)
+        if domain is not None:
+            domains[profile_resource_address(domain)] = domain
+        binding = _authored_placement_profile(resource)
+        if binding is not None:
+            bindings.append(binding)
     for address, binding in domains.items():
         _require_selection_owner(binding, address, "identity-domain")
         bindings.append(binding)

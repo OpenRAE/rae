@@ -278,15 +278,17 @@ def _unprepared_execution_refusal(plan: ProvisioningPlan) -> Diagnostic | None:
     from raes_contracts.profile_selections import authored_resource_profiles
 
     try:
-        if authored_resource_profiles(op for op in plan.operations if op.action is not ChangeAction.DELETE):
-            return _preparation_failure("Authored profile execution requires negotiated preparation.")
+        authored = authored_resource_profiles(op for op in plan.operations if op.action is not ChangeAction.DELETE)
     except (AttributeError, TypeError, ValueError):
         return _preparation_failure("Authored profile selection is invalid.")
-    if plan.profile_authority is not None:
-        return _preparation_failure("Profile execution requires negotiated preparation.")
-    if any(getattr(operation, "profile_bindings", ()) for operation in plan.operations):
-        return _preparation_failure("Unowned profile bindings are not execution authority.")
-    return None
+    message = None
+    if authored:
+        message = "Authored profile execution requires negotiated preparation."
+    elif plan.profile_authority is not None:
+        message = "Profile execution requires negotiated preparation."
+    elif any(getattr(operation, "profile_bindings", ()) for operation in plan.operations):
+        message = "Unowned profile bindings are not execution authority."
+    return _preparation_failure(message) if message is not None else None
 
 
 def prepare_backend_invocation(

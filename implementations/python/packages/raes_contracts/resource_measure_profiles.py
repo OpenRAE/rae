@@ -22,7 +22,9 @@ RESOURCE_MEASURE_SEMANTICS = DomainProfileSemanticContractModel(
         {
             "contract": "participant-resource-measure/v1",
             "value": "unit, existing accounting mode, exact meter and existing reset mode",
-            "effect": "existing integer budget/pool reservation, measured settlement, generation and evidence enforcement",
+            "effect": (
+                "existing integer budget/pool reservation, measured settlement, generation and evidence enforcement"
+            ),
         }
     ),
 )
@@ -44,10 +46,8 @@ def resource_measure_supported(
 
     if not isinstance(kind, DomainProfileCoordinateModel):
         return True
-    if context is None:
-        return False
-    resolved = resolve_domain_profile_definition(kind, context)
-    if not resolved.resolved or resolved.definition.semantic_contract != RESOURCE_MEASURE_SEMANTICS:
+    resolved = resolve_domain_profile_definition(kind, context) if context is not None else None
+    if resolved is None or not resolved.resolved or resolved.definition.semantic_contract != RESOURCE_MEASURE_SEMANTICS:
         return False
     binding = DomainProfileBindingModel(
         binding_id="measure",

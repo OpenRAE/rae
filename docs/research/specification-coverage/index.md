@@ -70,10 +70,15 @@ this run does not repair them.
   the same classifications and claim limits while preserving prior captures.
 
 - [`execution-snapshot-v12.json`](execution-snapshot-v12.json) and
-  [`analysis-v12.json`](analysis-v12.json) are current release 12.0.0. They bind
+  [`analysis-v12.json`](analysis-v12.json) preserve release 12.0.0. They bind
   the typed selection implementation to fresh source and package digests.
   The retained artifacts execute through their production boundaries; the
   recomputed analysis retains the original classifications and denominator.
+
+- [`execution-snapshot-v13.json`](execution-snapshot-v13.json) and
+  [`analysis-v13.json`](analysis-v13.json) are current release 13.0.0. Fresh
+  replay binds the selection-helper refactor to exact source and package
+  digests, retaining the classifications, denominator, and claim limits.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -83,7 +88,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 12.0.0 and rejects duplicate or unsupported
+Current validation requires release 13.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

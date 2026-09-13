@@ -124,16 +124,7 @@ class ReferenceProvisioner:
         diagnostics.extend(readback_diagnostics)
         diagnostics.extend(self._missing_observation_diagnostics(plan, observations, snapshot))
         success = not any(diag.is_error for diag in diagnostics)
-        if self._mailbox_sink is not None:
-            self._mailbox_sink.remove_deleted(plan)
-            if success:
-                self._mailbox_sink.materialize(account_mailbox_materializations(plan))
-        changed_artifacts = {op.address for op in plan.operations if op.resource_type == "generated-artifact"}
-        self._generated_outputs = {
-            key: value for key, value in self._generated_outputs.items() if key[0] not in changed_artifacts
-        }
-        if success:
-            self._generated_outputs.update(generated_artifact_projections(plan))
+        self._publish_materializations(plan, success=success)
         observation_disclosures = self._bound_observation_disclosures(plan, observations, snapshot) if success else ()
         return ApplyResult(
             success=success,
@@ -150,6 +141,19 @@ class ReferenceProvisioner:
             changed_addresses=changed_addresses,
             operational_realization_observations=observation_disclosures,
         )
+
+    def _publish_materializations(self, plan: ProvisioningPlan, *, success: bool) -> None:
+        """Revoke stale material after driver changes; publish new material only after readback."""
+        if self._mailbox_sink is not None:
+            self._mailbox_sink.remove_deleted(plan)
+            if success:
+                self._mailbox_sink.materialize(account_mailbox_materializations(plan))
+        changed_artifacts = {op.address for op in plan.operations if op.resource_type == "generated-artifact"}
+        self._generated_outputs = {
+            key: value for key, value in self._generated_outputs.items() if key[0] not in changed_artifacts
+        }
+        if success:
+            self._generated_outputs.update(generated_artifact_projections(plan))
 
     def _realization_envelope_mismatch(
         self,

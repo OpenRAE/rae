@@ -109,11 +109,15 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v12.json`](analysis-v12.json) to the inventory lookup and validator
   maintainability refactor. Fresh replay retains the release-12 outcomes and
   result digests, with no new claim class or historical capture rewrite.
-- [`bundles/retest-v13.json`](bundles/retest-v13.json) is current release 14.0.0.
+- [`bundles/retest-v13.json`](bundles/retest-v13.json) preserves release 14.0.0.
   It binds [`execution-snapshot-v13.json`](execution-snapshot-v13.json) and
   [`analysis-v13.json`](analysis-v13.json) to the typed selection implementation.
   Production commands and participant fixtures replay without observation
   drift from release 13.0.0; the preregistered claim limits remain unchanged.
+- [`bundles/retest-v14.json`](bundles/retest-v14.json) is current release 15.0.0.
+  It binds [`execution-snapshot-v14.json`](execution-snapshot-v14.json) and
+  [`analysis-v14.json`](analysis-v14.json) to the selection-helper refactor.
+  Fresh production replay retains the release-14 observations and claim limits.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -158,7 +162,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 14.0.0, rejects unsupported future
+Current validation requires explicit release 15.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

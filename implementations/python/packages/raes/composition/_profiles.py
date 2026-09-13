@@ -1,14 +1,17 @@
 """Owner-aware composition for the existing typed selection hosts."""
 
 from collections.abc import Mapping
+from typing import Any
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.profile_selections import profile_selection_binding
 
 from ._references import _maybe_rename
 
+_RESOURCE_PREFIX = "#/resources/"
 
-def rewrite_profile_selections(payload: dict, symbols: dict) -> None:
+
+def rewrite_profile_selections(payload: dict[str, Any], symbols: dict[str, dict[str, str]]) -> None:
     """Rewrite only declared binding hosts, never discover bindings in private data."""
     for section, field in (
         ("accounts", "materialization_profile"),
@@ -31,7 +34,7 @@ def rewrite_profile_selections(payload: dict, symbols: dict) -> None:
             _rewrite_binding(access.get("channel"), symbols)
 
 
-def _rewrite_binding(binding: object, symbols: dict) -> None:
+def _rewrite_binding(binding: object, symbols: dict[str, dict[str, str]]) -> None:
     if not isinstance(binding, dict) or profile_selection_binding(binding) is None:
         return
     owner = binding["owner"]
@@ -51,33 +54,41 @@ def _rewrite_binding(binding: object, symbols: dict) -> None:
         _rewrite_binding(child, symbols)
 
 
-def _rewrite_owner(address: str, symbols: dict) -> str:
-    if address.startswith("#/resources/"):
-        compiled = address.removeprefix("#/resources/")
-        for kind, section in (
-            ("node", "nodes"),
-            ("account", "accounts"),
-            ("content", "content"),
-            ("generated-artifact", "generated_artifacts"),
-            ("persistent-volume", "persistent_volumes"),
-        ):
-            prefix = f"provision.{kind}."
-            if compiled.startswith(prefix):
-                return "#/resources/" + prefix + _maybe_rename(compiled.removeprefix(prefix), symbols[section])
-        prefix = "provision.domain-controller."
+def _rewrite_controller_owner(compiled: str, symbols: dict[str, dict[str, str]]) -> str:
+    prefix = "provision.domain-controller."
+    if not compiled.startswith(prefix):
+        return compiled
+    suffix = compiled.removeprefix(prefix)
+    matches = [
+        (domain, suffix[len(domain) + 1 :])
+        for domain in symbols["identity_domains"]
+        if suffix.startswith(domain + ".") and suffix[len(domain) + 1 :] in symbols["nodes"]
+    ]
+    if len(matches) > 1:
+        raise ValueError("Ambiguous composed profile owner")
+    if matches:
+        domain, node = matches[0]
+        return prefix + symbols["identity_domains"][domain] + "." + symbols["nodes"][node]
+    return compiled
+
+
+def _rewrite_compiled_owner(compiled: str, symbols: dict[str, dict[str, str]]) -> str:
+    for kind, section in (
+        ("node", "nodes"),
+        ("account", "accounts"),
+        ("content", "content"),
+        ("generated-artifact", "generated_artifacts"),
+        ("persistent-volume", "persistent_volumes"),
+    ):
+        prefix = f"provision.{kind}."
         if compiled.startswith(prefix):
-            suffix = compiled.removeprefix(prefix)
-            matches = [
-                (domain, suffix[len(domain) + 1 :])
-                for domain in symbols["identity_domains"]
-                if suffix.startswith(domain + ".") and suffix[len(domain) + 1 :] in symbols["nodes"]
-            ]
-            if len(matches) > 1:
-                raise ValueError("Ambiguous composed profile owner")
-            if matches:
-                domain, node = matches[0]
-                return "#/resources/" + prefix + symbols["identity_domains"][domain] + "." + symbols["nodes"][node]
-        return address
+            return prefix + _maybe_rename(compiled.removeprefix(prefix), symbols[section])
+    return _rewrite_controller_owner(compiled, symbols)
+
+
+def _rewrite_owner(address: str, symbols: dict[str, dict[str, str]]) -> str:
+    if address.startswith(_RESOURCE_PREFIX):
+        return _RESOURCE_PREFIX + _rewrite_compiled_owner(address.removeprefix(_RESOURCE_PREFIX), symbols)
     parts = address.split("/")
     if len(parts) >= 3:
         section = parts[1].replace("~1", "/").replace("~0", "~")
