@@ -164,9 +164,9 @@
     {
       "path": "docs/decisions/adrs/adr-029-database-logical-state-runtime-surface.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
       "occurrences": 4,
-      "content_sha256": "ad5d54d1f05f94f6a46357b9077a2ca8c06c642d8ee5bf09a68c614c2f558f93"
+      "content_sha256": "d74b730739d5a28bb39943257599183a535cfda3f5167d5918d11a7514e89e9e"
     },
     {
       "path": "docs/decisions/adrs/adr-030-process-scoped-linux-capability-policy.md",
@@ -201,7 +201,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 3,
-      "content_sha256": "f8e0b10c7ac583a40f1db2420fa6bc7553c4aa10a73ba7baf9c59ad74fe14b8e"
+      "content_sha256": "9e0b0e452f1cb8661c0aa09b3c4a9d3ab3d3c61a0bf1d67af8ec74b421715343"
     },
     {
       "path": "docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md",
@@ -276,16 +276,16 @@
     {
       "path": "docs/decisions/adrs/adr-046-app-authorization-runtime-inventory.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
       "occurrences": 1,
-      "content_sha256": "e98452dba70a26fadf21bd8f6cf0d2b5a24829a256a3af80325f114b4cf157a7"
+      "content_sha256": "161877426d4ae9a5911339e8870da2ff9123edff4951012270120eb2edbe917c"
     },
     {
       "path": "docs/decisions/adrs/adr-048-datastore-service-runtime-inventory.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
       "occurrences": 4,
-      "content_sha256": "db8a9edd3dbb9903e5dcc971b8f34a412d4ae4ea243af25371c4fb8c8fed3f8b"
+      "content_sha256": "4837aa0306ad1bed716532e9929bcd20ad4e8597e4fc68feb13d9b78b5091063"
     },
     {
       "path": "docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "498dff1afbc5f2a8b3dcf150367e0fa8d2c225900923eedcd8443c03b8dec14f"
+      "content_sha256": "088f1bdf4a66d475937d2edd3c3d7fd60351a411da32afabba5cfe4ac2420c06"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

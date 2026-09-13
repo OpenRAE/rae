@@ -23,7 +23,6 @@ from raes.runtime_vocabulary import GovernedVocabulary
 from ._base import SDLModel
 from .runtime_values import (
     coerce_string_list,
-    is_variable_ref,
     parse_optional_bool_or_var,
     parse_runtime_enum_or_var,
     require_symbol,
@@ -286,29 +285,7 @@ class RuntimeAppAuthorization(SDLModel):
     @model_validator(mode="after")
     def validate_app_authorization(self) -> "RuntimeAppAuthorization":
         _reject_duplicate_local_ref_ids(self)
-        self._require_grants_for_resource_vocabulary()
         return self
-
-    def _require_grants_for_resource_vocabulary(self) -> None:
-        """An authorization that declares a concrete vocabulary must use it.
-
-        If :attr:`resource_vocabulary` is a concrete (non-``unknown``) enum
-        member, at least one permission grant must carry a matching
-        ``resource_kind``. A declared-but-unused vocabulary is rejected. A
-        ``${var}`` placeholder or the open ``unknown`` sentinel is exempt
-        (nothing concrete is being asserted).
-        """
-        vocab = self.resource_vocabulary
-        if is_variable_ref(vocab):
-            return
-        if vocab is RuntimeAppAuthorizationResourceVocabulary.UNKNOWN:
-            return
-        for grant in self.permission_grants:
-            if grant.resource_kind == vocab:
-                return
-        raise ValueError(
-            "app_authorization declares a resource_vocabulary but no permission_grant has a matching resource_kind"
-        )
 
 
 def _reject_duplicate_values(values: list[object], *, field_name: str, owner: str) -> None:

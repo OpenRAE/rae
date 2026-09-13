@@ -114,7 +114,7 @@
             "implementation": {"const": "cpython"},
             "version": {"enum": ["3.11", "3.12", "3.13", "3.14"]},
             "abi": {"pattern": "^cp3(11|12|13|14)$"},
-            "platform": {"enum": ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "aarch64-apple-darwin"]}
+            "platform": {"enum": ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin"]}
           }
         },
         "project_extras": {"type": "array", "uniqueItems": true, "items": {"enum": ["dev", "docs"]}},
@@ -172,7 +172,9 @@
         "contexts": {"$ref": "#/$defs/contexts"},
         "native_family": {"enum": ["ubuntu-apt", "macos-brew"]},
         "base_image_identity": {"type": "string", "minLength": 1},
+        "base_image_artifact_ref": {"$ref": "#/$defs/identifier"},
         "native_repository_identity": {"type": "string", "minLength": 1},
+        "native_repository_snapshot": {"type": "string", "pattern": "^[0-9]{8}T[0-9]{6}Z$"},
         "trust_root_refs": {"$ref": "#/$defs/strings"},
         "credential_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^credential-ref:[a-z0-9][a-z0-9._/-]*$"}},
         "bootstrap_payload_ids": {"$ref": "#/$defs/strings"},
@@ -181,7 +183,19 @@
         "proof_support": {"enum": ["linux-x86_64-required", "unsupported"]},
         "host_security_control_changes": {"const": "prohibited"},
         "offline_kit": {"$ref": "#/$defs/offlineKit"},
+        "development_package_ids": {"$ref": "#/$defs/strings"},
+        "development_user": {"$ref": "#/$defs/developmentUser"},
         "qualification_record_ids": {"$ref": "#/$defs/strings"}
+      }
+    },
+    "developmentUser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "uid", "gid"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z_][a-z0-9_-]{0,31}$"},
+        "uid": {"type": "integer", "minimum": 1000, "maximum": 60000},
+        "gid": {"type": "integer", "minimum": 1000, "maximum": 60000}
       }
     },
     "capabilityResult": {

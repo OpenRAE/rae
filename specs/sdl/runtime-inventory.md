@@ -90,6 +90,11 @@ authored `accounts`, runtime local identity, application authorization, database
 roles, and participant identities are distinct models and MUST NOT be collapsed
 into one.
 
+Component software requirements, exact-package shorthand, optional typed
+acquisition refinements and the node-local shared `repository_state` surface
+follow [software-requirements.md](software-requirements.md). They do not add
+ref-targetable service families to the table above.
+
 A node's `runtime.environment[]` variable and `runtime.environment_files[]` entry
 may source their value from a **generated-artifact output** instead of a literal,
 using a value-free `value_from: {generated_artifact, output}` reference. This is
@@ -128,16 +133,23 @@ not contradict these.
    `4 GiB`, `512 MB`) is normalised to a canonical byte count on a `_bytes`-style
    field. The normalised count is the value's meaning; the authored spelling is a
    convenience.
-4. **Required-profile guards.** Where a family is a discriminated union (for
-   example, a datastore's data-model spine), the discriminator value **requires**
-   the profile-specific fields for that value. A profile guard is fail-closed: a
-   discriminator that selects a profile without that profile's required fields is
-   an error ([diagnostics.md](diagnostics.md)). A discriminator set to a sentinel
-   (`unknown`/`other`) requires no profile.
-   A product identity alone does not select a required implementation recipe.
-   Unmentioned identity inherits the enclosing realization scope; neither a
-   core nor a private catalog is a compulsory replacement for omitted detail.
-   Further correction of specimen-shaped profile guards is owned by #1207.
+4. **Partial descriptions and selected-operation admission.** Datastore,
+   forwarding-agent, orchestration-authority and application-authorization
+   discriminators describe known facts; they **MUST NOT** impose a universal
+   inventory-completeness threshold. Omitted detail remains unmentioned, an
+   explicit empty collection remains empty under its effective closure, and
+   supplied exact descendants remain binding. Relational engine identity may
+   likewise omit protocol knowledge; an explicitly contradictory known pairing
+   remains invalid. Concrete references, stable identities, typed bounds,
+   incompatible structural combinations and protection rules still apply.
+   A selected operation **MUST** satisfy its actual prerequisites through the
+   [admitted profile host](plan-realization-profiles.md) and
+   [backend preparation](backend-realization-preparation.md), including
+   independent trust, support and execution authorization. A product name,
+   profile-shaped value, socket path, or partial observation supplies none of
+   those authorities. Neither a core nor a private catalog is compulsory merely
+   to describe state. Unmentioned detail follows the enclosing realization
+   scope; the parser does not fabricate a deployment recipe or evidence demand.
 5. **Observed values and redaction.** Runtime inventory records observed posture,
    not live secrets. An explicit `redacted` or `operator_secret` classification
    **MUST** omit the raw value

@@ -56,6 +56,9 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "9.0.0",
         "10.0.0",
         "11.0.0",
+        "12.0.0",
+        "13.0.0",
+        "14.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -63,11 +66,38 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "11.0.0"
+    assert release.manifest["revision"] == "14.0.0"
     assert protocol["revision"] == corpus["revision"] == "2.0.0"
-    assert snapshot["baseline"]["release_revision"] == "10.0.0"
+    assert snapshot["baseline"]["release_revision"] == "13.0.0"
     assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
+
+
+def test_software_refinement_capture_preserves_recorded_digest_deviations() -> None:
+    release = next(
+        item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "11.0.0"
+    )
+    snapshot = release.snapshot
+    assert snapshot["execution_id"] == "issue-1205-execution-v10"
+    assert snapshot["baseline"]["release_revision"] == "10.0.0"
+    assert {item["case_id"] for item in snapshot["deviations"]} == {
+        "compile-repeatability-control",
+        "compile-non-vacuity-control",
+    }
+    assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
+    assert all(
+        item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
+    )
+
+
+def test_partial_description_capture_is_retained_as_history() -> None:
+    release = next(
+        item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "10.0.0"
+    )
+    assert release.snapshot["execution_id"] == "issue-1209-execution-v9"
+    assert release.snapshot["baseline"]["release_revision"] == "9.0.0"
+    assert release.snapshot["deviations"] == []
+    assert validate_release_bundle(REPO_ROOT, release) == []
 
 
 def test_recursive_realization_capture_retains_exact_compiler_deviations() -> None:

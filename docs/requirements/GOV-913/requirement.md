@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-09-12T00:00:00.000000Z
+updated_at: 2026-09-13T00:00:00.000000Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -106,3 +106,19 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CODE_FILE `tools/vale_tool.py` (Lock-selected Vale acquisition and installation)
 - IMPLEMENTS → CODE_FILE `tools/osv_scanner_tool.py` (Lock-selected OSV-Scanner acquisition and installation)
 - TESTS → TEST `implementations/python/tests/test_issue_1137_maintained_client_acquisition.py` (Maintained-client, local-input, integrity, and installer regressions)
+- IMPLEMENTS → GITHUB_ISSUE `1238` (Reproducible development container image)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1238-development-container-preflight.md` (Development-container authority, security, and platform guardrails)
+- IMPLEMENTS → CONFIG `.devcontainer/Dockerfile` (Digest-pinned, snapshot-only, non-root development image definition)
+- IMPLEMENTS → CONFIG `.devcontainer/devcontainer.json` (Ready-on-open dev-container entry point)
+- IMPLEMENTS → CODE_FILE `tools/tooling_artifact_policy_container.py` (Container image and dev-container drift and safety policy)
+- IMPLEMENTS → CODE_FILE `tools/devcontainer_image.py` (Policy-derived development image build plan)
+- IMPLEMENTS → CODE_FILE `tools/devcontainer_setup.py` (One-step verified dev-container setup from the locked installers)
+- IMPLEMENTS → CODE_FILE `tools/tooling_artifact_policy_devcontainer.py` (Closed-shape dev-container entry point policy)
+- IMPLEMENTS → CODE_FILE `tools/bootstrap_profile.py` (Verified locked uv client installation from a payload kit)
+- IMPLEMENTS → CODE_FILE `tools/tooling_policy_gate.py` (OCI image selection by closed installed identity)
+- IMPLEMENTS → CONFIG `implementations/tooling/profiles/development-profiles.json` (x86_64 container host profile, base image, package snapshot, maintainer packages, and development user)
+- IMPLEMENTS → CONFIG `implementations/tooling/artifacts.lock.json` (Digest-pinned development base image)
+- IMPLEMENTS → CONFIG `.github/workflows/bootstrap-qualification.yml` (Clean-image dev-container lifecycle smoke)
+- IMPLEMENTS → CONFIG `tools/policy/requirement_order.yaml` (reusable-asset-integrity phase mapping)
+- IMPLEMENTS → DOCUMENTATION `docs/explain/development-container.md` (Development container start, cache, update, and limitation guide)
+- TESTS → TEST `implementations/python/tests/test_issue_1238_development_container.py` (Container profile join, drift, safety, platform, proof, and launcher regressions)

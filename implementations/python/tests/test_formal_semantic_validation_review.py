@@ -235,6 +235,22 @@ def test_unsupported_case_cannot_acquire_a_fabricated_outcome():
     assert "formal-validation-unsupported-case" in {f.rule_id for f in failures}
 
 
+def _archived_baseline(evidence_root):
+    """Select the frozen archive explicitly, independent of later baseline repairs."""
+    import json
+
+    archive = evidence_root / "historical-artifacts"
+    pin = json.loads((archive / "pins-v1.json").read_text())["releases"][0]
+    manifest = json.loads((archive / (pin["release_sha256"] + ".json")).read_text())
+    snapshot = json.loads((archive / (pin["snapshot_sha256"] + ".json")).read_text())
+    return {
+        "release_path": pin["release_path"],
+        "release_sha256": pin["release_sha256"],
+        "release_revision": manifest["revision"],
+        "execution_id": snapshot["execution_id"],
+    }
+
+
 def test_archive_cannot_substitute_snapshot_pins_for_an_indexed_release(tmp_path):
     import hashlib
     import json
@@ -245,8 +261,8 @@ def test_archive_cannot_substitute_snapshot_pins_for_an_indexed_release(tmp_path
 
     root = REPO_ROOT / "docs/research/formal-semantic-validation"
     copytree(root, tmp_path / root.relative_to(REPO_ROOT))
-    snapshot = json.loads((root / "execution-snapshot-v9.json").read_text())
-    baseline = dict(snapshot["baseline"])
+    baseline = _archived_baseline(tmp_path / root.relative_to(REPO_ROOT))
+    assert _selected_baseline_manifest(tmp_path, baseline, [], MANIFEST_PATH) is not None
     archive = tmp_path / "docs/research/formal-semantic-validation/historical-artifacts"
     original = json.loads((archive / (baseline["release_sha256"] + ".json")).read_text())
     original["snapshot_sha256"] = "a" * 64
@@ -269,7 +285,7 @@ def test_historical_archive_pin_record_cannot_be_rewritten(tmp_path):
     root = REPO_ROOT / "docs/research/formal-semantic-validation"
     copied = tmp_path / root.relative_to(REPO_ROOT)
     copytree(root, copied)
-    baseline = json.loads((copied / "execution-snapshot-v9.json").read_text())["baseline"]
+    baseline = _archived_baseline(copied)
     assert _selected_baseline_manifest(tmp_path, baseline, [], MANIFEST_PATH) is not None
     pins_path = copied / "historical-artifacts/pins-v1.json"
     pins = json.loads(pins_path.read_text())

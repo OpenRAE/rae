@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-13T20:25:58.360421+00:00",
+  "captured_at": "2026-09-13T00:41:55.528647+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -616,42 +616,42 @@
     {
       "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
       "baseline_sha256": "54ba1a60220e27a55da9cd2a407d7d3ab836fa54460d0b0c6cad87c2e744ddbb",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
       "retest_sha256": "7d9c2b8222a71c168b1a644d083e3e165047802ca5b5c75e57aa3d3c9a73a530"
     },
     {
       "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
       "baseline_sha256": "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
       "retest_sha256": "a777f6a7ace95da145f1cce15431b667b47849c32b62aecb96643e2c7b780ed7"
     },
     {
       "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
       "baseline_sha256": "21952a752f4e8581a9fc3b872e4bc308150548170d38bcfc83dbbe35ff5e0b9f",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
       "retest_sha256": "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc"
     },
     {
       "artifact_path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
       "baseline_sha256": "9536d897a09cbc6920e667e4f8f9371e51307aa0b3b5ff3c7de682dd783420ab",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Explicit current-source capture; no historical/current digest equivalence is claimed.",
       "retest_sha256": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299"
     }
   ],
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "5eefef42594ed3f2b3c0099c4058fea97f6fd6e875af94902166be652f7a312e",
+      "content_sha256": "0aac3552065e9e7b1ce2c18f40bc9c03e094bb9c2ff9d9be4cb69b3d3c32ae31",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "c00e33d5aa8771657b3d5b38aafe1ac8e3c718f0a71863837cf10a99dd8bc126",
+      "content_sha256": "08757cad99415ee43f196bb115288ff753500c4b248fdae2174d6258b2d10152",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "c789111998fa1040ad2a505ca20768c626fefb8c87ed51656b33095cf63e0ff5",
+      "content_sha256": "26d984de3f7b05973d2d343ced5fb6c9ac0cc58e49e7f0fcfef0c96d072c54c3",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -661,17 +661,17 @@
     "Repository-owned examples are exact execution artifacts but are not themselves the literature-derived request corpus; the protocol's requests and concepts are.",
     "No live range, participant, simulator federation, or provider provisioning engine was executed.",
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
-    "This current capture re-executes the retained specification-coverage protocol against the recursive realization implementation; it does not add recursive realization or plan-profile support claims to that preregistered protocol."
+    "This capture re-executes the retained protocol against generic software refinements; it adds no software-specific, native backend, or downstream qualification claims to that protocol."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "d36608e89dbaa964ac0b6078fa4ab97e7bbfc0b2",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1208-v9",
+  "raes_revision": "2b9a697b858e8f7a156302bc143d710a9476c736",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1205-v9",
   "snapshot_revision": "9.0.0",
   "source_state": {
-    "base_revision": "d36608e89dbaa964ac0b6078fa4ab97e7bbfc0b2",
+    "base_revision": "2b9a697b858e8f7a156302bc143d710a9476c736",
     "checkout_state": "modified",
-    "implementation_digest": "caa70d71954b1c951192299442fde5a823e7263033f8df1a8cf062d35bdb297e",
-    "profile": "python-reference-source/v1"
+    "implementation_digest": "b671b6ac5c04ab30c93340bf64690a23f5d9af4f48259303c53ff501036f4445",
+    "profile": "python-reference-source/v2"
   }
 }

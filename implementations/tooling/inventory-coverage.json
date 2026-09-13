@@ -124,7 +124,8 @@
     {"inventory_id": "D01", "subjects": ["oci-image"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Runtime"], "consumers": ["sdl-runtime"], "trust_root_refs": ["runtime-domain-authorities"], "availability_class": "L", "retention_class": "supported-input", "disposition": "prohibited", "authority_refs": ["contracts", "implementations/python/packages/raes/module_registry"], "policy_refs": ["oci-input-v1"], "owning_issue": 1205}
   ],
   "acquisition_paths": [
-    {"path": ".github/workflows/bootstrap-qualification.yml", "inventory_id": "I03", "disposition": "governed", "site_count": 1},
+    {"path": ".devcontainer/Dockerfile", "inventory_id": "I10", "disposition": "non-acquisition-execution", "site_count": 1},
+    {"path": ".github/workflows/bootstrap-qualification.yml", "inventory_id": "I03", "disposition": "governed", "site_count": 2},
     {"path": ".github/workflows/release-please.yml", "inventory_id": "I03", "disposition": "governed", "site_count": 1},
     {"path": "implementations/python/packages/raes/module_registry/__init__.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 2},
     {"path": "implementations/python/packages/raes_backend_libvirt/drivers/seed.py", "inventory_id": "I12", "disposition": "legacy-remediation", "site_count": 1},
@@ -139,7 +140,7 @@
     {"path": "tools/check_attack_tactic_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
     {"path": "tools/check_autonomous_behavior_vocabularies.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
     {"path": "tools/check_nist_csf_defensive_vocabulary.py", "inventory_id": "I14", "disposition": "governed", "site_count": 1},
-    {"path": "tools/check_pr_body.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
+    {"path": "tools/pr_body_issue_scope.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
     {"path": "tools/formal_semantic_validation/_production.py", "inventory_id": "D01", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/isabelle_tool.py", "inventory_id": "I09", "disposition": "governed", "site_count": 3},
     {"path": "tools/check_json_artifacts.py", "inventory_id": "I02", "disposition": "governed", "site_count": 1},
@@ -147,6 +148,7 @@
     {"path": "tools/osv_scanner_tool.py", "inventory_id": "I08", "disposition": "governed", "site_count": 1},
     {"path": "tools/parallel_verification.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/bootstrap_profile.py", "inventory_id": "I04", "disposition": "governed", "site_count": 4},
+    {"path": "tools/devcontainer_setup.py", "inventory_id": "I04", "disposition": "governed", "site_count": 1},
     {"path": "tools/maintained_client_acquisition.py", "inventory_id": "I05", "disposition": "governed", "site_count": 2},
     {"path": "tools/policy/common.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/policy/conftest_tool.py", "inventory_id": "I05", "disposition": "governed", "site_count": 2},

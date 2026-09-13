@@ -70,11 +70,11 @@ first verifies that the wheelhouse contains exactly the named regular files at
 the recorded sizes and SHA-256 digests.
 
 The supported project closure tuples are Linux x86_64 on CPython 3.11–3.14,
-Linux arm64 on CPython 3.14, and macOS arm64 on CPython 3.14. macOS x86_64 has a
-tool-and-build closure, including the reviewed universal cryptography wheel for
-the T08 fixture, but no project all-extras closure: the current project lock has
-no compatible cryptography wheel, and ambient source fallback is not admitted.
-A new tuple requires a lock/export/profile update and qualification evidence.
+Linux arm64 on CPython 3.14, and macOS arm64 on CPython 3.14. macOS x86_64 is
+not a supported tooling platform: cryptography 50.0.0 and later, required for
+the advisories fixed in #1268, publish no macOS x86_64 or universal wheel, and
+ambient source fallback is not admitted. A new tuple requires a
+lock/export/profile update and qualification evidence.
 
 These locks make dependency selection repeatable. They do not claim that wheel
 builds are byte-for-byte reproducible across host SDKs, compilers, operating
@@ -134,6 +134,31 @@ An action commit identifies orchestration code; it never identifies the Python
 or uv bytes selected by that action. Standard CPython 3.11–3.14 payloads are
 blocking. The separately locked 3.14t payload remains advisory.
 
+`container-ubuntu-24.04-x86_64` is the reviewed container host profile behind
+the [development container](../../docs/explain/development-container.md). It
+adds closed fields the native profiles do not carry: a `base_image_artifact_ref`
+naming the digest-pinned OCI base in the artifact lock, a
+`native_repository_snapshot` fixing the immutable package snapshot,
+`development_package_ids` for maintainer tools, and a non-root
+`development_user`. Only Linux x86_64 is declared, because Ubuntu publishes
+immutable package snapshots only for it; arm64 hosts run the same image under
+emulation. `tools/tooling_artifact_policy_container.py` joins the profile to
+`.devcontainer/Dockerfile` and fails closed on a floating or substituted base, a
+stage without the qualified `--platform`, a drifting or bypassed snapshot, an
+unreviewed or missing package, a root or drifting account, or any build
+argument, environment input, instruction, mount, or RUN command outside the
+closed reviewed forms. `tools/tooling_artifact_policy_devcontainer.py` holds
+`devcontainer.json` to its closed shape: the single `tools.devcontainer_setup`
+lifecycle command, the tool path, one named cache volume, editor customizations
+without commands or environment, and no host-side commands, extra environment,
+host mounts, or container capabilities. The profile declares
+`proof_support: unsupported` and supplies no container daemon. The
+`development-image` job in the bootstrap qualification workflow validates this
+policy before building, builds from an empty builder cache, runs the
+dev-container lifecycle setup twice, then runs `nox -s policy`, `nox -s lint`,
+and `nox -s tests` in a new terminal and confirms the proof lane fails with its
+bubblewrap capability diagnosis.
+
 Use the fixed inspection surface for a reviewed host profile:
 
 ```bash
@@ -164,7 +189,7 @@ path. The Ubuntu 22.04 proof host never treats its stock curl as a generic-tool
 acquisition capability.
 
 `bootstrap-qualification.yml` executes the four locked generic tools on Linux
-x86_64/arm64 and macOS x86_64/arm64, runs the maintained curl against controlled
+x86_64/arm64 and macOS arm64, runs the maintained curl against controlled
 TLS, redirect, retry, disconnect, deadline and unknown-length size fixtures,
 exports exact raw uv/CPython objects plus an installed managed interpreter, uv,
 target-specific raw Python wheelhouses and the four generic tools. It measures
@@ -172,7 +197,7 @@ every kit entry, deletes the seeded copies, restores the target-specific
 archive, verifies raw and installed identities, disables uv downloads and
 network fallback, recreates environments from the verified wheels, then repeats
 the frozen Python and tool checks. Linux arm64 and macOS arm64 bind that clean
-restore to T12; all four platforms bind their tool/ABI run to T02.
+restore to T12; all three platforms bind their tool/ABI run to T02.
 Native packages and trust roots remain reviewed base-image prerequisites. The
 workflow retains the bounded result and payload-kit artifacts under the exact
 workflow commit. Public profiles contain no credential reference; enterprise

@@ -255,7 +255,7 @@ ASR-530, ASR-532 and SEM-218 traceability gains links to the new helpers and reg
 tests; their status and statements remain unchanged.
 
 The canonical evidence gate pins the complete Python implementation surface.
-New formal-validation release 11.0.0 and specification-coverage release 9.0.0
+New formal-validation release 14.0.0 and specification-coverage release 12.0.0
 replay the retained observations against this implementation without changing
 their claim ceilings. Historical captures remain unchanged. The formal baseline
 loader can recover an exact checksum-addressed archived artifact when a later
@@ -353,3 +353,23 @@ run with serialized defaults omitted. Those cases reproduced the recognition
 defect before repair; the mixed-inventory case reproduced the selected-profile
 posture leaking to an ordinary mailbox. This records post-fix local evidence,
 not a new independent reviewer verdict.
+
+## Integration with current dev
+
+The pre-PR synchronization merged dev at
+`b5590207172ff2ce5fd2616d497024bb50164731`. Generated schemas were rebuilt
+from the combined typed-selection, software-refinement and partial-inventory
+models, with matching publication records. The incoming historical formal
+captures through release 13.0.0 and coverage captures through release 11.0.0
+retain their original bytes. This branch's new captures use the next available
+revisions, replayed against the merged implementation; the formal baseline is
+release 13.0.0. The preregistered protocols and claim limits remain unchanged.
+
+The user authorized continuation without another code-review cycle after both
+second-cycle findings were repaired. The initial test-quality review was clean.
+
+The integration gate also caught two archive-test fixtures that inherited the
+now-corrected release-10 baseline pointer. Both tests now explicitly select the
+frozen archive from its pin record, prove that original selection succeeds, and
+then reject the forged manifest or altered pin record. This preserves their
+intended tampering boundary without changing production validation or history.
