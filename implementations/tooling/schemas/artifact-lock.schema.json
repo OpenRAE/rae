@@ -94,7 +94,7 @@
       "properties": {
         "artifact_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
         "artifact_class": {
-          "enum": ["generic-cli", "source-snapshot", "bootstrap", "native-tool", "oci-image"]
+          "enum": ["generic-cli", "source-snapshot", "bootstrap", "native-tool", "oci-image", "vm-base-image"]
         },
         "version": {"type": "string", "minLength": 1},
         "support_level": {"enum": ["blocking", "advisory"]},
