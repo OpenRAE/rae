@@ -10,7 +10,6 @@ import json
 import re
 import sys
 import urllib.parse
-import urllib.request
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -197,13 +196,12 @@ def _remote_url_failure(source: NistCsfDefensiveCategorySourceModel, selected_ur
     return failure
 
 
-def _remote_bytes_failure(data: bytes, *, size: int, sha256: str) -> str | None:
-    if len(data) != size or hashlib.sha256(data).hexdigest() != sha256:
-        return f"{SOURCE_RELATIVE_PATH}: retrieved bytes differ from the reviewed lock manifest"
-    return None
-
-
-def _check_remote(source: NistCsfDefensiveCategorySourceModel) -> list[str]:
+def _check_remote(
+    source: NistCsfDefensiveCategorySourceModel,
+    *,
+    local_input: Path | None = None,
+) -> list[str]:
+    from tools.maintained_client_acquisition import acquire_locked_bytes
     from tools.tooling_policy_gate import load_tooling_artifact_selection
 
     selection = load_tooling_artifact_selection(
@@ -214,19 +212,18 @@ def _check_remote(source: NistCsfDefensiveCategorySourceModel) -> list[str]:
     )
     if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1:
         raise RuntimeError("NIST CSF lock selection must contain one source and raw snapshot")
-    raw = selection.raw_manifest[0]
     url_failure = _remote_url_failure(source, selection.source_urls[0])
     if url_failure is not None:
         return [url_failure]
-    request = urllib.request.Request(  # noqa: S310 - allowlisted NIST HTTPS endpoint above
-        selection.source_urls[0],
-        headers={"User-Agent": "RAES-NIST-CSF-verifier/1"},
-    )
-    with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310
-        data = response.read()
-    bytes_failure = _remote_bytes_failure(data, size=raw.size, sha256=raw.sha256)
-    if bytes_failure is not None:
-        return [bytes_failure]
+    try:
+        data = acquire_locked_bytes(
+            artifact_id="nist-csf-defensive-categories-snapshot",
+            source_url=selection.source_urls[0],
+            expected=selection.raw_manifest[0],
+            local_input=local_input,
+        )
+    except RuntimeError as error:
+        return [f"{SOURCE_RELATIVE_PATH}: {error}"]
     categories = _extract_defensive_categories(data)
     failures: list[str] = []
     if categories != _source_categories(source):
@@ -243,7 +240,16 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Fetch the official NIST CSF 2.0 Core export and verify the canonical defensive-category snapshot.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--local-input",
+        type=Path,
+        default=None,
+        help="Admit an approved local raw object instead of a fresh network transfer (no network fallback).",
+    )
+    args = parser.parse_args()
+    if args.local_input is not None and not args.verify_remote:
+        parser.error("--local-input requires --verify-remote")
+    return args
 
 
 def main() -> int:
@@ -253,7 +259,7 @@ def main() -> int:
     failures = _check_source_metadata(source)
     failures.extend(_check_catalog(catalog, source))
     if args.verify_remote:
-        failures.extend(_check_remote(source))
+        failures.extend(_check_remote(source, local_input=args.local_input))
     for failure in failures:
         print(f"[nist-csf-defensive-vocabulary] {failure}", file=sys.stderr)
     return 1 if failures else 0

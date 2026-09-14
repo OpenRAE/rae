@@ -857,7 +857,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "f272550087a63e28969b49109a8ac21ec215de7acc8663c10afb4d311e294c9a",
+      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -887,7 +887,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "f272550087a63e28969b49109a8ac21ec215de7acc8663c10afb4d311e294c9a",
+      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -917,7 +917,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "f272550087a63e28969b49109a8ac21ec215de7acc8663c10afb4d311e294c9a",
+      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -945,7 +945,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "f272550087a63e28969b49109a8ac21ec215de7acc8663c10afb4d311e294c9a",
+      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -974,7 +974,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "f272550087a63e28969b49109a8ac21ec215de7acc8663c10afb4d311e294c9a",
+      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -1001,7 +1001,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "f272550087a63e28969b49109a8ac21ec215de7acc8663c10afb4d311e294c9a",
+      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
       "capability_results": [
         {
           "capability_id": "live-runner-qualification",
@@ -1016,7 +1016,7 @@
         "The in-repository slices of T13/T21 (input admission, tampered/unpinned rejection, script safety) run as hermetic unit tests; the live concurrency and full closure boot slices remain operator obligations recorded in operations.md."
       ],
       "evidence_location": "docs/decisions/package-artifacts/operations.md",
-      "evidence_sha256": "b1bc22fc899f1e1c054d16c398c0dc79e5c810636c6920ea43920b79313ca484"
+      "evidence_sha256": "3ec9e1fcf12822dce63a690c05db703c26d5925a705d21a26232b267a4582fae"
     }
   ]
 }
