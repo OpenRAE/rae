@@ -431,7 +431,11 @@ adrs:
     pin: a16e021301c9b411c8efe54ac4933819a50bd10a27d13741cc7ce78d6bffbe14
   - id: ADR-080
     path: docs/decisions/adrs/adr-080-revision-pinned-sdl-lineage-and-provenance-ledger.md
-    pin: e5b44525b5c2bfcef5516e3661c6d3d3a6cb816c10d4c4bb05d720554cea6663
+    pin: 87d11bb6b7e1156c084e92f6c48d01d76f8367149a22f1593fa5ab1cd7150664
+    amendments:
+      - date: 2026-09-14
+        ref: "#1210"
+        summary: "Advanced current lineage authority to ledger v2 for the progressive semantic cutover; v1 remains a dated historical record."
   - id: ADR-081
     path: docs/decisions/adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md
     pin: c8e096b85edb7ca97217a8bb0ac74b8817f966b9cf42b66f114dc3a45ed83a90
@@ -500,7 +504,11 @@ adrs:
     pin: 90578754323795ca8775c47dd6095752ccb5a769a0f932ebe60abbe1d8954246
   - id: ADR-095
     path: docs/decisions/adrs/adr-095-participant-decision-epoch-state-cut-and-delivery-semantics.md
-    pin: a37f5897755d573a1665641abb4a3695765e657b68018dde2b956fe99fe38edb
+    pin: 3628560706a56687051ea42df732c25922d233f51aad3a433f4cb35d5ff019cb
+    amendments:
+      - date: 2026-09-14
+        ref: "#1210"
+        summary: "Advanced current lineage authority to ledger v2 for the progressive semantic cutover; v1 remains a dated historical record."
   - id: ADR-096
     path: docs/decisions/adrs/adr-096-identity-cutover-and-historical-record-boundary.md
     pin: 4d3ccdf376fd6eee58da0831d1215cf0a55ae25d2666d6bf3452978a3d0b3997

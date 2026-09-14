@@ -130,6 +130,7 @@
     {"path": "implementations/python/packages/raes/module_registry/__init__.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 2},
     {"path": "implementations/python/packages/raes_backend_libvirt/drivers/seed.py", "inventory_id": "I12", "disposition": "legacy-remediation", "site_count": 1},
     {"path": "implementations/python/packages/raes_reference_backend/drivers/oci.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 1},
+    {"path": "implementations/python/tests/issue_1220_proof_input_harness.py", "inventory_id": "I09", "disposition": "non-acquisition-execution", "site_count": 3},
     {"path": "implementations/python/tests/test_corpus_packaging.py", "inventory_id": "I03", "disposition": "governed", "site_count": 1},
     {"path": "implementations/python/tests/test_identity_cutover_policy.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "implementations/python/tests/test_issue_1204_repository_governance.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},

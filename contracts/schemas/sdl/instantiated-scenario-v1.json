@@ -27447,7 +27447,7 @@
           "type": "string"
         },
         "profile": {
-          "const": "raes-sdl-semantic/v1",
+          "const": "raes-sdl-semantic/v2",
           "title": "Profile",
           "type": "string"
         },
@@ -30396,6 +30396,20 @@
       "title": "Scripts",
       "type": "object"
     },
+    "semantic_revision": {
+      "anyOf": [
+        {
+          "const": "raes-progressive-semantics/v1",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Semantic Revision",
+      "x-raes-realization-dimension": false
+    },
     "stories": {
       "additionalProperties": {
         "$ref": "#/$defs/Story"
@@ -30507,7 +30521,7 @@
   ],
   "title": "SDL Instantiated Scenario v1",
   "type": "object",
-  "x-raes-authored-identity-profile": "raes-sdl-semantic/v1",
+  "x-raes-authored-identity-profile": "raes-sdl-semantic/v2",
   "x-raes-document-phase": "instantiated-scenario",
   "x-raes-invariants": [
     {

@@ -32,15 +32,18 @@ distribution.
 
 ## Decision
 
-1. `contracts/provenance/sdl-lineage-ledger-v1.json` is the normative lineage,
+1. `contracts/provenance/sdl-lineage-ledger-v2.json` is the normative lineage,
    derivation, citation-identity, and notice-disposition record. ADR-019
-   registers `contracts/provenance/` as a distinct authority root.
+   registers `contracts/provenance/` as a distinct authority root. The package
+   loader, installed corpus, policy gate and current traceability select v2.
+   Earlier dated preflights and research records retain their historical v1
+   references; they do not select the current normative ledger.
 2. Every current top-level authoring field, node runtime family, concept
    family, and reference model has a namespaced subject record whose authority
    coordinate resolves to its existing canonical artifact. Coverage is exact
    and bidirectional; matching counts are insufficient.
 3. Claims separate syntax, semantics, artifact/code derivation, and examples.
-   `adopted_syntax`, `adopted_semantics`, `adapted`, and `aces_native` classify
+   `adopted_syntax`, `adopted_semantics`, `adapted`, and `raes_native` classify
    provenance. `current`, `removed`, and `planned` classify disposition.
    Compatibility is a separate directional statement.
 4. External sources carry immutable identity. Git sources require a full
@@ -84,3 +87,9 @@ distribution.
 The ledger is an evidence-backed engineering record, not legal advice, a
 clean-room certification, a proof of behavioral equivalence, or a claim that
 all external links remain available forever. It does not change SDL semantics.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-09-14 | #1210 | Advanced current lineage authority to ledger v2 for the progressive semantic cutover; v1 remains a dated historical record. |

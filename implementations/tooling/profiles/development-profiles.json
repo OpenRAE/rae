@@ -200,6 +200,11 @@
           "locator_id": "official-cirros-download",
           "kind": "official-https",
           "trust_root_ref": "system-ca"
+        },
+        {
+          "locator_id": "official-cirros-cloud-mirror",
+          "kind": "official-https",
+          "trust_root_ref": "system-ca"
         }
       ],
       "supported_artifact_ids": [
@@ -671,7 +676,8 @@
           "coreutils",
           "bubblewrap",
           "fontconfig",
-          "fonts-dejavu-core"
+          "fonts-dejavu-core",
+          "libc-bin"
         ],
         "host_trust_root_refs": [
           "ubuntu-archive-keyring",
@@ -857,7 +863,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -887,7 +893,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -917,7 +923,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -945,7 +951,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -974,7 +980,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -1001,7 +1007,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "6c0a4eb548a40cf47f8524f9a54a58287fbbed92863f26a245e72fc1121df318",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "live-runner-qualification",

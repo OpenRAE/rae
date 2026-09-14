@@ -10,12 +10,14 @@ import pytest
 import yaml
 from jsonschema import Draft202012Validator
 from raes import SDLParseError, SDLValidationError, parse_sdl, parse_sdl_file
+from raes.scenario import Scenario
+from raes.semantics.deployment_tenancy import analyze_deployment_tenancy
 from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
 
 _INSTANTIATION_PROVENANCE = {
     "authored_digest": {
-        "profile": "raes-sdl-semantic/v1",
+        "profile": "raes-sdl-semantic/v2",
         "algorithm": "sha256",
         "value": "sha256:" + "a" * 64,
     }
@@ -444,6 +446,74 @@ def test_shared_service_state_and_reset_ownership_are_consistent() -> None:
         _parse_payload(payload)
 
 
+@pytest.mark.parametrize(
+    ("mutation", "code"),
+    [
+        ("state-refs-missing", "shared-service.state-refs-missing"),
+        ("reset-without-state", "shared-service.reset-owner-without-state"),
+        ("state-owner-conflict", "shared-service.state-owner-conflict"),
+        ("state-unbound", "shared-service.state-unbound"),
+        ("tenant-unbound", "cell.tenant-unbound"),
+        ("node-unbound", "cell.node-unbound"),
+        ("multiple-carriers", "placement.multiple-carriers"),
+        ("detail-mismatch", "relationship.detail-mismatch"),
+        ("placement-endpoint", "placement.endpoint-invalid"),
+        ("shared-service-endpoint", "shared-service.endpoint-invalid"),
+        ("placement-detail-required", "relationship.detail-required"),
+        ("shared-service-detail-required", "relationship.detail-required"),
+    ],
+)
+def test_deployment_isolation_rejects_inconsistent_bindings(mutation: str, code: str) -> None:
+    payload = _valid_payload()
+    binding = payload["relationships"]["range-inference"]["shared_service"]
+    if mutation == "state-refs-missing":
+        binding["mutable_state_refs"] = []
+    elif mutation == "reset-without-state":
+        binding["mutable_state_refs"] = []
+        binding["mutable_state_owner"] = "none"
+    elif mutation == "state-owner-conflict":
+        second_binding = deepcopy(payload["relationships"]["range-inference"])
+        second_binding["source"] = "shared-platform"
+        payload["relationships"]["second-inference"] = second_binding
+    elif mutation == "state-unbound":
+        binding["mutable_state_refs"] = ["missing-volume"]
+    elif mutation == "tenant-unbound":
+        payload["deployment_cells"]["range-a-cell"]["tenant_ref"] = "missing-tenant"
+    elif mutation == "node-unbound":
+        payload["deployment_cells"]["range-a-cell"]["node_refs"].append("missing-node")
+    elif mutation == "multiple-carriers":
+        payload["nodes"]["second-carrier"] = deepcopy(payload["nodes"]["carrier"])
+        payload["deployment_cells"]["range-a-cell"]["node_refs"].append("second-carrier")
+        second_placement = deepcopy(payload["relationships"]["workstation-placement"])
+        second_placement["target"] = "second-carrier"
+        payload["relationships"]["second-placement"] = second_placement
+    elif mutation == "placement-endpoint":
+        payload["relationships"]["workstation-placement"]["source"] = "missing-node"
+    elif mutation == "shared-service-endpoint":
+        payload["relationships"]["range-inference"]["source"] = "missing-tenant"
+    elif mutation == "placement-detail-required":
+        del payload["relationships"]["workstation-placement"]["carrier_placement"]
+    elif mutation == "shared-service-detail-required":
+        del payload["relationships"]["range-inference"]["shared_service"]
+    else:
+        payload["relationships"]["inference-call"]["carrier_placement"] = {"kernel_boundary": "shared_kernel"}
+
+    # Check the named rule directly: another rejection must not mask a disabled
+    # isolation check. Then verify rejection through the public parser as well.
+    scenario = Scenario.model_validate(payload)
+    issues = analyze_deployment_tenancy(
+        deployment_tenants=scenario.deployment_tenants,
+        deployment_cells=scenario.deployment_cells,
+        nodes=scenario.nodes,
+        persistent_volumes=scenario.persistent_volumes,
+        relationships=scenario.relationships,
+        is_unresolved=lambda _value: False,
+    )
+    assert f"deployment-tenancy.{code}" in {issue.code for issue in issues}
+    with pytest.raises(SDLValidationError):
+        _parse_payload(payload)
+
+
 def test_consumer_owned_shared_state_must_stay_with_its_tenant() -> None:
     payload = _valid_payload()
     payload["persistent_volumes"]["range-state"]["consumers"][0]["node"] = "inference"
@@ -569,7 +639,7 @@ def test_published_phase_schemas_carry_closed_enterprise_shape() -> None:
     snapshot = Draft202012Validator(bundle["instantiated-scenario-snapshot-v1"])
     assert snapshot.is_valid(
         {
-            "profile": "raes-sdl-instantiated-snapshot/v1",
+            "profile": "raes-sdl-instantiated-snapshot/v2",
             "scenario": instantiated_payload,
         }
     )

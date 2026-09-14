@@ -476,7 +476,9 @@ def _read_verified_file(  # NOSONAR -- paired before/open/after checks resist su
         owner_ok = before.st_uid in {0, os.geteuid()}
         mode_ok = not permissions & 0o222 and (not entry.executable or bool(permissions & 0o111))
     elif mode == "legacy":
-        mode_ok = not permissions & 0o022 and (not entry.executable or bool(permissions & 0o100))
+        # Version-keyed caches were created under the user's umask; a group
+        # write bit is a risk only when that group admits another principal.
+        mode_ok = not _cross_principal_writable(before) and (not entry.executable or bool(permissions & 0o100))
     elif mode == "staged":
         mode_ok = permissions == 0o600
     else:
@@ -598,37 +600,26 @@ def _quarantine(path: Path, quarantine_root: Path, *, prefix: str) -> Path:
     return destination
 
 
+def _private_lock_state(state: os.stat_result, *, exact_mode: bool) -> bool:
+    permissions_private = state.st_mode & 0o777 == 0o600 if exact_mode else state.st_mode & 0o177 == 0
+    return stat.S_ISREG(state.st_mode) and state.st_uid == os.geteuid() and state.st_nlink == 1 and permissions_private
+
+
 @contextmanager
-def _portable_lock(path: Path) -> Iterator[None]:
+def _portable_lock(path: Path, timeout: float | None = None) -> Iterator[None]:
     try:
         from filelock import FileLock, Timeout
     except ImportError:
         raise RuntimeError("tool-installation: portable-lock-unavailable") from None
     logging.getLogger("filelock").setLevel(logging.WARNING)
     existing = _lstat(path)
-    if existing is not None and (
-        not stat.S_ISREG(existing.st_mode)
-        or existing.st_uid != os.geteuid()
-        or existing.st_nlink != 1
-        or existing.st_mode & 0o177 != 0
-    ):
+    if existing is not None and not _private_lock_state(existing, exact_mode=False):
         raise RuntimeError("tool-installation: unsafe-lock-file")
-    lock = FileLock(
-        path,
-        timeout=LOCK_TIMEOUT_SECONDS,
-        mode=0o600,
-        fallback_to_soft=False,
-        preserve_lock_file=True,
-    )
+    wait_seconds = LOCK_TIMEOUT_SECONDS if timeout is None else timeout
+    lock = FileLock(path, timeout=wait_seconds, mode=0o600, fallback_to_soft=False, preserve_lock_file=True)
     try:
         with lock:
-            state = path.lstat()
-            if (
-                not stat.S_ISREG(state.st_mode)
-                or state.st_uid != os.geteuid()
-                or state.st_nlink != 1
-                or state.st_mode & 0o777 != 0o600
-            ):
+            if not _private_lock_state(path.lstat(), exact_mode=True):
                 raise RuntimeError("tool-installation: unsafe-lock-file")
             yield
     except Timeout:
@@ -674,6 +665,45 @@ def _publication_checkpoint(_name: str, _path: Path) -> None:
     """Test seam for crash injection at durable publication boundaries."""
 
 
+def _directory_rename_requires_writable_source() -> bool:
+    """Return whether the host refuses to rename a directory without owner write (APFS)."""
+
+    return platform.system() == "Darwin"
+
+
+def _seal_staged_root(stage: Path) -> None:
+    """Seal the staged root before publication wherever the host can still rename it."""
+
+    if not _directory_rename_requires_writable_source():
+        stage.chmod(0o500)
+    _fsync_directory(stage)
+
+
+def _publish_staged_root(stage: Path, target: Path) -> None:
+    """Atomically publish a staged root; only APFS must seal it after the rename."""
+
+    os.rename(stage, target)
+    if _directory_rename_requires_writable_source():
+        _publication_checkpoint("renamed-unsealed", target)
+        target.chmod(0o500)
+    _fsync_directory(target)
+
+
+def _complete_interrupted_seal(target: Path) -> None:
+    """Finish an APFS publication interrupted between its rename and root seal.
+
+    Callers hold the identity lock, so no live publisher can own this state;
+    every other property of the tree is still validated afterward.
+    """
+
+    if not _directory_rename_requires_writable_source():
+        return
+    state = target.lstat()
+    if stat.S_ISDIR(state.st_mode) and state.st_uid == os.geteuid() and state.st_mode & 0o777 == 0o700:
+        target.chmod(0o500)
+        _fsync_directory(target)
+
+
 def _publish_tree(
     target: Path,
     entries: tuple[ManifestEntry, ...],
@@ -709,11 +739,9 @@ def _publish_tree(
         for directory in directories:
             directory.chmod(0o500)
             _fsync_directory(directory)
-        _fsync_directory(stage)
+        _seal_staged_root(stage)
         _publication_checkpoint("staged-durable", stage)
-        os.rename(stage, target)
-        target.chmod(0o500)
-        _fsync_directory(target)
+        _publish_staged_root(stage, target)
         _publication_checkpoint("published", target)
         _fsync_directory(target.parent)
         _publication_checkpoint("parent-durable", target)
@@ -774,6 +802,7 @@ def _validated_existing_or_quarantine(
     quarantine_root: Path,
 ) -> Path:
     try:
+        _complete_interrupted_seal(target)
         return _validated_installed_executable(target, selection)
     except (OSError, RuntimeError):
         _quarantine(target, quarantine_root, prefix="cache")

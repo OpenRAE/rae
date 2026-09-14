@@ -198,7 +198,7 @@ def test_variation_registry_is_authoring_only_and_instantiation_fails_closed() -
                 "variation_points": {},
                 "instantiation_provenance": {
                     "authored_digest": {
-                        "profile": "raes-sdl-semantic/v1",
+                        "profile": "raes-sdl-semantic/v2",
                         "algorithm": "sha256",
                         "value": "sha256:" + "a" * 64,
                     }

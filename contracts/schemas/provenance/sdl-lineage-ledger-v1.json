@@ -158,6 +158,17 @@
     "GitLineageSourceModel": {
       "additionalProperties": false,
       "properties": {
+        "archival_capture": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LineageSourceCaptureModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "canonical_url": {
           "pattern": "^https://[^\\s]+$",
           "title": "Canonical Url",
@@ -351,6 +362,33 @@
       "title": "LineagePlane",
       "type": "string"
     },
+    "LineageSourceCaptureModel": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "minLength": 1,
+          "title": "Artifact",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact",
+        "sha256",
+        "scope"
+      ],
+      "title": "LineageSourceCaptureModel",
+      "type": "object"
+    },
     "LineageSubjectModel": {
       "additionalProperties": false,
       "properties": {
@@ -406,6 +444,17 @@
     "PublicationLineageSourceModel": {
       "additionalProperties": false,
       "properties": {
+        "archival_capture": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LineageSourceCaptureModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "canonical_url": {
           "pattern": "^https://[^\\s]+$",
           "title": "Canonical Url",
@@ -451,6 +500,17 @@
     "StandardLineageSourceModel": {
       "additionalProperties": false,
       "properties": {
+        "archival_capture": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LineageSourceCaptureModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "canonical_url": {
           "pattern": "^https://[^\\s]+$",
           "title": "Canonical Url",

@@ -1,6 +1,6 @@
 {
   "schema_version": "raes-development-artifact-lock/v1",
-  "lock_revision": "2026-09-11",
+  "lock_revision": "2026-09-14",
   "artifacts": [
     {
       "artifact_id": "conftest",
@@ -216,6 +216,14 @@
               "executable": true
             }
           ],
+          "installed_tree": {
+            "format": "tar.gz",
+            "manifest_sha256": "a1a818fc3fd41b3f60a34154c0871469619bc826d8238f1349e73e92355e4bb1",
+            "file_count": 24079,
+            "directory_count": 2589,
+            "symlink_count": 457,
+            "expanded_bytes": 2301957383
+          },
           "dependencies": [],
           "profile_ids": ["proof-linux-x86_64"]
         }
@@ -751,7 +759,7 @@
         "repository": "https://github.com/cirros-dev/cirros",
         "release": "0.6.2",
         "asset": "cirros-{version}-x86_64-disk.img",
-        "locator_refs": ["official-cirros-download"]
+        "locator_refs": ["official-cirros-download", "official-cirros-cloud-mirror"]
       },
       "platforms": [
         {

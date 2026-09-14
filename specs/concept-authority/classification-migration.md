@@ -54,7 +54,7 @@ ATT&CK `execution` corresponds to `TA0002`. Authors select that mapping using
 the pinned source and its neutral adapter. A governed extension has no implied
 source coordinate. A CWE identifier alone is not a pinned CWE snapshot.
 
-The exact source projection uses `raes-sdl-semantic/v1` over normalized,
+The exact source projection uses `raes-sdl-semantic/v2` over normalized,
 uncomposed legacy authoring input. Native fields must already have canonical
 typed values: a migration that would also normalize native data refuses.
 Migrate imported source documents independently before composition and refresh
