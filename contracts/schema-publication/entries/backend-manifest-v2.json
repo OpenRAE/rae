@@ -1,10 +1,10 @@
 {
+  "content_hash": "89a83bed919e2279627e7e574693a623ccfb70d7be8f1de43803a6af325c9e56",
   "contract_id": "backend-manifest-v2",
-  "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
-  "stability": "draft",
-  "content_hash": "314a8b00774a7b14b51cce2b16731a281fa2d67f81eb0aa58ea15e7d7a508ca8",
   "last_change": {
-    "summary": "Admit pinned profile coordinates for generator, domain and service capabilities and independent private resource-measure context; retain built-in capability coupling for issue #1208.",
-    "content_hash": "314a8b00774a7b14b51cce2b16731a281fa2d67f81eb0aa58ea15e7d7a508ca8"
-  }
+    "content_hash": "89a83bed919e2279627e7e574693a623ccfb70d7be8f1de43803a6af325c9e56",
+    "summary": "Added the random_value generated-artifact generator with a typed recipe (alphabet/length/entropy/format), a regeneration_scope (per_run/per_instantiation/once), content text_from and proposition expected_from deferred references, plus provisioner regeneration-scope and content_text delivery capabilities and the evaluator deferred-expected-comparison capability for issue #1276."
+  },
+  "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
+  "stability": "draft"
 }

@@ -474,6 +474,7 @@ def test_control_plane_rejects_stateful_kind_before_backend_calls(
     if capability_attribute == "supports_generated_artifacts":
         capability_changes["supported_generated_artifact_kinds"] = frozenset()
         capability_changes["supported_generated_artifact_delivery_modes"] = frozenset()
+        capability_changes["supported_regeneration_scopes"] = frozenset()
     unsupported = replace(
         manifest,
         capabilities=replace(
@@ -562,6 +563,7 @@ def test_control_plane_rejects_unclaimed_generated_artifact_kind_before_backend_
             provisioner=replace(
                 manifest.provisioner,
                 supported_generated_artifact_kinds=frozenset({"certificate_bundle", "rendered_config"}),
+                supported_regeneration_scopes=frozenset(),
             ),
         ),
     )

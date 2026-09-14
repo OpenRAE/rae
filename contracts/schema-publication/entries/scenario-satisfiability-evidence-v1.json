@@ -1,9 +1,9 @@
 {
-  "content_hash": "ab04f0f46fe72fe8ac7a350129ed9c739fe50f6a31f93ffb43c17c3195a9c99a",
+  "content_hash": "6c7d72be2c8c88291ca25db1633af13d2c801011e9c9ced32fb0fbcf51bcbb31",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206. Allow partial runtime inventory descriptions and preserve unknown database protocol defaults without weakening selected-operation admission (#1207). Extend containing artifact, service, identity and access selections with the common typed profile contract and resource kinds with pinned coordinates; retain built-in controls and conditional AD names for issue #1208.",
-    "content_hash": "ab04f0f46fe72fe8ac7a350129ed9c739fe50f6a31f93ffb43c17c3195a9c99a"
+    "content_hash": "6c7d72be2c8c88291ca25db1633af13d2c801011e9c9ced32fb0fbcf51bcbb31",
+    "summary": "Encode the StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields for issue #1276."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

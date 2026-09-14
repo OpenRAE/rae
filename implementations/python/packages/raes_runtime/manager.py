@@ -90,6 +90,8 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         profile: str | None = None,
         artifact_availability: ArtifactAvailabilityContext | None = None,
         profile_authority: PlanProfileAuthority | None = None,
+        run_id: str | None = None,
+        instantiation_id: str | None = None,
     ) -> ExecutionPlan:
         model = compile_scenario_runtime_model(
             scenario, parameters=parameters, profile=profile, profile_authority=profile_authority
@@ -102,6 +104,8 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             target_name=self._target.name,
             artifact_availability=artifact_availability,
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
+            run_id=run_id,
+            instantiation_id=instantiation_id,
         )
 
     def apply(self, execution_plan: ExecutionPlan) -> ApplyResult:

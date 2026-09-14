@@ -1,10 +1,10 @@
 {
+  "content_hash": "ef99294459cf9f02a66c65ccb6281db0eaee21fb2c112ea9ed8b3ba554fdd311",
   "contract_id": "provisioning-plan-v1",
-  "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "9c008f0f907bcff455c26c58a311083eea5232fffeed54e99eef8ac45aa28b1f",
   "last_change": {
-    "summary": "Added named bounded version predicates to carried recursive constraints (#1205).",
-    "content_hash": "9c008f0f907bcff455c26c58a311083eea5232fffeed54e99eef8ac45aa28b1f"
-  }
+    "content_hash": "ef99294459cf9f02a66c65ccb6281db0eaee21fb2c112ea9ed8b3ba554fdd311",
+    "summary": "Carry value-free run_id and instantiation_id scope identity through the published plan model for issue #1276."
+  },
+  "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
+  "stability": "draft"
 }

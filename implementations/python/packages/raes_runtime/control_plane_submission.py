@@ -206,6 +206,11 @@ def _stateful_submission_diagnostic(
         for operation in plan.operations
         if operation.resource_type == "node"
     }
+    content_specs = {
+        operation.address: operation.payload
+        for operation in plan.operations
+        if operation.resource_type == "content-placement"
+    }
     exact_supported = any(
         declaration.domain == RUNTIME_REALIZATION_DOMAIN
         and DECLARED_CAPABILITY_MATCH_REQUIREMENT_KIND in declaration.supported_exact_requirement_kinds
@@ -229,6 +234,7 @@ def _stateful_submission_diagnostic(
                 spec=operation.payload.get("spec"),
                 provisioner=manifest.provisioner,
                 node_specs=node_specs,
+                content_specs=content_specs,
             )
             if artifact_diagnostic is not None:
                 diagnostic = artifact_diagnostic

@@ -1,9 +1,482 @@
 {
-  "schema_version": "backend-manifest/v2",
+  "capabilities": {
+    "cleanup": {
+      "name": "stub-cleanup",
+      "supported_action_kinds": [
+        "compensate",
+        "destroy",
+        "reset",
+        "restore",
+        "verify"
+      ],
+      "supported_contract_versions": [
+        "trial-cleanup-plan-v1",
+        "trial-cleanup-receipt-v1"
+      ],
+      "supported_verification_methods": [
+        "probe",
+        "receipt"
+      ],
+      "supports_residual_state_disclosure": true,
+      "supports_reusable_state": true
+    },
+    "evaluator": {
+      "constraints": {},
+      "name": "stub-evaluator",
+      "preserves_binding_provenance": true,
+      "supported_evidence_channels": [
+        "api_response",
+        "file_artifact",
+        "log"
+      ],
+      "supported_predicate_families": [
+        "boolean",
+        "number",
+        "presence",
+        "string"
+      ],
+      "supported_quantifiers": [
+        "all",
+        "any",
+        "at_least"
+      ],
+      "supported_sections": [
+        "assertions",
+        "conditions",
+        "objectives",
+        "propositions"
+      ],
+      "supported_time_domains": [
+        "scenario_time"
+      ],
+      "supported_truth_outcomes": [
+        "false",
+        "true",
+        "unknown",
+        "unsupported"
+      ],
+      "supports_deferred_expected_comparison": false,
+      "supports_objectives": true,
+      "supports_scoring": true
+    },
+    "observation": {
+      "capture_offers": [],
+      "constraints": {},
+      "name": "stub-observation",
+      "supported_capture_kinds": [
+        "artifact",
+        "log",
+        "observation",
+        "packet-capture",
+        "telemetry",
+        "trace"
+      ],
+      "supported_channel_kinds": [
+        "backend-log",
+        "evaluation-history",
+        "file-artifact",
+        "packet-capture",
+        "participant-observation",
+        "runtime-snapshot",
+        "workflow-history"
+      ],
+      "supported_evidence_contracts": [
+        "experiment-capture-spec-v1",
+        "experiment-derived-measure-v1",
+        "experiment-evidence-record-v1",
+        "experiment-run-v1"
+      ],
+      "supported_media_types": [
+        "application/json",
+        "text/plain"
+      ],
+      "supported_sealing_modes": [
+        "digest",
+        "immutable-store"
+      ],
+      "supports_chain_of_custody": false,
+      "supports_loss_disclosure": true,
+      "supports_redaction": true
+    },
+    "orchestrator": {
+      "constraints": {},
+      "name": "stub-orchestrator",
+      "supported_sections": [
+        "events",
+        "injects",
+        "scripts",
+        "stories",
+        "workflows"
+      ],
+      "supported_workflow_features": [
+        "call",
+        "cancellation",
+        "compensation",
+        "decision",
+        "failure-transitions",
+        "parallel-barrier",
+        "retry",
+        "switch",
+        "timeouts"
+      ],
+      "supported_workflow_state_predicates": [
+        "attempt-counts",
+        "outcome-matching"
+      ],
+      "supports_assertion_refs": true,
+      "supports_inject_bindings": true,
+      "supports_workflows": true
+    },
+    "participant_runtime": {
+      "constraints": {},
+      "execution_bindings": [],
+      "feature_support": [
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_boundary_flow_resolution:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_boundary_flow_resolution",
+          "limitation_refs": [
+            "limitation:participant_boundary_flow_resolution:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_declassification:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_declassification",
+          "limitation_refs": [
+            "limitation:participant_declassification:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_directed_inject_delivery:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_directed_inject_delivery",
+          "limitation_refs": [
+            "limitation:participant_directed_inject_delivery:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_egress_projection:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_egress_projection",
+          "limitation_refs": [
+            "limitation:participant_egress_projection:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_final_sink_mediation:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_final_sink_mediation",
+          "limitation_refs": [
+            "limitation:participant_final_sink_mediation:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_ingress_admission:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_ingress_admission",
+          "limitation_refs": [
+            "limitation:participant_ingress_admission:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_intervention:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_intervention",
+          "limitation_refs": [
+            "limitation:participant_intervention:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_monitor_topology:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_monitor_topology",
+          "limitation_refs": [
+            "limitation:participant_monitor_topology:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_predicate_opacity:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_predicate_opacity",
+          "limitation_refs": [
+            "limitation:participant_predicate_opacity:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_processing_role_trust:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_processing_role_trust",
+          "limitation_refs": [
+            "limitation:participant_processing_role_trust:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_quarantined_processing:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_quarantined_processing",
+          "limitation_refs": [
+            "limitation:participant_quarantined_processing:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
+            "disclosure:participant_transformation:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_transformation",
+          "limitation_refs": [
+            "limitation:participant_transformation:not-realized"
+          ],
+          "support_level": "unsupported"
+        }
+      ],
+      "max_autonomous_action_attempts": null,
+      "max_autonomous_burst_size": null,
+      "max_autonomous_in_flight": null,
+      "max_autonomous_occurrences": null,
+      "max_autonomous_participants": null,
+      "max_autonomous_retries_per_occurrence": null,
+      "max_concurrent_actions": null,
+      "max_execution_services": null,
+      "name": "stub-participant-runtime",
+      "resource_budgets": null,
+      "supported_autonomous_action_contracts": [],
+      "supported_autonomous_activity_features": [],
+      "supported_autonomous_observation_boundaries": [],
+      "supported_autonomous_policy_profiles": [],
+      "supported_autonomous_random_stream_profiles": [],
+      "supported_autonomous_selection_strategies": [],
+      "supported_autonomous_target_addresses": [],
+      "supported_behavior_features": [
+        "action_contracts",
+        "attribution_support",
+        "behavior_history",
+        "effects",
+        "failure_classes",
+        "observation_boundaries",
+        "outcome_interpretation",
+        "preconditions",
+        "state_transitions",
+        "temporal_contracts"
+      ],
+      "supported_execution_control_actions": [],
+      "supported_interaction_features": [
+        "contention",
+        "coordination",
+        "interference",
+        "shared_state_change"
+      ],
+      "supported_participant_roles": [
+        "blue",
+        "green",
+        "red",
+        "white"
+      ],
+      "supports_autonomous_execution": false,
+      "supports_bounded_concurrency": false,
+      "supports_execution_control": false
+    },
+    "provisioner": {
+      "constraints": {},
+      "max_total_nodes": null,
+      "name": "stub-provisioner",
+      "operating_systems": [],
+      "supported_account_features": [
+        "auth_method",
+        "disabled",
+        "groups",
+        "home",
+        "mail",
+        "shell",
+        "spn"
+      ],
+      "supported_content_types": [
+        "dataset",
+        "directory",
+        "file"
+      ],
+      "supported_domain_profiles": [
+        "active_directory"
+      ],
+      "supported_generated_artifact_delivery_modes": [
+        "env_file",
+        "environment",
+        "mount"
+      ],
+      "supported_generated_artifact_kinds": [
+        "certificate_bundle",
+        "rendered_config",
+        "ssh_key_bundle"
+      ],
+      "supported_node_architectures": [
+        "aarch64",
+        "x86_64"
+      ],
+      "supported_node_types": [
+        "compute",
+        "switch"
+      ],
+      "supported_os_families": [
+        "freebsd",
+        "linux",
+        "macos",
+        "other",
+        "windows"
+      ],
+      "supported_regeneration_scopes": [],
+      "supported_service_materialization_profiles": [],
+      "supports_accounts": true,
+      "supports_acls": true,
+      "supports_generated_artifacts": true,
+      "supports_persistent_volumes": true
+    }
+  },
+  "compatibility": {
+    "processors": [
+      "raes-reference-processor"
+    ]
+  },
+  "concept_bindings": [
+    {
+      "family": "assets",
+      "scope": "capabilities.provisioner.supported_node_types"
+    },
+    {
+      "family": "assets",
+      "scope": "capabilities.provisioner.supported_os_families"
+    },
+    {
+      "family": "assets",
+      "scope": "capabilities.provisioner.supported_node_architectures"
+    },
+    {
+      "family": "tools-and-artifacts",
+      "scope": "capabilities.provisioner.supported_content_types"
+    },
+    {
+      "family": "identities",
+      "scope": "capabilities.provisioner.supported_account_features"
+    },
+    {
+      "family": "identities",
+      "scope": "capabilities.provisioner.supported_domain_profiles"
+    },
+    {
+      "family": "tools-and-artifacts",
+      "scope": "capabilities.provisioner.supported_service_materialization_profiles"
+    },
+    {
+      "family": "actions-and-events",
+      "scope": "capabilities.orchestrator.supported_sections"
+    },
+    {
+      "family": "observables",
+      "scope": "capabilities.evaluator.supported_sections"
+    },
+    {
+      "family": "identities",
+      "scope": "capabilities.participant_runtime.supported_participant_roles"
+    },
+    {
+      "family": "actions-and-events",
+      "scope": "capabilities.participant_runtime.supported_behavior_features"
+    },
+    {
+      "family": "relationships",
+      "scope": "capabilities.participant_runtime.supported_interaction_features"
+    },
+    {
+      "family": "provenance-and-evidence",
+      "scope": "capabilities.observation.supported_capture_kinds"
+    },
+    {
+      "family": "apparatus-declarations",
+      "scope": "capabilities.observation.supported_channel_kinds"
+    },
+    {
+      "family": "provenance-and-evidence",
+      "scope": "capabilities.observation.supported_sealing_modes"
+    }
+  ],
+  "constraints": {},
   "identity": {
     "name": "stub",
     "version": "0.3.0"
   },
+  "realization_support": [
+    {
+      "artifact_mechanisms": [],
+      "constraints": {},
+      "disclosure_kinds": [
+        "backend-manifest-v2",
+        "operation-status-v1",
+        "runtime-snapshot-v1"
+      ],
+      "domain": "runtime-realization",
+      "observation_capabilities": {},
+      "process_resource_limits": [],
+      "support_mode": "constrained",
+      "supported_constraint_kinds": [
+        "account-feature",
+        "content-type",
+        "node-architecture",
+        "node-type",
+        "os-family",
+        "workflow-feature",
+        "workflow-state-predicate"
+      ],
+      "supported_exact_requirement_kinds": [
+        "declared-capability-match"
+      ]
+    }
+  ],
+  "schema_version": "backend-manifest/v2",
   "supported_contract_versions": [
     "backend-manifest-v2",
     "artifact-requirement-v1",
@@ -43,476 +516,5 @@
     "experiment-run-v1",
     "trial-cleanup-plan-v1",
     "trial-cleanup-receipt-v1"
-  ],
-  "compatibility": {
-    "processors": [
-      "raes-reference-processor"
-    ]
-  },
-  "realization_support": [
-    {
-      "domain": "runtime-realization",
-      "support_mode": "constrained",
-      "supported_constraint_kinds": [
-        "account-feature",
-        "content-type",
-        "node-architecture",
-        "node-type",
-        "os-family",
-        "workflow-feature",
-        "workflow-state-predicate"
-      ],
-      "supported_exact_requirement_kinds": [
-        "declared-capability-match"
-      ],
-      "disclosure_kinds": [
-        "backend-manifest-v2",
-        "operation-status-v1",
-        "runtime-snapshot-v1"
-      ],
-      "observation_capabilities": {},
-      "process_resource_limits": [],
-      "artifact_mechanisms": [],
-      "constraints": {}
-    }
-  ],
-  "concept_bindings": [
-    {
-      "scope": "capabilities.provisioner.supported_node_types",
-      "family": "assets"
-    },
-    {
-      "scope": "capabilities.provisioner.supported_os_families",
-      "family": "assets"
-    },
-    {
-      "scope": "capabilities.provisioner.supported_node_architectures",
-      "family": "assets"
-    },
-    {
-      "scope": "capabilities.provisioner.supported_content_types",
-      "family": "tools-and-artifacts"
-    },
-    {
-      "scope": "capabilities.provisioner.supported_account_features",
-      "family": "identities"
-    },
-    {
-      "scope": "capabilities.provisioner.supported_domain_profiles",
-      "family": "identities"
-    },
-    {
-      "scope": "capabilities.provisioner.supported_service_materialization_profiles",
-      "family": "tools-and-artifacts"
-    },
-    {
-      "scope": "capabilities.orchestrator.supported_sections",
-      "family": "actions-and-events"
-    },
-    {
-      "scope": "capabilities.evaluator.supported_sections",
-      "family": "observables"
-    },
-    {
-      "scope": "capabilities.participant_runtime.supported_participant_roles",
-      "family": "identities"
-    },
-    {
-      "scope": "capabilities.participant_runtime.supported_behavior_features",
-      "family": "actions-and-events"
-    },
-    {
-      "scope": "capabilities.participant_runtime.supported_interaction_features",
-      "family": "relationships"
-    },
-    {
-      "scope": "capabilities.observation.supported_capture_kinds",
-      "family": "provenance-and-evidence"
-    },
-    {
-      "scope": "capabilities.observation.supported_channel_kinds",
-      "family": "apparatus-declarations"
-    },
-    {
-      "scope": "capabilities.observation.supported_sealing_modes",
-      "family": "provenance-and-evidence"
-    }
-  ],
-  "constraints": {},
-  "capabilities": {
-    "provisioner": {
-      "name": "stub-provisioner",
-      "supported_node_types": [
-        "compute",
-        "switch"
-      ],
-      "supported_os_families": [
-        "freebsd",
-        "linux",
-        "macos",
-        "other",
-        "windows"
-      ],
-      "operating_systems": [],
-      "supported_node_architectures": [
-        "aarch64",
-        "x86_64"
-      ],
-      "supported_content_types": [
-        "dataset",
-        "directory",
-        "file"
-      ],
-      "supported_account_features": [
-        "auth_method",
-        "disabled",
-        "groups",
-        "home",
-        "mail",
-        "shell",
-        "spn"
-      ],
-      "supported_domain_profiles": [
-        "active_directory"
-      ],
-      "supported_service_materialization_profiles": [],
-      "max_total_nodes": null,
-      "supports_acls": true,
-      "supports_accounts": true,
-      "supports_generated_artifacts": true,
-      "supported_generated_artifact_kinds": [
-        "certificate_bundle",
-        "rendered_config",
-        "ssh_key_bundle"
-      ],
-      "supported_generated_artifact_delivery_modes": [
-        "env_file",
-        "environment",
-        "mount"
-      ],
-      "supports_persistent_volumes": true,
-      "constraints": {}
-    },
-    "orchestrator": {
-      "name": "stub-orchestrator",
-      "supported_sections": [
-        "events",
-        "injects",
-        "scripts",
-        "stories",
-        "workflows"
-      ],
-      "supports_workflows": true,
-      "supports_assertion_refs": true,
-      "supports_inject_bindings": true,
-      "supported_workflow_features": [
-        "call",
-        "cancellation",
-        "compensation",
-        "decision",
-        "failure-transitions",
-        "parallel-barrier",
-        "retry",
-        "switch",
-        "timeouts"
-      ],
-      "supported_workflow_state_predicates": [
-        "attempt-counts",
-        "outcome-matching"
-      ],
-      "constraints": {}
-    },
-    "evaluator": {
-      "name": "stub-evaluator",
-      "supported_sections": [
-        "assertions",
-        "conditions",
-        "objectives",
-        "propositions"
-      ],
-      "supports_scoring": true,
-      "supports_objectives": true,
-      "supported_predicate_families": [
-        "boolean",
-        "number",
-        "presence",
-        "string"
-      ],
-      "supported_quantifiers": [
-        "all",
-        "any",
-        "at_least"
-      ],
-      "supported_truth_outcomes": [
-        "false",
-        "true",
-        "unknown",
-        "unsupported"
-      ],
-      "supported_evidence_channels": [
-        "api_response",
-        "file_artifact",
-        "log"
-      ],
-      "supported_time_domains": [
-        "scenario_time"
-      ],
-      "preserves_binding_provenance": true,
-      "constraints": {}
-    },
-    "participant_runtime": {
-      "name": "stub-participant-runtime",
-      "supported_participant_roles": [
-        "blue",
-        "green",
-        "red",
-        "white"
-      ],
-      "supported_behavior_features": [
-        "action_contracts",
-        "attribution_support",
-        "behavior_history",
-        "effects",
-        "failure_classes",
-        "observation_boundaries",
-        "outcome_interpretation",
-        "preconditions",
-        "state_transitions",
-        "temporal_contracts"
-      ],
-      "supported_interaction_features": [
-        "contention",
-        "coordination",
-        "interference",
-        "shared_state_change"
-      ],
-      "feature_support": [
-        {
-          "feature": "participant_boundary_flow_resolution",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_boundary_flow_resolution:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_boundary_flow_resolution:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_declassification",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_declassification:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_declassification:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_directed_inject_delivery",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_directed_inject_delivery:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_directed_inject_delivery:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_egress_projection",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_egress_projection:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_egress_projection:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_final_sink_mediation",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_final_sink_mediation:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_final_sink_mediation:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_ingress_admission",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_ingress_admission:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_ingress_admission:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_intervention",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_intervention:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_intervention:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_monitor_topology",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_monitor_topology:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_monitor_topology:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_predicate_opacity",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_predicate_opacity:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_predicate_opacity:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_processing_role_trust",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_processing_role_trust:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_processing_role_trust:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_quarantined_processing",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_quarantined_processing:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_quarantined_processing:unsupported"
-          ],
-          "evidence_refs": []
-        },
-        {
-          "feature": "participant_transformation",
-          "support_level": "unsupported",
-          "constraint_refs": [],
-          "limitation_refs": [
-            "limitation:participant_transformation:not-realized"
-          ],
-          "disclosure_refs": [
-            "disclosure:participant_transformation:unsupported"
-          ],
-          "evidence_refs": []
-        }
-      ],
-      "supports_autonomous_execution": false,
-      "supported_autonomous_selection_strategies": [],
-      "supported_autonomous_action_contracts": [],
-      "supported_autonomous_observation_boundaries": [],
-      "supported_autonomous_target_addresses": [],
-      "supported_autonomous_policy_profiles": [],
-      "supported_autonomous_activity_features": [],
-      "supported_autonomous_random_stream_profiles": [],
-      "max_autonomous_participants": null,
-      "max_autonomous_action_attempts": null,
-      "max_autonomous_in_flight": null,
-      "max_autonomous_occurrences": null,
-      "max_autonomous_retries_per_occurrence": null,
-      "max_autonomous_burst_size": null,
-      "execution_bindings": [],
-      "supports_execution_control": false,
-      "supported_execution_control_actions": [],
-      "supports_bounded_concurrency": false,
-      "max_execution_services": null,
-      "max_concurrent_actions": null,
-      "resource_budgets": null,
-      "constraints": {}
-    },
-    "observation": {
-      "name": "stub-observation",
-      "supported_capture_kinds": [
-        "artifact",
-        "log",
-        "observation",
-        "packet-capture",
-        "telemetry",
-        "trace"
-      ],
-      "supported_channel_kinds": [
-        "backend-log",
-        "evaluation-history",
-        "file-artifact",
-        "packet-capture",
-        "participant-observation",
-        "runtime-snapshot",
-        "workflow-history"
-      ],
-      "supported_evidence_contracts": [
-        "experiment-capture-spec-v1",
-        "experiment-derived-measure-v1",
-        "experiment-evidence-record-v1",
-        "experiment-run-v1"
-      ],
-      "supported_media_types": [
-        "application/json",
-        "text/plain"
-      ],
-      "supported_sealing_modes": [
-        "digest",
-        "immutable-store"
-      ],
-      "supports_redaction": true,
-      "supports_loss_disclosure": true,
-      "supports_chain_of_custody": false,
-      "capture_offers": [],
-      "constraints": {}
-    },
-    "cleanup": {
-      "name": "stub-cleanup",
-      "supported_contract_versions": [
-        "trial-cleanup-plan-v1",
-        "trial-cleanup-receipt-v1"
-      ],
-      "supported_action_kinds": [
-        "compensate",
-        "destroy",
-        "reset",
-        "restore",
-        "verify"
-      ],
-      "supported_verification_methods": [
-        "probe",
-        "receipt"
-      ],
-      "supports_reusable_state": true,
-      "supports_residual_state_disclosure": true
-    }
-  }
+  ]
 }

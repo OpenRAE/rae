@@ -177,10 +177,15 @@ ownership:
     - contracts/schemas/sdl
     - docs/decisions/issue-541-sdl-spec-second-review-preflight.md
     - docs/decisions/issue-805-participant-interactive-access-preflight.md
+    - docs/decisions/issue-1276-per-run-random-values-preflight.md
     - docs/decisions/adrs
+    - docs/requirements/DSL-435
     - docs/explain/sdl
     - docs/index.md
     - docs/research/formal-semantic-validation
+    # SDL schema changes recompute the reference-implementation source digest the
+    # specification-coverage bundle pins, so this phase owns that reconciliation.
+    - docs/research/specification-coverage
     - docs/research/lineage/source-audit-2026-07-12.md
     - docs/research/participant-interactive-access
     - implementations/python/packages/raes_backend_libvirt
@@ -190,6 +195,12 @@ ownership:
     - implementations/python/packages/raes_processor
     - implementations/python/packages/raes_reference_backend
     - implementations/python/packages/raes
+    # Issue #1276 threads value-free run/instantiation scope identity through the
+    # runtime plan API round-trip and RuntimeManager, and rejoins direct-plan
+    # content projections to their declared placements at submission admission.
+    - implementations/python/packages/raes_runtime/control_plane_api_models.py
+    - implementations/python/packages/raes_runtime/control_plane_submission.py
+    - implementations/python/packages/raes_runtime/manager.py
     - implementations/python/tests
     - specs/formal/participant-semantics
     - specs/formal/sdl-phases

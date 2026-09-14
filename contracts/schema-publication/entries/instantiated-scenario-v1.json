@@ -1,9 +1,9 @@
 {
-  "content_hash": "890f45848bfde9ee11ac2048dfbf8e6ffd6af5605bdaff09952bce05e1938c1c",
+  "content_hash": "11a113d1298fc65398d00960f43cf0a81b660e4e0ec7868a486710e0d9dcef72",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206. Allow partial runtime inventory descriptions and preserve unknown database protocol defaults without weakening selected-operation admission (#1207). Extend containing artifact, service, identity and access selections with the common typed profile contract and resource kinds with pinned coordinates; retain built-in controls and conditional AD names for issue #1208.",
-    "content_hash": "890f45848bfde9ee11ac2048dfbf8e6ffd6af5605bdaff09952bce05e1938c1c"
+    "content_hash": "11a113d1298fc65398d00960f43cf0a81b660e4e0ec7868a486710e0d9dcef72",
+    "summary": "Encode the StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields for issue #1276."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

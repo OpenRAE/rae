@@ -15,12 +15,19 @@ from raes_backend_protocols.service_materialization import service_materializati
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
+from raes_contracts.planning import EvaluationPlan, ProvisioningPlan, RuntimeDomain
+from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
 from ..compiler.time_model import time_model_contract_model
-from ..models import CompiledRealizationRequirement, ExecutionPlan, RuntimeModel, RuntimeSnapshot
+from ..models import (
+    CompiledRealizationRequirement,
+    ExecutionPlan,
+    PlannedResource,
+    RuntimeModel,
+    RuntimeSnapshot,
+)
 from ..semantics.realization import (
     ApparatusRealizationDefaultResolver,
     artifact_requirement_diagnostics,
@@ -192,12 +199,63 @@ def _admission_diagnostics(
     ]
 
 
+def _apply_regeneration_scope_bindings(
+    resources: dict[str, PlannedResource],
+    *,
+    run_id: str | None,
+    instantiation_id: str | None,
+) -> tuple[dict[str, PlannedResource], list[Diagnostic]]:
+    """Stamp a value-free scope binding onto per-run/per-instantiation random values.
+
+    A ``random_value`` generated artifact compiles to a value-free spec that is
+    byte-identical across runs, so structural reconciliation would return
+    ``UNCHANGED`` and the backend would never regenerate (issue #1276). Binding
+    the reconciliation identity to the authoritative run/instantiation scope makes
+    a new scope reconcile as an update while a resume within the same scope is
+    retained. ``once`` carries no binding, so it is stable for the artifact's
+    lifetime. A per-run/per-instantiation value with no matching identity fails
+    before mutation rather than silently regenerating or sharing a stale value.
+    """
+
+    diagnostics: list[Diagnostic] = []
+    updated = dict(resources)
+    for address, resource in resources.items():
+        if resource.resource_type != "generated-artifact":
+            continue
+        spec = resource.payload.get("spec", {})
+        if spec.get("generator") != GeneratedArtifactKind.RANDOM_VALUE.value:
+            continue
+        scope = spec.get("regeneration_scope")
+        if scope == GeneratedArtifactRegenerationScope.PER_RUN.value:
+            identity, missing = run_id, "run"
+        elif scope == GeneratedArtifactRegenerationScope.PER_INSTANTIATION.value:
+            identity, missing = instantiation_id, "instantiation"
+        else:
+            continue
+        if not identity:
+            diagnostics.append(
+                Diagnostic(
+                    code="provisioner.missing-regeneration-scope-identity",
+                    domain="provisioning",
+                    address=address,
+                    message=(
+                        f"A '{scope}' random value requires an authoritative {missing} identity to reconcile against."
+                    ),
+                )
+            )
+            continue
+        updated[address] = replace(resource, payload={**resource.payload, "scope_binding": f"{missing}:{identity}"})
+    return updated, diagnostics
+
+
 def plan(
     model: RuntimeModel,
     manifest: BackendManifest,
     snapshot: RuntimeSnapshot | None = None,
     *,
     target_name: str | None = None,
+    run_id: str | None = None,
+    instantiation_id: str | None = None,
     apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
     artifact_availability: ArtifactAvailabilityContext | None = None,
     profile_context: DomainProfileResolutionContextModel | None = None,
@@ -212,9 +270,13 @@ def plan(
     resources, profile_diagnostics, profile_authority = profile_resources(
         effective_model, resources, manifest, snapshot, profile_context
     )
+    resources, regeneration_diagnostics = _apply_regeneration_scope_bindings(
+        resources, run_id=run_id, instantiation_id=instantiation_id
+    )
     preparation = preparation_authority(manifest)
     diagnostics = [
         *profile_diagnostics,
+        *regeneration_diagnostics,
         *_admission_diagnostics(
             effective_model,
             manifest,
@@ -257,7 +319,13 @@ def plan(
     provisioning = retain_open_collection_nodes(
         cast(
             "ProvisioningPlan",
-            replace(provisioning, preparation=preparation, profile_authority=profile_authority),
+            replace(
+                provisioning,
+                preparation=preparation,
+                profile_authority=profile_authority,
+                run_id=run_id,
+                instantiation_id=instantiation_id,
+            ),
         )
     )
     materialization_diagnostics = service_materialization_plan_diagnostics(
@@ -276,7 +344,14 @@ def plan(
     diagnostics.extend(topology_diagnostics)
     provisioning.diagnostics.extend(topology_diagnostics)
     orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
-    evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
+    evaluation = cast(
+        "EvaluationPlan",
+        replace(
+            _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands),
+            run_id=run_id,
+            instantiation_id=instantiation_id,
+        ),
+    )
 
     return ExecutionPlan(
         target_name=target_name,

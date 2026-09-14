@@ -97,6 +97,8 @@ class ReferenceProcessor:
         profile: str | None = None,
         base_snapshot: RuntimeSnapshot | None = None,
         target_name: str | None = None,
+        run_id: str | None = None,
+        instantiation_id: str | None = None,
     ) -> ReferenceProcessorResult:
         """Realize an SDL scenario into a portable execution plan.
 
@@ -109,7 +111,14 @@ class ReferenceProcessor:
 
         raw = _resolve_scenario(scenario)
         model = compile_scenario_runtime_model(raw, parameters=parameters, profile=profile)
-        execution_plan = _plan(model, backend_manifest, base_snapshot, target_name=target_name)
+        execution_plan = _plan(
+            model,
+            backend_manifest,
+            base_snapshot,
+            target_name=target_name,
+            run_id=run_id,
+            instantiation_id=instantiation_id,
+        )
         diagnostics = (*model.diagnostics, *execution_plan.diagnostics)
         return ReferenceProcessorResult(
             scenario_name=model.scenario_name,
@@ -127,6 +136,8 @@ def run_reference_processor(
     profile: str | None = None,
     base_snapshot: RuntimeSnapshot | None = None,
     target_name: str | None = None,
+    run_id: str | None = None,
+    instantiation_id: str | None = None,
 ) -> ReferenceProcessorResult:
     """Convenience wrapper around :meth:`ReferenceProcessor.realize`."""
 
@@ -137,4 +148,6 @@ def run_reference_processor(
         profile=profile,
         base_snapshot=base_snapshot,
         target_name=target_name,
+        run_id=run_id,
+        instantiation_id=instantiation_id,
     )

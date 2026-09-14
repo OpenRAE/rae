@@ -2,12 +2,14 @@
 
 from collections.abc import Iterable, Mapping
 
+from .content import Content
 from .nodes import Node, OSFamily
+from .propositions import Proposition, PropositionBasis, StringPredicate
 from .runtime_generated_value import (
     GeneratedArtifactValueSource,
     resolve_consumable_generated_artifact_output,
 )
-from .stateful_resources import GeneratedArtifact, PersistentVolume
+from .stateful_resources import GeneratedArtifact, PersistentVolume, ResourceSensitivity
 
 _GENERATED_ARTIFACTS_PREFIX = "generated_artifacts."
 
@@ -82,13 +84,76 @@ def _environment_binding_errors(
     return errors
 
 
+def _content_binding_errors(
+    *,
+    content: Mapping[str, Content],
+    generated_artifacts: Mapping[str, GeneratedArtifact],
+    consumed_artifacts: set[str],
+) -> list[str]:
+    """Validate content ``text_from`` generated-artifact references (issue #1276).
+
+    Records each referenced artifact in ``consumed_artifacts`` so an artifact
+    consumed only through a content binding is not flagged as an orphan.
+    """
+
+    errors: list[str] = []
+    for content_name, item in content.items():
+        source = item.text_from
+        if source is None:
+            continue
+        owner = f"content {content_name!r} text_from"
+        artifact_name = _generated_artifact_ref_name(source.generated_artifact, generated_artifacts)
+        if artifact_name is None:
+            errors.append(f"{owner} references generated artifact {source.generated_artifact!r} which is missing")
+            continue
+        consumed_artifacts.add(artifact_name)
+        try:
+            output = resolve_consumable_generated_artifact_output(generated_artifacts[artifact_name], source.output)
+        except ValueError as exc:
+            errors.append(f"{owner} {exc} on generated_artifacts.{artifact_name}")
+            continue
+        if output.sensitivity is ResourceSensitivity.SECRET and item.sensitive is False:
+            errors.append(f"{owner} binds a secret generated output; content must be marked sensitive")
+    return errors
+
+
+def _proposition_expected_from_errors(
+    *,
+    propositions: Mapping[str, Proposition],
+    generated_artifacts: Mapping[str, GeneratedArtifact],
+    consumed_artifacts: set[str],
+) -> list[str]:
+    """Validate proposition ``expected_from`` generated-artifact references (issue #1276)."""
+
+    errors: list[str] = []
+    for proposition_name, proposition in propositions.items():
+        predicate = proposition.predicate
+        if not isinstance(predicate, StringPredicate) or predicate.expected_from is None:
+            continue
+        source = predicate.expected_from
+        owner = f"proposition {proposition_name!r} expected_from"
+        if proposition.basis is not PropositionBasis.OBSERVED_STATE:
+            errors.append(f"{owner} requires an observed_state proposition basis")
+        artifact_name = _generated_artifact_ref_name(source.generated_artifact, generated_artifacts)
+        if artifact_name is None:
+            errors.append(f"{owner} references generated artifact {source.generated_artifact!r} which is missing")
+            continue
+        consumed_artifacts.add(artifact_name)
+        try:
+            resolve_consumable_generated_artifact_output(generated_artifacts[artifact_name], source.output)
+        except ValueError as exc:
+            errors.append(f"{owner} {exc} on generated_artifacts.{artifact_name}")
+    return errors
+
+
 def _orphan_generated_artifact_errors(
     generated_artifacts: Mapping[str, GeneratedArtifact],
     consumed_artifacts: Iterable[str],
 ) -> list[str]:
     consumed = set(consumed_artifacts)
     return [
-        f"generated_artifacts.{name} is declared but no file consumer or environment binding consumes it"
+        f"generated_artifacts.{name} is declared but no file consumer, environment binding, "
+        f"or content binding consumes it"
         for name, artifact in generated_artifacts.items()
         if not artifact.consumers and name not in consumed
     ]
@@ -170,6 +235,8 @@ def stateful_resource_reference_errors(
     nodes: Mapping[str, Node],
     generated_artifacts: Mapping[str, GeneratedArtifact],
     persistent_volumes: Mapping[str, PersistentVolume],
+    content: Mapping[str, Content] | None = None,
+    propositions: Mapping[str, Proposition] | None = None,
 ) -> list[str]:
     """Return bounded semantic errors before compilation or dispatch."""
 
@@ -203,6 +270,20 @@ def stateful_resource_reference_errors(
     errors.extend(
         _environment_binding_errors(
             nodes=nodes,
+            generated_artifacts=generated_artifacts,
+            consumed_artifacts=consumed_artifacts,
+        )
+    )
+    errors.extend(
+        _content_binding_errors(
+            content=content or {},
+            generated_artifacts=generated_artifacts,
+            consumed_artifacts=consumed_artifacts,
+        )
+    )
+    errors.extend(
+        _proposition_expected_from_errors(
+            propositions=propositions or {},
             generated_artifacts=generated_artifacts,
             consumed_artifacts=consumed_artifacts,
         )

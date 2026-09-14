@@ -357,6 +357,18 @@ class EvaluationOp(PlanOperation):
     """Evaluation reconciliation operation."""
 
 
+_RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+
+
+def _validate_optional_run_id(run_id: str | None, *, owner: str) -> None:
+    """Validate a value-free run/instance scope identity when present (issue #1276)."""
+
+    if run_id is None:
+        return
+    if not run_id.strip() or _RUN_ID_RE.fullmatch(run_id) is None:
+        raise ValueError(f"{owner} run_id must be a bounded non-empty scope identity when present")
+
+
 @dataclass(frozen=True)
 class ProvisioningPlan:
     """Provisioning plan over canonical deployment resources."""
@@ -371,10 +383,17 @@ class ProvisioningPlan:
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
     preparation: RealizationPreparationAuthority | None = None
     profile_authority: PlanProfileAuthority | None = None
+    # Value-free run/instance scope identity (issue #1276). Carries no generated
+    # bytes; admission maps run_id to the ``run:<id>`` authority scope so per-run
+    # and per-instantiation generated values reconcile against the correct scope.
+    run_id: str | None = None
+    instantiation_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("ProvisioningPlan operation_id must be non-empty when present")
+        _validate_optional_run_id(self.run_id, owner="ProvisioningPlan run_id")
+        _validate_optional_run_id(self.instantiation_id, owner="ProvisioningPlan instantiation_id")
         _validate_plan_addresses(self.resources, self.operations, domain=RuntimeDomain.PROVISIONING)
         validate_planned_substrate_targets(
             ((item.address, item.concern) for item in self.realization_constraints),
@@ -419,6 +438,10 @@ class EvaluationPlan:
     startup_order: list[str] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
+    # Value-free run/instance scope identity (issue #1276) so a late evaluation
+    # resolves a random_value generated artifact against its original run binding.
+    run_id: str | None = None
+    instantiation_id: str | None = None
 
     def __post_init__(self) -> None:
         _validate_plan_addresses(
@@ -427,6 +450,8 @@ class EvaluationPlan:
             self.startup_order,
             domain=RuntimeDomain.EVALUATION,
         )
+        _validate_optional_run_id(self.run_id, owner="EvaluationPlan run_id")
+        _validate_optional_run_id(self.instantiation_id, owner="EvaluationPlan instantiation_id")
 
     @property
     def actionable_operations(self) -> list[EvaluationOp]:

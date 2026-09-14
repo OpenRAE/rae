@@ -165,12 +165,14 @@ def _validate_artifact_and_volume_support(
             )
         )
     elif model.generated_artifacts:
+        content_specs = {placement.address: {"spec": placement.spec} for placement in model.content_placements.values()}
         for artifact in model.generated_artifacts.values():
             diagnostic = generated_artifact_payload_diagnostic(
                 address=artifact.address,
                 spec=artifact.spec,
                 provisioner=provisioner,
                 node_specs={address: node.spec for address, node in model.node_deployments.items()},
+                content_specs=content_specs,
             )
             if diagnostic is not None:
                 diagnostics.append(diagnostic)
@@ -344,6 +346,16 @@ def _proposition_evaluator_support(
                 domain="evaluation",
                 address=proposition.address,
                 message=f"Evaluator does not support proposition predicate family '{proposition.predicate_kind}'.",
+            )
+        )
+    predicate_spec = proposition.spec.get("predicate", {}) if isinstance(proposition.spec, dict) else {}
+    if predicate_spec.get("expected_from") is not None and not evaluator.supports_deferred_expected_comparison:
+        diagnostics.append(
+            Diagnostic(
+                code="evaluator.unsupported-deferred-expected-comparison",
+                domain="evaluation",
+                address=proposition.address,
+                message="Evaluator does not support comparing a submission against a deferred generated value.",
             )
         )
     if proposition.quantifier not in evaluator.supported_quantifiers:

@@ -7,6 +7,7 @@ from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode
 
 from ..models import GeneratedArtifactRuntime, PersistentVolumeRuntime
 from .addresses import (
+    _content_address,
     _generated_artifact_address,
     _node_address,
     _persistent_volume_address,
@@ -75,6 +76,32 @@ def _environment_consumer_projections(
     return projections
 
 
+def _content_consumer_projections(
+    scenario: InstantiatedScenario,
+    artifact_name: str,
+) -> list[dict[str, Any]]:
+    """Derive generated-artifact consumer projections from content ``text_from``.
+
+    Authors bind the value once on ``content.<name>.text_from``; the provisioning
+    resource needs the matching consumer projection so a backend can render the
+    referenced output into that content's text. No raw generated value is carried.
+    """
+
+    projections: list[dict[str, Any]] = []
+    for content_name, content in scenario.content.items():
+        source = content.text_from
+        if source is not None and _generated_artifact_ref_matches(source.generated_artifact, artifact_name):
+            projections.append(
+                {
+                    "content": content_name,
+                    "target_address": _content_address(content_name),
+                    "delivery_mode": GeneratedArtifactDeliveryMode.CONTENT_TEXT.value,
+                    "output": source.output,
+                }
+            )
+    return projections
+
+
 def _stateful_dependency_address(
     scenario: InstantiatedScenario,
     reference: str,
@@ -124,6 +151,9 @@ def _compile_generated_artifacts(
         for consumer in spec["consumers"]:
             consumer["delivery_mode"] = GeneratedArtifactDeliveryMode.MOUNT.value
         spec["environment_consumers"] = _environment_consumer_projections(scenario, name)
+        content_consumers = _content_consumer_projections(scenario, name)
+        if content_consumers:
+            spec["content_consumers"] = content_consumers
         resources[address] = GeneratedArtifactRuntime(
             address=address,
             name=name,

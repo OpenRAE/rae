@@ -81,19 +81,32 @@ def _rewrite_node_network_namespace(
         )
 
 
+def _rewrite_generated_artifact_source(
+    source: object,
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    """Namespace a value-free ``generated_artifacts`` reference on a value source.
+
+    Shared by every consumer of a generated-artifact output - node environment
+    ``value_from``, content ``text_from``, and proposition ``expected_from`` -
+    so an imported module's reference tracks its namespaced artifact declaration.
+    """
+
+    if isinstance(source, dict) and source.get("generated_artifact"):
+        source["generated_artifact"] = _rewrite_section_ref(
+            str(source["generated_artifact"]),
+            "generated_artifacts",
+            symbols["generated_artifacts"],
+        )
+
+
 def _rewrite_generated_environment_sources(
     runtime: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
     for collection_name in ("environment", "environment_files"):
         for entry in runtime.get(collection_name, []):
-            source = entry.get("value_from") if isinstance(entry, dict) else None
-            if isinstance(source, dict) and source.get("generated_artifact"):
-                source["generated_artifact"] = _rewrite_section_ref(
-                    str(source["generated_artifact"]),
-                    "generated_artifacts",
-                    symbols["generated_artifacts"],
-                )
+            _rewrite_generated_artifact_source(entry.get("value_from") if isinstance(entry, dict) else None, symbols)
 
 
 def _rewrite_node(payload: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
@@ -170,6 +183,11 @@ def _rewrite_proposition_sections(
                 _maybe_rename(name, symbols["evidence_requirements"])
                 for name in proposition.get("evidence_requirements", [])
             ]
+            # A deferred expected value (issue #1276) references a generated
+            # artifact that must be namespaced with the module.
+            predicate = proposition.get("predicate")
+            if isinstance(predicate, dict):
+                _rewrite_generated_artifact_source(predicate.get("expected_from"), symbols)
     for assertion in payload.get("assertions", {}).values():
         if isinstance(assertion, dict) and assertion.get("proposition"):
             assertion["proposition"] = _maybe_rename(str(assertion["proposition"]), symbols["propositions"])
@@ -257,6 +275,9 @@ def _rewrite_content_sections(
             continue
         if content.get("target"):
             content["target"] = _rewrite_section_ref(str(content["target"]), "nodes", symbols["nodes"])
+        # A deferred generated value bound into content text (issue #1276) carries a
+        # generated_artifacts reference that must be namespaced with the module.
+        _rewrite_generated_artifact_source(content.get("text_from"), symbols)
         materialization = content.get("service_materialization")
         if isinstance(materialization, dict) and profile_selection_binding(materialization) is None:
             _rewrite_service_materialization(materialization, symbols)

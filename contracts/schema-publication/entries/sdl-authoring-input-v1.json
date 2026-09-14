@@ -1,9 +1,9 @@
 {
-  "content_hash": "7f51911b79d259963e6a8257bb16f8cd6cd2f8f3e1e56ab63a9671969927c797",
+  "content_hash": "1fb1f4cd9e05e2c5764e7c422df120bf5fd96a8c3c2c0ecf3f7a8ea6805dd519",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206. Allow partial runtime inventory descriptions and preserve unknown database protocol defaults without weakening selected-operation admission (#1207). Extend containing artifact, service, identity and access selections with the common typed profile contract and resource kinds with pinned coordinates; retain built-in controls and conditional AD names for issue #1208.",
-    "content_hash": "7f51911b79d259963e6a8257bb16f8cd6cd2f8f3e1e56ab63a9671969927c797"
+    "content_hash": "1fb1f4cd9e05e2c5764e7c422df120bf5fd96a8c3c2c0ecf3f7a8ea6805dd519",
+    "summary": "Encode the StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields for issue #1276."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

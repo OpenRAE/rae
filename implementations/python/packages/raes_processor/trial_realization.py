@@ -293,6 +293,11 @@ def realize_admitted_trial_entry(
         runtime_backend,
         target_name=target_name,
         artifact_availability=artifact_availability,
+        # Bind the admitted entry's authoritative run identity and its unique
+        # instantiation coordinate so per-run/per-instantiation generated values
+        # reconcile against the correct scope (issue #1276).
+        run_id=entry.run_id,
+        instantiation_id=plan_entry_id,
     )
     if not execution_plan.is_valid:
         raise ValueError("admitted trial processor planning failed")
