@@ -52,6 +52,7 @@ from tools.nox_support.runner import (
     _sync_project,
 )
 from tools.nox_support.test_lanes import (
+    _run_installation_qualification,
     _run_docker_integration_tests,
     _run_docs,
     _run_docs_linkcheck,
@@ -109,6 +110,28 @@ def participant_opacity_proof(session: nox.Session) -> None:
     reporter = SessionReporter(session, "participant-opacity-proof")
     try:
         _run_participant_opacity_proof(session, reporter)
+    finally:
+        reporter.summary()
+
+
+@nox.session(name="local-installation-qualification")
+def local_installation_qualification(session: nox.Session) -> None:
+    """Qualify generic-tool installation slices; pass `-- --output PATH` to retain evidence."""
+
+    reporter = SessionReporter(session, "local-installation-qualification")
+    try:
+        _run_installation_qualification(session, reporter, "local-installation-qualification", list(session.posargs))
+    finally:
+        reporter.summary()
+
+
+@nox.session(name="proof-input-qualification")
+def proof_input_qualification(session: nox.Session) -> None:
+    """Qualify proof-input installation slices; pass `-- --output PATH` to retain evidence."""
+
+    reporter = SessionReporter(session, "proof-input-qualification")
+    try:
+        _run_installation_qualification(session, reporter, "proof-input-qualification", list(session.posargs))
     finally:
         reporter.summary()
 

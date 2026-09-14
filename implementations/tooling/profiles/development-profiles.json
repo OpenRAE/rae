@@ -645,7 +645,8 @@
           "coreutils",
           "bubblewrap",
           "fontconfig",
-          "fonts-dejavu-core"
+          "fonts-dejavu-core",
+          "libc-bin"
         ],
         "host_trust_root_refs": [
           "ubuntu-archive-keyring",
@@ -757,7 +758,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "81fa506a0116e5a79d0e312d68ca89429846aba7fffcfc5eac5b03891231055f",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -787,7 +788,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "81fa506a0116e5a79d0e312d68ca89429846aba7fffcfc5eac5b03891231055f",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -817,7 +818,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "81fa506a0116e5a79d0e312d68ca89429846aba7fffcfc5eac5b03891231055f",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -845,7 +846,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "81fa506a0116e5a79d0e312d68ca89429846aba7fffcfc5eac5b03891231055f",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -874,7 +875,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "81fa506a0116e5a79d0e312d68ca89429846aba7fffcfc5eac5b03891231055f",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
