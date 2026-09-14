@@ -9,6 +9,7 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from ..artifact_requirements import ArtifactMechanismCapability
+from ..domain_profiles import DomainProfileCoordinateModel
 from ..operating_systems import OS_VERSION_PATTERN, validate_operating_system_pair
 from ..vocabulary import (
     GeneratedArtifactDeliveryMode,
@@ -115,13 +116,15 @@ class ProvisionerCapabilitiesModel(ContractModel):
     supported_node_architectures: list[NonEmptyString] = Field(default_factory=list)
     supported_content_types: list[NonEmptyString] = Field(default_factory=list)
     supported_account_features: list[NonEmptyString] = Field(default_factory=list)
-    supported_domain_profiles: list[NonEmptyString] = Field(default_factory=list)
-    supported_service_materialization_profiles: list[NonEmptyString] = Field(default_factory=list)
+    supported_domain_profiles: list[NonEmptyString | DomainProfileCoordinateModel] = Field(default_factory=list)
+    supported_service_materialization_profiles: list[NonEmptyString | DomainProfileCoordinateModel] = Field(
+        default_factory=list
+    )
     max_total_nodes: int | None = Field(default=None, gt=0)
     supports_acls: bool = False
     supports_accounts: bool = False
     supports_generated_artifacts: bool = False
-    supported_generated_artifact_kinds: list[GeneratedArtifactKind] = Field(
+    supported_generated_artifact_kinds: list[GeneratedArtifactKind | DomainProfileCoordinateModel] = Field(
         default_factory=list,
         json_schema_extra={"uniqueItems": True},
     )
@@ -157,11 +160,11 @@ class ProvisionerCapabilitiesModel(ContractModel):
         )
         _validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_domain_profiles",
-            self.supported_domain_profiles,
+            [value for value in self.supported_domain_profiles if isinstance(value, str)],
         )
         _validate_controlled_vocabulary_terms(
             "capabilities.provisioner.supported_service_materialization_profiles",
-            self.supported_service_materialization_profiles,
+            [value for value in self.supported_service_materialization_profiles if isinstance(value, str)],
         )
         _validate_feature_coupling(self)
         return self

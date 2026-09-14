@@ -46,3 +46,7 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - TESTS → TEST `implementations/python/tests/test_backend_manifest.py` (Backend manifest generated-artifact capability tests)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1010` (SSH generated-artifact output isolation)
 - IMPLEMENTS → ADR `docs/decisions/issue-1010-ssh-generated-artifact-output-isolation-preflight.md` (SSH generated-artifact output isolation preflight)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/artifact_generation.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1208_profile_selections.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_profiles.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1208_profile_composition.py`

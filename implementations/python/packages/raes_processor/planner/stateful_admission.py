@@ -266,12 +266,19 @@ def _artifact_capability_diagnostic(
     delivery_modes: set[GeneratedArtifactDeliveryMode],
     provisioner: ProvisionerCapabilities,
 ) -> Diagnostic | None:
-    if artifact.generator not in provisioner.supported_generated_artifact_kinds:
+    from raes_contracts.domain_profiles import DomainProfileBindingModel
+
+    kind = (
+        artifact.generator.coordinate
+        if isinstance(artifact.generator, DomainProfileBindingModel)
+        else artifact.generator
+    )
+    if kind not in provisioner.supported_generated_artifact_kinds:
         return Diagnostic(
             code="provisioner.unsupported-generated-artifact-kind",
             domain="provisioning",
             address=address,
-            message=f"Provisioner does not support generated artifact kind '{artifact.generator.value}'.",
+            message="Provisioner does not support the selected generated artifact kind.",
         )
     unsupported = delivery_modes - provisioner.supported_generated_artifact_delivery_modes
     if unsupported:

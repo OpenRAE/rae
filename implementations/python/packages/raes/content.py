@@ -14,6 +14,8 @@ from enum import Enum
 from typing import Annotated, Literal
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.profile_selections import profile_selection_binding
 
 from ._base import SDLModel, normalize_enum_value, parse_bool_or_var
 from ._identifiers import PortableIdentifier
@@ -110,10 +112,13 @@ class ServiceSearchIndexSchemaMaterialization(_ServiceMaterializationBase):
     requirements: ServiceSearchIndexSchemaRequirements
 
 
-ServiceMaterializationProfile = Annotated[
-    ServiceMaterialization | ServiceSearchIndexSchemaMaterialization,
-    Field(discriminator="interface_profile"),
-]
+ServiceMaterializationProfile = (
+    Annotated[
+        ServiceMaterialization | ServiceSearchIndexSchemaMaterialization,
+        Field(discriminator="interface_profile"),
+    ]
+    | DomainProfileBindingModel
+)
 
 
 class Content(SDLModel):
@@ -147,7 +152,11 @@ class Content(SDLModel):
         if not isinstance(value, dict):
             return value
         binding = value.get("service_materialization")
-        if not isinstance(binding, dict) or "interface_profile" in binding:
+        if (
+            not isinstance(binding, dict)
+            or profile_selection_binding(binding) is not None
+            or "interface_profile" in binding
+        ):
             return value
         normalized = dict(value)
         normalized["service_materialization"] = {

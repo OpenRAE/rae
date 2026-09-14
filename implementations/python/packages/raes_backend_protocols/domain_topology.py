@@ -6,7 +6,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.domain_profiles import DomainProfileBindingModel, DomainProfileCoordinateModel
 from raes_contracts.planning import ChangeAction, RuntimeDomain
 
 from ._domain_topology_binding import (
@@ -133,7 +135,9 @@ def _parse_binding(
 def _binding_core(binding: DomainTopologyBinding) -> tuple[str, str, str, str, str]:
     return (
         binding.domain_id,
-        binding.profile,
+        canonical_json_digest(binding.profile.model_dump(mode="json"))
+        if isinstance(binding.profile, DomainProfileBindingModel)
+        else binding.profile,
         binding.dns_name,
         binding.netbios_name,
         binding.authority_account_address,
@@ -162,7 +166,7 @@ def _dedupe_diagnostics(diagnostics: list[Diagnostic]) -> list[Diagnostic]:
 
 def _collect_bindings(
     resources: Mapping[str, _MaterializedResource],
-    supported_domain_profiles: frozenset[str] | None,
+    supported_domain_profiles: frozenset[str | DomainProfileCoordinateModel] | None,
 ) -> tuple[dict[str, DomainTopologyBinding], list[Diagnostic]]:
     bindings: dict[str, DomainTopologyBinding] = {}
     diagnostics: list[Diagnostic] = []
@@ -198,15 +202,25 @@ def _collect_bindings(
             )
         else:
             bindings[address] = binding
-            if supported_domain_profiles is not None and binding.profile not in supported_domain_profiles:
-                diagnostics.append(
-                    _diagnostic(
-                        "provisioner.unsupported-domain-profile",
-                        address,
-                        f"Provisioner does not support identity-domain profile '{binding.profile}'.",
-                    )
-                )
+            diagnostic = _profile_support_diagnostic(binding, address, supported_domain_profiles)
+            if diagnostic is not None:
+                diagnostics.append(diagnostic)
     return bindings, diagnostics
+
+
+def _profile_support_diagnostic(
+    binding: DomainTopologyBinding,
+    address: str,
+    supported: frozenset[str | DomainProfileCoordinateModel] | None,
+) -> Diagnostic | None:
+    profile = binding.profile.coordinate if isinstance(binding.profile, DomainProfileBindingModel) else binding.profile
+    if supported is not None and profile not in supported:
+        return _diagnostic(
+            "provisioner.unsupported-domain-profile",
+            address,
+            "Provisioner does not support the selected identity-domain profile.",
+        )
+    return None
 
 
 def _domain_definition_diagnostics(bindings: Mapping[str, DomainTopologyBinding]) -> list[Diagnostic]:

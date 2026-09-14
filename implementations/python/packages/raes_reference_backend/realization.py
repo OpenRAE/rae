@@ -39,6 +39,7 @@ PLACEMENT_RESOURCE_TYPES = frozenset(
         "content-placement",
         "account-placement",
         "domain-controller-placement",
+        "generated-artifact",
     }
 )
 SUPPORTED_RESOURCE_TYPES = frozenset({NODE_RESOURCE_TYPE, NETWORK_RESOURCE_TYPE}) | PLACEMENT_RESOURCE_TYPES

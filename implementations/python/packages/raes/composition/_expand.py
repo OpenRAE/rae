@@ -71,6 +71,7 @@ from ..realization_designation import (
 )
 from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, ScenarioContent
 from ._behavior import _behavior_reference_maps, _rewrite_agent_sections, _rewrite_behavior_sections
+from ._profiles import rewrite_profile_selections
 from ._references import _rewrite_variable_tokens
 from ._sections import (
     _rewrite_account_and_domain_sections,
@@ -109,6 +110,7 @@ def _rewrite_payload_with_symbols(
 
     namespaced = dict(payload)
     tool_affordance_refs, _ = _behavior_reference_maps(namespaced, symbols, namespace)
+    rewrite_profile_selections(namespaced, symbols)
     _rewrite_foundational_sections(namespaced, symbols)
     _rewrite_proposition_sections(namespaced, symbols)
     _rewrite_narrative_sections(namespaced, symbols)

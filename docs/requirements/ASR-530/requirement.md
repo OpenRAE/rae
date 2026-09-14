@@ -80,3 +80,5 @@ Agent-assisted development can produce internally coherent code and documentatio
 - TESTS → TEST `implementations/python/tests/test_scenario_satisfiability.py` (Differential, timeout, and construction-count regressions)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v2.json` (Formal semantic validation atomic retest evidence release v2)
 - IMPLEMENTS → GITHUB_ISSUE `828` (Re-test formal semantic validation, satisfiability, and exploit-path claims)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v10.json` (Atomic formal replay release 11.0.0 for typed selections)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1208-v9.json` (Atomic coverage release 9.0.0 for typed selections)

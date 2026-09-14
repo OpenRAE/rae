@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from raes_contracts.contracts import ProvisionerCapabilitiesModel
+from raes_contracts.domain_profiles import DomainProfileCoordinateModel
 
 from .provisioner_capabilities import OperatingSystemCompatibility, ProvisionerCapabilities
 
@@ -30,15 +31,22 @@ def provisioner_capability_payload(provisioner: ProvisionerCapabilities) -> dict
         "supported_node_architectures": sorted(provisioner.supported_node_architectures),
         "supported_content_types": sorted(provisioner.supported_content_types),
         "supported_account_features": sorted(provisioner.supported_account_features),
-        "supported_domain_profiles": sorted(provisioner.supported_domain_profiles),
-        "supported_service_materialization_profiles": sorted(provisioner.supported_service_materialization_profiles),
+        "supported_domain_profiles": [
+            value.model_dump(mode="json") if isinstance(value, DomainProfileCoordinateModel) else value
+            for value in sorted(provisioner.supported_domain_profiles, key=str)
+        ],
+        "supported_service_materialization_profiles": [
+            value.model_dump(mode="json") if isinstance(value, DomainProfileCoordinateModel) else value
+            for value in sorted(provisioner.supported_service_materialization_profiles, key=str)
+        ],
         "max_total_nodes": provisioner.max_total_nodes,
         "supports_acls": provisioner.supports_acls,
         "supports_accounts": provisioner.supports_accounts,
         "supports_generated_artifacts": provisioner.supports_generated_artifacts,
-        "supported_generated_artifact_kinds": sorted(
-            kind.value for kind in provisioner.supported_generated_artifact_kinds
-        ),
+        "supported_generated_artifact_kinds": [
+            kind.model_dump(mode="json") if isinstance(kind, DomainProfileCoordinateModel) else kind.value
+            for kind in sorted(provisioner.supported_generated_artifact_kinds, key=str)
+        ],
         "supported_generated_artifact_delivery_modes": sorted(
             mode.value for mode in provisioner.supported_generated_artifact_delivery_modes
         ),

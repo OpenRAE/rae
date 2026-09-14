@@ -149,6 +149,17 @@
           "title": "Mail",
           "type": "string"
         },
+        "materialization_profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "node": {
           "default": "",
           "title": "Node",
@@ -1535,6 +1546,9 @@
                   "$ref": "#/$defs/ServiceSearchIndexSchemaMaterialization"
                 }
               ]
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
             },
             {
               "type": "null"
@@ -3112,6 +3126,192 @@
       "title": "DockerfileInstructionKind",
       "type": "string"
     },
+    "DomainProfileBindingBasis": {
+      "enum": [
+        "author-supplied",
+        "backend-selected",
+        "observed"
+      ],
+      "title": "DomainProfileBindingBasis",
+      "type": "string"
+    },
+    "DomainProfileBindingModel": {
+      "additionalProperties": false,
+      "description": "Typed profile data attached to one explicit host owner.",
+      "properties": {
+        "binding_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "children": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DomainProfileBindingModel"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "coordinate": {
+          "$ref": "#/$defs/DomainProfileCoordinateModel"
+        },
+        "owner": {
+          "$ref": "#/$defs/DomainProfileBindingOwnerModel"
+        },
+        "provenance": {
+          "$ref": "#/$defs/DomainProfileBindingProvenanceModel"
+        },
+        "schema_version": {
+          "const": "domain-profile-binding/v1",
+          "default": "domain-profile-binding/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "binding_id",
+        "coordinate",
+        "owner",
+        "value",
+        "provenance"
+      ],
+      "title": "DomainProfileBindingModel",
+      "type": "object"
+    },
+    "DomainProfileBindingOwnerModel": {
+      "additionalProperties": false,
+      "description": "Explicit core owner, phase, context, and use for profile data.",
+      "properties": {
+        "canonical_address": {
+          "maxLength": 4096,
+          "pattern": "^#(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Canonical Address",
+          "type": "string"
+        },
+        "concept_family": {
+          "minLength": 1,
+          "title": "Concept Family",
+          "type": "string"
+        },
+        "context": {
+          "minLength": 1,
+          "title": "Context",
+          "type": "string"
+        },
+        "lifecycle_phase": {
+          "minLength": 1,
+          "title": "Lifecycle Phase",
+          "type": "string"
+        },
+        "owning_contract_id": {
+          "minLength": 1,
+          "title": "Owning Contract Id",
+          "type": "string"
+        },
+        "use": {
+          "$ref": "#/$defs/DomainProfileBindingUse"
+        }
+      },
+      "required": [
+        "owning_contract_id",
+        "canonical_address",
+        "concept_family",
+        "lifecycle_phase",
+        "context",
+        "use"
+      ],
+      "title": "DomainProfileBindingOwnerModel",
+      "type": "object"
+    },
+    "DomainProfileBindingProvenanceModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "evidence_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "enum": [
+                  "author-supplied",
+                  "backend-selected"
+                ]
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "Basis of a bound value, separate from definition trust provenance.",
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/DomainProfileBindingBasis"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "basis",
+        "source_ref"
+      ],
+      "title": "DomainProfileBindingProvenanceModel",
+      "type": "object"
+    },
+    "DomainProfileBindingUse": {
+      "enum": [
+        "constraint",
+        "typed-report",
+        "annotation",
+        "opaque-exchange"
+      ],
+      "title": "DomainProfileBindingUse",
+      "type": "string"
+    },
     "DomainProfileCoordinateModel": {
       "additionalProperties": false,
       "description": "Exact immutable definition coordinate.",
@@ -3929,7 +4129,15 @@
           "uniqueItems": true
         },
         "generator": {
-          "$ref": "#/$defs/GeneratedArtifactKind"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactKind"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
+          "title": "Generator"
         },
         "lifecycle": {
           "$ref": "#/$defs/GeneratedArtifactLifecycle"
@@ -4162,6 +4370,31 @@
     },
     "IdentityDomain": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "profile": {
+                "type": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "dns_name": {
+                "minLength": 1
+              },
+              "netbios_name": {
+                "minLength": 1
+              }
+            },
+            "required": [
+              "dns_name",
+              "netbios_name"
+            ]
+          }
+        }
+      ],
       "description": "Scenario-scoped authored identity domain.",
       "properties": {
         "authority_account_ref": {
@@ -4170,12 +4403,12 @@
           "type": "string"
         },
         "dns_name": {
-          "minLength": 1,
+          "default": "",
           "title": "Dns Name",
           "type": "string"
         },
         "netbios_name": {
-          "minLength": 1,
+          "default": "",
           "title": "Netbios Name",
           "type": "string"
         },
@@ -4183,6 +4416,9 @@
           "anyOf": [
             {
               "$ref": "#/$defs/IdentityDomainProfile"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
             },
             {
               "not": {
@@ -4198,8 +4434,6 @@
       },
       "required": [
         "profile",
-        "dns_name",
-        "netbios_name",
         "authority_account_ref"
       ],
       "title": "IdentityDomain",
@@ -4221,6 +4455,9 @@
           "anyOf": [
             {
               "$ref": "#/$defs/IdentityFacadeProtocol"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
             },
             {
               "not": {
@@ -8482,6 +8719,9 @@
               "$ref": "#/$defs/ParticipantInteractiveAccessChannel"
             },
             {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            },
+            {
               "not": {
                 "pattern": "[\\r\\n]"
               },
@@ -8687,7 +8927,15 @@
           "$ref": "#/$defs/ParticipantResourceResetMode"
         },
         "resource_kind": {
-          "$ref": "#/$defs/ParticipantResourceKind"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantResourceKind"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
+          ],
+          "title": "Resource Kind"
         },
         "unit": {
           "minLength": 1,
@@ -10068,6 +10316,9 @@
               "$ref": "#/$defs/ForestTrustType"
             },
             {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            },
+            {
               "not": {
                 "pattern": "[\\r\\n]"
               },
@@ -10186,6 +10437,9 @@
               "$ref": "#/$defs/FederationMappingIntent"
             },
             {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            },
+            {
               "not": {
                 "pattern": "[\\r\\n]"
               },
@@ -10200,6 +10454,9 @@
           "anyOf": [
             {
               "$ref": "#/$defs/FederationProtocol"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
             },
             {
               "not": {

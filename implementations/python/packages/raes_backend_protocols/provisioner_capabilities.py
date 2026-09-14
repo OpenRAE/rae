@@ -6,6 +6,7 @@ from raes_contracts.controlled_vocabularies import (
     validate_controlled_vocabulary_scope_values,
     validate_controlled_vocabulary_value,
 )
+from raes_contracts.domain_profiles import DomainProfileCoordinateModel
 from raes_contracts.operating_systems import OS_VERSION_RE, validate_operating_system_pair
 from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode, GeneratedArtifactKind
 
@@ -63,9 +64,14 @@ def _validate_operating_system_rows(capabilities: "ProvisionerCapabilities") -> 
         )
 
 
-def _validated_artifact_kinds(capabilities: "ProvisionerCapabilities") -> frozenset[GeneratedArtifactKind]:
+def _validated_artifact_kinds(
+    capabilities: "ProvisionerCapabilities",
+) -> frozenset[GeneratedArtifactKind | DomainProfileCoordinateModel]:
     try:
-        normalized = frozenset(GeneratedArtifactKind(kind) for kind in capabilities.supported_generated_artifact_kinds)
+        normalized = frozenset(
+            kind if isinstance(kind, DomainProfileCoordinateModel) else GeneratedArtifactKind(kind)
+            for kind in capabilities.supported_generated_artifact_kinds
+        )
     except ValueError as exc:
         raise ValueError("ProvisionerCapabilities contains an unknown generated artifact kind") from exc
     if capabilities.supports_generated_artifacts and not normalized:
@@ -107,6 +113,12 @@ def _validate_account_support(capabilities: "ProvisionerCapabilities") -> None:
         raise ValueError("supported_account_features require supports_accounts=True")
 
 
+def _profile_terms(values: frozenset[str | DomainProfileCoordinateModel]) -> frozenset[str]:
+    if any(not isinstance(value, (str, DomainProfileCoordinateModel)) for value in values):
+        raise ValueError("Profile capabilities require vocabulary terms or pinned coordinates")
+    return frozenset(value for value in values if isinstance(value, str))
+
+
 @dataclass(frozen=True)
 class ProvisionerCapabilities:
     name: str
@@ -116,13 +128,13 @@ class ProvisionerCapabilities:
     supported_node_architectures: frozenset[str] = frozenset()
     supported_content_types: frozenset[str] = frozenset()
     supported_account_features: frozenset[str] = frozenset()
-    supported_domain_profiles: frozenset[str] = frozenset()
-    supported_service_materialization_profiles: frozenset[str] = frozenset()
+    supported_domain_profiles: frozenset[str | DomainProfileCoordinateModel] = frozenset()
+    supported_service_materialization_profiles: frozenset[str | DomainProfileCoordinateModel] = frozenset()
     max_total_nodes: int | None = None
     supports_acls: bool = False
     supports_accounts: bool = False
     supports_generated_artifacts: bool = False
-    supported_generated_artifact_kinds: frozenset[GeneratedArtifactKind] = frozenset()
+    supported_generated_artifact_kinds: frozenset[GeneratedArtifactKind | DomainProfileCoordinateModel] = frozenset()
     supported_generated_artifact_delivery_modes: frozenset[GeneratedArtifactDeliveryMode] = frozenset()
     supports_persistent_volumes: bool = False
     constraints: dict[str, str] = field(default_factory=dict)
@@ -135,10 +147,13 @@ class ProvisionerCapabilities:
         _require_string_values("supported_node_architectures", self.supported_node_architectures)
         _require_string_values("supported_content_types", self.supported_content_types)
         _require_string_values("supported_account_features", self.supported_account_features)
-        _require_string_values("supported_domain_profiles", self.supported_domain_profiles)
+        _require_string_values(
+            "supported_domain_profiles",
+            _profile_terms(self.supported_domain_profiles),
+        )
         _require_string_values(
             "supported_service_materialization_profiles",
-            self.supported_service_materialization_profiles,
+            _profile_terms(self.supported_service_materialization_profiles),
         )
         validate_controlled_vocabulary_scope_values(
             "capabilities.provisioner.supported_node_types",
@@ -163,11 +178,11 @@ class ProvisionerCapabilities:
         )
         validate_controlled_vocabulary_scope_values(
             PROVISIONER_DOMAIN_PROFILE_SCOPE,
-            self.supported_domain_profiles,
+            tuple(value for value in self.supported_domain_profiles if isinstance(value, str)),
         )
         validate_controlled_vocabulary_scope_values(
             PROVISIONER_SERVICE_MATERIALIZATION_PROFILE_SCOPE,
-            self.supported_service_materialization_profiles,
+            tuple(value for value in self.supported_service_materialization_profiles if isinstance(value, str)),
         )
         if self.max_total_nodes is not None and self.max_total_nodes < 1:
             raise ValueError("ProvisionerCapabilities.max_total_nodes must be positive when provided")

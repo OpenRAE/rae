@@ -8,6 +8,7 @@ from inspect import signature
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
+from raes_contracts.profile_selections import authored_resource_profiles, selected_profile_authority
 from raes_contracts.realization_profiles import (
     PLAN_PROFILE_CONTRACT,
     profile_authority_violation,
@@ -72,6 +73,8 @@ def configured_profile_context(
 ) -> DomainProfileResolutionContextModel | None:
     """Read target-owned trust/support; a submitted plan cannot supply this."""
 
+    bindings = authored_resource_profiles(op for op in plan.operations if op.action is not ChangeAction.DELETE)
+    selected_profile_authority(bindings, None, plan.profile_authority)
     if plan.profile_authority is None:
         if any(op.profile_bindings for op in plan.operations):
             raise ValueError("Unowned profile bindings are not execution authority")

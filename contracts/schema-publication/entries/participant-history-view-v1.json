@@ -2,9 +2,9 @@
   "contract_id": "participant-history-view-v1",
   "schema_path": "contracts/schemas/control-plane/participant-history-view-v1.json",
   "stability": "draft",
-  "content_hash": "d396a961790f60095b6885967777405056dddd124470a06fc2455cdc48680af7",
+  "content_hash": "9b564ac695bc9ad794c681355168aca8658915d2d940a91a3bc78d7adb9e1c09",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "d396a961790f60095b6885967777405056dddd124470a06fc2455cdc48680af7"
+    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
+    "content_hash": "9b564ac695bc9ad794c681355168aca8658915d2d940a91a3bc78d7adb9e1c09"
   }
 }

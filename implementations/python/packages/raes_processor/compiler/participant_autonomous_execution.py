@@ -131,7 +131,7 @@ def _compiled_resource_budget(
             owner_kind=owner_by_id[str(dimension.owner_ref)].kind,
             owner_address=owner_by_id[str(dimension.owner_ref)].address,
             pool_ref=dimension.pool_ref,
-            resource_kind=dimension.resource_kind.value,
+            resource_kind=getattr(dimension.resource_kind, "value", dimension.resource_kind),
             unit=dimension.unit,
             accounting_mode=dimension.accounting_mode.value,
             meter_profile_ref=dimension.meter_profile_ref,

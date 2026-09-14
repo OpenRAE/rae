@@ -8,6 +8,7 @@ from raes.semantics.domain_topology import (
     DomainNodeBinding,
 )
 from raes_backend_protocols.domain_topology import DomainTopologyBinding
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 from .support import _address
 
@@ -74,10 +75,14 @@ def _compiled_domain_binding(
         "accounts",
         scenario.accounts,
     )
-    profile = getattr(domain.profile, "value", domain.profile)
+    profile = (
+        domain.profile
+        if isinstance(domain.profile, DomainProfileBindingModel)
+        else getattr(domain.profile, "value", domain.profile)
+    )
     return DomainTopologyBinding(
         domain_id=binding.domain_name,
-        profile=str(profile),
+        profile=profile,
         dns_name=domain.dns_name,
         netbios_name=domain.netbios_name,
         authority_account_address=_account_address(authority_name),
