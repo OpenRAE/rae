@@ -39,9 +39,9 @@ INSTANCE_TYPE="${INSTANCE_TYPE:-c5.2xlarge}"
 SSH_INGRESS_CIDR="${SSH_INGRESS_CIDR:-}"
 RUN_ID="${RUN_ID:-guest-$(date -u +%Y%m%d%H%M%S)-$$}"
 KEEP=0
-[ "${1:-}" = "--keep" ] && KEEP=1
+[[ "${1:-}" == "--keep" ]] && KEEP=1
 
-if [ -z "$SSH_INGRESS_CIDR" ]; then
+if [[ -z "$SSH_INGRESS_CIDR" ]]; then
   echo "error: set SSH_INGRESS_CIDR to the reviewed CIDR permitted to reach the instance on tcp/22" >&2
   exit 2
 fi
@@ -66,15 +66,15 @@ created_key=0
 IP=""
 
 cleanup() {
-  if [ "$KEEP" = "1" ]; then
+  if [[ "$KEEP" == "1" ]]; then
     echo "--keep: leaving instance ${created_iid:-?} (${IP:-?}), security group ${created_sg:-?} and key pair $NAME up; terminate them manually." >&2
     return
   fi
   echo "=== teardown (owned resources only) ==="
-  [ -n "$created_iid" ] && "${AWS[@]}" ec2 terminate-instances --instance-ids "$created_iid" >/dev/null 2>&1 || true
-  [ -n "$created_iid" ] && "${AWS[@]}" ec2 wait instance-terminated --instance-ids "$created_iid" 2>/dev/null || true
-  [ -n "$created_sg" ] && "${AWS[@]}" ec2 delete-security-group --group-id "$created_sg" >/dev/null 2>&1 || true
-  [ "$created_key" = "1" ] && "${AWS[@]}" ec2 delete-key-pair --key-name "$NAME" >/dev/null 2>&1 || true
+  [[ -n "$created_iid" ]] && "${AWS[@]}" ec2 terminate-instances --instance-ids "$created_iid" >/dev/null 2>&1 || true
+  [[ -n "$created_iid" ]] && "${AWS[@]}" ec2 wait instance-terminated --instance-ids "$created_iid" 2>/dev/null || true
+  [[ -n "$created_sg" ]] && "${AWS[@]}" ec2 delete-security-group --group-id "$created_sg" >/dev/null 2>&1 || true
+  [[ "$created_key" == "1" ]] && "${AWS[@]}" ec2 delete-key-pair --key-name "$NAME" >/dev/null 2>&1 || true
   rm -rf "$WORK" "$STAGE"
   echo "torn down."
 }
@@ -85,11 +85,11 @@ pin_host_key() {
   for _ in $(seq 1 40); do
     out=$("${AWS[@]}" ec2 get-console-output --instance-id "$created_iid" --latest --output text 2>/dev/null || true)
     keys=$(printf '%s\n' "$out" | awk '/BEGIN SSH HOST KEY KEYS/{f=1;next}/END SSH HOST KEY KEYS/{f=0}f')
-    if [ -n "$keys" ]; then
+    if [[ -n "$keys" ]]; then
       printf '%s\n' "$keys" | while read -r ktype kval _; do
-        [ -n "$ktype" ] && [ -n "$kval" ] && printf '%s %s %s\n' "$IP" "$ktype" "$kval" >> "$KNOWN_HOSTS"
+        [[ -n "$ktype" && -n "$kval" ]] && printf '%s %s %s\n' "$IP" "$ktype" "$kval" >> "$KNOWN_HOSTS"
       done
-      [ -s "$KNOWN_HOSTS" ] && return 0
+      [[ -s "$KNOWN_HOSTS" ]] && return 0
     fi
     sleep 15
   done
@@ -101,15 +101,15 @@ rm -rf "$STAGE"
 uv run --project implementations/tooling/python --frozen \
   python "$REPO_ROOT/tools/real-daemon/live_runner_inputs.py" --stage-dir "$STAGE" --no-cirros >/dev/null
 MANIFEST="$STAGE/live-runner-inputs-manifest.json"
-[ -f "$MANIFEST" ] || { echo "error: input staging did not produce a manifest" >&2; exit 1; }
-read_nested() { python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]][sys.argv[3]])' "$MANIFEST" "$1" "$2"; }
-read_top() { python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$MANIFEST" "$1"; }
+[[ -f "$MANIFEST" ]] || { echo "error: input staging did not produce a manifest" >&2; exit 1; }
+read_nested() { local section="$1" key="$2"; python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]][sys.argv[3]])' "$MANIFEST" "$section" "$key"; }
+read_top() { local key="$1"; python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$MANIFEST" "$key"; }
 UV_ARCHIVE="$STAGE/$(read_nested uv staged_path)"
 CPYTHON_ARCHIVE="$STAGE/$(read_nested cpython staged_path)"
 IMAGE_OWNER="$(read_nested base_image owner)"
 IMAGE_NAME="$(read_nested base_image name)"
 NATIVE_SNAPSHOT="$(read_top native_repository_snapshot)"
-[ -f "$UV_ARCHIVE" ] && [ -f "$CPYTHON_ARCHIVE" ] && [ -d "$STAGE/wheelhouse" ] || { echo "error: staged inputs are incomplete" >&2; exit 1; }
+[[ -f "$UV_ARCHIVE" && -f "$CPYTHON_ARCHIVE" && -d "$STAGE/wheelhouse" ]] || { echo "error: staged inputs are incomplete" >&2; exit 1; }
 
 echo "=== identity ==="; "${AWS[@]}" sts get-caller-identity --query Account --output text
 
@@ -117,7 +117,7 @@ echo "=== resolve reviewed image by exact Canonical name + owner ==="
 AMI=$("${AWS[@]}" ec2 describe-images --owners "$IMAGE_OWNER" \
   --filters "Name=name,Values=$IMAGE_NAME" "Name=architecture,Values=x86_64" "Name=state,Values=available" \
   --query 'Images[0].ImageId' --output text)
-[ -n "$AMI" ] && [ "$AMI" != "None" ] || { echo "error: reviewed image '$IMAGE_NAME' (owner $IMAGE_OWNER) not found in $REGION" >&2; exit 1; }
+[[ -n "$AMI" && "$AMI" != "None" ]] || { echo "error: reviewed image '$IMAGE_NAME' (owner $IMAGE_OWNER) not found in $REGION" >&2; exit 1; }
 echo "resolved AMI: $AMI ($IMAGE_NAME, owner $IMAGE_OWNER)"
 
 VPC=$("${AWS[@]}" ec2 describe-vpcs --filters Name=isDefault,Values=true --query 'Vpcs[0].VpcId' --output text)
@@ -177,7 +177,7 @@ for _ in $(seq 1 40); do
   ssh "${SSHOPT[@]}" ubuntu@"$IP" "test -f /var/lib/cloud/userdata-done" 2>/dev/null && { ready=1; break; }
   sleep 10
 done
-[ "$ready" = "1" ] || { echo "error: instance setup did not complete within the budget" >&2; exit 1; }
+[[ "$ready" == "1" ]] || { echo "error: instance setup did not complete within the budget" >&2; exit 1; }
 
 echo "=== deploy tracked source bundle (revision-bound, tracked files only) ==="
 REVISION=$(git -C "$REPO_ROOT" rev-parse HEAD)
@@ -236,7 +236,7 @@ fi
 
 # A failed certification always wins. But a *successful* run whose required
 # evidence was not persisted locally must not report success either.
-if [ "$run_status" -ne 0 ]; then
+if [[ "$run_status" -ne 0 ]]; then
   exit "$run_status"
 fi
 exit "$copy_status"

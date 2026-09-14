@@ -32,6 +32,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -237,10 +238,16 @@ def stage_live_runner_inputs(
 
     from tools.bootstrap_profile import fetch_offline_kit_payloads
 
-    try:
-        stage_dir.resolve().relative_to(repo_root.resolve())
-    except ValueError as exc:
-        raise RuntimeError("live-runner stage directory must live under the repository") from exc
+    # Canonicalize then validate the (untrusted, CLI-supplied) staging path
+    # before any filesystem action, to prevent path injection: resolve symlinks
+    # and ``..`` first, then require containment under the repository. The base
+    # keeps a trailing separator so a sibling like ``<repo>-evil`` cannot pass a
+    # prefix check. All subsequent operations use the canonicalized path.
+    resolved_stage = os.path.realpath(stage_dir)
+    base_dir = os.path.realpath(repo_root)
+    if resolved_stage != base_dir and not resolved_stage.startswith(base_dir + os.sep):
+        raise RuntimeError("live-runner stage directory must live under the repository")
+    stage_dir = Path(resolved_stage)
 
     stage_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
 

@@ -50,7 +50,8 @@ def _script_code(script: Path) -> str:
 
 def _load_real_daemon_module(name: str) -> types.ModuleType:
     spec = importlib.util.spec_from_file_location(name, REAL_DAEMON / f"{name}.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module  # dataclasses resolve annotations via sys.modules
     spec.loader.exec_module(module)
@@ -75,8 +76,10 @@ def test_cirros_guest_disk_is_pinned_in_the_artifact_lock() -> None:
     (platform,) = artifact["platforms"]
     (raw,) = platform["raw_manifest"]
     (installed,) = platform["installed_manifest"]
-    assert raw["sha256"] == CIRROS_SHA256 and raw["size"] == CIRROS_SIZE
-    assert installed["sha256"] == CIRROS_SHA256 and installed["size"] == CIRROS_SIZE
+    assert raw["sha256"] == CIRROS_SHA256
+    assert raw["size"] == CIRROS_SIZE
+    assert installed["sha256"] == CIRROS_SHA256
+    assert installed["size"] == CIRROS_SIZE
     assert platform["profile_ids"] == ["live-runner-linux-x86_64"]
     assert all(url.startswith("https://") for url in platform["source_urls"])
 
@@ -211,7 +214,8 @@ def test_admit_bytes_writes_verified_object_and_rejects_tampering(tmp_path: Path
     target = tmp_path / "obj" / "cirros.img"
 
     written = module._admit_bytes(data, expected_sha256=digest, expected_size=len(data), target=target)
-    assert written == target and target.read_bytes() == data
+    assert written == target
+    assert target.read_bytes() == data
 
     with pytest.raises(RuntimeError):
         module._admit_bytes(b"tampered", expected_sha256=digest, expected_size=len(data), target=tmp_path / "bad.img")
@@ -285,7 +289,8 @@ def test_scripts_are_frozen_offline_and_require_explicit_reviewed_inputs(script:
     assert "set -euo pipefail" in code
     assert "sync --frozen" in code, "uv sync must be frozen"
     assert "--require-hashes" in code, "libvirt-python install must be hash-pinned"
-    assert "--offline" in code and "--no-index" in code, "libvirt-python must install from the offline closure"
+    assert "--offline" in code, "libvirt-python must install from the offline closure"
+    assert "--no-index" in code, "libvirt-python must install from the offline closure"
     assert "SSH_INGRESS_CIDR" in code, "ingress CIDR must be explicit"
     assert "THIRD_PARTY_NOTICES.md" in code, "the mandatory packaging input must be in the source handoff"
 
@@ -317,7 +322,8 @@ def test_reviewed_bindings_are_declared_in_tool_versions() -> None:
 
 def test_smoke_verifies_the_pinned_cirros_identity() -> None:
     code = _script_code(SMOKE_SCRIPT)
-    assert "RAES_CIRROS_SHA256" in code and "RAES_CIRROS_SIZE" in code
+    assert "RAES_CIRROS_SHA256" in code
+    assert "RAES_CIRROS_SIZE" in code
     assert "RAES_LIBVIRT_RUN_DIR" in code, "smoke must use a scoped run directory"
 
 
@@ -332,7 +338,8 @@ def test_guest_certify_uses_the_fixed_argv_runner_and_preserves_evidence() -> No
     assert evidence_pull < final_exit, "evidence must be pulled before the final exit"
     # A successful run whose required evidence could not be persisted must not exit 0.
     assert "copy_status=1" in code, "evidence-copy failure must be captured"
-    assert 'exit "$run_status"' in code and 'exit "$copy_status"' in code, "copy failure must fold into the exit status"
+    assert 'exit "$run_status"' in code, "copy failure must fold into the exit status"
+    assert 'exit "$copy_status"' in code, "copy failure must fold into the exit status"
 
 
 @pytest.mark.parametrize("script", [SMOKE_SCRIPT, GUEST_SCRIPT], ids=["smoke", "guest-certify"])
@@ -427,12 +434,15 @@ def test_stage_live_runner_inputs_manifest_matches_the_shell_contract(monkeypatc
     try:
         manifest = json.loads(module.stage_live_runner_inputs(stage, include_cirros=True).read_text())
         # exactly the keys the shell read_nested/read_top helpers dereference:
-        assert manifest["base_image"]["owner"] and manifest["base_image"]["name"]
+        assert manifest["base_image"]["owner"]
+        assert manifest["base_image"]["name"]
         assert manifest["native_repository_snapshot"]
-        assert manifest["cpython"]["staged_path"] and manifest["uv"]["staged_path"]
+        assert manifest["cpython"]["staged_path"]
+        assert manifest["uv"]["staged_path"]
         assert manifest["libvirt_python"]["name"] == "libvirt-python"
         assert manifest["python_closure"]["dir"] == "wheelhouse"
-        assert manifest["cirros_guest_disk"]["sha256"] and manifest["cirros_guest_disk"]["size"]
+        assert manifest["cirros_guest_disk"]["sha256"]
+        assert manifest["cirros_guest_disk"]["size"]
 
         shutil.rmtree(stage, ignore_errors=True)
         no_cirros = json.loads(module.stage_live_runner_inputs(stage, include_cirros=False).read_text())
