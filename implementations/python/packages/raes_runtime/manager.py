@@ -12,7 +12,7 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import RuntimeDomain
+from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_scenario_runtime_model
@@ -90,22 +90,26 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         profile: str | None = None,
         artifact_availability: ArtifactAvailabilityContext | None = None,
         profile_authority: PlanProfileAuthority | None = None,
-        run_id: str | None = None,
-        instantiation_id: str | None = None,
+        run_scope: PlanScope | None = None,
     ) -> ExecutionPlan:
         model = compile_scenario_runtime_model(
             scenario, parameters=parameters, profile=profile, profile_authority=profile_authority
         )
         effective_snapshot = snapshot if snapshot is not None else self._snapshot
+        # The manager owns target selection; fold it into the run/instantiation
+        # identity supplied by the caller so the planner receives a single scope.
+        scope = PlanScope(
+            target_name=self._target.name,
+            run_id=run_scope.run_id if run_scope is not None else None,
+            instantiation_id=run_scope.instantiation_id if run_scope is not None else None,
+        )
         return plan(
             model,
             self._target.manifest,
             effective_snapshot,
-            target_name=self._target.name,
+            scope=scope,
             artifact_availability=artifact_availability,
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
-            run_id=run_id,
-            instantiation_id=instantiation_id,
         )
 
     def apply(self, execution_plan: ExecutionPlan) -> ApplyResult:

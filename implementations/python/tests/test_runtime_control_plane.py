@@ -21,6 +21,7 @@ from raes_contracts.contracts import (
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.planning import (
     ChangeAction,
+    PlanScope,
     ProvisioningPlan,
     ProvisionOp,
     RealizationAuthorityMode,
@@ -282,7 +283,7 @@ def _submit_registered(control_plane: RuntimeControlPlane, domain: str, submitte
     authorization_plan = plan(
         compile_runtime_model(_scenario("name: phase-authorization")),
         control_plane._target.manifest,
-        target_name=control_plane.target_name,
+        scope=PlanScope(target_name=control_plane.target_name),
     )
     authorization_plan = replace(authorization_plan, **{domain: submitted_plan})
     control_plane.register_planner_produced_plan(authorization_plan)

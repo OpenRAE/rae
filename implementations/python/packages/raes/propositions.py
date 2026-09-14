@@ -134,12 +134,18 @@ class StringPredicate(SDLModel):
     def validate_operand_shape(self) -> StringPredicate:
         if (self.expected is None) == (self.expected_from is None):
             raise ValueError("string predicate requires exactly one of 'expected' or 'expected_from'")
-        membership = self.operator in {"in", "not_in"}
         if self.expected_from is not None:
-            # A deferred single generated value only supports scalar comparison.
-            if membership:
-                raise ValueError(f"string operator {self.operator!r} cannot use expected_from")
-            return self
+            return self._validated_deferred_operand()
+        return self._validated_literal_operand()
+
+    def _validated_deferred_operand(self) -> StringPredicate:
+        # A deferred single generated value only supports scalar comparison.
+        if self.operator in {"in", "not_in"}:
+            raise ValueError(f"string operator {self.operator!r} cannot use expected_from")
+        return self
+
+    def _validated_literal_operand(self) -> StringPredicate:
+        membership = self.operator in {"in", "not_in"}
         if membership and not isinstance(self.expected, list):
             raise ValueError(f"string operator {self.operator!r} requires a list operand")
         if not membership and isinstance(self.expected, list):

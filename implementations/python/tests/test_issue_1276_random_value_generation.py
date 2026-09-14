@@ -191,14 +191,14 @@ class TestProvisionerRandomValueCapability:
         return body
 
     def test_random_value_kind_requires_scopes(self) -> None:
+        payload = self._model(supported_regeneration_scopes=[])
         with pytest.raises(ValidationError, match="supported_regeneration_scopes"):
-            ProvisionerCapabilitiesModel.model_validate(self._model(supported_regeneration_scopes=[]))
+            ProvisionerCapabilitiesModel.model_validate(payload)
 
     def test_scopes_require_random_value_kind(self) -> None:
+        payload = self._model(supported_generated_artifact_kinds=["rendered_config"])
         with pytest.raises(ValidationError, match="random_value"):
-            ProvisionerCapabilitiesModel.model_validate(
-                self._model(supported_generated_artifact_kinds=["rendered_config"])
-            )
+            ProvisionerCapabilitiesModel.model_validate(payload)
 
     def test_valid_random_value_capability_model(self) -> None:
         model = ProvisionerCapabilitiesModel.model_validate(self._model())
@@ -206,15 +206,16 @@ class TestProvisionerRandomValueCapability:
         assert len(model.supported_regeneration_scopes) == 2
 
     def test_dataclass_capability_couples_scope_to_kind(self) -> None:
+        kwargs = {
+            "name": "p",
+            "supported_node_types": frozenset({"compute"}),
+            "supported_os_families": frozenset({"linux"}),
+            "supports_generated_artifacts": True,
+            "supported_generated_artifact_kinds": frozenset({"random_value"}),
+            "supported_generated_artifact_delivery_modes": frozenset({"mount"}),
+        }
         with pytest.raises(ValueError, match="supported_regeneration_scopes"):
-            ProvisionerCapabilities(
-                name="p",
-                supported_node_types=frozenset({"compute"}),
-                supported_os_families=frozenset({"linux"}),
-                supports_generated_artifacts=True,
-                supported_generated_artifact_kinds=frozenset({"random_value"}),
-                supported_generated_artifact_delivery_modes=frozenset({"mount"}),
-            )
+            ProvisionerCapabilities(**kwargs)
 
     def test_dataclass_capability_roundtrip(self) -> None:
         caps = ProvisionerCapabilities(
@@ -237,6 +238,7 @@ from dataclasses import replace  # noqa: E402
 
 from raes import parse_sdl  # noqa: E402
 from raes_backend_stubs.stubs import create_stub_manifest  # noqa: E402
+from raes_contracts.planning import PlanScope  # noqa: E402
 from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode  # noqa: E402
 from raes_processor.compiler import compile_runtime_model  # noqa: E402
 from raes_processor.planner import plan  # noqa: E402
@@ -316,7 +318,11 @@ class TestRandomValuePipeline:
         assert spec["random_value"]["format"]["prefix"] == "TECHVAULT{"
 
     def test_file_consumer_admitted_by_capable_backend(self) -> None:
-        execution = plan(compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)), _capable_stub(), run_id="run-1")
+        execution = plan(
+            compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)),
+            _capable_stub(),
+            scope=PlanScope(run_id="run-1"),
+        )
         assert execution.is_valid, [d.message for d in execution.diagnostics]
 
     def test_backend_without_random_value_kind_rejects(self) -> None:
@@ -336,7 +342,11 @@ class TestRandomValuePipeline:
                 ),
             ),
         )
-        execution = plan(compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)), without_random, run_id="run-1")
+        execution = plan(
+            compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)),
+            without_random,
+            scope=PlanScope(run_id="run-1"),
+        )
         assert not execution.is_valid
         assert any("generated-artifact-kind" in d.code for d in execution.diagnostics)
 
@@ -352,7 +362,11 @@ class TestRandomValuePipeline:
                 ),
             ),
         )
-        execution = plan(compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)), without_per_run, run_id="run-1")
+        execution = plan(
+            compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)),
+            without_per_run,
+            scope=PlanScope(run_id="run-1"),
+        )
         assert not execution.is_valid
         assert any(d.code == "provisioner.unsupported-regeneration-scope" for d in execution.diagnostics)
 
@@ -419,7 +433,9 @@ class TestRandomValueEnvBinding:
 
     def test_env_binding_admitted_by_capable_backend(self) -> None:
         execution = plan(
-            compile_runtime_model(parse_sdl(_FLAG_ENV_BINDING)), _environment_capable_manifest(), run_id="run-1"
+            compile_runtime_model(parse_sdl(_FLAG_ENV_BINDING)),
+            _environment_capable_manifest(),
+            scope=PlanScope(run_id="run-1"),
         )
         assert execution.is_valid, [d.message for d in execution.diagnostics]
 
@@ -485,8 +501,7 @@ def _plan_scoped(scope: str, *, snapshot=None, run_id=None, instantiation_id=Non
         model,
         _capable_stub(),
         snapshot,
-        run_id=run_id,
-        instantiation_id=instantiation_id,
+        scope=PlanScope(run_id=run_id, instantiation_id=instantiation_id),
     )
 
 
@@ -584,8 +599,9 @@ class TestContentTextBinding:
             '    text: "static"\n'
             "    text_from: {generated_artifact: techvault-flag, output: flag}\n"
         )
+        doc = _content_scenario(lines)
         with pytest.raises(Exception, match="text_from"):
-            parse_sdl(_content_scenario(lines))
+            parse_sdl(doc)
 
     def test_content_text_from_requires_file_type(self) -> None:
         lines = (
@@ -595,8 +611,9 @@ class TestContentTextBinding:
             "    destination: /srv\n"
             "    text_from: {generated_artifact: techvault-flag, output: flag}\n"
         )
+        doc = _content_scenario(lines)
         with pytest.raises(Exception, match="text_from"):
-            parse_sdl(_content_scenario(lines))
+            parse_sdl(doc)
 
     def test_content_text_from_unknown_artifact_rejected(self) -> None:
         lines = (
@@ -607,8 +624,9 @@ class TestContentTextBinding:
             "    sensitive: true\n"
             "    text_from: {generated_artifact: does-not-exist, output: flag}\n"
         )
+        doc = _content_scenario(lines)
         with pytest.raises(SDLValidationError, match="does-not-exist"):
-            parse_sdl(_content_scenario(lines))
+            parse_sdl(doc)
 
     def test_content_text_from_secret_requires_sensitive(self) -> None:
         lines = (
@@ -619,12 +637,14 @@ class TestContentTextBinding:
             "    sensitive: false\n"
             "    text_from: {generated_artifact: techvault-flag, output: flag}\n"
         )
+        doc = _content_scenario(lines)
         with pytest.raises(SDLValidationError, match="sensitive"):
-            parse_sdl(_content_scenario(lines))
+            parse_sdl(doc)
 
     def test_content_text_from_producer_private_rejected(self) -> None:
+        doc = _content_scenario(_VALID_CONTENT, output_extra=", disposition: producer_private")
         with pytest.raises(SDLValidationError, match="producer_private|producer-private"):
-            parse_sdl(_content_scenario(_VALID_CONTENT, output_extra=", disposition: producer_private"))
+            parse_sdl(doc)
 
     def test_content_binding_compiles_projection_and_dependency(self) -> None:
         model = compile_runtime_model(parse_sdl(_content_scenario(_VALID_CONTENT)))
@@ -638,7 +658,9 @@ class TestContentTextBinding:
 
     def test_content_binding_admitted_by_capable_backend(self) -> None:
         execution = plan(
-            compile_runtime_model(parse_sdl(_content_scenario(_VALID_CONTENT))), _capable_stub(), run_id="run-1"
+            compile_runtime_model(parse_sdl(_content_scenario(_VALID_CONTENT))),
+            _capable_stub(),
+            scope=PlanScope(run_id="run-1"),
         )
         assert execution.is_valid, [d.message for d in execution.diagnostics]
 
@@ -659,7 +681,9 @@ class TestContentTextBinding:
             ),
         )
         execution = plan(
-            compile_runtime_model(parse_sdl(_content_scenario(_VALID_CONTENT))), no_content, run_id="run-1"
+            compile_runtime_model(parse_sdl(_content_scenario(_VALID_CONTENT))),
+            no_content,
+            scope=PlanScope(run_id="run-1"),
         )
         assert not execution.is_valid
         assert any("delivery-mode" in d.code for d in execution.diagnostics)
@@ -729,21 +753,25 @@ class TestDeferredVerification:
 
     def test_expected_and_expected_from_mutually_exclusive(self) -> None:
         extra = '      expected: "static"\n' + _EXPECTED_FROM_LINE
+        doc = _verification_scenario(predicate_extra=extra)
         with pytest.raises(Exception, match="expected"):
-            parse_sdl(_verification_scenario(predicate_extra=extra))
+            parse_sdl(doc)
 
     def test_membership_operator_rejects_expected_from(self) -> None:
+        doc = _verification_scenario(operator="in", predicate_extra=_EXPECTED_FROM_LINE)
         with pytest.raises(Exception, match="expected_from"):
-            parse_sdl(_verification_scenario(operator="in", predicate_extra=_EXPECTED_FROM_LINE))
+            parse_sdl(doc)
 
     def test_expected_from_requires_observed_state_basis(self) -> None:
+        doc = _verification_scenario(basis="declared_state", predicate_extra=_EXPECTED_FROM_LINE)
         with pytest.raises(SDLValidationError, match="observed_state"):
-            parse_sdl(_verification_scenario(basis="declared_state", predicate_extra=_EXPECTED_FROM_LINE))
+            parse_sdl(doc)
 
     def test_expected_from_unknown_artifact_rejected(self) -> None:
         line = "      expected_from: {generated_artifact: nope, output: flag}\n"
+        doc = _verification_scenario(predicate_extra=line)
         with pytest.raises(SDLValidationError, match="nope"):
-            parse_sdl(_verification_scenario(predicate_extra=line))
+            parse_sdl(doc)
 
     def test_expected_from_admitted_when_evaluator_declares_support(self) -> None:
         # A backend that explicitly declares deferred comparison admits the
@@ -760,7 +788,7 @@ class TestDeferredVerification:
         execution = plan(
             compile_runtime_model(parse_sdl(_verification_scenario(predicate_extra=_EXPECTED_FROM_LINE))),
             capable,
-            run_id="run-1",
+            scope=PlanScope(run_id="run-1"),
         )
         assert not any(d.code == "evaluator.unsupported-deferred-expected-comparison" for d in execution.diagnostics)
 
@@ -772,7 +800,7 @@ class TestDeferredVerification:
         execution = plan(
             compile_runtime_model(parse_sdl(_verification_scenario(predicate_extra=_EXPECTED_FROM_LINE))),
             _capable_stub(),
-            run_id="run-1",
+            scope=PlanScope(run_id="run-1"),
         )
         assert not execution.is_valid
         assert any(d.code == "evaluator.unsupported-deferred-expected-comparison" for d in execution.diagnostics)
@@ -785,11 +813,16 @@ from raes_reference_backend.artifact_generation import generated_artifact_projec
 
 class TestReferenceGeneration:
     def test_reference_generates_formatted_secret_on_create(self) -> None:
-        execution = plan(compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)), _capable_stub(), run_id="r1")
+        execution = plan(
+            compile_runtime_model(parse_sdl(_FLAG_WITH_FILE_CONSUMER)),
+            _capable_stub(),
+            scope=PlanScope(run_id="r1"),
+        )
         projections = generated_artifact_projections(execution.provisioning)
         assert len(projections) == 1
         rendered = next(iter(projections.values())).decode("utf-8")
-        assert rendered.startswith("TECHVAULT{") and rendered.endswith("}")
+        assert rendered.startswith("TECHVAULT{")
+        assert rendered.endswith("}")
         assert len(rendered) == len("TECHVAULT{") + 32 + len("}")
 
     def test_reference_regenerates_only_on_scope_transition(self) -> None:
@@ -868,24 +901,28 @@ class TestDirectPlanContentAdmission:
 
     def test_unknown_output_rejected(self) -> None:
         diag = self._diagnostic(spec=_artifact_spec_with_content_consumer(output="ghost"))
-        assert diag is not None and diag.code == "provisioner.generated-artifact-invalid"
+        assert diag is not None
+        assert diag.code == "provisioner.generated-artifact-invalid"
 
     def test_producer_private_output_rejected(self) -> None:
         diag = self._diagnostic(
             spec=_artifact_spec_with_content_consumer(output="flag", disposition="producer_private")
         )
-        assert diag is not None and diag.code == "provisioner.generated-artifact-invalid"
+        assert diag is not None
+        assert diag.code == "provisioner.generated-artifact-invalid"
 
     def test_mismatched_content_target_rejected(self) -> None:
         diag = self._diagnostic(
             spec=_artifact_spec_with_content_consumer(output="flag", target="provision.content.somewhere-else")
         )
-        assert diag is not None and diag.code == "provisioner.generated-artifact-invalid"
+        assert diag is not None
+        assert diag.code == "provisioner.generated-artifact-invalid"
 
     def test_phantom_content_placement_rejected(self) -> None:
         # A fabricated content_consumers row with no declared placement is rejected.
         diag = self._diagnostic(spec=_artifact_spec_with_content_consumer(output="flag"), content_specs={})
-        assert diag is not None and diag.code == "provisioner.generated-artifact-invalid"
+        assert diag is not None
+        assert diag.code == "provisioner.generated-artifact-invalid"
 
 
 # --- run-identity plumbing through published models + digest (finding #2) -----
@@ -915,7 +952,9 @@ class TestRunIdentityPlumbing:
         base = runtime_plan_digest(ProvisioningPlan())
         run1 = runtime_plan_digest(ProvisioningPlan(run_id="run-1"))
         run2 = runtime_plan_digest(ProvisioningPlan(run_id="run-2"))
-        assert base != run1 != run2 and run1 != run2
+        assert base != run1
+        assert run1 != run2
+        assert base != run2
 
     def test_api_round_trip_preserves_scope_identity(self) -> None:
         model = provisioning_plan_model(ProvisioningPlan(run_id="run-1", instantiation_id="inst-1"))
@@ -942,19 +981,20 @@ class TestReferenceProvisionerDelivery:
         manager = RuntimeManager(target)
         addr, node = "provision.generated-artifact.techvault-flag", "provision.node.web"
 
-        first = manager.plan(scenario, run_id="r1")
+        first = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
         assert not [d for d in first.diagnostics if d.is_error], [d.message for d in first.diagnostics]
         assert manager.apply(first).success
         v1 = target.provisioner.generated_output(addr, node, "flag").decode("utf-8")
-        assert v1.startswith("TECHVAULT{") and v1.endswith("}")
+        assert v1.startswith("TECHVAULT{")
+        assert v1.endswith("}")
 
         # Same-run resume reconciles UNCHANGED and RETAINS the delivered value.
-        resume = manager.plan(scenario, run_id="r1")
+        resume = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
         assert manager.apply(resume).success
         assert target.provisioner.generated_output(addr, node, "flag").decode("utf-8") == v1
 
         # A new authoritative run regenerates a fresh value.
-        new_run = manager.plan(scenario, run_id="r2")
+        new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
         assert manager.apply(new_run).success
         assert target.provisioner.generated_output(addr, node, "flag").decode("utf-8") != v1
 

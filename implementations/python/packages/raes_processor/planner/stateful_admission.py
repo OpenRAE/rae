@@ -339,34 +339,36 @@ def _artifact_capability_diagnostic(
         if isinstance(artifact.generator, DomainProfileBindingModel)
         else artifact.generator
     )
-    if kind not in provisioner.supported_generated_artifact_kinds:
-        return Diagnostic(
-            code="provisioner.unsupported-generated-artifact-kind",
-            domain="provisioning",
-            address=address,
-            message="Provisioner does not support the selected generated artifact kind.",
-        )
-    unsupported = delivery_modes - provisioner.supported_generated_artifact_delivery_modes
-    if unsupported:
-        mode = min(item.value for item in unsupported)
-        return Diagnostic(
-            code="provisioner.unsupported-generated-artifact-delivery-mode",
-            domain="provisioning",
-            address=address,
-            message=f"Provisioner does not support generated artifact delivery mode '{mode}'.",
-        )
-    if (
-        kind is GeneratedArtifactKind.RANDOM_VALUE
-        and artifact.regeneration_scope is not None
-        and artifact.regeneration_scope not in provisioner.supported_regeneration_scopes
-    ):
-        return Diagnostic(
-            code="provisioner.unsupported-regeneration-scope",
-            domain="provisioning",
-            address=address,
-            message=(f"Provisioner does not support regeneration scope '{artifact.regeneration_scope.value}'."),
-        )
-    return None
+    unsupported_modes = delivery_modes - provisioner.supported_generated_artifact_delivery_modes
+    scope = artifact.regeneration_scope
+    checks = (
+        (
+            kind not in provisioner.supported_generated_artifact_kinds,
+            "provisioner.unsupported-generated-artifact-kind",
+            "Provisioner does not support the selected generated artifact kind.",
+        ),
+        (
+            bool(unsupported_modes),
+            "provisioner.unsupported-generated-artifact-delivery-mode",
+            f"Provisioner does not support generated artifact delivery mode "
+            f"'{min((mode.value for mode in unsupported_modes), default='')}'.",
+        ),
+        (
+            kind is GeneratedArtifactKind.RANDOM_VALUE
+            and scope is not None
+            and scope not in provisioner.supported_regeneration_scopes,
+            "provisioner.unsupported-regeneration-scope",
+            f"Provisioner does not support regeneration scope '{getattr(scope, 'value', '')}'.",
+        ),
+    )
+    return next(
+        (
+            Diagnostic(code=code, domain="provisioning", address=address, message=message)
+            for failed, code, message in checks
+            if failed
+        ),
+        None,
+    )
 
 
 def generated_artifact_payload_diagnostic(

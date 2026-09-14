@@ -15,7 +15,7 @@ from raes_backend_protocols.service_materialization import service_materializati
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.planning import EvaluationPlan, ProvisioningPlan, RuntimeDomain
+from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
@@ -248,14 +248,74 @@ def _apply_regeneration_scope_bindings(
     return updated, diagnostics
 
 
+def _augment_provisioning(
+    provisioning: ProvisioningPlan,
+    *,
+    manifest: BackendManifest,
+    effective_model: RuntimeModel,
+    snapshot: RuntimeSnapshot,
+    preparation: object | None,
+    profile_authority: object,
+    scope: PlanScope | None,
+) -> tuple[ProvisioningPlan, list[Diagnostic]]:
+    """Bind preparation, run scope, and service/topology diagnostics onto the provisioning plan.
+
+    Returns the finalized plan and the diagnostics that must also surface on the
+    execution plan; service and topology diagnostics are additionally appended to
+    the provisioning plan's own diagnostic list, matching the pre-extraction flow.
+    """
+
+    extra: list[Diagnostic] = []
+    if preparation is not None:
+        try:
+            preparation = preparation.model_copy(
+                update={"node_collection": planned_node_collection(effective_model, provisioning)}
+            )
+        except (TypeError, ValueError):
+            extra.append(
+                Diagnostic(
+                    code="realization.invalid-node-collection",
+                    domain="provisioning",
+                    address="nodes",
+                    message="Portable node membership cannot be represented by a bounded collection authority.",
+                )
+            )
+    provisioning = retain_open_collection_nodes(
+        cast(
+            "ProvisioningPlan",
+            replace(
+                provisioning,
+                preparation=preparation,
+                profile_authority=profile_authority,
+                run_id=scope.run_id if scope is not None else None,
+                instantiation_id=scope.instantiation_id if scope is not None else None,
+            ),
+        )
+    )
+    materialization_diagnostics = service_materialization_plan_diagnostics(
+        provisioning,
+        manifest.provisioner,
+        manifest.realization_envelope,
+        manifest.realization_support,
+    )
+    extra.extend(materialization_diagnostics)
+    provisioning.diagnostics.extend(materialization_diagnostics)
+    topology_diagnostics = domain_topology_plan_diagnostics(
+        provisioning,
+        snapshot=snapshot,
+        supported_domain_profiles=manifest.provisioner.supported_domain_profiles,
+    )
+    extra.extend(topology_diagnostics)
+    provisioning.diagnostics.extend(topology_diagnostics)
+    return provisioning, extra
+
+
 def plan(
     model: RuntimeModel,
     manifest: BackendManifest,
     snapshot: RuntimeSnapshot | None = None,
     *,
-    target_name: str | None = None,
-    run_id: str | None = None,
-    instantiation_id: str | None = None,
+    scope: PlanScope | None = None,
     apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
     artifact_availability: ArtifactAvailabilityContext | None = None,
     profile_context: DomainProfileResolutionContextModel | None = None,
@@ -263,6 +323,9 @@ def plan(
     """Reconcile a compiled runtime model against the current snapshot."""
 
     snapshot = snapshot or RuntimeSnapshot()
+    target_name = scope.target_name if scope is not None else None
+    run_id = scope.run_id if scope is not None else None
+    instantiation_id = scope.instantiation_id if scope is not None else None
     effective_model, effective_requirements, resolved_authority, authority_diagnostics = _resolved_realization(
         model, manifest, apparatus_realization_default
     )
@@ -293,56 +356,24 @@ def plan(
         effective_requirements,
     )
 
-    provisioning = _build_provisioning_plan(
-        resources,
-        actions,
-        deleted_entries,
-        manifest,
-        effective_requirements,
-        resolved_authority,
-        effective_model.observation_demands,
-    )
-    if preparation is not None:
-        try:
-            preparation = preparation.model_copy(
-                update={"node_collection": planned_node_collection(effective_model, provisioning)}
-            )
-        except (TypeError, ValueError):
-            diagnostics.append(
-                Diagnostic(
-                    code="realization.invalid-node-collection",
-                    domain="provisioning",
-                    address="nodes",
-                    message="Portable node membership cannot be represented by a bounded collection authority.",
-                )
-            )
-    provisioning = retain_open_collection_nodes(
-        cast(
-            "ProvisioningPlan",
-            replace(
-                provisioning,
-                preparation=preparation,
-                profile_authority=profile_authority,
-                run_id=run_id,
-                instantiation_id=instantiation_id,
-            ),
-        )
-    )
-    materialization_diagnostics = service_materialization_plan_diagnostics(
-        provisioning,
-        manifest.provisioner,
-        manifest.realization_envelope,
-        manifest.realization_support,
-    )
-    diagnostics.extend(materialization_diagnostics)
-    provisioning.diagnostics.extend(materialization_diagnostics)
-    topology_diagnostics = domain_topology_plan_diagnostics(
-        provisioning,
+    provisioning, provisioning_diagnostics = _augment_provisioning(
+        _build_provisioning_plan(
+            resources,
+            actions,
+            deleted_entries,
+            manifest,
+            effective_requirements,
+            resolved_authority,
+            effective_model.observation_demands,
+        ),
+        manifest=manifest,
+        effective_model=effective_model,
         snapshot=snapshot,
-        supported_domain_profiles=manifest.provisioner.supported_domain_profiles,
+        preparation=preparation,
+        profile_authority=profile_authority,
+        scope=scope,
     )
-    diagnostics.extend(topology_diagnostics)
-    provisioning.diagnostics.extend(topology_diagnostics)
+    diagnostics.extend(provisioning_diagnostics)
     orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
     evaluation = cast(
         "EvaluationPlan",

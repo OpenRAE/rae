@@ -25,6 +25,7 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.realization_preparation import RealizationPreparationAuthority
 from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
+from raes_contracts.run_scope import PlanScope, _validate_optional_run_id
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
 if TYPE_CHECKING:
@@ -357,18 +358,6 @@ class EvaluationOp(PlanOperation):
     """Evaluation reconciliation operation."""
 
 
-_RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
-
-
-def _validate_optional_run_id(run_id: str | None, *, owner: str) -> None:
-    """Validate a value-free run/instance scope identity when present (issue #1276)."""
-
-    if run_id is None:
-        return
-    if not run_id.strip() or _RUN_ID_RE.fullmatch(run_id) is None:
-        raise ValueError(f"{owner} run_id must be a bounded non-empty scope identity when present")
-
-
 @dataclass(frozen=True)
 class ProvisioningPlan:
     """Provisioning plan over canonical deployment resources."""
@@ -465,6 +454,7 @@ __all__ = (
     "OrchestrationOp",
     "OrchestrationPlan",
     "PlanOperation",
+    "PlanScope",
     "PLAN_ADDRESS_ROOT_BY_DOMAIN",
     "PLAN_RESOURCE_TYPES_BY_DOMAIN",
     "PlannedResource",

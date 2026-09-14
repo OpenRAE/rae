@@ -230,19 +230,21 @@ def _dependency_reference_errors(
     return errors
 
 
-def stateful_resource_reference_errors(
+def _resource_reference_errors(
     *,
     nodes: Mapping[str, Node],
     generated_artifacts: Mapping[str, GeneratedArtifact],
     persistent_volumes: Mapping[str, PersistentVolume],
-    content: Mapping[str, Content] | None = None,
-    propositions: Mapping[str, Proposition] | None = None,
+    occupied_destinations: dict[tuple[str, str], str],
+    consumed_artifacts: set[str],
 ) -> list[str]:
-    """Return bounded semantic errors before compilation or dispatch."""
+    """Consumer/dependency errors for generated artifacts and persistent volumes.
+
+    Populates ``occupied_destinations`` and ``consumed_artifacts`` in place so the
+    caller can validate runtime mounts and orphaned artifacts against the same view.
+    """
 
     errors: list[str] = []
-    occupied_destinations: dict[tuple[str, str], str] = {}
-    consumed_artifacts: set[str] = set()
     for section, resources in (
         ("generated_artifacts", generated_artifacts),
         ("persistent_volumes", persistent_volumes),
@@ -267,6 +269,47 @@ def stateful_resource_reference_errors(
                     persistent_volumes=persistent_volumes,
                 )
             )
+    return errors
+
+
+def _runtime_mount_conflict_errors(
+    nodes: Mapping[str, Node], occupied_destinations: Mapping[tuple[str, str], str]
+) -> list[str]:
+    """Report runtime mount targets already consumed by a declared stateful resource."""
+
+    errors: list[str] = []
+    for node_name, node in nodes.items():
+        runtime = node.runtime
+        if runtime is None:
+            continue
+        for mount in runtime.mounts:
+            previous = occupied_destinations.get((node_name, mount.target))
+            if previous is not None:
+                errors.append(
+                    f"runtime mount target {mount.target!r} on node {node_name!r} is already consumed by {previous}"
+                )
+    return errors
+
+
+def stateful_resource_reference_errors(
+    *,
+    nodes: Mapping[str, Node],
+    generated_artifacts: Mapping[str, GeneratedArtifact],
+    persistent_volumes: Mapping[str, PersistentVolume],
+    content: Mapping[str, Content] | None = None,
+    propositions: Mapping[str, Proposition] | None = None,
+) -> list[str]:
+    """Return bounded semantic errors before compilation or dispatch."""
+
+    occupied_destinations: dict[tuple[str, str], str] = {}
+    consumed_artifacts: set[str] = set()
+    errors = _resource_reference_errors(
+        nodes=nodes,
+        generated_artifacts=generated_artifacts,
+        persistent_volumes=persistent_volumes,
+        occupied_destinations=occupied_destinations,
+        consumed_artifacts=consumed_artifacts,
+    )
     errors.extend(
         _environment_binding_errors(
             nodes=nodes,
@@ -289,17 +332,7 @@ def stateful_resource_reference_errors(
         )
     )
     errors.extend(_orphan_generated_artifact_errors(generated_artifacts, consumed_artifacts))
-    for node_name, node in nodes.items():
-        runtime = node.runtime
-        if runtime is None:
-            continue
-        for mount in runtime.mounts:
-            destination = (node_name, mount.target)
-            previous = occupied_destinations.get(destination)
-            if previous is not None:
-                errors.append(
-                    f"runtime mount target {mount.target!r} on node {node_name!r} is already consumed by {previous}"
-                )
+    errors.extend(_runtime_mount_conflict_errors(nodes, occupied_destinations))
     return errors
 
 
