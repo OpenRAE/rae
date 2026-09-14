@@ -31,10 +31,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 PYTHON_LINK_NAME = "current"
+_TOOLING_PROJECT = "implementations/tooling/python"
 _Result = TypeVar("_Result")
 _PROJECTS = (
     ("implementations/python", ("--all-extras", "--frozen")),
-    ("implementations/tooling/python", ("--frozen", "--no-default-groups")),
+    (_TOOLING_PROJECT, ("--frozen", "--no-default-groups")),
 )
 _SUBPROCESS_TIMEOUT_SECONDS = 1800
 
@@ -51,9 +52,15 @@ def default_kit_root() -> Path:
 def container_host_profile_id(repo_root: Path, platform_id: str) -> str:
     """Return the one reviewed container host profile qualified for this platform."""
 
-    from tools.check_tooling_artifact_policy import PROFILES_PATH, evaluate_tooling_artifact_policy
+    from tools.check_tooling_artifact_policy import (
+        PROFILES_PATH,
+        evaluate_tooling_artifact_policy,
+    )
     from tools.policy.common import load_bounded_json_object
-    from tools.tooling_artifact_policy_common import MAX_JSON_BYTES, normalize_platform_id
+    from tools.tooling_artifact_policy_common import (
+        MAX_JSON_BYTES,
+        normalize_platform_id,
+    )
 
     failures = evaluate_tooling_artifact_policy(repo_root)
     if failures:
@@ -78,7 +85,10 @@ def _payload_ids(artifacts: Sequence[Mapping[str, Any]]) -> tuple[str, str]:
     by_implementation: dict[str, str] = {}
     for artifact in artifacts:
         identity = artifact.get("platform", {}).get("installed_identity", {})
-        if isinstance(identity, Mapping) and identity.get("implementation") in {"CPython", "uv"}:
+        if isinstance(identity, Mapping) and identity.get("implementation") in {
+            "CPython",
+            "uv",
+        }:
             by_implementation[str(identity["implementation"])] = str(artifact["artifact_id"])
     if set(by_implementation) != {"CPython", "uv"}:
         raise DevcontainerSetupError("the container host profile must select exactly one CPython and one uv payload")
@@ -99,7 +109,9 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
     """Rebuild the verified uv and CPython clients, reusing only archives that still verify."""
 
     from tools import bootstrap_profile
-    from tools.tooling_policy_gate import load_tooling_host_profile_selection_with_current_interpreter
+    from tools.tooling_policy_gate import (
+        load_tooling_host_profile_selection_with_current_interpreter,
+    )
 
     selection = load_tooling_host_profile_selection_with_current_interpreter(host_profile_id)
     artifacts = {str(item["artifact_id"]): item for item in selection["artifacts"]}
@@ -130,7 +142,12 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
     except BaseException:
         shutil.rmtree(staging, ignore_errors=True)
         raise
-    return {"host_profile_id": host_profile_id, "python": python_id, "uv": uv_id, "fetched": ",".join(missing)}
+    return {
+        "host_profile_id": host_profile_id,
+        "python": python_id,
+        "uv": uv_id,
+        "fetched": ",".join(missing),
+    }
 
 
 def _run(argv: Sequence[str], repo_root: Path, environment: Mapping[str, str]) -> None:
@@ -160,13 +177,25 @@ def sync_projects(repo_root: Path, kit_root: Path) -> None:
         _run([str(uv), "sync", "--project", project, *options], repo_root, environment)
 
 
-def install_generic_tools() -> None:
-    from tools.bootstrap_profile import qualify_generic_tools
+def install_generic_tools(repo_root: Path, kit_root: Path) -> None:
+    """Verify generic tools inside the frozen tooling environment that supplies filelock."""
 
-    result = qualify_generic_tools()
-    if result.get("outcome") != "passed":
-        failed = [item["capability_id"] for item in result.get("results", []) if item.get("outcome") != "passed"]
-        raise DevcontainerSetupError(f"locked generic CLI tools failed verification: {', '.join(failed)}")
+    _run(
+        [
+            str(kit_root / "bin" / "uv"),
+            "run",
+            "--project",
+            _TOOLING_PROJECT,
+            "--frozen",
+            "--no-default-groups",
+            "python",
+            "-m",
+            "tools.bootstrap_profile",
+            "generic-tools",
+        ],
+        repo_root,
+        {**os.environ, "UV_PYTHON_DOWNLOADS": "never"},
+    )
 
 
 def install_git_hooks(repo_root: Path, kit_root: Path) -> str:
@@ -190,7 +219,7 @@ def install_git_hooks(repo_root: Path, kit_root: Path) -> str:
             str(kit_root / "bin" / "uv"),
             "run",
             "--project",
-            "implementations/tooling/python",
+            _TOOLING_PROJECT,
             "--frozen",
             "--no-default-groups",
             "pre-commit",
@@ -209,14 +238,25 @@ def setup(repo_root: Path = REPO_ROOT, *, kit_root: Path | None = None) -> None:
     platform_id = host_platform_id()
     print(f"RAES development container setup ({platform_id})", flush=True)
     host_profile_id = _step(
-        "Resolving the reviewed container profile", lambda: container_host_profile_id(repo_root, platform_id)
+        "Resolving the reviewed container profile",
+        lambda: container_host_profile_id(repo_root, platform_id),
     )
-    _step("Verifying locked uv and CPython", lambda: prepare_kit(host_profile_id, kit_root))
-    _step("Syncing the locked project environments", lambda: sync_projects(repo_root, kit_root))
-    _step("Verifying locked Conftest, Gitleaks, OSV-Scanner, and Vale", install_generic_tools)
+    _step(
+        "Verifying locked uv and CPython",
+        lambda: prepare_kit(host_profile_id, kit_root),
+    )
+    _step(
+        "Syncing the locked project environments",
+        lambda: sync_projects(repo_root, kit_root),
+    )
+    _step(
+        "Verifying locked Conftest, Gitleaks, OSV-Scanner, and Vale",
+        lambda: install_generic_tools(repo_root, kit_root),
+    )
     hooks = _step("Installing git hooks", lambda: install_git_hooks(repo_root, kit_root))
     print(
-        f"Ready. Git hooks: {hooks}. Run `nox -l` to list checks; `nox -s verify-changed` before pushing.", flush=True
+        f"Ready. Git hooks: {hooks}. Run `nox -l` to list checks; `nox -s verify-changed` before pushing.",
+        flush=True,
     )
 
 

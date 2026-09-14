@@ -25,7 +25,6 @@ from tools.nox_support.policy_lanes import (
 from tools.nox_support.runner import (
     SessionReporter,
     _requirement_aware_policy_args,
-    _run_project_python,
     _sync_project,
 )
 from tools.nox_support.test_lanes import (
@@ -35,6 +34,7 @@ from tools.nox_support.test_lanes import (
     _run_tests,
 )
 from tools.parallel_verification import VerificationLane, run_verification_lanes
+from tools.policy.conftest_tool import ensure_conftest
 from tools.verification_plan import (
     collect_git_changes,
     plan_for_changes,
@@ -167,11 +167,7 @@ def _run_parallel_verification(
     )
     reporter.run(
         "verify / shared policy toolchain",
-        lambda: _run_project_python(
-            session,
-            "-c",
-            "from tools.policy.conftest_tool import ensure_conftest; ensure_conftest()",
-        ),
+        lambda: ensure_conftest(REPO_ROOT),
         detail="prime checksum-verified Conftest before parallel policy tests",
     )
     with tempfile.TemporaryDirectory(prefix="raes-coverage-") as coverage_root:

@@ -8,8 +8,10 @@ import socket
 import ssl
 import subprocess
 import tarfile
+import tempfile
 import threading
 import time
+from contextlib import nullcontext
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from types import SimpleNamespace
@@ -20,7 +22,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-from tools import bootstrap_profile, maintained_client_acquisition
+from tools import bootstrap_profile, maintained_client_acquisition, verified_tool_installation
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -185,7 +187,8 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert "UV_OFFLINE=1" in workflow_text
     assert 'RAES_PYTHON_CLOSURE_WHEELHOUSE="${restored_root}/project-wheelhouse"' in workflow_text
     assert 'UV_FIND_LINKS="${restored_root}/tool-wheelhouse,${restored_root}/project-wheelhouse"' in workflow_text
-    assert 'runtime_root="$(mktemp -d "${RUNNER_TEMP}/raes-bootstrap-runtime.XXXXXX")"' in workflow_text
+    assert 'runtime_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-bootstrap-runtime.XXXXXX")"' in workflow_text
+    assert 'qualification_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-local-installation.XXXXXX")"' in workflow_text
     assert 'export UV_CACHE_DIR="${runtime_root}/uv-cache"' in workflow_text
     assert 'restored_tool_environment="${runtime_root}/tool-environment"' in workflow_text
     assert 'from importlib.metadata import version; print(version("nox"))' in workflow_text
@@ -670,7 +673,10 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
         "github-actions:OpenRAE/rae:1:1",
         python_artifact_id="cpython-3.14",
         case_result_paths=(case_path,),
-        options=bootstrap_profile.QualificationEvidenceOptions(generic_selections=selections),
+        options=bootstrap_profile.QualificationEvidenceOptions(
+            generic_selections=selections,
+            limitations=("local-slice-only",),
+        ),
     )
     assert result["outcome"] == "passed"
     assert result["base_image_identity"] == "github-runner:ubuntu24:20261005.999.1:X64"
@@ -679,6 +685,7 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
     assert len(result["policy_sha256"]) == 64
     assert len(result["harness_sha256"]) == 64
     assert len(result["evidence_sha256"]) == 64
+    assert result["limitations"] == ["local-slice-only"]
     payloads = {item["artifact_id"]: item for item in result["payload_results"]}
     assert payloads["cpython-3.14"]["distribution_id"] == "ubuntu-24.04"
     assert payloads["cpython-3.14"]["expected_installed_identity"] == expected_python_identity
@@ -775,6 +782,7 @@ def test_bootstrap_cli_parser_and_dispatch_cover_every_operation(
                 offline_kit_root=tmp_path,
                 offline_kit=archive_path,
                 offline_kit_manifest_sha256="b" * 64,
+                limitation=[],
             ),
             SimpleNamespace(
                 operation="record-case",
@@ -798,6 +806,12 @@ def test_bootstrap_cli_parser_and_dispatch_cover_every_operation(
             SimpleNamespace(operation="offline-kit-manifest-digest", manifest_path=manifest_path),
             SimpleNamespace(
                 operation="offline-kit-copy-tree",
+                source_root=source_root,
+                destination_root=destination_root,
+            ),
+            SimpleNamespace(
+                operation="offline-kit-export-tool-seeds",
+                host_profile_id="host",
                 source_root=source_root,
                 destination_root=destination_root,
             ),
@@ -831,42 +845,83 @@ def test_bootstrap_cli_parser_and_dispatch_cover_every_operation(
     monkeypatch.setattr(bootstrap_profile, "_load_offline_kit_manifest", lambda _path: {})
     monkeypatch.setattr(bootstrap_profile, "_sha256", lambda _path: "0" * 64)
     monkeypatch.setattr(bootstrap_profile, "copy_relocatable_tree", lambda *_args: None)
+    monkeypatch.setattr(bootstrap_profile, "export_immutable_tool_seeds", lambda *_args: None)
     monkeypatch.setattr(bootstrap_profile, "install_offline_python_payload", lambda *args: {"outcome": "passed"})
     monkeypatch.setattr(bootstrap_profile, "verify_offline_kit", lambda *args, **kwargs: {"outcome": "passed"})
     monkeypatch.setattr(bootstrap_profile, "proof_support_outcome", lambda _platform: "required")
 
-    assert [bootstrap_profile.main() for _ in range(12)] == [0] * 12
+    assert [bootstrap_profile.main() for _ in range(13)] == [0] * 13
     assert len(capsys.readouterr().out.splitlines()) == 11
 
 
-def test_offline_tool_selection_verifies_imported_bytes_without_acquisition(tmp_path: Path) -> None:
+def test_offline_tool_seed_export_and_private_restore_use_canonical_installation_identity(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
     artifacts: dict[str, dict[str, object]] = {}
+    source_root = tmp_path / "source-installations"
     for artifact_id in ("conftest", "gitleaks", "osv-scanner", "vale"):
         payload = artifact_id.encode()
-        binary = tmp_path / ".cache/raes-sdl/tooling" / artifact_id / "1.0.0" / artifact_id
-        binary.parent.mkdir(parents=True)
-        binary.write_bytes(payload)
         artifacts[artifact_id] = {
             "artifact_id": artifact_id,
+            "artifact_class": "generic-cli",
             "version": "1.0.0",
+            "policy_refs": ["artifact-integrity-v1"],
+            "source": {"repository": "https://example.invalid/tools", "release": "v1.0.0"},
             "platform": {
                 "platform_id": "linux-arm64",
+                "source_urls": [f"https://example.invalid/{artifact_id}"],
+                "raw_manifest": [
+                    {
+                        "path": f"{artifact_id}.archive",
+                        "sha256": hashlib.sha256(payload).hexdigest(),
+                        "size": len(payload),
+                    }
+                ],
                 "installed_manifest": [
                     {
                         "path": artifact_id,
                         "sha256": hashlib.sha256(payload).hexdigest(),
                         "size": len(payload),
+                        "executable": True,
                     }
                 ],
             },
         }
-    selected = bootstrap_profile._offline_generic_tool_selections(tmp_path, "linux-arm64", artifacts)
+        selection = bootstrap_profile._generic_locked_selection(artifacts[artifact_id], profile_id="offline-kit")
+        source_tree = verified_tool_installation.installation_tree_path(source_root, selection)
+        source_tree.mkdir(parents=True)
+        binary = source_tree / artifact_id
+        binary.write_bytes(payload)
+        binary.chmod(0o500)
+        source_tree.chmod(0o500)
+
+    monkeypatch.setattr(
+        bootstrap_profile,
+        "_load_host_selection",
+        lambda _profile: ({"platform_id": "linux-arm64"}, artifacts, "a" * 64),
+    )
+    kit_root = tmp_path / "kit"
+    seed_root = kit_root / ".cache/raes-sdl/tooling/installations"
+    bootstrap_profile.export_immutable_tool_seeds("host-a", source_root, seed_root)
+    runtime_root = tmp_path / "runtime"
+    runtime_root.mkdir(mode=0o700)
+    selected = bootstrap_profile._offline_generic_tool_selections(kit_root, runtime_root, "linux-arm64", artifacts)
     assert [item[0] for item in selected] == ["conftest", "gitleaks", "osv-scanner", "vale"]
-    compromised = selected[0][1]
-    compromised.unlink()
-    compromised.symlink_to(selected[1][1])
-    with pytest.raises(ValueError, match="not a regular file"):
-        bootstrap_profile._offline_generic_tool_selections(tmp_path, "linux-arm64", artifacts)
+    assert all(path.is_relative_to(runtime_root) for _artifact, path, _args, _version in selected)
+    compromised = (
+        verified_tool_installation.installation_tree_path(
+            seed_root,
+            bootstrap_profile._generic_locked_selection(artifacts["conftest"], profile_id="offline-kit"),
+        )
+        / "conftest"
+    )
+    compromised.chmod(0o700)
+    second_runtime = tmp_path / "runtime-2"
+    second_runtime.mkdir(mode=0o700)
+    with pytest.raises(ValueError, match="seed differs from the lock"):
+        bootstrap_profile._offline_generic_tool_selections(kit_root, second_runtime, "linux-arm64", artifacts)
 
 
 @pytest.mark.parametrize(
@@ -878,6 +933,7 @@ def test_offline_kit_requires_external_trust_before_executing_installed_payloads
     tmp_path: Path,
     tampered_relative: str,
 ) -> None:
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
     artifact_ids = {"conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"}
     kit_root = tmp_path / "kit"
     artifacts: list[dict[str, object]] = []
@@ -886,6 +942,7 @@ def test_offline_kit_requires_external_trust_before_executing_installed_payloads
         platform: dict[str, object] = {
             "platform_id": "linux-arm64",
             "raw_manifest": [],
+            "source_urls": [f"https://example.invalid/{artifact_id}"],
         }
         raw = f"raw-{artifact_id}".encode()
         raw_path = kit_root / "archives" / artifact_id / f"{artifact_id}.archive"
@@ -902,17 +959,40 @@ def test_offline_kit_requires_external_trust_before_executing_installed_payloads
                 "target": "aarch64-unknown-linux-gnu",
             }
         else:
-            binary = kit_root / ".cache/raes-sdl/tooling" / artifact_id / version / artifact_id
-            binary.parent.mkdir(parents=True)
-            binary.write_bytes(artifact_id.encode())
             platform["installed_manifest"] = [
                 {
                     "path": artifact_id,
                     "sha256": hashlib.sha256(artifact_id.encode()).hexdigest(),
                     "size": len(artifact_id),
+                    "executable": True,
                 }
             ]
-        artifacts.append({"artifact_id": artifact_id, "version": version, "platform": platform})
+        artifacts.append(
+            {
+                "artifact_id": artifact_id,
+                "artifact_class": "generic-cli" if artifact_id not in {"cpython-3.14", "uv"} else "bootstrap",
+                "version": version,
+                "policy_refs": ["artifact-integrity-v1"],
+                "source": {"repository": "https://example.invalid/tools", "release": f"v{version}"},
+                "platform": platform,
+            }
+        )
+    artifacts_by_id = {artifact["artifact_id"]: artifact for artifact in artifacts}
+    seed_root = kit_root / ".cache/raes-sdl/tooling/installations"
+    for artifact_id in ("conftest", "gitleaks", "osv-scanner", "vale"):
+        locked = bootstrap_profile._generic_locked_selection(artifacts_by_id[artifact_id], profile_id="offline-kit")
+        seed_tree = verified_tool_installation.installation_tree_path(seed_root, locked)
+        seed_tree.mkdir(parents=True)
+        binary = seed_tree / artifact_id
+        binary.write_bytes(artifact_id.encode())
+        binary.chmod(0o500)
+        seed_tree.chmod(0o500)
+    for directory in sorted(
+        [seed_root, *(path for path in seed_root.rglob("*") if path.is_dir())],
+        key=lambda path: len(path.parts),
+        reverse=True,
+    ):
+        directory.chmod(0o500)
     uv_path = kit_root / "bin/uv"
     uv_path.parent.mkdir(parents=True)
     uv_path.write_bytes(b"uv")
@@ -966,6 +1046,10 @@ def test_offline_kit_requires_external_trust_before_executing_installed_payloads
     manifest_path = kit_root / "offline-kit-manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     trusted_digest = bootstrap_profile._sha256(manifest_path)
+    unsafe_ambient_temp = tmp_path / "unsafe-ambient-temp"
+    unsafe_ambient_temp.mkdir()
+    unsafe_ambient_temp.chmod(0o777)
+    monkeypatch.setattr(tempfile, "tempdir", str(unsafe_ambient_temp))
     result = bootstrap_profile.verify_offline_kit(
         "host-a",
         kit_root,
