@@ -67,7 +67,7 @@ def format_sdl_source(
     try:
         scenario = Scenario(**data)
     except ValidationError as exc:
-        raise SDLParseError(str(exc), path=path) from exc
+        raise SDLParseError("SDL input does not satisfy the current authoring contract.", path=path) from exc
     normalized = scenario.model_dump(mode="json", by_alias=True, exclude_unset=True)
     formatted = yaml.safe_dump(
         normalized,

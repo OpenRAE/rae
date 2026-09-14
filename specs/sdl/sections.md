@@ -34,6 +34,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | Field | Kind | Shape | Lifecycle | Presence/default | Identity | References | Semantic owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `name` | metadata | scalar | normalized, expanded, instantiated | required | `scenario_name` | none | [document model](document-model.md) |
+| `semantic_revision` | metadata | scalar | normalized, expanded, instantiated | optional; default null | none | none | [progressive semantic revisions](../evolution/progressive-semantics.md) |
 | `version` | metadata | scalar | normalized, expanded, instantiated | optional; default `*` | none | none | [document model](document-model.md) |
 | `description` | metadata | scalar | normalized, expanded, instantiated | optional; default empty string | none | none | [document model](document-model.md) |
 | `module` | composition | mapping | normalized | optional; default null | `module.id` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
@@ -77,7 +78,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `variables` | section | map | normalized, expanded | optional; default empty map | `map_key` | none | [variables and instantiation](variables-and-instantiation.md) |
 | `variation_points` | section | map | normalized, expanded | optional; default empty map | `map_key` | catalogued | [scenario-family variation points](variation-points.md) |
 
-<!-- sdl-catalog-summary top-level=43 metadata-composition=6 sections=37 maps=36 lists=1 -->
+<!-- sdl-catalog-summary top-level=44 metadata-composition=7 sections=37 maps=36 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose

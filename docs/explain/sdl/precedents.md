@@ -19,7 +19,7 @@ Current syntax and validation are not changed by this note.
 RAES combines externally influenced and RAES-native language families. This
 document summarizes design influences and comparisons; the revision-pinned,
 machine-readable provenance record is
-[`contracts/provenance/sdl-lineage-ledger-v1.json`](../../../contracts/provenance/sdl-lineage-ledger-v1.json).
+[`contracts/provenance/sdl-lineage-ledger-v2.json`](../../../contracts/provenance/sdl-lineage-ledger-v2.json).
 Only the ledger classifies provenance, artifact/code derivation, compatibility,
 and notice obligations. A source named here may explain a design concern
 without being a source from which RAES adopted syntax, semantics, or code.

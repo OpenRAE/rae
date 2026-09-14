@@ -36,7 +36,7 @@ from raes_processor.compiler import compile_runtime_model
 
 def _digest() -> SemanticDigest:
     return SemanticDigest(
-        profile="raes-sdl-semantic/v1",
+        profile="raes-sdl-semantic/v2",
         algorithm="sha256",
         value="sha256:" + "a" * 64,
     )

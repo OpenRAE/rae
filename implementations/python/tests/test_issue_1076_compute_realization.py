@@ -219,9 +219,16 @@ def test_legacy_instantiated_snapshot_migration_is_exact_and_provenanced() -> No
     assert constraint.provenance == "legacy-node-type-vm"
 
 
-def test_legacy_snapshot_projection_accepts_other_valid_v1_payloads_generically() -> None:
-    payload = json.loads((_FORMAL_ROOT / "corpus/exploit-path-valid-v2.json").read_text(encoding="utf-8"))["snapshot"]
-    payload["scenario"]["name"] = "another-published-v1-snapshot"
+def _current_snapshot_with_legacy_vm_spelling() -> dict:
+    scenario = instantiate_scenario(_parse("name: current-vm-spelling\nnodes: {target: {type: compute, os: linux}}\n"))
+    payload = {"profile": INSTANTIATED_SNAPSHOT_PROFILE, "scenario": scenario.model_dump(mode="json", by_alias=True)}
+    payload["scenario"]["nodes"]["target"]["type"] = "vm"
+    return payload
+
+
+def test_legacy_vm_snapshot_projection_binds_current_profile_generically() -> None:
+    payload = _current_snapshot_with_legacy_vm_spelling()
+    payload["scenario"]["name"] = "another-current-vm-snapshot"
     projected = json.loads(json.dumps(payload))
     for node in projected["scenario"]["nodes"].values():
         node.setdefault("architecture", None)
@@ -235,7 +242,8 @@ def test_legacy_snapshot_projection_accepts_other_valid_v1_payloads_generically(
 
 
 def test_legacy_satisfiability_snapshot_migration_rejects_a_forged_original_join() -> None:
-    payload = json.loads((_FORMAL_ROOT / "evidence/finite-domain-satisfiable-v2.json").read_text(encoding="utf-8"))
+    payload = json.loads((_FORMAL_ROOT / "evidence/finite-domain-satisfiable-v4.json").read_text(encoding="utf-8"))
+    payload["witness"]["snapshot"] = _current_snapshot_with_legacy_vm_spelling()
     payload["witness"]["snapshot_digest"] = f"sha256:{'0' * 64}"
 
     with pytest.raises(ValidationError, match="legacy snapshot_digest must bind"):
@@ -243,7 +251,8 @@ def test_legacy_satisfiability_snapshot_migration_rejects_a_forged_original_join
 
 
 def test_legacy_exploit_snapshot_migration_rejects_a_forged_original_graph_join() -> None:
-    payload = json.loads((_FORMAL_ROOT / "corpus/exploit-path-valid-v2.json").read_text(encoding="utf-8"))
+    payload = json.loads((_FORMAL_ROOT / "corpus/exploit-path-valid-v3.json").read_text(encoding="utf-8"))
+    payload["snapshot"] = _current_snapshot_with_legacy_vm_spelling()
     payload["normalized_graph"]["snapshot_digest"] = f"sha256:{'0' * 64}"
 
     with pytest.raises(ValidationError, match="legacy normalized graph snapshot digest must match"):
@@ -251,7 +260,8 @@ def test_legacy_exploit_snapshot_migration_rejects_a_forged_original_graph_join(
 
 
 def test_legacy_exploit_snapshot_migration_rejects_a_forged_matching_digest_pair() -> None:
-    payload = json.loads((_FORMAL_ROOT / "corpus/exploit-path-valid-v2.json").read_text(encoding="utf-8"))
+    payload = json.loads((_FORMAL_ROOT / "corpus/exploit-path-valid-v3.json").read_text(encoding="utf-8"))
+    payload["snapshot"] = _current_snapshot_with_legacy_vm_spelling()
     forged_digest = f"sha256:{'0' * 64}"
     payload["snapshot_digest"] = forged_digest
     payload["normalized_graph"]["snapshot_digest"] = forged_digest

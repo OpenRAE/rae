@@ -17,6 +17,7 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.semantic_comparison import (
     ArtifactCoordinate,
+    ArtifactKind,
     EvidenceSpecificationCoordinateModel,
     ExactRepresentationModel,
     ExternalConceptBindingsCoordinateModel,
@@ -34,6 +35,7 @@ from raes_contracts.semantic_comparison import (
 from .semantic_comparison_projections import (
     _owner_semantic_payload,
     _owner_structural_payload,
+    _presence_preserving_semantics,
     _study_member_semantics,
     _without_editorial_description,
 )
@@ -80,10 +82,20 @@ def coordinate_for_artifact(
     artifact: AdmittedArtifact,
     *,
     exact_representation: ExactRepresentationModel | None = None,
+    scenario_projection_version: str = "2",
 ) -> ArtifactCoordinate:
     """Derive a closed owner-specific coordinate from an admitted typed artifact."""
 
+    if scenario_projection_version not in {"1", "2"}:
+        raise ValueError("unsupported scenario projection revision")
     digest = _artifact_digest(artifact)
+    if type(artifact) is Scenario and scenario_projection_version == "2":
+        digest = canonical_json_digest(
+            {
+                "profile": "raes-canonical-sdl/v2",
+                "scenario": artifact.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            }
+        )
     common = {
         "canonical_digest": digest,
         "exact_representation": exact_representation,
@@ -92,7 +104,7 @@ def coordinate_for_artifact(
     if type(artifact) is Scenario:
         coordinate = ScenarioCoordinateModel(
             canonical_identity=f"scenario:{artifact.name}",
-            canonicalization_profile="raes-canonical-sdl/v1",
+            canonicalization_profile=f"raes-canonical-sdl/v{scenario_projection_version}",
             scenario_id=artifact.name,
             scenario_version=artifact.version,
             **common,
@@ -157,11 +169,28 @@ def build_impact_scope(
     traversal_roots: tuple[str, ...],
     closure_status: ImpactClosureStatus,
     scope_id: str = "comparison-scope",
+    scenario_projection_version: str = "2",
 ) -> ImpactScopeModel:
     """Build a canonical digest-bound scope from actual admitted artifacts."""
 
-    before = tuple(sorted((coordinate_for_artifact(item) for item in before_artifacts), key=_coordinate_key))
-    after = tuple(sorted((coordinate_for_artifact(item) for item in after_artifacts), key=_coordinate_key))
+    before = tuple(
+        sorted(
+            (
+                coordinate_for_artifact(item, scenario_projection_version=scenario_projection_version)
+                for item in before_artifacts
+            ),
+            key=_coordinate_key,
+        )
+    )
+    after = tuple(
+        sorted(
+            (
+                coordinate_for_artifact(item, scenario_projection_version=scenario_projection_version)
+                for item in after_artifacts
+            ),
+            key=_coordinate_key,
+        )
+    )
     unsigned = ImpactScopeModel.model_construct(
         scope_id=scope_id,
         closure_policy="declared-exact-artifact-set/v1",
@@ -187,7 +216,14 @@ def project_artifact(
     artifact: AdmittedArtifact,
     expected: ArtifactCoordinate,
 ) -> _Projection:
-    coordinate = coordinate_for_artifact(artifact, exact_representation=expected.exact_representation)
+    scenario_version = profile.owner_projection_versions[ArtifactKind.SCENARIO]
+    if type(artifact) is Scenario and scenario_version != "2":
+        raise ValueError("current SDL requires scenario projection version 2, including untagged source")
+    if type(artifact) is ExperimentTaskModel and profile.owner_projection_versions[ArtifactKind.TASK] != "2":
+        raise ValueError("current tasks require task projection version 2")
+    coordinate = coordinate_for_artifact(
+        artifact, exact_representation=expected.exact_representation, scenario_projection_version=scenario_version
+    )
     if coordinate != expected:
         raise ValueError("admitted artifact does not match its declared owner-specific coordinate")
     projection_version = profile.owner_projection_versions[coordinate.artifact_kind]
@@ -197,13 +233,13 @@ def project_artifact(
         identity=coordinate.canonical_identity,
         representation_digest=(expected.exact_representation.byte_digest if expected.exact_representation else None),
         structural_digest=canonical_json_digest(_owner_structural_payload(artifact)),
-        semantic_digest=canonical_json_digest(_owner_semantic_payload(artifact)),
+        semantic_digest=canonical_json_digest(_owner_semantic_payload(artifact, projection_version=projection_version)),
         structural_profile=structural_profile,
         semantic_profile=semantic_profile,
     )
     subjects = [root]
     if type(artifact) is Scenario:
-        subjects.extend(_scenario_subjects(artifact, structural_profile, semantic_profile))
+        subjects.extend(_scenario_subjects(artifact, structural_profile, semantic_profile, scenario_version))
     elif type(artifact) is ExperimentStudyModel:
         subjects.extend(_study_subjects(artifact, structural_profile, semantic_profile))
     elif type(artifact) is ExternalConceptBindingDocumentModel:
@@ -219,6 +255,7 @@ def _scenario_subjects(
     scenario: Scenario,
     structural_profile: str,
     semantic_profile: str,
+    version: str = "1",
 ) -> list[_Subject]:
     result: list[_Subject] = []
     for field_name in scenario.__class__.model_fields:
@@ -226,7 +263,16 @@ def _scenario_subjects(
         if not isinstance(value, dict):
             continue
         for key, child in value.items():
-            payload = child.model_dump(mode="json") if isinstance(child, BaseModel) else child
+            payload = (
+                child.model_dump(mode="json", exclude_unset=version == "2") if isinstance(child, BaseModel) else child
+            )
+            semantic_payload = (
+                _presence_preserving_semantics(child)
+                if version == "2" and isinstance(child, BaseModel)
+                else child
+                if version == "2"
+                else _without_editorial_description(payload)
+            )
             result.append(
                 _Subject(
                     identity=f"scenario:{scenario.name}/{field_name}:{key}",
@@ -238,7 +284,7 @@ def _scenario_subjects(
                             "present_fields": sorted(payload),
                         }
                     ),
-                    semantic_digest=canonical_json_digest(_without_editorial_description(payload)),
+                    semantic_digest=canonical_json_digest(semantic_payload),
                     structural_profile=structural_profile,
                     semantic_profile=semantic_profile,
                 )

@@ -367,7 +367,7 @@ def test_changed_derivation_and_sdl_semantics_are_separate_axes() -> None:
     before = synthesize_sdl_candidate(before_input)
     after = synthesize_sdl_candidate(after_input)
     profile = SemanticComparisonProfileModel.model_validate_json(
-        (REPO_ROOT / "contracts" / "profiles" / "semantic-comparison" / "reference-v1.json").read_text(encoding="utf-8")
+        (REPO_ROOT / "contracts" / "profiles" / "semantic-comparison" / "reference-v2.json").read_text(encoding="utf-8")
     )
     assert before.candidate is not None
     assert after.candidate is not None

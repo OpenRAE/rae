@@ -205,6 +205,7 @@ class _ImportContext:
     source_diagnostics: list[SDLParseDiagnostic] | None
     verified_sources: _VerifiedSourceBundle | None
     registry_base_dir: Path
+    semantic_revision: str | None
 
 
 @dataclass(frozen=True)
@@ -272,6 +273,7 @@ def _expand_one_import(
             source_format=context.source_format,
             migration_policy=context.migration_policy,
             limits=context.limits,
+            required_semantic_revision=context.semantic_revision,
         ),
         source_diagnostics=context.source_diagnostics,
         verified_sources=context.verified_sources,
@@ -285,7 +287,10 @@ def _expand_one_import(
         migration_policy=context.migration_policy,
         limits=context.limits,
         source_diagnostics=context.source_diagnostics,
+        required_semantic_revision=context.semantic_revision,
     )
+    if imported_raw.get("semantic_revision") != context.semantic_revision:
+        raise SDLParseError("Imported SDL semantic revision must match the root revision.", path=import_path)
     imported_expanded, inner_provenance = expand_sdl_modules(
         imported_raw,
         path=import_path,
@@ -451,6 +456,7 @@ def expand_sdl_modules(
         source_diagnostics=source_diagnostics,
         verified_sources=expansion_context.verified_sources,
         registry_base_dir=registry_base_dir,
+        semantic_revision=data.get("semantic_revision"),
     )
 
     for raw_import in merged.get("imports", []):

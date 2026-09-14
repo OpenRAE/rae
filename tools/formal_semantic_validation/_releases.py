@@ -153,7 +153,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "15.0.0",
+                replay_current=manifest.get("revision") == "16.0.0",
             )
         )
     else:
@@ -230,10 +230,11 @@ _HISTORICAL_RETEST_REVISIONS = frozenset(
         "12.0.0",
         "13.0.0",
         "14.0.0",
+        "15.0.0",
     }
 )
 
-_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"15.0.0"}
+_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"16.0.0"}
 _SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}
 
 
@@ -271,11 +272,12 @@ def validate_retest_bundle(
                 release.manifest_path,
             )
         )
-    if protocol.get("revision") != "2.0.0" or corpus.get("revision") != "2.0.0":
+    expected_corpus_revision = "3.0.0" if release_revision == "16.0.0" else "2.0.0"
+    if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
         failures.append(
             _failure(
                 "formal-validation-retest-revision",
-                "the integrated retest must bind protocol and corpus revision 2.0.0",
+                f"the integrated retest must bind protocol revision 2.0.0 and corpus revision {expected_corpus_revision}",
                 release.manifest_path,
             )
         )
@@ -344,6 +346,7 @@ def _current_retest_source_failures(
         "13.0.0": "12.0.0",
         "14.0.0": "13.0.0",
         "15.0.0": "14.0.0",
+        "16.0.0": "15.0.0",
     }[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(

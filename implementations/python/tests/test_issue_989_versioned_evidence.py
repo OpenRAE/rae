@@ -10,6 +10,148 @@ from evidence_test_fixtures import copy_bundle
 ROOT = Path(__file__).resolve().parents[3]
 
 
+@pytest.mark.parametrize("case_name", ["finite-domain-satisfiable", "typed-exploit-path-valid"])
+@pytest.mark.parametrize("mutation", ["missing", "unknown", "nested", "snapshot"])
+def test_historical_evidence_rejects_malformed_shapes_even_with_rebound_digest(case_name, mutation):
+    import json
+
+    from raes_contracts.canonical import canonical_json_digest
+    from tools.formal_semantic_validation._production import _historical_production_replay
+
+    payload = json.loads((ROOT / f"docs/research/formal-semantic-validation/evidence/{case_name}-v3.json").read_text())
+    if mutation == "missing":
+        del payload["authored_digest"]
+    elif mutation == "unknown":
+        payload["invented_claim"] = True
+    elif mutation == "nested":
+        payload["source"]["source_id"] = {"invalid": "identity"}
+    elif case_name.startswith("finite"):
+        payload["witness"]["snapshot"]["scenario"]["nodes"]["target"]["invented_constraint"] = True
+    else:
+        payload["normalized_graph"]["state_facts"][0]["invented_constraint"] = True
+    observation = {"evidence_digest": canonical_json_digest(payload)}
+    with pytest.raises(ValueError, match="archival shape"):
+        _historical_production_replay(
+            payload, observation, "satisfiability" if case_name.startswith("finite") else "exploit-path"
+        )
+
+
+def test_historical_shape_contract_cannot_be_replaced_with_an_open_schema(tmp_path):
+    import json
+    import shutil
+
+    from tools.formal_semantic_validation._archival_shape import validate_archival_evidence_shape
+
+    relative = Path("docs/research/formal-semantic-validation/archive-contracts")
+    shutil.copytree(ROOT / relative, tmp_path / relative)
+    (tmp_path / relative / "satisfiability-evidence-shape-v1.json").write_text("{}\n")
+    payload = json.loads(
+        (ROOT / "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v3.json").read_text()
+    )
+    with pytest.raises(ValueError, match="archival shape digest mismatch"):
+        validate_archival_evidence_shape(tmp_path, payload, "satisfiability")
+
+
+def test_historical_shape_manifest_cannot_authorize_a_replacement_schema(tmp_path):
+    import hashlib
+    import json
+    import shutil
+
+    from tools.formal_semantic_validation._archival_shape import validate_archival_evidence_shape
+
+    relative = Path("docs/research/formal-semantic-validation/archive-contracts")
+    shutil.copytree(ROOT / relative, tmp_path / relative)
+    schema_path = tmp_path / relative / "satisfiability-evidence-shape-v1.json"
+    schema_path.write_text("{}\n")
+    manifest_path = tmp_path / relative / "manifest-v1.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["contracts"][0]["sha256"] = hashlib.sha256(schema_path.read_bytes()).hexdigest()
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="archival manifest"):
+        validate_archival_evidence_shape(tmp_path, {}, "satisfiability")
+
+
+@pytest.mark.parametrize(
+    ("family", "field"),
+    [
+        ("finite-domain-satisfiable", field)
+        for field in ("normalized_model_digest", "solver_configuration_digest", "witness.snapshot_digest")
+    ]
+    + [
+        ("typed-exploit-path-valid", field)
+        for field in (
+            "snapshot_digest",
+            "normalized_graph_digest",
+            "query_digest",
+            "search_configuration_digest",
+            "witness.final_state_digest",
+            "witness.steps.0.state_before_digest",
+            "witness.steps.0.state_after_digest",
+        )
+    ],
+)
+def test_historical_computed_joins_reject_rebound_evidence(family, field):
+    import json
+
+    from raes_contracts.canonical import canonical_json_digest
+    from tools.formal_semantic_validation._production import _historical_production_replay
+
+    payload = json.loads((ROOT / f"docs/research/formal-semantic-validation/evidence/{family}-v3.json").read_text())
+    parent = payload
+    parts = field.split(".")
+    for part in parts[:-1]:
+        parent = parent[int(part)] if isinstance(parent, list) else parent[part]
+    parent[parts[-1]] = "sha256:" + "0" * 64
+    observation = {"evidence_digest": canonical_json_digest(payload)}
+    expected_join = {
+        "snapshot_digest": "snapshot join",
+        "witness.steps.0.state_before_digest": "state before join",
+        "witness.steps.0.state_after_digest": "state after join",
+    }.get(field, field.split(".")[-1].removesuffix("_digest") + " digest join")
+    with pytest.raises(ValueError, match=expected_join):
+        _historical_production_replay(
+            payload, observation, "satisfiability" if family.startswith("finite") else "exploit-path"
+        )
+
+
+@pytest.mark.parametrize("version", [2, 3])
+@pytest.mark.parametrize("mutation", ["source", "authored", "effects", "index", "goal", "non-retained"])
+def test_historical_integrity_checks_reject_shape_valid_substitutions(version, mutation):
+    import json
+
+    from raes_contracts.canonical import canonical_json_digest
+    from tools.formal_semantic_validation._production import _historical_production_replay
+
+    satisfiability = mutation in {"source", "authored"}
+    family = "finite-domain-satisfiable" if satisfiability else "typed-exploit-path-valid"
+    payload = json.loads(
+        (ROOT / f"docs/research/formal-semantic-validation/evidence/{family}-v{version}.json").read_text()
+    )
+    if mutation == "source":
+        payload["source"]["byte_digest"] = "sha256:" + "0" * 64
+    elif mutation == "authored":
+        payload["authored_digest"]["value"] = "sha256:" + "0" * 64
+    elif mutation == "effects":
+        payload["witness"]["steps"][0]["applied_effects"] = ["data-access"]
+    elif mutation == "index":
+        payload["witness"]["steps"][0]["step_index"] = 3
+    elif mutation == "goal":
+        payload["witness"]["goal_facts"] = ["web-shell"]
+    else:
+        payload["source"]["source_id"] = "unrecorded-source.json"
+    observation = {"evidence_digest": canonical_json_digest(payload)}
+    expected = {
+        "source": "source join",
+        "authored": "authored join",
+        "effects": "effects join",
+        "index": "step index",
+        "goal": "goal facts join",
+        "non-retained": "not in the retained production evidence corpus",
+    }
+    with pytest.raises(ValueError, match=expected[mutation]):
+        _historical_production_replay(payload, observation, "satisfiability" if satisfiability else "exploit-path")
+
+
 def test_current_compile_replay_hashes_complete_capture_dimension():
     import dataclasses
 
@@ -40,27 +182,33 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
     assert not _replay_observation_matches(old, changed)
 
 
-def test_historical_integrated_release_does_not_execute_current_code(monkeypatch):
+@pytest.mark.parametrize("revision", ["3.0.0", "15.0.0"])
+def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
+    from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
+    from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
     from tools.formal_semantic_validation import _production, _releases, _retest
     from tools.formal_semantic_validation._loading import load_release_bundles
 
-    release = next(r for r in copy_bundle(load_release_bundles, ROOT) if r.manifest["revision"] == "3.0.0")
+    release = next(r for r in copy_bundle(load_release_bundles, ROOT) if r.manifest["revision"] == revision)
 
     def forbidden(*args, **kwargs):
         raise AssertionError("historical observations are not current-code evidence")
 
     monkeypatch.setattr(_retest, "replay_case", forbidden)
     monkeypatch.setattr(_production, "_run_production_evidence_cli", forbidden)
+    monkeypatch.setattr(ExploitPathAnalysisEvidenceModel, "model_validate", forbidden)
+    monkeypatch.setattr(ScenarioSatisfiabilityEvidenceModel, "model_validate", forbidden)
     assert _releases.validate_release_bundle(ROOT, release) == []
 
 
+@pytest.mark.integration
 def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation import _retest
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "15.0.0"
+    assert release.manifest["revision"] == "16.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -74,6 +222,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     assert "formal-validation-replay-drift" in {f.rule_id for f in failures}
 
 
+@pytest.mark.integration
 def test_current_release_requires_truthful_implementation_provenance():
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._releases import validate_retest_bundle
@@ -86,6 +235,7 @@ def test_current_release_requires_truthful_implementation_provenance():
     assert "research-evidence-source-state" in {f.rule_id for f in failures}
 
 
+@pytest.mark.integration
 def test_current_production_evidence_replay_failure_is_not_hidden(monkeypatch):
     from raes_processor import satisfiability
     from tools.formal_semantic_validation._loading import load_retest_bundle
@@ -104,7 +254,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest():
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "13.0.0"
+    assert manifest["revision"] == "14.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == "port-range-sdl")
     artifact["sha256"] = "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"
@@ -204,6 +354,7 @@ def test_historical_supplement_never_runs_current_analyzer(monkeypatch):
     assert validate_release_bundle(ROOT, release) == []
 
 
+@pytest.mark.integration
 def test_current_cli_result_drift_is_rejected(monkeypatch):
     from tools.formal_semantic_validation import _production
     from tools.formal_semantic_validation._loading import load_retest_bundle
@@ -222,6 +373,7 @@ def test_current_cli_result_drift_is_rejected(monkeypatch):
     assert "formal-validation-production-evidence-join" in {f.rule_id for f in failures}
 
 
+@pytest.mark.integration
 def test_current_cli_must_emit_the_complete_pinned_payload(monkeypatch):
     from tools.formal_semantic_validation import _production
     from tools.formal_semantic_validation._loading import load_retest_bundle
@@ -286,6 +438,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "13.0.0",
             "14.0.0",
             "15.0.0",
+            "16.0.0",
         ]
         if family == "formal"
         else [
@@ -303,6 +456,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "11.0.0",
             "12.0.0",
             "13.0.0",
+            "14.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)

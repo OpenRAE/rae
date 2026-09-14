@@ -1,51 +1,89 @@
 {
-  "schema_version": "external-concept-bindings/v1",
   "binding_set_id": "invalid-participant-disclosure",
   "binding_set_version": "1.0.0",
   "bindings": {
     "delivery-claim": {
-      "binding_id": "delivery-claim",
-      "subject": {
-        "subject_kind": "node",
-        "owning_contract_id": "sdl-authoring-input-v1",
-        "lifecycle_phase": "normalized-authoring",
-        "canonical_ref": "nodes.web",
-        "artifact_digest": "sha256:0127e45974ffb188d44e2601d9cce62fe29303c68a159be8c5010e892039e47b"
-      },
-      "scheme": {
-        "scheme_id": "nist-csf-defensive-categories",
-        "authority": "NIST Cybersecurity Framework",
-        "revision": "2.0",
-        "source_digest": "sha256:014492980e87f8ce2c98d80ea040540392de96a08980c2f9901114ad4108b2c3",
-        "concept_id": "DE.CM"
+      "approximation": {
+        "loss_details": [],
+        "posture": "exact"
       },
       "assertion": {
-        "relationship_kind": "related-to",
         "motivation": "Impermissible delivery claim fixture.",
-        "motivation_basis_refs": [{"ref_kind": "other", "ref_id": "basis"}],
+        "motivation_basis_refs": [
+          {
+            "ref_id": "basis",
+            "ref_kind": "other"
+          }
+        ],
+        "relationship_kind": "related-to",
         "semantic_effect": "annotates",
-        "semantic_effect_basis_refs": [{"ref_kind": "profile", "ref_id": "sem-217"}]
+        "semantic_effect_basis_refs": [
+          {
+            "ref_id": "sem-217",
+            "ref_kind": "profile"
+          }
+        ]
       },
+      "binding_id": "delivery-claim",
+      "confidence": {
+        "basis": "Invalid fixture.",
+        "posture": "unknown"
+      },
+      "limitations": [
+        "Invalid fixture."
+      ],
       "perspective": {
         "asserting_party_kind": "author",
         "asserting_party_ref": "authors.fixture",
-        "perspective": "scenario-author",
-        "authority_basis_refs": [{"ref_kind": "other", "ref_id": "charter"}],
+        "authority_basis_refs": [
+          {
+            "ref_id": "charter",
+            "ref_kind": "other"
+          }
+        ],
         "participant_availability": {
+          "basis_refs": [
+            {
+              "ref_id": "view-policy",
+              "ref_kind": "other"
+            }
+          ],
           "kind": "actual-delivery",
-          "participant_refs": ["agents.blue"],
-          "basis_refs": [{"ref_kind": "other", "ref_id": "view-policy"}]
-        }
+          "participant_refs": [
+            "agents.blue"
+          ]
+        },
+        "perspective": "scenario-author"
       },
       "provenance": {
         "asserted_at": "2026-07-30T12:00:00Z",
-        "source_refs": [{"ref_kind": "other", "ref_id": "source"}]
+        "source_refs": [
+          {
+            "ref_id": "source",
+            "ref_kind": "other"
+          }
+        ]
       },
-      "supporting_evidence_refs": [],
-      "confidence": {"posture": "unknown", "basis": "Invalid fixture."},
-      "approximation": {"posture": "exact", "loss_details": []},
-      "limitations": ["Invalid fixture."],
-      "review": {"status": "unreviewed", "review_refs": []}
+      "review": {
+        "review_refs": [],
+        "status": "unreviewed"
+      },
+      "scheme": {
+        "authority": "NIST Cybersecurity Framework",
+        "concept_id": "DE.CM",
+        "revision": "2.0",
+        "scheme_id": "nist-csf-defensive-categories",
+        "source_digest": "sha256:014492980e87f8ce2c98d80ea040540392de96a08980c2f9901114ad4108b2c3"
+      },
+      "subject": {
+        "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+        "canonical_ref": "nodes.web",
+        "lifecycle_phase": "normalized-authoring",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "subject_kind": "node"
+      },
+      "supporting_evidence_refs": []
     }
-  }
+  },
+  "schema_version": "external-concept-bindings/v1"
 }

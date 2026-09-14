@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -16,12 +17,12 @@ if str(REPO_ROOT) not in sys.path:
 
 from pydantic import ValidationError
 from raes._runtime_service_families import RUNTIME_SERVICE_FAMILIES
-from raes_contracts.provenance import LineageDisposition, SDLLineageLedgerModel
+from raes_contracts.provenance import SDL_LINEAGE_LEDGER_FILENAME, LineageDisposition, SDLLineageLedgerModel
 
 from tools.check_schema_publication import load_schema_publication_catalog
 from tools.policy.common import PolicyFailure, safe_repo_path
 
-LEDGER_PATH = "contracts/provenance/sdl-lineage-ledger-v1.json"
+LEDGER_PATH = f"contracts/provenance/{SDL_LINEAGE_LEDGER_FILENAME}"
 AUTHORING_SCHEMA_PATH = "contracts/schemas/sdl/sdl-authoring-input-v1.json"
 CONCEPT_FAMILIES_PATH = "contracts/concept-authority/concept-families-v1.json"
 REFERENCE_MODELS_PATH = "contracts/concept-authority/reference-models-v1.json"
@@ -33,9 +34,6 @@ CURRENT_PROSE_PATHS = (
     "docs/explain/sdl/validation.md",
     "implementations/python/packages/raes/__init__.py",
 )
-_HISTORICAL_BOUNDARIES_KEY = "a" + "ces_boundaries"
-_HISTORICAL_NATIVE_CLASSIFICATION = "a" + "ces_native"
-_HISTORICAL_COMPATIBILITY_DIRECTION = "a" + "ces_relative_to_source"
 DOI_LINK_RE = re.compile(
     r"\[([^\]]+)\]\(https://doi\.org/(10\.\d{4,9}/[^)\s]+)\)",
     re.IGNORECASE,
@@ -52,48 +50,6 @@ def _load_json(repo_root: Path, rel_path: str) -> object:
     if path is None or not path.is_file():
         raise ValueError(f"missing or unsafe repository artifact {rel_path!r}")
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def project_historical_ledger_to_current_contract(payload: object) -> object:
-    """Project the exact pre-cutover ledger structure into the current contract.
-
-    This policy-only projection is used solely for the immutable artifact at
-    ``LEDGER_PATH``. It does not add aliases to the published model or any
-    runtime parser.
-    """
-
-    if isinstance(payload, list):
-        return [project_historical_ledger_to_current_contract(item) for item in payload]
-    if not isinstance(payload, dict):
-        return payload
-    projected: dict[str, object] = {}
-    for key, value in payload.items():
-        current_key = "raes_boundaries" if key == _HISTORICAL_BOUNDARIES_KEY else key
-        if value == _HISTORICAL_NATIVE_CLASSIFICATION:
-            current_value: object = "raes_native"
-        elif value == _HISTORICAL_COMPATIBILITY_DIRECTION:
-            current_value = "raes_relative_to_source"
-        else:
-            current_value = project_historical_ledger_to_current_contract(value)
-        projected[current_key] = current_value
-    # Preserve the pre-cutover ledger bytes; project the explicitly retired
-    # subject through its current removal authority (issue #989).
-    if (
-        projected.get("subject_id") == "sdl-field:vulnerabilities"
-        and projected.get("disposition") == "current"
-        and projected.get("authority")
-        == {
-            "artifact": AUTHORING_SCHEMA_PATH,
-            "pointer": "#/properties/vulnerabilities",
-            "contract_id": "sdl-authoring-input-v1",
-        }
-    ):
-        projected["disposition"] = "removed"
-        projected["authority"] = {
-            "artifact": "specs/concept-authority/classification-migration.md",
-            "pointer": "#inventory-and-disposition",
-        }
-    return projected
 
 
 def _canonical_subjects(repo_root: Path) -> set[str]:
@@ -171,7 +127,7 @@ def _validate_authorities(repo_root: Path, ledger: SDLLineageLedgerModel) -> lis
                 )
             )
             continue
-        if subject.disposition is not LineageDisposition.CURRENT:
+        if subject.disposition is not LineageDisposition.CURRENT and not subject.authority.pointer.startswith("#/"):
             continue
         if path.suffix != ".json":
             failures.append(
@@ -204,18 +160,36 @@ def _validate_authorities(repo_root: Path, ledger: SDLLineageLedgerModel) -> lis
 def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
     refs: set[str] = set()
+    boundaries: set[tuple[str, str]] = set()
     for citation in ledger.citations:
         refs.add(citation.verification_evidence.split("#", 1)[0])
+    for source in ledger.sources:
+        capture = source.archival_capture
+        if capture is None:
+            continue
+        refs.add(capture.artifact)
+        path = safe_repo_path(repo_root, capture.artifact)
+        if path is not None and path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() != capture.sha256:
+            failures.append(
+                _failure("lineage-source-capture-digest", f"source {source.source_id!r} capture digest differs")
+            )
     for subject in ledger.subjects:
         refs.add(subject.authority.artifact)
         for claim in subject.claims:
             refs.update(boundary.artifact for boundary in claim.raes_boundaries)
+            boundaries.update((boundary.artifact, boundary.symbol_or_pointer) for boundary in claim.raes_boundaries)
             refs.update(ref.split("#", 1)[0] for ref in claim.internal_authority_refs)
+            boundaries.update(
+                (ref.split("#", 1)[0], "#" + ref.split("#", 1)[1])
+                for ref in claim.internal_authority_refs
+                if "#" in ref
+            )
     for disposition in ledger.third_party_dispositions:
         refs.update(ref.split("#", 1)[0] for ref in disposition.evidence_refs if not ref.startswith("git:"))
         if disposition.notice_artifact:
             refs.add(disposition.notice_artifact)
         refs.update(boundary.artifact for boundary in disposition.derivation_scope)
+        boundaries.update((boundary.artifact, boundary.symbol_or_pointer) for boundary in disposition.derivation_scope)
     for ref in sorted(refs):
         path = safe_repo_path(repo_root, ref)
         if path is None or not path.is_file():
@@ -224,6 +198,18 @@ def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> 
                     "lineage-internal-artifact-missing",
                     f"internal artifact {ref!r} is missing or unsafe",
                 )
+            )
+    for artifact, pointer in sorted(boundaries):
+        if not pointer.startswith("#/"):
+            continue
+        try:
+            document = _load_json(repo_root, artifact)
+            resolved = _resolve_json_pointer(document, pointer)
+        except (OSError, ValueError):
+            resolved = False
+        if not resolved:
+            failures.append(
+                _failure("lineage-claim-pointer-missing", f"claim pointer {pointer!r} does not resolve in {artifact}")
             )
     return failures
 
@@ -299,7 +285,6 @@ def _validate_current_prose(
 def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
         payload = _load_json(repo_root, LEDGER_PATH)
-        payload = project_historical_ledger_to_current_contract(payload)
         ledger = SDLLineageLedgerModel.model_validate(payload)
     except (ValueError, json.JSONDecodeError, ValidationError) as exc:
         return [_failure("lineage-ledger-invalid", f"ledger validation failed: {exc}")]

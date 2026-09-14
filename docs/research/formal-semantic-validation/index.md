@@ -114,10 +114,15 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v13.json`](analysis-v13.json) to the typed selection implementation.
   Production commands and participant fixtures replay without observation
   drift from release 13.0.0; the preregistered claim limits remain unchanged.
-- [`bundles/retest-v14.json`](bundles/retest-v14.json) is current release 15.0.0.
+- [`bundles/retest-v14.json`](bundles/retest-v14.json) preserves release 15.0.0.
   It binds [`execution-snapshot-v14.json`](execution-snapshot-v14.json) and
   [`analysis-v14.json`](analysis-v14.json) to the selection-helper refactor.
   Fresh production replay retains the release-14 observations and claim limits.
+- [`bundles/retest-v15.json`](bundles/retest-v15.json) is current release 16.0.0.
+  It binds [`execution-snapshot-v15.json`](execution-snapshot-v15.json) and
+  [`analysis-v15.json`](analysis-v15.json) to progressive semantic revision
+  support. Fresh replay records two complete compiler digest changes, with
+  identical bounded outcomes and explicit deviations from release 15.0.0.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -162,7 +167,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 15.0.0, rejects unsupported future
+Current validation requires explicit release 16.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -220,3 +225,10 @@ that complete record's checksum independently of the submitted capture. It joins
 each indexed release path to the exact original manifest and snapshot bytes;
 new self-chosen archive digests cannot replace those observations. Future archive
 records must append a reviewed version and retain this record unchanged.
+
+Release 16 uses corpus revision 3 (`corpus/manifest-v3.json`) and production
+evidence v4 for the canonical-profile cutover. Its reconstructed exploit-path
+controls use current authoring and instantiated snapshot profiles v2. All four
+production outcomes are unchanged; their new digests are recorded as explicit
+deviations alongside the two compilation digests. Historical releases retain
+their original byte and observation joins without current snapshot admission.

@@ -16,7 +16,7 @@ from ._errors import SDLParseError
 from ._source_profile import SDL_CANONICAL_PROFILE
 from .scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
-INSTANTIATED_SNAPSHOT_PROFILE = "raes-sdl-instantiated-snapshot/v1"
+INSTANTIATED_SNAPSHOT_PROFILE = "raes-sdl-instantiated-snapshot/v2"
 _LEGACY_SNAPSHOT_PROJECTION_REVISION = "instantiated-snapshot-v1/node-architecture-default"
 
 
@@ -79,7 +79,7 @@ class InstantiatedScenarioSnapshot(SDLModel):
         json_schema_extra={"x-raes-document-phase": "canonical-instantiated-snapshot"},
     )
 
-    profile: Literal["raes-sdl-instantiated-snapshot/v1"]
+    profile: Literal["raes-sdl-instantiated-snapshot/v2"]
     scenario: InstantiatedScenario
 
     @model_validator(mode="before")

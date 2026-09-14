@@ -42,7 +42,7 @@ anchors, aliases, Core scalar resolution, and resource limits are specified in
 contract. It requires `instantiation_provenance`, forbids `variables`,
 `imports`, and `module` even when empty/null, and forbids a `${name}` token in
 every string value. `sdl/instantiated-scenario-snapshot-v1.json` adds the
-required `raes-sdl-instantiated-snapshot/v1` canonical profile envelope. The
+required `raes-sdl-instantiated-snapshot/v2` canonical profile envelope. The
 `x-raes-realization-dimension: false` annotation on
 `instantiation_provenance` declares that this required exchange metadata is
 excluded only from realization-envelope child-dimension enumeration; it remains

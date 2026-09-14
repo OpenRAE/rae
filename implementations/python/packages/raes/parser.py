@@ -438,6 +438,7 @@ def _load_normalized_data(
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
     source_ranges: dict[str, SDLSourceRange] | None = None,
+    required_semantic_revision: str | None = None,
 ) -> dict[str, Any]:
     raw = load_sdl_yaml(
         content,
@@ -446,6 +447,7 @@ def _load_normalized_data(
             source_format=source_format,
             migration_policy=migration_policy,
             limits=limits,
+            required_semantic_revision=required_semantic_revision,
         ),
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
@@ -453,6 +455,13 @@ def _load_normalized_data(
 
     if not isinstance(raw, dict):
         raise SDLParseError("SDL must be a YAML mapping (not a scalar or list)", path=path)
+
+    from ._source_profile import PROGRESSIVE_SDL_REVISION
+
+    if "semantic_revision" in raw and raw["semantic_revision"] != PROGRESSIVE_SDL_REVISION:
+        raise SDLParseError(
+            "This parser requires the current semantic revision; explicitly migrate older source.", path=path
+        )
 
     data = _normalize_keys(raw)
     if any(not isinstance(key, str) for key in data):

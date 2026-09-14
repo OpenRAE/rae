@@ -152,6 +152,8 @@ def _replay_production_evidence(
         str(evidence_value),
         max_bytes=_MAX_FILE_BYTES,
     )
+    if not replay_current:
+        return _historical_production_replay(stored_payload, observation, replay_mode, repo_root=repo_root)
     if replay_mode == "satisfiability":
         from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
         from raes_processor.satisfiability import analyze_scenario_file, replay_satisfiability_evidence
@@ -166,21 +168,6 @@ def _replay_production_evidence(
     from raes_contracts.satisfiability import canonical_contract_digest
 
     stored_artifact_matches = canonical_json_digest(stored_payload) == observation.get("evidence_digest")
-    if not replay_current:
-        # Validate the original payload's own joins, not a current replay claim.
-        return _ProductionEvidenceReplay(
-            evidence_digest_matches=stored_artifact_matches,
-            direct_digest=canonical_json_digest(stored_payload),
-            outcome=stored.outcome.value,
-            profile=stored.profile,
-            analysis_profile=stored.analysis_profile,
-            configuration_digest=(
-                stored.solver_configuration_digest
-                if replay_mode == "satisfiability"
-                else stored.search_configuration_digest
-            ),
-            source_digest=stored.source.byte_digest,
-        )
     if replay_mode == "satisfiability":
         direct = analyze_scenario_file(fixture, profile=_CURRENT_SATISFIABILITY_PROFILE)
         replay_satisfiability_evidence(fixture, stored)
@@ -207,6 +194,43 @@ def _replay_production_evidence(
         analysis_profile=direct.analysis_profile,
         configuration_digest=configuration_digest,
         source_digest=direct.source.byte_digest,
+    )
+
+
+def _historical_production_replay(
+    payload: Mapping[str, object],
+    observation: Mapping[str, object],
+    replay_mode: object,
+    *,
+    repo_root: Path | None = None,
+) -> _ProductionEvidenceReplay:
+    """Check pinned historical joins without admitting an old snapshot as current.
+
+    The release owner authenticates the complete artifact bytes. A frozen,
+    closed archival shape admits those records before their joins are projected;
+    neither this admission nor the joins certify old semantics.
+    """
+    from raes_contracts.canonical import canonical_json_digest
+
+    from ._archival_invariants import validate_archival_evidence_invariants
+    from ._archival_shape import validate_archival_evidence_shape
+
+    validate_archival_evidence_shape(repo_root or Path(__file__).resolve().parents[2], payload, replay_mode)
+    validate_archival_evidence_invariants(payload, replay_mode)
+    source = payload.get("source")
+    configuration_key = (
+        "solver_configuration_digest" if replay_mode == "satisfiability" else "search_configuration_digest"
+    )
+    fields = {name: payload.get(name) for name in ("outcome", "profile", "analysis_profile")}
+    fields["configuration_digest"] = payload.get(configuration_key)
+    fields["source_digest"] = source.get("byte_digest") if isinstance(source, Mapping) else None
+    if any(not isinstance(value, str) or not value for value in fields.values()):
+        raise ValueError("historical production evidence has malformed identity joins")
+    digest = canonical_json_digest(payload)
+    return _ProductionEvidenceReplay(
+        evidence_digest_matches=digest == observation.get("evidence_digest"),
+        direct_digest=digest,
+        **fields,
     )
 
 

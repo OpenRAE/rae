@@ -12,7 +12,7 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 """
 
 from collections.abc import Mapping
-from typing import ClassVar
+from typing import ClassVar, Literal
 
 from pydantic import ConfigDict, Field, PrivateAttr, model_validator
 
@@ -256,6 +256,11 @@ class ScenarioContent(LegacyClassificationGuard):
     name: PortableIdentifier
     version: str = "*"
     description: str = ""
+    semantic_revision: Literal["raes-progressive-semantics/v1"] | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
+    )
 
     # OCR-derived topology and exercise-narrative sections.
     nodes: dict[str, Node] = Field(default_factory=dict)
@@ -440,7 +445,7 @@ class InstantiatedScenario(ScenarioContent):
         title="SDL Instantiated Scenario v1",
         json_schema_extra={
             "x-raes-document-phase": "instantiated-scenario",
-            "x-raes-authored-identity-profile": "raes-sdl-semantic/v1",
+            "x-raes-authored-identity-profile": "raes-sdl-semantic/v2",
         },
     )
 

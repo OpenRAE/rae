@@ -72,6 +72,11 @@ def load_sdl_yaml(
         )
         constructed = loader.construct_document(root)
         validate_constructed_domain(constructed, path=path)
+        if source_options.required_semantic_revision is not None and (
+            not isinstance(constructed, dict)
+            or constructed.get("semantic_revision") != source_options.required_semantic_revision
+        ):
+            raise SDLParseError("Imported source must carry the selected semantic revision.", path=path)
         return constructed
     except SDLParseError:
         raise

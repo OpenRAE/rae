@@ -37,6 +37,7 @@ def identities(failures):
     return {(f.rule_id, f.message, f.path) for f in failures}
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize(
     ("field", "value", "rule", "message"),
     [
@@ -139,6 +140,7 @@ def test_production_replay_exceptions_are_failures(monkeypatch, case_id, error):
     }
 
 
+@pytest.mark.integration
 def test_retest_rejects_an_extra_atomically_selected_artifact():
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     release.manifest["artifacts"].append(
@@ -152,6 +154,7 @@ def test_retest_rejects_an_extra_atomically_selected_artifact():
     ) in identities(failures)
 
 
+@pytest.mark.integration
 def test_retest_rejects_missing_production_command_selection():
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     snapshot["commands"] = [
@@ -205,6 +208,7 @@ def test_release_gate_rejects_remaining_integrity_mutations(keys, value, rule):
     assert rule in {f.rule_id for f in validate_release_bundle(REPO_ROOT, release)}
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize(
     ("artifact", "field", "value", "rule"),
     [
@@ -220,6 +224,7 @@ def test_retest_rejects_unsupported_release_or_protocol(artifact, field, value, 
     assert rule in {f.rule_id for f in failures}
 
 
+@pytest.mark.integration
 def test_retest_cannot_rewrite_a_historical_case():
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     corpus["cases"][0]["expected_outcome"] = "invented"

@@ -232,6 +232,7 @@ def _resolve_local_import(
         imported_source.text,
         path=import_path,
         source_format=context.source_options.source_format,
+        required_semantic_revision=context.source_options.required_semantic_revision,
         migration_policy=context.source_options.migration_policy,
         limits=context.source_options.limits,
         source_diagnostics=context.source_diagnostics,
