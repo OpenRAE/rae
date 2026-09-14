@@ -107,7 +107,7 @@ def _archive_bytes(extra: tuple = ()) -> bytes:
             _tar_member(
                 f"{ROOT}/contrib/module-{module}/legal/LICENSE",
                 kind=tarfile.SYMTYPE,
-                target="../../module-0/lib/payload.jar",
+                target="../lib/payload.jar" if module == 0 else "../../module-0/lib/payload.jar",
             )
         )
     members.append(_tar_member(f"{ROOT}/src/lib/ABSENT.a", kind=tarfile.SYMTYPE, target="../ABSENT/ABSENT.a"))

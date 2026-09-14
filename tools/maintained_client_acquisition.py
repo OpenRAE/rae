@@ -111,10 +111,10 @@ def _validated_transfer_bounds(
     return deadline
 
 
-def _low_speed_argv(budget: TransferBudget) -> tuple[str, ...]:
+def _low_speed_argv(budget: TransferBudget) -> list[str]:
     if budget.low_speed_bytes_per_second is None or budget.low_speed_seconds is None:
-        return ()
-    return ("--speed-limit", str(budget.low_speed_bytes_per_second), "--speed-time", str(budget.low_speed_seconds))
+        return []
+    return ["--speed-limit", str(budget.low_speed_bytes_per_second), "--speed-time", str(budget.low_speed_seconds)]
 
 
 def curl_transfer_argv(

@@ -476,6 +476,8 @@ def test_invalid_legacy_archive_is_quarantined_and_terminal_without_network(
             "unsafe-archive-member",
         ),
         ([_symlink(f"{ROOT}/self", ".")], "unsafe-archive-member"),
+        ([_symlink(f"{ROOT}/legal/module/NONCANONICAL", "../module/../base/LICENSE")], "unsafe-archive-member"),
+        ([_symlink(f"{ROOT}/legal/base/LOOP", "../../legal/base/LICENSE")], "unsafe-archive-member"),
         ([_symlink(f"{ROOT}/link", "lib"), _file(f"{ROOT}/link/payload", b"x")], "conflicting-archive-member"),
         ([_file(f"{ROOT}/lib/library.jar", LIBRARY)], "duplicate-archive-member"),
         ([_file(f"{ROOT}/../outside", b"x")], "unsafe-archive-member"),

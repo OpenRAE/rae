@@ -14,10 +14,11 @@ import gzip
 import hashlib
 import json
 import os
+import posixpath
 import re
 import tarfile
 import zlib
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import BinaryIO, Protocol
@@ -100,16 +101,19 @@ CEILING_LIMITS = TreeLimits(
 )
 
 
-def _path_violations(value: str, path: PurePosixPath) -> Iterator[bool]:
-    yield not value
-    yield value != path.as_posix()
-    yield path.is_absolute()
-    yield "\\" in value
-    yield "\x00" in value
-    yield re.match(r"^[A-Za-z]:", value) is not None
-    yield len(value.encode("utf-8")) > MAX_TREE_PATH_BYTES
-    yield len(path.parts) > MAX_TREE_PATH_DEPTH
-    yield bool(_UNSAFE_PATH_PARTS.intersection(path.parts))
+def _path_is_unsafe(value: str, path: PurePosixPath) -> bool:
+    violations = (
+        not value,
+        value != path.as_posix(),
+        path.is_absolute(),
+        "\\" in value,
+        "\x00" in value,
+        re.match(r"^[A-Za-z]:", value) is not None,
+        len(value.encode("utf-8")) > MAX_TREE_PATH_BYTES,
+        len(path.parts) > MAX_TREE_PATH_DEPTH,
+        bool(_UNSAFE_PATH_PARTS.intersection(path.parts)),
+    )
+    return any(violations)
 
 
 def tree_path(value: object) -> PurePosixPath:
@@ -118,7 +122,7 @@ def tree_path(value: object) -> PurePosixPath:
     if not isinstance(value, str):
         raise failure("unsafe-archive-member")
     path = PurePosixPath(value)
-    if any(_path_violations(value, path)):
+    if _path_is_unsafe(value, path):
         raise failure("unsafe-archive-member")
     return path
 
@@ -161,7 +165,9 @@ def confined_symlink_target(link: str, target: str, kinds: Mapping[str, str]) ->
     whose resolved prefix stays inside the tree is confined.
     """
 
-    verdict: bool | None = None if symlink_target_shape_is_safe(target) else False
+    link_directory = posixpath.dirname(link) or "."
+    canonical = posixpath.relpath(posixpath.normpath(posixpath.join(link_directory, target)), link_directory)
+    verdict: bool | None = None if symlink_target_shape_is_safe(target) and canonical == target else False
     parts = list(PurePosixPath(link).parts[:-1])
     components = target.split("/") if verdict is None else []
     for index, component in enumerate(components):
@@ -199,7 +205,22 @@ class StageSink:
             os.close(descriptor)
 
     def symlink(self, path: PurePosixPath, target: str) -> None:
-        os.symlink(target, self._path(path))
+        """Create one confined link after the complete tree has been admitted.
+
+        The written target is recomputed from its resolved in-stage location, so
+        only a canonical relative path that stays inside the stage is created.
+        """
+
+        link = self._path(path)
+        link_directory = os.path.dirname(link)
+        root = os.path.realpath(self.root)
+        resolved = os.path.realpath(os.path.join(link_directory, target))
+        if os.path.commonpath((root, resolved)) != root:
+            raise failure("unsafe-archive-member")
+        canonical = os.path.relpath(resolved, link_directory)
+        if canonical != target:
+            raise failure("unsafe-archive-member")
+        os.symlink(canonical, link)
 
 
 def _copy_member(source: BinaryIO, size: int, descriptor: int | None) -> str:
@@ -277,9 +298,8 @@ class TreeAdmission:
     def _symlink(self, path: PurePosixPath, member: tarfile.TarInfo) -> None:
         if not symlink_target_shape_is_safe(member.linkname):
             raise failure("unsafe-archive-member")
+        # Links are created only after every member is admitted and confined.
         self._record(TreeEntry(path.as_posix(), "symlink", target=member.linkname))
-        if self.sink is not None:
-            self.sink.symlink(path, member.linkname)
 
     def admit(self, member: tarfile.TarInfo, archive: tarfile.TarFile) -> None:
         path = tree_path(member.name)
@@ -308,7 +328,12 @@ class TreeAdmission:
         )
         if self.limits.exact and observed != expected:
             raise failure("installed-manifest-mismatch")
-        return [self.entries[name] for name in sorted(self.entries)]
+        entries = [self.entries[name] for name in sorted(self.entries)]
+        if self.sink is not None:
+            for entry in entries:
+                if entry.kind == "symlink":
+                    self.sink.symlink(PurePosixPath(entry.path), str(entry.target))
+        return entries
 
 
 def _drain_compressed_trailer(decompressed: gzip.GzipFile) -> None:
@@ -382,27 +407,42 @@ def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]
     return result
 
 
-def _is_manifest_size(value: object) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+_INVALID_MANIFEST_ENTRY = "manifest entry"
+
+
+def _file_manifest_entry(path: str, value: dict[str, object]) -> TreeEntry:
+    digest = value["sha256"]
+    size = value["size"]
+    executable = value["executable"]
+    valid = (
+        isinstance(executable, bool)
+        and isinstance(digest, str)
+        and SHA256_RE.fullmatch(digest) is not None
+        and isinstance(size, int)
+        and not isinstance(size, bool)
+        and size >= 0
+    )
+    if not valid:
+        raise ValueError(_INVALID_MANIFEST_ENTRY)
+    return TreeEntry(path, "file", digest, size, executable)
 
 
 def _manifest_entry(value: object) -> TreeEntry:
-    kind = value.get("kind") if isinstance(value, dict) else None
+    if not isinstance(value, dict):
+        raise ValueError(_INVALID_MANIFEST_ENTRY)
+    kind = value.get("kind")
     if not isinstance(kind, str) or set(value) != _ENTRY_FIELDS.get(kind, frozenset()):
-        raise ValueError("manifest entry")
+        raise ValueError(_INVALID_MANIFEST_ENTRY)
     path = tree_path(value["path"]).as_posix()
-    if kind == "directory":
-        return TreeEntry(path, "directory")
-    if kind == "symlink":
-        if not symlink_target_shape_is_safe(value["target"]):
-            raise ValueError("manifest entry")
-        return TreeEntry(path, "symlink", target=value["target"])
-    digest = value["sha256"]
-    if not isinstance(value["executable"], bool) or not isinstance(digest, str) or SHA256_RE.fullmatch(digest) is None:
-        raise ValueError("manifest entry")
-    if not _is_manifest_size(value["size"]):
-        raise ValueError("manifest entry")
-    return TreeEntry(path, "file", digest, value["size"], value["executable"])
+    target = value.get("target")
+    if kind == "symlink" and not symlink_target_shape_is_safe(target):
+        raise ValueError(_INVALID_MANIFEST_ENTRY)
+    entries = {
+        "directory": lambda: TreeEntry(path, "directory"),
+        "symlink": lambda: TreeEntry(path, "symlink", target=str(target)),
+        "file": lambda: _file_manifest_entry(path, value),
+    }
+    return entries[kind]()
 
 
 def _manifest_entries(payload: bytes) -> list[TreeEntry]:

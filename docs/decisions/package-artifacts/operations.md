@@ -312,7 +312,7 @@ same-byte mirror is an operator choice (`--locator-ref`) in a new invocation.
 
 `tools/verified_tree_installation.py` extends #1219's transaction to a
 multi-gigabyte tree. The lock's `installed_tree` binds the SHA-256 of the
-canonical manifest of every file, directory and confined relative symlink,
+canonical manifest of every file, directory and confined, canonically written relative symlink,
 together with exact counts and expanded bytes. The steps are:
 
 1. Admission streams the archive into private staging. It rejects hardlinks,
