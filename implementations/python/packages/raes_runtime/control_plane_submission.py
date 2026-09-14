@@ -210,25 +210,24 @@ def _operation_stateful_diagnostic(
     if admission is None:
         return None
     capability_attribute, unsupported_code, resource_label = admission
+    diagnostic: Diagnostic | None = None
     if not getattr(manifest.provisioner, capability_attribute):
-        return Diagnostic(
+        diagnostic = Diagnostic(
             code=unsupported_code,
             domain="provisioning",
             address=operation.address,
             message=f"Provisioner does not support {resource_label}.",
         )
-    if operation.resource_type == "generated-artifact":
-        artifact_diagnostic = generated_artifact_payload_diagnostic(
+    elif operation.resource_type == "generated-artifact":
+        diagnostic = generated_artifact_payload_diagnostic(
             address=operation.address,
             spec=operation.payload.get("spec"),
             provisioner=manifest.provisioner,
             node_specs=node_specs,
             content_specs=content_specs,
         )
-        if artifact_diagnostic is not None:
-            return artifact_diagnostic
-    if not exact_supported:
-        return Diagnostic(
+    if diagnostic is None and not exact_supported:
+        diagnostic = Diagnostic(
             code="realization.unsupported-exact-requirement",
             domain="runtime-realization",
             address=operation.address,
@@ -236,7 +235,7 @@ def _operation_stateful_diagnostic(
                 f"Backend declares no exact realization support for the submitted {operation.resource_type} resource."
             ),
         )
-    return None
+    return diagnostic
 
 
 def _stateful_submission_diagnostic(
