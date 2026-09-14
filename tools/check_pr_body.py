@@ -25,11 +25,28 @@ if not __package__:
 from tools.pr_body_issue_scope import GitHubIssueLookup, IssueFacts, requirement_uids  # noqa: E402
 
 RULE_SECTION = "required-section"
-RULE_SUMMARY = "plain-language-summary"
+RULE_SUMMARY = "substantive-summary"
 RULE_ISSUES = "issue-tracking"
 RULE_VERIFICATION = "substantive-verification"
 
-_CHECKBOX_ONLY = re.compile(r"^[ \t]*[-*][ \t]+\[[ xX]\][ \t]*", re.MULTILINE)
+# The section structure rendered by Ground Control's gc_render_pr_body. The
+# optional trailing Documentation section is not required.
+REQUIRED_SECTIONS = (
+    "Summary",
+    "Requirement UIDs",
+    "Related Issues",
+    "ADR Impact",
+    "Changes",
+    "Test Plan",
+    "Ground Control Checks",
+    "Traceability",
+    "Checklist",
+)
+SUMMARY_SECTION = "summary"
+TRACKING_SECTION = "related issues"
+VERIFICATION_SECTION = "test plan"
+
+_CHECKBOX_LINE = re.compile(r"^[ \t]*[-*+][ \t]+\[[ xX]\].*$", re.MULTILINE)
 _PLACEHOLDER = re.compile(
     r"(?:\b(?:todo|tbd|placeholder|n/?a)\b|brief description|add (?:context|details)|"
     r"describe (?:the )?(?:problem|fix|verification)|#(?:xx|n)\b)",
@@ -40,6 +57,7 @@ _EVIDENCE_HINT = re.compile(
     r"nox|pytest|ruff|mypy|manual(?:ly)?|not run|not applicable|build|smoke)\b)",
     re.IGNORECASE,
 )
+_REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 
 
 IssueLookup = Callable[[int], IssueFacts]
@@ -100,26 +118,13 @@ def _sections(text: str) -> dict[str, list[str]]:
     return sections
 
 
-def _summary_fields(text: str) -> dict[str, str]:
-    fields: dict[str, str] = {}
-    for line in text.splitlines():
-        bullet = line.lstrip()
-        if len(bullet) < 3 or bullet[0] not in "-*" or not bullet[1].isspace():
-            continue
-        label, separator, value = bullet[2:].lstrip().partition(":")
-        if not separator:
-            continue
-        label = label.strip().removeprefix("**").removesuffix("**").casefold()
-        value = value.lstrip().removeprefix("**").lstrip()
-        if label in {"context", "problem", "fix"}:
-            fields[label] = value
-    return fields
-
-
 def _meaningful(text: str, *, minimum_words: int = 3) -> bool:
-    normalized = re.sub(r"[*_`#]", "", text).strip()
-    words = re.findall(r"[A-Za-z0-9][A-Za-z0-9'/-]*", normalized)
-    return len(normalized) >= 12 and len(words) >= minimum_words and not _PLACEHOLDER.search(normalized)
+    # Placeholder phrases carry no content, so judge only the text that remains.
+    # Prose that merely mentions such a word (for example "non-placeholder")
+    # still counts.
+    remaining = re.sub(r"[*_`#]", "", _PLACEHOLDER.sub(" ", text)).strip()
+    words = re.findall(r"[A-Za-z0-9][A-Za-z0-9'/-]*", remaining)
+    return len(remaining) >= 12 and len(words) >= minimum_words
 
 
 def _issue_numbers(body: str, keyword: str) -> tuple[int, ...]:
@@ -156,6 +161,32 @@ def no_issue_reasons(body: str) -> tuple[str, ...]:
     return tuple(reasons)
 
 
+def _closing_reference_pattern(repository: str) -> re.Pattern[str]:
+    """Match the closing references GitHub reads for issues in ``repository``.
+
+    GitHub links an issue for closure when a closing keyword, optionally
+    followed by a colon, is directly followed by a reference to an issue: the
+    short ``#N`` form, ``owner/repository#N``, or the issue URL. Other mentions
+    of an issue, and references to another repository, do not close an issue in
+    this repository.
+    """
+
+    if not _REPOSITORY.fullmatch(repository):
+        raise ValueError("repository must have owner/repository form")
+    name = re.escape(repository)
+    return re.compile(
+        r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)(?::[ \t]*|[ \t]+)"
+        rf"(?:{name}#|https?://github\.com/{name}/issues/|#)\d+(?!\w)",
+        re.IGNORECASE,
+    )
+
+
+def closing_references(text: str, repository: str) -> tuple[str, ...]:
+    """Return the GitHub closing references in ``text`` for ``repository``."""
+
+    return tuple(match.group(0) for match in _closing_reference_pattern(repository).finditer(text))
+
+
 def is_exempt_automation(event: dict[str, Any]) -> bool:
     """Limit exemptions to Dependabot and the repository release-please lane."""
 
@@ -169,50 +200,38 @@ def is_exempt_automation(event: dict[str, Any]) -> bool:
     return author in {"dependabot[bot]", "release-please[bot]"} or trusted_release_action
 
 
-def _tracking_sections(sections: dict[str, list[str]]) -> list[str]:
-    """Accept the former heading while existing PRs and tooling migrate."""
-
-    return [
-        content for name in ("issue tracking", "issues closed", "related issues") for content in sections.get(name, [])
-    ]
-
-
 def _validate_required_sections(sections: dict[str, list[str]]) -> list[BodyViolation]:
     violations: list[BodyViolation] = []
-    for name in ("plain-language summary", "verification"):
-        count = len(sections.get(name, []))
-        if count != 1:
+    for heading in REQUIRED_SECTIONS:
+        name = heading.casefold()
+        contents = sections.get(name, [])
+        if len(contents) != 1:
             violations.append(
                 BodyViolation(
                     RULE_SECTION,
-                    f"PR body must contain exactly one '## {name.title()}' section; found {count}.",
+                    f"PR body must contain exactly one '## {heading}' section; found {len(contents)}.",
                 )
             )
-    tracking_count = len(_tracking_sections(sections))
-    if tracking_count != 1:
-        violations.append(
-            BodyViolation(
-                RULE_SECTION,
-                "PR body must contain exactly one '## Issue Tracking' section; "
-                f"found {tracking_count} ('## Related Issues' and the former '## Issues Closed' are also accepted).",
+        # Summary, Related Issues and Test Plan have their own content rules.
+        elif not contents[0] and name not in {
+            SUMMARY_SECTION,
+            TRACKING_SECTION,
+            VERIFICATION_SECTION,
+        }:
+            violations.append(
+                BodyViolation(
+                    RULE_SECTION,
+                    f"'## {heading}' must not be empty or placeholder-only.",
+                )
             )
-        )
     return violations
 
 
 def _validate_summary(sections: dict[str, list[str]]) -> list[BodyViolation]:
-    summaries = sections.get("plain-language summary", [])
-    if len(summaries) != 1:
+    summaries = sections.get(SUMMARY_SECTION, [])
+    if len(summaries) != 1 or _meaningful(summaries[0]):
         return []
-    fields = _summary_fields(summaries[0])
-    return [
-        BodyViolation(
-            RULE_SUMMARY,
-            f"Plain-language summary needs a non-placeholder {field.title()} bullet.",
-        )
-        for field in ("context", "problem", "fix")
-        if field not in fields or not _meaningful(fields[field])
-    ]
+    return [BodyViolation(RULE_SUMMARY, "Summary must describe the change in non-placeholder prose.")]
 
 
 def _inspect_issue(number: int, keyword: str, issue_lookup: IssueLookup) -> BodyViolation | None:
@@ -241,81 +260,85 @@ def _inspect_issue(number: int, keyword: str, issue_lookup: IssueLookup) -> Body
     return violation
 
 
-def _validate_issues(sections: dict[str, list[str]], issue_lookup: IssueLookup, body: str) -> list[BodyViolation]:
-    tracking = _tracking_sections(sections)
-    violations: list[BodyViolation] = []
-    if len(tracking) == 1:
-        content = tracking[0]
-        declarations = [
-            (keyword, number) for keyword in ("Closes", "Refs") for number in _issue_numbers(content, keyword)
+def _validate_issues(sections: dict[str, list[str]], issue_lookup: IssueLookup) -> list[BodyViolation]:
+    tracking = sections.get(TRACKING_SECTION, [])
+    if len(tracking) != 1:
+        return []
+    content = tracking[0]
+    declarations = [(keyword, number) for keyword in ("Closes", "Refs") for number in _issue_numbers(content, keyword)]
+    reasons = no_issue_reasons(content)
+    if declarations and reasons:
+        return [
+            BodyViolation(
+                RULE_ISSUES,
+                "Related Issues must use either issue references or one 'No issue: ...' declaration, not both.",
+            )
         ]
-        reasons = no_issue_reasons(content)
-        if declarations and reasons:
-            violations.append(
-                BodyViolation(
-                    RULE_ISSUES,
-                    "Issue tracking must use either issue references or one 'No issue: ...' declaration, not both.",
-                )
+    if declarations:
+        return [
+            violation
+            for keyword, number in declarations
+            if (violation := _inspect_issue(number, keyword, issue_lookup)) is not None
+        ]
+    if len(reasons) != 1 or not _meaningful(reasons[0], minimum_words=2):
+        return [
+            BodyViolation(
+                RULE_ISSUES,
+                "Related Issues needs open same-repository 'Closes #N' or 'Refs #N' lines or one substantive "
+                "'No issue: ...' declaration.",
             )
-        elif declarations:
-            violations.extend(
-                violation
-                for keyword, number in declarations
-                if (violation := _inspect_issue(number, keyword, issue_lookup)) is not None
-            )
-        elif len(reasons) != 1 or not _meaningful(reasons[0], minimum_words=2):
-            violations.append(
-                BodyViolation(
-                    RULE_ISSUES,
-                    "Issue tracking needs open same-repository 'Closes #N' or 'Refs #N' lines or one substantive "
-                    "'No issue: ...' declaration.",
-                )
-            )
-        violations.extend(_validate_closing_routes(body, content))
-    return violations
+        ]
+    return []
 
 
-def _validate_closing_routes(body: str, content: str) -> list[BodyViolation]:
-    # Another section or alternate GitHub closing keyword cannot bypass the
-    # declared lifecycle route. Comments and examples have already been removed.
-    tracking_lines = {line.strip() for line in content.splitlines()}
+def _validate_closing_routes(body: str, pattern: re.Pattern[str]) -> list[BodyViolation]:
+    # A closing reference anywhere else in the body, or a non-standalone one in
+    # Related Issues, would bypass the declared lifecycle route. Comments and
+    # fenced examples have already been removed.
     violations: list[BodyViolation] = []
+    section: str | None = None
     for line in body.splitlines():
-        keywords = re.finditer(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\b[:\s]+", line, re.IGNORECASE)
-        closing = any(
-            re.match(r"(?:https://github\.com/|[\w.-]+/[\w.-]+#|#)\w", line[keyword.end() :], re.IGNORECASE)
-            for keyword in keywords
-        )
-        if closing and (not closing_issue_numbers(line) or line.strip() not in tracking_lines):
-            violations.append(
-                BodyViolation(RULE_ISSUES, "Closing references must use standalone 'Closes #N' in Issue tracking.")
+        section = _level_two_heading(line) or section
+        if section == TRACKING_SECTION and closing_issue_numbers(line):
+            continue
+        violations.extend(
+            BodyViolation(
+                RULE_ISSUES,
+                f"'{match.group(0)}' is a GitHub closing reference; declare closure only as a standalone "
+                "'Closes #N' line in Related Issues, or reword the mention.",
             )
+            for match in pattern.finditer(line)
+        )
     return violations
 
 
 def _validate_verification(sections: dict[str, list[str]]) -> list[BodyViolation]:
-    verification = sections.get("verification", [])
+    verification = sections.get(VERIFICATION_SECTION, [])
     if len(verification) != 1:
         return []
-    content = _CHECKBOX_ONLY.sub("", verification[0]).strip()
+    # Checklist attestations are not evidence; the remaining text must be.
+    content = _CHECKBOX_LINE.sub("", verification[0]).strip()
     if _meaningful(content, minimum_words=2) and _EVIDENCE_HINT.search(content):
         return []
     return [
         BodyViolation(
             RULE_VERIFICATION,
-            "Verification must record substantive commands, checks, or a reason a check was not run.",
+            "Test Plan must record substantive commands and outcomes, or a reason a check was not run, "
+            "beyond its checklist.",
         )
     ]
 
 
-def validate_pr_body(body: str, issue_lookup: IssueLookup) -> list[BodyViolation]:
-    """Validate the human-authored body against the repository policy."""
+def validate_pr_body(body: str, issue_lookup: IssueLookup, *, repository: str) -> list[BodyViolation]:
+    """Validate a body in the Ground Control rendered structure for ``repository``."""
 
+    closing_pattern = _closing_reference_pattern(repository)
     cleaned = _strip_ignored(body)
     sections = _sections(cleaned)
     violations = _validate_required_sections(sections)
     violations.extend(_validate_summary(sections))
-    violations.extend(_validate_issues(sections, issue_lookup, cleaned))
+    violations.extend(_validate_issues(sections, issue_lookup))
+    violations.extend(_validate_closing_routes(cleaned, closing_pattern))
     violations.extend(_validate_verification(sections))
     return violations
 
@@ -454,7 +477,7 @@ def _run(args: argparse.Namespace) -> int:
     if args.report_open_closing_issues:
         _write_report(args, body, lookup, pull_request.get("number", "unknown"))
         return 0
-    return _validation_result(validate_pr_body(body, lookup))
+    return _validation_result(validate_pr_body(body, lookup, repository=repository))
 
 
 def main(argv: Sequence[str] | None = None) -> int:
