@@ -30,10 +30,9 @@ def test_historical_evidence_rejects_malformed_shapes_even_with_rebound_digest(c
     else:
         payload["normalized_graph"]["state_facts"][0]["invented_constraint"] = True
     observation = {"evidence_digest": canonical_json_digest(payload)}
+    mode = "satisfiability" if case_name.startswith("finite") else "exploit-path"
     with pytest.raises(ValueError, match="archival shape"):
-        _historical_production_replay(
-            payload, observation, "satisfiability" if case_name.startswith("finite") else "exploit-path"
-        )
+        _historical_production_replay(payload, observation, mode)
 
 
 def test_historical_shape_contract_cannot_be_replaced_with_an_open_schema(tmp_path):
@@ -108,10 +107,9 @@ def test_historical_computed_joins_reject_rebound_evidence(family, field):
         "witness.steps.0.state_before_digest": "state before join",
         "witness.steps.0.state_after_digest": "state after join",
     }.get(field, field.split(".")[-1].removesuffix("_digest") + " digest join")
+    mode = "satisfiability" if family.startswith("finite") else "exploit-path"
     with pytest.raises(ValueError, match=expected_join):
-        _historical_production_replay(
-            payload, observation, "satisfiability" if family.startswith("finite") else "exploit-path"
-        )
+        _historical_production_replay(payload, observation, mode)
 
 
 @pytest.mark.parametrize("version", [2, 3])

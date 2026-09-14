@@ -277,7 +277,8 @@ def validate_retest_bundle(
         failures.append(
             _failure(
                 "formal-validation-retest-revision",
-                f"the integrated retest must bind protocol revision 2.0.0 and corpus revision {expected_corpus_revision}",
+                "the integrated retest must bind protocol revision 2.0.0 "
+                f"and corpus revision {expected_corpus_revision}",
                 release.manifest_path,
             )
         )

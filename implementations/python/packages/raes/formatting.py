@@ -9,7 +9,7 @@ import yaml
 from pydantic import ValidationError
 
 from ._errors import SDLParseDiagnostic, SDLParseError
-from ._source_profile import DEFAULT_PARSER_LIMITS, SDLMigrationPolicy, SDLParserLimits
+from ._source_profile import DEFAULT_PARSER_LIMITS, SDLMigrationPolicy, SDLParserLimits, SDLSourceParseOptions
 from .parser import _load_normalized_data, parse_sdl
 from .scenario import Scenario
 
@@ -60,8 +60,7 @@ def format_sdl_source(
     data = _load_normalized_data(
         content,
         path=path,
-        migration_policy=SDLMigrationPolicy.ACCEPT,
-        limits=limits,
+        source_options=SDLSourceParseOptions(migration_policy=SDLMigrationPolicy.ACCEPT, limits=limits),
         source_diagnostics=diagnostics,
     )
     try:

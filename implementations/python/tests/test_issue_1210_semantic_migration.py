@@ -25,7 +25,8 @@ def test_semantic_conversion_requires_explicit_policy_adoption():
 
     result = migrate_sdl_semantics("name: old\n")
     assert not result.succeeded
-    assert result.output is None and not result.binding_documents
+    assert result.output is None
+    assert not result.binding_documents
     assert result.report.diagnostics[0].code == "semantic-migration.context-required"
 
 
@@ -138,7 +139,8 @@ def test_stale_source_decision_is_atomic_refusal():
     from raes.semantic_migration import migrate_sdl_semantics
 
     result = migrate_sdl_semantics("name: changed\n", context=context("name: original\n"))
-    assert not result.succeeded and result.report.target_digest is None
+    assert not result.succeeded
+    assert result.report.target_digest is None
     assert result.report.diagnostics[0].code == "semantic-migration.source-mismatch"
 
 
@@ -248,4 +250,6 @@ def test_classification_migration_chains_with_exact_binding_retargeting():
     refused = migrate_sdl_semantics(
         intermediate, context=context(intermediate), binding_documents=classified.binding_documents
     )
-    assert not refused.succeeded and not refused.binding_documents and refused.output is None
+    assert not refused.succeeded
+    assert not refused.binding_documents
+    assert refused.output is None

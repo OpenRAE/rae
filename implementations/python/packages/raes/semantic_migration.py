@@ -71,7 +71,8 @@ def _report(
             profile="explicit-semantic-revision-adoption/v1",
             outcome="not-applicable",
             limitations=(
-                "Author adoption changes recursive, admission and observation semantics; no cross-version equivalence or current execution claim is made.",
+                "Author adoption changes recursive, admission and observation semantics; "
+                "no cross-version equivalence or current execution claim is made.",
             ),
         ),
         diagnostics=(
@@ -106,74 +107,75 @@ def migrate_sdl_semantics(
             "schemes": [snapshot.model_dump(mode="json") for snapshot in scheme_snapshots],
         }
     )
+    code = None
+    output = None
+    documents = ()
+    source_profile = LEGACY_SDL_REVISION
     try:
         raw = load_sdl_yaml(content, source_options=SDLSourceParseOptions(limits=limits))
         if isinstance(raw, dict) and raw.get("semantic_revision") == PROGRESSIVE_SDL_REVISION:
             if context is not None:
-                return SDLTransformationResult(
-                    None,
-                    (),
-                    _report(
-                        digest, context, code="semantic-migration.source-mismatch", linked_context_digest=linked_digest
-                    ),
-                )
-            current = read_versioned_sdl(content, limits=limits).scenario
-            documents = _bindings(binding_documents, scheme_snapshots, current, current)
-            return SDLTransformationResult(
-                current,
-                documents,
-                _report(
-                    digest,
-                    None,
-                    output=current,
-                    source_profile=PROGRESSIVE_SDL_REVISION,
-                    linked_context_digest=linked_digest,
-                ),
-            )
-    except (SDLError, ValueError, TypeError):
-        return SDLTransformationResult(
-            None,
-            (),
-            _report(
-                digest, context, code="semantic-migration.source-or-target-invalid", linked_context_digest=linked_digest
-            ),
-        )
-    if context is None:
-        return SDLTransformationResult(
-            None,
-            (),
-            _report(digest, None, code="semantic-migration.context-required", linked_context_digest=linked_digest),
-        )
-    if digest != context.source_digest:
-        return SDLTransformationResult(
-            None,
-            (),
-            _report(digest, context, code="semantic-migration.source-mismatch", linked_context_digest=linked_digest),
-        )
-    code = None
-    output = None
-    documents = ()
-    try:
-        if not isinstance(raw, dict) or raw.get("semantic_revision") not in {None, LEGACY_SDL_REVISION}:
-            raise ValueError("unsupported source revision")
-        if raw.get("imports"):
-            code = "semantic-migration.migrate-modules-independently"
+                code = "semantic-migration.source-mismatch"
+            else:
+                output = read_versioned_sdl(content, limits=limits).scenario
+                documents = _bindings(binding_documents, scheme_snapshots, output, output)
+                source_profile = PROGRESSIVE_SDL_REVISION
         else:
-            source_payload = {key: value for key, value in raw.items() if key != "semantic_revision"}
-            normalized = format_sdl_source(yaml.safe_dump(source_payload, sort_keys=False), limits=limits)
-            source = parse_sdl(normalized.content, limits=limits)
-            payload, code = apply_sentinel_decisions(source, context.sentinel_decisions)
-            if payload is not None:
-                payload["semantic_revision"] = PROGRESSIVE_SDL_REVISION
-                output = parse_sdl(yaml.safe_dump(payload, sort_keys=False), limits=limits)
-                documents = _bindings(binding_documents, scheme_snapshots, source, output)
+            output, documents, code = _adopt_source(raw, digest, context, binding_documents, scheme_snapshots, limits)
     except (SDLError, ValueError, TypeError):
         code = "semantic-migration.source-or-target-invalid"
         output = None
         documents = ()
     return SDLTransformationResult(
-        output, documents, _report(digest, context, output=output, code=code, linked_context_digest=linked_digest)
+        output,
+        documents,
+        _report(
+            digest,
+            context,
+            output=output,
+            code=code,
+            source_profile=source_profile,
+            linked_context_digest=linked_digest,
+        ),
     )
+
+
+def _adopt_source(
+    raw: object,
+    digest: str,
+    context: SDLSemanticMigrationContext | None,
+    binding_documents: tuple[ExternalConceptBindingDocumentModel, ...],
+    scheme_snapshots: tuple[ExternalConceptSchemeSnapshotModel, ...],
+    limits: SDLParserLimits,
+) -> tuple[Scenario | None, tuple[ExternalConceptBindingDocumentModel, ...], str | None]:
+    if context is None:
+        return None, (), "semantic-migration.context-required"
+    if digest != context.source_digest:
+        return None, (), "semantic-migration.source-mismatch"
+    return _adopt_legacy_source(raw, context, binding_documents, scheme_snapshots, limits)
+
+
+def _adopt_legacy_source(
+    raw: object,
+    context: SDLSemanticMigrationContext,
+    binding_documents: tuple[ExternalConceptBindingDocumentModel, ...],
+    scheme_snapshots: tuple[ExternalConceptSchemeSnapshotModel, ...],
+    limits: SDLParserLimits,
+) -> tuple[Scenario | None, tuple[ExternalConceptBindingDocumentModel, ...], str | None]:
+    if not isinstance(raw, dict) or raw.get("semantic_revision") not in {None, LEGACY_SDL_REVISION}:
+        raise ValueError("unsupported source revision")
+    if raw.get("imports"):
+        return None, (), "semantic-migration.migrate-modules-independently"
+    source_payload = {key: value for key, value in raw.items() if key != "semantic_revision"}
+    normalized = format_sdl_source(yaml.safe_dump(source_payload, sort_keys=False), limits=limits)
+    source = parse_sdl(normalized.content, limits=limits)
+    payload, code = apply_sentinel_decisions(source, context.sentinel_decisions)
+    if payload is None:
+        return None, (), code
+    payload["semantic_revision"] = PROGRESSIVE_SDL_REVISION
+    output = parse_sdl(yaml.safe_dump(payload, sort_keys=False), limits=limits)
+    documents = _bindings(binding_documents, scheme_snapshots, source, output)
+    return output, documents, code
 
 
 def _bindings(

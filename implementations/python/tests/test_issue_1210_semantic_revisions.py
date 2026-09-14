@@ -21,8 +21,9 @@ def test_legacy_revision_is_rejected_by_current_reader():
     from raes.semantic_revisions import LEGACY_SDL_REVISION, read_versioned_sdl
 
     source = "name: legacy\n"
+    source_digest = digest(source)
     with pytest.raises(SDLParseError, match="revision"):
-        read_versioned_sdl(source, semantic_revision=LEGACY_SDL_REVISION, source_digest=digest(source))
+        read_versioned_sdl(source, semantic_revision=LEGACY_SDL_REVISION, source_digest=source_digest)
 
 
 def test_explicit_current_context_requires_exact_source_binding():
@@ -53,8 +54,9 @@ def test_unknown_revision_never_falls_back_to_current(revision):
     from raes.semantic_revisions import read_versioned_sdl
 
     source = "name: sample\n"
+    source_digest = digest(source)
     with pytest.raises(SDLParseError, match="revision"):
-        read_versioned_sdl(source, semantic_revision=revision, source_digest=digest(source))
+        read_versioned_sdl(source, semantic_revision=revision, source_digest=source_digest)
 
 
 @pytest.mark.parametrize("child_revision", [None, "raes-legacy-semantics/384e8b19", "future/v99"])

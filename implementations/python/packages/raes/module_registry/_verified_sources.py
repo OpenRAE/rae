@@ -196,10 +196,7 @@ def _local_import_targets(
     payload = _load_normalized_data(
         document.text,
         path=path,
-        source_format=source_options.source_format,
-        required_semantic_revision=source_options.required_semantic_revision,
-        migration_policy=source_options.migration_policy,
-        limits=source_options.limits,
+        source_options=source_options,
     )
     raw_imports = payload.get("imports", [])
     if not isinstance(raw_imports, list):

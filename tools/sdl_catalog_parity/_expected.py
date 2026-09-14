@@ -48,11 +48,12 @@ def _schema_shape(schema: dict[str, Any]) -> str:
         if len(nonnull) == 1:
             return _schema_shape(nonnull[0])
     schema_type = schema.get("type")
+    shape = "unknown"
     if schema_type is None and schema.get("default") is None:
-        return "mapping"
-    if isinstance(schema_type, str):
-        return _SCHEMA_TYPE_SHAPES.get(schema_type, "unknown")
-    return "unknown"
+        shape = "mapping"
+    elif isinstance(schema_type, str):
+        shape = _SCHEMA_TYPE_SHAPES.get(schema_type, "unknown")
+    return shape
 
 
 def _expected_presence(field: str) -> str:

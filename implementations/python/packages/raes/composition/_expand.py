@@ -283,11 +283,13 @@ def _expand_one_import(
     imported_raw = _load_normalized_data(
         resolved_import.source_document.text,
         path=import_path,
-        source_format=context.source_format,
-        migration_policy=context.migration_policy,
-        limits=context.limits,
+        source_options=SDLSourceParseOptions(
+            source_format=context.source_format,
+            migration_policy=context.migration_policy,
+            limits=context.limits,
+            required_semantic_revision=context.semantic_revision,
+        ),
         source_diagnostics=context.source_diagnostics,
-        required_semantic_revision=context.semantic_revision,
     )
     if imported_raw.get("semantic_revision") != context.semantic_revision:
         raise SDLParseError("Imported SDL semantic revision must match the root revision.", path=import_path)

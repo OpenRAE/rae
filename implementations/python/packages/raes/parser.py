@@ -35,6 +35,7 @@ from ._model_diagnostics import (
 )
 from ._source_profile import (
     DEFAULT_PARSER_LIMITS,
+    DEFAULT_SOURCE_PARSE_OPTIONS,
     SDL_SOURCE_FORMAT,
     SDLMigrationPolicy,
     SDLParserLimits,
@@ -366,9 +367,9 @@ def parse_sdl(
     data = _load_normalized_data(
         content,
         path=path,
-        source_format=source_format,
-        migration_policy=migration_policy,
-        limits=limits,
+        source_options=SDLSourceParseOptions(
+            source_format=source_format, migration_policy=migration_policy, limits=limits
+        ),
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
     )
@@ -433,22 +434,14 @@ def _load_normalized_data(
     content: str,
     *,
     path: Path | None = None,
-    source_format: str = SDL_SOURCE_FORMAT,
-    migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
-    limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
+    source_options: SDLSourceParseOptions = DEFAULT_SOURCE_PARSE_OPTIONS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
     source_ranges: dict[str, SDLSourceRange] | None = None,
-    required_semantic_revision: str | None = None,
 ) -> dict[str, Any]:
     raw = load_sdl_yaml(
         content,
         path=path,
-        source_options=SDLSourceParseOptions(
-            source_format=source_format,
-            migration_policy=migration_policy,
-            limits=limits,
-            required_semantic_revision=required_semantic_revision,
-        ),
+        source_options=source_options,
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
     )
@@ -471,7 +464,7 @@ def _load_normalized_data(
     migrate_legacy_vm_nodes(
         data,
         path=path,
-        migration_policy=migration_policy,
+        migration_policy=source_options.migration_policy,
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
     )

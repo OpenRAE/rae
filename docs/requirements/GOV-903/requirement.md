@@ -44,6 +44,7 @@ Requirement inventory expansion. Evolution requires explicit migration and upgra
 - TESTS → TEST `implementations/python/tests/test_issue_1210_semantic_comparison.py` (Presence, private profile and observation projections)
 - TESTS → TEST `implementations/python/tests/test_issue_1210_formatting.py` (Current formatting and safe inspection)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_source_profile.py` (Progressive revision propagation and migration contract support)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_legacy_classification_source.py` (Shared source parse options for classification and semantic migration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_yaml_loader.py` (Progressive revision propagation and migration contract support)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_expand.py` (Progressive revision propagation and migration contract support)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/formatting.py` (Progressive revision propagation and migration contract support)

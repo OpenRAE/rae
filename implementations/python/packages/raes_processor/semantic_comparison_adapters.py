@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from pydantic import BaseModel
 from raes.phase_contracts import ResolvedImportProvenance
@@ -263,16 +264,7 @@ def _scenario_subjects(
         if not isinstance(value, dict):
             continue
         for key, child in value.items():
-            payload = (
-                child.model_dump(mode="json", exclude_unset=version == "2") if isinstance(child, BaseModel) else child
-            )
-            semantic_payload = (
-                _presence_preserving_semantics(child)
-                if version == "2" and isinstance(child, BaseModel)
-                else child
-                if version == "2"
-                else _without_editorial_description(payload)
-            )
+            payload, semantic_payload = _scenario_child_payloads(child, version)
             result.append(
                 _Subject(
                     identity=f"scenario:{scenario.name}/{field_name}:{key}",
@@ -290,6 +282,17 @@ def _scenario_subjects(
                 )
             )
     return result
+
+
+def _scenario_child_payloads(child: Any, version: str) -> tuple[Any, object]:
+    payload = child.model_dump(mode="json", exclude_unset=version == "2") if isinstance(child, BaseModel) else child
+    semantic_payload = child
+    if version == "2":
+        if isinstance(child, BaseModel):
+            semantic_payload = _presence_preserving_semantics(child)
+    else:
+        semantic_payload = _without_editorial_description(payload)
+    return payload, semantic_payload
 
 
 def _study_subjects(

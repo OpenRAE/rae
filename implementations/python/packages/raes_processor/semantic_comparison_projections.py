@@ -118,13 +118,14 @@ def _presence_preserving_semantics(model: BaseModel, *, include: set[str] | None
 
 
 def _project_model_children(value: object, serialized: object) -> object:
+    result = serialized
     if isinstance(value, BaseModel):
-        return _presence_preserving_semantics(value)
-    if isinstance(value, dict) and isinstance(serialized, dict):
-        return {key: _project_model_children(value[key], item) for key, item in serialized.items()}
-    if isinstance(value, (list, tuple)) and isinstance(serialized, list):
-        return [_project_model_children(child, item) for child, item in zip(value, serialized, strict=True)]
-    return serialized
+        result = _presence_preserving_semantics(value)
+    elif isinstance(value, dict) and isinstance(serialized, dict):
+        result = {key: _project_model_children(value[key], item) for key, item in serialized.items()}
+    elif isinstance(value, (list, tuple)) and isinstance(serialized, list):
+        result = [_project_model_children(child, item) for child, item in zip(value, serialized, strict=True)]
+    return result
 
 
 def _module_semantic_payload(artifact: ResolvedImportProvenance) -> object:

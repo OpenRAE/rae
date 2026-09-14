@@ -157,12 +157,9 @@ def _validate_authorities(repo_root: Path, ledger: SDLLineageLedgerModel) -> lis
     return failures
 
 
-def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> list[PolicyFailure]:
+def _source_capture_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> tuple[set[str], list[PolicyFailure]]:
     failures: list[PolicyFailure] = []
     refs: set[str] = set()
-    boundaries: set[tuple[str, str]] = set()
-    for citation in ledger.citations:
-        refs.add(citation.verification_evidence.split("#", 1)[0])
     for source in ledger.sources:
         capture = source.archival_capture
         if capture is None:
@@ -173,6 +170,14 @@ def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> 
             failures.append(
                 _failure("lineage-source-capture-digest", f"source {source.source_id!r} capture digest differs")
             )
+    return refs, failures
+
+
+def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> list[PolicyFailure]:
+    refs, failures = _source_capture_paths(repo_root, ledger)
+    boundaries: set[tuple[str, str]] = set()
+    for citation in ledger.citations:
+        refs.add(citation.verification_evidence.split("#", 1)[0])
     for subject in ledger.subjects:
         refs.add(subject.authority.artifact)
         for claim in subject.claims:
@@ -199,6 +204,12 @@ def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> 
                     f"internal artifact {ref!r} is missing or unsafe",
                 )
             )
+    failures.extend(_validate_claim_pointers(repo_root, boundaries))
+    return failures
+
+
+def _validate_claim_pointers(repo_root: Path, boundaries: set[tuple[str, str]]) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
     for artifact, pointer in sorted(boundaries):
         if not pointer.startswith("#/"):
             continue

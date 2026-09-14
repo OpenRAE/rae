@@ -49,11 +49,15 @@ def _selected_revision(raw: dict[str, object], revision: str | None, bound_diges
     selected = carried if carried is not None else revision
     if not isinstance(selected, str) or selected != PROGRESSIVE_SDL_REVISION:
         raise SDLParseError("An explicit supported current semantic revision is required; migrate older source.")
+    _validate_revision_binding(carried, bound_digest, content)
+    return str(selected)
+
+
+def _validate_revision_binding(carried: object, bound_digest: str | None, content: str) -> None:
     if carried is None and bound_digest is None:
         raise SDLParseError("An untagged source requires its exact provenance digest.")
     if bound_digest is not None and bound_digest != source_byte_digest(content):
         raise SDLParseError("Semantic revision provenance digest does not bind the source.")
-    return str(selected)
 
 
 def read_versioned_sdl(

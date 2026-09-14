@@ -29,9 +29,10 @@ def test_versioned_formatter_refuses_legacy_interpretation():
     from raes import semantic_revisions
 
     source = "name: legacy\n"
+    digest = source_byte_digest(source)
     with pytest.raises(SDLParseError, match="revision"):
         semantic_revisions.format_versioned_sdl_source(
-            source, semantic_revision=LEGACY_SDL_REVISION, source_digest=source_byte_digest(source)
+            source, semantic_revision=LEGACY_SDL_REVISION, source_digest=digest
         )
 
 
@@ -77,4 +78,5 @@ def test_observation_modes_round_trip_and_are_presented_separately(mode):
     assert axes["delegation"]["default"] == "open"
     assert axes["observation"]["study"] == rule
     assert "evidence_requirements" not in axes["constraints"]["authored_sections"]
-    assert scenario.nodes["host"].runtime is None and scenario.nodes["host"].os is None
+    assert scenario.nodes["host"].runtime is None
+    assert scenario.nodes["host"].os is None
