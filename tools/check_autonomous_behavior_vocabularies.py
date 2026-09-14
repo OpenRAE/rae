@@ -210,15 +210,17 @@ def _check_activitystreams_remote(
     from tools.maintained_client_acquisition import acquire_locked_bytes
 
     selected_url = selection.source_urls[0]
-    if source.source_url != selected_url:
-        return [f"{ACTIVITYSTREAMS_RELATIVE_PATH}: source URL differs from the reviewed lock selection"]
-    host_failure = _remote_host_failure(
-        selected_url,
-        allowed_host="www.w3.org",
-        relative_path=ACTIVITYSTREAMS_RELATIVE_PATH,
+    pre_transport = (
+        f"{ACTIVITYSTREAMS_RELATIVE_PATH}: source URL differs from the reviewed lock selection"
+        if source.source_url != selected_url
+        else _remote_host_failure(
+            selected_url,
+            allowed_host="www.w3.org",
+            relative_path=ACTIVITYSTREAMS_RELATIVE_PATH,
+        )
     )
-    if host_failure is not None:
-        return [host_failure]
+    if pre_transport is not None:
+        return [pre_transport]
     try:
         data = acquire_locked_bytes(
             artifact_id="w3c-activitystreams-activity-types-snapshot",
@@ -245,11 +247,13 @@ def _check_fipa_remote(
     from tools.maintained_client_acquisition import acquire_locked_bytes
 
     selected_url = selection.source_urls[0]
-    if source.source_artifact_url != selected_url:
-        return [f"{FIPA_RELATIVE_PATH}: source artifact URL differs from the reviewed lock selection"]
-    host_failure = _remote_host_failure(selected_url, allowed_host="www.fipa.org", relative_path=FIPA_RELATIVE_PATH)
-    if host_failure is not None:
-        return [host_failure]
+    pre_transport = (
+        f"{FIPA_RELATIVE_PATH}: source artifact URL differs from the reviewed lock selection"
+        if source.source_artifact_url != selected_url
+        else _remote_host_failure(selected_url, allowed_host="www.fipa.org", relative_path=FIPA_RELATIVE_PATH)
+    )
+    if pre_transport is not None:
+        return [pre_transport]
     try:
         data = acquire_locked_bytes(
             artifact_id="fipa-communicative-acts-snapshot",
