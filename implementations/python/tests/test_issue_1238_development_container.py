@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -831,7 +832,7 @@ def test_setup_runs_each_step_in_order_and_announces_readiness(
     )
     monkeypatch.setattr(devcontainer_setup, "prepare_kit", lambda host, kit: order.append(f"kit:{host}:{kit.name}"))
     monkeypatch.setattr(devcontainer_setup, "sync_projects", lambda _root, _kit: order.append("sync"))
-    monkeypatch.setattr(devcontainer_setup, "install_generic_tools", lambda: order.append("tools"))
+    monkeypatch.setattr(devcontainer_setup, "install_generic_tools", lambda _root, _kit: order.append("tools"))
     monkeypatch.setattr(
         devcontainer_setup, "install_git_hooks", lambda _root, _kit: order.append("hooks") or "installed"
     )
@@ -842,22 +843,39 @@ def test_setup_runs_each_step_in_order_and_announces_readiness(
     assert output.rstrip().endswith("`nox -s verify-changed` before pushing.")
 
 
-def test_setup_names_the_generic_tools_that_failed_verification(monkeypatch: pytest.MonkeyPatch) -> None:
-    from tools import bootstrap_profile, devcontainer_setup
+def test_setup_verifies_generic_tools_through_the_locked_tool_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from tools import devcontainer_setup
 
+    calls: list[tuple[list[str], Path, dict[str, str]]] = []
     monkeypatch.setattr(
-        bootstrap_profile,
-        "qualify_generic_tools",
-        lambda: {
-            "outcome": "failed",
-            "results": [
-                {"capability_id": "vale", "outcome": "failed"},
-                {"capability_id": "conftest", "outcome": "passed"},
-            ],
-        },
+        devcontainer_setup,
+        "_run",
+        lambda argv, root, env: calls.append((list(argv), root, dict(env))),
     )
-    with pytest.raises(devcontainer_setup.DevcontainerSetupError, match="failed verification: vale$"):
-        devcontainer_setup.install_generic_tools()
+    kit = tmp_path / "kit"
+
+    devcontainer_setup.install_generic_tools(REPO_ROOT, kit)
+
+    assert calls == [
+        (
+            [
+                str(kit / "bin" / "uv"),
+                "run",
+                "--project",
+                "implementations/tooling/python",
+                "--frozen",
+                "--no-default-groups",
+                "python",
+                "-m",
+                "tools.bootstrap_profile",
+                "generic-tools",
+            ],
+            REPO_ROOT,
+            {**os.environ, "UV_PYTHON_DOWNLOADS": "never"},
+        )
+    ]
 
 
 def test_a_failing_setup_command_stops_setup_with_its_exit_code(tmp_path: Path) -> None:

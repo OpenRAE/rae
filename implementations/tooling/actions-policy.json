@@ -1811,7 +1811,7 @@
       "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "inputs": {
         "name": "bootstrap-${{ matrix.profile }}-${{ github.sha }}",
-        "path": "bootstrap-qualification.json\nbootstrap-offline-kit.tar\n",
+        "path": "bootstrap-qualification.json\nlocal-installation-qualification.json\nbootstrap-offline-kit.tar\n",
         "if-no-files-found": "error"
       },
       "credential_classes": [
