@@ -387,3 +387,7 @@ regressions remain binding; 655 focused tests and the static lane pass.
 Formal release 15.0.0 and coverage release 13.0.0 record fresh replay for this
 refactor without modifying earlier captures. Formal observations have zero
 deviations from release 14.0.0.
+
+The second hosted analysis cleared 39 of the 40 findings and reported one file
+size violation in the retest validator. Header validation now lives in its own
+focused module; this is a structural move with unchanged validation rules.

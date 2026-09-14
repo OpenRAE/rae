@@ -15,6 +15,7 @@ from tools.formal_semantic_validation._replay import (
     _replay_observation_matches,
     replay_case,
 )
+from tools.formal_semantic_validation._retest_header import _validate_retest_header
 from tools.formal_semantic_validation._retest_participants import (
     _validate_retest_participant_observations,
 )
@@ -22,17 +23,14 @@ from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
     _is_sequence,
-    _nonempty_string,
     _stable_ids,
     _string_list,
 )
 from tools.formal_semantic_validation._types import (
     _COMMAND_KEYS,
-    _COMMIT_RE,
     _OBSERVATION_V2_KEYS,
     _SHA256_RE,
     _SNAPSHOT_V2_KEYS,
-    _VERSION_KEYS,
     PRODUCTION_EVIDENCE_REPLAY_MODES,
     EvidenceRelease,
 )
@@ -204,49 +202,6 @@ def _retest_observation_failures(
             )
         )
     return expected_release_paths
-
-
-def _validate_retest_header(
-    protocol: Mapping[str, object],
-    corpus: Mapping[str, object],
-    snapshot: Mapping[str, object],
-    failures: list[PolicyFailure],
-    path: str,
-) -> None:
-    if (
-        snapshot.get("protocol_revision") != protocol.get("revision")
-        or snapshot.get("corpus_revision") != corpus.get("revision")
-        or snapshot.get("execution_status") != "complete"
-    ):
-        failures.append(
-            _failure(
-                "formal-validation-snapshot-revision",
-                "retest snapshot must bind the selected revisions and a complete execution",
-                path,
-            )
-        )
-    revision = snapshot.get("raes_revision")
-    if not isinstance(revision, str) or not _COMMIT_RE.fullmatch(revision):
-        failures.append(
-            _failure(
-                "formal-validation-revision-pin",
-                "retest snapshot must pin a full RAES commit",
-                path,
-            )
-        )
-    versions = snapshot.get("versions")
-    if (
-        not isinstance(versions, Mapping)
-        or set(versions) != _VERSION_KEYS
-        or not all(_nonempty_string(value) for value in versions.values())
-    ):
-        failures.append(
-            _failure(
-                "formal-validation-version-disclosure",
-                "retest snapshot must record the bounded output-affecting versions",
-                path,
-            )
-        )
 
 
 def _validate_retest_commands(
