@@ -56,7 +56,8 @@ def test_published_observability_profile_exercises_plane_boundaries(observabilit
         ("experiment-derived-measure-v1", "missing-source-evidence"),
     ):
         case = cases[contract, name]
-        assert not case.valid and case.passed
+        assert not case.valid
+        assert case.passed
         assert {diagnostic.code for diagnostic in case.diagnostics} == {"conformance.schema-invalid"}
     assert classify_contract_plane("backend-manifest-v2") is ObservabilityEvidencePlane.PROCESSOR_BACKEND_OPERATIONAL
     assert (
