@@ -27,10 +27,7 @@ from raes_contracts.runtime_state import (
     RealizationProvenanceEntry,
     RuntimeSnapshot,
 )
-from raes_contracts.vocabulary import (
-    observation_strength_satisfies,
-    verification_scope_satisfies,
-)
+from raes_contracts.vocabulary import observation_requirement_satisfied
 
 from .realization_compute_substrate import evaluate_compute_substrate
 from .realization_concerns import CONCERN_PAYLOAD_PATH, project_realization_concern
@@ -230,18 +227,12 @@ def _observation_corroborates(
 ) -> bool:
     """Return whether one disclosed observation satisfies the requirement's evidence bar."""
 
-    required_scope = requirement.verification_scope
-    return (
-        (required_scope is None or verification_scope_satisfies(observation.verification_scope, required_scope))
-        and (
-            requirement.required_observation_strength is None
-            or observation_strength_satisfies(
-                observation.observation_strength,
-                requirement.required_observation_strength,
-            )
-        )
-        and manifest_corroborates(requirement, observation, manifest)
-    )
+    return observation_requirement_satisfied(
+        actual_scope=observation.verification_scope,
+        actual_source=observation.observation_strength,
+        required_scope=requirement.verification_scope,
+        required_source=requirement.required_observation_strength,
+    ) and manifest_corroborates(requirement, observation, manifest)
 
 
 def _corroboration_diagnostic(
@@ -294,16 +285,11 @@ def _process_limit_declaration_supported(
     return (
         observation_posture_supported(requirement, declaration)
         and capability is not None
-        and (
-            requirement.verification_scope is None
-            or verification_scope_satisfies(capability.verification_scope, requirement.verification_scope)
-        )
-        and (
-            requirement.required_observation_strength is None
-            or observation_strength_satisfies(
-                capability.observation_strength,
-                requirement.required_observation_strength,
-            )
+        and observation_requirement_satisfied(
+            actual_scope=capability.verification_scope,
+            actual_source=capability.observation_strength,
+            required_scope=requirement.verification_scope,
+            required_source=requirement.required_observation_strength,
         )
     )
 

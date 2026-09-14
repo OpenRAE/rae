@@ -28,6 +28,7 @@ from raes_contracts.realization_structure import (
     realization_constraint_binding,
 )
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.vocabulary import ObservationStrength
 from raes_processor.planner.realization_preparation import preparation_authority
 from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from test_issue_1200_mixed_runtime_constraints import _fixture, _returned
@@ -207,7 +208,7 @@ class _InventoryBackend:
                     domain=row.domain,
                     requirement_kind=row.requirement_kind,
                     verification_scope=row.verification_scope,
-                    observation_strength=row.required_observation_strength,
+                    observation_strength=(row.required_observation_strength or ObservationStrength.GUEST_OBSERVED),
                 )
                 for row in plan.realization_authority
                 if row.requirement_kind

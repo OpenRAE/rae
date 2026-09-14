@@ -60,7 +60,15 @@ def test_structural_collection_rejects_invalid_member_identity(actual):
     assert not structure_matches(rule, actual, expected)
 
 
-def _fixture(runtime, *, open_packages=False, allow_invalid=False, scope=None, closed_scopes=()):
+def _fixture(
+    runtime,
+    *,
+    open_packages=False,
+    allow_invalid=False,
+    scope=None,
+    closed_scopes=(),
+    omit_observation_kind=None,
+):
     import yaml
 
     source = {"name": "mixed-constraints", "nodes": {"host": {"type": "compute", "runtime": runtime}}}
@@ -86,13 +94,18 @@ def _fixture(runtime, *, open_packages=False, allow_invalid=False, scope=None, c
                 supported_exact_requirement_kinds=declaration.supported_exact_requirement_kinds | kinds,
                 supported_constraint_kinds=declaration.supported_constraint_kinds | kinds,
                 observation_capabilities={
-                    **declaration.observation_capabilities,
+                    **{
+                        kind: capability
+                        for kind, capability in declaration.observation_capabilities.items()
+                        if kind != omit_observation_kind
+                    },
                     **{
                         kind: RealizationObservationCapability(
                             verification_scope=RealizationVerificationScope.CONFIGURATION,
                             observation_strength=ObservationStrength.GUEST_OBSERVED,
                         )
                         for kind in kinds
+                        if kind != omit_observation_kind
                     },
                 },
             )
@@ -107,6 +120,23 @@ def _fixture(runtime, *, open_packages=False, allow_invalid=False, scope=None, c
         ProvisioningPlanModel.model_validate_json(provisioning_plan_model(execution.provisioning).model_dump_json())
     )
     return model, portable, manifest
+
+
+def test_open_runtime_planning_rejects_an_undeclared_observation_capability():
+    model, execution, _manifest = _fixture(
+        {"packages": [{"manager": "apt", "name": "nmap", "version": "7.95"}]},
+        open_packages=True,
+        allow_invalid=True,
+        omit_observation_kind="runtime-packages",
+    )
+
+    assert not execution.is_valid
+    requirement = next(item for item in model.realization_requirements if item.requirement_kind == "runtime-packages")
+    assert requirement.explicitness is ExplicitnessClass.OPEN
+    assert any(
+        diagnostic.code == "realization.under-observed-exact-requirement" and "runtime-packages" in diagnostic.message
+        for diagnostic in execution.diagnostics
+    )
 
 
 def _returned(plan_value, runtime):
@@ -127,7 +157,7 @@ def _returned(plan_value, runtime):
                 domain=authority.domain,
                 requirement_kind=authority.requirement_kind,
                 verification_scope=authority.verification_scope,
-                observation_strength=authority.required_observation_strength,
+                observation_strength=(authority.required_observation_strength or ObservationStrength.GUEST_OBSERVED),
             )
             for authority in plan_value.realization_authority
             if authority.requirement_kind
