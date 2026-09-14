@@ -768,6 +768,18 @@ def _assert_immutable_seed_chain(seed_root: Path, seed_tree: Path) -> None:
             raise RuntimeError("tool-installation: seed-integrity-failure")
 
 
+def _validated_existing_or_quarantine(
+    target: Path,
+    selection: ArtifactSelection,
+    quarantine_root: Path,
+) -> Path:
+    try:
+        return _validated_installed_executable(target, selection)
+    except (OSError, RuntimeError):
+        _quarantine(target, quarantine_root, prefix="cache")
+        raise RuntimeError("tool-installation: cache-integrity-failure") from None
+
+
 def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are explicit security states.
     repo_root: Path,
     selection: ArtifactSelection,
@@ -799,10 +811,7 @@ def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are expl
         except (OSError, RuntimeError):
             with _portable_lock(identity_lock):
                 if _tree_present(target):  # NOSONAR -- recheck under the lock closes the publication race.
-                    try:
-                        return _validated_installed_executable(target, selection)
-                    except (OSError, RuntimeError):
-                        _quarantine(target, quarantine_root, prefix="cache")
+                    return _validated_existing_or_quarantine(target, selection, quarantine_root)
             raise RuntimeError("tool-installation: cache-integrity-failure") from None
 
     legacy_materialized: Mapping[str, bytes] | None = None
@@ -813,11 +822,7 @@ def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are expl
     with _portable_lock(identity_lock):
         _clean_staging(target.parent, target.name)
         if _tree_present(target):
-            try:
-                return _validated_installed_executable(target, selection)
-            except (OSError, RuntimeError):
-                _quarantine(target, quarantine_root, prefix="cache")
-                raise RuntimeError("tool-installation: cache-integrity-failure") from None
+            return _validated_existing_or_quarantine(target, selection, quarantine_root)
 
         if legacy_materialized is not None:
             materialized = legacy_materialized
