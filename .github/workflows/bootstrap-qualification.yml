@@ -152,16 +152,15 @@ jobs:
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile inspect-profile "${{ matrix.profile }}"
           uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q \
-            implementations/python/tests/test_issue_1217_bootstrap_profiles.py -m integration -k real_curl
+            implementations/python/tests/test_issue_1217_bootstrap_profiles.py \
+            implementations/python/tests/test_issue_1220_isabelle_acquisition.py -m integration -k real_curl
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile record-case T08 "${{ github.sha }}" \
             implementations/python/tests/test_issue_1217_bootstrap_profiles.py > t08-result.json
       - name: Exercise verified local installation behavior
-        run: |
-          qualification_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-local-installation.XXXXXX")"
-          tool_python=(uv run --project implementations/tooling/python --frozen --no-default-groups python)
-          "${tool_python[@]}" implementations/python/tests/issue_1219_installation_harness.py \
-            "${qualification_root}" > local-installation-qualification.json
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py
+          -s local-installation-qualification -- --output local-installation-qualification.json
       - name: Record exact measured profile evidence
         run: |
           mkdir .qualification-evidence-root
@@ -175,6 +174,7 @@ jobs:
             "${{ matrix.profile }}" "${{ github.sha }}" \
             "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
             --python-artifact-id cpython-3.14 "${case_results[@]}" \
+            --slice-evidence local-installation-qualification.json \
             --offline-kit-root .qualification-evidence-root --offline-kit bootstrap-offline-kit.tar \
             --offline-kit-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}" \
             > bootstrap-qualification.json
@@ -185,7 +185,6 @@ jobs:
           name: bootstrap-${{ matrix.profile }}-${{ github.sha }}
           path: |
             bootstrap-qualification.json
-            local-installation-qualification.json
             bootstrap-offline-kit.tar
           if-no-files-found: error
 

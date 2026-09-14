@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import hashlib
-import io
 import json
+import re
 from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
-from urllib.error import URLError
 
 import pytest
 import tools.isabelle_tool as isabelle_tool
@@ -27,6 +25,7 @@ from raes_contracts.behavioral_relations import (
 )
 from tools.check_participant_opacity_proof import (
     ProofEvidenceError,
+    _validate_theorem_inventory,
     load_proof_manifest,
     validate_proof_manifest,
 )
@@ -187,16 +186,16 @@ def test_proof_replay_checks_fontconfig_before_session_entry(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    original_is_file = Path.is_file
+    original_is_executable_file = isabelle_tool._is_executable_file
 
     def reject_missing_fontconfig() -> None:
         raise isabelle_tool.IsabelleToolError("fontconfig test sentinel")
 
     monkeypatch.setattr(isabelle_tool, "require_isabelle", lambda _repo_root: tmp_path)
     monkeypatch.setattr(
-        Path,
-        "is_file",
-        lambda path: path == Path("/usr/bin/bwrap") or original_is_file(path),
+        isabelle_tool,
+        "_is_executable_file",
+        lambda path: path == Path("/usr/bin/bwrap") or original_is_executable_file(path),
     )
     monkeypatch.setattr(
         isabelle_tool,
@@ -214,15 +213,16 @@ def test_proof_replay_distinguishes_sandbox_setup_from_kernel_rejection(
 ) -> None:
     session_root = tmp_path / isabelle_tool.ISABELLE_SESSION_RELATIVE_PATH
     session_root.mkdir(parents=True)
-    original_is_file = Path.is_file
+    original_is_executable_file = isabelle_tool._is_executable_file
 
     monkeypatch.setattr(isabelle_tool, "require_isabelle", lambda _repo_root: tmp_path / "isabelle")
     monkeypatch.setattr(
-        Path,
-        "is_file",
-        lambda path: path == Path("/usr/bin/bwrap") or original_is_file(path),
+        isabelle_tool,
+        "_is_executable_file",
+        lambda path: path == Path("/usr/bin/bwrap") or original_is_executable_file(path),
     )
     monkeypatch.setattr(isabelle_tool, "_require_fontconfig_runtime", lambda: None)
+    monkeypatch.setattr(isabelle_tool, "_require_locale_runtime", lambda: None)
 
     def completed_with(output: bytes):
         def fake_run(*_args: object, stdout: object, **_kwargs: object) -> SimpleNamespace:
@@ -253,42 +253,6 @@ def test_proof_process_limit_enforces_per_process_address_space(monkeypatch: pyt
     assert (isabelle_tool.resource.RLIMIT_AS, (address_space_bytes, address_space_bytes)) in calls
 
 
-def test_isabelle_download_falls_back_between_integrity_checked_official_mirrors(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    payload = b"pinned-isabelle-archive"
-    attempted_urls: list[str] = []
-
-    class DownloadResponse(io.BytesIO):
-        def __enter__(self) -> DownloadResponse:
-            return self
-
-        def __exit__(self, *_args: object) -> None:
-            self.close()
-
-    def fake_urlopen(url: str, *, timeout: int) -> DownloadResponse:
-        attempted_urls.append(url)
-        assert timeout == 60
-        if len(attempted_urls) == 1:
-            raise URLError("simulated primary mirror outage")
-        return DownloadResponse(payload)
-
-    monkeypatch.setattr(isabelle_tool, "urlopen", fake_urlopen)
-    archive_path = tmp_path / "Isabelle.tar.gz"
-
-    isabelle_tool._download_archive(
-        archive_path,
-        source_urls=("https://primary.invalid", "https://fallback.invalid"),
-        expected_sha256=hashlib.sha256(payload).hexdigest(),
-        expected_size=len(payload),
-    )
-
-    assert attempted_urls == ["https://primary.invalid", "https://fallback.invalid"]
-    assert archive_path.read_bytes() == payload
-    assert not archive_path.with_suffix(".gz.download").exists()
-
-
 def test_current_and_historical_authority_resolve_by_exact_revision() -> None:
     current_catalog = load_behavioral_relation_catalog()
     semantic_catalog = load_behavioral_relation_catalog_revision("rev11")
@@ -314,7 +278,112 @@ def test_current_and_historical_authority_resolve_by_exact_revision() -> None:
 def test_proof_manifest_closes_claim_theorem_assumption_and_digest_joins() -> None:
     manifest = load_proof_manifest(MANIFEST_PATH)
 
-    validate_proof_manifest(manifest, repo_root=REPO_ROOT, run_prover=False)
+    summary = validate_proof_manifest(manifest, repo_root=REPO_ROOT, run_prover=False)
+
+    assert summary.evidence_id == "participant-opacity-proof:sem-231/rev1"
+    assert summary.taxonomy_revision == "rev9"
+    assert (summary.profile_id, summary.profile_revision) == ("participant-opacity-theorem-v1", "sem-231-proof/rev1")
+    assert summary.positive_theorem_ids == tuple(item["theorem_id"] for item in manifest["positive_theorems"])
+    assert summary.positive_theorem_ids
+    assert summary.prover_replayed is False
+
+
+def _tamper_digest(value: str) -> str:
+    prefix, digest = value.split(":", 1)
+    return f"{prefix}:{'0' if digest[0] != '0' else '1'}{digest[1:]}"
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "location",
+    [
+        ("taxonomy", "digest"),
+        ("profiles", 0, "digest"),
+        ("semantic_sources", 0, "digest"),
+        ("dependencies", 0, "digest"),
+        ("toolchain", "tool_sources", 0, "digest"),
+        ("toolchain", "tool_sources", -1, "digest"),
+        ("session", "root_digest"),
+        ("session", "theory_digest"),
+    ],
+)
+def test_proof_manifest_rejects_every_digest_bound_source_drift(location: tuple[object, ...]) -> None:
+    manifest = deepcopy(load_proof_manifest(MANIFEST_PATH))
+    container = manifest
+    for key in location[:-1]:
+        container = container[key]
+    container[location[-1]] = _tamper_digest(container[location[-1]])
+
+    with pytest.raises(ProofEvidenceError, match="digest"):
+        validate_proof_manifest(manifest, repo_root=REPO_ROOT, run_prover=False)
+
+
+@pytest.mark.integration
+def test_theorem_inventory_rejects_unfinished_proofs_and_missing_declarations() -> None:
+    manifest = load_proof_manifest(MANIFEST_PATH)
+    theory_path = REPO_ROOT / manifest["session"]["theory_path"]
+    theory_text = theory_path.read_text(encoding="utf-8")
+    _validate_theorem_inventory(manifest, theory_text)
+
+    for feature in ("sorry", "oops", "axiomatization"):
+        unfinished = theory_text.replace("\nend", f"\nlemma unfinished_{feature}: True\n  {feature}\nend", 1)
+        with pytest.raises(ProofEvidenceError, match="unfinished or undeclared proof feature"):
+            _validate_theorem_inventory(manifest, unfinished)
+
+    theorem_id = manifest["positive_theorems"][0]["theorem_id"]
+    renamed = re.sub(rf"\b(lemma|theorem)\s+{re.escape(theorem_id)}\s*:", r"\1 renamed_theorem:", theory_text)
+    assert renamed != theory_text
+    with pytest.raises(ProofEvidenceError, match="absent from the checked theory"):
+        _validate_theorem_inventory(manifest, renamed)
+
+
+def _set(manifest: dict, location: tuple[object, ...], value: object) -> None:
+    container = manifest
+    for key in location[:-1]:
+        container = container[key]
+    container[location[-1]] = value
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("location", "value", "message"),
+    [
+        (("evidence_id",), "participant-opacity-proof:sem-231/rev2", "identity or requirements drifted"),
+        (("requirements",), ["SEM-231"], "identity or requirements drifted"),
+        (("limitations",), [], "proof limitations must be a non-empty list"),
+        (("taxonomy", "taxonomy_revision"), "rev10", "declared rev9 authority"),
+        (("profiles", 0, "profile_revision"), "sem-231-proof/rev2", "exact theorem profile"),
+        (("semantic_sources", 0, "requirement"), "SEM-229", "do not cover SEM-230 and SEM-231"),
+        (("dependencies", 0, "issue"), 811, "dependency set is incomplete"),
+        (("assumptions", 0, "statement"), "  ", "assumption statement is empty"),
+        (("assumptions", 0, "assumption_id"), "zz-out-of-order", "assumption set or canonical order"),
+        (("toolchain", "network"), "unrestricted", "pin or execution posture drifted"),
+        (("toolchain", "filesystem"), "host-root", "pin or execution posture drifted"),
+        (("toolchain", "archive_bytes"), 1, "pin or execution posture drifted"),
+        (("toolchain", "archive_url"), "https://mirror.invalid/Isabelle.tar.gz", "outside the reviewed lock"),
+        (("toolchain", "limits", "wall_seconds"), 6000, "process limits drifted"),
+        (("toolchain", "limits", "max_address_space_mib_per_process"), 65536, "process limits drifted"),
+        (("toolchain", "acquire_command", 3), "implementations/python", "fixed repository command"),
+        (("toolchain", "replay_command", -1), "tools.other", "fixed repository command"),
+        (("session", "session_id"), "Other_Session", "session declaration drifted"),
+        (("session", "generated_artifacts"), ["heap"], "session declaration drifted"),
+        (("kernel_result", "network"), "host-network", "kernel result or expected digest drifted"),
+        (("independent_reproduction", "reproduced_on"), "2026-01-01", "reproduction record drifted"),
+        (("taxonomy", "path"), "/etc/passwd", "immutable rev9 authority"),
+        (("semantic_sources", 0, "path"), "/etc/passwd", "unsafe repository path"),
+        (("semantic_sources", 0, "path"), "specs/../../outside.md", "unsafe repository path"),
+    ],
+)
+def test_proof_manifest_rejects_every_closed_identity_posture_and_path_drift(
+    location: tuple[object, ...],
+    value: object,
+    message: str,
+) -> None:
+    manifest = deepcopy(load_proof_manifest(MANIFEST_PATH))
+    _set(manifest, location, value)
+
+    with pytest.raises(ProofEvidenceError, match=re.escape(message)):
+        validate_proof_manifest(manifest, repo_root=REPO_ROOT, run_prover=False)
 
 
 @pytest.mark.integration

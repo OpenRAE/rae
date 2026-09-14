@@ -27,6 +27,18 @@ class LockedManifestEntry:
 
 
 @dataclass(frozen=True)
+class LockedInstalledTree:
+    """The reviewed canonical identity of a complete extracted installation tree."""
+
+    format: str
+    manifest_sha256: str
+    file_count: int
+    directory_count: int
+    symlink_count: int
+    expanded_bytes: int
+
+
+@dataclass(frozen=True)
 class LockedArtifactSelection:
     artifact_id: str
     version: str
@@ -40,6 +52,8 @@ class LockedArtifactSelection:
     artifact_class: str = "generic-cli"
     policy_refs: tuple[str, ...] = ("artifact-integrity-v1",)
     installed_identity: tuple[tuple[str, str], ...] = ()
+    locator_refs: tuple[str, ...] = ()
+    installed_tree: LockedInstalledTree | None = None
 
 
 def _is_portable_manifest_path(path: str) -> bool:
@@ -81,6 +95,35 @@ def _locked_installed_identity(value: object) -> tuple[tuple[str, str], ...]:
     if any(not isinstance(item, str) or not item for _, item in entries):
         raise RuntimeError("development artifact policy failed before acquisition: invalid installed identity")
     return tuple((name, str(item)) for name, item in entries)
+
+
+def _locked_installed_tree(value: object) -> LockedInstalledTree | None:
+    """Return the closed installed-tree identity when the lock declares one."""
+
+    if value is None:
+        return None
+    counts = ("file_count", "directory_count", "symlink_count", "expanded_bytes")
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"format", "manifest_sha256", *counts}
+        or value.get("format") != "tar.gz"
+        or not isinstance(value.get("manifest_sha256"), str)
+        or re.fullmatch(r"[0-9a-f]{64}", value["manifest_sha256"]) is None
+        or any(not isinstance(value.get(name), int) or isinstance(value.get(name), bool) for name in counts)
+        or value["file_count"] < 1
+        or value["directory_count"] < 1
+        or value["symlink_count"] < 0
+        or value["expanded_bytes"] < 1
+    ):
+        raise RuntimeError("development artifact policy failed before acquisition: invalid installed tree")
+    return LockedInstalledTree(
+        format=value["format"],
+        manifest_sha256=value["manifest_sha256"],
+        file_count=value["file_count"],
+        directory_count=value["directory_count"],
+        symlink_count=value["symlink_count"],
+        expanded_bytes=value["expanded_bytes"],
+    )
 
 
 def safe_tooling_cache_parent(repo_root: Path, target: Path, *, artifact_id: str) -> Path:
@@ -239,12 +282,16 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             raise TypeError
         raw_values = platform["raw_manifest"]
         source_urls = platform["source_urls"]
+        locator_refs = source["locator_refs"]
         policy_refs = selection["policy_refs"]
         artifact_class = selection["artifact_class"]
         if (
             not isinstance(raw_values, list)
             or not isinstance(source_urls, list)
             or not all(isinstance(value, str) and value for value in source_urls)
+            or not isinstance(locator_refs, list)
+            or not all(isinstance(value, str) and value for value in locator_refs)
+            or len(locator_refs) != len(source_urls)
             or not isinstance(policy_refs, list)
             or not all(isinstance(value, str) and value for value in policy_refs)
             or not isinstance(artifact_class, str)
@@ -277,6 +324,8 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             artifact_class=artifact_class,
             policy_refs=tuple(policy_refs),
             installed_identity=installed_identity,
+            locator_refs=tuple(locator_refs),
+            installed_tree=_locked_installed_tree(platform.get("installed_tree")),
         )
         selected_profile_ids = platform["profile_ids"]
     except (KeyError, TypeError) as exc:

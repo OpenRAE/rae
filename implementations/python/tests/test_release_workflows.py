@@ -251,15 +251,34 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     assert job["runs-on"] == "ubuntu-22.04"
 
     step_names = [step.get("name") for step in job["steps"]]
-    assert "Restore pinned Isabelle archive" in step_names
+    assert "Restore pinned Isabelle archive" not in step_names
     assert "Install proof sandbox" in step_names
-    assert "Acquire pinned Isabelle distribution" in step_names
+    assert "Admit the carried Isabelle archive with egress denied" in step_names
     assert "Resolve requirement UID from branch" in step_names
+    assert step_names.index("Install proof sandbox") < step_names.index(
+        "Admit the carried Isabelle archive with egress denied"
+    )
+    assert not any(str(step.get("uses", "")).startswith("actions/cache/") for step in job["steps"])
 
-    cache_restore = _named_step(job, "Restore pinned Isabelle archive")
-    assert cache_restore["uses"].startswith("actions/cache/restore@")
-    acquire = _named_step(job, "Acquire pinned Isabelle distribution")
-    assert "tools.isabelle_tool acquire" in acquire["run"]
+    carrier = _named_step(
+        workflow["jobs"]["generic-tool-local-inputs"], "Fetch the locked proof archive with the qualified client"
+    )
+    assert "offline-kit-fetch" in carrier["run"]
+    assert "proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle" in carrier["run"]
+    acquire = _named_step(job, "Admit the carried Isabelle archive with egress denied")["run"]
+    assert acquire.startswith("bwrap --dev-bind / / --unshare-net --die-with-parent ")
+    assert "implementations/tooling/python/.venv/bin/python -m tools.isabelle_tool acquire" in acquire
+    assert "--local-input .canonical-tool-inputs/archives/isabelle/Isabelle2025-2_linux.tar.gz" in acquire
+    harness = _named_step(job, "Qualify proof-input installation slices")["run"]
+    assert "nox -f noxfile.py -s proof-input-qualification -- --real-installation" in harness
+    assert "--output proof-input-qualification.json" in harness
+    record = _named_step(job, "Record qualified proof-host evidence")["run"]
+    assert "--slice-evidence proof-input-qualification.json" in record
+    assert step_names.index("Qualify proof-input installation slices") < step_names.index(
+        "Record qualified proof-host evidence"
+    )
+    evidence = _named_step(job, "Upload proof-host qualification evidence")
+    assert evidence["with"]["path"] == "proof-host-qualification.json"
     sandbox = _named_step(job, "Install proof sandbox")["run"]
     assert "bubblewrap fontconfig fonts-dejavu-core" in sandbox
     assert "fc-list" in sandbox
@@ -674,12 +693,51 @@ def test_release_gate_does_not_poll_mutable_check_or_branch_status() -> None:
     assert all(token not in release_text for token in forbidden)
 
 
-def test_publishing_workflows_pin_every_third_party_action_to_a_full_sha() -> None:
-    for path in (CANONICAL_PATH, CI_PATH, RELEASE_PATH):
+def _workflow_paths() -> list[Path]:
+    paths = sorted([*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml")])
+    assert {CANONICAL_PATH, CI_PATH, RELEASE_PATH} <= set(paths)
+    return paths
+
+
+def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
+    for path in _workflow_paths():
         for action_ref in _uses(_load(path)):
             if action_ref.startswith("./"):
                 continue
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
+
+
+# Every write-capable token grant is a reviewed publication, Pages, code-scanning,
+# or release-bookkeeping boundary. Any other job or workflow stays read-only.
+_REVIEWED_JOB_WRITE_SCOPES = {
+    ("docs.yml", "deploy"): {"pages", "id-token"},
+    ("release-please.yml", "release-please"): {"contents", "pull-requests"},
+    ("release-please.yml", "resolve-release"): {"contents"},
+    ("release-please.yml", "publish-pypi"): {"contents", "id-token"},
+    ("release-please.yml", "publish-github"): {"contents"},
+    ("release-please.yml", "sync-dev"): {"pull-requests"},
+    ("scorecard.yml", "analysis"): {"security-events", "id-token"},
+}
+
+
+def _write_scopes(permissions: object, location: str) -> set[str]:
+    assert permissions is None or isinstance(permissions, dict), f"{location}: permissions must be an explicit mapping"
+    scopes = permissions or {}
+    assert set(scopes.values()) <= {"read", "write", "none"}, f"{location}: unknown permission level"
+    return {scope for scope, level in scopes.items() if level == "write"}
+
+
+def test_every_workflow_and_job_token_is_read_only_except_reviewed_write_boundaries() -> None:
+    observed: dict[tuple[str, str], set[str]] = {}
+    for path in _workflow_paths():
+        workflow = _load(path)
+        assert "permissions" in workflow, f"{path.name}: missing workflow-level token permissions"
+        assert not _write_scopes(workflow["permissions"], path.name), f"{path.name}: workflow default grants write"
+        for job_name, job in workflow["jobs"].items():
+            scopes = _write_scopes(job.get("permissions"), f"{path.name}:{job_name}")
+            if scopes:
+                observed[(path.name, job_name)] = scopes
+    assert observed == _REVIEWED_JOB_WRITE_SCOPES
 
 
 def _release_managed_paths() -> list[str]:
@@ -735,3 +793,157 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
         ("pr-title-lint.yml", "pull_request"),
         ("scorecard.yml", "push"),
     }
+
+
+_EXACT = "a" * 40
+_PARENT = "b" * 40
+_OTHER = "c" * 40
+_GIT_STUB = """#!/bin/sh
+set -eu
+case "$*" in
+  "rev-parse HEAD") printf '%s\\n' "$STUB_HEAD" ;;
+  "rev-parse --verify "*) printf '%s\\n' "$STUB_TAG_SHA" ;;
+  "rev-parse "*"^") printf '%s\\n' "$STUB_PARENT" ;;
+  "cat-file -e "*) exit "${STUB_CAT_FILE_STATUS:-0}" ;;
+  "fetch "*) exit 0 ;;
+  "merge-base --is-ancestor "*) exit "${STUB_ANCESTOR_STATUS:-0}" ;;
+  *) echo "unexpected git request: $*" >&2; exit 64 ;;
+esac
+"""
+_GH_STUB = """#!/bin/sh
+set -eu
+case "${1-}:${2-}" in
+  release:view) printf '%s\\n' "$STUB_RELEASE_JSON" ;;
+  *) echo "unexpected gh request: $*" >&2; exit 64 ;;
+esac
+"""
+
+
+def _run_exact_commit_gate(
+    tmp_path: Path,
+    workflow_path: Path,
+    job_name: str,
+    step_name: str,
+    environment: dict[str, str],
+) -> tuple[subprocess.CompletedProcess[str], str]:
+    if shutil.which("bash") is None or shutil.which("jq") is None:
+        pytest.skip("the exact-commit shell gates require bash and jq")
+    script = _named_step(_load(workflow_path)["jobs"][job_name], step_name)["run"]
+    for name, body in (("git", _GIT_STUB), ("gh", _GH_STUB)):
+        stub = tmp_path / name
+        stub.write_text(body, encoding="utf-8")
+        stub.chmod(0o700)
+    output = tmp_path / "github-output"
+    output.write_text("", encoding="utf-8")
+    completed = subprocess.run(
+        ["bash", "-c", script],
+        check=False,
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "PATH": f"{tmp_path}{os.pathsep}{os.environ['PATH']}",
+            "GITHUB_OUTPUT": str(output),
+            "GITHUB_REPOSITORY": "OpenRAE/rae",
+            "STUB_PARENT": _PARENT,
+            **environment,
+        },
+    )
+    return completed, output.read_text(encoding="utf-8")
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("head", "expected", "exit_code", "message"),
+    [
+        (_EXACT, _EXACT, 0, "Verified exact commit"),
+        (_OTHER, _EXACT, 1, "Checkout mismatch"),
+        (_EXACT, "A" * 40, 1, "full lowercase commit SHA"),
+    ],
+)
+def test_canonical_exact_commit_gate_executes_and_rejects_a_different_checkout(
+    tmp_path: Path,
+    head: str,
+    expected: str,
+    exit_code: int,
+    message: str,
+) -> None:
+    completed, output = _run_exact_commit_gate(
+        tmp_path,
+        CANONICAL_PATH,
+        "verify",
+        "Bind verification to the exact commit and resolve policy base",
+        {"STUB_HEAD": head, "EXPECTED_SHA": expected, "REQUESTED_BASE_SHA": ""},
+    )
+
+    assert completed.returncode == exit_code, completed.stderr
+    assert message in completed.stdout + completed.stderr
+    assert ("base_rev=" + _PARENT in output) is (exit_code == 0)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("job_name", "step_name", "mismatch_message"),
+    [
+        ("integration-docker-release", "Bind real-container testing to the exact release commit", "checkout mismatch"),
+        ("build-release", "Reconfirm the exact verified release checkout", "Publish checkout mismatch"),
+    ],
+)
+@pytest.mark.parametrize("head", [_EXACT, _OTHER])
+def test_release_checkout_gates_execute_and_reject_a_different_checkout(
+    tmp_path: Path,
+    job_name: str,
+    step_name: str,
+    mismatch_message: str,
+    head: str,
+) -> None:
+    completed, _output = _run_exact_commit_gate(
+        tmp_path,
+        RELEASE_PATH,
+        job_name,
+        step_name,
+        {"STUB_HEAD": head, "EXPECTED_SHA": _EXACT},
+    )
+
+    if head == _EXACT:
+        assert completed.returncode == 0, completed.stderr
+    else:
+        assert completed.returncode == 1
+        assert mismatch_message in completed.stderr
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("tag_sha", "ancestor_status", "exit_code", "message"),
+    [
+        (_EXACT, "0", 0, "Resolved v3.4.5 to immutable release commit"),
+        (_OTHER, "0", 1, "Release Please SHA/tag mismatch"),
+        (_EXACT, "1", 1, "is not reachable from origin/main"),
+    ],
+)
+def test_release_resolution_executes_and_binds_the_exact_release_commit(
+    tmp_path: Path,
+    tag_sha: str,
+    ancestor_status: str,
+    exit_code: int,
+    message: str,
+) -> None:
+    completed, output = _run_exact_commit_gate(
+        tmp_path,
+        RELEASE_PATH,
+        "resolve-release",
+        "Resolve and bind the immutable release commit",
+        {
+            "EVENT_NAME": "push",
+            "INPUT_TAG": "",
+            "RELEASE_PLEASE_TAG": "v3.4.5",
+            "RELEASE_PLEASE_SHA": _EXACT,
+            "STUB_RELEASE_JSON": '{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}',
+            "STUB_TAG_SHA": tag_sha,
+            "STUB_ANCESTOR_STATUS": ancestor_status,
+        },
+    )
+
+    assert completed.returncode == exit_code, completed.stderr
+    assert message in completed.stdout + completed.stderr
+    assert (f"release_sha={_EXACT}" in output) is (exit_code == 0)

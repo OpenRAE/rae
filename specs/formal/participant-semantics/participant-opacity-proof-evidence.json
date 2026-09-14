@@ -251,8 +251,9 @@
       "uv",
       "run",
       "--project",
-      "implementations/python",
+      "implementations/tooling/python",
       "--frozen",
+      "--no-default-groups",
       "python",
       "-m",
       "tools.isabelle_tool",
@@ -288,7 +289,7 @@
     "tool_sources": [
       {
         "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:e51358c15b446768292961fccdfabfa79065314d14abb9d5341fab91b7411d98"
+        "digest": "sha256:f3119d0f1e7bdd13ec9faa1c2a05c3f2b96ea97b0c7a479e223e34457961974b"
       },
       {
         "path": "tools/isabelle_sandbox.py",
@@ -296,7 +297,23 @@
       },
       {
         "path": "tools/isabelle_tool.py",
-        "digest": "sha256:b98828e2ad0fe63c2f1eb131504e441563b9e2da32020048eb9b291c7433c7a6"
+        "digest": "sha256:1f3a83936a05aca7d87f9e9a29e7b794b4d768689af148c5da14864bd4510b3c"
+      },
+      {
+        "path": "tools/maintained_client_acquisition.py",
+        "digest": "sha256:b6aa150d2fed4270b873aac044fd2b26af6efd1625d89c65c0cfddc903693bb8"
+      },
+      {
+        "path": "tools/tooling_policy_gate.py",
+        "digest": "sha256:39bdbbba4a62d3e0af8dc088499778645ad4dc3f6c44406c2fc8f2ff7a62d69c"
+      },
+      {
+        "path": "tools/verified_tool_installation.py",
+        "digest": "sha256:1d785afdefc6bfbc90511ff3ea646e3c491b132a6a2c4058e7e4dc4b1c044118"
+      },
+      {
+        "path": "tools/verified_tree_installation.py",
+        "digest": "sha256:c1fb330498be01e6f451470660ab62dd9f027490a0d1f28310c94f48b456dcf0"
       }
     ]
   },

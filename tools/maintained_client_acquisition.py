@@ -7,6 +7,7 @@ import re
 import stat
 import subprocess
 import tempfile
+from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
 from typing import Protocol
@@ -16,8 +17,9 @@ SYSTEM_CURL = Path("/usr/bin/curl")
 PROBE_TIMEOUT_SECONDS = 15
 MAX_PROBE_OUTPUT_BYTES = 8192
 MAX_GENERIC_ARTIFACT_BYTES = 256 * 1024 * 1024
+MAX_LARGE_OBJECT_BYTES = 2 * 1024 * 1024 * 1024
 DEFAULT_TRANSFER_SECONDS = 30
-_WALL_GRACE_SECONDS = 5
+_HASH_CHUNK_BYTES = 1024 * 1024
 _MINIMUM_CURL = (8, 4, 0)
 _VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})[.](\d{1,10})")
 _CLIENT_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
@@ -30,6 +32,54 @@ class LockedRawObject(Protocol):
     path: str
     sha256: str
     size: int
+
+
+@dataclass(frozen=True)
+class TransferBudget:
+    """A closed, separately qualified native-client budget for one object class.
+
+    Every value is native curl configuration or process supervision; no field
+    selects repository transport, retry, or redirect behavior.
+    """
+
+    budget_id: str
+    max_bytes: int
+    max_time_seconds: int
+    connect_timeout_seconds: int
+    retries: int
+    retry_delay_seconds: int
+    retry_max_time_seconds: int
+    wall_grace_seconds: int
+    low_speed_bytes_per_second: int | None = None
+    low_speed_seconds: int | None = None
+
+
+GENERIC_TRANSFER_BUDGET = TransferBudget(
+    budget_id="generic",
+    max_bytes=MAX_GENERIC_ARTIFACT_BYTES,
+    max_time_seconds=DEFAULT_TRANSFER_SECONDS,
+    connect_timeout_seconds=5,
+    retries=2,
+    retry_delay_seconds=1,
+    retry_max_time_seconds=15,
+    wall_grace_seconds=5,
+)
+# The pinned proof archive is a 1.2 GB object. Its budget is qualified
+# separately so the generic 30 second bound is never falsely applied to it: a
+# stalled transfer is aborted by curl's native low-speed limit, retries remain
+# curl's own bounded retries, and the wall deadline covers the retry window.
+LARGE_OBJECT_TRANSFER_BUDGET = TransferBudget(
+    budget_id="large-object",
+    max_bytes=MAX_LARGE_OBJECT_BYTES,
+    max_time_seconds=3600,
+    connect_timeout_seconds=15,
+    retries=2,
+    retry_delay_seconds=5,
+    retry_max_time_seconds=120,
+    wall_grace_seconds=150,
+    low_speed_bytes_per_second=64 * 1024,
+    low_speed_seconds=120,
+)
 
 
 def curl_version_is_supported(value: str) -> bool:
@@ -46,7 +96,8 @@ def curl_transfer_argv(
     *,
     ca_cert: Path | None,
     max_bytes: int,
-    max_time_seconds: int = DEFAULT_TRANSFER_SECONDS,
+    max_time_seconds: int | None = None,
+    budget: TransferBudget = GENERIC_TRANSFER_BUDGET,
 ) -> list[str]:
     """Build the fixed argv shared by qualification and real acquisition."""
 
@@ -55,10 +106,11 @@ def curl_transfer_argv(
         raise ValueError("curl transfer requires a credential-free HTTPS URL")
     if executable != SYSTEM_CURL or not executable.is_absolute():
         raise ValueError("curl transfer requires the qualified absolute client")
-    if not 1 <= max_bytes <= MAX_GENERIC_ARTIFACT_BYTES:
-        raise ValueError("curl transfer size limit is outside the generic artifact budget")
-    if not 1 <= max_time_seconds <= DEFAULT_TRANSFER_SECONDS:
-        raise ValueError("curl transfer deadline must be between 1 and 30 seconds")
+    deadline = budget.max_time_seconds if max_time_seconds is None else max_time_seconds
+    if not 1 <= max_bytes <= budget.max_bytes:
+        raise ValueError(f"curl transfer size limit is outside the {budget.budget_id} artifact budget")
+    if not 1 <= deadline <= budget.max_time_seconds:
+        raise ValueError(f"curl transfer deadline must be between 1 and {budget.max_time_seconds} seconds")
     argv = [
         str(executable),
         "--disable",
@@ -73,18 +125,27 @@ def curl_transfer_argv(
         "--max-redirs",
         "5",
         "--retry",
-        "2",
+        str(budget.retries),
         "--retry-delay",
-        "1",
+        str(budget.retry_delay_seconds),
         "--retry-max-time",
-        "15",
+        str(budget.retry_max_time_seconds),
         "--connect-timeout",
-        "5",
+        str(budget.connect_timeout_seconds),
         "--max-time",
-        str(max_time_seconds),
+        str(deadline),
         "--max-filesize",
         str(max_bytes),
     ]
+    if budget.low_speed_bytes_per_second is not None and budget.low_speed_seconds is not None:
+        argv.extend(
+            (
+                "--speed-limit",
+                str(budget.low_speed_bytes_per_second),
+                "--speed-time",
+                str(budget.low_speed_seconds),
+            )
+        )
     if ca_cert is not None:
         argv.extend(("--cacert", str(ca_cert)))
     argv.extend(("--output", str(output), url))
@@ -130,7 +191,8 @@ def run_curl_transfer(  # NOSONAR -- stable exit classes form the public diagnos
     *,
     ca_cert: Path | None,
     max_bytes: int,
-    max_time_seconds: int = DEFAULT_TRANSFER_SECONDS,
+    max_time_seconds: int | None = None,
+    budget: TransferBudget = GENERIC_TRANSFER_BUDGET,
 ) -> dict[str, str]:
     """Run the qualified client once and return only a stable outcome."""
 
@@ -141,7 +203,9 @@ def run_curl_transfer(  # NOSONAR -- stable exit classes form the public diagnos
         ca_cert=ca_cert,
         max_bytes=max_bytes,
         max_time_seconds=max_time_seconds,
+        budget=budget,
     )
+    deadline = budget.max_time_seconds if max_time_seconds is None else max_time_seconds
     if preflight_failure := _curl_preflight_failure(executable):
         return _remove_output(output, preflight_failure)
     try:
@@ -151,7 +215,7 @@ def run_curl_transfer(  # NOSONAR -- stable exit classes form the public diagnos
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
-            timeout=max_time_seconds + _WALL_GRACE_SECONDS,
+            timeout=deadline + budget.wall_grace_seconds,
             env=dict(_CLIENT_ENV),
         )
     except subprocess.TimeoutExpired:
@@ -238,10 +302,116 @@ def acquire_locked_bytes(
         return payload
 
 
+def _open_regular_no_follow(path: Path) -> tuple[int, os.stat_result]:
+    before = path.lstat()
+    if stat.S_ISLNK(before.st_mode) or not stat.S_ISREG(before.st_mode):
+        raise OSError("input is not a regular file")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags |= getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOINHERIT", 0)
+    descriptor = os.open(path, flags)
+    opened = os.fstat(descriptor)
+    if not stat.S_ISREG(opened.st_mode) or not os.path.samestat(before, opened):
+        os.close(descriptor)
+        raise OSError("input changed while it was opened")
+    return descriptor, opened
+
+
+def _copy_bounded_regular_file(source: Path, destination: Path, *, expected: LockedRawObject) -> bool:
+    """Copy one opened source inode into a caller-owned file while hashing it."""
+
+    descriptor, opened = _open_regular_no_follow(source)
+    digest = sha256()
+    total = 0
+    with os.fdopen(descriptor, "rb") as stream:
+        if opened.st_size != expected.size:
+            return False
+        flags = os.O_WRONLY | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+        output = os.open(destination, flags)
+        try:
+            while chunk := stream.read(min(_HASH_CHUNK_BYTES, expected.size + 1 - total)):
+                total += len(chunk)
+                if total > expected.size:
+                    return False
+                digest.update(chunk)
+                view = memoryview(chunk)
+                while view:
+                    view = view[os.write(output, view) :]
+            os.fsync(output)
+        finally:
+            os.close(output)
+        after = source.lstat()
+    unchanged = os.path.samestat(opened, after) and after.st_size == opened.st_size
+    return unchanged and total == expected.size and digest.hexdigest() == expected.sha256
+
+
+def _regular_file_matches_lock(path: Path, expected: LockedRawObject) -> bool:
+    descriptor, opened = _open_regular_no_follow(path)
+    digest = sha256()
+    total = 0
+    with os.fdopen(descriptor, "rb") as stream:
+        if opened.st_size != expected.size:
+            return False
+        while chunk := stream.read(min(_HASH_CHUNK_BYTES, expected.size + 1 - total)):
+            total += len(chunk)
+            digest.update(chunk)
+    after = path.lstat()
+    return os.path.samestat(opened, after) and total == expected.size and digest.hexdigest() == expected.sha256
+
+
+def acquire_locked_file(
+    *,
+    artifact_id: str,
+    source_url: str,
+    expected: LockedRawObject,
+    destination: Path,
+    local_input: Path | None = None,
+    budget: TransferBudget = LARGE_OBJECT_TRANSFER_BUDGET,
+) -> None:
+    """Place one selected raw object in a caller-owned private file and admit it.
+
+    The destination must already exist as the caller's exclusive staging file.
+    An explicit local input is copied from its opened inode; otherwise the
+    qualified native client writes the object. Either carrier is admitted only
+    by exact size and SHA-256, and a failed admission never falls back.
+    """
+
+    if not 1 <= expected.size <= budget.max_bytes:
+        raise RuntimeError(f"{artifact_id} locked raw size is outside the {budget.budget_id} artifact budget")
+    if local_input is not None:
+        try:
+            admitted = _copy_bounded_regular_file(local_input, destination, expected=expected)
+        except OSError:
+            admitted = False
+        if not admitted:
+            raise RuntimeError(f"{artifact_id} local input failed locked identity validation")
+        return
+    result = run_curl_transfer(
+        SYSTEM_CURL,
+        source_url,
+        destination,
+        ca_cert=None,
+        max_bytes=expected.size,
+        budget=budget,
+    )
+    if result["outcome"] != "passed":
+        raise RuntimeError(f"{artifact_id} acquisition failed: {result['reason_code']}")
+    try:
+        admitted = _regular_file_matches_lock(destination, expected)
+    except OSError:
+        raise RuntimeError(f"{artifact_id} acquired output is unsafe") from None
+    if not admitted:
+        raise RuntimeError(f"{artifact_id} acquired bytes differ from the reviewed lock")
+
+
 __all__ = [
+    "GENERIC_TRANSFER_BUDGET",
+    "LARGE_OBJECT_TRANSFER_BUDGET",
     "MAX_GENERIC_ARTIFACT_BYTES",
+    "MAX_LARGE_OBJECT_BYTES",
     "SYSTEM_CURL",
+    "TransferBudget",
     "acquire_locked_bytes",
+    "acquire_locked_file",
     "curl_transfer_argv",
     "curl_version_is_supported",
     "run_curl_transfer",

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +38,17 @@ from tools.tool_versions import ISABELLE_VERSION  # noqa: E402
 from tools.tooling_policy_gate import LockedManifestEntry, load_tooling_artifact_selection  # noqa: E402
 
 MANIFEST_RELATIVE_PATH = Path("specs/formal/participant-semantics/participant-opacity-proof-evidence.json")
+# Every source that selects, admits, or revalidates the executed prover is
+# digest-bound, including the shared tree and publication transaction.
+PROOF_TOOL_SOURCE_PATHS = (
+    "tools/check_participant_opacity_proof.py",
+    "tools/isabelle_sandbox.py",
+    "tools/isabelle_tool.py",
+    "tools/maintained_client_acquisition.py",
+    "tools/tooling_policy_gate.py",
+    "tools/verified_tool_installation.py",
+    "tools/verified_tree_installation.py",
+)
 THEORY_RELATIVE_PATH = ISABELLE_SESSION_RELATIVE_PATH / "Participant_Opacity.thy"
 ROOT_RELATIVE_PATH = ISABELLE_SESSION_RELATIVE_PATH / "ROOT"
 MAX_MANIFEST_BYTES = 2 * 1024 * 1024
@@ -90,6 +102,18 @@ _FORBIDDEN_RE = re.compile(r"\b(?:" + "|".join(FORBIDDEN_FEATURES) + r")\b", re.
 
 class ProofEvidenceError(ValueError):
     """A stable failure from the repository-local mathematical-proof gate."""
+
+
+@dataclass(frozen=True)
+class ProofEvidenceSummary:
+    """The exact authorities and theorem inventory a successful validation resolved."""
+
+    evidence_id: str
+    taxonomy_revision: str
+    profile_id: str
+    profile_revision: str
+    positive_theorem_ids: tuple[str, ...]
+    prover_replayed: bool
 
 
 def _require_keys(payload: dict[str, Any], expected: set[str], label: str) -> None:
@@ -311,8 +335,9 @@ def _validate_toolchain_commands(toolchain: dict[str, Any]) -> None:
         "uv",
         "run",
         "--project",
-        "implementations/python",
+        "implementations/tooling/python",
         "--frozen",
+        "--no-default-groups",
         "python",
         "-m",
         "tools.isabelle_tool",
@@ -367,11 +392,7 @@ def _validate_toolchain_limits(toolchain: dict[str, Any]) -> None:
 
 def _validate_tool_sources(toolchain: dict[str, Any], repo_root: Path) -> None:
     tool_sources = _require_list(toolchain["tool_sources"], "proof tool sources")
-    if [item.get("path") for item in tool_sources if isinstance(item, dict)] != [
-        "tools/check_participant_opacity_proof.py",
-        "tools/isabelle_sandbox.py",
-        "tools/isabelle_tool.py",
-    ]:
+    if [item.get("path") for item in tool_sources if isinstance(item, dict)] != list(PROOF_TOOL_SOURCE_PATHS):
         raise ProofEvidenceError("proof tool source set or order is invalid")
     for source in tool_sources:
         item = _require_object(source, "proof tool source")
@@ -492,7 +513,7 @@ def validate_proof_manifest(
     *,
     repo_root: Path = REPO_ROOT,
     run_prover: bool = True,
-) -> None:
+) -> ProofEvidenceSummary:
     _require_keys(
         manifest,
         {
@@ -534,6 +555,14 @@ def validate_proof_manifest(
     theory_text = _validate_session(manifest, repo_root)
     _validate_theorem_inventory(manifest, theory_text)
     _validate_results(manifest, repo_root=repo_root, run_prover=run_prover)
+    return ProofEvidenceSummary(
+        evidence_id=manifest["evidence_id"],
+        taxonomy_revision=manifest["taxonomy"]["taxonomy_revision"],
+        profile_id=manifest["profiles"][0]["profile_id"],
+        profile_revision=manifest["profiles"][0]["profile_revision"],
+        positive_theorem_ids=tuple(item["theorem_id"] for item in manifest["positive_theorems"]),
+        prover_replayed=run_prover,
+    )
 
 
 def main() -> int:

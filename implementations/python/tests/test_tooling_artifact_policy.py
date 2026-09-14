@@ -26,6 +26,7 @@ from tools import (
     tooling_policy_gate,
     vale_tool,
     verified_tool_installation,
+    verified_tree_installation,
 )
 from tools.check_tooling_artifact_policy import (
     ACTIONS_POLICY_PATH,
@@ -41,7 +42,7 @@ from tools.check_tooling_artifact_policy import (
     tooling_policy_sha256,
 )
 from tools.policy import conftest_tool
-from tools.tooling_policy_gate import LockedArtifactSelection, LockedManifestEntry
+from tools.tooling_policy_gate import LockedArtifactSelection, LockedInstalledTree, LockedManifestEntry
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 TOOLING_ROOT = REPO_ROOT / "implementations" / "tooling"
@@ -1043,6 +1044,7 @@ def test_host_profiles_fail_closed_on_unknown_payload_evidence_and_proof_platfor
         "tooling-host-evidence-reference",
         "tooling-host-proof-platform",
         "tooling-host-proof-capability",
+        "tooling-host-proof-closure",
     } <= failures
 
 
@@ -2621,10 +2623,20 @@ def test_isabelle_acquisition_and_cache_validation_use_the_exact_lock_selection(
         member.size = len(binary_bytes)
         archive.addfile(member, io.BytesIO(binary_bytes))
     archive_bytes = archive_buffer.getvalue()
-    digest = hashlib.sha256(archive_bytes).hexdigest()
-    source_url = "https://example.invalid/Isabelle.tar.gz"
+    local_input = tmp_path / "Isabelle.tar.gz"
+    local_input.write_bytes(archive_bytes)
+    raw = LockedManifestEntry("Isabelle.tar.gz", hashlib.sha256(archive_bytes).hexdigest(), len(archive_bytes))
+    installed_tree = LockedInstalledTree(**verified_tree_installation.describe_archive_tree(local_input, raw))
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir(mode=0o700)
 
-    def selection(**_kwargs: object) -> LockedArtifactSelection:
+    def selection(**kwargs: object) -> LockedArtifactSelection:
+        assert kwargs == {
+            "artifact_id": "isabelle",
+            "version": isabelle_tool.ISABELLE_VERSION,
+            "platform_id": "linux-x86_64",
+            "profile_id": "proof-linux-x86_64",
+        }
         return LockedArtifactSelection(
             artifact_id="isabelle",
             version=isabelle_tool.ISABELLE_VERSION,
@@ -2632,31 +2644,38 @@ def test_isabelle_acquisition_and_cache_validation_use_the_exact_lock_selection(
             profile_id="proof-linux-x86_64",
             repository="https://example.invalid/isabelle",
             release=f"Isabelle{isabelle_tool.ISABELLE_VERSION}",
-            source_urls=(source_url,),
-            raw_manifest=(LockedManifestEntry("Isabelle.tar.gz", digest, len(archive_bytes)),),
+            source_urls=("https://example.invalid/Isabelle.tar.gz",),
+            locator_refs=("example-release",),
+            raw_manifest=(raw,),
             installed_manifest=(
-                LockedManifestEntry(installed_path, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes)),
+                LockedManifestEntry(installed_path, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes), True),
             ),
+            installed_tree=installed_tree,
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
     monkeypatch.setattr(isabelle_tool.platform, "system", lambda: "Linux")
     monkeypatch.setattr(isabelle_tool.platform, "machine", lambda: "x86_64")
-    monkeypatch.setattr(isabelle_tool, "urlopen", lambda url, **_kwargs: io.BytesIO(archive_bytes))
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path, timeout=None: nullcontext())
 
-    acquired = isabelle_tool.acquire_isabelle(tmp_path)
+    acquired = isabelle_tool.acquire_isabelle(repo_root, local_input=local_input)
 
-    assert acquired == isabelle_tool.require_isabelle(tmp_path)
+    assert acquired == isabelle_tool.require_isabelle(repo_root)
     binary = acquired / "bin" / "isabelle"
     assert binary.read_bytes() == binary_bytes
 
     outside = tmp_path / "outside-isabelle"
     outside.write_bytes(binary_bytes)
     outside.chmod(0o755)
+    binary.parent.chmod(0o700)
     binary.unlink()
     binary.symlink_to(outside)
-    with pytest.raises(isabelle_tool.IsabelleToolError, match="marker or executable is invalid"):
-        isabelle_tool.require_isabelle(tmp_path)
+    with pytest.raises(isabelle_tool.IsabelleToolError, match="cache-integrity-failure"):
+        isabelle_tool.require_isabelle(repo_root)
+    binary.parent.chmod(0o700)
+    for path in (repo_root / ".cache").rglob("*"):
+        if path.is_dir() and not path.is_symlink():
+            path.chmod(0o700)
 
 
 @pytest.mark.parametrize(

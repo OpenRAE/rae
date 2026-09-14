@@ -7,39 +7,6 @@
   ],
   "actions": [
     {
-      "source_id": "cache-restore",
-      "action": "actions/cache/restore",
-      "commit": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
-      "owner_roles": [
-        "Tooling"
-      ],
-      "reviewer_roles": [
-        "Security"
-      ],
-      "trust_root_refs": [
-        "git-commit-sha",
-        "reviewed-workflow-reference"
-      ],
-      "runtime": "node24",
-      "closure_review_ref": "https://raw.githubusercontent.com/actions/cache/55cc8345863c7cc4c66a329aec7e433d2d1c52a9/restore/action.yml",
-      "transitive_inputs": [
-        {
-          "input_id": "actions-cache-service",
-          "service_managed_exception_ref": "cache-restore-actions-cache-service"
-        }
-      ],
-      "security_effects": {
-        "closed_inputs": {},
-        "credentials": [],
-        "cache": [
-          {
-            "role": "restore"
-          }
-        ],
-        "artifact": []
-      }
-    },
-    {
       "source_id": "checkout",
       "action": "actions/checkout",
       "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
@@ -631,29 +598,6 @@
   ],
   "service_managed_exceptions": [
     {
-      "exception_id": "cache-restore-actions-cache-service",
-      "source_id": "cache-restore",
-      "action": "actions/cache/restore",
-      "input_id": "actions-cache-service",
-      "reason": "GitHub cache lookup and signed object responses are service-managed.",
-      "operation": "restore one exact Isabelle cache key",
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "credential_class": "actions-cache-token",
-      "credential_forwarding": "same-origin-only",
-      "owner_roles": [
-        "Tooling"
-      ],
-      "reviewer_roles": [
-        "Security"
-      ],
-      "evidence_ref": "https://raw.githubusercontent.com/actions/cache/55cc8345863c7cc4c66a329aec7e433d2d1c52a9/restore/action.yml",
-      "scope": "Restore-only; candidate verification has no cache-write action.",
-      "review_on": "2027-03-11"
-    },
-    {
       "exception_id": "checkout-github-source-service",
       "source_id": "checkout",
       "action": "actions/checkout",
@@ -1071,7 +1015,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -1081,7 +1024,7 @@
         "github.com",
         "results-receiver.actions.githubusercontent.com"
       ],
-      "cache_access": "restore",
+      "cache_access": "none",
       "artifact_access": "write-untrusted",
       "promotion_authority": false,
       "publishing_authority": false
@@ -1811,7 +1754,7 @@
       "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "inputs": {
         "name": "bootstrap-${{ matrix.profile }}-${{ github.sha }}",
-        "path": "bootstrap-qualification.json\nlocal-installation-qualification.json\nbootstrap-offline-kit.tar\n",
+        "path": "bootstrap-qualification.json\nbootstrap-offline-kit.tar\n",
         "if-no-files-found": "error"
       },
       "credential_classes": [
@@ -2029,7 +1972,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2061,7 +2003,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2074,40 +2015,6 @@
       "cache_role": "none",
       "artifact_role": "read-same-run",
       "source_id": "download-artifact",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/restore-pinned-isabelle-archive",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "Restore pinned Isabelle archive",
-      "action": "actions/cache/restore",
-      "commit": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
-      "inputs": {
-        "path": ".cache/raes-sdl/tooling/archives/Isabelle2025-2_linux.tar.gz",
-        "key": "isabelle-linux-x86-64-2025-2-a20a507bc7c1270d"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "actions-cache-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "restore",
-      "artifact_role": "none",
-      "source_id": "cache-restore",
       "trust_classes": [
         "manual",
         "protected-branch",
@@ -2130,7 +2037,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2161,7 +2067,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2193,7 +2098,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2228,7 +2132,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [

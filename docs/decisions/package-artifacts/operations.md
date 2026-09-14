@@ -215,9 +215,13 @@ duplicates, bombs, cache/seed tampering, hardlinks, private-root modes and
 legacy quarantine.
 
 The existing bootstrap qualification matrix runs the mechanism-level harness
-on every supported Linux and macOS host profile and retains its measured JSON
-beside the canonical bootstrap evidence. The harness output uses local slice
-names and is not projected into canonical passed T05/T06/T07/T16 records.
+through `nox -s local-installation-qualification` on every supported Linux and
+macOS host profile. It binds each measured slice into the canonical bootstrap
+qualification record as a `slice_results` entry with its harness digest.
+Slices are never projected into canonical passed T05/T06/T07/T16 records. A
+legacy version-keyed cache that is group-writable only within a user-private
+group is a valid migration carrier; any other principal's write access remains
+terminal.
 Those cases also cover distinct OS principals, proof, repository services, OCI,
 export and program-wide GC and remain assigned to their downstream migration
 owners until complete case harnesses exist. A multi-user deployment must use an
@@ -293,6 +297,70 @@ evidence artifact under the exact delivery SHA.
   stdin, a minimal environment, sanitized reason codes and explicit native
   setup planning. It never invokes `sudo`, shell evaluation, repository/key installation,
   pipe-to-shell acquisition or host-security reconfiguration.
+
+### Issue #1220 proof input evidence
+
+Isabelle no longer contains repository HTTP transport, mirror loops, a shared
+`.download` file, or marker-based trust. `tools/isabelle_tool.py acquire`
+selects the reviewed lock entry before touching local state. It then admits the
+exact archive through one of two carriers. The first is the qualified curl
+client with the separately qualified `large-object` budget: exact size, a
+3,600-second transfer bound, a native low-speed abort, curl's own bounded
+retries, and a wall deadline that covers the retry window. The second is an
+explicit `--local-input` copied from its opened inode. An alternate approved
+same-byte mirror is an operator choice (`--locator-ref`) in a new invocation.
+
+`tools/verified_tree_installation.py` extends #1219's transaction to a
+multi-gigabyte tree. The lock's `installed_tree` binds the SHA-256 of the
+canonical manifest of every file, directory and confined relative symlink,
+together with exact counts and expanded bytes. The steps are:
+
+1. Admission streams the archive into private staging. It rejects hardlinks,
+   devices, traversal, duplicates, and links that resolve through another link
+   or outside the tree.
+2. The private raw object is keyed by digest and reverified before extraction.
+3. The tree is sealed read-only and then published by atomic rename, with Linux
+   `sync(2)` durability. APFS cannot rename a read-only directory, so on macOS
+   the root is sealed immediately after the rename. A seal that a crash
+   interrupts is completed under the identity lock before full revalidation.
+4. Every use reverifies the complete tree against the retained manifest.
+
+Tampering quarantines the tree and fails; a later explicit invocation rebuilds
+from the retained raw object without network access. On migration, a legacy
+archive is verified as a carrier and the legacy tree and marker are quarantined.
+
+The Ubuntu 22.04 proof host's native curl is below the qualified floor. The
+qualified Ubuntu 24.04 job therefore fetches the archive, and the proof job
+admits it under `bwrap --unshare-net`. The `nox -s proof-input-qualification`
+session runs `issue_1220_proof_input_harness.py`. `bootstrap_profile
+qualification-evidence --slice-evidence` binds each slice outcome to the exact
+harness digest as a `slice_results` entry of the proof host's canonical
+qualification record, beside T01. A slice names its canonical case, but no slice
+is recorded as a passed case. `nox -s local-installation-qualification` records
+the #1219 slices the same way. The slices are:
+
+- T05: 32 cold processes, 100 warm verifiers, publisher kills at every raw and
+  tree durability checkpoint, live-publisher exclusion, bounded lock timeout,
+  and disk exhaustion. The optional `--real-archive` mode repeats the process
+  and crash cases with the reviewed 1.2 GB object.
+- T08: `test_issue_1220_isabelle_acquisition.py -m integration -k real_curl`
+  exercises the large-object budget against the real curl fixture in bootstrap
+  qualification: size, redirect, TLS, disconnect, native retry, low-speed abort,
+  and transfer deadline.
+- T11: egress-denied admission from a local input, plus `--real-installation`
+  full-tree verification and preflight of the real proof closure. The egress
+  oracle requires a distinct network namespace and a refused connection to a
+  parent-owned loopback listener. A control run without `--unshare-net` must
+  observe both conditions false.
+- T13: corrupt, oversize, truncated and symlinked inputs and malicious archives
+  fail with no network attempt and no execution. `isabelle_tool preflight`
+  lists every missing Bubblewrap, fontconfig, font, C.UTF-8 locale, or
+  installation prerequisite.
+
+Proof hosts' offline kits must name the native Bubblewrap, fontconfig, font and
+locale providers. The kit manifest binds them, and offline-kit verification
+probes that closure. Complete disconnected export/import and whole-closure
+preflight remain #1225 scope.
 
 ### Issue #1218 Python closure evidence
 

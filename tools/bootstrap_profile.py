@@ -62,6 +62,7 @@ class QualificationEvidenceOptions:
     offline_kit_manifest_sha256: str | None = None
     generic_selections: Sequence[tuple[str, Path, tuple[str, ...], str]] | None = None
     limitations: Sequence[str] = ()
+    slice_evidence_paths: Sequence[Path] = ()
 
 
 _DEFAULT_QUALIFICATION_EVIDENCE_OPTIONS = QualificationEvidenceOptions()
@@ -74,7 +75,8 @@ def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part
     *,
     ca_cert: Path | None,
     max_bytes: int,
-    max_time_seconds: int = 30,
+    max_time_seconds: int | None = None,
+    budget: maintained_client_acquisition.TransferBudget = maintained_client_acquisition.GENERIC_TRANSFER_BUDGET,
 ) -> dict[str, str]:
     """Exercise the real selected curl and classify only sanitized outcomes."""
 
@@ -85,6 +87,7 @@ def run_curl_qualification(  # NOSONAR -- explicit fail-closed outcomes are part
         ca_cert=ca_cert,
         max_bytes=max_bytes,
         max_time_seconds=max_time_seconds,
+        budget=budget,
     )
     if result["reason_code"] == "curl-size-limit-enforced":
         return {"outcome": "passed", "reason_code": result["reason_code"]}
@@ -578,6 +581,16 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _transfer_budget(
+    artifact: dict[str, object],
+) -> maintained_client_acquisition.TransferBudget:
+    """Select the separately qualified large-object budget only for native proof tools."""
+
+    if artifact.get("artifact_class") == "native-tool":
+        return maintained_client_acquisition.LARGE_OBJECT_TRANSFER_BUDGET
+    return maintained_client_acquisition.GENERIC_TRANSFER_BUDGET
+
+
 def fetch_offline_kit_payloads(  # NOSONAR -- explicit validation branches keep acquisition fail-closed.
     host_profile_id: str,
     kit_root: Path,
@@ -596,8 +609,10 @@ def fetch_offline_kit_payloads(  # NOSONAR -- explicit validation branches keep 
         artifact = artifacts[artifact_id]
         platform = artifact["platform"]
         raw_manifest = platform["raw_manifest"]
+        # Approved same-byte locators are ordered; the kit uses the primary one.
+        # A different locator is an explicit operator choice, never a failover loop.
         source_urls = platform["source_urls"]
-        if len(raw_manifest) != 1 or len(source_urls) != 1:
+        if len(raw_manifest) != 1 or not source_urls:
             raise ValueError("offline kit fetch requires one exact source object per payload")
         expected = raw_manifest[0]
         target = kit_root / "archives" / artifact_id / expected["path"]
@@ -610,6 +625,7 @@ def fetch_offline_kit_payloads(  # NOSONAR -- explicit validation branches keep 
             target,
             ca_cert=None,
             max_bytes=expected["size"],
+            budget=_transfer_budget(artifact),
         )
         if (
             transfer.get("outcome") != "passed"
@@ -823,6 +839,7 @@ def build_offline_kit_manifest(
         "policy_sha256": policy_sha256,
         "python_artifact_id": python_artifact_id,
         "artifact_ids": sorted(expected_ids),
+        "host_prerequisite_package_ids": sorted(offline_kit["host_prerequisite_package_ids"]),
         "installed_payload_bindings": installed_payload_bindings,
         "entries": entries,
     }
@@ -971,12 +988,19 @@ def verify_offline_kit(  # NOSONAR -- explicit payload checks preserve the audit
             )
     else:
         generic = {"outcome": "not-run", "results": []}
+    native_closure = _proof_native_closure_result(host)
     outcome = (
-        "passed" if uv_identity_passed and python_passed and generic["outcome"] in {"passed", "not-run"} else "failed"
+        "passed"
+        if uv_identity_passed
+        and python_passed
+        and generic["outcome"] in {"passed", "not-run"}
+        and native_closure["outcome"] in {"passed", "not-run"}
+        else "failed"
     )
     return {
         "outcome": outcome,
         "kit_id": manifest["kit_id"],
+        "proof_native_closure": native_closure,
         "manifest_sha256": trusted_manifest_sha256,
         "python": {
             "outcome": "passed" if python_passed else "failed",
@@ -991,6 +1015,28 @@ def verify_offline_kit(  # NOSONAR -- explicit payload checks preserve the audit
         },
         "generic_tools": generic,
     }
+
+
+_PROOF_NATIVE_CAPABILITY_IDS = ("bubblewrap", "fontconfig", "fonts", "locale-c-utf-8")
+
+
+def _proof_native_closure_result(host: dict[str, object]) -> dict[str, object]:
+    """Probe the imported proof host's native Bubblewrap, font, and locale closure."""
+
+    if host.get("proof_support") != "linux-x86_64-required":
+        return {"outcome": "not-run", "results": []}
+    closure_host = {
+        **host,
+        "required_capability_ids": list(_PROOF_NATIVE_CAPABILITY_IDS),
+    }
+    results = [
+        result
+        for result in _native_client_results(closure_host)
+        if result["capability_id"] in _PROOF_NATIVE_CAPABILITY_IDS
+    ]
+    observed = {result["capability_id"] for result in results}
+    passed = observed == set(_PROOF_NATIVE_CAPABILITY_IDS) and all(item["outcome"] == "passed" for item in results)
+    return {"outcome": "passed" if passed else "failed", "results": results}
 
 
 def _load_host_selection(
@@ -1167,6 +1213,112 @@ def _load_case_results(  # NOSONAR -- each closed-shape evidence field is valida
     return results
 
 
+# Local qualification harnesses and the canonical case each slice belongs to.
+# A slice is bound evidence for part of a case; it never becomes a passed case.
+_SLICE_HARNESSES: dict[str, tuple[str, dict[str, str]]] = {
+    "issue-1219-local-installation-qualification/v1": (
+        "implementations/python/tests/issue_1219_installation_harness.py",
+        {
+            "cold-convergence": "T05",
+            "crash-recovery": "T05",
+            "live-publisher-exclusion": "T05",
+            "bounded-lock-timeout": "T05",
+            "unsafe-lock-rejection": "T06",
+            "warm-validation": "T07",
+            "quota-failure-recovery": "T07",
+        },
+    ),
+    "issue-1220-proof-input-qualification/v1": (
+        "implementations/python/tests/issue_1220_proof_input_harness.py",
+        {
+            "T05-cold-convergence": "T05",
+            "T05-warm-validation": "T05",
+            "T05-crash-recovery": "T05",
+            "T05-live-publisher-exclusion": "T05",
+            "T05-bounded-lock-timeout": "T05",
+            "T05-quota-failure-recovery": "T05",
+            "T05-real-cold-convergence": "T05",
+            "T05-real-crash-recovery": "T05",
+            "T05-real-live-publisher-exclusion": "T05",
+            "T11-egress-denied-admission": "T11",
+            "T13-corrupt-local-input": "T13",
+            "T13-malicious-archive": "T13",
+            "T13-missing-native-closure": "T13",
+        },
+    ),
+}
+_REASON_CODE_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+def _slice_identity(case_mapping: dict[str, str], slice_name: object) -> tuple[str, str]:
+    """Return the closed canonical case and slice id a registered harness implements."""
+
+    canonical = case_mapping.get(slice_name) if isinstance(slice_name, str) else None
+    if canonical is None:
+        raise ValueError("slice evidence names a slice outside its harness")
+    slice_id = slice_name if slice_name.startswith(f"{canonical}-") else f"{canonical}-{slice_name}"
+    return canonical, slice_id
+
+
+def _load_slice_results(  # NOSONAR -- each closed-shape evidence field is validated explicitly.
+    repo_root: Path,
+    paths: Sequence[Path],
+) -> list[dict[str, object]]:
+    """Bind local harness slice outcomes to the exact harness bytes in this checkout."""
+
+    results: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for path in paths:
+        if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_CASE_RESULT_BYTES:
+            raise ValueError("slice evidence must be a bounded regular file")
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))  # NOSONAR -- bounded non-symlink file.
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("slice evidence is invalid") from exc
+        if not isinstance(document, dict) or document.get("schema") not in _SLICE_HARNESSES:
+            raise ValueError("slice evidence comes from an unknown harness")
+        harness_path, case_mapping = _SLICE_HARNESSES[document["schema"]]
+        coverage = document.get("coverage")
+        passed = document.get("passed_cases")
+        not_run = document.get("not_run_cases", {})
+        elapsed = document.get("elapsed_seconds")
+        if (
+            not isinstance(coverage, dict)
+            or coverage.get("canonical_outcome_recorded") is not False
+            or not isinstance(passed, list)
+            or not passed
+            or not isinstance(not_run, dict)
+            or not isinstance(elapsed, dict)
+            or set(passed) & set(not_run)
+            or set(elapsed) != set(passed)
+        ):
+            raise ValueError("slice evidence has an invalid closed shape")
+        harness_sha256 = _sha256(repo_root / harness_path)
+        for slice_name in [*passed, *not_run]:
+            canonical, slice_id = _slice_identity(case_mapping, slice_name)
+            if slice_id in seen:
+                raise ValueError("slice evidence repeats a slice")
+            seen.add(slice_id)
+            result: dict[str, object] = {
+                "slice_id": slice_id,
+                "canonical_case_id": canonical,
+                "harness_path": harness_path,
+                "harness_sha256": harness_sha256,
+            }
+            if slice_name in not_run:
+                reason = not_run[slice_name]
+                if not isinstance(reason, str) or _REASON_CODE_RE.fullmatch(reason) is None:
+                    raise ValueError("slice evidence has an invalid not-run reason")
+                result.update(outcome="not-run", reason_code=reason)
+            else:
+                seconds = elapsed[slice_name]
+                if not isinstance(seconds, int | float) or isinstance(seconds, bool) or seconds < 0:
+                    raise ValueError("slice evidence has an invalid duration")
+                result.update(outcome="passed", elapsed_seconds=round(float(seconds), 3))
+            results.append(result)
+    return sorted(results, key=lambda item: str(item["slice_id"]))
+
+
 def _payload_measurement(artifact_id: str, *, restored_kit: bool) -> str:
     if restored_kit:
         return "offline-kit-manifest-verified-and-executed"
@@ -1200,6 +1352,7 @@ def build_qualification_evidence(  # NOSONAR -- closed-schema evidence checks re
         raise ValueError("qualification limitations must be bounded non-empty strings")
     host, artifacts, policy_sha256 = _load_host_selection(host_profile_id)
     case_results = _load_case_results(repo_root, case_result_paths, implementation_revision)
+    slice_results = _load_slice_results(repo_root, options.slice_evidence_paths)
     passed_case_ids = {result["test_case_id"] for result in case_results}
     if options.offline_kit_root is None:
         if (
@@ -1362,6 +1515,8 @@ def build_qualification_evidence(  # NOSONAR -- closed-schema evidence checks re
         "case_results": case_results,
         "outcome": outcome,
     }
+    if slice_results:
+        record["slice_results"] = slice_results
     if options.limitations:
         record["limitations"] = sorted(set(options.limitations))
     if options.offline_kit_archive_path is not None:
@@ -1396,6 +1551,7 @@ def _parse_args() -> argparse.Namespace:
     evidence.add_argument("--offline-kit", type=Path)
     evidence.add_argument("--offline-kit-manifest-sha256")
     evidence.add_argument("--limitation", action="append", default=[])
+    evidence.add_argument("--slice-evidence", action="append", type=Path, default=[])
     case = subparsers.add_parser("record-case", help="bind a passed case to its exact harness")
     case.add_argument("test_case_id", choices=sorted(_CASE_IDS))
     case.add_argument("implementation_revision")
@@ -1471,6 +1627,7 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
                 offline_kit_archive_path=args.offline_kit,
                 offline_kit_manifest_sha256=args.offline_kit_manifest_sha256,
                 limitations=args.limitation,
+                slice_evidence_paths=args.slice_evidence,
             ),
         )
         print(json.dumps(result, sort_keys=True))

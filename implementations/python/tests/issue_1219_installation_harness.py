@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import errno
 import hashlib
 import json
@@ -22,7 +23,23 @@ if str(REPO_ROOT) not in sys.path:
 from tools import verified_tool_installation as installation
 
 PAYLOAD = b"issue-1219-reviewed-local-tool"
-CHECKPOINTS = ("staged-written", "staged-durable", "published", "parent-durable")
+# The closed slice names this harness can emit; qualification evidence rejects any other.
+SLICE_CASE_NAMES = (
+    "cold-convergence",
+    "warm-validation",
+    "crash-recovery",
+    "live-publisher-exclusion",
+    "bounded-lock-timeout",
+    "unsafe-lock-rejection",
+    "quota-failure-recovery",
+)
+CHECKPOINTS = (
+    "staged-written",
+    "staged-durable",
+    *(("renamed-unsealed",) if installation._directory_rename_requires_writable_source() else ()),
+    "published",
+    "parent-durable",
+)
 
 
 def _entry(path: str, payload: bytes, *, executable: bool) -> SimpleNamespace:
@@ -296,7 +313,11 @@ def _quota_failure_recovery(root: Path) -> float:
 
 
 def main() -> int:
-    root = Path(sys.argv[1]).resolve()
+    parser = argparse.ArgumentParser(description="Execute issue #1219 local installation qualification slices.")
+    parser.add_argument("root", type=Path)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+    root = args.root.resolve()
     cases = {
         "cold-convergence": _cold_convergence(root / "cold"),
         "warm-validation": _warm_validation(root / "cold"),
@@ -306,6 +327,8 @@ def main() -> int:
         "unsafe-lock-rejection": _unsafe_lock_rejection(root / "unsafe-lock"),
         "quota-failure-recovery": _quota_failure_recovery(root / "quota"),
     }
+    if not set(cases) <= set(SLICE_CASE_NAMES):
+        raise AssertionError("harness emitted an unregistered slice")
     evidence = {
         "schema": "issue-1219-local-installation-qualification/v1",
         "installation_policy": installation.INSTALLATION_POLICY_ID,
@@ -334,7 +357,10 @@ def main() -> int:
             "Service, proof, OCI, export, and broader T05/T07/T16 cases remain downstream scope.",
         ],
     }
-    print(json.dumps(evidence, sort_keys=True))
+    encoded = json.dumps(evidence, sort_keys=True)
+    if args.output is not None:
+        args.output.write_text(f"{encoded}\n", encoding="utf-8")
+    print(encoded)
     return 0
 
 

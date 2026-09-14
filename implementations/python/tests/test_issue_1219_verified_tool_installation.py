@@ -173,6 +173,40 @@ def test_archive_admission_rejects_declared_expansion_bomb(monkeypatch: pytest.M
         installation.materialize_tar_gz(archive, selection)
 
 
+@pytest.mark.parametrize("carrier", ["tar.gz", "direct"])
+def test_materialized_content_that_differs_from_the_installed_manifest_is_rejected(carrier: str) -> None:
+    reviewed = b"reviewed tool"
+    substituted = b"reviewed toox"
+    selection = _selection(reviewed)
+    if carrier == "tar.gz":
+        member = tarfile.TarInfo("bin/tool")
+        member.size = len(substituted)
+        with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
+            installation.materialize_tar_gz(_tar([(member, substituted)]), selection)
+    else:
+        with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
+            installation.materialize_direct(substituted, selection)
+
+
+def test_installation_revalidates_materialized_content_before_publication(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    payload = b"reviewed tool"
+    selection = _selection(payload)
+    monkeypatch.setattr(installation, "_portable_lock", _unlocked)
+
+    with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
+        installation.ensure_verified_installation(
+            tmp_path,
+            selection,
+            acquire=lambda: payload,
+            materialize=lambda _raw, _selection: {"bin/tool": b"reviewed toox"},
+        )
+    target = installation.installation_tree_path(installation.default_installation_root(tmp_path), selection)
+    assert not target.exists()
+
+
 def test_publish_is_atomic_private_and_warm_hits_are_revalidated(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -196,9 +230,11 @@ def test_publish_is_atomic_private_and_warm_hits_are_revalidated(
     assert acquisitions == 1
 
 
-def test_publication_seals_the_root_after_rename_for_macos_compatibility(
+@pytest.mark.parametrize("rename_requires_writable_source", [False, True])
+def test_publication_seals_the_root_before_exposure_except_where_apfs_requires_it(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    rename_requires_writable_source: bool,
 ) -> None:
     payload = b"reviewed tool"
     selection = _selection(payload)
@@ -206,9 +242,17 @@ def test_publication_seals_the_root_after_rename_for_macos_compatibility(
     target.parent.mkdir(parents=True, mode=0o700)
     real_rename = os.rename
     observed_checkpoints: list[str] = []
+    monkeypatch.setattr(
+        installation,
+        "_directory_rename_requires_writable_source",
+        lambda: rename_requires_writable_source,
+    )
 
-    def macos_rename(source: Path, destination: Path) -> None:
-        assert source.stat().st_mode & 0o200
+    def rename(source: Path, destination: Path) -> None:
+        # A root visible at the final path must already be sealed unless the
+        # host refuses to rename a read-only directory.
+        expected_mode = 0o700 if rename_requires_writable_source else 0o500
+        assert source.stat().st_mode & 0o777 == expected_mode
         real_rename(source, destination)
 
     def checkpoint(name: str, path: Path) -> None:
@@ -216,13 +260,47 @@ def test_publication_seals_the_root_after_rename_for_macos_compatibility(
         if name == "published":
             assert path.stat().st_mode & 0o777 == 0o500
 
-    monkeypatch.setattr(installation.os, "rename", macos_rename)
+    monkeypatch.setattr(installation.os, "rename", rename)
     monkeypatch.setattr(installation, "_publication_checkpoint", checkpoint)
 
     installation._publish_tree(target, selection.installed_manifest, {"bin/tool": payload})
 
-    assert observed_checkpoints == ["staged-written", "staged-durable", "published", "parent-durable"]
+    expected = ["staged-written", "staged-durable", "published", "parent-durable"]
+    if rename_requires_writable_source:
+        expected.insert(2, "renamed-unsealed")
+    assert observed_checkpoints == expected
     assert target.stat().st_mode & 0o777 == 0o500
+
+
+def test_apfs_publication_interrupted_before_its_seal_is_completed_under_the_lock(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    payload = b"reviewed tool"
+    selection = _selection(payload)
+    installed = _direct_install(monkeypatch, tmp_path, selection, payload)
+    target = installation.installation_tree_path(installation.default_installation_root(tmp_path), selection)
+    target.chmod(0o700)
+    monkeypatch.setattr(installation, "_directory_rename_requires_writable_source", lambda: True)
+
+    assert (
+        _direct_install(
+            monkeypatch,
+            tmp_path,
+            selection,
+            payload,
+            acquire=lambda: pytest.fail("an interrupted seal triggered acquisition"),
+        )
+        == installed
+    )
+    assert target.stat().st_mode & 0o777 == 0o500
+    quarantine = installation.default_installation_root(tmp_path) / "conftest" / ".quarantine"
+    assert not list(quarantine.iterdir())
+
+    target.chmod(0o700)
+    monkeypatch.setattr(installation, "_directory_rename_requires_writable_source", lambda: False)
+    with pytest.raises(RuntimeError, match="cache-integrity-failure"):
+        _direct_install(monkeypatch, tmp_path, selection, payload)
 
 
 def test_acquired_raw_bytes_are_reverified_before_materialization(
@@ -471,6 +549,61 @@ def test_legacy_version_cache_moves_to_quarantine_before_reverification(
     quarantined_files = [path for path in quarantine.rglob("*") if path.is_file()]
     assert len(quarantined_files) == 1
     assert quarantined_files[0].stat().st_mode & 0o111 == 0
+
+
+@pytest.mark.parametrize(("other_group_principal", "admitted"), [(False, True), (True, False)])
+def test_group_writable_legacy_cache_is_rejected_only_when_another_principal_can_write(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    other_group_principal: bool,
+    admitted: bool,
+) -> None:
+    payload = b"reviewed tool"
+    selection = _selection(payload)
+    legacy = tmp_path / ".cache" / "raes-sdl" / "tooling" / "conftest" / "0.68.0" / "conftest"
+    legacy.parent.mkdir(parents=True)
+    _make_private_cache_chain(legacy.parent, tmp_path)
+    legacy.write_bytes(payload)
+    # A user-private group with umask 002 leaves legacy caches group-writable.
+    legacy.chmod(0o775)
+    monkeypatch.setattr(installation, "_group_has_other_principal", lambda _group_id: other_group_principal)
+
+    def install() -> Path:
+        return _direct_install(
+            monkeypatch,
+            tmp_path,
+            selection,
+            payload,
+            legacy_path=legacy,
+            acquire=lambda: pytest.fail("legacy migration triggered acquisition"),
+        )
+
+    if admitted:
+        assert install().read_bytes() == payload
+    else:
+        with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+            install()
+    assert not legacy.exists()
+
+
+def test_world_writable_legacy_cache_is_never_admitted(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    payload = b"reviewed tool"
+    legacy = tmp_path / ".cache" / "raes-sdl" / "tooling" / "conftest" / "0.68.0" / "conftest"
+    legacy.parent.mkdir(parents=True)
+    _make_private_cache_chain(legacy.parent, tmp_path)
+    legacy.write_bytes(payload)
+    legacy.chmod(0o757)
+    monkeypatch.setattr(installation, "_group_has_other_principal", lambda _group_id: False)
+
+    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+        _direct_install(
+            monkeypatch,
+            tmp_path,
+            _selection(payload),
+            payload,
+            legacy_path=legacy,
+            acquire=lambda: pytest.fail("legacy migration triggered acquisition"),
+        )
 
 
 def test_immutable_seed_is_reverified_and_copied_into_private_job_tree(
@@ -788,10 +921,15 @@ def test_partial_harness_cannot_be_recorded_as_complete_canonical_cases() -> Non
 
 
 def test_bootstrap_qualification_retains_local_evidence_without_overclaiming() -> None:
+    from tools.nox_support.config import INSTALLATION_QUALIFICATION_HARNESSES
+
     workflow = (REPO_ROOT / ".github" / "workflows" / "bootstrap-qualification.yml").read_text(encoding="utf-8")
 
-    assert "issue_1219_installation_harness.py" in workflow
-    assert "local-installation-qualification.json" in workflow
+    assert INSTALLATION_QUALIFICATION_HARNESSES["local-installation-qualification"][0] == (
+        "implementations/python/tests/issue_1219_installation_harness.py"
+    )
+    assert "-s local-installation-qualification -- --output local-installation-qualification.json" in workflow
+    assert "--slice-evidence local-installation-qualification.json" in workflow
     assert ".qualification-kit/.cache/raes-sdl/tooling/installations" in workflow
     assert ".cache/raes-sdl/tooling/installations" in workflow
     assert 'chmod -R u+w "${cleanup_root}"' in workflow
