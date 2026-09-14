@@ -119,7 +119,8 @@ jobs:
 
       - name: Install locked generic tools from local inputs
         run: >-
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
           generic-tools --local-input-root .canonical-tool-inputs
 
       - name: Restore pinned Isabelle archive

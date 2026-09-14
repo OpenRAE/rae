@@ -106,6 +106,8 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CODE_FILE `tools/vale_tool.py` (Lock-selected Vale acquisition and installation)
 - IMPLEMENTS → CODE_FILE `tools/osv_scanner_tool.py` (Lock-selected OSV-Scanner acquisition and installation)
 - TESTS → TEST `implementations/python/tests/test_issue_1137_maintained_client_acquisition.py` (Maintained-client, local-input, integrity, and installer regressions)
+- IMPLEMENTS → CODE_FILE `tools/verified_tool_installation.py` (Digest-scoped private installation, locking, quarantine, and immutable-seed boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_1219_verified_tool_installation.py` (Concurrent publication, crash recovery, archive, cache, seed, and legacy-integrity regressions)
 - IMPLEMENTS → GITHUB_ISSUE `1238` (Reproducible development container image)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1238-development-container-preflight.md` (Development-container authority, security, and platform guardrails)
 - IMPLEMENTS → CONFIG `.devcontainer/Dockerfile` (Digest-pinned, snapshot-only, non-root development image definition)
