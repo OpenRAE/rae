@@ -17,6 +17,7 @@ import traceback
 from collections.abc import Callable
 
 import libvirt
+from _object_identity import verify_object_identity
 from raes_backend_libvirt import LibvirtProvisioner
 from raes_backend_libvirt.cloudinit import CloudInitSpec, CloudInitUser
 from raes_backend_libvirt.driver import DomainSpec, NetworkAcl, NetworkSpec
@@ -35,7 +36,21 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 
 URI = "qemu:///system"
 PREFIX = "raestest"
-CIRROS = "/var/lib/libvirt/images/cirros.img"
+
+# Scoped per-run private directory (issue #1222). When set by the runner it lives
+# under the libvirt images tree so the guest disk overlay and cloud-init seed
+# media are reachable by the daemon under its *default* security driver — the
+# scripts no longer weaken host security (no security_driver="none", no root
+# QEMU user/group). Seeds render inside this workspace via the driver.
+RUN_DIR = os.environ.get("RAES_LIBVIRT_RUN_DIR") or None
+
+# The admitted CirrOS guest disk. Its path and reviewed digest/size are supplied
+# by the runner from the pinned artifact lock (cirros-guest-disk); the harness
+# reverifies the bytes before booting them (fail-closed) so an unpinned or
+# tampered image cannot be executed.
+CIRROS = os.environ.get("RAES_CIRROS_IMAGE", "/var/lib/libvirt/images/cirros.img")
+CIRROS_SHA256 = os.environ.get("RAES_CIRROS_SHA256") or None
+CIRROS_SIZE = int(os.environ["RAES_CIRROS_SIZE"]) if os.environ.get("RAES_CIRROS_SIZE") else None
 LAN_ADDRESS = "provision.network.lan"
 WEB_ADDRESS = "provision.node.web"
 FW_ADDRESS = "provision.node.fw"
@@ -84,7 +99,20 @@ def dom_state_running(conn: libvirt.virConnect, name: str) -> bool:
 
 
 def new_driver() -> LibvirtDeploymentDriver:
-    return LibvirtDeploymentDriver(connection_uri=URI, name_prefix=PREFIX)
+    return LibvirtDeploymentDriver(connection_uri=URI, name_prefix=PREFIX, workspace=RUN_DIR)
+
+
+def _verify_cirros_image() -> None:
+    """Fail closed unless the CirrOS image matches its reviewed size and digest.
+
+    The runner exports the pinned identity from the artifact lock
+    (cirros-guest-disk); this is the on-host reverification of pre-seeded bytes
+    the plan calls for. The pure verification lives in ``_object_identity`` so it
+    is exercised by the hermetic test suite (this module cannot be imported there
+    because it imports ``libvirt``).
+    """
+
+    verify_object_identity(CIRROS, expected_sha256=CIRROS_SHA256, expected_size=CIRROS_SIZE)
 
 
 def purge() -> None:
@@ -359,7 +387,7 @@ def _plan(*resources: PlannedResource, action: ChangeAction = ChangeAction.CREAT
 
 def t_provisioner_full_stack() -> str:
     # LibvirtProvisioner -> real driver: CREATE then DELETE (teardown) then idempotent re-DELETE.
-    drv = LibvirtDeploymentDriver(connection_uri=URI, name_prefix="raesprov")
+    drv = LibvirtDeploymentDriver(connection_uri=URI, name_prefix="raesprov", workspace=RUN_DIR)
     prov = LibvirtProvisioner(drv)
     net = PlannedResource(
         address="provision.network.pnet",
@@ -416,8 +444,13 @@ def t_provisioner_full_stack() -> str:
 
 def t_cirros_real_boot_and_teardown() -> str:
     # Full realize path: cirros overlay disk + cloud-init seed (genisoimage) ->
-    # a real guest OS boots, then is torn down.
-    overlay = os.path.join(tempfile.gettempdir(), "raes-cirros-overlay.qcow2")
+    # a real guest OS boots, then is torn down. The backing image is reverified
+    # against its pinned identity before it is booted, and the overlay lives in
+    # the scoped run directory (under the libvirt images tree) so no host
+    # security downgrade is needed.
+    _verify_cirros_image()
+    overlay_dir = RUN_DIR or tempfile.gettempdir()
+    overlay = os.path.join(overlay_dir, "raes-cirros-overlay.qcow2")
     subprocess.run(
         ["qemu-img", "create", "-f", "qcow2", "-F", "qcow2", "-b", CIRROS, overlay], check=True, capture_output=True
     )

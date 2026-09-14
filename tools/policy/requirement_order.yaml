@@ -127,8 +127,50 @@ phases:
   - id: reusable-asset-integrity
     requirements:
       - GOV-913
+  - id: semantic-migration
+    requirements:
+      - GOV-903
+    blocked_until:
+      - gov-concept-authority
 
 ownership:
+  semantic-migration:
+    - contracts/schemas/provenance/sdl-lineage-ledger-v1.json
+    - docs/research/lineage/source-audit-2026-09-14.md
+    - docs/research/lineage/captures/nsa-cross-domain-2026-09-14.txt
+    - contracts/fixtures/concept-authority/semantic-projection-report-v1/invalid/evidence-free-verification.json
+    - contracts/fixtures/concept-authority/external-concept-bindings-v1
+    - contracts/fixtures/exploit-path-analysis
+    - contracts/fixtures/satisfiability
+    - contracts/schemas/README.md
+    - contracts/schemas/exploit-path-analysis
+    - docs/research/language-extensibility/research.md
+    - docs/research/scenario-variation-trial-realization/adaptive-difficulty-lineage-and-validity.md
+    - specs/concept-authority/classification-migration.md
+    - specs/formal/sdl-phases/README.md
+    - contracts/provenance/sdl-lineage-ledger-v2.json
+    - docs/explain/sdl/lineage.md
+    - docs/explain/sdl/precedents.md
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - contracts/profiles/semantic-comparison
+    - contracts/schema-publication
+    - contracts/schemas/sdl
+    - contracts/schemas/satisfiability
+    - contracts/fixtures/sdl
+    - docs/decisions
+    - docs/migration
+    - docs/requirements/GOV-903/requirement.md
+    - docs/requirements/GOV-904/requirement.md
+    - docs/requirements/SEM-230/requirement.md
+    - docs/requirements/ASR-530/requirement.md
+    - specs/evolution
+    - specs/sdl
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes_cli
+    - implementations/python/tests
   gov-concept-authority:
     - specs/concept-authority
     - specs/sdl

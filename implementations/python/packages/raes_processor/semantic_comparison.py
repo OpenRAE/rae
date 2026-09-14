@@ -9,6 +9,7 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.semantic_comparison import (
     ArtifactCoordinate,
+    ArtifactKind,
     ComparisonCompleteness,
     ComparisonLimitsModel,
     ComparisonReason,
@@ -56,15 +57,25 @@ def analyze_semantic_comparison(
     """Compare admitted artifacts without I/O, caller projections, or ambient registries."""
 
     _require_profile(profile, request)
+    scenario_version = profile.owner_projection_versions[ArtifactKind.SCENARIO]
     supplied_before_scope = before_scope or (before,)
     supplied_after_scope = after_scope or (after,)
-    _require_scope(request.impact_scope, supplied_before_scope, supplied_after_scope)
+    _require_scope(
+        request.impact_scope,
+        supplied_before_scope,
+        supplied_after_scope,
+        scenario_projection_version=profile.owner_projection_versions[ArtifactKind.SCENARIO],
+    )
     before_projection = project_artifact(profile, before, request.before)
     after_projection = project_artifact(profile, after, request.after)
     scope_before = tuple(
-        project_artifact(profile, item, coordinate_for_artifact(item)) for item in supplied_before_scope
+        project_artifact(profile, item, coordinate_for_artifact(item, scenario_projection_version=scenario_version))
+        for item in supplied_before_scope
     )
-    scope_after = tuple(project_artifact(profile, item, coordinate_for_artifact(item)) for item in supplied_after_scope)
+    scope_after = tuple(
+        project_artifact(profile, item, coordinate_for_artifact(item, scenario_projection_version=scenario_version))
+        for item in supplied_after_scope
+    )
     supplied_context = context or SemanticComparisonContextModel()
     reasons: set[ComparisonReason] = set()
 
@@ -113,9 +124,21 @@ def _require_scope(
     expected: ImpactScopeModel,
     before: tuple[AdmittedArtifact, ...],
     after: tuple[AdmittedArtifact, ...],
+    *,
+    scenario_projection_version: str = "2",
 ) -> None:
-    actual_before = tuple(sorted((coordinate_for_artifact(item) for item in before), key=_coordinate_key))
-    actual_after = tuple(sorted((coordinate_for_artifact(item) for item in after), key=_coordinate_key))
+    actual_before = tuple(
+        sorted(
+            (coordinate_for_artifact(item, scenario_projection_version=scenario_projection_version) for item in before),
+            key=_coordinate_key,
+        )
+    )
+    actual_after = tuple(
+        sorted(
+            (coordinate_for_artifact(item, scenario_projection_version=scenario_projection_version) for item in after),
+            key=_coordinate_key,
+        )
+    )
     if expected.before_artifacts != actual_before or expected.after_artifacts != actual_after:
         raise ValueError("supplied artifacts must exactly match the declared two-sided impact scope")
 

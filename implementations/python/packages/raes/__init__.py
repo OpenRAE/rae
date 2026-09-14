@@ -3,7 +3,7 @@
 A backend-agnostic scenario specification language with revision-pinned syntax
 and translated-model ancestry in Open Cyber Range SDL plus RAES-native
 extensions. The normative derivation boundary is recorded in
-``contracts/provenance/sdl-lineage-ledger-v1.json``; this module does not claim
+``contracts/provenance/sdl-lineage-ledger-v2.json``; this module does not claim
 drop-in compatibility.
 """
 

@@ -76,9 +76,15 @@ this run does not repair them.
   recomputed analysis retains the original classifications and denominator.
 
 - [`execution-snapshot-v13.json`](execution-snapshot-v13.json) and
-  [`analysis-v13.json`](analysis-v13.json) are current release 13.0.0. Fresh
+  [`analysis-v13.json`](analysis-v13.json) preserve release 13.0.0. Fresh
   replay binds the selection-helper refactor to exact source and package
   digests, retaining the classifications, denominator, and claim limits.
+
+- [`execution-snapshot-v14.json`](execution-snapshot-v14.json) and
+  [`analysis-v14.json`](analysis-v14.json) are current release 14.0.0. The
+  progressive revision implementation is bound to fresh source and package
+  digests. Artifact re-execution and the derived analysis retain the bounded
+  classifications and denominator.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -88,7 +94,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 13.0.0 and rejects duplicate or unsupported
+Current validation requires release 14.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

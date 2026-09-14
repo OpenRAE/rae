@@ -11,7 +11,7 @@ from raes_contracts.canonical import canonical_json_digest
 
 from ._base import contains_variable_token
 from ._errors import SDLParseError
-from ._source_profile import DEFAULT_PARSER_LIMITS, SDL_CANONICAL_PROFILE, SDLParserLimits
+from ._source_profile import DEFAULT_PARSER_LIMITS, SDL_CANONICAL_PROFILE, SDLParserLimits, SDLSourceParseOptions
 from .canonical import SDLCanonicalDigest
 from .parser import _load_normalized_data
 from .participant_behavior import ExternalMappingLoss
@@ -157,7 +157,7 @@ def read_legacy_classification_source(
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
 ) -> LegacyClassificationSource:
     """Load bounded canonical-spelling legacy YAML and extract only known fields."""
-    original = _load_normalized_data(content, limits=limits)
+    original = _load_normalized_data(content, source_options=SDLSourceParseOptions(limits=limits))
     if original.get("imports") or "instantiation_provenance" in original:
         raise ValueError("Migrate each authored source before composition or instantiation.")
     native = deepcopy(original)

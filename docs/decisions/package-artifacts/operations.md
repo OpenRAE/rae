@@ -215,9 +215,13 @@ duplicates, bombs, cache/seed tampering, hardlinks, private-root modes and
 legacy quarantine.
 
 The existing bootstrap qualification matrix runs the mechanism-level harness
-on every supported Linux and macOS host profile and retains its measured JSON
-beside the canonical bootstrap evidence. The harness output uses local slice
-names and is not projected into canonical passed T05/T06/T07/T16 records.
+through `nox -s local-installation-qualification` on every supported Linux and
+macOS host profile. It binds each measured slice into the canonical bootstrap
+qualification record as a `slice_results` entry with its harness digest.
+Slices are never projected into canonical passed T05/T06/T07/T16 records. A
+legacy version-keyed cache that is group-writable only within a user-private
+group is a valid migration carrier; any other principal's write access remains
+terminal.
 Those cases also cover distinct OS principals, proof, repository services, OCI,
 export and program-wide GC and remain assigned to their downstream migration
 owners until complete case harnesses exist. A multi-user deployment must use an
@@ -294,6 +298,70 @@ evidence artifact under the exact delivery SHA.
   setup planning. It never invokes `sudo`, shell evaluation, repository/key installation,
   pipe-to-shell acquisition or host-security reconfiguration.
 
+### Issue #1220 proof input evidence
+
+Isabelle no longer contains repository HTTP transport, mirror loops, a shared
+`.download` file, or marker-based trust. `tools/isabelle_tool.py acquire`
+selects the reviewed lock entry before touching local state. It then admits the
+exact archive through one of two carriers. The first is the qualified curl
+client with the separately qualified `large-object` budget: exact size, a
+3,600-second transfer bound, a native low-speed abort, curl's own bounded
+retries, and a wall deadline that covers the retry window. The second is an
+explicit `--local-input` copied from its opened inode. An alternate approved
+same-byte mirror is an operator choice (`--locator-ref`) in a new invocation.
+
+`tools/verified_tree_installation.py` extends #1219's transaction to a
+multi-gigabyte tree. The lock's `installed_tree` binds the SHA-256 of the
+canonical manifest of every file, directory and confined, canonically written relative symlink,
+together with exact counts and expanded bytes. The steps are:
+
+1. Admission streams the archive into private staging. It rejects hardlinks,
+   devices, traversal, duplicates, and links that resolve through another link
+   or outside the tree.
+2. The private raw object is keyed by digest and reverified before extraction.
+3. The tree is sealed read-only and then published by atomic rename, with Linux
+   `sync(2)` durability. APFS cannot rename a read-only directory, so on macOS
+   the root is sealed immediately after the rename. A seal that a crash
+   interrupts is completed under the identity lock before full revalidation.
+4. Every use reverifies the complete tree against the retained manifest.
+
+Tampering quarantines the tree and fails; a later explicit invocation rebuilds
+from the retained raw object without network access. On migration, a legacy
+archive is verified as a carrier and the legacy tree and marker are quarantined.
+
+The Ubuntu 22.04 proof host's native curl is below the qualified floor. The
+qualified Ubuntu 24.04 job therefore fetches the archive, and the proof job
+admits it under `bwrap --unshare-net`. The `nox -s proof-input-qualification`
+session runs `issue_1220_proof_input_harness.py`. `bootstrap_profile
+qualification-evidence --slice-evidence` binds each slice outcome to the exact
+harness digest as a `slice_results` entry of the proof host's canonical
+qualification record, beside T01. A slice names its canonical case, but no slice
+is recorded as a passed case. `nox -s local-installation-qualification` records
+the #1219 slices the same way. The slices are:
+
+- T05: 32 cold processes, 100 warm verifiers, publisher kills at every raw and
+  tree durability checkpoint, live-publisher exclusion, bounded lock timeout,
+  and disk exhaustion. The optional `--real-archive` mode repeats the process
+  and crash cases with the reviewed 1.2 GB object.
+- T08: `test_issue_1220_isabelle_acquisition.py -m integration -k real_curl`
+  exercises the large-object budget against the real curl fixture in bootstrap
+  qualification: size, redirect, TLS, disconnect, native retry, low-speed abort,
+  and transfer deadline.
+- T11: egress-denied admission from a local input, plus `--real-installation`
+  full-tree verification and preflight of the real proof closure. The egress
+  oracle requires a distinct network namespace and a refused connection to a
+  parent-owned loopback listener. A control run without `--unshare-net` must
+  observe both conditions false.
+- T13: corrupt, oversize, truncated and symlinked inputs and malicious archives
+  fail with no network attempt and no execution. `isabelle_tool preflight`
+  lists every missing Bubblewrap, fontconfig, font, C.UTF-8 locale, or
+  installation prerequisite.
+
+Proof hosts' offline kits must name the native Bubblewrap, fontconfig, font and
+locale providers. The kit manifest binds them, and offline-kit verification
+probes that closure. Complete disconnected export/import and whole-closure
+preflight remain #1225 scope.
+
 ### Issue #1218 Python closure evidence
 
 The frozen tooling project, generated build constraints, target-specific smoke
@@ -330,6 +398,75 @@ retired rather than kept on a vulnerable pin (#1268).
 Input locks improve repeatability but do not prove byte-identical distributions
 across host SDKs, compilers, operating systems, or build times; candidate output
 digests are evidence, not release admission.
+
+### Issue #1222 live-runner input closure evidence
+
+Issue #1222 brings the `tools/real-daemon/` AWS smoke and guest-certification
+setup (inventory row I13) under the admitted closure. The CirrOS guest disk is
+pinned in `artifacts.lock.json` as a `vm-base-image` artifact (reviewed digest,
+exact size, source, `official-cirros-download` locator) and selected through the
+tooling policy gate by `tools/real-daemon/live_runner_inputs.py`; `uv` is
+selected as the host profile's bootstrap payload and verified against the lock;
+`libvirt-python` and its build backend (setuptools/wheel) are pinned by exact
+version and hash in `tools/real-daemon/live-runner-python.txt` and the reviewed
+`tools/real-daemon/live-runner-python-closure.json` manifest, staged as a
+verified wheelhouse, and installed **fully offline**
+(`--offline --no-index --find-links <wheelhouse> --require-hashes`) so no
+distribution or build dependency is resolved from a live index during
+certification. The live-runner inputs are execution-bound to their reviewed
+authorities: the base image is Canonical's exact published image **name (serial)**
+(`tools/tool_versions.py`), resolved to the region's AMI id by owner + exact name
+(never "newest"); the native package set installs from an immutable
+`snapshot.ubuntu.com` archive timestamp (reproducible versions), with the
+`live-runner-ubuntu-24.04-x86_64` host profile as the reviewed authority for the
+package set and snapshot; and the declared **cpython-3.14** interpreter is
+pre-seeded, validated and used for `uv sync` rather than the ambient system
+python. libvirt/QEMU are required while KVM is optional (the runners use TCG
+`domain type="qemu"`). The scripts pre-seed and re-verify the transferred bytes,
+run under the host's default security driver (no `security_driver="none"`, no
+root QEMU user/group), use per-run scoped private directories under the libvirt
+images tree, require an explicit reviewed SSH ingress CIDR, pin the instance host
+key from the authenticated AWS console output before first contact
+(`StrictHostKeyChecking=yes`), transfer only Git-tracked revision-bound source,
+and invoke the guest-certified evidence run with a fixed argument vector (pulling
+its evidence back before teardown even on failure).
+
+The in-repository slices of the acceptance cases are implemented as the hermetic
+`implementations/python/tests/test_issue_1222_live_runner_acquisition.py`:
+
+- **T13**: tampered guest-disk bytes fail admission before boot; an unpinned
+  `libvirt-python` requirement is rejected; the reviewed CirrOS digest/size is
+  the only admitted identity; the full valid acquisition path is exercised. The
+  full missing-native/interpreter/VM and wrong-ABI rejection against a real host
+  is an operator obligation, not covered by a Python-only wheelhouse test.
+- **T21**: both runner scripts carry no pipe-to-shell bootstrap, no ignored
+  download, no ad-hoc curl acquisition, no host-security downgrade and no unsafe
+  `RUN_ID` interpolation; uv sync is frozen; the libvirt-python closure is
+  installed offline (`--offline --no-index --find-links --require-hashes`); the
+  first SSH connection is host-key-verified (`StrictHostKeyChecking=yes`); and
+  the apt package set is a subset of the reviewed host profile. The full
+  governed-closure boot of both runner paths is operator-run.
+- **T07**: per-run unique AWS key/security-group/instance names and scoped run
+  directories remove the fixed-resource collisions; cleanup acts only on
+  owned resources. The measured cold/warm concurrency, quota-exhaustion and
+  disk-full envelope (service target 100 clients, 32 same-host installers) is
+  operator-run on the live host and recorded against the pending
+  `live-runner-ubuntu-24.04-x86_64-issue-1222-pending` qualification record.
+
+Scope and honesty limits: the CirrOS checksum is an upstream-published integrity
+value cross-checked against the release `MD5SUMS` (recorded as `absent-reviewed`
+authenticity, not an authenticated publisher signature). `libvirt-python` is
+sdist-only; the sdist and its setuptools/wheel build backend are hash-pinned and
+installed offline from the pre-seeded wheelhouse, so no build dependency is
+resolved from a live index. The native package set installs from an immutable
+`snapshot.ubuntu.com` archive timestamp, so package versions are reproducible;
+this is the live-runner's own reproducible native closure and does not implement
+the broader offline export/import bundle (#1225). AWS provisioning/API behaviour
+remains a live external service; local preseed verification can run disconnected,
+but no air-gapped-AWS capability is claimed. The reviewed image serial and
+snapshot timestamp are advanced by a reviewed edit to `tools/tool_versions.py`.
+The live T07/T13/T21 result is `not-run` until an operator records it under the
+exact delivery revision.
 
 ### Issue #1221 vocabulary source evidence
 

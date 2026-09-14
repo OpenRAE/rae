@@ -56,6 +56,11 @@ def _rule_ids(tmp_path: Path) -> set[str]:
         ("| `behavior_specifications` |", "| `behavior_profiles` |", "sdl-catalog-field-set"),
         ("| `nodes` | section | map |", "| `nodes` | section | list |", "sdl-catalog-field-shape"),
         ("| `version` | metadata | scalar |", "| `version` | metadata | map |", "sdl-catalog-field-shape"),
+        (
+            "| `semantic_revision` | metadata | scalar |",
+            "| `semantic_revision` | metadata | mapping |",
+            "sdl-catalog-field-shape",
+        ),
         ("optional; default `*`", "required", "sdl-catalog-field-default"),
     ],
 )

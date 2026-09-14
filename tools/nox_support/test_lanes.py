@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import os
 import shutil
+import sys
+import tempfile
 from pathlib import Path
 
 import nox
 
 from tools.nox_support.config import (
     DOCS_BUILD_ROOT,
+    INSTALLATION_QUALIFICATION_HARNESSES,
     OSV_LOCKFILE_PATH,
     OSV_REPORT_PATH,
     PROJECT_ROOT,
@@ -240,3 +244,34 @@ def _run_docs_linkcheck(session: nox.Session, reporter: SessionReporter) -> None
         ),
         detail=str(PUBLIC_DOCS_ROOT.relative_to(REPO_ROOT)),
     )
+
+
+def _restore_owner_write(root: Path) -> None:
+    for current, directories, _files in os.walk(root, followlinks=False):
+        for name in directories:
+            directory = Path(current) / name
+            if not directory.is_symlink():
+                directory.chmod(0o700)
+
+
+def _run_installation_qualification(
+    session: nox.Session,
+    reporter: SessionReporter,
+    name: str,
+    posargs: list[str],
+) -> None:
+    """Run one qualification harness from the frozen tooling closure in a private root."""
+
+    harness, detail = INSTALLATION_QUALIFICATION_HARNESSES[name]
+    with tempfile.TemporaryDirectory(prefix=f"raes-{name}-") as temporary:
+        # Resolve platform temp aliases such as macOS /var so the private-root
+        # anchor chain contains no symbolic link.
+        root = Path(temporary).resolve() / "root"
+        try:
+            reporter.run(
+                f"qualification / {name}",
+                lambda: _run(session, sys.executable, str(REPO_ROOT / harness), str(root), *posargs),
+                detail=detail,
+            )
+        finally:
+            _restore_owner_write(Path(temporary))

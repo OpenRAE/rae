@@ -350,7 +350,7 @@ def _archival_run_and_receipt():
     payload["scenario_snapshot_ref"] = {
         "ref_kind": "scenario-snapshot",
         "ref_id": request.family.name,
-        "ref_version": "raes-sdl-instantiated-snapshot/v1",
+        "ref_version": "raes-sdl-instantiated-snapshot/v2",
         "ref_digest": realized.snapshot_digest,
     }
     payload["stochastic_controls"] = [control.model_dump(mode="json") for control in plan.stochastic_controls.values()]

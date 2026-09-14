@@ -38,7 +38,7 @@ _FAMILY_PROBES = {
     "fixtures": "raes_contracts/_corpus/fixtures/",
     "concept-authority": "raes_contracts/_corpus/concept-authority/behavioral-relations-v1.json",
     "schemas": "raes_contracts/_corpus/schemas/",
-    "provenance": "raes_contracts/_corpus/provenance/sdl-lineage-ledger-v1.json",
+    "provenance": "raes_contracts/_corpus/provenance/sdl-lineage-ledger-v2.json",
 }
 
 _NOTICE_PATH = "raes_contracts/_corpus/provenance/THIRD_PARTY_NOTICES.md"
@@ -205,6 +205,7 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
     script = (
         "import json\n"
         "from raes_contracts.corpus import corpus_root, corpus_family_root\n"
+        "from raes_contracts.provenance import load_sdl_lineage_ledger, sdl_lineage_ledger_path\n"
         "root = corpus_root()\n"
         "print(json.dumps({\n"
         "  'root': str(root),\n"
@@ -215,6 +216,8 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
         "  'fipa_source': (corpus_family_root('concept-authority')/'fipa-communicative-acts-source-v1.json').exists(),\n"
         "  'fixtures_dir': corpus_family_root('fixtures').is_dir(),\n"
         "  'schemas_dir': corpus_family_root('schemas').is_dir(),\n"
+        "  'lineage_file': sdl_lineage_ledger_path().name,\n"
+        "  'lineage_subjects': [s.subject_id for s in load_sdl_lineage_ledger().subjects],\n"
         "}))\n"
     )
     result = _run(
@@ -234,6 +237,8 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
     assert payload["fipa_source"] is True
     assert payload["fixtures_dir"] is True
     assert payload["schemas_dir"] is True
+    assert payload["lineage_file"] == "sdl-lineage-ledger-v2.json"
+    assert "sdl-field:semantic_revision" in payload["lineage_subjects"]
 
 
 @requires_uv

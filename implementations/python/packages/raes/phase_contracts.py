@@ -29,7 +29,7 @@ class FrozenPhaseModel(SDLModel):
 class SemanticDigest(FrozenPhaseModel):
     """Profile-labelled digest of one expanded authoring scenario."""
 
-    profile: Literal["raes-sdl-semantic/v1"]
+    profile: Literal["raes-sdl-semantic/v2"]
     algorithm: Literal["sha256"]
     value: Annotated[str, Field(pattern=_DIGEST_PATTERN)]
 

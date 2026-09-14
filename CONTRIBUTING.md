@@ -105,8 +105,24 @@ one installed font, because Isabelle starts a JVM that will not run without one:
 sudo apt-get install bubblewrap fontconfig fonts-dejavu-core
 ```
 
-The proof tool checks this fontconfig runtime before entering the sandbox and
-reports a missing prerequisite separately from a kernel rejection. Run the
+Acquire the pinned Isabelle distribution once before running the lane. The
+tool admits the exact reviewed archive with a qualified `curl` (8.4.0 or newer)
+and verifies the complete installed tree on every use:
+
+```shell
+uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.isabelle_tool acquire
+```
+
+On a host whose `curl` is older, such as Ubuntu 22.04, pass an archive you
+already have with `--local-input PATH`. The tool admits it only when its size
+and SHA-256 match the lock. An approved mirror is selected explicitly with
+`--locator-ref official-isabelle-cambridge-mirror`. To list every missing proof
+prerequisite without network access or execution, run
+`python -m tools.isabelle_tool preflight`.
+
+The proof tool checks the fontconfig runtime and the C.UTF-8 locale before
+entering the sandbox, and it reports a missing prerequisite separately from a
+kernel rejection. Run the
 gate on Linux, or rely on continuous integration, when your workstation is
 another platform.
 

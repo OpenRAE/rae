@@ -73,16 +73,16 @@ _SCENARIO_SEMANTIC_FIELDS = {
 }
 
 
-def _owner_semantic_payload(artifact: ArtifactForProjection) -> object:
+def _owner_semantic_payload(artifact: ArtifactForProjection, *, projection_version: str = "1") -> object:
     """Return the governed semantic projection selected by the artifact owner."""
 
     payload: object | None = None
     if isinstance(artifact, Scenario):
-        payload = _scenario_semantic_payload(artifact)
+        payload = _scenario_semantic_payload(artifact, projection_version)
     elif isinstance(artifact, ResolvedImportProvenance):
         payload = _module_semantic_payload(artifact)
     elif isinstance(artifact, ExperimentTaskModel):
-        payload = _task_semantic_payload(artifact)
+        payload = _task_semantic_payload(artifact, projection_version)
     elif isinstance(artifact, ExperimentRunModel):
         payload = _run_semantic_payload(artifact)
     elif isinstance(artifact, ExperimentCaptureSpecModel):
@@ -96,8 +96,36 @@ def _owner_semantic_payload(artifact: ArtifactForProjection) -> object:
     return payload
 
 
-def _scenario_semantic_payload(artifact: Scenario) -> object:
+def _scenario_semantic_payload(artifact: Scenario, version: str = "1") -> object:
+    if version == "2":
+        return _presence_preserving_semantics(artifact, include=_SCENARIO_SEMANTIC_FIELDS | {"semantic_revision"})
     return _without_editorial_description(artifact.model_dump(mode="json", include=_SCENARIO_SEMANTIC_FIELDS))
+
+
+def _presence_preserving_semantics(model: BaseModel, *, include: set[str] | None = None) -> dict[str, object]:
+    """Remove native editorial fields using model ownership, never raw JSON keys."""
+    payload = model.model_dump(mode="json", by_alias=True, exclude_unset=True, include=include)
+    native = type(model).__module__.startswith("raes.")
+    for name, field in type(model).model_fields.items():
+        key = field.serialization_alias or field.alias or name
+        if key not in payload:
+            continue
+        if native and name == "description":
+            del payload[key]
+        else:
+            payload[key] = _project_model_children(getattr(model, name), payload[key])
+    return payload
+
+
+def _project_model_children(value: object, serialized: object) -> object:
+    result = serialized
+    if isinstance(value, BaseModel):
+        result = _presence_preserving_semantics(value)
+    elif isinstance(value, dict) and isinstance(serialized, dict):
+        result = {key: _project_model_children(value[key], item) for key, item in serialized.items()}
+    elif isinstance(value, (list, tuple)) and isinstance(serialized, list):
+        result = [_project_model_children(child, item) for child, item in zip(value, serialized, strict=True)]
+    return result
 
 
 def _module_semantic_payload(artifact: ResolvedImportProvenance) -> object:
@@ -109,7 +137,7 @@ def _module_semantic_payload(artifact: ResolvedImportProvenance) -> object:
     }
 
 
-def _task_semantic_payload(artifact: ExperimentTaskModel) -> object:
+def _task_semantic_payload(artifact: ExperimentTaskModel, version: str = "1") -> object:
     return artifact.model_dump(
         mode="json",
         include={
@@ -126,7 +154,8 @@ def _task_semantic_payload(artifact: ExperimentTaskModel) -> object:
             "validity_notes",
             "artifact_refs",
             "validation_basis_disclosures",
-        },
+        }
+        | ({"observation_demands"} if version == "2" else set()),
     )
 
 

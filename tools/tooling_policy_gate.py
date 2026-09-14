@@ -12,6 +12,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
+from tools.tooling_installed_tree import SHA256_PATTERN, LockedInstalledTree, locked_installed_tree
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _VALIDATOR_TIMEOUT_SECONDS = 180
 _INVALID_SELECTION_RESPONSE = "development artifact policy failed before acquisition: invalid selection response"
@@ -40,6 +42,8 @@ class LockedArtifactSelection:
     artifact_class: str = "generic-cli"
     policy_refs: tuple[str, ...] = ("artifact-integrity-v1",)
     installed_identity: tuple[tuple[str, str], ...] = ()
+    locator_refs: tuple[str, ...] = ()
+    installed_tree: LockedInstalledTree | None = None
 
 
 def _is_portable_manifest_path(path: str) -> bool:
@@ -62,7 +66,7 @@ def _locked_manifest_entry(value: object) -> LockedManifestEntry:
     executable = value.get("executable", False)
     if not isinstance(path, str) or not _is_portable_manifest_path(path):
         raise RuntimeError("development artifact policy failed before acquisition: invalid manifest path")
-    if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+    if not isinstance(digest, str) or SHA256_PATTERN.fullmatch(digest) is None:
         raise RuntimeError("development artifact policy failed before acquisition: invalid manifest digest")
     if not isinstance(size, int) or isinstance(size, bool) or size < 1:
         raise RuntimeError("development artifact policy failed before acquisition: invalid manifest size")
@@ -239,12 +243,16 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             raise TypeError
         raw_values = platform["raw_manifest"]
         source_urls = platform["source_urls"]
+        locator_refs = source["locator_refs"]
         policy_refs = selection["policy_refs"]
         artifact_class = selection["artifact_class"]
         if (
             not isinstance(raw_values, list)
             or not isinstance(source_urls, list)
             or not all(isinstance(value, str) and value for value in source_urls)
+            or not isinstance(locator_refs, list)
+            or not all(isinstance(value, str) and value for value in locator_refs)
+            or len(locator_refs) != len(source_urls)
             or not isinstance(policy_refs, list)
             or not all(isinstance(value, str) and value for value in policy_refs)
             or not isinstance(artifact_class, str)
@@ -277,6 +285,8 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             artifact_class=artifact_class,
             policy_refs=tuple(policy_refs),
             installed_identity=installed_identity,
+            locator_refs=tuple(locator_refs),
+            installed_tree=locked_installed_tree(platform.get("installed_tree")),
         )
         selected_profile_ids = platform["profile_ids"]
     except (KeyError, TypeError) as exc:
@@ -373,7 +383,7 @@ def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validati
         or not artifacts
         or not all(isinstance(item, dict) for item in artifacts)
         or not isinstance(policy_sha256, str)
-        or re.fullmatch(r"[0-9a-f]{64}", policy_sha256) is None
+        or SHA256_PATTERN.fullmatch(policy_sha256) is None
     ):
         raise RuntimeError(_INVALID_HOST_RESPONSE)
     expected_ids = host.get("bootstrap_payload_ids")

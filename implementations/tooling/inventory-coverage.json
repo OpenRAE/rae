@@ -77,8 +77,8 @@
     },
     {
       "inventory_id": "I13", "subjects": ["artifact"], "evidence_refs": ["reviewed-consumer-reference"], "owner_roles": ["Backend", "Platform"], "consumers": ["aws-live-certification"],
-      "trust_root_refs": ["aws-image-identity", "native-package-signing-roots"], "availability_class": "L", "retention_class": "supported-input",
-      "disposition": "delegated", "authority_refs": ["tools/real-daemon/run_aws_smoke.sh", "tools/real-daemon/run_aws_guest_certify.sh"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release", "aws-image-identity", "native-package-signing-roots"], "availability_class": "L", "retention_class": "supported-input",
+      "disposition": "locked", "authority_refs": ["implementations/tooling/artifacts.lock.json", "implementations/tooling/profiles/development-profiles.json", "tools/real-daemon/live_runner_inputs.py", "tools/real-daemon/run_aws_smoke.sh", "tools/real-daemon/run_aws_guest_certify.sh"],
       "policy_refs": ["artifact-integrity-v1"], "owning_issue": 1222
     },
     {
@@ -130,6 +130,7 @@
     {"path": "implementations/python/packages/raes/module_registry/__init__.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 2},
     {"path": "implementations/python/packages/raes_backend_libvirt/drivers/seed.py", "inventory_id": "I12", "disposition": "legacy-remediation", "site_count": 1},
     {"path": "implementations/python/packages/raes_reference_backend/drivers/oci.py", "inventory_id": "D01", "disposition": "excluded-domain", "site_count": 1},
+    {"path": "implementations/python/tests/issue_1220_proof_input_harness.py", "inventory_id": "I09", "disposition": "non-acquisition-execution", "site_count": 3},
     {"path": "implementations/python/tests/test_corpus_packaging.py", "inventory_id": "I03", "disposition": "governed", "site_count": 1},
     {"path": "implementations/python/tests/test_identity_cutover_policy.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "implementations/python/tests/test_issue_1204_repository_governance.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
@@ -150,8 +151,8 @@
     {"path": "tools/policy/common.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},
     {"path": "tools/policy/conftest_tool.py", "inventory_id": "I05", "disposition": "governed", "site_count": 2},
     {"path": "tools/policy/requirement_governance.py", "inventory_id": "S02", "disposition": "external-service", "site_count": 1},
-    {"path": "tools/real-daemon/run_aws_guest_certify.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 2},
-    {"path": "tools/real-daemon/run_aws_smoke.sh", "inventory_id": "I13", "disposition": "legacy-remediation", "site_count": 3},
+    {"path": "tools/real-daemon/run_aws_guest_certify.sh", "inventory_id": "I13", "disposition": "governed", "site_count": 1},
+    {"path": "tools/real-daemon/run_aws_smoke.sh", "inventory_id": "I13", "disposition": "governed", "site_count": 1},
     {"path": "tools/tooling_policy_gate.py", "inventory_id": "I02", "disposition": "non-acquisition-execution", "site_count": 2},
     {"path": "tools/python_closure.py", "inventory_id": "I02", "disposition": "governed", "site_count": 1},
     {"path": "tools/verification_plan.py", "inventory_id": "I16", "disposition": "non-acquisition-execution", "site_count": 1},

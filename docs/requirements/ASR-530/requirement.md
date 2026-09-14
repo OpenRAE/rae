@@ -82,3 +82,5 @@ Agent-assisted development can produce internally coherent code and documentatio
 - IMPLEMENTS → GITHUB_ISSUE `828` (Re-test formal semantic validation, satisfiability, and exploit-path claims)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v10.json` (Atomic formal replay release 11.0.0 for typed selections)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1208-v9.json` (Atomic coverage release 9.0.0 for typed selections)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v15.json` (Current formal replay with historical revisions retained)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1210-v14.json` (Current source-bound coverage replay)

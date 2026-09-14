@@ -211,9 +211,11 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "integration",
         "integration_docker",
         "lint",
+        "local-installation-qualification",
         "osv_scan",
         "participant-opacity-proof",
         "policy",
+        "proof-input-qualification",
         "python-compatibility",
         "tests",
         "verify",
@@ -1002,6 +1004,7 @@ def test_line_coverage_threshold_is_fixed_at_ninety_percent(
         nox_runner._enforce_line_coverage(report_path)
 
 
+@pytest.mark.integration
 def test_make_policy_skips_only_requirement_governance_without_a_uid() -> None:
     environment = os.environ.copy()
     environment.pop("RAES_REQUIREMENT_UID", None)

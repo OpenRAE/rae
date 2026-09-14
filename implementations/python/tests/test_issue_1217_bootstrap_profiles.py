@@ -39,6 +39,7 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
         "public-macos-arm64",
         "proof-ubuntu-22.04-x86_64",
         "container-ubuntu-24.04-x86_64",
+        "live-runner-ubuntu-24.04-x86_64",
     }
     proof = profiles["proof-ubuntu-22.04-x86_64"]
     assert proof["proof_support"] == "linux-x86_64-required"
@@ -188,7 +189,7 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert 'RAES_PYTHON_CLOSURE_WHEELHOUSE="${restored_root}/project-wheelhouse"' in workflow_text
     assert 'UV_FIND_LINKS="${restored_root}/tool-wheelhouse,${restored_root}/project-wheelhouse"' in workflow_text
     assert 'runtime_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-bootstrap-runtime.XXXXXX")"' in workflow_text
-    assert 'qualification_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-local-installation.XXXXXX")"' in workflow_text
+    assert "-s local-installation-qualification -- --output local-installation-qualification.json" in workflow_text
     assert 'export UV_CACHE_DIR="${runtime_root}/uv-cache"' in workflow_text
     assert 'restored_tool_environment="${runtime_root}/tool-environment"' in workflow_text
     assert 'from importlib.metadata import version; print(version("nox"))' in workflow_text
@@ -417,12 +418,32 @@ def test_curl_qualification_rejects_preflight_failures(
 def test_native_client_results_cover_reviewed_linux_and_macos_capabilities(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "observe_executable",
-        lambda capability_id, *args, **kwargs: {"capability_id": capability_id, "outcome": "passed"},
-    )
-    monkeypatch.setattr(bootstrap_profile, "_sha256", lambda _path: "a" * 64)
+    probes: list[tuple[str, Path, tuple[str, ...], object]] = []
+    identities: list[tuple[str, Path]] = []
+
+    def observe(
+        capability_id: str,
+        path: Path,
+        version_args: tuple[str, ...],
+        *,
+        minimum_version: tuple[int, int, int] | None = None,
+    ) -> dict[str, str]:
+        probes.append((capability_id, path, version_args, minimum_version))
+        return {"capability_id": capability_id, "outcome": "passed"}
+
+    def inspect(
+        capability_id: str, path: Path, version_args: tuple[str, ...], *, expected_version: str
+    ) -> dict[str, str]:
+        probes.append((capability_id, path, version_args, expected_version))
+        return {"capability_id": capability_id, "outcome": "passed"}
+
+    def file_identity(path: Path) -> str:
+        identities.append((path.name, path))
+        return "a" * 64
+
+    monkeypatch.setattr(bootstrap_profile, "observe_executable", observe)
+    monkeypatch.setattr(bootstrap_profile, "inspect_executable", inspect)
+    monkeypatch.setattr(bootstrap_profile, "_sha256", file_identity)
     linux_capabilities = {
         "git",
         "curl-unknown-length-max-filesize",
@@ -438,10 +459,25 @@ def test_native_client_results_cover_reviewed_linux_and_macos_capabilities(
         {"platform_id": "linux-x86_64", "required_capability_ids": linux_capabilities}
     )
     assert {result["capability_id"] for result in linux} == linux_capabilities
+    assert probes == [
+        ("git", Path("/usr/bin/git"), ("--version",), None),
+        ("curl-unknown-length-max-filesize", Path("/usr/bin/curl"), ("--version",), (8, 4, 0)),
+        ("sha256", Path("/usr/bin/sha256sum"), ("--version",), None),
+        ("gh-cli", Path("/usr/bin/gh"), ("--version",), None),
+        ("bubblewrap", Path("/usr/bin/bwrap"), ("--version",), None),
+        ("fontconfig", Path("/usr/bin/fc-match"), ("--version",), None),
+        ("locale-c-utf-8", Path("/usr/bin/locale"), ("-a",), "C.utf8"),
+    ]
+    assert [path for _name, path in identities] == [
+        Path("/etc/ssl/certs/ca-certificates.crt"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+    ]
+    probes.clear()
+    identities.clear()
     macos = bootstrap_profile._native_client_results(
         {
             "platform_id": "macos-arm64",
-            "required_capability_ids": {"git", "curl-unknown-length-max-filesize", "sha256", "gh-cli"},
+            "required_capability_ids": {"git", "curl-unknown-length-max-filesize", "sha256", "gh-cli", "ca-roots"},
         }
     )
     assert {result["capability_id"] for result in macos} == {
@@ -449,7 +485,15 @@ def test_native_client_results_cover_reviewed_linux_and_macos_capabilities(
         "curl-unknown-length-max-filesize",
         "sha256",
         "gh-cli",
+        "ca-roots",
     }
+    assert probes == [
+        ("git", Path("/usr/bin/git"), ("--version",), None),
+        ("curl-unknown-length-max-filesize", Path("/usr/bin/curl"), ("--version",), (8, 4, 0)),
+        ("sha256", Path("/usr/bin/shasum"), ("--version",), None),
+        ("gh-cli", Path("/opt/homebrew/bin/gh"), ("--version",), None),
+    ]
+    assert [path for _name, path in identities] == [Path("/etc/ssl/cert.pem")]
 
     def unavailable(_path: Path) -> str:
         raise OSError("unavailable")
@@ -550,6 +594,42 @@ def test_host_identity_fails_closed_on_runner_release_or_architecture_drift(
     assert observed_base == "github-runner:ubuntu24:20260907.300.1:ARM64"
     assert observed_repository == "github-runner-package-set:ubuntu24:20260907.300.1:ARM64"
     assert [result["outcome"] for result in results] == ["failed", "failed"]
+
+
+@pytest.mark.parametrize(
+    ("variable", "value"),
+    [
+        ("ImageOS", "ubuntu24:X64"),
+        ("ImageVersion", "20260907.300.1 injected"),
+        ("RUNNER_ARCH", "X64/../ARM64"),
+        ("ImageVersion", ""),
+    ],
+)
+def test_malformed_runner_image_metadata_is_sanitized_and_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+    variable: str,
+    value: str,
+) -> None:
+    host = {
+        "base_image_identity": "github-hosted-runner:ubuntu24:X64",
+        "native_repository_identity": "github-hosted-runner-package-set:ubuntu24:X64",
+    }
+    monkeypatch.setenv("ImageOS", "ubuntu24")
+    monkeypatch.setenv("ImageVersion", "20260907.300.1")
+    monkeypatch.setenv("RUNNER_ARCH", "X64")
+    assert [item["outcome"] for item in bootstrap_profile.observe_host_identity(host)[2]] == ["passed", "passed"]
+    monkeypatch.setenv(variable, value)
+
+    image = bootstrap_profile._safe_runner_image()
+    observed_base, _observed_repository, results = bootstrap_profile.observe_host_identity(host)
+
+    fields = dict(zip(("ImageOS", "ImageVersion", "RUNNER_ARCH"), image.split(":"), strict=True))
+    assert fields[variable] == "unavailable"
+    assert value not in observed_base or not value
+    assert [(item["outcome"], item["reason_code"]) for item in results] == [
+        ("failed", "runner-image-mismatch"),
+        ("failed", "native-repository-unobserved"),
+    ]
 
 
 def test_proof_capability_is_explicitly_unsupported_outside_linux_x86_64() -> None:
@@ -666,6 +746,18 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
     )
     case_path = tmp_path / "t02.json"
     case_path.write_text(json.dumps(case_result), encoding="utf-8")
+    slice_path = tmp_path / "local-installation-qualification.json"
+    slice_path.write_text(
+        json.dumps(
+            {
+                "schema": "issue-1219-local-installation-qualification/v1",
+                "passed_cases": ["cold-convergence", "unsafe-lock-rejection"],
+                "elapsed_seconds": {"cold-convergence": 1.25, "unsafe-lock-rejection": 0.5},
+                "coverage": {"canonical_outcome_recorded": False},
+            }
+        ),
+        encoding="utf-8",
+    )
     result = bootstrap_profile.build_qualification_evidence(
         REPO_ROOT,
         "public-ubuntu-24.04-x86_64",
@@ -676,6 +768,7 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
         options=bootstrap_profile.QualificationEvidenceOptions(
             generic_selections=selections,
             limitations=("local-slice-only",),
+            slice_evidence_paths=(slice_path,),
         ),
     )
     assert result["outcome"] == "passed"
@@ -686,6 +779,11 @@ def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
     assert len(result["harness_sha256"]) == 64
     assert len(result["evidence_sha256"]) == 64
     assert result["limitations"] == ["local-slice-only"]
+    assert result["test_case_ids"] == ["T02"]
+    assert [(item["slice_id"], item["canonical_case_id"]) for item in result["slice_results"]] == [
+        ("T05-cold-convergence", "T05"),
+        ("T06-unsafe-lock-rejection", "T06"),
+    ]
     payloads = {item["artifact_id"]: item for item in result["payload_results"]}
     assert payloads["cpython-3.14"]["distribution_id"] == "ubuntu-24.04"
     assert payloads["cpython-3.14"]["expected_installed_identity"] == expected_python_identity
@@ -748,110 +846,216 @@ def test_case_results_are_bound_to_the_exact_harness_and_revision(tmp_path: Path
         bootstrap_profile._load_case_results(REPO_ROOT, (path,), "b" * 40)
 
 
-def test_bootstrap_cli_parser_and_dispatch_cover_every_operation(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
+def test_bootstrap_cli_parser_accepts_each_operation_argument_shape(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         bootstrap_profile.sys,
         "argv",
-        ["bootstrap_profile.py", "proof-support", "linux-x86_64"],
+        [
+            "bootstrap_profile.py",
+            "qualification-evidence",
+            "host",
+            "a" * 40,
+            "evidence",
+            "--python-artifact-id",
+            "cpython-3.12",
+            "--case-result",
+            "t01.json",
+            "--slice-evidence",
+            "slices.json",
+        ],
     )
     parsed = bootstrap_profile._parse_args()
-    assert parsed.operation == "proof-support"
-    assert parsed.platform_id == "linux-x86_64"
+    assert parsed.operation == "qualification-evidence"
+    assert parsed.case_result == [Path("t01.json")]
+    assert parsed.slice_evidence == [Path("slices.json")]
+    assert parsed.limitation == []
+    monkeypatch.setattr(bootstrap_profile.sys, "argv", ["bootstrap_profile.py", "proof-support", "linux-x86_64"])
+    assert bootstrap_profile._parse_args().platform_id == "linux-x86_64"
 
-    case_path = tmp_path / "case.json"
-    archive_path = tmp_path / "kit.tar"
-    manifest_path = tmp_path / "manifest.json"
-    source_root = tmp_path / "source"
-    destination_root = tmp_path / "destination"
-    operations = iter(
-        [
-            SimpleNamespace(operation="setup-plan", host_profile_id="host"),
-            SimpleNamespace(operation="inspect-profile", host_profile_id="host"),
-            SimpleNamespace(operation="generic-tools"),
-            SimpleNamespace(
-                operation="qualification-evidence",
-                host_profile_id="host",
-                implementation_revision="a" * 40,
-                evidence_location="evidence",
-                python_artifact_id="cpython-3.14",
-                case_result=[case_path],
-                offline_kit_root=tmp_path,
-                offline_kit=archive_path,
-                offline_kit_manifest_sha256="b" * 64,
-                limitation=[],
-            ),
-            SimpleNamespace(
-                operation="record-case",
-                test_case_id="T02",
-                implementation_revision="a" * 40,
-                harness_path="noxfile.py",
-                artifact_id=["uv"],
-            ),
-            SimpleNamespace(
-                operation="offline-kit-manifest",
-                host_profile_id="host",
-                kit_root=tmp_path,
-                python_artifact_id="cpython-3.14",
-            ),
-            SimpleNamespace(
-                operation="offline-kit-fetch",
-                host_profile_id="host",
-                kit_root=tmp_path,
-                artifact_id=["uv"],
-            ),
-            SimpleNamespace(operation="offline-kit-manifest-digest", manifest_path=manifest_path),
-            SimpleNamespace(
-                operation="offline-kit-copy-tree",
-                source_root=source_root,
-                destination_root=destination_root,
-            ),
-            SimpleNamespace(
-                operation="offline-kit-export-tool-seeds",
-                host_profile_id="host",
-                source_root=source_root,
-                destination_root=destination_root,
-            ),
-            SimpleNamespace(
-                operation="offline-kit-install-python",
-                host_profile_id="host",
-                kit_root=tmp_path,
-                python_artifact_id="cpython-3.14",
-            ),
-            SimpleNamespace(
-                operation="offline-kit-verify",
-                host_profile_id="host",
-                kit_root=tmp_path,
-                python_artifact_id="cpython-3.14",
-                trusted_manifest_sha256="b" * 64,
-            ),
-            SimpleNamespace(operation="proof-support", platform_id="linux-x86_64"),
-        ]
+
+_KIT = Path("/kit")
+_SOURCE = Path("/source")
+_DESTINATION = Path("/destination")
+_CLI_OPERATIONS = {
+    "setup-plan": (
+        {"host_profile_id": "host"},
+        "native_setup_plan",
+        {"outcome": "not-run"},
+        None,
+    ),
+    "inspect-profile": (
+        {"host_profile_id": "host"},
+        "_native_client_results",
+        [{"outcome": "passed"}],
+        [{"outcome": "failed"}],
+    ),
+    "generic-tools": (
+        {"local_input_root": _KIT},
+        "qualify_generic_tools",
+        {"outcome": "passed"},
+        {"outcome": "failed"},
+    ),
+    "qualification-evidence": (
+        {
+            "host_profile_id": "host",
+            "implementation_revision": "a" * 40,
+            "evidence_location": "evidence",
+            "python_artifact_id": "cpython-3.14",
+            "case_result": [Path("case.json")],
+            "offline_kit_root": _KIT,
+            "offline_kit": Path("kit.tar"),
+            "offline_kit_manifest_sha256": "b" * 64,
+            "limitation": ["bounded"],
+            "slice_evidence": [Path("slices.json")],
+        },
+        "build_qualification_evidence",
+        {"outcome": "passed"},
+        {"outcome": "failed"},
+    ),
+    "record-case": (
+        {
+            "test_case_id": "T02",
+            "implementation_revision": "a" * 40,
+            "harness_path": "noxfile.py",
+            "artifact_id": ["uv"],
+        },
+        "record_case_result",
+        {"test_case_id": "T02"},
+        None,
+    ),
+    "offline-kit-manifest": (
+        {"host_profile_id": "host", "kit_root": _KIT, "python_artifact_id": "cpython-3.14"},
+        "build_offline_kit_manifest",
+        {"entries": []},
+        None,
+    ),
+    "offline-kit-fetch": (
+        {"host_profile_id": "host", "kit_root": _KIT, "artifact_id": ["uv"]},
+        "fetch_offline_kit_payloads",
+        [{"artifact_id": "uv"}],
+        None,
+    ),
+    "offline-kit-manifest-digest": (
+        {"manifest_path": Path("manifest.json")},
+        "_sha256",
+        "0" * 64,
+        None,
+    ),
+    "offline-kit-copy-tree": (
+        {"source_root": _SOURCE, "destination_root": _DESTINATION},
+        "copy_relocatable_tree",
+        None,
+        None,
+    ),
+    "offline-kit-export-tool-seeds": (
+        {"host_profile_id": "host", "source_root": _SOURCE, "destination_root": _DESTINATION},
+        "export_immutable_tool_seeds",
+        None,
+        None,
+    ),
+    "offline-kit-install-python": (
+        {"host_profile_id": "host", "kit_root": _KIT, "python_artifact_id": "cpython-3.14"},
+        "install_offline_python_payload",
+        {"artifact_id": "cpython-3.14"},
+        None,
+    ),
+    "offline-kit-install-uv": (
+        {"host_profile_id": "host", "kit_root": _KIT, "uv_artifact_id": "uv"},
+        "install_offline_uv_payload",
+        {"artifact_id": "uv"},
+        None,
+    ),
+    "offline-kit-verify": (
+        {
+            "host_profile_id": "host",
+            "kit_root": _KIT,
+            "python_artifact_id": "cpython-3.14",
+            "trusted_manifest_sha256": "b" * 64,
+        },
+        "verify_offline_kit",
+        {"outcome": "passed"},
+        {"outcome": "failed"},
+    ),
+    "proof-support": (
+        {"platform_id": "linux-x86_64"},
+        "proof_support_outcome",
+        "required",
+        None,
+    ),
+}
+
+
+def _expected_collaborator_call(
+    operation: str, arguments: dict[str, object]
+) -> tuple[tuple[object, ...], dict[str, object]]:
+    host = {"host_profile_id": "host"}
+    expected: dict[str, tuple[tuple[object, ...], dict[str, object]]] = {
+        "setup-plan": ((host,), {}),
+        "inspect-profile": ((host,), {}),
+        "generic-tools": ((), {"local_input_root": _KIT}),
+        "record-case": ((Path.cwd(), "T02", "a" * 40, "noxfile.py", ["uv"]), {}),
+        "offline-kit-manifest": (("host", _KIT), {"python_artifact_id": "cpython-3.14"}),
+        "offline-kit-fetch": (("host", _KIT, ["uv"]), {}),
+        "offline-kit-manifest-digest": ((Path("manifest.json"),), {}),
+        "offline-kit-copy-tree": ((_SOURCE, _DESTINATION), {}),
+        "offline-kit-export-tool-seeds": (("host", _SOURCE, _DESTINATION), {}),
+        "offline-kit-install-python": (("host", _KIT, "cpython-3.14"), {}),
+        "offline-kit-install-uv": (("host", _KIT, "uv"), {}),
+        "offline-kit-verify": (
+            ("host", _KIT),
+            {"python_artifact_id": "cpython-3.14", "trusted_manifest_sha256": "b" * 64},
+        ),
+        "proof-support": (("linux-x86_64",), {}),
+    }
+    if operation != "qualification-evidence":
+        return expected[operation]
+    options = bootstrap_profile.QualificationEvidenceOptions(
+        offline_kit_root=_KIT,
+        offline_kit_archive_path=Path("kit.tar"),
+        offline_kit_manifest_sha256="b" * 64,
+        limitations=["bounded"],
+        slice_evidence_paths=[Path("slices.json")],
     )
-    monkeypatch.setattr(bootstrap_profile, "_parse_args", lambda: next(operations))
-    monkeypatch.setattr(bootstrap_profile, "_load_host_selection", lambda _host: ({}, {}, "digest"))
-    monkeypatch.setattr(bootstrap_profile, "native_setup_plan", lambda _host: {"outcome": "not-run"})
-    monkeypatch.setattr(bootstrap_profile, "_native_client_results", lambda _host: [{"outcome": "passed"}])
-    monkeypatch.setattr(bootstrap_profile, "qualify_generic_tools", lambda: {"outcome": "passed"})
+    return (
+        (Path.cwd(), "host", "a" * 40, "evidence"),
+        {"python_artifact_id": "cpython-3.14", "case_result_paths": [Path("case.json")], "options": options},
+    )
+
+
+@pytest.mark.parametrize(
+    ("operation", "failed"),
+    [
+        *((operation, False) for operation in _CLI_OPERATIONS),
+        *((operation, True) for operation, value in _CLI_OPERATIONS.items() if value[3] is not None),
+    ],
+)
+def test_bootstrap_cli_dispatch_forwards_arguments_and_tracks_outcomes(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    operation: str,
+    failed: bool,
+) -> None:
+    arguments, collaborator, passed_result, failed_result = _CLI_OPERATIONS[operation]
+    calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
+
+    def record(*args: object, **kwargs: object) -> object:
+        calls.append((args, kwargs))
+        return failed_result if failed else passed_result
+
+    monkeypatch.setattr(bootstrap_profile, "_parse_args", lambda: SimpleNamespace(operation=operation, **arguments))
     monkeypatch.setattr(
-        bootstrap_profile, "build_qualification_evidence", lambda *args, **kwargs: {"outcome": "passed"}
+        bootstrap_profile, "_load_host_selection", lambda host_id: ({"host_profile_id": host_id}, {}, "digest")
     )
-    monkeypatch.setattr(bootstrap_profile, "record_case_result", lambda *args: {"test_case_id": "T02"})
-    monkeypatch.setattr(bootstrap_profile, "build_offline_kit_manifest", lambda *args, **kwargs: {"entries": []})
-    monkeypatch.setattr(bootstrap_profile, "fetch_offline_kit_payloads", lambda *args: {"artifact_ids": ["uv"]})
     monkeypatch.setattr(bootstrap_profile, "_load_offline_kit_manifest", lambda _path: {})
-    monkeypatch.setattr(bootstrap_profile, "_sha256", lambda _path: "0" * 64)
-    monkeypatch.setattr(bootstrap_profile, "copy_relocatable_tree", lambda *_args: None)
-    monkeypatch.setattr(bootstrap_profile, "export_immutable_tool_seeds", lambda *_args: None)
-    monkeypatch.setattr(bootstrap_profile, "install_offline_python_payload", lambda *args: {"outcome": "passed"})
-    monkeypatch.setattr(bootstrap_profile, "verify_offline_kit", lambda *args, **kwargs: {"outcome": "passed"})
-    monkeypatch.setattr(bootstrap_profile, "proof_support_outcome", lambda _platform: "required")
+    monkeypatch.setattr(bootstrap_profile, collaborator, record)
 
-    assert [bootstrap_profile.main() for _ in range(13)] == [0] * 13
-    assert len(capsys.readouterr().out.splitlines()) == 11
+    exit_code = bootstrap_profile.main()
+
+    assert calls == [_expected_collaborator_call(operation, arguments)]
+    assert exit_code == (1 if failed else 0)
+    output = capsys.readouterr().out
+    if passed_result is not None:
+        assert output.strip()
 
 
 def test_offline_tool_seed_export_and_private_restore_use_canonical_installation_identity(
@@ -1003,7 +1207,11 @@ def test_offline_kit_requires_external_trust_before_executing_installed_payloads
         "host_profile": {
             "host_profile_id": "host-a",
             "platform_id": "linux-arm64",
-            "offline_kit": {"kit_id": "host-a-kit", "artifact_ids": sorted(artifact_ids)},
+            "offline_kit": {
+                "kit_id": "host-a-kit",
+                "artifact_ids": sorted(artifact_ids),
+                "host_prerequisite_package_ids": ["git", "curl"],
+            },
         },
         "artifacts": artifacts,
         "policy_sha256": "a" * 64,
@@ -1234,6 +1442,7 @@ def test_offline_kit_manifest_uses_the_profile_specific_proof_closure(
             "offline_kit": {
                 "kit_id": "proof-kit",
                 "artifact_ids": ["cpython-3.12", "isabelle", "uv"],
+                "host_prerequisite_package_ids": ["libc-bin", "bubblewrap", "fontconfig", "fonts-dejavu-core"],
             },
         },
         "artifacts": artifacts,
@@ -1246,6 +1455,7 @@ def test_offline_kit_manifest_uses_the_profile_specific_proof_closure(
         python_artifact_id="cpython-3.12",
     )
     assert manifest["artifact_ids"] == ["cpython-3.12", "isabelle", "uv"]
+    assert manifest["host_prerequisite_package_ids"] == ["bubblewrap", "fontconfig", "fonts-dejavu-core", "libc-bin"]
 
 
 def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
@@ -1287,12 +1497,14 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
         *,
         ca_cert: Path | None,
         max_bytes: int,
-        max_time_seconds: int = 30,
+        max_time_seconds: int | None = None,
+        budget: maintained_client_acquisition.TransferBudget,
     ) -> dict[str, str]:
         assert url == "https://example.invalid/uv.tar.gz"
         assert ca_cert is None
         assert max_bytes == len(payload)
-        assert max_time_seconds == 30
+        assert max_time_seconds is None
+        assert budget is maintained_client_acquisition.GENERIC_TRANSFER_BUDGET
         output.write_bytes(payload)
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
@@ -1319,11 +1531,13 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
         *,
         ca_cert: Path | None,
         max_bytes: int,
-        max_time_seconds: int = 30,
+        max_time_seconds: int | None = None,
+        budget: maintained_client_acquisition.TransferBudget,
     ) -> dict[str, str]:
         assert ca_cert is None
         assert max_bytes == len(payload)
-        assert max_time_seconds == 30
+        assert max_time_seconds is None
+        assert budget is maintained_client_acquisition.GENERIC_TRANSFER_BUDGET
         output.write_bytes(b"tampered")
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
@@ -1356,6 +1570,17 @@ class _CurlFixture(BaseHTTPRequestHandler):
             return
         if self.path == "/slow":
             time.sleep(2)
+        if self.path == "/trickle":
+            self.send_response(200)
+            self.end_headers()
+            try:
+                for _ in range(40):
+                    self.wfile.write(b"x")
+                    self.wfile.flush()
+                    time.sleep(0.25)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
         if self.path == "/redirect":
             self.send_response(302)
             self.send_header("Location", f"https://127.0.0.1:{self.server.server_port}/small")

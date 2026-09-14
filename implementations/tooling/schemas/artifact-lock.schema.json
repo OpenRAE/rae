@@ -59,6 +59,19 @@
           "minItems": 1,
           "items": {"$ref": "#/$defs/manifestEntry"}
         },
+        "installed_tree": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["format", "manifest_sha256", "file_count", "directory_count", "symlink_count", "expanded_bytes"],
+          "properties": {
+            "format": {"const": "tar.gz"},
+            "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "file_count": {"type": "integer", "minimum": 1},
+            "directory_count": {"type": "integer", "minimum": 1},
+            "symlink_count": {"type": "integer", "minimum": 0},
+            "expanded_bytes": {"type": "integer", "minimum": 1}
+          }
+        },
         "installed_identity": {
           "type": "object",
           "additionalProperties": false,
@@ -94,7 +107,7 @@
       "properties": {
         "artifact_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
         "artifact_class": {
-          "enum": ["generic-cli", "source-snapshot", "bootstrap", "native-tool", "oci-image"]
+          "enum": ["generic-cli", "source-snapshot", "bootstrap", "native-tool", "oci-image", "vm-base-image"]
         },
         "version": {"type": "string", "minLength": 1},
         "support_level": {"enum": ["blocking", "advisory"]},

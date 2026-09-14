@@ -179,6 +179,37 @@
         "nist-csf-defensive-categories-snapshot",
         "w3c-activitystreams-activity-types-snapshot"
       ]
+    },
+    {
+      "profile_id": "live-runner-linux-x86_64",
+      "contexts": [
+        "maintainer",
+        "self-hosted"
+      ],
+      "platform": {
+        "canonical_id": "linux-x86_64",
+        "aliases": [
+          "Linux-amd64",
+          "Linux-x86_64",
+          "linux-amd64",
+          "linux-x86_64"
+        ]
+      },
+      "locator_classes": [
+        {
+          "locator_id": "official-cirros-download",
+          "kind": "official-https",
+          "trust_root_ref": "system-ca"
+        },
+        {
+          "locator_id": "official-cirros-cloud-mirror",
+          "kind": "official-https",
+          "trust_root_ref": "system-ca"
+        }
+      ],
+      "supported_artifact_ids": [
+        "cirros-guest-disk"
+      ]
     }
   ],
   "python_package_contexts": [
@@ -645,7 +676,8 @@
           "coreutils",
           "bubblewrap",
           "fontconfig",
-          "fonts-dejavu-core"
+          "fonts-dejavu-core",
+          "libc-bin"
         ],
         "host_trust_root_refs": [
           "ubuntu-archive-keyring",
@@ -740,6 +772,80 @@
       "qualification_record_ids": [
         "container-ubuntu-24.04-x86_64-t02-t08-issue-1238-pending"
       ]
+    },
+    {
+      "host_profile_id": "live-runner-ubuntu-24.04-x86_64",
+      "platform_id": "linux-x86_64",
+      "contexts": [
+        "maintainer",
+        "self-hosted"
+      ],
+      "native_family": "ubuntu-apt",
+      "base_image_identity": "aws-canonical:ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20260911",
+      "native_repository_identity": "ubuntu-noble-snapshot",
+      "native_repository_snapshot": "20260901T000000Z",
+      "trust_root_refs": [
+        "ubuntu-archive-keyring",
+        "aws-image-identity"
+      ],
+      "credential_refs": [],
+      "bootstrap_payload_ids": [
+        "cpython-3.14",
+        "uv"
+      ],
+      "required_capability_ids": [
+        "base-image",
+        "native-repository",
+        "git",
+        "ca-roots",
+        "sha256",
+        "curl-unknown-length-max-filesize",
+        "uv",
+        "cpython",
+        "qemu",
+        "libvirt-daemon",
+        "libvirt-client"
+      ],
+      "optional_capability_ids": [
+        "kvm-access",
+        "container-cli"
+      ],
+      "proof_support": "unsupported",
+      "host_security_control_changes": "prohibited",
+      "offline_kit": {
+        "kit_id": "live-runner-ubuntu-24.04-x86_64-bootstrap",
+        "credential_free": true,
+        "network_fallback": "prohibited",
+        "artifact_ids": [
+          "cirros-guest-disk",
+          "cpython-3.14",
+          "uv"
+        ],
+        "host_prerequisite_package_ids": [
+          "build-essential",
+          "busybox-static",
+          "ca-certificates",
+          "coreutils",
+          "cpio",
+          "curl",
+          "genisoimage",
+          "git",
+          "libvirt-clients",
+          "libvirt-daemon-system",
+          "libvirt-dev",
+          "pkg-config",
+          "python3-dev",
+          "qemu-system-x86",
+          "qemu-utils",
+          "rsync"
+        ],
+        "host_trust_root_refs": [
+          "ubuntu-archive-keyring"
+        ]
+      },
+      "qualification_record_ids": [
+        "live-runner-ubuntu-24.04-x86_64-issue-1222-pending"
+      ]
     }
   ],
   "qualification_records": [
@@ -757,7 +863,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -787,7 +893,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -817,7 +923,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "native-proof",
@@ -845,7 +951,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -874,7 +980,7 @@
       "outcome": "not-run",
       "base_image_identity": "unobserved",
       "native_repository_identity": "unobserved",
-      "policy_sha256": "46d175dff087aa07a9b6eec2efa17a47c30e79bd0aba841856e8dade1ab79ea0",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
       "capability_results": [
         {
           "capability_id": "qualification-workflow",
@@ -888,6 +994,35 @@
       ],
       "evidence_location": ".github/workflows/bootstrap-qualification.yml",
       "evidence_sha256": "0d407b8dcf936e693df5e4c456a32a199ee08a25b4ce266a8728dfd366ea9688"
+    },
+    {
+      "evidence_id": "live-runner-ubuntu-24.04-x86_64-issue-1222-pending",
+      "host_profile_id": "live-runner-ubuntu-24.04-x86_64",
+      "test_case_ids": [
+        "T01"
+      ],
+      "implementation_revision": "10293fe606ee04d4a0750b4b6553c8f884060025",
+      "observed_at": "2026-09-14T00:00:00Z",
+      "context": "The live-runner host's locked-input bootstrap (uv/CPython) qualification is pending execution on the delivery revision; the live input-closure qualification (operations T07/T13/T21) is operator-run against a real libvirt/QEMU host and recorded in docs/decisions/package-artifacts/operations.md, not in this bootstrap-qualification record. The hermetic nox verify graph never provisions a daemon or cloud host.",
+      "outcome": "not-run",
+      "base_image_identity": "unobserved",
+      "native_repository_identity": "unobserved",
+      "policy_sha256": "9c777874a799fc82ce511dcb71aa3cf2c82605ce6d08a455610a77be4d5fa012",
+      "capability_results": [
+        {
+          "capability_id": "live-runner-qualification",
+          "outcome": "not-run",
+          "observed_identity": "delivery-revision",
+          "reason_code": "awaiting-live-execution"
+        }
+      ],
+      "limitations": [
+        "This reviewed profile declaration is not execution evidence until an operator records a measured result under the exact delivery revision.",
+        "The live input-closure cases (operations T07/T13/T21) require a real libvirt/QEMU daemon and an ephemeral AWS host; they are operator-run out-of-band and are not projected into this bootstrap-qualification record.",
+        "The in-repository slices of T13/T21 (input admission, tampered/unpinned rejection, script safety) run as hermetic unit tests; the live concurrency and full closure boot slices remain operator obligations recorded in operations.md."
+      ],
+      "evidence_location": "docs/decisions/package-artifacts/operations.md",
+      "evidence_sha256": "3ec9e1fcf12822dce63a690c05db703c26d5925a705d21a26232b267a4582fae"
     }
   ]
 }

@@ -120,7 +120,7 @@ Every `instantiated-scenario-v1` payload **MUST** carry a closed
 
 | Member | Meaning |
 |--------|---------|
-| `authored_digest` | Required `raes-sdl-semantic/v1` / SHA-256 identity of the validated expanded authoring object. Profile, algorithm, and digest value are explicit. |
+| `authored_digest` | Required `raes-sdl-semantic/v2` / SHA-256 identity of the validated expanded authoring object. Profile, algorithm, and digest value are explicit. |
 | `selected_profile` | Optional instantiation-profile selector. Absence means no named profile was selected; it does not imply a hidden default profile. |
 | `bindings` | Root bindings in variable declaration order. Each has a one-segment parameter identity, `provided` or `default` origin, and selected scalar value. |
 | `imports` | Verified resolved imports in declared preorder. Each carries namespace segments, requested and resolved identities, available digests, signer id, and module-local bindings. |

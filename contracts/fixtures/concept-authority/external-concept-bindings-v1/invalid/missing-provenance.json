@@ -1,42 +1,68 @@
 {
-  "schema_version": "external-concept-bindings/v1",
   "binding_set_id": "invalid-missing-provenance",
   "binding_set_version": "1.0.0",
   "bindings": {
     "missing-provenance": {
-      "binding_id": "missing-provenance",
-      "subject": {
-        "subject_kind": "node",
-        "owning_contract_id": "sdl-authoring-input-v1",
-        "lifecycle_phase": "normalized-authoring",
-        "canonical_ref": "nodes.web",
-        "artifact_digest": "sha256:0127e45974ffb188d44e2601d9cce62fe29303c68a159be8c5010e892039e47b"
-      },
-      "scheme": {
-        "scheme_id": "mitre-attack-enterprise-tactics",
-        "authority": "MITRE ATT&CK",
-        "revision": "v19.1",
-        "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3",
-        "concept_id": "TA0002"
+      "approximation": {
+        "loss_details": [],
+        "posture": "exact"
       },
       "assertion": {
-        "relationship_kind": "related-to",
         "motivation": "Missing provenance fixture.",
-        "motivation_basis_refs": [{"ref_kind": "other", "ref_id": "basis"}],
+        "motivation_basis_refs": [
+          {
+            "ref_id": "basis",
+            "ref_kind": "other"
+          }
+        ],
+        "relationship_kind": "related-to",
         "semantic_effect": "annotates",
-        "semantic_effect_basis_refs": [{"ref_kind": "profile", "ref_id": "sem-217"}]
+        "semantic_effect_basis_refs": [
+          {
+            "ref_id": "sem-217",
+            "ref_kind": "profile"
+          }
+        ]
       },
+      "binding_id": "missing-provenance",
+      "confidence": {
+        "basis": "Invalid fixture.",
+        "posture": "unknown"
+      },
+      "limitations": [
+        "Invalid fixture."
+      ],
       "perspective": {
         "asserting_party_kind": "author",
         "asserting_party_ref": "authors.fixture",
-        "perspective": "scenario-author",
-        "authority_basis_refs": [{"ref_kind": "other", "ref_id": "charter"}]
+        "authority_basis_refs": [
+          {
+            "ref_id": "charter",
+            "ref_kind": "other"
+          }
+        ],
+        "perspective": "scenario-author"
       },
-      "supporting_evidence_refs": [],
-      "confidence": {"posture": "unknown", "basis": "Invalid fixture."},
-      "approximation": {"posture": "exact", "loss_details": []},
-      "limitations": ["Invalid fixture."],
-      "review": {"status": "unreviewed", "review_refs": []}
+      "review": {
+        "review_refs": [],
+        "status": "unreviewed"
+      },
+      "scheme": {
+        "authority": "MITRE ATT&CK",
+        "concept_id": "TA0002",
+        "revision": "v19.1",
+        "scheme_id": "mitre-attack-enterprise-tactics",
+        "source_digest": "sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3"
+      },
+      "subject": {
+        "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+        "canonical_ref": "nodes.web",
+        "lifecycle_phase": "normalized-authoring",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "subject_kind": "node"
+      },
+      "supporting_evidence_refs": []
     }
-  }
+  },
+  "schema_version": "external-concept-bindings/v1"
 }

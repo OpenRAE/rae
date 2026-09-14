@@ -25748,6 +25748,20 @@
       "title": "Scripts",
       "type": "object"
     },
+    "semantic_revision": {
+      "anyOf": [
+        {
+          "const": "raes-progressive-semantics/v1",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Semantic Revision",
+      "x-raes-realization-dimension": false
+    },
     "stories": {
       "additionalProperties": {
         "$ref": "#/$defs/Story"

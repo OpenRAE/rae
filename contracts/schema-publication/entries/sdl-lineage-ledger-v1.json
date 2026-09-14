@@ -1,10 +1,10 @@
 {
+  "content_hash": "e1cffcfed204154d4cee292fd7f022befa8378867038f283ba63f582df471eb9",
   "contract_id": "sdl-lineage-ledger-v1",
-  "schema_path": "contracts/schemas/provenance/sdl-lineage-ledger-v1.json",
-  "stability": "draft",
-  "content_hash": "c6ac7371ff690f3ca72db81c42f7a5d2896735bf2fa6db037a814a30b0d08b10",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "c6ac7371ff690f3ca72db81c42f7a5d2896735bf2fa6db037a814a30b0d08b10"
-  }
+    "content_hash": "e1cffcfed204154d4cee292fd7f022befa8378867038f283ba63f582df471eb9",
+    "summary": "Bind living lineage sources to immutable Git revisions or digest-bound archival captures for the progressive semantic cutover (#1210)."
+  },
+  "schema_path": "contracts/schemas/provenance/sdl-lineage-ledger-v1.json",
+  "stability": "draft"
 }

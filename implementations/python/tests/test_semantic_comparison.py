@@ -51,7 +51,7 @@ from raes_processor.semantic_comparison import (
 )
 
 _ROOT = Path(__file__).resolve().parents[3]
-_PROFILE_PATH = _ROOT / "contracts/profiles/semantic-comparison/reference-v1.json"
+_PROFILE_PATH = _ROOT / "contracts/profiles/semantic-comparison/reference-v2.json"
 
 
 def _fixture(relative: str, model: type):
@@ -298,7 +298,7 @@ def test_rename_requires_successful_digest_profile_and_phase_bound_evidence(
         artifact_kind=ArtifactTransformationKind.PORTABLE_CONTRACT,
         source_profile="sdl-normalized-authoring/v1",
         target_profile="sdl-normalized-authoring/v1",
-        canonicalization_profile="raes-canonical-sdl/v1",
+        canonicalization_profile="raes-canonical-sdl/v2",
         source_digest=request.before.canonical_digest,
         target_digest=request.after.canonical_digest,
         policy_digest="sha256:" + "a" * 64,

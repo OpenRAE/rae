@@ -1,9 +1,9 @@
 {
-  "content_hash": "11a113d1298fc65398d00960f43cf0a81b660e4e0ec7868a486710e0d9dcef72",
+  "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "11a113d1298fc65398d00960f43cf0a81b660e4e0ec7868a486710e0d9dcef72",
-    "summary": "Encode the StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields for issue #1276."
+    "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
+    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"
