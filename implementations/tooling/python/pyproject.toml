@@ -6,6 +6,7 @@ requires-python = ">=3.11,<3.15"
 dependencies = [
     "check-jsonschema==0.37.1",
     "cryptography==50.0.1",
+    "filelock==3.32.6",
     "nox[uv]==2026.4.10",
     "pip==26.2.1",
     "pre-commit==4.3.0",

@@ -182,6 +182,48 @@ future implementation, not tests claimed to have passed in the design change.
 | T23 | A tool's version/digest/platform mapping changes in one entry point but not its authority | Deterministic policy failure across Nox, hooks, workflows, docs/bootstrap and release; failed coverage of a new path blocks qualification |
 | T24 | Current protected release from admitted inputs with configured external controls | Wheel/sdist consumption from PyPI and GitHub works, corpus/CLI/conformance smoke passes, SBOM/provenance resolve, evidence retained; docs-only promotion creates no release |
 
+### Verified local CLI installation qualification
+
+Issue #1219 implements the local generic-CLI slices of T05, T06, T07 and T16
+for Conftest, Gitleaks, Vale and OSV-Scanner. All four wrappers use
+`tools/verified_tool_installation.py`; raw acquisition remains owned by the
+maintained client. The installed-tree key binds artifact, canonical platform,
+raw SHA-256, `install-v1`, active policy references and the canonical installed
+manifest. Version-keyed files are migration inputs only.
+
+The implementation uses a native `filelock` lock from the frozen tooling
+closure, private same-filesystem staging, full opened-inode verification,
+immutable file/tree modes, file and directory fsync, and atomic directory
+rename. Invalid current or legacy content is quarantined without reacquisition.
+Immutable seeds are explicit read-only inputs copied into a private job tree.
+NFS, SMB, FUSE and unknown filesystem semantics are rejected.
+
+Run the local evidence harness through the existing integration suite:
+
+```console
+RAES_REQUIREMENT_UID= uv run --project implementations/python --frozen \
+  python -m pytest -q -m integration \
+  implementations/python/tests/test_issue_1219_verified_tool_installation.py
+```
+
+The harness emits the exact OS, Python, filesystem, lock-library and install-
+policy identities plus elapsed case results. It runs 32 cold processes, 100
+warm local clients, kills a publisher at every durable checkpoint, verifies
+live-publisher exclusion and dead-owner recovery, and injects disk exhaustion.
+The adjacent unit cases cover archive traversal, links, special files,
+duplicates, bombs, cache/seed tampering, hardlinks, private-root modes and
+legacy quarantine.
+
+The existing bootstrap qualification matrix runs the mechanism-level harness
+on every supported Linux and macOS host profile and retains its measured JSON
+beside the canonical bootstrap evidence. The harness output uses local slice
+names and is not projected into canonical passed T05/T06/T07/T16 records.
+Those cases also cover distinct OS principals, proof, repository services, OCI,
+export and program-wide GC and remain assigned to their downstream migration
+owners until complete case harnesses exist. A multi-user deployment must use an
+immutable root-owned seed and private job trees; it must not turn this local
+installed tree into a shared writable cache.
+
 ### Issue #1216 policy-gate evidence
 
 T22 and T23 are implemented as deterministic, offline policy coverage for this
@@ -288,3 +330,46 @@ retired rather than kept on a vulnerable pin (#1268).
 Input locks improve repeatability but do not prove byte-identical distributions
 across host SDKs, compilers, operating systems, or build times; candidate output
 digests are evidence, not release admission.
+
+### Issue #1221 vocabulary source evidence
+
+The opt-in `--verify-remote` acquisition in the five vocabulary source checkers
+(`tools/check_attack_tactic_vocabulary.py`,
+`tools/check_atlas_tactic_vocabulary.py`,
+`tools/check_nist_csf_defensive_vocabulary.py`, and both sources in
+`tools/check_autonomous_behavior_vocabularies.py`) is migrated off `urllib` onto
+`tools.maintained_client_acquisition.acquire_locked_bytes()`. Each checker
+selects its snapshot through `load_tooling_artifact_selection()`
+(`profile_id="source-snapshot"`), verifies the pinned HTTPS host/URL, then
+admits either freshly transferred bytes or an approved local raw object against
+the reviewed `artifacts.lock.json` raw identity before any source-specific
+parsing. Raw-byte identity/size (the lock `raw_manifest`) stays distinct from the
+source-specific semantic `source_digest`. No checker retains custom transport,
+retry, redirect, TLS or framing code. Evidence: implementation commit; tool
+`/usr/bin/curl` (>= 8.4.0) invoked only through the shared hardened argv; policy
+`source-snapshot-integrity-v1`; input lock `implementations/tooling/artifacts.lock.json`.
+
+- T09 (upstream outage/relocation, approved replica, then all copies absent):
+  the `--local-input` / `--activitystreams-local-input` / `--fipa-local-input`
+  arguments admit an approved local raw object by the same locked raw identity;
+  a missing, corrupt, or mismatched local object is a terminal hard failure with
+  no network fallback, and acquisition never rewrites the lock. Recovery is
+  same-digest only.
+- T11 (air-gapped export/import): the default offline checks
+  (source-metadata and catalog validation against the checked-in
+  `contracts/concept-authority/*` snapshots) succeed with egress blocked;
+  `--verify-remote` is not part of the default Nox policy lanes, so the live
+  comparison is reported not evaluated rather than claimed.
+- T13 (missing/corrupt/wrong-platform input): selection and lock validation run
+  before transport; local-object admission rejects symlinks, non-regular files,
+  size drift, and SHA-256 drift without a network attempt and without executing
+  imported content.
+- T21 (ATT&CK/ATLAS/NIST/W3C ActivityStreams/FIPA refresh): each source keeps
+  its exact raw and canonical snapshot identities, acquires only through the
+  qualified maintained client, and surfaces an acquisition failure rather than
+  ignoring it; no custom network code remains. Verified offline by
+  `implementations/python/tests/test_issue_1221_vocabulary_maintained_client_acquisition.py`
+  and the existing per-source offline checkers; the tracked-scan disposition is
+  recorded under T22 by dropping the four now-transport-free checkers from the
+  `acquisition_paths` inventory while their lock-selection consumer bindings
+  remain.

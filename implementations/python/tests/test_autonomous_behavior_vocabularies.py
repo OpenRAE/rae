@@ -251,47 +251,21 @@ def test_source_integrity_checker_rejects_metadata_drift() -> None:
     assert any("source_version" in failure for failure in fipa_failures)
 
 
-def test_remote_maintenance_fetch_rejects_redirects_outside_official_host(monkeypatch) -> None:
+def test_remote_verification_rejects_off_host_url_before_transport(monkeypatch) -> None:
     checker = _load_source_checker()
-    redirect_handler = checker._OfficialHttpsRedirectHandler("www.w3.org")
+    failure = checker._remote_host_failure(
+        "https://example.test/source",
+        allowed_host="www.w3.org",
+        relative_path=checker.ACTIVITYSTREAMS_RELATIVE_PATH,
+    )
 
-    with pytest.raises(ValueError, match="allowlisted"):
-        redirect_handler.redirect_request(
-            request=None,
-            fp=None,
-            code=302,
-            msg="Found",
-            headers={},
-            newurl="https://example.test/source",
-        )
-
-    handlers = []
-
-    class _Response:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *_args):
-            return None
-
-        def read(self):
-            return b"official-source"
-
-    class _Opener:
-        def open(self, *_args, **_kwargs):
-            return _Response()
-
-    def _build_opener(*args):
-        handlers.extend(args)
-        return _Opener()
-
-    monkeypatch.setattr(checker.urllib.request, "build_opener", _build_opener)
-
+    assert failure is not None
+    assert "allowlisted official HTTPS host" in failure
     assert (
-        checker._fetch_official_bytes(
+        checker._remote_host_failure(
             "https://www.w3.org/TR/2017/REC-activitystreams-vocabulary-20170523/",
             allowed_host="www.w3.org",
+            relative_path=checker.ACTIVITYSTREAMS_RELATIVE_PATH,
         )
-        == b"official-source"
+        is None
     )
-    assert any(isinstance(handler, checker._OfficialHttpsRedirectHandler) for handler in handlers)

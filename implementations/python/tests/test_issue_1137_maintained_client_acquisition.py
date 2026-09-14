@@ -6,12 +6,14 @@ import hashlib
 import io
 import subprocess
 import tarfile
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 from tools import bootstrap_profile, gitleaks_tool, osv_scanner_tool, vale_tool
 from tools import maintained_client_acquisition as acquisition
+from tools import verified_tool_installation as installation
 from tools.policy import conftest_tool
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -22,6 +24,7 @@ def _expected(payload: bytes) -> SimpleNamespace:
         path="reviewed-tool.tar.gz",
         sha256=hashlib.sha256(payload).hexdigest(),
         size=len(payload),
+        executable=False,
     )
 
 
@@ -325,6 +328,17 @@ def test_canonical_proof_job_consumes_same_run_locked_generic_tool_inputs() -> N
     assert "--artifact-id osv-scanner" in workflow_text
     assert "--artifact-id vale" in workflow_text
     assert "generic-tools --local-input-root .canonical-tool-inputs" in workflow_text
+    install = next(
+        step for step in verify["steps"] if step.get("name") == "Install locked generic tools from local inputs"
+    )
+    assert str(install["run"]).split()[:6] == [
+        "uv",
+        "run",
+        "--project",
+        "implementations/tooling/python",
+        "--frozen",
+        "--no-default-groups",
+    ]
     upload = next(step for step in prepare["steps"] if str(step.get("uses", "")).startswith("actions/upload-artifact@"))
     assert upload["with"]["include-hidden-files"] is True
 
@@ -386,10 +400,15 @@ def test_each_installer_passes_the_locked_raw_object_and_explicit_local_input_to
         path=binary_name,
         sha256=hashlib.sha256(binary_bytes).hexdigest(),
         size=len(binary_bytes),
+        executable=True,
     )
     selection = SimpleNamespace(
         artifact_id=artifact_id,
+        artifact_class="generic-cli",
         version=version,
+        platform_id="linux-x86_64",
+        profile_id="public-linux-x86_64",
+        policy_refs=("artifact-integrity-v1",),
         source_urls=(source_url,),
         raw_manifest=(raw,),
         installed_manifest=(installed,),
@@ -400,6 +419,7 @@ def test_each_installer_passes_the_locked_raw_object_and_explicit_local_input_to
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", lambda **_kwargs: selection)
+    monkeypatch.setattr(installation, "_portable_lock", lambda _path: nullcontext())
 
     def acquire_locked_bytes(**kwargs: object) -> bytes:
         observed.update(kwargs)
@@ -416,83 +436,3 @@ def test_each_installer_passes_the_locked_raw_object_and_explicit_local_input_to
         "expected": raw,
         "local_input": local_input,
     }
-
-
-@pytest.mark.parametrize("module", [conftest_tool, gitleaks_tool])
-def test_archive_installers_bound_the_selected_member_read_by_the_locked_installed_size(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    module: object,
-) -> None:
-    observed: list[int] = []
-
-    class Stream:
-        def read(self, size: int = -1) -> bytes:
-            observed.append(size)
-            return b"four"
-
-    class Member:
-        def isfile(self) -> bool:
-            return True
-
-    class Archive:
-        def __enter__(self) -> Archive:
-            return self
-
-        def __exit__(self, *_args: object) -> None:
-            return None
-
-        def getmember(self, _path: str) -> Member:
-            return Member()
-
-        def extractfile(self, _member: Member) -> Stream:
-            return Stream()
-
-    monkeypatch.setattr(module.tarfile, "open", lambda *_args, **_kwargs: Archive())  # type: ignore[attr-defined]
-    installed = SimpleNamespace(path="tool", size=3, sha256=hashlib.sha256(b"any").hexdigest())
-
-    with pytest.raises(RuntimeError, match="differs from the reviewed lock manifest"):
-        module._install_locked_binary(b"archive", installed, tmp_path / "tool")  # type: ignore[attr-defined]
-    assert observed == [installed.size + 1]
-
-
-def test_vale_bounds_the_selected_member_read_by_the_locked_installed_size(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    observed: list[int] = []
-
-    class Stream:
-        def read(self, size: int = -1) -> bytes:
-            observed.append(size)
-            return b"four"
-
-    class Member:
-        def isfile(self) -> bool:
-            return True
-
-    class Archive:
-        def __enter__(self) -> Archive:
-            return self
-
-        def __exit__(self, *_args: object) -> None:
-            return None
-
-        def getmember(self, _path: str) -> Member:
-            return Member()
-
-        def extractfile(self, _member: Member) -> Stream:
-            return Stream()
-
-    monkeypatch.setattr(vale_tool.tarfile, "open", lambda *_args, **_kwargs: Archive())
-    expected_sha256 = hashlib.sha256(b"any").hexdigest()
-    vale_path = tmp_path / "vale"
-
-    with pytest.raises(RuntimeError, match="size differs from the reviewed lock manifest"):
-        vale_tool._extract_binary(
-            b"archive",
-            vale_path,
-            expected_size=3,
-            expected_sha256=expected_sha256,
-        )
-    assert observed == [4]

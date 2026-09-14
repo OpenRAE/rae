@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -24,6 +25,7 @@ from tools import (
     tooling_artifact_policy_actions,
     tooling_policy_gate,
     vale_tool,
+    verified_tool_installation,
 )
 from tools.check_tooling_artifact_policy import (
     ACTIONS_POLICY_PATH,
@@ -818,6 +820,7 @@ def test_host_selection_launcher_rejects_an_unbound_validator_response(monkeypat
                 "artifact_id": "uv",
                 "artifact_class": "bootstrap",
                 "version": "1.0.0",
+                "policy_refs": ["artifact-integrity-v1"],
                 "source": {"repository": "https://example.invalid", "release": "v1.0.0"},
                 "platform": {
                     "platform_id": "linux-x86_64",
@@ -850,6 +853,7 @@ def test_host_selection_launcher_can_reuse_the_active_tool_environment(monkeypat
                 "artifact_id": "uv",
                 "artifact_class": "bootstrap",
                 "version": "1.0.0",
+                "policy_refs": ["artifact-integrity-v1"],
                 "source": {"repository": "https://example.invalid", "release": "v1.0.0"},
                 "platform": {
                     "platform_id": "linux-x86_64",
@@ -2418,7 +2422,7 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
                 ),
             ),
             installed_manifest=(
-                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes)),
+                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes), True),
             ),
         )
 
@@ -2429,6 +2433,7 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
     monkeypatch.setattr(module, "acquire_locked_bytes", acquire_locked_bytes)
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
     binary = acquire(tmp_path, version=version)
 
@@ -2494,14 +2499,15 @@ def test_archive_tool_rejects_a_symlink_selected_by_the_installed_manifest(
                     len(archive_bytes),
                 ),
             ),
-            installed_manifest=(LockedManifestEntry(binary_name, _SHA_A, 1),),
+            installed_manifest=(LockedManifestEntry(binary_name, _SHA_A, 1, True),),
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
     monkeypatch.setattr(module, "acquire_locked_bytes", lambda **_kwargs: archive_bytes)
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
-    with pytest.raises(RuntimeError, match="regular"):
+    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
         acquire(tmp_path, version=version)
 
 
@@ -2555,18 +2561,19 @@ def test_archive_tool_never_accepts_a_symlink_cache_entry(
             source_urls=(f"https://example.invalid/{artifact_id}.tar.gz",),
             raw_manifest=(LockedManifestEntry(f"{artifact_id}.tar.gz", _SHA_A, 1),),
             installed_manifest=(
-                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes)),
+                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes), True),
             ),
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
     def reject_acquisition(**_kwargs: object) -> bytes:
         raise RuntimeError("acquisition-sentinel")
 
     monkeypatch.setattr(module, "acquire_locked_bytes", reject_acquisition)
-    with pytest.raises(RuntimeError, match="acquisition-sentinel"):
+    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
         acquire(tmp_path, version=version)
     assert not cached.is_symlink()
     assert outside.read_bytes() == binary_bytes
@@ -2592,12 +2599,12 @@ def test_archive_tool_rejects_a_symlink_in_its_fixed_cache_parent(
             release="v0.68.0",
             source_urls=("https://example.invalid/conftest.tar.gz",),
             raw_manifest=(LockedManifestEntry("conftest.tar.gz", _SHA_A, 1),),
-            installed_manifest=(LockedManifestEntry("conftest", _SHA_B, 1),),
+            installed_manifest=(LockedManifestEntry("conftest", _SHA_B, 1, True),),
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
-    with pytest.raises(RuntimeError, match="unsafe conftest cache directory"):
+    with pytest.raises(RuntimeError, match="unsafe-private-root"):
         conftest_tool.ensure_conftest(repo_root)
 
 
@@ -2690,21 +2697,11 @@ def test_remote_vocabulary_checks_enforce_policy_before_network(
         ),
     ],
 )
-def test_remote_vocabulary_helpers_accept_reviewed_urls_and_bytes(checker, selected_url: str) -> None:
-    payload = b"reviewed source snapshot"
+def test_remote_vocabulary_helpers_pin_reviewed_source_urls(checker, selected_url: str) -> None:
     source = SimpleNamespace(source_url=selected_url)
 
     assert checker._remote_url_failure(source, selected_url) is None
-    assert (
-        checker._remote_bytes_failure(
-            payload,
-            size=len(payload),
-            sha256=hashlib.sha256(payload).hexdigest(),
-        )
-        is None
-    )
     assert checker._remote_url_failure(source, "https://example.invalid/source") is not None
-    assert checker._remote_bytes_failure(payload, size=len(payload) + 1, sha256=_SHA_A) is not None
 
 
 def test_autonomous_remote_helpers_verify_reviewed_snapshots(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2712,11 +2709,8 @@ def test_autonomous_remote_helpers_verify_reviewed_snapshots(monkeypatch: pytest
     digest = f"sha256:{hashlib.sha256(payload).hexdigest()}"
     activity_url = "https://www.w3.org/TR/2017/REC-activitystreams-vocabulary-20170523/"
     fipa_url = "https://www.fipa.org/specs/fipa00037/SC00037J.pdf"
-    monkeypatch.setattr(
-        check_autonomous_behavior_vocabularies,
-        "_fetch_official_bytes",
-        lambda *_args, **_kwargs: payload,
-    )
+    raw = SimpleNamespace(path="raw", sha256=hashlib.sha256(payload).hexdigest(), size=len(payload))
+    monkeypatch.setattr("tools.maintained_client_acquisition.acquire_locked_bytes", lambda **_kwargs: payload)
     monkeypatch.setattr(
         check_autonomous_behavior_vocabularies,
         "_extract_activitystreams_type_names",
@@ -2726,18 +2720,14 @@ def test_autonomous_remote_helpers_verify_reviewed_snapshots(monkeypatch: pytest
     assert (
         check_autonomous_behavior_vocabularies._check_activitystreams_remote(
             SimpleNamespace(source_url=activity_url, source_digest=digest),
-            activity_url,
-            expected_size=len(payload),
-            expected_sha256=hashlib.sha256(payload).hexdigest(),
+            SimpleNamespace(source_urls=[activity_url], raw_manifest=[raw]),
         )
         == []
     )
     assert (
         check_autonomous_behavior_vocabularies._check_fipa_remote(
             SimpleNamespace(source_artifact_url=fipa_url, source_digest=digest),
-            fipa_url,
-            expected_size=len(payload),
-            expected_sha256=hashlib.sha256(payload).hexdigest(),
+            SimpleNamespace(source_urls=[fipa_url], raw_manifest=[raw]),
         )
         == []
     )

@@ -78,8 +78,9 @@ jobs:
             "${tool_python[@]}" -m tools.python_closure manifest-show \
               --profile "${{ matrix.project_closure }}" > .qualification-kit/wheelhouse-manifest.json
           fi
-          "${tool_python[@]}" -m tools.bootstrap_profile offline-kit-copy-tree \
-            .cache/raes-sdl/tooling .qualification-kit/.cache/raes-sdl/tooling
+          "${tool_python[@]}" -m tools.bootstrap_profile offline-kit-export-tool-seeds \
+            "${{ matrix.profile }}" .cache/raes-sdl/tooling/installations \
+            .qualification-kit/.cache/raes-sdl/tooling/installations
           "${tool_python[@]}" -m tools.bootstrap_profile offline-kit-manifest \
             "${{ matrix.profile }}" .qualification-kit --python-artifact-id cpython-3.14 \
             > .qualification-kit/offline-kit-manifest.json
@@ -89,6 +90,13 @@ jobs:
           tar -cf bootstrap-offline-kit.tar .qualification-kit
       - name: Restore and exercise the payload kit without network fallback
         run: |
+          for cleanup_root in \
+            .qualification-kit/.cache/raes-sdl/tooling/installations \
+            .cache/raes-sdl/tooling/installations; do
+            if [ -d "${cleanup_root}" ]; then
+              chmod -R u+w "${cleanup_root}"
+            fi
+          done
           rm -rf .qualification-kit .cache/raes-sdl/tooling .qualification-restored \
             implementations/python/.venv implementations/tooling/python/.venv
           mkdir .qualification-restored
@@ -101,7 +109,7 @@ jobs:
           export UV_PYTHON_INSTALL_DIR="${restored_root}/python"
           export UV_PYTHON_DOWNLOADS=never
           export UV_OFFLINE=1
-          runtime_root="$(mktemp -d "${RUNNER_TEMP}/raes-bootstrap-runtime.XXXXXX")"
+          runtime_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-bootstrap-runtime.XXXXXX")"
           export UV_CACHE_DIR="${runtime_root}/uv-cache"
           mkdir "${UV_CACHE_DIR}"
           "${restored_python}" -m tools.python_closure bootstrap-wheelhouse-verify \
@@ -148,6 +156,12 @@ jobs:
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile record-case T08 "${{ github.sha }}" \
             implementations/python/tests/test_issue_1217_bootstrap_profiles.py > t08-result.json
+      - name: Exercise verified local installation behavior
+        run: |
+          qualification_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-local-installation.XXXXXX")"
+          tool_python=(uv run --project implementations/tooling/python --frozen --no-default-groups python)
+          "${tool_python[@]}" implementations/python/tests/issue_1219_installation_harness.py \
+            "${qualification_root}" > local-installation-qualification.json
       - name: Record exact measured profile evidence
         run: |
           mkdir .qualification-evidence-root
@@ -171,6 +185,7 @@ jobs:
           name: bootstrap-${{ matrix.profile }}-${{ github.sha }}
           path: |
             bootstrap-qualification.json
+            local-installation-qualification.json
             bootstrap-offline-kit.tar
           if-no-files-found: error
 
