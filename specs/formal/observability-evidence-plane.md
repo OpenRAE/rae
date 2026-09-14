@@ -253,6 +253,31 @@ augmentation and realized-form behavior.
 | EXP-731 run-scoped capture refinements preserve authored requirements | `_run_refinement_conformance_diagnostics()` requires `authored_ref` for capture-window and measurement-channel disclosures | `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
 | EXP-732 augmentation and refinements remain evidence-traced | experiment run model traced evidence refs plus conformance evidence-ref checks | `test_observability_evidence_conformance_accepts_traced_augmentation`, `test_observability_evidence_conformance_requires_authored_ref_for_run_refinement` | yes |
 
+## Conformance Corpus (#340 / ASR-525)
+
+The opt-in `contracts/profiles/backend/observability-evidence.json` selects
+the existing manifest, capture-specification, evidence-record, derived-measure,
+and run carriers through `run_fixture_suite()`. Plane ownership comes from the
+SEM-224 classifiers, not fixture labels or the word `telemetry`. The tests in
+`implementations/python/tests/test_observability_evidence_conformance.py`
+bind these carriers to the following executable cases:
+
+| Obligation | Positive control | Negative control |
+| --- | --- | --- |
+| Native observability and authored demand remain distinct | SDL `observability-native-no-demand.yaml` compiles with no demand; `observability-selected-demand.yaml` selects only listener events with retention/export disabled | Evidence-record fixture `sem224-capture-record-without-requirement-ref` rejects unsupported satisfaction linkage |
+| Evidence and analysis remain distinct | Reference capture, evidence, and derived-measure fixtures pass their owning models | `sem216-analysis-output-as-evidence` and `missing-source-evidence` are rejected |
+| Augmentation obligations are conditional and additive | `augmentation-classifications` includes operational apparatus-only disclosure without augmentation evidence, each visible/relevant classification, and all classifications together | Environment effect, participant markings, and comparability observer effect are individually removed in invalid fixtures |
+| Claims preserve portable provenance | Valid disclosures name affected and portable carriers and trace their evidence to the run | Invalid fixtures omit affected refs, portable carriers, or purpose-required evidence; mutation tests reject changed evidence identity/version |
+| Fixture reports enforce their stated boundary | Canonical profile passes with fixture-only execution basis and no native-conformance claim | Corrupting a valid disclosure's affected refs makes the report fail at that field |
+
+Issue #1198's separation is preserved: scenario precision, native observability,
+and delegated backend choices do not imply experimental collection, retention,
+or export. The SDL pair exercises independent demand at its owning compiler
+boundary. The legacy evidence-bearing run archive keeps its selected contract
+requirements; its reference evidence is not a default for all executions.
+This corpus checks declared artifacts, not undisclosed live instrumentation or
+actual capture, task satisfaction, or participant visibility projection.
+
 ## Implementation Coverage (#1212 / Scoped Observation Demand)
 
 Issue #1212 adds `observation-demand-v1` as the shared demand carrier without

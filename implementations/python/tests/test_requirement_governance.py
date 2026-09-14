@@ -268,6 +268,28 @@ def test_manual_release_phase_blocks_without_status_lookup(tmp_path: Path, monke
     assert "explicitly released" in failures[0].message
 
 
+@pytest.mark.parametrize(
+    ("path", "expected_rules"),
+    [
+        ("contracts/profiles/backend/observability-evidence.json", []),
+        ("contracts/fixtures/experiment-core/experiment-run-v1/valid/augmentation-classifications.json", []),
+        ("contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml", []),
+        ("contracts/profiles/backend/provisioning-only.json", ["requirement-ownership-mismatch"]),
+        ("contracts/schemas/experiment-core/experiment-run-v1.json", ["requirement-ownership-mismatch"]),
+    ],
+)
+def test_observability_conformance_policy_bounds_artifact_ownership(
+    tmp_path: Path, path: str, expected_rules: list[str]
+) -> None:
+    repo_root = setup_policy_repo(tmp_path)
+    client = FakeClient(
+        requirements={"ASR-525": {"id": "req-asr-525", "uid": "ASR-525", "status": "ACTIVE"}},
+        traceability={},
+    )
+    failures = evaluate_requirement_governance(repo_root, [path], client=client, requirement_uid="ASR-525")
+    assert [failure.rule_id for failure in failures] == expected_rules
+
+
 def test_unmapped_requirement_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     client = make_client()
