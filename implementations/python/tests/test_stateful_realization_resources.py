@@ -260,6 +260,7 @@ def test_planner_rejects_ssh_artifact_when_backend_does_not_claim_kind_support()
             provisioner=replace(
                 manifest.provisioner,
                 supported_generated_artifact_kinds=frozenset({"certificate_bundle", "rendered_config"}),
+                supported_regeneration_scopes=frozenset(),
             ),
         ),
     )

@@ -103,6 +103,10 @@ class EvaluatorCapabilities:
     supported_evidence_channels: frozenset[str] = frozenset()
     supported_time_domains: frozenset[str] = frozenset()
     preserves_binding_provenance: bool = False
+    # Whether the evaluator can compare a submission against a generated-artifact
+    # value referenced by a proposition ``expected_from`` without the expected
+    # value appearing in the SDL/plan (issue #1276).
+    supports_deferred_expected_comparison: bool = False
     constraints: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:

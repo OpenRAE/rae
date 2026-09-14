@@ -8,7 +8,11 @@ from raes_contracts.controlled_vocabularies import (
 )
 from raes_contracts.domain_profiles import DomainProfileCoordinateModel
 from raes_contracts.operating_systems import OS_VERSION_RE, validate_operating_system_pair
-from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode, GeneratedArtifactKind
+from raes_contracts.vocabulary import (
+    GeneratedArtifactDeliveryMode,
+    GeneratedArtifactKind,
+    GeneratedArtifactRegenerationScope,
+)
 
 PROVISIONER_DOMAIN_PROFILE_SCOPE = "capabilities.provisioner.supported_domain_profiles"
 PROVISIONER_SERVICE_MATERIALIZATION_PROFILE_SCOPE = (
@@ -106,6 +110,27 @@ def _validated_artifact_delivery_modes(
     return normalized
 
 
+def _validated_regeneration_scopes(
+    capabilities: "ProvisionerCapabilities",
+) -> frozenset[GeneratedArtifactRegenerationScope]:
+    try:
+        normalized = frozenset(
+            GeneratedArtifactRegenerationScope(scope) for scope in capabilities.supported_regeneration_scopes
+        )
+    except ValueError as exc:
+        raise ValueError("ProvisionerCapabilities contains an unknown regeneration scope") from exc
+    supports_random_value = GeneratedArtifactKind.RANDOM_VALUE in capabilities.supported_generated_artifact_kinds
+    if supports_random_value and not normalized:
+        raise ValueError(
+            "ProvisionerCapabilities that support the random_value generator must declare supported_regeneration_scopes"
+        )
+    if not supports_random_value and normalized:
+        raise ValueError(
+            "ProvisionerCapabilities supported_regeneration_scopes require the random_value generated artifact kind"
+        )
+    return normalized
+
+
 def _validate_account_support(capabilities: "ProvisionerCapabilities") -> None:
     if capabilities.supports_accounts and not capabilities.supported_account_features:
         raise ValueError("ProvisionerCapabilities that support accounts must declare supported_account_features")
@@ -136,6 +161,7 @@ class ProvisionerCapabilities:
     supports_generated_artifacts: bool = False
     supported_generated_artifact_kinds: frozenset[GeneratedArtifactKind | DomainProfileCoordinateModel] = frozenset()
     supported_generated_artifact_delivery_modes: frozenset[GeneratedArtifactDeliveryMode] = frozenset()
+    supported_regeneration_scopes: frozenset[GeneratedArtifactRegenerationScope] = frozenset()
     supports_persistent_volumes: bool = False
     constraints: dict[str, str] = field(default_factory=dict)
 
@@ -193,6 +219,7 @@ class ProvisionerCapabilities:
             "supported_generated_artifact_delivery_modes",
             _validated_artifact_delivery_modes(self),
         )
+        object.__setattr__(self, "supported_regeneration_scopes", _validated_regeneration_scopes(self))
 
     def supports_operating_system(
         self,

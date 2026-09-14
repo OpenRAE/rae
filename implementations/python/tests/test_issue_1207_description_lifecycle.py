@@ -3,6 +3,7 @@
 from raes import parse_sdl
 from raes.runtime_configuration import RuntimeConfiguration
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.planning import PlanScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_reference_backend import create_reference_backend_target
@@ -32,7 +33,7 @@ def test_partial_inventory_does_not_waive_selected_required_capture():
         datastore_services=[{"datastore_service_id": "search", "data_model": "search_index", "partitions": []}]
     )
     target = create_stub_target()
-    execution = plan(compile_runtime_model(scenario), target.manifest, target_name=target.name)
+    execution = plan(compile_runtime_model(scenario), target.manifest, scope=PlanScope(target_name=target.name))
     assert any(row.code == "capture.offer-missing" for row in execution.diagnostics)
     control = RuntimeControlPlane(target)
     receipt = control.submit_provisioning(execution.provisioning)

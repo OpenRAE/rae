@@ -165,12 +165,14 @@ def _validate_artifact_and_volume_support(
             )
         )
     elif model.generated_artifacts:
+        content_specs = {placement.address: {"spec": placement.spec} for placement in model.content_placements.values()}
         for artifact in model.generated_artifacts.values():
             diagnostic = generated_artifact_payload_diagnostic(
                 address=artifact.address,
                 spec=artifact.spec,
                 provisioner=provisioner,
                 node_specs={address: node.spec for address, node in model.node_deployments.items()},
+                content_specs=content_specs,
             )
             if diagnostic is not None:
                 diagnostics.append(diagnostic)
@@ -336,45 +338,46 @@ def _evaluator_section_support(
 def _proposition_evaluator_support(
     proposition: PropositionRuntime, evaluator: EvaluatorCapabilities
 ) -> list[Diagnostic]:
-    diagnostics: list[Diagnostic] = []
-    if proposition.predicate_kind not in evaluator.supported_predicate_families:
-        diagnostics.append(
-            Diagnostic(
-                code="evaluator.unsupported-predicate-family",
-                domain="evaluation",
-                address=proposition.address,
-                message=f"Evaluator does not support proposition predicate family '{proposition.predicate_kind}'.",
-            )
+    predicate_spec = proposition.spec.get("predicate", {}) if isinstance(proposition.spec, dict) else {}
+    # Order-preserving check table: emitted before the evidence-channel loop and
+    # the trailing time-domain check so diagnostic ordering matches admission.
+    scalar_checks = (
+        (
+            proposition.predicate_kind not in evaluator.supported_predicate_families,
+            "evaluator.unsupported-predicate-family",
+            f"Evaluator does not support proposition predicate family '{proposition.predicate_kind}'.",
+        ),
+        (
+            predicate_spec.get("expected_from") is not None and not evaluator.supports_deferred_expected_comparison,
+            "evaluator.unsupported-deferred-expected-comparison",
+            "Evaluator does not support comparing a submission against a deferred generated value.",
+        ),
+        (
+            proposition.quantifier not in evaluator.supported_quantifiers,
+            "evaluator.unsupported-quantifier",
+            f"Evaluator does not support proposition quantifier '{proposition.quantifier}'.",
+        ),
+        (
+            bool(proposition.unresolved_evidence_channel_refs),
+            "evaluator.evidence-channel-unresolved",
+            "Evaluator admission requires every cited evidence requirement to declare a channel kind.",
+        ),
+    )
+    diagnostics = [
+        Diagnostic(code=code, domain="evaluation", address=proposition.address, message=message)
+        for failed, code, message in scalar_checks
+        if failed
+    ]
+    diagnostics.extend(
+        Diagnostic(
+            code="evaluator.unsupported-evidence-channel",
+            domain="evaluation",
+            address=proposition.address,
+            message=f"Evaluator does not support evidence channel '{channel}'.",
         )
-    if proposition.quantifier not in evaluator.supported_quantifiers:
-        diagnostics.append(
-            Diagnostic(
-                code="evaluator.unsupported-quantifier",
-                domain="evaluation",
-                address=proposition.address,
-                message=f"Evaluator does not support proposition quantifier '{proposition.quantifier}'.",
-            )
-        )
-    if proposition.unresolved_evidence_channel_refs:
-        diagnostics.append(
-            Diagnostic(
-                code="evaluator.evidence-channel-unresolved",
-                domain="evaluation",
-                address=proposition.address,
-                message="Evaluator admission requires every cited evidence requirement to declare a channel kind.",
-            )
-        )
-    for channel in proposition.evidence_channels:
-        if channel in evaluator.supported_evidence_channels:
-            continue
-        diagnostics.append(
-            Diagnostic(
-                code="evaluator.unsupported-evidence-channel",
-                domain="evaluation",
-                address=proposition.address,
-                message=f"Evaluator does not support evidence channel '{channel}'.",
-            )
-        )
+        for channel in proposition.evidence_channels
+        if channel not in evaluator.supported_evidence_channels
+    )
     if proposition.required_time_domain and proposition.required_time_domain not in evaluator.supported_time_domains:
         diagnostics.append(
             Diagnostic(

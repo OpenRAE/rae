@@ -74,6 +74,7 @@ def _evaluator_capability_payload(manifest: BackendManifest) -> dict[str, Any] |
             supported_evidence_channels=sorted(evaluator.supported_evidence_channels),
             supported_time_domains=sorted(evaluator.supported_time_domains),
             preserves_binding_provenance=evaluator.preserves_binding_provenance,
+            supports_deferred_expected_comparison=evaluator.supports_deferred_expected_comparison,
         )
     return payload
 
@@ -302,6 +303,7 @@ def _evaluator_from_model(model: EvaluatorCapabilitiesModel | None) -> Evaluator
         supported_evidence_channels=frozenset(model.supported_evidence_channels),
         supported_time_domains=frozenset(model.supported_time_domains),
         preserves_binding_provenance=model.preserves_binding_provenance,
+        supports_deferred_expected_comparison=model.supports_deferred_expected_comparison,
         constraints=dict(model.constraints),
     )
 

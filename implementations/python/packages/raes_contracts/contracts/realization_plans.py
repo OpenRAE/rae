@@ -84,10 +84,7 @@ def _require_operation_identities(operations: list[PlanOperationModel], domain: 
             raise ValueError("Only provisioning operations can host profile bindings")
 
 
-def _require_startup_order_addresses(
-    operations: list[PlanOperationModel],
-    startup_order: list[str],
-) -> None:
+def _require_startup_order_addresses(operations: list[PlanOperationModel], startup_order: list[str]) -> None:
     if len(startup_order) != len(set(startup_order)):
         raise ValueError("Plan startup_order addresses must be unique")
     operation_addresses = {operation.address for operation in operations}
@@ -258,6 +255,8 @@ class ProvisioningPlanModel(ContractModel):
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     realization_constraints: list[PlannedRealizationConstraintModel] = Field(default_factory=list)
     operation_id: NonEmptyString | None = None
+    run_id: NonEmptyString | None = None
+    instantiation_id: NonEmptyString | None = None
     observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
     preparation: RealizationPreparationAuthority | None = Field(default=None, exclude_if=lambda value: value is None)
     profile_authority: PlanProfileAuthority | None = Field(default=None, exclude_if=lambda value: value is None)
@@ -300,6 +299,8 @@ class EvaluationPlanModel(ContractModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     startup_order: list[CompiledAddress] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
+    run_id: NonEmptyString | None = None
+    instantiation_id: NonEmptyString | None = None
     observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
 
     @model_validator(mode="after")
