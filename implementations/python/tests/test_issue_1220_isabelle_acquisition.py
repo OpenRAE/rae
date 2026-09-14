@@ -1023,13 +1023,11 @@ def test_checked_in_isabelle_authority_binds_the_reviewed_complete_tree() -> Non
     coverage = json.loads((REPO_ROOT / "implementations/tooling/inventory-coverage.json").read_text(encoding="utf-8"))
     dispositions = {item["path"]: item["disposition"] for item in coverage["acquisition_paths"]}
     assert dispositions["tools/isabelle_tool.py"] == "governed"
-    for vocabulary in (
-        "tools/check_atlas_tactic_vocabulary.py",
-        "tools/check_attack_tactic_vocabulary.py",
-        "tools/check_autonomous_behavior_vocabularies.py",
-        "tools/check_nist_csf_defensive_vocabulary.py",
-    ):
-        assert dispositions[vocabulary] == "legacy-remediation"
+    from tools.tooling_artifact_policy_discovery import python_scan
+
+    for path, disposition in dispositions.items():
+        if disposition == "governed" and path.endswith(".py"):
+            assert python_scan((REPO_ROOT / path).read_text(encoding="utf-8")).network_call_count == 0, path
     profiles = json.loads(
         (REPO_ROOT / "implementations/tooling/profiles/development-profiles.json").read_text(encoding="utf-8")
     )
