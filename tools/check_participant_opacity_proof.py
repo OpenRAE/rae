@@ -50,6 +50,7 @@ PROOF_TOOL_SOURCE_PATHS = (
     "tools/verified_tool_installation.py",
     "tools/verified_tree_archive.py",
     "tools/verified_tree_installation.py",
+    "tools/verified_tree_manifest.py",
     "tools/verified_tree_validation.py",
 )
 THEORY_RELATIVE_PATH = ISABELLE_SESSION_RELATIVE_PATH / "Participant_Opacity.thy"

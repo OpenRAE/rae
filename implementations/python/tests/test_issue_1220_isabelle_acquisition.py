@@ -24,6 +24,7 @@ from tools import maintained_client_acquisition as client
 from tools import verified_tool_installation as installation
 from tools import verified_tree_archive as tree_archive
 from tools import verified_tree_installation as tree_installation
+from tools import verified_tree_manifest as tree_manifest
 from tools import verified_tree_validation as tree_validation
 from tools.tooling_policy_gate import LockedArtifactSelection, LockedInstalledTree, LockedManifestEntry
 
@@ -1226,11 +1227,11 @@ def test_retained_manifest_parsing_is_closed_and_canonical(mutation) -> None:
     ]
     payload = tree_archive.manifest_bytes(entries)
     descriptor = _manifest_descriptor(entries)
-    assert set(tree_archive.parse_manifest(payload, descriptor)) == {ROOT, f"{ROOT}/tool"}
+    assert set(tree_manifest.parse_manifest(payload, descriptor)) == {ROOT, f"{ROOT}/tool"}
 
     mutated = mutation(payload)
     with pytest.raises(RuntimeError, match="tree-integrity-failure"):
-        tree_archive.parse_manifest(mutated, descriptor)
+        tree_manifest.parse_manifest(mutated, descriptor)
 
 
 @pytest.mark.parametrize(
@@ -1248,7 +1249,7 @@ def test_retained_manifest_requires_real_parents_and_confined_links(entries: lis
     descriptor = _manifest_descriptor(entries)
 
     with pytest.raises(RuntimeError, match="tree-integrity-failure"):
-        tree_archive.parse_manifest(payload, descriptor)
+        tree_manifest.parse_manifest(payload, descriptor)
 
 
 @pytest.mark.parametrize(

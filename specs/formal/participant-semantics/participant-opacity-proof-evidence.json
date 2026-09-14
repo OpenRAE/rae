@@ -289,7 +289,7 @@
     "tool_sources": [
       {
         "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:c4d0c4e1d036f11287b771fdfb2cbaa686aa90ef09003861597b28c1c749bc08"
+        "digest": "sha256:f0120269f98f89de5a4263c3d3c779762a0cbac490a4003356359596372966af"
       },
       {
         "path": "tools/isabelle_sandbox.py",
@@ -317,15 +317,19 @@
       },
       {
         "path": "tools/verified_tree_archive.py",
-        "digest": "sha256:827b6301e1ba04b2b841463096e91326ba99408db556192f01544f99f0a771ea"
+        "digest": "sha256:f806d12fb0053ee99c5f1fb86397c25a6eeca4b0d8492b1568f3949ad623acc2"
       },
       {
         "path": "tools/verified_tree_installation.py",
         "digest": "sha256:d38d93dcb98e8f74b3aa1f72e0bcd97ad3464cae24388a36d26ffbcd6607a751"
       },
       {
+        "path": "tools/verified_tree_manifest.py",
+        "digest": "sha256:a2b512cceddfa9f2c3c3c70511a4f29cd709d8728bfbf13f207aa79b577b96d2"
+      },
+      {
         "path": "tools/verified_tree_validation.py",
-        "digest": "sha256:6b0c7d6a3a6a823b22e79fcea9617dcadec718a4ec80db780957ba4973bd0bad"
+        "digest": "sha256:19bacd3659ca0d1b709cf7c1f11510b6048f7116958670a2ec4e9715666bbdcb"
       }
     ]
   },

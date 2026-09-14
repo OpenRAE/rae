@@ -18,6 +18,7 @@ from typing import BinaryIO, Protocol
 
 from tools import verified_tree_archive as archive
 from tools.verified_tree_archive import MAX_TREE_EXPANDED_BYTES, MAX_TREE_MEMBERS, TREE_FORMAT, InstalledTree, TreeEntry
+from tools.verified_tree_manifest import parse_manifest
 
 TREE_CONTENT_NAME = "tree"
 TREE_MANIFEST_NAME = "installed-tree.json"
@@ -272,7 +273,7 @@ def validated_installation(target: Path, selection: TreeSelection) -> Path:
     payload = _read_manifest(target / TREE_MANIFEST_NAME)
     if hashlib.sha256(payload).hexdigest() != descriptor.manifest_sha256:
         raise _failure("tree-integrity-failure")
-    entries = archive.parse_manifest(payload, descriptor)
+    entries = parse_manifest(payload, descriptor)
     require_installed_manifest(selection, entries)
     _validate_tree_contents(target / TREE_CONTENT_NAME, entries)
     return target / TREE_CONTENT_NAME
