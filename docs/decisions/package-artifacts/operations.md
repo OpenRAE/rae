@@ -330,3 +330,46 @@ retired rather than kept on a vulnerable pin (#1268).
 Input locks improve repeatability but do not prove byte-identical distributions
 across host SDKs, compilers, operating systems, or build times; candidate output
 digests are evidence, not release admission.
+
+### Issue #1221 vocabulary source evidence
+
+The opt-in `--verify-remote` acquisition in the five vocabulary source checkers
+(`tools/check_attack_tactic_vocabulary.py`,
+`tools/check_atlas_tactic_vocabulary.py`,
+`tools/check_nist_csf_defensive_vocabulary.py`, and both sources in
+`tools/check_autonomous_behavior_vocabularies.py`) is migrated off `urllib` onto
+`tools.maintained_client_acquisition.acquire_locked_bytes()`. Each checker
+selects its snapshot through `load_tooling_artifact_selection()`
+(`profile_id="source-snapshot"`), verifies the pinned HTTPS host/URL, then
+admits either freshly transferred bytes or an approved local raw object against
+the reviewed `artifacts.lock.json` raw identity before any source-specific
+parsing. Raw-byte identity/size (the lock `raw_manifest`) stays distinct from the
+source-specific semantic `source_digest`. No checker retains custom transport,
+retry, redirect, TLS or framing code. Evidence: implementation commit; tool
+`/usr/bin/curl` (>= 8.4.0) invoked only through the shared hardened argv; policy
+`source-snapshot-integrity-v1`; input lock `implementations/tooling/artifacts.lock.json`.
+
+- T09 (upstream outage/relocation, approved replica, then all copies absent):
+  the `--local-input` / `--activitystreams-local-input` / `--fipa-local-input`
+  arguments admit an approved local raw object by the same locked raw identity;
+  a missing, corrupt, or mismatched local object is a terminal hard failure with
+  no network fallback, and acquisition never rewrites the lock. Recovery is
+  same-digest only.
+- T11 (air-gapped export/import): the default offline checks
+  (source-metadata and catalog validation against the checked-in
+  `contracts/concept-authority/*` snapshots) succeed with egress blocked;
+  `--verify-remote` is not part of the default Nox policy lanes, so the live
+  comparison is reported not evaluated rather than claimed.
+- T13 (missing/corrupt/wrong-platform input): selection and lock validation run
+  before transport; local-object admission rejects symlinks, non-regular files,
+  size drift, and SHA-256 drift without a network attempt and without executing
+  imported content.
+- T21 (ATT&CK/ATLAS/NIST/W3C ActivityStreams/FIPA refresh): each source keeps
+  its exact raw and canonical snapshot identities, acquires only through the
+  qualified maintained client, and surfaces an acquisition failure rather than
+  ignoring it; no custom network code remains. Verified offline by
+  `implementations/python/tests/test_issue_1221_vocabulary_maintained_client_acquisition.py`
+  and the existing per-source offline checkers; the tracked-scan disposition is
+  recorded under T22 by dropping the four now-transport-free checkers from the
+  `acquisition_paths` inventory while their lock-selection consumer bindings
+  remain.

@@ -8,7 +8,6 @@ import hashlib
 import json
 import sys
 import urllib.parse
-import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -217,14 +216,12 @@ def _remote_url_failure(source: AttackEnterpriseTacticsSourceModel, selected_url
     return failure
 
 
-def _remote_bytes_failure(data: bytes, *, size: int, sha256: str) -> str | None:
-    digest = _sha256_digest(data)
-    if len(data) != size or digest != f"sha256:{sha256}":
-        return f"{SOURCE_RELATIVE_PATH}: retrieved bytes differ from the reviewed lock manifest"
-    return None
-
-
-def _check_remote(source: AttackEnterpriseTacticsSourceModel) -> list[str]:
+def _check_remote(
+    source: AttackEnterpriseTacticsSourceModel,
+    *,
+    local_input: Path | None = None,
+) -> list[str]:
+    from tools.maintained_client_acquisition import acquire_locked_bytes
     from tools.tooling_policy_gate import load_tooling_artifact_selection
 
     selection = load_tooling_artifact_selection(
@@ -235,18 +232,20 @@ def _check_remote(source: AttackEnterpriseTacticsSourceModel) -> list[str]:
     )
     if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1:
         raise RuntimeError("ATT&CK lock selection must contain one source and raw snapshot")
-    raw = selection.raw_manifest[0]
     url_failure = _remote_url_failure(source, selection.source_urls[0])
     if url_failure is not None:
         return [url_failure]
-    with urllib.request.urlopen(selection.source_urls[0], timeout=60) as response:  # noqa: S310
-        data = response.read()
-    digest = _sha256_digest(data)
-    bytes_failure = _remote_bytes_failure(data, size=raw.size, sha256=raw.sha256)
-    if bytes_failure is not None:
-        return [bytes_failure]
+    try:
+        data = acquire_locked_bytes(
+            artifact_id="attack-enterprise-tactics-snapshot",
+            source_url=selection.source_urls[0],
+            expected=selection.raw_manifest[0],
+            local_input=local_input,
+        )
+    except RuntimeError as error:
+        return [f"{SOURCE_RELATIVE_PATH}: {error}"]
     failures: list[str] = []
-    if digest != source.source_digest:
+    if _sha256_digest(data) != source.source_digest:
         failures.append(f"{SOURCE_RELATIVE_PATH}: source_digest differs from the reviewed lock manifest")
     remote_tactics = _extract_enterprise_tactics(json.loads(data.decode("utf-8")))
     if remote_tactics != _source_tactics(source):
@@ -261,7 +260,16 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Fetch the pinned upstream STIX bundle and verify digest plus tactic extraction.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--local-input",
+        type=Path,
+        default=None,
+        help="Admit an approved local raw object instead of a fresh network transfer (no network fallback).",
+    )
+    args = parser.parse_args()
+    if args.local_input is not None and not args.verify_remote:
+        parser.error("--local-input requires --verify-remote")
+    return args
 
 
 def main() -> int:
@@ -272,7 +280,7 @@ def main() -> int:
     failures = _check_source_metadata(source)
     failures.extend(_check_catalog(catalog, source))
     if args.verify_remote:
-        failures.extend(_check_remote(source))
+        failures.extend(_check_remote(source, local_input=args.local_input))
 
     for failure in failures:
         print(f"[attack-tactic-vocabulary] {failure}", file=sys.stderr)
