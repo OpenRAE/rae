@@ -191,6 +191,39 @@ def _inspection_payload(scenario: Scenario) -> dict[str, object]:
         "scenario_name": scenario.name,
         "declaration_count": len(declarations),
         "declarations": declarations,
+        "semantic_axes": _semantic_axes(scenario),
+    }
+
+
+def _semantic_axes(scenario: Scenario) -> dict[str, object]:
+    """Present authoring planes without inventing implementation or evidence."""
+    metadata = {
+        "name",
+        "version",
+        "description",
+        "semantic_revision",
+        "module",
+        "imports",
+        "realization",
+        "evidence_requirements",
+    }
+    delegation = (
+        scenario.realization.model_dump(mode="json", exclude_unset=True) if scenario.realization is not None else {}
+    )
+    delegation["omission_policy"] = (
+        "inherit-selected-scope" if scenario.realization is not None else "legacy-closed-default"
+    )
+    return {
+        "constraints": {"authored_sections": sorted(scenario.model_fields_set - metadata)},
+        "delegation": delegation,
+        "observation": {
+            name: (
+                requirement.observation_demand.model_dump(mode="json", exclude_unset=True)
+                if requirement.observation_demand is not None
+                else {"source": "legacy-evidence-requirement"}
+            )
+            for name, requirement in sorted(scenario.evidence_requirements.items())
+        },
     }
 
 

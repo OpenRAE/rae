@@ -10,7 +10,8 @@ import yaml
 from yaml.nodes import ScalarNode
 
 SDL_SOURCE_FORMAT = "sdl-yaml/v1"
-SDL_CANONICAL_PROFILE = "raes-sdl-semantic/v1"
+SDL_CANONICAL_PROFILE = "raes-sdl-semantic/v2"
+PROGRESSIVE_SDL_REVISION = "raes-progressive-semantics/v1"
 
 
 class SDLMigrationPolicy(str, Enum):
@@ -52,6 +53,7 @@ class SDLSourceParseOptions:
     source_format: str = SDL_SOURCE_FORMAT
     migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS
+    required_semantic_revision: str | None = None
 
 
 DEFAULT_SOURCE_PARSE_OPTIONS = SDLSourceParseOptions()

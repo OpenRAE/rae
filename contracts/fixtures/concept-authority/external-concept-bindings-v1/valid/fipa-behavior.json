@@ -1,111 +1,111 @@
 {
-  "schema_version": "external-concept-bindings/v1",
   "binding_set_id": "autonomous-behavior-scheme-examples",
   "binding_set_version": "1.0.0",
   "bindings": {
     "fipa-agent-request": {
-      "binding_id": "fipa-agent-request",
-      "subject": {
-        "subject_kind": "behavior_specifications",
-        "owning_contract_id": "sdl-authoring-input-v1",
-        "lifecycle_phase": "normalized-authoring",
-        "canonical_ref": "behavior_specifications.agent-request",
-        "artifact_digest": "sha256:54e45865d8838d3e6c5969d7650c4942a43adcc0a9dc520633027c532f7d1d89"
-      },
-      "scheme": {
-        "scheme_id": "fipa-communicative-act-library",
-        "authority": "Foundation for Intelligent Physical Agents",
-        "revision": "SC00037J-2002-12-03",
-        "source_locator": "https://www.fipa.org/specs/fipa00037/SC00037J.html",
-        "source_digest": "sha256:90b3277247ef7e7f614ba4c0d58fb2b86aa53ff69036d27a731c09a26c605227",
-        "concept_id": "request"
+      "approximation": {
+        "loss_details": [
+          "The identifier alone does not import FIPA feasibility preconditions, rational effects, message transport, content language, or interaction protocols."
+        ],
+        "posture": "lossy"
       },
       "assertion": {
-        "relationship_kind": "related-to",
         "motivation": "Annotate a complete autonomous agent behavior specification with a reviewed communication-oriented act identifier.",
         "motivation_basis_refs": [
           {
-            "ref_kind": "other",
             "ref_id": "act-611-source-review",
+            "ref_kind": "other",
             "ref_version": "v1"
           }
         ],
+        "relationship_kind": "related-to",
         "semantic_effect": "annotates",
         "semantic_effect_basis_refs": [
           {
-            "ref_kind": "profile",
             "ref_id": "sem-217",
+            "ref_kind": "profile",
             "ref_version": "v1"
           }
         ]
       },
-      "perspective": {
-        "asserting_party_kind": "reviewer",
-        "asserting_party_ref": "reviewers.act-611",
-        "perspective": "agent-communication-review",
-        "authority_basis_refs": [
-          {
-            "ref_kind": "other",
-            "ref_id": "act-611-review-charter",
-            "ref_version": "v1"
-          }
-        ],
-        "participant_availability": {
-          "kind": "eligibility-only",
-          "participant_refs": [
-            "agents.autonomous-service"
-          ],
-          "basis_refs": [
-            {
-              "ref_kind": "other",
-              "ref_id": "scenario-participant-eligibility",
-              "ref_version": "v1"
-            }
-          ]
-        }
-      },
-      "provenance": {
-        "asserted_at": "2026-07-30T21:30:00Z",
-        "source_refs": [
-          {
-            "ref_kind": "other",
-            "ref_id": "fipa-communicative-act-library",
-            "ref_version": "SC00037J-2002-12-03",
-            "ref_digest": "sha256:90b3277247ef7e7f614ba4c0d58fb2b86aa53ff69036d27a731c09a26c605227"
-          }
-        ]
-      },
-      "supporting_evidence_refs": [
-        {
-          "ref_kind": "evidence-record",
-          "ref_id": "act-611-fipa-review",
-          "ref_version": "v1"
-        }
-      ],
+      "binding_id": "fipa-agent-request",
       "confidence": {
-        "posture": "medium",
-        "basis": "The communicative act is review-relevant, but the assertion does not import FIPA ACL semantics."
-      },
-      "approximation": {
-        "posture": "lossy",
-        "loss_details": [
-          "The identifier alone does not import FIPA feasibility preconditions, rational effects, message transport, content language, or interaction protocols."
-        ]
+        "basis": "The communicative act is review-relevant, but the assertion does not import FIPA ACL semantics.",
+        "posture": "medium"
       },
       "limitations": [
         "The assertion does not claim FIPA ACL conformance or prove that a request message was sent.",
         "Participant eligibility does not authorize disclosure or prove delivery."
       ],
-      "review": {
-        "status": "accepted",
-        "review_refs": [
+      "perspective": {
+        "asserting_party_kind": "reviewer",
+        "asserting_party_ref": "reviewers.act-611",
+        "authority_basis_refs": [
           {
+            "ref_id": "act-611-review-charter",
             "ref_kind": "other",
-            "ref_id": "act-611-fipa-review",
             "ref_version": "v1"
           }
+        ],
+        "participant_availability": {
+          "basis_refs": [
+            {
+              "ref_id": "scenario-participant-eligibility",
+              "ref_kind": "other",
+              "ref_version": "v1"
+            }
+          ],
+          "kind": "eligibility-only",
+          "participant_refs": [
+            "agents.autonomous-service"
+          ]
+        },
+        "perspective": "agent-communication-review"
+      },
+      "provenance": {
+        "asserted_at": "2026-07-30T21:30:00Z",
+        "source_refs": [
+          {
+            "ref_digest": "sha256:90b3277247ef7e7f614ba4c0d58fb2b86aa53ff69036d27a731c09a26c605227",
+            "ref_id": "fipa-communicative-act-library",
+            "ref_kind": "other",
+            "ref_version": "SC00037J-2002-12-03"
+          }
         ]
-      }
+      },
+      "review": {
+        "review_refs": [
+          {
+            "ref_id": "act-611-fipa-review",
+            "ref_kind": "other",
+            "ref_version": "v1"
+          }
+        ],
+        "status": "accepted"
+      },
+      "scheme": {
+        "authority": "Foundation for Intelligent Physical Agents",
+        "concept_id": "request",
+        "revision": "SC00037J-2002-12-03",
+        "scheme_id": "fipa-communicative-act-library",
+        "source_digest": "sha256:90b3277247ef7e7f614ba4c0d58fb2b86aa53ff69036d27a731c09a26c605227",
+        "source_locator": "https://www.fipa.org/specs/fipa00037/SC00037J.html"
+      },
+      "subject": {
+        "artifact_digest": "sha256:5f7d5db18b6f3d81693fd0e92a82a5dec8c96dd9a1790589826551518544b7ca",
+        "canonical_ref": "behavior_specifications.agent-request",
+        "lifecycle_phase": "normalized-authoring",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "subject_kind": "behavior_specifications"
+      },
+      "supporting_evidence_refs": [
+        {
+          "ref_id": "act-611-fipa-review",
+          "ref_kind": "evidence-record",
+          "ref_version": "v1"
+        }
+      ]
     }
-  }
+  },
+  "schema_version": "external-concept-bindings/v1"
 }

@@ -12,7 +12,7 @@ comparison against precedent systems, including where those systems lead RAES, s
 [Related-Work Comparison](related-work-comparison.md).
 
 The normative audit record is
-[`contracts/provenance/sdl-lineage-ledger-v1.json`](../../../contracts/provenance/sdl-lineage-ledger-v1.json).
+[`contracts/provenance/sdl-lineage-ledger-v2.json`](../../../contracts/provenance/sdl-lineage-ledger-v2.json).
 It distinguishes intellectual lineage from artifact/code derivation and from
 implementation examples, pins source revisions and bibliographic identities,
 and records directional compatibility and notice disposition. An influence

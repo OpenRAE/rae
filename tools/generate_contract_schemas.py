@@ -21,6 +21,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
     | dict.fromkeys(
         {
             "sdl-authoring-input-v1",
+            "sdl-semantic-migration-context-v1",
             "instantiated-scenario-v1",
             "instantiated-scenario-snapshot-v1",
             "scenario-instantiation-request-v1",

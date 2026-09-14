@@ -34,7 +34,7 @@ _VALID_SHAPES = frozenset({"scalar", "mapping", "map", "list"})
 _VALID_LIFECYCLE = frozenset({"normalized", "expanded", "instantiated"})
 _MAX_CATALOG_BYTES = 512 * 1024
 _MAX_CATALOG_ROWS = 512
-_METADATA_FIELDS = frozenset({"name", "version", "description"})
+_METADATA_FIELDS = frozenset({"name", "version", "description", "semantic_revision"})
 _COMPOSITION_FIELDS = frozenset({"module", "imports", "realization"})
 
 _NODE_VALIDATOR = "[node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py)"

@@ -173,11 +173,13 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
     )
     from ..realization_profiles import PlanProfileAuthority
     from ..satisfiability import ScenarioSatisfiabilityEvidenceModel
+    from ..sdl_semantic_migration import SDLSemanticMigrationContext
     from .backend_preparation import BackendPreparationResponseModel
 
     return {
         "raes-semantic-invariants-v1": _raes_semantic_invariant_profile_schema_for_bundle(),
         "sdl-authoring-input-v1": Scenario.model_json_schema(),
+        "sdl-semantic-migration-context-v1": SDLSemanticMigrationContext.model_json_schema(),
         "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
         "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
         "scenario-instantiation-request-v1": InstantiationRequestModel.model_json_schema(),

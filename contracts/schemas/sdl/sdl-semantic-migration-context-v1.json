@@ -1,0 +1,177 @@
+{
+  "$defs": {
+    "SDLSentinelDecision": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "identity": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "interpretation": {
+                "const": "exact-identity"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "identity": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "pattern": "^(?:[uU][nN][kK\\u212a][nN][oO][wW][nN]|[oO][tT][hH][eE][rR])$"
+                    },
+                    {
+                      "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$"
+                    }
+                  ]
+                },
+                "type": "string"
+              }
+            },
+            "required": [
+              "identity"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "identity": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Identity"
+        },
+        "interpretation": {
+          "enum": [
+            "knowledge",
+            "exact-identity",
+            "delegated"
+          ],
+          "title": "Interpretation",
+          "type": "string"
+        },
+        "pointer": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)+$",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pointer",
+        "interpretation",
+        "rationale"
+      ],
+      "title": "SDLSentinelDecision",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/sdl-semantic-migration-context-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Adoption is explicit; no default silently waives old evidence obligations.",
+  "properties": {
+    "admission_contract": {
+      "const": "backend-realization-preparation-v1",
+      "title": "Admission Contract",
+      "type": "string"
+    },
+    "adopt_recursive_constraints": {
+      "const": true,
+      "title": "Adopt Recursive Constraints",
+      "type": "boolean"
+    },
+    "observation_contract": {
+      "const": "observation-demand-v1",
+      "title": "Observation Contract",
+      "type": "string"
+    },
+    "rationale": {
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "\\S",
+      "title": "Rationale",
+      "type": "string"
+    },
+    "sentinel_decisions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/SDLSentinelDecision"
+      },
+      "maxItems": 256,
+      "title": "Sentinel Decisions",
+      "type": "array"
+    },
+    "source_digest": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Source Digest",
+      "type": "string"
+    },
+    "source_revision": {
+      "const": "raes-legacy-semantics/384e8b19",
+      "default": "raes-legacy-semantics/384e8b19",
+      "title": "Source Revision",
+      "type": "string"
+    },
+    "target_revision": {
+      "const": "raes-progressive-semantics/v1",
+      "default": "raes-progressive-semantics/v1",
+      "title": "Target Revision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_digest",
+    "adopt_recursive_constraints",
+    "admission_contract",
+    "observation_contract",
+    "rationale"
+  ],
+  "title": "SDLSemanticMigrationContext",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Each source sentinel pointer has at most one author decision.",
+      "id": "unique-sentinel-decision-pointers",
+      "inputs": [
+        {
+          "contract_id": "sdl-semantic-migration-context-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.sdl_semantic_migration.SDLSemanticMigrationContext.model_validate"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "sdl-semantic-migration-context-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

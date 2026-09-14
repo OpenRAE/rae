@@ -156,6 +156,7 @@ def _selected_baseline_manifest(
                 "12.0.0",
                 "13.0.0",
                 "14.0.0",
+                "15.0.0",
             }
             else "docs/research/formal-semantic-validation/protocol-v1.json",
             "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
@@ -173,6 +174,7 @@ def _selected_baseline_manifest(
                 "12.0.0",
                 "13.0.0",
                 "14.0.0",
+                "15.0.0",
             }
             else "docs/research/formal-semantic-validation/corpus/manifest-v1.json",
         )
