@@ -274,8 +274,14 @@ def _require_fontconfig_runtime(
 def _locale_is_available(locale_list: Path = ISABELLE_LOCALE_LIST) -> bool:
     """Return whether the fixed host locale tool reports the pinned C.UTF-8 locale."""
 
-    if not locale_list.is_file() or not os.access(locale_list, os.X_OK):
-        return False
+    listing = _locale_listing(locale_list) if _is_executable_file(locale_list) else None
+    available = {line.strip().lower() for line in (listing or b"").decode("utf-8", errors="replace").splitlines()}
+    return bool(available & {"c.utf8", "c.utf-8"})
+
+
+def _locale_listing(locale_list: Path) -> bytes | None:
+    """Return the bounded fixed ``locale -a`` output, or ``None`` when it is unusable."""
+
     try:
         completed = subprocess.run(
             [str(locale_list), "-a"],
@@ -287,11 +293,9 @@ def _locale_is_available(locale_list: Path = ISABELLE_LOCALE_LIST) -> bool:
             env={"LANG": "C", "LC_ALL": "C", "PATH": "/usr/bin:/bin"},
         )
     except (OSError, subprocess.TimeoutExpired):
-        return False
-    if completed.returncode != 0 or len(completed.stdout) > ISABELLE_LOCALE_OUTPUT_LIMIT_BYTES:
-        return False
-    available = {line.strip().lower() for line in completed.stdout.decode("utf-8", errors="replace").splitlines()}
-    return bool(available & {"c.utf8", "c.utf-8"})
+        return None
+    usable = completed.returncode == 0 and len(completed.stdout) <= ISABELLE_LOCALE_OUTPUT_LIMIT_BYTES
+    return completed.stdout if usable else None
 
 
 def _require_locale_runtime(locale_query: Callable[[], bool] | None = None) -> None:

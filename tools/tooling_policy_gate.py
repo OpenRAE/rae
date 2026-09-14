@@ -12,6 +12,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
+from tools.tooling_installed_tree import SHA256_PATTERN, LockedInstalledTree, locked_installed_tree
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _VALIDATOR_TIMEOUT_SECONDS = 180
 _INVALID_SELECTION_RESPONSE = "development artifact policy failed before acquisition: invalid selection response"
@@ -24,18 +26,6 @@ class LockedManifestEntry:
     sha256: str
     size: int
     executable: bool = False
-
-
-@dataclass(frozen=True)
-class LockedInstalledTree:
-    """The reviewed canonical identity of a complete extracted installation tree."""
-
-    format: str
-    manifest_sha256: str
-    file_count: int
-    directory_count: int
-    symlink_count: int
-    expanded_bytes: int
 
 
 @dataclass(frozen=True)
@@ -76,7 +66,7 @@ def _locked_manifest_entry(value: object) -> LockedManifestEntry:
     executable = value.get("executable", False)
     if not isinstance(path, str) or not _is_portable_manifest_path(path):
         raise RuntimeError("development artifact policy failed before acquisition: invalid manifest path")
-    if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+    if not isinstance(digest, str) or SHA256_PATTERN.fullmatch(digest) is None:
         raise RuntimeError("development artifact policy failed before acquisition: invalid manifest digest")
     if not isinstance(size, int) or isinstance(size, bool) or size < 1:
         raise RuntimeError("development artifact policy failed before acquisition: invalid manifest size")
@@ -95,35 +85,6 @@ def _locked_installed_identity(value: object) -> tuple[tuple[str, str], ...]:
     if any(not isinstance(item, str) or not item for _, item in entries):
         raise RuntimeError("development artifact policy failed before acquisition: invalid installed identity")
     return tuple((name, str(item)) for name, item in entries)
-
-
-def _locked_installed_tree(value: object) -> LockedInstalledTree | None:
-    """Return the closed installed-tree identity when the lock declares one."""
-
-    if value is None:
-        return None
-    counts = ("file_count", "directory_count", "symlink_count", "expanded_bytes")
-    if (
-        not isinstance(value, dict)
-        or set(value) != {"format", "manifest_sha256", *counts}
-        or value.get("format") != "tar.gz"
-        or not isinstance(value.get("manifest_sha256"), str)
-        or re.fullmatch(r"[0-9a-f]{64}", value["manifest_sha256"]) is None
-        or any(not isinstance(value.get(name), int) or isinstance(value.get(name), bool) for name in counts)
-        or value["file_count"] < 1
-        or value["directory_count"] < 1
-        or value["symlink_count"] < 0
-        or value["expanded_bytes"] < 1
-    ):
-        raise RuntimeError("development artifact policy failed before acquisition: invalid installed tree")
-    return LockedInstalledTree(
-        format=value["format"],
-        manifest_sha256=value["manifest_sha256"],
-        file_count=value["file_count"],
-        directory_count=value["directory_count"],
-        symlink_count=value["symlink_count"],
-        expanded_bytes=value["expanded_bytes"],
-    )
 
 
 def safe_tooling_cache_parent(repo_root: Path, target: Path, *, artifact_id: str) -> Path:
@@ -325,7 +286,7 @@ def _selection_from_document(  # NOSONAR -- closed-schema validation is intentio
             policy_refs=tuple(policy_refs),
             installed_identity=installed_identity,
             locator_refs=tuple(locator_refs),
-            installed_tree=_locked_installed_tree(platform.get("installed_tree")),
+            installed_tree=locked_installed_tree(platform.get("installed_tree")),
         )
         selected_profile_ids = platform["profile_ids"]
     except (KeyError, TypeError) as exc:
@@ -422,7 +383,7 @@ def _load_tooling_host_profile_selection(  # NOSONAR -- closed response validati
         or not artifacts
         or not all(isinstance(item, dict) for item in artifacts)
         or not isinstance(policy_sha256, str)
-        or re.fullmatch(r"[0-9a-f]{64}", policy_sha256) is None
+        or SHA256_PATTERN.fullmatch(policy_sha256) is None
     ):
         raise RuntimeError(_INVALID_HOST_RESPONSE)
     expected_ids = host.get("bootstrap_payload_ids")

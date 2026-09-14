@@ -25,11 +25,8 @@ from tools.tooling_artifact_policy_common import (
     string_set,
     walk_forbidden_keys,
 )
-from tools.verified_tree_installation import (
-    MAX_TREE_EXPANDED_BYTES,
-    MAX_TREE_MEMBERS,
-    MAX_TREE_RAW_BYTES,
-)
+from tools.verified_tree_archive import MAX_TREE_EXPANDED_BYTES, MAX_TREE_MEMBERS
+from tools.verified_tree_validation import MAX_TREE_RAW_BYTES
 
 # Proof hosts must carry the native closure the offline replay executes with.
 # The capability-to-package mapping is fixed per reviewed native family.
@@ -311,52 +308,48 @@ def _manifest_entry_failures(
     return failures
 
 
+def _installed_tree_within_bounds(tree: Mapping[str, Any], platform: Mapping[str, Any]) -> bool:
+    counts = [tree.get(name) for name in ("file_count", "directory_count", "symlink_count", "expanded_bytes")]
+    raw_sizes = [as_mapping(entry).get("size") for entry in as_list(platform.get("raw_manifest"))]
+    if not all(isinstance(value, int) and not isinstance(value, bool) for value in (*counts, *raw_sizes)):
+        return False
+    return (
+        sum(counts[:3]) <= MAX_TREE_MEMBERS
+        and counts[3] <= MAX_TREE_EXPANDED_BYTES
+        and len(raw_sizes) == 1
+        and raw_sizes[0] <= MAX_TREE_RAW_BYTES
+    )
+
+
 def _installed_tree_failures(
     artifact_id: str,
     artifact_class: object,
     platform: Mapping[str, Any],
 ) -> list[PolicyFailure]:
     installed_tree = platform.get("installed_tree")
-    if artifact_class != "native-tool":
-        return (
-            []
-            if installed_tree is None
-            else [
-                failure(
-                    "tooling-installed-tree-class",
-                    f"{artifact_id} declares an installed tree outside the native-tool class",
-                    ARTIFACT_LOCK_PATH,
-                )
-            ]
-        )
     tree = as_mapping(installed_tree)
-    if not tree:
-        return [
-            failure(
-                "tooling-installed-tree-required",
-                f"{artifact_id} native-tool installation lacks a reviewed complete installed-tree identity",
-                ARTIFACT_LOCK_PATH,
+    if artifact_class != "native-tool":
+        rule, message = (
+            (None, "")
+            if installed_tree is None
+            else (
+                "tooling-installed-tree-class",
+                f"{artifact_id} declares an installed tree outside the native-tool class",
             )
-        ]
-    counts = [tree.get(name) for name in ("file_count", "directory_count", "symlink_count")]
-    raw_sizes = [as_mapping(entry).get("size") for entry in as_list(platform.get("raw_manifest"))]
-    within_bounds = (
-        all(isinstance(value, int) and not isinstance(value, bool) for value in (*counts, tree.get("expanded_bytes")))
-        and sum(counts) <= MAX_TREE_MEMBERS
-        and tree["expanded_bytes"] <= MAX_TREE_EXPANDED_BYTES
-        and len(raw_sizes) == 1
-        and isinstance(raw_sizes[0], int)
-        and raw_sizes[0] <= MAX_TREE_RAW_BYTES
-    )
-    if within_bounds:
-        return []
-    return [
-        failure(
+        )
+    elif not tree:
+        rule, message = (
+            "tooling-installed-tree-required",
+            f"{artifact_id} native-tool installation lacks a reviewed complete installed-tree identity",
+        )
+    elif not _installed_tree_within_bounds(tree, platform):
+        rule, message = (
             "tooling-installed-tree-bounds",
             f"{artifact_id} installed tree exceeds the implementation-owned tree installation bounds",
-            ARTIFACT_LOCK_PATH,
         )
-    ]
+    else:
+        rule, message = None, ""
+    return [] if rule is None else [failure(rule, message, ARTIFACT_LOCK_PATH)]
 
 
 def _manifest_failures(
@@ -517,7 +510,7 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
         required_closure = PROOF_HOST_NATIVE_CLOSURE.get(str(host.get("native_family")))
         closure_packages = string_set(as_mapping(host.get("offline_kit")).get("host_prerequisite_package_ids"))
         if proof_support == "linux-x86_64-required" and (
-            required_closure is None or not required_closure <= closure_packages
+            required_closure is None or required_closure - closure_packages
         ):
             failures.append(
                 failure(

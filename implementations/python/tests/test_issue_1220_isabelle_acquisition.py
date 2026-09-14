@@ -22,7 +22,9 @@ import pytest
 import tools.isabelle_tool as isabelle_tool
 from tools import maintained_client_acquisition as client
 from tools import verified_tool_installation as installation
+from tools import verified_tree_archive as tree_archive
 from tools import verified_tree_installation as tree_installation
+from tools import verified_tree_validation as tree_validation
 from tools.tooling_policy_gate import LockedArtifactSelection, LockedInstalledTree, LockedManifestEntry
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -489,8 +491,9 @@ def test_archive_admission_rejects_unsafe_tree_shapes(
     carrier = tmp_path / "archive.tar.gz"
     carrier.write_bytes(archive_bytes)
 
+    raw_entry = _raw_entry(archive_bytes)
     with pytest.raises(RuntimeError, match=reason):
-        tree_installation.describe_archive_tree(carrier, _raw_entry(archive_bytes))
+        tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
 @pytest.mark.parametrize("member_type", [tarfile.LNKTYPE, tarfile.CHRTYPE, tarfile.BLKTYPE, tarfile.FIFOTYPE])
@@ -502,8 +505,9 @@ def test_archive_admission_rejects_hardlinks_and_special_members(tmp_path: Path,
     carrier = tmp_path / "archive.tar.gz"
     carrier.write_bytes(archive_bytes)
 
+    raw_entry = _raw_entry(archive_bytes)
     with pytest.raises(RuntimeError, match="unsafe-archive-member"):
-        tree_installation.describe_archive_tree(carrier, _raw_entry(archive_bytes))
+        tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
 def test_describe_rejects_an_archive_that_is_not_the_locked_raw_object(tmp_path: Path) -> None:
@@ -511,8 +515,9 @@ def test_describe_rejects_an_archive_that_is_not_the_locked_raw_object(tmp_path:
     carrier = tmp_path / "archive.tar.gz"
     carrier.write_bytes(archive_bytes + b"x")
 
+    raw_entry = _raw_entry(archive_bytes)
     with pytest.raises(RuntimeError, match="raw-manifest-mismatch"):
-        tree_installation.describe_archive_tree(carrier, _raw_entry(archive_bytes))
+        tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
 @pytest.mark.parametrize(
@@ -922,13 +927,13 @@ def test_native_tool_installation_requires_a_reviewed_bounded_installed_tree(tmp
     assert "tooling-installed-tree-required" in _failures(root)
 
     for drift in (
-        {"expanded_bytes": tree_installation.MAX_TREE_EXPANDED_BYTES + 1},
-        {"file_count": tree_installation.MAX_TREE_MEMBERS},
+        {"expanded_bytes": tree_archive.MAX_TREE_EXPANDED_BYTES + 1},
+        {"file_count": tree_archive.MAX_TREE_MEMBERS},
     ):
         platform["installed_tree"] = {**_TREE_POLICY, **drift}
         _write_json(root, ARTIFACT_LOCK_PATH, lock)
         assert "tooling-installed-tree-bounds" in _failures(root)
-    platform["raw_manifest"][0]["size"] = tree_installation.MAX_TREE_RAW_BYTES + 1
+    platform["raw_manifest"][0]["size"] = tree_validation.MAX_TREE_RAW_BYTES + 1
     platform["installed_tree"] = dict(_TREE_POLICY)
     _write_json(root, ARTIFACT_LOCK_PATH, lock)
     assert "tooling-installed-tree-bounds" in _failures(root)
@@ -996,12 +1001,12 @@ def test_governed_acquisition_paths_cannot_keep_repository_http(
 
 
 def test_checked_in_isabelle_authority_binds_the_reviewed_complete_tree() -> None:
-    from tools.tooling_policy_gate import _locked_installed_tree
+    from tools.tooling_installed_tree import locked_installed_tree
 
     lock = json.loads((REPO_ROOT / "implementations/tooling/artifacts.lock.json").read_text(encoding="utf-8"))
     isabelle = next(item for item in lock["artifacts"] if item["artifact_id"] == "isabelle")
     platform = isabelle["platforms"][0]
-    tree = _locked_installed_tree(platform["installed_tree"])
+    tree = locked_installed_tree(platform["installed_tree"])
 
     assert isabelle["artifact_class"] == "native-tool"
     assert platform["raw_manifest"] == [
@@ -1159,8 +1164,9 @@ def test_archive_member_may_precede_its_explicit_directory_but_a_directory_canno
 
     repeated = _archive([_directory(ROOT), _directory(ROOT)])
     carrier.write_bytes(repeated)
+    raw_entry = _raw_entry(repeated)
     with pytest.raises(RuntimeError, match="duplicate-archive-member"):
-        tree_installation.describe_archive_tree(carrier, _raw_entry(repeated))
+        tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
 @pytest.mark.parametrize(
@@ -1176,8 +1182,9 @@ def test_gzip_trailer_and_trailing_bytes_are_validated(tmp_path: Path, damage) -
     carrier = tmp_path / "damaged.tar.gz"
     carrier.write_bytes(damaged)
 
+    raw_entry = _raw_entry(damaged)
     with pytest.raises(RuntimeError, match="unsafe-archive"):
-        tree_installation.describe_archive_tree(carrier, _raw_entry(damaged))
+        tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
 def test_decompressed_padding_after_the_tar_end_is_bounded(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -1188,14 +1195,15 @@ def test_decompressed_padding_after_the_tar_end_is_bounded(monkeypatch: pytest.M
     archive_bytes = gzip.compress(tar_buffer.getvalue() + bytes(256 * 1024))
     carrier = tmp_path / "padded.tar.gz"
     carrier.write_bytes(archive_bytes)
-    monkeypatch.setattr(tree_installation, "MAX_TREE_TRAILER_BYTES", 16)
+    monkeypatch.setattr(tree_archive, "MAX_TREE_TRAILER_BYTES", 16)
 
+    raw_entry = _raw_entry(archive_bytes)
     with pytest.raises(RuntimeError, match="archive-size-limit"):
-        tree_installation.describe_archive_tree(carrier, _raw_entry(archive_bytes))
+        tree_installation.describe_archive_tree(carrier, raw_entry)
 
 
-def _manifest_descriptor(entries: list[tree_installation.TreeEntry]) -> LockedInstalledTree:
-    return LockedInstalledTree(**tree_installation._tree_descriptor(entries))
+def _manifest_descriptor(entries: list[tree_archive.TreeEntry]) -> LockedInstalledTree:
+    return LockedInstalledTree(**tree_archive.tree_descriptor(entries))
 
 
 @pytest.mark.parametrize(
@@ -1211,32 +1219,34 @@ def _manifest_descriptor(entries: list[tree_installation.TreeEntry]) -> LockedIn
 )
 def test_retained_manifest_parsing_is_closed_and_canonical(mutation) -> None:
     entries = [
-        tree_installation.TreeEntry(ROOT, "directory"),
-        tree_installation.TreeEntry(f"{ROOT}/tool", "file", "a" * 64, 1, True),
+        tree_archive.TreeEntry(ROOT, "directory"),
+        tree_archive.TreeEntry(f"{ROOT}/tool", "file", "a" * 64, 1, True),
     ]
-    payload = tree_installation.manifest_bytes(entries)
+    payload = tree_archive.manifest_bytes(entries)
     descriptor = _manifest_descriptor(entries)
-    assert set(tree_installation._parse_manifest(payload, descriptor)) == {ROOT, f"{ROOT}/tool"}
+    assert set(tree_archive.parse_manifest(payload, descriptor)) == {ROOT, f"{ROOT}/tool"}
 
+    mutated = mutation(payload)
     with pytest.raises(RuntimeError, match="tree-integrity-failure"):
-        tree_installation._parse_manifest(mutation(payload), descriptor)
+        tree_archive.parse_manifest(mutated, descriptor)
 
 
 @pytest.mark.parametrize(
     "entries",
     [
-        [tree_installation.TreeEntry(f"{ROOT}/tool", "file", "a" * 64, 1, True)],
+        [tree_archive.TreeEntry(f"{ROOT}/tool", "file", "a" * 64, 1, True)],
         [
-            tree_installation.TreeEntry(ROOT, "directory"),
-            tree_installation.TreeEntry(f"{ROOT}/escape", "symlink", target="../../outside"),
+            tree_archive.TreeEntry(ROOT, "directory"),
+            tree_archive.TreeEntry(f"{ROOT}/escape", "symlink", target="../../outside"),
         ],
     ],
 )
-def test_retained_manifest_requires_real_parents_and_confined_links(entries: list[tree_installation.TreeEntry]) -> None:
-    payload = tree_installation.manifest_bytes(entries)
+def test_retained_manifest_requires_real_parents_and_confined_links(entries: list[tree_archive.TreeEntry]) -> None:
+    payload = tree_archive.manifest_bytes(entries)
+    descriptor = _manifest_descriptor(entries)
 
     with pytest.raises(RuntimeError, match="tree-integrity-failure"):
-        tree_installation._parse_manifest(payload, _manifest_descriptor(entries))
+        tree_archive.parse_manifest(payload, descriptor)
 
 
 @pytest.mark.parametrize(
@@ -1246,10 +1256,10 @@ def test_retained_manifest_requires_real_parents_and_confined_links(entries: lis
         {"tree": {"format": "zip"}},
         {"tree": {"symlink_count": -1}},
         {"tree": {"file_count": True}},
-        {"tree": {"file_count": tree_installation.MAX_TREE_MEMBERS}},
-        {"tree": {"expanded_bytes": tree_installation.MAX_TREE_EXPANDED_BYTES + 1}},
+        {"tree": {"file_count": tree_archive.MAX_TREE_MEMBERS}},
+        {"tree": {"expanded_bytes": tree_archive.MAX_TREE_EXPANDED_BYTES + 1}},
         {"tree": {"manifest_sha256": "not-a-digest"}},
-        {"raw_size": tree_installation.MAX_TREE_RAW_BYTES + 1},
+        {"raw_size": tree_validation.MAX_TREE_RAW_BYTES + 1},
         {"executables": 2},
         {"policy_refs": ()},
         {"installed_path": "../escape"},
@@ -1385,7 +1395,7 @@ def test_storage_exhaustion_during_tree_extraction_is_terminal_and_leaves_no_par
     def disk_full(*_args: object) -> str:
         raise OSError(errno.ENOSPC, "disk full")
 
-    monkeypatch.setattr(tree_installation._StageSink, "file", disk_full)
+    monkeypatch.setattr(tree_archive.StageSink, "file", disk_full)
     with pytest.raises(isabelle_tool.IsabelleToolError, match="storage-exhausted"):
         isabelle_tool.acquire_isabelle(tmp_path)
 
@@ -1755,8 +1765,9 @@ def test_replay_and_resolution_fail_explicitly_on_unsupported_platforms(
     monkeypatch.setattr(isabelle_tool.subprocess, "run", must_not_execute)
     with pytest.raises(isabelle_tool.IsabelleToolError, match="supports Linux x86_64 only"):
         isabelle_tool.require_isabelle(tmp_path)
+    runnable_bwrap = Path(sys.executable)
     with pytest.raises(isabelle_tool.IsabelleToolError, match="supports Linux x86_64 only"):
-        isabelle_tool.run_isabelle_build(tmp_path, bwrap=Path(sys.executable))
+        isabelle_tool.run_isabelle_build(tmp_path, bwrap=runnable_bwrap)
 
 
 def test_manifest_bound_is_enforced_when_describing_and_before_publication(
@@ -1766,10 +1777,10 @@ def test_manifest_bound_is_enforced_when_describing_and_before_publication(
     lock = _Lock(monkeypatch, tmp_path)
     carrier = tmp_path / "bounded.tar.gz"
     carrier.write_bytes(lock.archive_bytes)
-    payload = tree_installation.manifest_bytes(
-        tree_installation._admit_archive_stream(io.BytesIO(lock.archive_bytes), tree_installation._CEILING_LIMITS, None)
+    payload = tree_archive.manifest_bytes(
+        tree_archive.admit_archive_stream(io.BytesIO(lock.archive_bytes), tree_archive.CEILING_LIMITS, None)
     )
-    monkeypatch.setattr(tree_installation, "MAX_TREE_MANIFEST_BYTES", len(payload) - 1)
+    monkeypatch.setattr(tree_archive, "MAX_TREE_MANIFEST_BYTES", len(payload) - 1)
 
     with pytest.raises(RuntimeError, match="archive-size-limit"):
         tree_installation.describe_archive_tree(carrier, lock.selection.raw_manifest[0])
@@ -1779,7 +1790,7 @@ def test_manifest_bound_is_enforced_when_describing_and_before_publication(
     target = _target(tmp_path, lock)
     assert not target.exists()
     assert not list(target.parent.glob(".stage-*"))
-    monkeypatch.setattr(tree_installation, "MAX_TREE_MANIFEST_BYTES", len(payload))
+    monkeypatch.setattr(tree_archive, "MAX_TREE_MANIFEST_BYTES", len(payload))
     assert tree_installation.describe_archive_tree(carrier, lock.selection.raw_manifest[0])["manifest_sha256"] == (
         lock.selection.installed_tree.manifest_sha256
     )

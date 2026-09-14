@@ -89,6 +89,34 @@ def curl_version_is_supported(value: str) -> bool:
     return match is not None and tuple(int(part) for part in match.groups()) >= _MINIMUM_CURL
 
 
+def _validated_transfer_bounds(
+    executable: Path,
+    url: str,
+    max_bytes: int,
+    max_time_seconds: int | None,
+    budget: TransferBudget,
+) -> int:
+    """Validate the credential-free locator, fixed client, and budget; return the deadline."""
+
+    parsed = urlsplit(url)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username is not None or parsed.password is not None:
+        raise ValueError("curl transfer requires a credential-free HTTPS URL")
+    if executable != SYSTEM_CURL or not executable.is_absolute():
+        raise ValueError("curl transfer requires the qualified absolute client")
+    deadline = budget.max_time_seconds if max_time_seconds is None else max_time_seconds
+    if not 1 <= max_bytes <= budget.max_bytes:
+        raise ValueError(f"curl transfer size limit is outside the {budget.budget_id} artifact budget")
+    if not 1 <= deadline <= budget.max_time_seconds:
+        raise ValueError(f"curl transfer deadline must be between 1 and {budget.max_time_seconds} seconds")
+    return deadline
+
+
+def _low_speed_argv(budget: TransferBudget) -> tuple[str, ...]:
+    if budget.low_speed_bytes_per_second is None or budget.low_speed_seconds is None:
+        return ()
+    return ("--speed-limit", str(budget.low_speed_bytes_per_second), "--speed-time", str(budget.low_speed_seconds))
+
+
 def curl_transfer_argv(
     executable: Path,
     url: str,
@@ -101,16 +129,7 @@ def curl_transfer_argv(
 ) -> list[str]:
     """Build the fixed argv shared by qualification and real acquisition."""
 
-    parsed = urlsplit(url)
-    if parsed.scheme != "https" or not parsed.hostname or parsed.username is not None or parsed.password is not None:
-        raise ValueError("curl transfer requires a credential-free HTTPS URL")
-    if executable != SYSTEM_CURL or not executable.is_absolute():
-        raise ValueError("curl transfer requires the qualified absolute client")
-    deadline = budget.max_time_seconds if max_time_seconds is None else max_time_seconds
-    if not 1 <= max_bytes <= budget.max_bytes:
-        raise ValueError(f"curl transfer size limit is outside the {budget.budget_id} artifact budget")
-    if not 1 <= deadline <= budget.max_time_seconds:
-        raise ValueError(f"curl transfer deadline must be between 1 and {budget.max_time_seconds} seconds")
+    deadline = _validated_transfer_bounds(executable, url, max_bytes, max_time_seconds, budget)
     argv = [
         str(executable),
         "--disable",
@@ -137,15 +156,7 @@ def curl_transfer_argv(
         "--max-filesize",
         str(max_bytes),
     ]
-    if budget.low_speed_bytes_per_second is not None and budget.low_speed_seconds is not None:
-        argv.extend(
-            (
-                "--speed-limit",
-                str(budget.low_speed_bytes_per_second),
-                "--speed-time",
-                str(budget.low_speed_seconds),
-            )
-        )
+    argv.extend(_low_speed_argv(budget))
     if ca_cert is not None:
         argv.extend(("--cacert", str(ca_cert)))
     argv.extend(("--output", str(output), url))

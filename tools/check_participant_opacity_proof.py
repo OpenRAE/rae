@@ -45,9 +45,12 @@ PROOF_TOOL_SOURCE_PATHS = (
     "tools/isabelle_sandbox.py",
     "tools/isabelle_tool.py",
     "tools/maintained_client_acquisition.py",
+    "tools/tooling_installed_tree.py",
     "tools/tooling_policy_gate.py",
     "tools/verified_tool_installation.py",
+    "tools/verified_tree_archive.py",
     "tools/verified_tree_installation.py",
+    "tools/verified_tree_validation.py",
 )
 THEORY_RELATIVE_PATH = ISABELLE_SESSION_RELATIVE_PATH / "Participant_Opacity.thy"
 ROOT_RELATIVE_PATH = ISABELLE_SESSION_RELATIVE_PATH / "ROOT"

@@ -158,8 +158,10 @@ def test_failed_qualification_still_restores_owner_write_for_cleanup(
     monkeypatch.setattr(test_lanes, "_restore_owner_write", restored.append)
     monkeypatch.setattr(test_lanes.tempfile, "tempdir", str(tmp_path))
 
+    session = object()
+    reporter = _Reporter()
     with pytest.raises(RuntimeError, match="harness failed"):
-        test_lanes._run_installation_qualification(object(), _Reporter(), "proof-input-qualification", [])
+        test_lanes._run_installation_qualification(session, reporter, "proof-input-qualification", [])
     assert len(restored) == 1
     assert restored[0].resolve().parent == tmp_path.resolve()
 

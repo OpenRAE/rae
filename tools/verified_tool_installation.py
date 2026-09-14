@@ -600,6 +600,11 @@ def _quarantine(path: Path, quarantine_root: Path, *, prefix: str) -> Path:
     return destination
 
 
+def _private_lock_state(state: os.stat_result, *, exact_mode: bool) -> bool:
+    permissions_private = state.st_mode & 0o777 == 0o600 if exact_mode else state.st_mode & 0o177 == 0
+    return stat.S_ISREG(state.st_mode) and state.st_uid == os.geteuid() and state.st_nlink == 1 and permissions_private
+
+
 @contextmanager
 def _portable_lock(path: Path, timeout: float | None = None) -> Iterator[None]:
     try:
@@ -608,29 +613,13 @@ def _portable_lock(path: Path, timeout: float | None = None) -> Iterator[None]:
         raise RuntimeError("tool-installation: portable-lock-unavailable") from None
     logging.getLogger("filelock").setLevel(logging.WARNING)
     existing = _lstat(path)
-    if existing is not None and (
-        not stat.S_ISREG(existing.st_mode)
-        or existing.st_uid != os.geteuid()
-        or existing.st_nlink != 1
-        or existing.st_mode & 0o177 != 0
-    ):
+    if existing is not None and not _private_lock_state(existing, exact_mode=False):
         raise RuntimeError("tool-installation: unsafe-lock-file")
-    lock = FileLock(
-        path,
-        timeout=LOCK_TIMEOUT_SECONDS if timeout is None else timeout,
-        mode=0o600,
-        fallback_to_soft=False,
-        preserve_lock_file=True,
-    )
+    wait_seconds = LOCK_TIMEOUT_SECONDS if timeout is None else timeout
+    lock = FileLock(path, timeout=wait_seconds, mode=0o600, fallback_to_soft=False, preserve_lock_file=True)
     try:
         with lock:
-            state = path.lstat()
-            if (
-                not stat.S_ISREG(state.st_mode)
-                or state.st_uid != os.geteuid()
-                or state.st_nlink != 1
-                or state.st_mode & 0o777 != 0o600
-            ):
+            if not _private_lock_state(path.lstat(), exact_mode=True):
                 raise RuntimeError("tool-installation: unsafe-lock-file")
             yield
     except Timeout:

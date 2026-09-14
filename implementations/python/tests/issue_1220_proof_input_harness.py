@@ -36,6 +36,7 @@ if str(REPO_ROOT) not in sys.path:
 from tools import isabelle_tool  # noqa: E402
 from tools import maintained_client_acquisition as client  # noqa: E402
 from tools import verified_tool_installation as installation  # noqa: E402
+from tools import verified_tree_archive as tree_archive  # noqa: E402
 from tools import verified_tree_installation as tree_installation  # noqa: E402
 from tools.tooling_policy_gate import (  # noqa: E402
     LockedArtifactSelection,
@@ -385,12 +386,12 @@ def _quota_failure_recovery(root: Path, archive: Path, selection_path: Path) -> 
     repo = _repo(root, "quota")
     selection = _load_selection(selection_path)
     began = time.monotonic()
-    original = tree_installation._StageSink.file
+    original = tree_archive.StageSink.file
 
     def disk_full(self: Any, path: Any, source: Any, size: int) -> str:
         raise OSError(errno.ENOSPC, "qualification disk quota")
 
-    tree_installation._StageSink.file = disk_full
+    tree_archive.StageSink.file = disk_full
     try:
         try:
             _ensure(repo, archive, selection)
@@ -400,7 +401,7 @@ def _quota_failure_recovery(root: Path, archive: Path, selection_path: Path) -> 
         else:
             raise AssertionError("quota failure was not terminal")
     finally:
-        tree_installation._StageSink.file = original
+        tree_archive.StageSink.file = original
     target = tree_installation.tree_installation_path(installation.default_installation_root(repo), selection)
     if target.exists() or list(target.parent.glob(".stage-*")):
         raise AssertionError("quota failure exposed partial state")

@@ -289,7 +289,7 @@
     "tool_sources": [
       {
         "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:f3119d0f1e7bdd13ec9faa1c2a05c3f2b96ea97b0c7a479e223e34457961974b"
+        "digest": "sha256:c4d0c4e1d036f11287b771fdfb2cbaa686aa90ef09003861597b28c1c749bc08"
       },
       {
         "path": "tools/isabelle_sandbox.py",
@@ -297,23 +297,35 @@
       },
       {
         "path": "tools/isabelle_tool.py",
-        "digest": "sha256:1f3a83936a05aca7d87f9e9a29e7b794b4d768689af148c5da14864bd4510b3c"
+        "digest": "sha256:6555b96e612138eb53ffb5642726a084eb9b1c81dc10831662b2f19e71f062f3"
       },
       {
         "path": "tools/maintained_client_acquisition.py",
-        "digest": "sha256:b6aa150d2fed4270b873aac044fd2b26af6efd1625d89c65c0cfddc903693bb8"
+        "digest": "sha256:14b4b11751fdbaf13c551fee6d1f3de0ec224faa3a60825448399fb0024e89cb"
+      },
+      {
+        "path": "tools/tooling_installed_tree.py",
+        "digest": "sha256:84d272f07e970184ba65db7c4ffc2ebbdc4b381cb4a9ee5a1be373a40748a846"
       },
       {
         "path": "tools/tooling_policy_gate.py",
-        "digest": "sha256:39bdbbba4a62d3e0af8dc088499778645ad4dc3f6c44406c2fc8f2ff7a62d69c"
+        "digest": "sha256:282a7056b6ba6810d00aba130d3aea2c37fbe6fe13a1e637d6b1be5a0e637b0b"
       },
       {
         "path": "tools/verified_tool_installation.py",
-        "digest": "sha256:1d785afdefc6bfbc90511ff3ea646e3c491b132a6a2c4058e7e4dc4b1c044118"
+        "digest": "sha256:523953430b5d1903d0f35707e28d4906fc260ef5cdafb9aab09e176dcb2c8c4a"
+      },
+      {
+        "path": "tools/verified_tree_archive.py",
+        "digest": "sha256:c6d1071bd292537e886a33b2bd03324b065b7a697b87a4bbf6cface992e95334"
       },
       {
         "path": "tools/verified_tree_installation.py",
-        "digest": "sha256:c1fb330498be01e6f451470660ab62dd9f027490a0d1f28310c94f48b456dcf0"
+        "digest": "sha256:d38d93dcb98e8f74b3aa1f72e0bcd97ad3464cae24388a36d26ffbcd6607a751"
+      },
+      {
+        "path": "tools/verified_tree_validation.py",
+        "digest": "sha256:6b0c7d6a3a6a823b22e79fcea9617dcadec718a4ec80db780957ba4973bd0bad"
       }
     ]
   },

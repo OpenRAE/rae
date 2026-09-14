@@ -181,8 +181,9 @@ def test_materialized_content_that_differs_from_the_installed_manifest_is_reject
     if carrier == "tar.gz":
         member = tarfile.TarInfo("bin/tool")
         member.size = len(substituted)
+        carrier_bytes = _tar([(member, substituted)])
         with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
-            installation.materialize_tar_gz(_tar([(member, substituted)]), selection)
+            installation.materialize_tar_gz(carrier_bytes, selection)
     else:
         with pytest.raises(RuntimeError, match="installed-manifest-mismatch"):
             installation.materialize_direct(substituted, selection)
@@ -594,12 +595,13 @@ def test_world_writable_legacy_cache_is_never_admitted(monkeypatch: pytest.Monke
     legacy.write_bytes(payload)
     legacy.chmod(0o757)
     monkeypatch.setattr(installation, "_group_has_other_principal", lambda _group_id: False)
+    selection = _selection(payload)
 
     with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
         _direct_install(
             monkeypatch,
             tmp_path,
-            _selection(payload),
+            selection,
             payload,
             legacy_path=legacy,
             acquire=lambda: pytest.fail("legacy migration triggered acquisition"),
