@@ -1925,6 +1925,17 @@
           "default": null,
           "title": "Text"
         },
+        "text_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactValueSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "$ref": "#/$defs/ContentType"
         }
@@ -5073,6 +5084,17 @@
           "title": "Provenance",
           "type": "string"
         },
+        "random_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RandomValueRecipe"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "refresh_dependencies": {
           "items": {
             "not": {
@@ -5083,6 +5105,17 @@
           "title": "Refresh Dependencies",
           "type": "array",
           "uniqueItems": true
+        },
+        "regeneration_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactRegenerationScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -5151,7 +5184,8 @@
       "enum": [
         "certificate_bundle",
         "rendered_config",
-        "ssh_key_bundle"
+        "ssh_key_bundle",
+        "random_value"
       ],
       "title": "GeneratedArtifactKind",
       "type": "string"
@@ -5214,6 +5248,16 @@
         "producer_private"
       ],
       "title": "GeneratedArtifactOutputDisposition",
+      "type": "string"
+    },
+    "GeneratedArtifactRegenerationScope": {
+      "description": "When a ``random_value`` generated artifact is regenerated (issue #1276).\n\nDistinct from ``GeneratedArtifactLifecycle`` (change-driven reuse): scope\ngoverns *freshness*. ``per_run`` regenerates for each fresh authoritative run;\n``per_instantiation`` regenerates for each distinct realized scenario instance;\n``once`` binds a single generation to the backend-owned artifact-instance\nlifetime.",
+      "enum": [
+        "per_run",
+        "per_instantiation",
+        "once"
+      ],
+      "title": "GeneratedArtifactRegenerationScope",
       "type": "string"
     },
     "GeneratedArtifactValueSource": {
@@ -7224,6 +7268,20 @@
         "cancellation"
       ],
       "title": "MixedControlTransitionKind",
+      "type": "string"
+    },
+    "NamedAlphabet": {
+      "description": "Closed set of portable alphabets a random value may draw from.\n\nConcrete charsets live in :data:`raes_contracts.random_value_generation.NAMED_ALPHABET_CHARSETS`,\nthe single source of truth shared with backend generation.",
+      "enum": [
+        "hex_lower",
+        "hex_upper",
+        "digits",
+        "alpha",
+        "alphanumeric",
+        "base32",
+        "base58"
+      ],
+      "title": "NamedAlphabet",
       "type": "string"
     },
     "Node": {
@@ -12009,6 +12067,117 @@
       ],
       "title": "PropositionBasis",
       "type": "string"
+    },
+    "RandomValueFormat": {
+      "additionalProperties": false,
+      "description": "Bounded literal wrapper placed around the random segment.\n\n``prefix`` and ``suffix`` are literal text (no control characters); the random\nsegment is inserted between them. The wrapper contributes no entropy.",
+      "properties": {
+        "prefix": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Prefix",
+          "type": "string"
+        },
+        "suffix": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Suffix",
+          "type": "string"
+        }
+      },
+      "title": "RandomValueFormat",
+      "type": "object"
+    },
+    "RandomValueRecipe": {
+      "additionalProperties": false,
+      "description": "Portable, value-free description of how a random value is generated.",
+      "properties": {
+        "alphabet": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NamedAlphabet"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "custom_alphabet": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Custom Alphabet"
+        },
+        "entropy_bits": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entropy Bits"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RandomValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "length": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Length"
+        },
+        "min_entropy_bits": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Entropy Bits"
+        }
+      },
+      "title": "RandomValueRecipe",
+      "type": "object"
     },
     "RealizationConstraintPosture": {
       "description": "Exact, finite-constrained, or delegated author mechanism intent.",
@@ -29277,6 +29446,66 @@
     },
     "StringPredicate": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "expected": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected"
+              ]
+            },
+            {
+              "properties": {
+                "expected_from": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected_from"
+              ]
+            }
+          ]
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "properties": {
+                  "expected": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected"
+                ]
+              },
+              {
+                "properties": {
+                  "expected_from": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected_from"
+                ]
+              }
+            ]
+          }
+        }
+      ],
       "description": "Compare a governed string property with typed string operands.",
       "properties": {
         "expected": {
@@ -29295,9 +29524,24 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            {
+              "type": "null"
             }
           ],
+          "default": null,
           "title": "Expected"
+        },
+        "expected_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactValueSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "kind": {
           "const": "string",
@@ -29339,8 +29583,7 @@
       },
       "required": [
         "property",
-        "semantic_ref",
-        "expected"
+        "semantic_ref"
       ],
       "title": "StringPredicate",
       "type": "object"

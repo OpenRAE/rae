@@ -24,6 +24,7 @@ from raes_contracts.apparatus import (
     RealizationObservationCapability,
     RealizationSupportDeclaration,
 )
+from raes_contracts.planning import PlanScope
 from raes_contracts.vocabulary import (
     ObservationStrength,
     RealizationSupportMode,
@@ -193,7 +194,7 @@ nodes:
             ),
             manifest,
             snapshot,
-            target_name="custom-target",
+            scope=PlanScope(target_name="custom-target"),
         )
 
         assert execution_plan.target_name == "custom-target"

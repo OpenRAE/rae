@@ -300,6 +300,12 @@ def _capabilities(
             max_total_nodes=None,
             supports_acls=configuration.supports_acls,
             supports_accounts=bool(configuration.supported_account_features),
+            # The reference backend makes generated-artifact outputs available only
+            # through its in-process readback; it does not write them into deployed
+            # containers, so it does not advertise the security-sensitive
+            # random_value generator/delivery it cannot realize end-to-end (issue
+            # #1276). A backend that implements atomic container delivery declares
+            # the capability; tests exercise the generator via a capability override.
             supports_generated_artifacts=bool(generator_profiles),
             supported_generated_artifact_kinds=generator_profiles,
         ),

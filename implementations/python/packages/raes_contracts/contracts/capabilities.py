@@ -14,6 +14,7 @@ from ..operating_systems import OS_VERSION_PATTERN, validate_operating_system_pa
 from ..vocabulary import (
     GeneratedArtifactDeliveryMode,
     GeneratedArtifactKind,
+    GeneratedArtifactRegenerationScope,
     ObservationStrength,
     ProcessResourceLimitKind,
     ProcessResourceLimitScope,
@@ -22,6 +23,7 @@ from ..vocabulary import (
     WorkflowFeature,
     WorkflowStatePredicateFeature,
 )
+from ._capability_schema import provisioner_capability_conditionals
 from .base import ContractModel, NonEmptyString
 from .validators import _validate_controlled_vocabulary_terms
 
@@ -102,10 +104,25 @@ def _validate_generated_artifact_delivery_coupling(model: ProvisionerCapabilitie
         raise ValueError("supported_generated_artifact_delivery_modes require supports_generated_artifacts=true")
 
 
+def _validate_generated_artifact_regeneration_coupling(model: ProvisionerCapabilitiesModel) -> None:
+    if len(model.supported_regeneration_scopes) != len(set(model.supported_regeneration_scopes)):
+        raise ValueError("supported_regeneration_scopes must not contain duplicates")
+    supports_random_value = GeneratedArtifactKind.RANDOM_VALUE in model.supported_generated_artifact_kinds
+    if supports_random_value and not model.supported_regeneration_scopes:
+        raise ValueError(
+            "provisioners that support the random_value generator must declare supported_regeneration_scopes"
+        )
+    if not supports_random_value and model.supported_regeneration_scopes:
+        raise ValueError(
+            "supported_regeneration_scopes require the random_value generator in supported_generated_artifact_kinds"
+        )
+
+
 def _validate_feature_coupling(model: ProvisionerCapabilitiesModel) -> None:
     _validate_account_feature_coupling(model)
     _validate_generated_artifact_kind_coupling(model)
     _validate_generated_artifact_delivery_coupling(model)
+    _validate_generated_artifact_regeneration_coupling(model)
 
 
 class ProvisionerCapabilitiesModel(ContractModel):
@@ -129,6 +146,10 @@ class ProvisionerCapabilitiesModel(ContractModel):
         json_schema_extra={"uniqueItems": True},
     )
     supported_generated_artifact_delivery_modes: list[GeneratedArtifactDeliveryMode] = Field(
+        default_factory=list,
+        json_schema_extra={"uniqueItems": True},
+    )
+    supported_regeneration_scopes: list[GeneratedArtifactRegenerationScope] = Field(
         default_factory=list,
         json_schema_extra={"uniqueItems": True},
     )
@@ -178,50 +199,7 @@ class ProvisionerCapabilitiesModel(ContractModel):
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
         json_schema["properties"]["operating_systems"]["uniqueItems"] = True
-        json_schema.setdefault("allOf", []).extend(
-            [
-                {
-                    "if": {
-                        "properties": {"supports_accounts": {"const": True}},
-                        "required": ["supports_accounts"],
-                    },
-                    "then": {
-                        "required": ["supported_account_features"],
-                        "properties": {"supported_account_features": {"minItems": 1}},
-                    },
-                },
-                {
-                    "if": {
-                        "properties": {"supported_account_features": {"minItems": 1}},
-                        "required": ["supported_account_features"],
-                    },
-                    "then": {
-                        "required": ["supports_accounts"],
-                        "properties": {"supports_accounts": {"const": True}},
-                    },
-                },
-                {
-                    "if": {
-                        "properties": {"supports_generated_artifacts": {"const": True}},
-                        "required": ["supports_generated_artifacts"],
-                    },
-                    "then": {
-                        "required": ["supported_generated_artifact_kinds"],
-                        "properties": {"supported_generated_artifact_kinds": {"minItems": 1}},
-                    },
-                },
-                {
-                    "if": {
-                        "properties": {"supported_generated_artifact_kinds": {"minItems": 1}},
-                        "required": ["supported_generated_artifact_kinds"],
-                    },
-                    "then": {
-                        "required": ["supports_generated_artifacts"],
-                        "properties": {"supports_generated_artifacts": {"const": True}},
-                    },
-                },
-            ]
-        )
+        json_schema.setdefault("allOf", []).extend(provisioner_capability_conditionals())
         return json_schema
 
 
@@ -307,6 +285,7 @@ class EvaluatorCapabilitiesModel(ContractModel):
     supported_evidence_channels: list[NonEmptyString] = Field(default_factory=list)
     supported_time_domains: list[NonEmptyString] = Field(default_factory=list)
     preserves_binding_provenance: bool = False
+    supports_deferred_expected_comparison: bool = False
     constraints: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")

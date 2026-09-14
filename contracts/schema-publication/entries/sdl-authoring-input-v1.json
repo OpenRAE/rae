@@ -1,9 +1,9 @@
 {
-  "content_hash": "58cd6888a3b6d8b8457fdedb7996ca81d1103951f5dcf2f884b1b06fa848a06e",
+  "content_hash": "06582de9ecf6a7b039bf7e3716dd5eef8e11a144bfc6610eaa5884c71d3e280d",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "58cd6888a3b6d8b8457fdedb7996ca81d1103951f5dcf2f884b1b06fa848a06e",
-    "summary": "Breaking progressive semantic cutover with explicit revision, migration decisions and current canonical authoring/snapshot profiles (#1210)."
+    "content_hash": "06582de9ecf6a7b039bf7e3716dd5eef8e11a144bfc6610eaa5884c71d3e280d",
+    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

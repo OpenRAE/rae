@@ -220,6 +220,10 @@ def _stub_provisioner() -> ProvisionerCapabilities:
         supports_acls=True,
         supports_accounts=True,
         supports_generated_artifacts=True,
+        # The stub provisioner's apply is a no-op (it copies plan payloads into
+        # snapshot entries), so it must not advertise random_value generation or
+        # secret delivery it never performs (issue #1276). Tests that exercise
+        # random_value admission build a capable manifest via ``replace``.
         supported_generated_artifact_kinds=frozenset({"certificate_bundle", "rendered_config", "ssh_key_bundle"}),
         supported_generated_artifact_delivery_modes=frozenset({"mount", "environment", "env_file"}),
         supports_persistent_volumes=True,

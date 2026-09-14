@@ -1,9 +1,9 @@
 {
-  "content_hash": "96e65ba451baa8c173086ac556c89a6c41f1c24f971e629262904af104c43491",
+  "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "96e65ba451baa8c173086ac556c89a6c41f1c24f971e629262904af104c43491",
-    "summary": "Breaking progressive semantic cutover with explicit revision, migration decisions and current canonical authoring/snapshot profiles (#1210)."
+    "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
+    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"
