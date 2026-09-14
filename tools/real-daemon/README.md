@@ -33,29 +33,63 @@ qemu + genisoimage works.
 ## Run it on AWS (ephemeral, self-cleaning)
 
 ```sh
-AWS_PROFILE=aws-dev AWS_REGION=us-east-1 tools/real-daemon/run_aws_smoke.sh
+SSH_INGRESS_CIDR=203.0.113.4/32 AWS_PROFILE=aws-dev AWS_REGION=us-east-1 \
+  tools/real-daemon/run_aws_smoke.sh
 ```
 
-This provisions a `c5.2xlarge` Ubuntu 24.04 instance, installs libvirt/qemu, syncs
-this repo, runs the smoke test, prints the `SUMMARY: N/N passed` line, and tears
-down the instance + security group + key pair on exit. Pass `--keep` to leave the
-instance up for manual inspection (remember to terminate it later).
+`SSH_INGRESS_CIDR` is required: declare the reviewed CIDR allowed to reach the
+instance on tcp/22 (there is no external checkip auto-detect). The reviewed base
+image and native-package snapshot are pinned in `tools/tool_versions.py`
+(`LIVE_RUNNER_UBUNTU_IMAGE_NAME`, `LIVE_RUNNER_NATIVE_SNAPSHOT`); the script
+resolves them for your region rather than floating a "newest" AMI. It first
+stages the admitted input closure locally through the tooling policy gate
+(`tools/real-daemon/live_runner_inputs.py`): the pinned CirrOS guest disk
+(`cirros-guest-disk` in `implementations/tooling/artifacts.lock.json`), the
+locked `uv` client, the declared `cpython-3.14` interpreter, and the
+`libvirt-python` build wheelhouse (sdist + pinned setuptools/wheel) are
+downloaded once and verified against their reviewed digests. It then resolves the
+reviewed Canonical image by exact name + owner, provisions a `c5.2xlarge`
+instance whose APT is pinned to the immutable `snapshot.ubuntu.com` archive, pins
+the instance host key from the authenticated AWS console output
+(`StrictHostKeyChecking=yes`), transfers only Git-tracked source, **pre-seeds and
+re-verifies** the inputs, installs `uv` and the validated `cpython-3.14`
+interpreter from the pre-seeded payloads (no pipe-to-shell), runs
+`uv sync --frozen` on that interpreter, installs `libvirt-python` **offline** from
+the wheelhouse (`--offline --no-index --find-links --require-hashes`), runs the
+smoke test against a scoped per-run directory under the libvirt images tree,
+prints the `SUMMARY: N/N passed` line, and tears down the instance + security
+group + key pair on exit. The host keeps its default security driver — no
+`security_driver = "none"` and no root QEMU user/group. Pass `--keep` to leave
+the instance up for manual inspection (remember to terminate it later).
 
-Exit code is non-zero if any check fails.
+Exit code is non-zero if any check fails; a setup timeout is a failure, not a
+silently ignored step.
 
 ## Run it on any libvirt host
 
 Copy `libvirt_smoke.py` next to an installed `raes_backend_libvirt` (with
-`libvirt-python` available) on a host with libvirt/qemu/genisoimage and a
-`/var/lib/libvirt/images/cirros.img`, then:
+`libvirt-python` available) on a host with libvirt/qemu/genisoimage. Place the
+admitted CirrOS guest disk and run artefacts in a scoped directory **under the
+libvirt images tree** so the daemon can reach them under its default security
+driver, then point the harness at them:
 
 ```sh
-python real_daemon_smoke.py   # or: python libvirt_smoke.py
+RUN_DIR=/var/lib/libvirt/images/raes-run/$(id -un)-$$
+sudo install -d -m 0711 -o "$(id -un)" -g "$(id -un)" "$RUN_DIR"
+install -m 0644 cirros-0.6.2-x86_64-disk.img "$RUN_DIR/cirros.img"
+RAES_LIBVIRT_RUN_DIR="$RUN_DIR" \
+  RAES_CIRROS_IMAGE="$RUN_DIR/cirros.img" \
+  RAES_CIRROS_SHA256=07e44a73e54c94d988028515403c1ed762055e01b83a767edf3c2b387f78ce00 \
+  RAES_CIRROS_SIZE=21430272 \
+  python real_daemon_smoke.py   # or: python libvirt_smoke.py
 ```
 
-For seeds/disks outside `/var/lib/libvirt/images`, the host needs
-`security_driver = "none"` and `user/group = "root"` in `/etc/libvirt/qemu.conf`
-(the AWS script sets these automatically).
+The harness re-verifies the image against `RAES_CIRROS_SHA256`/`RAES_CIRROS_SIZE`
+before booting it and renders the guest disk overlay and cloud-init seed inside
+`RAES_LIBVIRT_RUN_DIR`, so no `security_driver = "none"` or root QEMU
+user/group override is needed. Keeping the run directory under
+`/var/lib/libvirt/images` lets libvirt dynamically label the disk/seed under the
+default AppArmor confinement.
 
 ## Guest-certified realization proof (ASR-519, issue #715)
 
@@ -100,7 +134,11 @@ RAES_REAL_LIBVIRT_URI=qemu:///system \
 
 Both are skipped by the default hermetic `nox verify` graph, which never requires
 libvirt, QEMU/KVM, privileges, a host image, network access, or credentials — the
-guest-certified proof is an explicit separate gate. The same host requirements
-apply (`security_driver = "none"` + `user/group = "root"` in
-`/etc/libvirt/qemu.conf` when boot artifacts and the run-local guest fact channel
-live outside `/var/lib/libvirt/images`; the AWS script sets these automatically).
+guest-certified proof is an explicit separate gate. The AWS guest-certification
+script (`run_aws_guest_certify.sh`) keeps the host's default security driver and
+renders the appliance boot artifacts and guest fact channel inside a scoped
+per-run directory under `/var/lib/libvirt/images` so the confined daemon can
+reach them without any `security_driver`/`qemu.conf` override. Because the guest
+appliance boots the host kernel (`/boot/vmlinuz-*`, root-readable only), the
+evidence run is invoked with a fixed argument vector under `sudo` — not a
+`sudo bash -lc` login shell — while QEMU stays confined by the default driver.

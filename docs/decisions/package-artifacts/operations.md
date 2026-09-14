@@ -399,6 +399,75 @@ Input locks improve repeatability but do not prove byte-identical distributions
 across host SDKs, compilers, operating systems, or build times; candidate output
 digests are evidence, not release admission.
 
+### Issue #1222 live-runner input closure evidence
+
+Issue #1222 brings the `tools/real-daemon/` AWS smoke and guest-certification
+setup (inventory row I13) under the admitted closure. The CirrOS guest disk is
+pinned in `artifacts.lock.json` as a `vm-base-image` artifact (reviewed digest,
+exact size, source, `official-cirros-download` locator) and selected through the
+tooling policy gate by `tools/real-daemon/live_runner_inputs.py`; `uv` is
+selected as the host profile's bootstrap payload and verified against the lock;
+`libvirt-python` and its build backend (setuptools/wheel) are pinned by exact
+version and hash in `tools/real-daemon/live-runner-python.txt` and the reviewed
+`tools/real-daemon/live-runner-python-closure.json` manifest, staged as a
+verified wheelhouse, and installed **fully offline**
+(`--offline --no-index --find-links <wheelhouse> --require-hashes`) so no
+distribution or build dependency is resolved from a live index during
+certification. The live-runner inputs are execution-bound to their reviewed
+authorities: the base image is Canonical's exact published image **name (serial)**
+(`tools/tool_versions.py`), resolved to the region's AMI id by owner + exact name
+(never "newest"); the native package set installs from an immutable
+`snapshot.ubuntu.com` archive timestamp (reproducible versions), with the
+`live-runner-ubuntu-24.04-x86_64` host profile as the reviewed authority for the
+package set and snapshot; and the declared **cpython-3.14** interpreter is
+pre-seeded, validated and used for `uv sync` rather than the ambient system
+python. libvirt/QEMU are required while KVM is optional (the runners use TCG
+`domain type="qemu"`). The scripts pre-seed and re-verify the transferred bytes,
+run under the host's default security driver (no `security_driver="none"`, no
+root QEMU user/group), use per-run scoped private directories under the libvirt
+images tree, require an explicit reviewed SSH ingress CIDR, pin the instance host
+key from the authenticated AWS console output before first contact
+(`StrictHostKeyChecking=yes`), transfer only Git-tracked revision-bound source,
+and invoke the guest-certified evidence run with a fixed argument vector (pulling
+its evidence back before teardown even on failure).
+
+The in-repository slices of the acceptance cases are implemented as the hermetic
+`implementations/python/tests/test_issue_1222_live_runner_acquisition.py`:
+
+- **T13**: tampered guest-disk bytes fail admission before boot; an unpinned
+  `libvirt-python` requirement is rejected; the reviewed CirrOS digest/size is
+  the only admitted identity; the full valid acquisition path is exercised. The
+  full missing-native/interpreter/VM and wrong-ABI rejection against a real host
+  is an operator obligation, not covered by a Python-only wheelhouse test.
+- **T21**: both runner scripts carry no pipe-to-shell bootstrap, no ignored
+  download, no ad-hoc curl acquisition, no host-security downgrade and no unsafe
+  `RUN_ID` interpolation; uv sync is frozen; the libvirt-python closure is
+  installed offline (`--offline --no-index --find-links --require-hashes`); the
+  first SSH connection is host-key-verified (`StrictHostKeyChecking=yes`); and
+  the apt package set is a subset of the reviewed host profile. The full
+  governed-closure boot of both runner paths is operator-run.
+- **T07**: per-run unique AWS key/security-group/instance names and scoped run
+  directories remove the fixed-resource collisions; cleanup acts only on
+  owned resources. The measured cold/warm concurrency, quota-exhaustion and
+  disk-full envelope (service target 100 clients, 32 same-host installers) is
+  operator-run on the live host and recorded against the pending
+  `live-runner-ubuntu-24.04-x86_64-issue-1222-pending` qualification record.
+
+Scope and honesty limits: the CirrOS checksum is an upstream-published integrity
+value cross-checked against the release `MD5SUMS` (recorded as `absent-reviewed`
+authenticity, not an authenticated publisher signature). `libvirt-python` is
+sdist-only; the sdist and its setuptools/wheel build backend are hash-pinned and
+installed offline from the pre-seeded wheelhouse, so no build dependency is
+resolved from a live index. The native package set installs from an immutable
+`snapshot.ubuntu.com` archive timestamp, so package versions are reproducible;
+this is the live-runner's own reproducible native closure and does not implement
+the broader offline export/import bundle (#1225). AWS provisioning/API behaviour
+remains a live external service; local preseed verification can run disconnected,
+but no air-gapped-AWS capability is claimed. The reviewed image serial and
+snapshot timestamp are advanced by a reviewed edit to `tools/tool_versions.py`.
+The live T07/T13/T21 result is `not-run` until an operator records it under the
+exact delivery revision.
+
 ### Issue #1221 vocabulary source evidence
 
 The opt-in `--verify-remote` acquisition in the five vocabulary source checkers
