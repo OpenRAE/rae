@@ -19,36 +19,126 @@ if str(REPO_ROOT) not in sys.path:
 import tools.check_pr_body as pr_body  # noqa: E402
 import tools.pr_body_issue_scope as issue_scope  # noqa: E402
 from tools.check_pr_body import (  # noqa: E402
+    REQUIRED_SECTIONS,
     RULE_ISSUES,
     RULE_SECTION,
     RULE_SUMMARY,
     RULE_VERIFICATION,
     IssueFacts,
     closing_issue_numbers,
+    closing_references,
     is_exempt_automation,
     main,
     no_issue_reasons,
-    validate_pr_body,
 )
 
 CHECKER = REPO_ROOT / "tools/check_pr_body.py"
+TEMPLATE = REPO_ROOT / ".github/PULL_REQUEST_TEMPLATE.md"
+REPOSITORY = "OpenRAE/rae"
+
+# Verbatim gc_render_pr_body output for a requirement-free quickfix run and a
+# requirement-backed implement run, both with test notes.
+GROUND_CONTROL_REQUIREMENT_FREE = """## Summary
+
+The body guard now validates the section structure that Ground Control renders.
+
+## Requirement UIDs
+
+- (none — bug/refactor/maintenance run; see Traceability section below)
+
+## Related Issues
+
+Closes #123
+
+## ADR Impact
+
+- No ADR required
+
+## Changes
+
+- Fixed the closing-route detection for prose issue mentions
+
+## Test Plan
+
+- [x] Unit tests pass
+- [x] Integration tests pass if applicable
+- [x] Configured completion command passes
+- [x] No coverage regression
+
+Ran `pytest implementations/python/tests/test_pr_body_guard.py`: passed.
+
+## Ground Control Checks
+
+- [x] Configured repository policy command passes
+- [x] Pre-push code review and test-quality review not run for this lane; CI and repository policy gates enforced
+
+## Traceability
+
+- IMPLEMENTS: (none — bug/refactor/maintenance run)
+- TESTS: (none — documentation/configuration/structural-invariant run)
+
+## Checklist
+
+- [x] Code follows the project's coding standards
+- [x] Changelog: owned by Release Please (generated from the Conventional Commit PR title; no per-PR fragment)
+- [x] Architectural docs updated if stack, package structure, or key behaviors changed"""
+
+GROUND_CONTROL_REQUIREMENT_BACKED = """## Summary
+
+The participant-opacity proof lane admits Isabelle through verified native-client inputs.
+
+## Requirement UIDs
+
+- `SEM-218`
+
+## Related Issues
+
+Refs #123
+
+## ADR Impact
+
+- ADR-103
+
+## Changes
+
+- Corrected the issue 1219 legacy migration for group-writable caches
+
+## Test Plan
+
+- [x] Unit tests pass
+- [x] Integration tests pass if applicable
+- [x] Configured completion command passes
+- [x] No coverage regression
+
+`nox -s verify-completion` and `make policy` passed on the merged tree.
+
+## Ground Control Checks
+
+- [x] Configured repository policy command passes
+- [x] Pre-push code review and test-quality review completed; all findings fixed or dispositioned
+
+## Traceability
+
+- IMPLEMENTS: tools/isabelle_tool.py
+- TESTS: implementations/python/tests/test_isabelle_tool.py
+
+## Checklist
+
+- [x] Code follows the project's coding standards
+- [x] Changelog: owned by Release Please (generated from the Conventional Commit PR title; no per-PR fragment)
+- [x] Architectural docs updated if stack, package structure, or key behaviors changed
+
+## Documentation
+
+Verified unchanged: no documentation surface in scope."""
 
 
 def _body(issue: int = 123) -> str:
-    return f"""## Plain-language summary
+    return GROUND_CONTROL_REQUIREMENT_FREE.replace("Closes #123", f"Closes #{issue}")
 
-- **Context:** Contributors need one reviewable delivery contract.
-- **Problem:** Empty pull request bodies hide delivery scope and evidence.
-- **Fix:** The base-ref checker validates structured human-authored content.
 
-## Issue tracking
-
-Closes #{issue}
-
-## Verification
-
-- `pytest tests/test_pr_body_guard.py`: passed
-"""
+def validate_pr_body(body: str, lookup) -> list[pr_body.BodyViolation]:
+    return pr_body.validate_pr_body(body, lookup, repository=REPOSITORY)
 
 
 def _lookup(states: dict[int, str]):
@@ -66,6 +156,44 @@ def _rules(body: str, states: dict[int, str] | None = None) -> set[str]:
 
 def test_complete_body_passes() -> None:
     assert validate_pr_body(_body(), _lookup({123: "open"})) == []
+
+
+@pytest.mark.parametrize(
+    ("body", "requirements"),
+    [(GROUND_CONTROL_REQUIREMENT_FREE, ()), (GROUND_CONTROL_REQUIREMENT_BACKED, ("SEM-218",))],
+)
+def test_ground_control_rendered_bodies_pass_unmodified(body: str, requirements: tuple[str, ...]) -> None:
+    assert validate_pr_body(body, lambda _number: IssueFacts(True, True, requirements)) == []
+
+
+def test_template_declares_the_ground_control_section_structure() -> None:
+    headings = [
+        line[3:].strip() for line in TEMPLATE.read_text(encoding="utf-8").splitlines() if line.startswith("## ")
+    ]
+    assert headings == [*REQUIRED_SECTIONS, "Documentation"]
+
+
+def test_unfilled_template_is_rejected() -> None:
+    template = TEMPLATE.read_text(encoding="utf-8")
+    assert _rules(template) == {RULE_SECTION, RULE_SUMMARY, RULE_ISSUES, RULE_VERIFICATION}
+
+
+def test_legacy_plain_language_structure_no_longer_satisfies_policy() -> None:
+    legacy = """## Plain-language summary
+
+- **Context:** Contributors need one reviewable delivery contract.
+- **Problem:** Empty pull request bodies hide delivery scope and evidence.
+- **Fix:** The base-ref checker validates structured human-authored content.
+
+## Issue tracking
+
+No issue: Corrects a small documentation typo.
+
+## Verification
+
+- `pytest tests/test_pr_body_guard.py`: passed
+"""
+    assert RULE_SECTION in _rules(legacy)
 
 
 def test_requirement_backed_refs_pass_through_real_issue_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -89,11 +217,10 @@ def test_requirement_backed_closing_is_rejected(monkeypatch: pytest.MonkeyPatch)
     assert RULE_ISSUES in {item.rule_id for item in validate_pr_body(_body(), lookup)}
 
 
-@pytest.mark.parametrize("heading", ["Issue tracking", "Related Issues", "Issues closed"])
 @pytest.mark.parametrize("requirements", [(), ("SEM-218",)])
 @pytest.mark.parametrize("keyword", ["Refs", "Closes"])
-def test_issue_lifecycle_route_matrix(heading: str, requirements: tuple[str, ...], keyword: str) -> None:
-    body = _body().replace("Issue tracking", heading).replace("Closes", keyword)
+def test_issue_lifecycle_route_matrix(requirements: tuple[str, ...], keyword: str) -> None:
+    body = _body().replace("Closes", keyword)
     violations = validate_pr_body(body, lambda _number: IssueFacts(True, True, requirements))
     assert bool(violations) is (keyword != ("Refs" if requirements else "Closes"))
 
@@ -121,6 +248,83 @@ def test_all_closing_aliases_are_rejected_for_requirement_backed_work(
 def test_prose_keyword_cannot_hide_a_later_closing_reference() -> None:
     body = _body().replace("Closes #123", "Refs #123") + "\n## Notes\nWe fix tracking; this closes #123.\n"
     assert validate_pr_body(body, lambda _number: IssueFacts(True, True, ("SEM-218",)))
+
+
+def test_repeated_standalone_closing_line_outside_related_issues_is_rejected() -> None:
+    assert RULE_ISSUES in _rules(_body() + "\n## Notes\nCloses #123\n")
+
+
+def test_non_standalone_closing_reference_inside_related_issues_is_rejected() -> None:
+    body = _body().replace("Closes #123", "Closes #123\nThis also fixes #123.")
+    assert RULE_ISSUES in _rules(body)
+
+
+@pytest.mark.parametrize("requirements", [(), ("SEM-218",)])
+@pytest.mark.parametrize(
+    "mention",
+    [
+        "Corrected the #1219 legacy migration",
+        "Follow-up to #1219 legacy migration",
+        "Fixed in #1219, the legacy migration",
+        "Fixed issue #1219 legacy migration",
+        "Prefixed #1219 labels in the migration",
+        "Fixed #1219abc labels in the migration",
+        "Fixes other-org/other-repo#1219 upstream",
+        "Fixes OpenRAE/rae-docs#1219 upstream",
+        "Fixed https://github.com/OpenRAE/rae/pull/1219 review feedback",
+        "Fixed https://github.com/OpenRAE/rae-docs/issues/1219 upstream",
+    ],
+)
+def test_prose_issue_mentions_that_github_does_not_close_are_accepted(
+    mention: str, requirements: tuple[str, ...]
+) -> None:
+    body = _body().replace("- Fixed the closing-route detection", f"- {mention}; fixed the closing-route detection")
+    seen: list[int] = []
+
+    def lookup(number: int) -> IssueFacts:
+        seen.append(number)
+        return IssueFacts(True, True, requirements)
+
+    route = "Refs" if requirements else "Closes"
+    assert validate_pr_body(body.replace("Closes #123", f"{route} #123"), lookup) == []
+    assert seen == [123]
+
+
+@pytest.mark.parametrize("requirements", [(), ("SEM-218",)])
+def test_github_closing_keyword_in_a_change_bullet_is_rejected(requirements: tuple[str, ...]) -> None:
+    # GitHub reads "Fixed #1219" as closing #1219 wherever it appears, which
+    # would bypass the declared Related Issues route for that issue.
+    route = "Refs" if requirements else "Closes"
+    body = _body().replace("Closes #123", f"{route} #123")
+    body = body.replace("- Fixed the closing-route detection", "- Fixed #1219 legacy migration; fixed the detection")
+    violations = validate_pr_body(body, lambda _number: IssueFacts(True, True, requirements))
+    assert [item.rule_id for item in violations] == [RULE_ISSUES]
+    assert "'Fixed #1219' is a GitHub closing reference" in violations[0].message
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("fixes openrae/RAE#5 and Resolves: #6", ("fixes openrae/RAE#5", "Resolves: #6")),
+        (
+            "CLOSED https://github.com/OpenRAE/rae/issues/7#issuecomment-1",
+            ("CLOSED https://github.com/OpenRAE/rae/issues/7",),
+        ),
+        ("hotfixes #8, fixes #9x, fixes #10", ("fixes #10",)),
+    ],
+)
+def test_closing_references_follow_github_keyword_grammar(text: str, expected: tuple[str, ...]) -> None:
+    assert closing_references(text, REPOSITORY) == expected
+
+
+@pytest.mark.parametrize("repository", ["", "OpenRAE", "OpenRAE/rae/extra", "Open RAE/rae"])
+def test_malformed_repository_is_a_configuration_error_before_lookup(repository: str) -> None:
+    def unexpected_lookup(_number: int) -> IssueFacts:
+        raise AssertionError("a malformed repository must not query GitHub")
+
+    body = _body()
+    with pytest.raises(ValueError, match="owner/repository"):
+        pr_body.validate_pr_body(body, unexpected_lookup, repository=repository)
 
 
 @pytest.mark.parametrize(
@@ -205,7 +409,7 @@ def test_missing_audit_issue_is_not_reported_as_closed() -> None:
     assert "Inspection errors" in report
 
 
-@pytest.mark.parametrize("heading", ["Plain-language summary", "Issue tracking", "Verification"])
+@pytest.mark.parametrize("heading", REQUIRED_SECTIONS)
 def test_each_required_section_is_mandatory_and_unique(heading: str) -> None:
     missing = _body().replace(f"## {heading}\n", "### Removed\n", 1)
     duplicate = _body() + f"\n## {heading}\nExtra content that must not create ambiguity.\n"
@@ -213,23 +417,34 @@ def test_each_required_section_is_mandatory_and_unique(heading: str) -> None:
     assert RULE_SECTION in _rules(duplicate)
 
 
-def test_former_issues_closed_heading_remains_compatible() -> None:
-    body = _body().replace("## Issue tracking", "## Issues closed")
-    assert validate_pr_body(body, _lookup({123: "open"})) == []
+@pytest.mark.parametrize(
+    "heading", [heading for heading in REQUIRED_SECTIONS if heading not in {"Summary", "Related Issues", "Test Plan"}]
+)
+def test_placeholder_only_sections_are_rejected(heading: str) -> None:
+    sections = _body().split("\n## ")
+    index = next(i for i, section in enumerate(sections) if section.startswith(f"{heading}\n"))
+    sections[index] = f"{heading}\n\n<!-- Fill in {heading}. -->\n"
+    assert _rules("\n## ".join(sections)) == {RULE_SECTION}
 
 
-def test_issue_tracking_headings_cannot_be_mixed() -> None:
-    body = _body() + "\n## Issues closed\nCloses #123\n"
-    assert RULE_SECTION in _rules(body)
-
-
-@pytest.mark.parametrize("field", ["Context", "Problem", "Fix"])
-def test_summary_bullets_reject_placeholders(field: str) -> None:
+@pytest.mark.parametrize(
+    "summary",
+    ["TODO", "", "<!-- Describe the change. -->", "Small fix.", "TBD: brief description", "N/A", "#N: TODO, TBD"],
+)
+def test_summary_rejects_placeholders(summary: str) -> None:
     body = _body().replace(
-        next(line for line in _body().splitlines() if field in line),
-        f"- **{field}:** TODO",
+        "The body guard now validates the section structure that Ground Control renders.",
+        summary,
     )
     assert RULE_SUMMARY in _rules(body)
+
+
+def test_summary_prose_mentioning_placeholder_words_is_accepted() -> None:
+    body = _body().replace(
+        "The body guard now validates the section structure that Ground Control renders.",
+        "The guard requires a non-placeholder Summary and removes the TODO marker from the parser.",
+    )
+    assert validate_pr_body(body, _lookup({123: "open"})) == []
 
 
 @pytest.mark.parametrize(
@@ -278,19 +493,7 @@ def test_closing_reference_must_be_an_open_same_repository_issue(state: str) -> 
 
 
 def test_comments_and_fenced_code_cannot_satisfy_policy() -> None:
-    hidden = """<!--
-## Plain-language summary
-- Context: Hidden context is not reviewer-visible evidence.
-- Problem: Hidden problem is not reviewer-visible evidence.
-- Fix: Hidden fix is not reviewer-visible evidence.
--->
-```markdown
-## Issue tracking
-Closes #123
-## Verification
-- `pytest`: passed
-```
-"""
+    hidden = f"<!--\n{_body()}\n-->\n```markdown\n{_body()}\n```\n"
     rules = _rules(hidden)
     assert RULE_SECTION in rules
 
@@ -307,9 +510,15 @@ def test_comments_and_fenced_examples_do_not_add_fake_issue_references() -> None
     assert seen == [123]
 
 
-def test_verification_checklist_without_evidence_is_rejected() -> None:
-    body = _body().replace("- `pytest tests/test_pr_body_guard.py`: passed", "- [ ] Tests pass")
-    assert RULE_VERIFICATION in _rules(body)
+@pytest.mark.parametrize(
+    "evidence", ["", "- [x] Ran `pytest` and it passed", "<!-- `pytest`: passed -->", "Looks good to me."]
+)
+def test_test_plan_checklist_without_evidence_is_rejected(evidence: str) -> None:
+    body = _body().replace(
+        "Ran `pytest implementations/python/tests/test_pr_body_guard.py`: passed.",
+        evidence,
+    )
+    assert _rules(body) == {RULE_VERIFICATION}
 
 
 @pytest.mark.parametrize(
@@ -433,7 +642,10 @@ def test_cli_exempts_trusted_automation_before_api_configuration(
 def test_cli_renders_rejections_and_stdout_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     event = tmp_path / "event.json"
     issues = tmp_path / "issues.json"
-    event.write_text(json.dumps({"pull_request": {"number": 9, "body": "incomplete"}}), encoding="utf-8")
+    event.write_text(
+        json.dumps({"repository": {"full_name": REPOSITORY}, "pull_request": {"number": 9, "body": "incomplete"}}),
+        encoding="utf-8",
+    )
     issues.write_text("{}", encoding="utf-8")
     args = ["--event-path", str(event), "--issues-file", str(issues)]
     assert main(args) == 1
