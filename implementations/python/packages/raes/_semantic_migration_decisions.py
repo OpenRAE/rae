@@ -53,13 +53,12 @@ def apply_sentinel_decisions(
     return payload, None
 
 
-def _decision_parent(payload: dict[str, Any], pointer: str) -> tuple[Any, str | int]:
+def _decision_parent(payload: dict[str, Any], pointer: str) -> tuple[dict[str, Any] | list[Any], str]:
     parts = [part.replace("~1", "/").replace("~0", "~") for part in pointer.split("/")[1:]]
-    parent: Any = payload
+    parent: dict[str, Any] | list[Any] = payload
     for part in parts[:-1]:
         parent = parent[int(part)] if isinstance(parent, list) else parent[part]
-    key = int(parts[-1]) if isinstance(parent, list) else parts[-1]
-    return parent, key
+    return parent, parts[-1]
 
 
 def _apply_decision(
@@ -79,6 +78,8 @@ def _apply_decision(
             list_deletions.append((parent, int(key)))
         else:
             del parent[key]
+    elif isinstance(parent, list):
+        parent[int(key)] = decision.identity
     else:
         parent[key] = decision.identity
     return None

@@ -195,6 +195,13 @@ def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> 
             refs.add(disposition.notice_artifact)
         refs.update(boundary.artifact for boundary in disposition.derivation_scope)
         boundaries.update((boundary.artifact, boundary.symbol_or_pointer) for boundary in disposition.derivation_scope)
+    failures.extend(_validate_artifact_paths(repo_root, refs))
+    failures.extend(_validate_claim_pointers(repo_root, boundaries))
+    return failures
+
+
+def _validate_artifact_paths(repo_root: Path, refs: set[str]) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
     for ref in sorted(refs):
         path = safe_repo_path(repo_root, ref)
         if path is None or not path.is_file():
@@ -204,7 +211,6 @@ def _validate_internal_paths(repo_root: Path, ledger: SDLLineageLedgerModel) -> 
                     f"internal artifact {ref!r} is missing or unsafe",
                 )
             )
-    failures.extend(_validate_claim_pointers(repo_root, boundaries))
     return failures
 
 
