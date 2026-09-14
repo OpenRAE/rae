@@ -262,33 +262,35 @@ def _inspect_issue(number: int, keyword: str, issue_lookup: IssueLookup) -> Body
 
 def _validate_issues(sections: dict[str, list[str]], issue_lookup: IssueLookup) -> list[BodyViolation]:
     tracking = sections.get(TRACKING_SECTION, [])
-    if len(tracking) != 1:
-        return []
-    content = tracking[0]
-    declarations = [(keyword, number) for keyword in ("Closes", "Refs") for number in _issue_numbers(content, keyword)]
-    reasons = no_issue_reasons(content)
-    if declarations and reasons:
-        return [
-            BodyViolation(
-                RULE_ISSUES,
-                "Related Issues must use either issue references or one 'No issue: ...' declaration, not both.",
+    violations: list[BodyViolation] = []
+    if len(tracking) == 1:
+        content = tracking[0]
+        declarations = [
+            (keyword, number) for keyword in ("Closes", "Refs") for number in _issue_numbers(content, keyword)
+        ]
+        reasons = no_issue_reasons(content)
+        if declarations and reasons:
+            violations.append(
+                BodyViolation(
+                    RULE_ISSUES,
+                    "Related Issues must use either issue references or one 'No issue: ...' declaration, not both.",
+                )
             )
-        ]
-    if declarations:
-        return [
-            violation
-            for keyword, number in declarations
-            if (violation := _inspect_issue(number, keyword, issue_lookup)) is not None
-        ]
-    if len(reasons) != 1 or not _meaningful(reasons[0], minimum_words=2):
-        return [
-            BodyViolation(
-                RULE_ISSUES,
-                "Related Issues needs open same-repository 'Closes #N' or 'Refs #N' lines or one substantive "
-                "'No issue: ...' declaration.",
+        elif declarations:
+            violations.extend(
+                violation
+                for keyword, number in declarations
+                if (violation := _inspect_issue(number, keyword, issue_lookup)) is not None
             )
-        ]
-    return []
+        elif len(reasons) != 1 or not _meaningful(reasons[0], minimum_words=2):
+            violations.append(
+                BodyViolation(
+                    RULE_ISSUES,
+                    "Related Issues needs open same-repository 'Closes #N' or 'Refs #N' lines or one substantive "
+                    "'No issue: ...' declaration.",
+                )
+            )
+    return violations
 
 
 def _validate_closing_routes(body: str, pattern: re.Pattern[str]) -> list[BodyViolation]:

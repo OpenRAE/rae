@@ -322,8 +322,9 @@ def test_malformed_repository_is_a_configuration_error_before_lookup(repository:
     def unexpected_lookup(_number: int) -> IssueFacts:
         raise AssertionError("a malformed repository must not query GitHub")
 
+    body = _body()
     with pytest.raises(ValueError, match="owner/repository"):
-        pr_body.validate_pr_body(_body(), unexpected_lookup, repository=repository)
+        pr_body.validate_pr_body(body, unexpected_lookup, repository=repository)
 
 
 @pytest.mark.parametrize(
