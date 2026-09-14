@@ -9,9 +9,8 @@ import json
 import re
 import sys
 import urllib.parse
-import urllib.request
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -21,6 +20,9 @@ from raes_contracts.contracts import (  # noqa: E402
     ActivityStreamsActivityTypesSourceModel,
     FipaCommunicativeActsSourceModel,
 )
+
+if TYPE_CHECKING:
+    from tools.tooling_policy_gate import LockedArtifactSelection
 
 ACTIVITYSTREAMS_RELATIVE_PATH = "contracts/concept-authority/w3c-activitystreams-activity-types-source-v1.json"
 ACTIVITYSTREAMS_AUTHORITY = "World Wide Web Consortium"
@@ -125,7 +127,9 @@ def _metadata_failures(
     return failures
 
 
-def _check_activitystreams_source(source: ActivityStreamsActivityTypesSourceModel) -> list[str]:
+def _check_activitystreams_source(
+    source: ActivityStreamsActivityTypesSourceModel,
+) -> list[str]:
     failures = _metadata_failures(
         relative_path=ACTIVITYSTREAMS_RELATIVE_PATH,
         source=source,
@@ -177,27 +181,11 @@ def _check_fipa_source(source: FipaCommunicativeActsSourceModel) -> list[str]:
     return failures
 
 
-def _validate_official_https_url(url: str, *, allowed_host: str) -> None:
+def _remote_host_failure(url: str, *, allowed_host: str, relative_path: str) -> str | None:
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme != "https" or parsed.hostname != allowed_host:
-        raise ValueError("remote verification URL is outside the allowlisted official HTTPS host")
-
-
-class _OfficialHttpsRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def __init__(self, allowed_host: str) -> None:
-        self._allowed_host = allowed_host
-
-    def redirect_request(self, request, fp, code, msg, headers, newurl):
-        _validate_official_https_url(newurl, allowed_host=self._allowed_host)
-        return super().redirect_request(request, fp, code, msg, headers, newurl)
-
-
-def _fetch_official_bytes(url: str, *, allowed_host: str) -> bytes:
-    _validate_official_https_url(url, allowed_host=allowed_host)
-    request = urllib.request.Request(url, headers={"User-Agent": "RAES-ACT-611-source-verifier/1"})  # noqa: S310
-    opener = urllib.request.build_opener(_OfficialHttpsRedirectHandler(allowed_host))
-    with opener.open(request, timeout=60) as response:  # noqa: S310
-        return response.read()
+        return f"{relative_path}: remote verification URL must stay on the allowlisted official HTTPS host"
+    return None
 
 
 def _prefixed_sha256(data: bytes) -> str:
@@ -215,16 +203,31 @@ def _extract_activitystreams_type_names(data: bytes) -> list[str]:
 
 def _check_activitystreams_remote(
     source: ActivityStreamsActivityTypesSourceModel,
-    selected_url: str,
+    selection: LockedArtifactSelection,
     *,
-    expected_size: int,
-    expected_sha256: str,
+    local_input: Path | None = None,
 ) -> list[str]:
+    from tools.maintained_client_acquisition import acquire_locked_bytes
+
+    selected_url = selection.source_urls[0]
     if source.source_url != selected_url:
         return [f"{ACTIVITYSTREAMS_RELATIVE_PATH}: source URL differs from the reviewed lock selection"]
-    data = _fetch_official_bytes(selected_url, allowed_host="www.w3.org")
-    if len(data) != expected_size or hashlib.sha256(data).hexdigest() != expected_sha256:
-        return [f"{ACTIVITYSTREAMS_RELATIVE_PATH}: retrieved bytes differ from the reviewed lock manifest"]
+    host_failure = _remote_host_failure(
+        selected_url,
+        allowed_host="www.w3.org",
+        relative_path=ACTIVITYSTREAMS_RELATIVE_PATH,
+    )
+    if host_failure is not None:
+        return [host_failure]
+    try:
+        data = acquire_locked_bytes(
+            artifact_id="w3c-activitystreams-activity-types-snapshot",
+            source_url=selected_url,
+            expected=selection.raw_manifest[0],
+            local_input=local_input,
+        )
+    except RuntimeError as error:
+        return [f"{ACTIVITYSTREAMS_RELATIVE_PATH}: {error}"]
     failures: list[str] = []
     if _prefixed_sha256(data) != source.source_digest:
         failures.append(f"{ACTIVITYSTREAMS_RELATIVE_PATH}: retrieved Recommendation bytes differ from source_digest")
@@ -235,16 +238,27 @@ def _check_activitystreams_remote(
 
 def _check_fipa_remote(
     source: FipaCommunicativeActsSourceModel,
-    selected_url: str,
+    selection: LockedArtifactSelection,
     *,
-    expected_size: int,
-    expected_sha256: str,
+    local_input: Path | None = None,
 ) -> list[str]:
+    from tools.maintained_client_acquisition import acquire_locked_bytes
+
+    selected_url = selection.source_urls[0]
     if source.source_artifact_url != selected_url:
         return [f"{FIPA_RELATIVE_PATH}: source artifact URL differs from the reviewed lock selection"]
-    data = _fetch_official_bytes(selected_url, allowed_host="www.fipa.org")
-    if len(data) != expected_size or hashlib.sha256(data).hexdigest() != expected_sha256:
-        return [f"{FIPA_RELATIVE_PATH}: retrieved bytes differ from the reviewed lock manifest"]
+    host_failure = _remote_host_failure(selected_url, allowed_host="www.fipa.org", relative_path=FIPA_RELATIVE_PATH)
+    if host_failure is not None:
+        return [host_failure]
+    try:
+        data = acquire_locked_bytes(
+            artifact_id="fipa-communicative-acts-snapshot",
+            source_url=selected_url,
+            expected=selection.raw_manifest[0],
+            local_input=local_input,
+        )
+    except RuntimeError as error:
+        return [f"{FIPA_RELATIVE_PATH}: {error}"]
     failures: list[str] = []
     if _prefixed_sha256(data) != source.source_digest:
         failures.append(f"{FIPA_RELATIVE_PATH}: retrieved specification artifact bytes differ from source_digest")
@@ -254,6 +268,9 @@ def _check_fipa_remote(
 def _check_remote(
     activitystreams: ActivityStreamsActivityTypesSourceModel,
     fipa: FipaCommunicativeActsSourceModel,
+    *,
+    activitystreams_local_input: Path | None = None,
+    fipa_local_input: Path | None = None,
 ) -> list[str]:
     from tools.tooling_policy_gate import load_tooling_artifact_selection
 
@@ -275,18 +292,12 @@ def _check_remote(
         raise RuntimeError("FIPA lock selection must contain one source and raw snapshot")
     activitystreams_failures = _check_activitystreams_remote(
         activitystreams,
-        activitystreams_selection.source_urls[0],
-        expected_size=activitystreams_selection.raw_manifest[0].size,
-        expected_sha256=activitystreams_selection.raw_manifest[0].sha256,
+        activitystreams_selection,
+        local_input=activitystreams_local_input,
     )
     if activitystreams_failures:
         return activitystreams_failures
-    return _check_fipa_remote(
-        fipa,
-        fipa_selection.source_urls[0],
-        expected_size=fipa_selection.raw_manifest[0].size,
-        expected_sha256=fipa_selection.raw_manifest[0].sha256,
-    )
+    return _check_fipa_remote(fipa, fipa_selection, local_input=fipa_local_input)
 
 
 def parse_args() -> argparse.Namespace:
@@ -296,7 +307,22 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Fetch the two allowlisted official sources and verify their exact bytes and identifier sets.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--activitystreams-local-input",
+        type=Path,
+        default=None,
+        help="Admit an approved local ActivityStreams raw object instead of a network transfer (no fallback).",
+    )
+    parser.add_argument(
+        "--fipa-local-input",
+        type=Path,
+        default=None,
+        help="Admit an approved local FIPA raw object instead of a network transfer (no fallback).",
+    )
+    args = parser.parse_args()
+    if (args.activitystreams_local_input is not None or args.fipa_local_input is not None) and not args.verify_remote:
+        parser.error("--activitystreams-local-input and --fipa-local-input require --verify-remote")
+    return args
 
 
 def main() -> int:
@@ -308,7 +334,14 @@ def main() -> int:
     failures = _check_activitystreams_source(activitystreams)
     failures.extend(_check_fipa_source(fipa))
     if args.verify_remote:
-        failures.extend(_check_remote(activitystreams, fipa))
+        failures.extend(
+            _check_remote(
+                activitystreams,
+                fipa,
+                activitystreams_local_input=args.activitystreams_local_input,
+                fipa_local_input=args.fipa_local_input,
+            )
+        )
     for failure in failures:
         print(f"[autonomous-behavior-vocabularies] {failure}", file=sys.stderr)
     return 1 if failures else 0
