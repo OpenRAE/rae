@@ -544,7 +544,7 @@
           "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "live-runner-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -628,7 +628,7 @@
           "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64", "live-runner-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -740,6 +740,38 @@
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["container-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "cirros-guest-disk",
+      "artifact_class": "vm-base-image",
+      "version": "0.6.2",
+      "owner": "Backend",
+      "consumers": ["libvirt-live-smoke"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
+      "availability_class": "L",
+      "retention_class": "supported-input",
+      "license": {"spdx": "GPL-2.0-only", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/cirros-dev/cirros",
+        "release": "0.6.2",
+        "asset": "cirros-{version}-x86_64-disk.img",
+        "locator_refs": ["official-cirros-download", "official-cirros-cloud-mirror"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/cirros-dev/cirros/releases/download/0.6.2/cirros-0.6.2-x86_64-disk.img",
+            "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"
+          ],
+          "raw_manifest": [{"path": "cirros-0.6.2-x86_64-disk.img", "sha256": "07e44a73e54c94d988028515403c1ed762055e01b83a767edf3c2b387f78ce00", "size": 21430272}],
+          "installed_manifest": [{"path": "cirros.img", "sha256": "07e44a73e54c94d988028515403c1ed762055e01b83a767edf3c2b387f78ce00", "size": 21430272}],
+          "dependencies": [],
+          "profile_ids": ["live-runner-linux-x86_64"]
         }
       ]
     }
