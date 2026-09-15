@@ -1,110 +1,110 @@
 {
-  "schema_version": "external-concept-bindings/v1",
   "binding_set_id": "portable-scheme-examples",
   "binding_set_version": "1.0.0",
   "bindings": {
     "nist-continuous-monitoring": {
-      "binding_id": "nist-continuous-monitoring",
-      "subject": {
-        "subject_kind": "node",
-        "owning_contract_id": "sdl-authoring-input-v1",
-        "lifecycle_phase": "normalized-authoring",
-        "canonical_ref": "nodes.web",
-        "artifact_digest": "sha256:0127e45974ffb188d44e2601d9cce62fe29303c68a159be8c5010e892039e47b"
-      },
-      "scheme": {
-        "scheme_id": "nist-csf-defensive-categories",
-        "authority": "NIST Cybersecurity Framework",
-        "revision": "2.0",
-        "source_locator": "https://csrc.nist.gov/extensions/nudp/services/json/csf/download?",
-        "source_digest": "sha256:014492980e87f8ce2c98d80ea040540392de96a08980c2f9901114ad4108b2c3",
-        "concept_id": "DE.CM"
+      "approximation": {
+        "loss_details": [
+          "The authored node alone does not establish the processes and outcomes required by NIST CSF."
+        ],
+        "posture": "lossy"
       },
       "assertion": {
-        "relationship_kind": "related-to",
         "motivation": "Record the defensive continuous-monitoring concept relevant to review of the exact authored node.",
         "motivation_basis_refs": [
           {
-            "ref_kind": "other",
             "ref_id": "author-analysis",
+            "ref_kind": "other",
             "ref_version": "v1"
           }
         ],
+        "relationship_kind": "related-to",
         "semantic_effect": "annotates",
         "semantic_effect_basis_refs": [
           {
-            "ref_kind": "profile",
             "ref_id": "sem-217",
+            "ref_kind": "profile",
             "ref_version": "v1"
           }
         ]
       },
+      "binding_id": "nist-continuous-monitoring",
+      "confidence": {
+        "basis": "The concept is review-relevant but does not establish realized monitoring.",
+        "posture": "medium"
+      },
+      "limitations": [
+        "Participant eligibility does not authorize disclosure or prove delivery."
+      ],
       "perspective": {
         "asserting_party_kind": "reviewer",
         "asserting_party_ref": "reviewers.fixture",
-        "perspective": "defensive-review",
         "authority_basis_refs": [
           {
-            "ref_kind": "other",
             "ref_id": "fixture-review-charter",
+            "ref_kind": "other",
             "ref_version": "v1"
           }
         ],
         "participant_availability": {
+          "basis_refs": [
+            {
+              "ref_id": "participant-view-policy",
+              "ref_kind": "other",
+              "ref_version": "v1"
+            }
+          ],
           "kind": "eligibility-only",
           "participant_refs": [
             "agents.blue"
-          ],
-          "basis_refs": [
-            {
-              "ref_kind": "other",
-              "ref_id": "participant-view-policy",
-              "ref_version": "v1"
-            }
           ]
-        }
+        },
+        "perspective": "defensive-review"
       },
       "provenance": {
         "asserted_at": "2026-07-30T12:00:00Z",
         "source_refs": [
           {
-            "ref_kind": "other",
+            "ref_digest": "sha256:014492980e87f8ce2c98d80ea040540392de96a08980c2f9901114ad4108b2c3",
             "ref_id": "nist-csf-defensive-categories-2.0",
-            "ref_version": "2.0",
-            "ref_digest": "sha256:014492980e87f8ce2c98d80ea040540392de96a08980c2f9901114ad4108b2c3"
+            "ref_kind": "other",
+            "ref_version": "2.0"
           }
         ]
+      },
+      "review": {
+        "review_refs": [
+          {
+            "ref_id": "fixture-review-nist",
+            "ref_kind": "other",
+            "ref_version": "v1"
+          }
+        ],
+        "status": "accepted"
+      },
+      "scheme": {
+        "authority": "NIST Cybersecurity Framework",
+        "concept_id": "DE.CM",
+        "revision": "2.0",
+        "scheme_id": "nist-csf-defensive-categories",
+        "source_digest": "sha256:014492980e87f8ce2c98d80ea040540392de96a08980c2f9901114ad4108b2c3",
+        "source_locator": "https://csrc.nist.gov/extensions/nudp/services/json/csf/download?"
+      },
+      "subject": {
+        "artifact_digest": "sha256:a22d5d994e8bd4c4634a884f0f1be2e395c96a5b8efe3ed25e79e8d8847a99ff",
+        "canonical_ref": "nodes.web",
+        "lifecycle_phase": "normalized-authoring",
+        "owning_contract_id": "sdl-authoring-input-v1",
+        "subject_kind": "node"
       },
       "supporting_evidence_refs": [
         {
-          "ref_kind": "evidence-record",
           "ref_id": "fixture-review-nist",
+          "ref_kind": "evidence-record",
           "ref_version": "v1"
         }
-      ],
-      "confidence": {
-        "posture": "medium",
-        "basis": "The concept is review-relevant but does not establish realized monitoring."
-      },
-      "approximation": {
-        "posture": "lossy",
-        "loss_details": [
-          "The authored node alone does not establish the processes and outcomes required by NIST CSF."
-        ]
-      },
-      "limitations": [
-        "Participant eligibility does not authorize disclosure or prove delivery."
-      ],
-      "review": {
-        "status": "accepted",
-        "review_refs": [
-          {
-            "ref_kind": "other",
-            "ref_id": "fixture-review-nist",
-            "ref_version": "v1"
-          }
-        ]
-      }
+      ]
     }
-  }
+  },
+  "schema_version": "external-concept-bindings/v1"
 }

@@ -579,7 +579,7 @@ def test_existing_sidecars_are_retargeted_without_rewriting_their_provenance():
     assert output.provenance == existing.bindings["attack-execution"].provenance
 
 
-def test_historical_vm_snapshot_default_cleanup_never_drops_assertions():
+def test_historical_snapshot_is_not_admitted_under_current_identity():
     from copy import deepcopy
 
     from pydantic import ValidationError
@@ -591,15 +591,9 @@ def test_historical_vm_snapshot_default_cleanup_never_drops_assertions():
     )["snapshot"]
     original = deepcopy(payload)
     migrated, changed = migrate_legacy_instantiated_snapshot_payload(payload)
-    assert changed
-    assert payload == original
-    assert "vulnerabilities" not in migrated["scenario"]
-    assert InstantiatedScenarioSnapshot.model_validate(migrated)
-    payload["scenario"]["nodes"]["target"]["vulnerabilities"] = ["historical-claim"]
-    migrated, changed = migrate_legacy_instantiated_snapshot_payload(payload)
-    assert changed
-    assert migrated["scenario"]["nodes"]["target"]["vulnerabilities"] == ["historical-claim"]
-    with pytest.raises(ValidationError, match="classification migration"):
+    assert not changed
+    assert migrated == payload == original
+    with pytest.raises(ValidationError):
         InstantiatedScenarioSnapshot.model_validate(migrated)
 
 
@@ -618,7 +612,7 @@ def test_empty_snapshot_classification_defaults_migrate_without_legacy_vm_nodes(
     from raes_contracts.canonical import canonical_json_digest
 
     scenario = instantiate_scenario(parse_sdl("name: empty-defaults\nnodes: " + nodes + "\n"))
-    clean = InstantiatedScenarioSnapshot(profile="raes-sdl-instantiated-snapshot/v1", scenario=scenario).model_dump(
+    clean = InstantiatedScenarioSnapshot(profile="raes-sdl-instantiated-snapshot/v2", scenario=scenario).model_dump(
         mode="json"
     )
     payload = deepcopy(clean)
@@ -648,7 +642,7 @@ def test_nonempty_compute_snapshot_classification_is_not_erased():
     scenario = instantiate_scenario(
         parse_sdl("name: classified\nnodes: {host: {type: compute, resources: {ram: 1 GiB, cpu: 1}}}\n")
     )
-    payload = InstantiatedScenarioSnapshot(profile="raes-sdl-instantiated-snapshot/v1", scenario=scenario).model_dump(
+    payload = InstantiatedScenarioSnapshot(profile="raes-sdl-instantiated-snapshot/v2", scenario=scenario).model_dump(
         mode="json"
     )
     payload["scenario"]["vulnerabilities"] = {}

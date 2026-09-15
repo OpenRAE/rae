@@ -10,12 +10,10 @@ provably cannot shape. It covers both the log-shipping sidecars
 shape in the intel-to-content direction — so the second never forks a third
 family.
 
-The OPEN ``agent_kind`` discriminator selects the family member; the
-``require_profile_for_agent_kind`` after-validator makes each member's defining
-profile executable so an under-populated instance FAILS validation rather than
-silently shallow-encoding a defining shipping fact. A ``${var}`` discriminator
-is exempt (nothing concrete is asserted); the ``unknown`` / ``other`` tail is
-permissive.
+The OPEN ``agent_kind`` discriminator describes function, not an execution
+recipe. Sources, transforms, destinations, buffering and reload channels are
+independent optional configured facts. Selected execution contracts enforce
+necessary completeness at admission.
 
 This is observed runtime state attached to ``Node.runtime``. Secret-bearing
 setting values are scenario content unless explicitly classified
@@ -261,8 +259,7 @@ class RuntimeForwardingSetting(SDLModel):
 class RuntimeForwardingAgent(SDLModel):
     """Node-scoped runtime inventory for a forwarding / intel-sync agent.
 
-    The single forwarder spine. The ``agent_kind`` discriminator selects the
-    required profile the ``require_profile_for_agent_kind`` guard enforces.
+    The single forwarder spine permits partial descriptions and composed pipelines.
     Cadence composes a ``runtime.scheduled_jobs`` entry; the inter-node trust
     edge composes a ``RelationshipForwardingEdge`` — neither is re-typed here.
     """
@@ -308,7 +305,6 @@ class RuntimeForwardingAgent(SDLModel):
     @model_validator(mode="after")
     def validate_forwarding_agent(self) -> "RuntimeForwardingAgent":
         self._reject_duplicate_local_ref_ids()
-        self.require_profile_for_agent_kind()
         return self
 
     # ------------------------------------------------------------------ #
@@ -337,72 +333,6 @@ class RuntimeForwardingAgent(SDLModel):
                     f"'{self.forwarding_agent_id}' across {prior} and {label}"
                 )
             seen[value] = label
-
-    # ------------------------------------------------------------------ #
-    # Required-profile guard
-    # ------------------------------------------------------------------ #
-
-    def require_profile_for_agent_kind(self) -> None:
-        """Fail validation when a concrete ``agent_kind`` lacks its profile.
-
-        A ``${var}`` placeholder discriminator is exempt (nothing concrete is
-        asserted); the OPEN ``unknown`` / ``other`` sentinels impose no profile
-        (permissive tail). ``log_forwarder`` and ``content_sync`` each REQUIRE
-        (and REJECT) specific child state per SCN-010 §5.5.
-        """
-        kind = self.agent_kind
-        if is_variable_ref(kind) or not isinstance(kind, RuntimeForwardingAgentKind):
-            return
-        if kind is RuntimeForwardingAgentKind.LOG_FORWARDER:
-            self._require_log_forwarder_profile()
-        elif kind is RuntimeForwardingAgentKind.CONTENT_SYNC:
-            self._require_content_sync_profile()
-        # UNKNOWN / OTHER impose no profile by the enum-sentinel discipline.
-
-    def _profile_error(self, requirement: str) -> ValueError:
-        return ValueError(
-            f"forwarding agent '{self.forwarding_agent_id}' agent_kind '{self.agent_kind.value}' requires {requirement}"
-        )
-
-    def _has_transform_kind(self, kind: RuntimeForwardingTransformKind) -> bool:
-        return any(t.kind is kind for t in self.transforms)
-
-    def _has_source_kind(self, kind: RuntimeForwardingSourceKind) -> bool:
-        return any(s.kind is kind for s in self.sources)
-
-    def _require_log_forwarder_profile(self) -> None:
-        # REQUIRES a buffer_policy AND >=1 ship_target with an ingestion endpoint.
-        if self.buffer_policy is None:
-            raise self._profile_error("a buffer_policy")
-        if not any(target.has_ingestion_endpoint() for target in self.ship_targets):
-            raise self._profile_error(">=1 ship_target carrying an ingestion endpoint")
-        # REJECTS any ioc_to_rule transform — that is the content_sync shape.
-        if self._has_transform_kind(RuntimeForwardingTransformKind.IOC_TO_RULE):
-            raise ValueError(
-                f"forwarding agent '{self.forwarding_agent_id}' agent_kind 'log_forwarder' must not carry "
-                f"a transform of kind 'ioc_to_rule'"
-            )
-
-    def _require_content_sync_profile(self) -> None:
-        # REQUIRES >=1 api_pull source AND >=1 ioc_to_rule transform AND >=1 reload_channel.
-        if not self._has_source_kind(RuntimeForwardingSourceKind.API_PULL):
-            raise self._profile_error(">=1 source of kind 'api_pull'")
-        if not self._has_transform_kind(RuntimeForwardingTransformKind.IOC_TO_RULE):
-            raise self._profile_error(">=1 transform of kind 'ioc_to_rule'")
-        if not self.reload_channels:
-            raise self._profile_error(">=1 reload_channel")
-        # REJECTS a buffer_policy and any ship_target enrollment endpoint.
-        if self.buffer_policy is not None:
-            raise ValueError(
-                f"forwarding agent '{self.forwarding_agent_id}' agent_kind 'content_sync' must not carry "
-                f"a buffer_policy"
-            )
-        offending = next((t for t in self.ship_targets if t.has_enrollment_endpoint()), None)
-        if offending is not None:
-            raise ValueError(
-                f"forwarding agent '{self.forwarding_agent_id}' agent_kind 'content_sync' must not carry "
-                f"a ship_target enrollment endpoint (ship_target '{offending.target_id}')"
-            )
 
 
 class RelationshipForwardingEdge(SDLModel):

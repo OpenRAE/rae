@@ -198,6 +198,17 @@
           "title": "Mail",
           "type": "string"
         },
+        "materialization_profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "node": {
           "default": "",
           "not": {
@@ -2003,6 +2014,9 @@
               ]
             },
             {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            },
+            {
               "type": "null"
             }
           ],
@@ -2052,6 +2066,17 @@
           ],
           "default": null,
           "title": "Text"
+        },
+        "text_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactValueSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "type": {
           "$ref": "#/$defs/ContentType"
@@ -3927,6 +3952,216 @@
       "title": "DockerfileInstructionKind",
       "type": "string"
     },
+    "DomainProfileBindingBasis": {
+      "enum": [
+        "author-supplied",
+        "backend-selected",
+        "observed"
+      ],
+      "title": "DomainProfileBindingBasis",
+      "type": "string"
+    },
+    "DomainProfileBindingModel": {
+      "additionalProperties": false,
+      "description": "Typed profile data attached to one explicit host owner.",
+      "properties": {
+        "binding_id": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "children": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DomainProfileBindingModel"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "coordinate": {
+          "$ref": "#/$defs/DomainProfileCoordinateModel"
+        },
+        "owner": {
+          "$ref": "#/$defs/DomainProfileBindingOwnerModel"
+        },
+        "provenance": {
+          "$ref": "#/$defs/DomainProfileBindingProvenanceModel"
+        },
+        "schema_version": {
+          "const": "domain-profile-binding/v1",
+          "default": "domain-profile-binding/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "binding_id",
+        "coordinate",
+        "owner",
+        "value",
+        "provenance"
+      ],
+      "title": "DomainProfileBindingModel",
+      "type": "object"
+    },
+    "DomainProfileBindingOwnerModel": {
+      "additionalProperties": false,
+      "description": "Explicit core owner, phase, context, and use for profile data.",
+      "properties": {
+        "canonical_address": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^#(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Canonical Address",
+          "type": "string"
+        },
+        "concept_family": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Concept Family",
+          "type": "string"
+        },
+        "context": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Context",
+          "type": "string"
+        },
+        "lifecycle_phase": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Lifecycle Phase",
+          "type": "string"
+        },
+        "owning_contract_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Owning Contract Id",
+          "type": "string"
+        },
+        "use": {
+          "$ref": "#/$defs/DomainProfileBindingUse"
+        }
+      },
+      "required": [
+        "owning_contract_id",
+        "canonical_address",
+        "concept_family",
+        "lifecycle_phase",
+        "context",
+        "use"
+      ],
+      "title": "DomainProfileBindingOwnerModel",
+      "type": "object"
+    },
+    "DomainProfileBindingProvenanceModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "evidence_refs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "enum": [
+                  "author-supplied",
+                  "backend-selected"
+                ]
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "Basis of a bound value, separate from definition trust provenance.",
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/DomainProfileBindingBasis"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "basis",
+        "source_ref"
+      ],
+      "title": "DomainProfileBindingProvenanceModel",
+      "type": "object"
+    },
+    "DomainProfileBindingUse": {
+      "enum": [
+        "constraint",
+        "typed-report",
+        "annotation",
+        "opaque-exchange"
+      ],
+      "title": "DomainProfileBindingUse",
+      "type": "string"
+    },
     "DomainProfileCoordinateModel": {
       "additionalProperties": false,
       "description": "Exact immutable definition coordinate.",
@@ -4977,7 +5212,15 @@
           "uniqueItems": true
         },
         "generator": {
-          "$ref": "#/$defs/GeneratedArtifactKind"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactKind"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
+          "title": "Generator"
         },
         "lifecycle": {
           "$ref": "#/$defs/GeneratedArtifactLifecycle"
@@ -5010,6 +5253,17 @@
           "title": "Provenance",
           "type": "string"
         },
+        "random_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RandomValueRecipe"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "refresh_dependencies": {
           "items": {
             "not": {
@@ -5020,6 +5274,17 @@
           "title": "Refresh Dependencies",
           "type": "array",
           "uniqueItems": true
+        },
+        "regeneration_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactRegenerationScope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -5088,7 +5353,8 @@
       "enum": [
         "certificate_bundle",
         "rendered_config",
-        "ssh_key_bundle"
+        "ssh_key_bundle",
+        "random_value"
       ],
       "title": "GeneratedArtifactKind",
       "type": "string"
@@ -5151,6 +5417,16 @@
         "producer_private"
       ],
       "title": "GeneratedArtifactOutputDisposition",
+      "type": "string"
+    },
+    "GeneratedArtifactRegenerationScope": {
+      "description": "When a ``random_value`` generated artifact is regenerated (issue #1276).\n\nDistinct from ``GeneratedArtifactLifecycle`` (change-driven reuse): scope\ngoverns *freshness*. ``per_run`` regenerates for each fresh authoritative run;\n``per_instantiation`` regenerates for each distinct realized scenario instance;\n``once`` binds a single generation to the backend-owned artifact-instance\nlifetime.",
+      "enum": [
+        "per_run",
+        "per_instantiation",
+        "once"
+      ],
+      "title": "GeneratedArtifactRegenerationScope",
       "type": "string"
     },
     "GeneratedArtifactValueSource": {
@@ -5230,6 +5506,31 @@
     },
     "IdentityDomain": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "profile": {
+                "type": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "dns_name": {
+                "minLength": 1
+              },
+              "netbios_name": {
+                "minLength": 1
+              }
+            },
+            "required": [
+              "dns_name",
+              "netbios_name"
+            ]
+          }
+        }
+      ],
       "description": "Scenario-scoped authored identity domain.",
       "properties": {
         "authority_account_ref": {
@@ -5241,7 +5542,7 @@
           "type": "string"
         },
         "dns_name": {
-          "minLength": 1,
+          "default": "",
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
@@ -5249,7 +5550,7 @@
           "type": "string"
         },
         "netbios_name": {
-          "minLength": 1,
+          "default": "",
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
@@ -5257,14 +5558,19 @@
           "type": "string"
         },
         "profile": {
-          "$ref": "#/$defs/IdentityDomainProfile",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IdentityDomainProfile"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
           "title": "Profile"
         }
       },
       "required": [
         "profile",
-        "dns_name",
-        "netbios_name",
         "authority_account_ref"
       ],
       "title": "IdentityDomain",
@@ -5283,7 +5589,14 @@
       "description": "Authored IdP facade identified through an existing logical service.",
       "properties": {
         "protocol": {
-          "$ref": "#/$defs/IdentityFacadeProtocol",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IdentityFacadeProtocol"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
           "title": "Protocol"
         },
         "service_ref": {
@@ -6224,6 +6537,20 @@
           "title": "Scripts",
           "type": "object"
         },
+        "semantic_revision": {
+          "anyOf": [
+            {
+              "const": "raes-progressive-semantics/v1",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Semantic Revision",
+          "x-raes-realization-dimension": false
+        },
         "stories": {
           "additionalProperties": {
             "$ref": "#/$defs/Story"
@@ -6281,7 +6608,7 @@
       ],
       "title": "SDL Instantiated Scenario v1",
       "type": "object",
-      "x-raes-authored-identity-profile": "raes-sdl-semantic/v1",
+      "x-raes-authored-identity-profile": "raes-sdl-semantic/v2",
       "x-raes-document-phase": "instantiated-scenario"
     },
     "InstantiatedScenarioSnapshot": {
@@ -6289,7 +6616,7 @@
       "description": "Sealed canonical envelope for one portable instantiated artifact.",
       "properties": {
         "profile": {
-          "const": "raes-sdl-instantiated-snapshot/v1",
+          "const": "raes-sdl-instantiated-snapshot/v2",
           "title": "Profile",
           "type": "string"
         },
@@ -6800,6 +7127,20 @@
         "cancellation"
       ],
       "title": "MixedControlTransitionKind",
+      "type": "string"
+    },
+    "NamedAlphabet": {
+      "description": "Closed set of portable alphabets a random value may draw from.\n\nConcrete charsets live in :data:`raes_contracts.random_value_generation.NAMED_ALPHABET_CHARSETS`,\nthe single source of truth shared with backend generation.",
+      "enum": [
+        "hex_lower",
+        "hex_upper",
+        "digits",
+        "alpha",
+        "alphanumeric",
+        "base32",
+        "base58"
+      ],
+      "title": "NamedAlphabet",
       "type": "string"
     },
     "Node": {
@@ -10382,7 +10723,14 @@
           "title": "Account Ref"
         },
         "channel": {
-          "$ref": "#/$defs/ParticipantInteractiveAccessChannel",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantInteractiveAccessChannel"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
           "title": "Channel"
         },
         "target_ref": {
@@ -10630,7 +10978,15 @@
           "$ref": "#/$defs/ParticipantResourceResetMode"
         },
         "resource_kind": {
-          "$ref": "#/$defs/ParticipantResourceKind"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantResourceKind"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
+          ],
+          "title": "Resource Kind"
         },
         "unit": {
           "minLength": 1,
@@ -11631,6 +11987,117 @@
       "title": "PropositionBasis",
       "type": "string"
     },
+    "RandomValueFormat": {
+      "additionalProperties": false,
+      "description": "Bounded literal wrapper placed around the random segment.\n\n``prefix`` and ``suffix`` are literal text (no control characters); the random\nsegment is inserted between them. The wrapper contributes no entropy.",
+      "properties": {
+        "prefix": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Prefix",
+          "type": "string"
+        },
+        "suffix": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Suffix",
+          "type": "string"
+        }
+      },
+      "title": "RandomValueFormat",
+      "type": "object"
+    },
+    "RandomValueRecipe": {
+      "additionalProperties": false,
+      "description": "Portable, value-free description of how a random value is generated.",
+      "properties": {
+        "alphabet": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NamedAlphabet"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "custom_alphabet": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Custom Alphabet"
+        },
+        "entropy_bits": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entropy Bits"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RandomValueFormat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "length": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Length"
+        },
+        "min_entropy_bits": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Entropy Bits"
+        }
+      },
+      "title": "RandomValueRecipe",
+      "type": "object"
+    },
     "RealizationConstraintPosture": {
       "description": "Exact, finite-constrained, or delegated author mechanism intent.",
       "enum": [
@@ -12098,7 +12565,14 @@
           "title": "Direction"
         },
         "trust_type": {
-          "$ref": "#/$defs/ForestTrustType",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ForestTrustType"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
           "title": "Trust Type"
         }
       },
@@ -12216,11 +12690,25 @@
           "title": "Direction"
         },
         "mapping_intent": {
-          "$ref": "#/$defs/FederationMappingIntent",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FederationMappingIntent"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
           "title": "Mapping Intent"
         },
         "protocol": {
-          "$ref": "#/$defs/FederationProtocol",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FederationProtocol"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileBindingModel"
+            }
+          ],
           "title": "Protocol"
         },
         "tenant_claim_name": {
@@ -14835,7 +15323,7 @@
               "type": "string"
             }
           ],
-          "default": "other",
+          "default": "unknown",
           "title": "Protocol"
         },
         "roles": {
@@ -15911,7 +16399,7 @@
     },
     "RuntimeDatastoreService": {
       "additionalProperties": false,
-      "description": "An observed datastore service hosted by a transport service on a node.\n\nThe single non-relational datastore spine. ``service`` references the owning\nsame-node ``Node.services[].name`` (bare name or the qualified\n``nodes.<node>.services.<name>`` form). The ``data_model`` discriminator\nselects the required profile the ``require_profile_for_data_model`` guard\nenforces.",
+      "description": "An observed datastore service hosted by a transport service on a node.\n\nThe single non-relational datastore spine. ``service`` references the owning\nsame-node ``Node.services[].name`` (bare name or the qualified\n``nodes.<node>.services.<name>`` form). The ``data_model`` discriminator\ndescribes the logical model without imposing a complete deployment recipe.",
       "properties": {
         "aliases": {
           "items": {
@@ -17855,7 +18343,7 @@
     },
     "RuntimeForwardingAgent": {
       "additionalProperties": false,
-      "description": "Node-scoped runtime inventory for a forwarding / intel-sync agent.\n\nThe single forwarder spine. The ``agent_kind`` discriminator selects the\nrequired profile the ``require_profile_for_agent_kind`` guard enforces.\nCadence composes a ``runtime.scheduled_jobs`` entry; the inter-node trust\nedge composes a ``RelationshipForwardingEdge`` \u2014 neither is re-typed here.",
+      "description": "Node-scoped runtime inventory for a forwarding / intel-sync agent.\n\nThe single forwarder spine permits partial descriptions and composed pipelines.\nCadence composes a ``runtime.scheduled_jobs`` entry; the inter-node trust\nedge composes a ``RelationshipForwardingEdge`` \u2014 neither is re-typed here.",
       "properties": {
         "agent_kind": {
           "anyOf": [
@@ -22385,7 +22873,7 @@
     },
     "RuntimeOrchestrationAuthority": {
       "additionalProperties": false,
-      "description": "Node-scoped runtime inventory for a container-spawn control authority.\n\n``control_interface_ref`` is the ``control_interface_id`` of a same-node\n``RuntimeControlInterface`` (the docker.sock shell), resolved by\n``validator.py`` \u2014 referenced, never duplicated. The\n``privilege_class`` discriminator selects the required profile the\n``require_profile_for_privilege_class`` guard enforces.",
+      "description": "Node-scoped runtime inventory for a container-spawn control authority.\n\n``control_interface_ref`` is the ``control_interface_id`` of a same-node\n``RuntimeControlInterface`` (the docker.sock shell), resolved by\n``validator.py`` \u2014 referenced, never duplicated. The privilege classification\nis descriptive and does not select or authorize a privileged operation.",
       "properties": {
         "control_interface_ref": {
           "default": "",
@@ -27064,7 +27552,7 @@
           "type": "string"
         },
         "profile": {
-          "const": "raes-sdl-semantic/v1",
+          "const": "raes-sdl-semantic/v2",
           "title": "Profile",
           "type": "string"
         },
@@ -28379,6 +28867,66 @@
     },
     "StringPredicate": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "expected": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected"
+              ]
+            },
+            {
+              "properties": {
+                "expected_from": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected_from"
+              ]
+            }
+          ]
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "properties": {
+                  "expected": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected"
+                ]
+              },
+              {
+                "properties": {
+                  "expected_from": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected_from"
+                ]
+              }
+            ]
+          }
+        }
+      ],
       "description": "Compare a governed string property with typed string operands.",
       "properties": {
         "expected": {
@@ -28397,9 +28945,24 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            {
+              "type": "null"
             }
           ],
+          "default": null,
           "title": "Expected"
+        },
+        "expected_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactValueSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "kind": {
           "const": "string",
@@ -28441,8 +29004,7 @@
       },
       "required": [
         "property",
-        "semantic_ref",
-        "expected"
+        "semantic_ref"
       ],
       "title": "StringPredicate",
       "type": "object"

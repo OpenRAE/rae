@@ -20,7 +20,6 @@ _RUNNER_PROFILES = {
     "ubuntu-24.04": "public-ubuntu-24.04-x86_64",
     "ubuntu-24.04-arm": "public-linux-arm64",
     "macos-15": "public-macos-arm64",
-    "macos-15-intel": "public-macos-x86_64",
 }
 _MAX_MATRIX_ROWS = 256
 

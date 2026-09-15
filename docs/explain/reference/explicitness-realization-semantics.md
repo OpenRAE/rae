@@ -205,10 +205,11 @@ authorizing another mode.
 
 Every accepted result requires a `process-resource-limits` observation
 capability and a matching value-free runtime observation with configuration
-scope and `guest-observed` strength. This represents effective inside-workload
-readback. Desired-payload echo, runtime inspect output, VM allocation, cgroup
-capacity, or datastore `memory_locked` state is insufficient. Backends without
-both materialization and effective readback remain honestly unsupported.
+scope and an exact `guest-observed` source constraint. This represents effective
+inside-workload readback. Desired-payload echo, runtime inspect output, VM
+allocation, cgroup capacity, or datastore `memory_locked` state is insufficient.
+Backends without both materialization and effective readback remain honestly
+unsupported.
 
 ## Compute Kind And Realization Mechanism
 
@@ -326,6 +327,12 @@ capability, the exact concern-kind token, and a matching observation
 capability. Open and constrained concerns use the same manifest and envelope
 admission path. None of those declarations replaces independent readback, and
 a backend must remain unsupported when it can only echo submitted plan values.
+The operational policy normally constrains the required `presence` or
+`configuration` scope without selecting between authoritative daemon-native and
+guest-native readback. Driver self-attestation alone does not prove the claim.
+A claim that inherently depends on a particular vantage, such as effective
+in-workload process limits, carries an exact source constraint instead; source
+categories are not ranked as universal substitutes for one another.
 
 Closed collection authority applies to the scenario-significant managed
 projection, not the complete native operating-system inventory. Base-image

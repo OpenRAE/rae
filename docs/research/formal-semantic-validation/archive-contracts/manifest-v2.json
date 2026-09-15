@@ -1,0 +1,19 @@
+{
+  "contracts": [
+    {
+      "mode": "satisfiability",
+      "path": "docs/research/formal-semantic-validation/archive-contracts/satisfiability-evidence-shape-v2.json",
+      "sha256": "c5f8b2412d91e1a2ce4ba34c0e27f0a67930628dd5073e4b2bebbf6a239f1689",
+      "source_revision": "739b7a5c36edf27374c12300653f8424a6b211c3",
+      "source_schema": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json"
+    },
+    {
+      "mode": "exploit-path",
+      "path": "docs/research/formal-semantic-validation/archive-contracts/exploit-path-evidence-shape-v2.json",
+      "sha256": "7bf38f7d2dc907d8ea9deb726a67af19ed5062096ebd5a2a6955e6b8f5e544e4",
+      "source_revision": "739b7a5c36edf27374c12300653f8424a6b211c3",
+      "source_schema": "contracts/schemas/exploit-path-analysis/exploit-path-analysis-evidence-v1.json"
+    }
+  ],
+  "profile": "raes-retained-production-evidence-shapes/v2"
+}

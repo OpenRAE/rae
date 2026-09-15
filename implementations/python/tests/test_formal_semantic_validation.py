@@ -39,6 +39,40 @@ def test_historical_bundle_integrity_is_clean() -> None:
     assert validate_bundle(REPO_ROOT, *_bundle(), replay_cases=False) == []
 
 
+def test_historical_failure_names_its_revision_specific_analysis_document() -> None:
+    release = deepcopy(copy_bundle(load_release_bundles, REPO_ROOT)[0])
+    release.analysis["protocol_revision"] = "stale"
+    manifest = {
+        "bundle_id": release.manifest["bundle_id"],
+        "revision": release.manifest["revision"],
+        "protocol_path": release.manifest["protocol_path"],
+        "corpus_path": release.manifest["corpus_path"],
+        "snapshot_path": release.manifest["snapshot_path"],
+        "analysis_path": release.manifest["analysis_path"],
+        "satisfiability_snapshot_path": None,
+        "satisfiability_analysis_path": None,
+    }
+
+    failures = validate_bundle(
+        REPO_ROOT,
+        manifest,
+        release.protocol,
+        release.corpus,
+        release.snapshot,
+        release.analysis,
+        replay_cases=False,
+    )
+
+    failure = next(item for item in failures if item.rule_id == "formal-validation-analysis-join")
+    assert failure.path == manifest["analysis_path"]
+
+
+@pytest.mark.integration
+def test_formal_evidence_gate_replays_real_participant_fixtures() -> None:
+    assert formal_validation.evaluate(REPO_ROOT) == []
+
+
+@pytest.mark.integration
 def test_atomic_release_index_validates_every_historical_bundle() -> None:
     releases = copy_bundle(load_release_bundles, REPO_ROOT)
 
@@ -56,16 +90,24 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "9.0.0",
         "10.0.0",
         "11.0.0",
+        "12.0.0",
+        "13.0.0",
+        "14.0.0",
+        "15.0.0",
+        "16.0.0",
+        "17.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
 
+@pytest.mark.integration
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "11.0.0"
-    assert protocol["revision"] == corpus["revision"] == "2.0.0"
-    assert snapshot["baseline"]["release_revision"] == "10.0.0"
+    assert release.manifest["revision"] == "17.0.0"
+    assert protocol["revision"] == "2.0.0"
+    assert corpus["revision"] == "3.0.0"
+    assert snapshot["baseline"]["release_revision"] == "16.0.0"
     assert {item["case_id"] for item in snapshot["deviations"]} == {
         "compile-repeatability-control",
         "compile-non-vacuity-control",
@@ -75,6 +117,30 @@ def test_current_retest_bundle_is_coherent_and_clean() -> None:
         item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
     )
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
+
+
+def test_current_analysis_evidence_selects_its_release_corpus() -> None:
+    release, _protocol, _corpus, _snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
+
+    corpus_artifacts = [path for path in analysis["claim"]["evidence_artifacts"] if "/corpus/manifest-" in path]
+    assert corpus_artifacts == [release.manifest["corpus_path"]]
+
+
+def test_software_refinement_capture_preserves_recorded_digest_deviations() -> None:
+    release = next(
+        item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "11.0.0"
+    )
+    snapshot = release.snapshot
+    assert snapshot["execution_id"] == "issue-1205-execution-v10"
+    assert snapshot["baseline"]["release_revision"] == "10.0.0"
+    assert {item["case_id"] for item in snapshot["deviations"]} == {
+        "compile-repeatability-control",
+        "compile-non-vacuity-control",
+    }
+    assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
+    assert all(
+        item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
+    )
 
 
 def test_partial_description_capture_is_retained_as_history() -> None:
@@ -202,6 +268,7 @@ def test_retest_gate_rejects_stale_baseline_observation_value() -> None:
     assert "formal-validation-baseline-drift" in _rule_ids(failures)
 
 
+@pytest.mark.integration
 def test_retest_gate_rejects_changed_baseline_release_digest() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     snapshot = deepcopy(snapshot)
@@ -212,6 +279,7 @@ def test_retest_gate_rejects_changed_baseline_release_digest() -> None:
     assert "formal-validation-baseline-selection" in _rule_ids(failures)
 
 
+@pytest.mark.integration
 def test_current_retest_requires_drift_disposition_for_production_evidence_cases() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     snapshot = deepcopy(snapshot)
@@ -227,18 +295,23 @@ def test_retest_production_evidence_contains_governed_payloads() -> None:
     from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
     from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
 
-    evidence_root = REPO_ROOT / "docs/research/formal-semantic-validation/evidence"
+    _, _, _, snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
+    paths = {
+        row["case_id"]: REPO_ROOT / row["evidence_artifact_path"]
+        for row in snapshot["observations"]
+        if row.get("evidence_artifact_path")
+    }
     satisfiable = ScenarioSatisfiabilityEvidenceModel.model_validate_json(
-        (evidence_root / "finite-domain-satisfiable-v2.json").read_text(encoding="utf-8")
+        paths["finite-domain-satisfiable-v2"].read_text(encoding="utf-8")
     )
     unsatisfiable = ScenarioSatisfiabilityEvidenceModel.model_validate_json(
-        (evidence_root / "finite-domain-unsatisfiable-v2.json").read_text(encoding="utf-8")
+        paths["finite-domain-unsatisfiable-v2"].read_text(encoding="utf-8")
     )
     valid_path = ExploitPathAnalysisEvidenceModel.model_validate_json(
-        (evidence_root / "typed-exploit-path-valid-v2.json").read_text(encoding="utf-8")
+        paths["typed-exploit-path-valid-v2"].read_text(encoding="utf-8")
     )
     invalid_path = ExploitPathAnalysisEvidenceModel.model_validate_json(
-        (evidence_root / "typed-exploit-path-invalid-v2.json").read_text(encoding="utf-8")
+        paths["typed-exploit-path-invalid-v2"].read_text(encoding="utf-8")
     )
 
     assert satisfiable.witness is not None
@@ -258,6 +331,7 @@ def test_atomic_release_rejects_changed_snapshot_digest() -> None:
     assert "formal-validation-release-digest" in _rule_ids(failures)
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
 def test_retest_gate_rejects_missing_production_evidence_join(case_id) -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
@@ -274,6 +348,7 @@ def test_retest_gate_rejects_missing_production_evidence_join(case_id) -> None:
     ) in {(f.rule_id, f.message, f.path) for f in failures}
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
 def test_retest_gate_rejects_forged_production_configuration_digest(case_id) -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
@@ -291,13 +366,10 @@ def test_retest_gate_rejects_forged_production_configuration_digest(case_id) -> 
 
 
 @pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
-def test_retest_gate_authenticates_immutable_evidence_payload_before_migration(
+def test_historical_gate_rejects_substitution_with_current_evidence(
     monkeypatch: pytest.MonkeyPatch,
     case_id,
 ) -> None:
-    from raes_processor.exploit_path import analyze_exploit_path_file
-    from raes_processor.satisfiability import analyze_scenario_file
-
     release = next(
         item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "3.0.0"
     )
@@ -305,13 +377,11 @@ def test_retest_gate_authenticates_immutable_evidence_payload_before_migration(
     case = next(item for item in corpus["cases"] if item["case_id"] == case_id)
     observation = next(item for item in snapshot["observations"] if item["case_id"] == case_id)
     evidence_path = observation["evidence_artifact_path"]
-    fixture_path = REPO_ROOT / case["fixture_path"]
-    analyzer, profile = (
-        (analyze_scenario_file, "raes-finite-domain-satisfiability-v1")
-        if case["replay_mode"] == "satisfiability"
-        else (analyze_exploit_path_file, "raes-exploit-path-analysis-v1")
+    _, _, _, current_snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
+    current = next(item for item in current_snapshot["observations"] if item["case_id"] == case_id)
+    replacement = formal_validation.load_bounded_json_object(
+        REPO_ROOT, current["evidence_artifact_path"], max_bytes=8 * 1024 * 1024
     )
-    replacement = analyzer(fixture_path, profile=profile).model_dump(mode="json")
     original_loader = formal_validation.load_bounded_json_object
 
     def replace_stored_evidence(repo_root: Path, relative_path: str, *, max_bytes: int):
@@ -332,6 +402,7 @@ def test_retest_gate_authenticates_immutable_evidence_payload_before_migration(
     ) in {(f.rule_id, f.message, f.path) for f in failures}
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("case_id", ["finite-domain-satisfiable-v2", "typed-exploit-path-valid-v2"])
 def test_retest_gate_rejects_test_local_substitute_command(case_id) -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
@@ -348,6 +419,7 @@ def test_retest_gate_rejects_test_local_substitute_command(case_id) -> None:
     ) in {(f.rule_id, f.message, f.path) for f in failures}
 
 
+@pytest.mark.integration
 def test_retest_analysis_status_is_derived_not_copied_from_ceiling() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     snapshot = deepcopy(snapshot)
@@ -363,6 +435,7 @@ def test_retest_analysis_status_is_derived_not_copied_from_ceiling() -> None:
     assert "formal-validation-unsupported-overclaim" in _rule_ids(failures)
 
 
+@pytest.mark.integration
 def test_retest_gate_rejects_promotion_from_historical_unsupported_cases() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
     corpus = deepcopy(corpus)

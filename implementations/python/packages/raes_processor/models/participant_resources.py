@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from raes_contracts.contracts.participant_resource_types import ParticipantResourceKind
+
 
 @dataclass(frozen=True)
 class ParticipantResourceOwnerRuntime:
@@ -21,7 +23,7 @@ class ParticipantResourceDemandRuntime:
     owner_kind: str
     owner_address: str
     pool_ref: str
-    resource_kind: str
+    resource_kind: ParticipantResourceKind
     unit: str
     accounting_mode: str
     meter_profile_ref: str

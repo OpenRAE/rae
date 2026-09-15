@@ -5,9 +5,12 @@ from dataclasses import replace
 
 from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance, ExplicitnessRecord
 from raes.nodes import NodeType
+from raes.profile_selections import profile_owned_mailbox_inventory
 from raes.scenario import InstantiatedScenario
 from raes.semantics.domain_topology import DomainTopologyAnalysis
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.planning import RealizationAuthorityMode, RealizationResolutionSource
+from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
 from ..semantics.realization import (
     REALIZATION_DOMAIN,
@@ -234,7 +237,7 @@ def _append_service_materialization_requirements(
 ) -> None:
     for name, content in scenario.content.items():
         binding = content.service_materialization
-        if binding is None:
+        if binding is None or isinstance(binding, DomainProfileBindingModel):
             continue
         requirement_kind = (
             "service-search-index-schema-materialization"
@@ -252,6 +255,17 @@ def _append_service_materialization_requirements(
                 governing_scope=f"#/content/{name}/service_materialization",
             )
         )
+
+
+def _registered_verification(
+    scenario: InstantiatedScenario, registered: RegisteredRealizationConcern, authored_value: object
+) -> tuple[RealizationVerificationScope | None, ObservationStrength | None]:
+    floor = operational_verification_requirement(registered.descriptor.concern_kind, authored_value)
+    if registered.descriptor.concern_kind == "runtime-mail-services" and profile_owned_mailbox_inventory(
+        scenario, registered.declaration_name
+    ):
+        return None, None
+    return floor
 
 
 def _compiled_registered_realization(
@@ -304,9 +318,7 @@ def _compiled_registered_realization(
     )
     if compiled.root_open and (compiled.structure is not None or compiled.constraint_document is not None):
         posture = replace(posture, explicitness=ExplicitnessClass.OPEN, mode=RealizationAuthorityMode.OPEN)
-    verification_scope, observation_strength = operational_verification_requirement(
-        descriptor.concern_kind, authored_value
-    )
+    verification_scope, observation_strength = _registered_verification(scenario, registered, authored_value)
     authority = CompiledRealizationAuthority(
         field_path=registered.field_path,
         address=address,

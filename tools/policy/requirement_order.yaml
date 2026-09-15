@@ -40,6 +40,9 @@ phases:
       - ASR-532
     blocked_until:
       - runtime-core
+  - id: observability-conformance
+    requirements:
+      - ASR-525
   - id: modular-control-semantics
     requirements:
       - SEM-235
@@ -124,8 +127,63 @@ phases:
   - id: decision-record-governance
     requirements:
       - GOV-941
+  - id: reusable-asset-integrity
+    requirements:
+      - GOV-913
+  - id: semantic-migration
+    requirements:
+      - GOV-903
+    blocked_until:
+      - gov-concept-authority
 
 ownership:
+  observability-conformance:
+    - contracts/profiles/backend/observability-evidence.json
+    - contracts/fixtures/experiment-core/experiment-run-v1
+    - contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml
+    - contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-selected-demand.yaml
+    - docs/explain/reference/backend-conformance.md
+    - docs/requirements/ASR-525/requirement.md
+    - specs/formal/observability-evidence-plane.md
+    - implementations/python/tests/test_observability_evidence_conformance.py
+    - implementations/python/tests/test_runtime_contracts.py
+  semantic-migration:
+    - contracts/schemas/provenance/sdl-lineage-ledger-v1.json
+    - docs/research/lineage/source-audit-2026-09-14.md
+    - docs/research/lineage/captures/nsa-cross-domain-2026-09-14.txt
+    - contracts/fixtures/concept-authority/semantic-projection-report-v1/invalid/evidence-free-verification.json
+    - contracts/fixtures/concept-authority/external-concept-bindings-v1
+    - contracts/fixtures/exploit-path-analysis
+    - contracts/fixtures/satisfiability
+    - contracts/schemas/README.md
+    - contracts/schemas/exploit-path-analysis
+    - docs/research/language-extensibility/research.md
+    - docs/research/scenario-variation-trial-realization/adaptive-difficulty-lineage-and-validity.md
+    - specs/concept-authority/classification-migration.md
+    - specs/formal/sdl-phases/README.md
+    - contracts/provenance/sdl-lineage-ledger-v2.json
+    - docs/explain/sdl/lineage.md
+    - docs/explain/sdl/precedents.md
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - contracts/profiles/semantic-comparison
+    - contracts/schema-publication
+    - contracts/schemas/sdl
+    - contracts/schemas/satisfiability
+    - contracts/fixtures/sdl
+    - docs/decisions
+    - docs/migration
+    - docs/requirements/GOV-903/requirement.md
+    - docs/requirements/GOV-904/requirement.md
+    - docs/requirements/SEM-230/requirement.md
+    - docs/requirements/ASR-530/requirement.md
+    - specs/evolution
+    - specs/sdl
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes_cli
+    - implementations/python/tests
   gov-concept-authority:
     - specs/concept-authority
     - specs/sdl
@@ -174,10 +232,15 @@ ownership:
     - contracts/schemas/sdl
     - docs/decisions/issue-541-sdl-spec-second-review-preflight.md
     - docs/decisions/issue-805-participant-interactive-access-preflight.md
+    - docs/decisions/issue-1276-per-run-random-values-preflight.md
     - docs/decisions/adrs
+    - docs/requirements/DSL-435
     - docs/explain/sdl
     - docs/index.md
     - docs/research/formal-semantic-validation
+    # SDL schema changes recompute the reference-implementation source digest the
+    # specification-coverage bundle pins, so this phase owns that reconciliation.
+    - docs/research/specification-coverage
     - docs/research/lineage/source-audit-2026-07-12.md
     - docs/research/participant-interactive-access
     - implementations/python/packages/raes_backend_libvirt
@@ -187,6 +250,12 @@ ownership:
     - implementations/python/packages/raes_processor
     - implementations/python/packages/raes_reference_backend
     - implementations/python/packages/raes
+    # Issue #1276 threads value-free run/instantiation scope identity through the
+    # runtime plan API round-trip and RuntimeManager, and rejoins direct-plan
+    # content projections to their declared placements at submission admission.
+    - implementations/python/packages/raes_runtime/control_plane_api_models.py
+    - implementations/python/packages/raes_runtime/control_plane_submission.py
+    - implementations/python/packages/raes_runtime/manager.py
     - implementations/python/tests
     - specs/formal/participant-semantics
     - specs/formal/sdl-phases
@@ -234,6 +303,12 @@ ownership:
   # SEM-218 uses shared semantic contracts and their generated/evidence closure.
   # It does not own backend implementations or downstream scenarios.
   software-requirement-semantics:
+    # Issue 1207: exact additional records for shared partial-inventory semantics.
+    - docs/requirements/DSL-132/requirement.md
+    - docs/requirements/DSL-134/requirement.md
+    - docs/requirements/DSL-136/requirement.md
+    - docs/requirements/DSL-137/requirement.md
+    - docs/research/language-extensibility/adr-follow-ups.md
     - contracts/schemas/sdl
     - contracts/schemas/realization-constraints
     - contracts/schemas/plans

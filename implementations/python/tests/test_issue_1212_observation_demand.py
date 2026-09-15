@@ -1537,7 +1537,7 @@ def test_realization_detail_creates_no_experimental_demand_but_keeps_operational
         if requirement.requirement_kind == "runtime-environment"
     )
     assert environment.verification_scope is not None
-    assert environment.required_observation_strength is not None
+    assert environment.required_observation_strength is None
 
 
 def test_backend_does_not_persist_unrequested_realization_observations() -> None:

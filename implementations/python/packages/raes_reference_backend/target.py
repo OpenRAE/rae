@@ -50,6 +50,7 @@ def create_reference_backend_components(
             envelope,
             domain_profile_context=config.get("domain_profile_context"),
             profile_choices=config.get("profile_choices"),
+            mailbox_sink=config.get("mailbox_sink"),
         ),
         orchestrator=ReferenceOrchestrator() if manifest.has_orchestrator else None,
         evaluator=ReferenceEvaluator() if manifest.has_evaluator else None,

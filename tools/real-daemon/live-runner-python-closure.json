@@ -1,0 +1,30 @@
+{
+  "schema": "raes.live-runner-python-closure/v1",
+  "description": "Reviewed offline build closure for the opt-in live-runner libvirt-python install (issue #1222). Every file is fetched and verified by tools/real-daemon/live_runner_inputs.py and installed offline; each sha256 MUST equal the corresponding pin in live-runner-python.txt (the pip --require-hashes install authority). libvirt-python is sdist-only, so its setuptools/wheel build backend is admitted here too.",
+  "files": [
+    {
+      "name": "libvirt-python",
+      "version": "12.7.0",
+      "filename": "libvirt_python-12.7.0.tar.gz",
+      "url": "https://files.pythonhosted.org/packages/00/19/729ba9584cac034ecaa8a42ebb6412007382dda13df635ac61adecd7e949/libvirt_python-12.7.0.tar.gz",
+      "sha256": "03a6800a3cc7657267e2516f579ce95c93d6351182caf03f92a49556685bf8bf",
+      "size": 256560
+    },
+    {
+      "name": "setuptools",
+      "version": "84.0.0",
+      "filename": "setuptools-84.0.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/95/9c/c510029fc6ef33a6275cd2c5d3cecd6613dfd6aa401d57c54f1c18852ccf/setuptools-84.0.0-py3-none-any.whl",
+      "sha256": "51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670",
+      "size": 818216
+    },
+    {
+      "name": "wheel",
+      "version": "0.48.0",
+      "filename": "wheel-0.48.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/2e/29/69cfbb602cd91690c55d38ba9fe53e6a7e76a6fa647bf38f19c138d25449/wheel-0.48.0-py3-none-any.whl",
+      "sha256": "3217dcc807155e45db462d7ef2431f5ddda0d7273b700d05a67b271ceb1287ab",
+      "size": 33320
+    }
+  ]
+}

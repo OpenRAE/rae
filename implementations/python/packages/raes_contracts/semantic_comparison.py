@@ -240,7 +240,7 @@ class SemanticComparisonProfileModel(ContractModel):
     structural_axis: Literal["owner-shape-projection/v1"]
     semantic_axis: Literal["owner-semantic-projection/v1"]
     dependency_rule_versions: dict[str, Literal["1"]]
-    owner_projection_versions: dict[ArtifactKind, Literal["1"]]
+    owner_projection_versions: dict[ArtifactKind, Literal["1", "2"]]
     limits: ComparisonLimitsModel = ComparisonLimitsModel()
 
     @model_validator(mode="after")
@@ -258,6 +258,11 @@ class SemanticComparisonProfileModel(ContractModel):
             raise ValueError("comparison profile must declare the complete closed dependency rule set")
         if set(self.owner_projection_versions) != set(ArtifactKind):
             raise ValueError("comparison profile must declare every owner projection version")
+        if any(
+            kind not in {ArtifactKind.SCENARIO, ArtifactKind.TASK} and version != "1"
+            for kind, version in self.owner_projection_versions.items()
+        ):
+            raise ValueError("only scenario and task owners support projection revision 2")
         return self
 
 

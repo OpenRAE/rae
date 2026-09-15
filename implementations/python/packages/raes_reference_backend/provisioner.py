@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from raes_contracts.account_materialization import account_mailbox_materializations
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
 from raes_contracts.planning import ChangeAction, PlanOperation, ProvisioningPlan, RuntimeDomain
@@ -29,7 +30,9 @@ from raes_contracts.realization_operational_observation import invoke_native_rea
 from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 
+from .artifact_generation import generated_artifact_projections
 from .driver import ContainerSpec, DeploymentDriver, NetworkSpec
+from .mailbox_materialization import InProcessMailboxSink, mailbox_sink_diagnostics
 from .profile_preparation import (
     prepare_reference_profiles,
     reference_profile_configuration,
@@ -53,8 +56,11 @@ class ReferenceProvisioner:
         *,
         domain_profile_context: DomainProfileResolutionContextModel | None = None,
         profile_choices: Mapping[str, object] | None = None,
+        mailbox_sink: InProcessMailboxSink | None = None,
     ) -> None:
         self._driver = driver
+        self._mailbox_sink = mailbox_sink
+        self._generated_outputs: dict[tuple[str, str, str], bytes] = {}
         self._realization_envelope = realization_envelope
         self.domain_profile_context, self._profile_choices = reference_profile_configuration(
             domain_profile_context, profile_choices or {}
@@ -62,20 +68,41 @@ class ReferenceProvisioner:
 
     def validate(self, plan: ProvisioningPlan) -> list[Diagnostic]:
         realization = interpret_provisioning_plan(plan)
-        return [*realization.diagnostics, *reference_profile_diagnostics(plan, self.domain_profile_context)]
+        return [*realization.diagnostics, *self.validate_profiles(plan)]
 
     def prepare(self, plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> RealizationPreparation:
         return prepare_reference_profiles(plan, snapshot, self.domain_profile_context, self._profile_choices)
 
     def validate_profiles(self, plan: ProvisioningPlan) -> list[Diagnostic]:
-        return reference_profile_diagnostics(plan, self.domain_profile_context)
+        diagnostics = [
+            *reference_profile_diagnostics(plan, self.domain_profile_context),
+            *mailbox_sink_diagnostics(plan, self._mailbox_sink),
+        ]
+        try:
+            generated_artifact_projections(plan)
+        except (AttributeError, KeyError, TypeError, ValueError):
+            diagnostics.append(
+                Diagnostic(
+                    "reference-backend.generator-unsupported",
+                    "provisioning",
+                    "generated-artifacts",
+                    "Generated artifact projection is unsupported.",
+                )
+            )
+        return diagnostics
+
+    def generated_output(self, artifact_address: str, consumer_address: str, output_name: str) -> bytes:
+        try:
+            return self._generated_outputs[(artifact_address, consumer_address, output_name)]
+        except KeyError:
+            raise ValueError("No authorized generated output for this consumer") from None
 
     def apply(self, plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> ApplyResult:
         failure = self._realization_envelope_mismatch(plan, snapshot)
         realization = interpret_provisioning_plan(plan)
         diagnostics: list[Diagnostic] = [
             *realization.diagnostics,
-            *reference_profile_diagnostics(plan, self.domain_profile_context),
+            *self.validate_profiles(plan),
         ]
         if failure is None and any(diag.is_error for diag in diagnostics):
             failure = ApplyResult(success=False, snapshot=snapshot, diagnostics=diagnostics)
@@ -97,6 +124,7 @@ class ReferenceProvisioner:
         diagnostics.extend(readback_diagnostics)
         diagnostics.extend(self._missing_observation_diagnostics(plan, observations, snapshot))
         success = not any(diag.is_error for diag in diagnostics)
+        self._publish_materializations(plan, success=success)
         observation_disclosures = self._bound_observation_disclosures(plan, observations, snapshot) if success else ()
         return ApplyResult(
             success=success,
@@ -113,6 +141,26 @@ class ReferenceProvisioner:
             changed_addresses=changed_addresses,
             operational_realization_observations=observation_disclosures,
         )
+
+    def _publish_materializations(self, plan: ProvisioningPlan, *, success: bool) -> None:
+        """Revoke stale material after driver changes; publish new material only after readback."""
+        if self._mailbox_sink is not None:
+            self._mailbox_sink.remove_deleted(plan)
+            if success:
+                self._mailbox_sink.materialize(account_mailbox_materializations(plan))
+        # Revoke stored outputs only for artifacts whose reconciliation actually
+        # changed them; an UNCHANGED op (e.g. a same-scope resume) retains its
+        # active value rather than losing it (issue #1276).
+        changed_artifacts = {
+            op.address
+            for op in plan.operations
+            if op.resource_type == "generated-artifact" and op.action is not ChangeAction.UNCHANGED
+        }
+        self._generated_outputs = {
+            key: value for key, value in self._generated_outputs.items() if key[0] not in changed_artifacts
+        }
+        if success:
+            self._generated_outputs.update(generated_artifact_projections(plan))
 
     def _realization_envelope_mismatch(
         self,

@@ -12,7 +12,7 @@ from raes.runtime_generated_value import GeneratedArtifactValueSource, resolve_c
 from raes.stateful_resources import GeneratedArtifact
 from raes_backend_protocols.capabilities import ProvisionerCapabilities
 from raes_contracts.addressing import render_compiled_address
-from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode
+from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode, GeneratedArtifactKind
 
 from ..models import Diagnostic
 
@@ -188,9 +188,33 @@ def _environment_projection_classification(
     return None
 
 
+_CONTENT_PROJECTION_FIELDS = frozenset({"content", "target_address", "delivery_mode", "output"})
+
+
+def _validate_content_projection(projection: object) -> GeneratedArtifactDeliveryMode:
+    if not isinstance(projection, Mapping):
+        raise ValueError("generated artifact content_consumers entry must be an object")
+    if set(projection) != _CONTENT_PROJECTION_FIELDS:
+        raise ValueError("generated artifact content_consumers projection contains invalid fields")
+    if projection.get("delivery_mode") != GeneratedArtifactDeliveryMode.CONTENT_TEXT.value:
+        raise ValueError("generated artifact content_consumers delivery_mode must be content_text")
+    content = projection.get("content")
+    if not isinstance(content, str) or not content:
+        raise ValueError("generated artifact content_consumers entry must name a content placement")
+    output = projection.get("output")
+    _PORTABLE_IDENTIFIER.validate_python(output)
+    if not isinstance(output, str) or not output:
+        raise ValueError("generated artifact content_consumers entry must name an output")
+    target = projection.get("target_address")
+    if not isinstance(target, str) or target != render_compiled_address("provision", "content", content):
+        raise ValueError("generated artifact content_consumers target_address does not match its content placement")
+    return GeneratedArtifactDeliveryMode.CONTENT_TEXT
+
+
 def _delivery_modes_in_use(
     consumers: object,
     environment_consumers: object,
+    content_consumers: object = None,
 ) -> set[GeneratedArtifactDeliveryMode]:
     """Delivery modes the payload requires; a malformed shape raises for bounded rejection."""
 
@@ -202,6 +226,11 @@ def _delivery_modes_in_use(
             raise ValueError("generated artifact environment_consumers must be a list")
         for projection in environment_consumers:
             modes.add(_validate_environment_projection(projection))
+    if content_consumers is not None:
+        if not isinstance(content_consumers, list):
+            raise ValueError("generated artifact content_consumers must be a list")
+        for projection in content_consumers:
+            modes.add(_validate_content_projection(projection))
     return modes
 
 
@@ -226,11 +255,41 @@ def _canonical_consumers(consumers: object) -> object:
     return [_canonical_consumer(consumer) for consumer in consumers]
 
 
+def _rejoin_content_projection(
+    projection: Mapping[str, Any],
+    *,
+    artifact_name: str,
+    content_specs: Mapping[str, object] | None,
+) -> None:
+    """Rejoin a derived content projection to its declared content placement.
+
+    A directly submitted plan must not name an absent placement or one whose
+    ``text_from`` binding does not match this artifact/output (issue #1276), the
+    way the environment path rejoins to the target-node runtime declaration.
+    """
+
+    target_address = str(projection["target_address"])
+    placement = content_specs.get(target_address) if content_specs is not None else None
+    spec = placement.get("spec") if isinstance(placement, Mapping) else None
+    if not isinstance(spec, Mapping):
+        raise ValueError("generated artifact content consumer has no declared content placement")
+    source = spec.get("text_from")
+    if not isinstance(source, Mapping) or not _source_matches_artifact(
+        GeneratedArtifactValueSource.model_validate(source),
+        artifact_name=artifact_name,
+        output_name=str(projection["output"]),
+    ):
+        raise ValueError("generated artifact content consumer does not match the content placement text_from binding")
+    if spec.get("type") != "file":
+        raise ValueError("generated artifact content consumer target is not file content")
+
+
 def _validated_generated_artifact_payload(
     *,
     address: str,
     spec: object,
     node_specs: Mapping[str, object] | None = None,
+    content_specs: Mapping[str, object] | None = None,
 ) -> tuple[GeneratedArtifact, set[GeneratedArtifactDeliveryMode]]:
     if not isinstance(spec, Mapping):
         raise ValueError("generated artifact spec must be an object")
@@ -238,9 +297,10 @@ def _validated_generated_artifact_payload(
     # Compiler-derived provisioning keys are not part of the authored model;
     # strip them before the closed-model round-trip and validate separately.
     environment_consumers = canonical_spec.pop("environment_consumers", None)
+    content_consumers = canonical_spec.pop("content_consumers", None)
     consumers = canonical_spec.get("consumers")
     canonical_spec["consumers"] = _canonical_consumers(consumers)
-    delivery_modes = _delivery_modes_in_use(consumers, environment_consumers)
+    delivery_modes = _delivery_modes_in_use(consumers, environment_consumers, content_consumers)
     if not delivery_modes:
         raise ValueError("generated artifact must declare at least one consumer")
     artifact = GeneratedArtifact.model_validate(canonical_spec)
@@ -256,6 +316,12 @@ def _validated_generated_artifact_payload(
             projection["output"],
             environment_classification=classification,
         )
+    for projection in content_consumers or []:
+        # Rejoin the derived content projection to the canonical output contract and
+        # its declared content placement so a directly submitted plan cannot bind an
+        # unknown/producer_private output or a phantom content target (issue #1276).
+        resolve_consumable_generated_artifact_output(artifact, projection["output"])
+        _rejoin_content_projection(projection, artifact_name=artifact_name, content_specs=content_specs)
     return artifact, delivery_modes
 
 
@@ -266,23 +332,43 @@ def _artifact_capability_diagnostic(
     delivery_modes: set[GeneratedArtifactDeliveryMode],
     provisioner: ProvisionerCapabilities,
 ) -> Diagnostic | None:
-    if artifact.generator not in provisioner.supported_generated_artifact_kinds:
-        return Diagnostic(
-            code="provisioner.unsupported-generated-artifact-kind",
-            domain="provisioning",
-            address=address,
-            message=f"Provisioner does not support generated artifact kind '{artifact.generator.value}'.",
-        )
-    unsupported = delivery_modes - provisioner.supported_generated_artifact_delivery_modes
-    if unsupported:
-        mode = min(item.value for item in unsupported)
-        return Diagnostic(
-            code="provisioner.unsupported-generated-artifact-delivery-mode",
-            domain="provisioning",
-            address=address,
-            message=f"Provisioner does not support generated artifact delivery mode '{mode}'.",
-        )
-    return None
+    from raes_contracts.domain_profiles import DomainProfileBindingModel
+
+    kind = (
+        artifact.generator.coordinate
+        if isinstance(artifact.generator, DomainProfileBindingModel)
+        else artifact.generator
+    )
+    unsupported_modes = delivery_modes - provisioner.supported_generated_artifact_delivery_modes
+    scope = artifact.regeneration_scope
+    checks = (
+        (
+            kind not in provisioner.supported_generated_artifact_kinds,
+            "provisioner.unsupported-generated-artifact-kind",
+            "Provisioner does not support the selected generated artifact kind.",
+        ),
+        (
+            bool(unsupported_modes),
+            "provisioner.unsupported-generated-artifact-delivery-mode",
+            f"Provisioner does not support generated artifact delivery mode "
+            f"'{min((mode.value for mode in unsupported_modes), default='')}'.",
+        ),
+        (
+            kind is GeneratedArtifactKind.RANDOM_VALUE
+            and scope is not None
+            and scope not in provisioner.supported_regeneration_scopes,
+            "provisioner.unsupported-regeneration-scope",
+            f"Provisioner does not support regeneration scope '{getattr(scope, 'value', '')}'.",
+        ),
+    )
+    return next(
+        (
+            Diagnostic(code=code, domain="provisioning", address=address, message=message)
+            for failed, code, message in checks
+            if failed
+        ),
+        None,
+    )
 
 
 def generated_artifact_payload_diagnostic(
@@ -291,6 +377,7 @@ def generated_artifact_payload_diagnostic(
     spec: object,
     provisioner: ProvisionerCapabilities,
     node_specs: Mapping[str, object] | None = None,
+    content_specs: Mapping[str, object] | None = None,
 ) -> Diagnostic | None:
     """Validate one compiled or directly submitted generated-artifact spec."""
 
@@ -299,6 +386,7 @@ def generated_artifact_payload_diagnostic(
             address=address,
             spec=spec,
             node_specs=node_specs,
+            content_specs=content_specs,
         )
     except (TypeError, ValueError):
         return Diagnostic(

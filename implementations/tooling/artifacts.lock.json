@@ -1,6 +1,6 @@
 {
   "schema_version": "raes-development-artifact-lock/v1",
-  "lock_revision": "2026-09-11",
+  "lock_revision": "2026-09-14",
   "artifacts": [
     {
       "artifact_id": "conftest",
@@ -36,14 +36,6 @@
           "installed_manifest": [{"path": "conftest", "sha256": "6da7d9e395611aa983ee03348999d41bcbfbf4a0d16bfd07eadd15425d710d3f", "size": 66584760, "executable": true}],
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"]
-        },
-        {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/open-policy-agent/conftest/releases/download/v0.68.0/conftest_0.68.0_Darwin_x86_64.tar.gz"],
-          "raw_manifest": [{"path": "conftest_0.68.0_Darwin_x86_64.tar.gz", "sha256": "c7b27ddefc23a63f50c19a50f316b33306098f8e0943c219864fb7feece26570", "size": 22055485}],
-          "installed_manifest": [{"path": "conftest", "sha256": "8dde2524dd532a3d850169fd0c133fbdbf20cf4034115557afb50d92aaafeab6", "size": 73332496, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
         },
         {
           "platform_id": "macos-arm64",
@@ -91,14 +83,6 @@
           "profile_ids": ["public-linux-arm64"]
         },
         {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_x64.tar.gz"],
-          "raw_manifest": [{"path": "gitleaks_8.30.1_darwin_x64.tar.gz", "sha256": "dfe101a4db2255fc85120ac7f3d25e4342c3c20cf749f2c20a18081af1952709", "size": 8359235}],
-          "installed_manifest": [{"path": "gitleaks", "sha256": "cee01fea7173f1b779dff188e1c26ecbcb4027d394acc573b23aaf0be260e291", "size": 22398576, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
-        },
-        {
           "platform_id": "macos-arm64",
           "source_urls": ["https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_arm64.tar.gz"],
           "raw_manifest": [{"path": "gitleaks_8.30.1_darwin_arm64.tar.gz", "sha256": "b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5", "size": 7897593}],
@@ -142,14 +126,6 @@
           "installed_manifest": [{"path": "vale", "sha256": "6da7d9cadfb0258d7f82d16665b59d19a8a2814b8aa4c5cc129b39cee10d5a0c", "size": 39528832, "executable": true}],
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"]
-        },
-        {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_macOS_64-bit.tar.gz"],
-          "raw_manifest": [{"path": "vale_3.15.2_macOS_64-bit.tar.gz", "sha256": "5d56b292f1612758f6d9e8d735dd739aec4e475830d0ba8c1e0ef7d8f08fa198", "size": 10721173}],
-          "installed_manifest": [{"path": "vale", "sha256": "666f407823b567cce1f71df3b7edd311c6de4ac68a2cf8a03e5cbde77dd07f6b", "size": 40833432, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
         },
         {
           "platform_id": "macos-arm64",
@@ -197,14 +173,6 @@
           "profile_ids": ["public-linux-arm64"]
         },
         {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_amd64"],
-          "raw_manifest": [{"path": "osv-scanner_darwin_amd64", "sha256": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66", "size": 57832640}],
-          "installed_manifest": [{"path": "osv-scanner", "sha256": "088119325156321c34c456ac3703d6013538fd71cbac82b891ab34db491e4d66", "size": 57832640, "executable": true}],
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"]
-        },
-        {
           "platform_id": "macos-arm64",
           "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64"],
           "raw_manifest": [{"path": "osv-scanner_darwin_arm64", "sha256": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d", "size": 54304354}],
@@ -248,6 +216,14 @@
               "executable": true
             }
           ],
+          "installed_tree": {
+            "format": "tar.gz",
+            "manifest_sha256": "a1a818fc3fd41b3f60a34154c0871469619bc826d8238f1349e73e92355e4bb1",
+            "file_count": 24079,
+            "directory_count": 2589,
+            "symlink_count": 457,
+            "expanded_bytes": 2301957383
+          },
           "dependencies": [],
           "profile_ids": ["proof-linux-x86_64"]
         }
@@ -568,7 +544,7 @@
           "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "live-runner-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -579,16 +555,6 @@
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"],
           "host_profile_ids": ["public-linux-arm64"]
-        },
-        {
-          "platform_id": "macos-x86_64",
-          "distribution_id": "macos-15",
-          "source_urls": ["https://releases.astral.sh/github/python-build-standalone/releases/download/20260807/cpython-3.14.7%2B20260807-x86_64-apple-darwin-install_only_stripped.tar.gz"],
-          "raw_manifest": [{"path": "cpython-3.14.7+20260807-x86_64-apple-darwin-install_only_stripped.tar.gz", "sha256": "9964e2d618ebea03be8ea3e65ab0ecc0f2b030ce203345b8f92654641fd4de66", "size": 26601297}],
-          "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-apple-darwin"},
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"],
-          "host_profile_ids": ["public-macos-x86_64"]
         },
         {
           "platform_id": "macos-arm64",
@@ -662,7 +628,7 @@
           "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64", "live-runner-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -672,15 +638,6 @@
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"],
           "host_profile_ids": ["public-linux-arm64"]
-        },
-        {
-          "platform_id": "macos-x86_64",
-          "source_urls": ["https://github.com/astral-sh/uv/releases/download/0.12.4/uv-x86_64-apple-darwin.tar.gz"],
-          "raw_manifest": [{"path": "uv-x86_64-apple-darwin.tar.gz", "sha256": "e603f1eb634ca97a2a125539b983891f53235e901511ed10c32c08c86e253ecd", "size": 20796751}],
-          "installed_identity": {"implementation": "uv", "version": "0.12.4", "abi": "native", "target": "x86_64-apple-darwin"},
-          "dependencies": [],
-          "profile_ids": ["public-macos-x86_64"],
-          "host_profile_ids": ["public-macos-x86_64"]
         },
         {
           "platform_id": "macos-arm64",
@@ -752,6 +709,69 @@
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "devcontainer-base-image",
+      "artifact_class": "oci-image",
+      "version": "24.04",
+      "support_level": "blocking",
+      "owner": "Tooling",
+      "consumers": ["development-container"],
+      "trust_root_refs": ["docker-official-images-index-digest"],
+      "availability_class": "N",
+      "retention_class": "supported-input",
+      "license": {"spdx": "NOASSERTION", "redistribution": "not-applicable", "review_ref": "issue-1238"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "issue-1238-development-container-review"},
+      "policy_refs": ["oci-input-v1"],
+      "source": {
+        "repository": "https://github.com/canonical/ubuntu-docker-images",
+        "release": "sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254",
+        "asset": "docker.io/library/ubuntu",
+        "locator_refs": ["docker-official-images-registry"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": ["https://registry-1.docker.io/v2/library/ubuntu/manifests/sha256:a61567bd31828687156d735ea8eb01ba4e37636e225dd6a48ba94136a70d9d61"],
+          "raw_manifest": [{"path": "ubuntu-24.04-linux-amd64-manifest.json", "sha256": "a61567bd31828687156d735ea8eb01ba4e37636e225dd6a48ba94136a70d9d61", "size": 424}],
+          "installed_identity": {"implementation": "OCI image", "version": "24.04", "abi": "oci-manifest-v1", "target": "linux-x86_64"},
+          "dependencies": [],
+          "profile_ids": ["public-linux-x86_64"],
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64"]
+        }
+      ]
+    },
+    {
+      "artifact_id": "cirros-guest-disk",
+      "artifact_class": "vm-base-image",
+      "version": "0.6.2",
+      "owner": "Backend",
+      "consumers": ["libvirt-live-smoke"],
+      "trust_root_refs": ["adr-106-reviewed-upstream-release"],
+      "availability_class": "L",
+      "retention_class": "supported-input",
+      "license": {"spdx": "GPL-2.0-only", "redistribution": "allowed", "review_ref": "ADR-106"},
+      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
+      "policy_refs": ["artifact-integrity-v1"],
+      "source": {
+        "repository": "https://github.com/cirros-dev/cirros",
+        "release": "0.6.2",
+        "asset": "cirros-{version}-x86_64-disk.img",
+        "locator_refs": ["official-cirros-download", "official-cirros-cloud-mirror"]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/cirros-dev/cirros/releases/download/0.6.2/cirros-0.6.2-x86_64-disk.img",
+            "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"
+          ],
+          "raw_manifest": [{"path": "cirros-0.6.2-x86_64-disk.img", "sha256": "07e44a73e54c94d988028515403c1ed762055e01b83a767edf3c2b387f78ce00", "size": 21430272}],
+          "installed_manifest": [{"path": "cirros.img", "sha256": "07e44a73e54c94d988028515403c1ed762055e01b83a767edf3c2b387f78ce00", "size": 21430272}],
+          "dependencies": [],
+          "profile_ids": ["live-runner-linux-x86_64"]
         }
       ]
     }

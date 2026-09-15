@@ -1,9 +1,9 @@
 {
-  "content_hash": "966842eeb5a34db24fbf3836e638ea5076ab592c16c92ff464623c38f40aa7c9",
+  "content_hash": "06582de9ecf6a7b039bf7e3716dd5eef8e11a144bfc6610eaa5884c71d3e280d",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "966842eeb5a34db24fbf3836e638ea5076ab592c16c92ff464623c38f40aa7c9",
-    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206."
+    "content_hash": "06582de9ecf6a7b039bf7e3716dd5eef8e11a144bfc6610eaa5884c71d3e280d",
+    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

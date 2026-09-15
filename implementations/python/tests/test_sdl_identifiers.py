@@ -73,7 +73,7 @@ _portable_identifier_strategy = st.builds(
 def _minimal_instantiation_provenance() -> dict[str, object]:
     return {
         "authored_digest": {
-            "profile": "raes-sdl-semantic/v1",
+            "profile": "raes-sdl-semantic/v2",
             "algorithm": "sha256",
             "value": f"sha256:{'0' * 64}",
         }

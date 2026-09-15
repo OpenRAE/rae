@@ -58,7 +58,6 @@ TARGETS = (
 TOOL_TARGETS = (
     ("public-linux-x86_64-cp314-tools", "3.14", "cp314", "x86_64-unknown-linux-gnu"),
     ("public-linux-arm64-cp314-tools", "3.14", "cp314", "aarch64-unknown-linux-gnu"),
-    ("public-macos-x86_64-cp314-tools", "3.14", "cp314", "x86_64-apple-darwin"),
     ("public-macos-arm64-cp314-tools", "3.14", "cp314", "aarch64-apple-darwin"),
 )
 

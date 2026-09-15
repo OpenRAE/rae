@@ -6,6 +6,8 @@ import hashlib
 import json
 from typing import Literal
 
+from ..domain_profiles import DomainProfileCoordinateModel
+
 PARTICIPANT_RESOURCE_BUDGET_POLICY_SCHEMA_VERSION = "participant-resource-budget-policy/v1"
 PARTICIPANT_RESOURCE_POOL_CAPACITY_SCHEMA_VERSION = "participant-resource-pool-capacity/v1"
 PARTICIPANT_RESOURCE_BUDGET_STATE_SCHEMA_VERSION = "participant-resource-budget-state/v1"
@@ -17,14 +19,17 @@ ParticipantResourceOwnerKind = Literal[
     "shared_service",
     "fleet",
 ]
-ParticipantResourceKind = Literal[
-    "action_rate",
-    "concurrent_actions",
-    "storage_growth",
-    "inference_tokens",
-    "image_generations",
-    "accelerator",
-]
+ParticipantResourceKind = (
+    Literal[
+        "action_rate",
+        "concurrent_actions",
+        "storage_growth",
+        "inference_tokens",
+        "image_generations",
+        "accelerator",
+    ]
+    | DomainProfileCoordinateModel
+)
 ParticipantResourceAccountingMode = Literal[
     "windowed_counter",
     "cumulative_counter",
@@ -62,10 +67,14 @@ EVENT_DISPOSITION = {
 
 
 def require_quantity_semantics(
-    resource_kind: str,
+    resource_kind: str | DomainProfileCoordinateModel,
     unit: str,
     accounting_mode: str,
 ) -> None:
+    if isinstance(resource_kind, DomainProfileCoordinateModel):
+        # Extension shape is portable data. Exact unit/meter/reset semantics
+        # require independent profile admission against the configured pool.
+        return
     expected_unit = RESOURCE_UNIT[resource_kind]
     if unit != expected_unit:
         raise ValueError(f"{resource_kind} resource quantity requires unit {expected_unit!r}")
@@ -96,7 +105,9 @@ def participant_resource_pool_state_ref(
             pool_ref,
             owner_kind,
             owner_ref,
-            resource_kind,
+            resource_kind.model_dump(mode="json")
+            if isinstance(resource_kind, DomainProfileCoordinateModel)
+            else resource_kind,
             unit,
             accounting_mode,
             meter_profile_ref,

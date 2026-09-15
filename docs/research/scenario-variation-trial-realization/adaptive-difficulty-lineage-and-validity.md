@@ -212,7 +212,7 @@ The publications above are semantic design precedents. SCE-003 adopts no
 source syntax, schema, code, estimator, item-response model, curriculum
 optimizer, random-number algorithm, controller implementation, or wire
 format. No compatibility or copied-code claim is made, no third-party notice is
-introduced, and the normative `sdl-lineage-ledger-v1` subject/notice
+introduced, and the normative `sdl-lineage-ledger-v2` subject/notice
 disposition is unchanged because SCE-003 adds experiment-core contracts rather
 than SDL subject derivations.
 

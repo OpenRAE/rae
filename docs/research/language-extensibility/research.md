@@ -35,7 +35,7 @@ demand; this revision deliberately corrects that framing.
 The repository's [lineage map](../../explain/sdl/lineage.md) and
 [precedents](../../explain/sdl/precedents.md) distinguish influence from syntax,
 code, and artifact derivation. The revision-pinned
-[lineage ledger](../../../contracts/provenance/sdl-lineage-ledger-v1.json) remains
+[lineage ledger](../../../contracts/provenance/sdl-lineage-ledger-v2.json) remains
 the authority for those classifications; this review does not amend it.
 
 The OCR/CyRIS/CACAO/STIX lineage supports declarative scenario structures,

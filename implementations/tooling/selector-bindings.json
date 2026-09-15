@@ -68,6 +68,17 @@
       "consumers": [{"path": "tools/tool_versions.py", "template": "GITLEAKS_VERSION = \"{selector}\""}]
     },
     {
+      "binding_id": "devcontainer-base-image-version",
+      "artifact_id": "devcontainer-base-image",
+      "authority_field": "version",
+      "consumers": [
+        {
+          "path": "tools/tool_versions.py",
+          "template": "DEVCONTAINER_BASE_IMAGE_VERSION = \"{selector}\""
+        }
+      ]
+    },
+    {
       "binding_id": "isabelle-tool-version",
       "artifact_id": "isabelle",
       "authority_field": "version",
@@ -114,6 +125,12 @@
       "artifact_id": "fipa-communicative-acts-snapshot",
       "authority_field": "version",
       "consumers": [{"path": "tools/check_autonomous_behavior_vocabularies.py", "template": "FIPA_VERSION = \"{selector}\""}]
+    },
+    {
+      "binding_id": "cirros-guest-disk-version",
+      "artifact_id": "cirros-guest-disk",
+      "authority_field": "version",
+      "consumers": [{"path": "tools/tool_versions.py", "template": "CIRROS_GUEST_DISK_VERSION = \"{selector}\""}]
     }
   ],
   "runtime_selections": [
@@ -158,12 +175,22 @@
       "consumers": ["tools/check_autonomous_behavior_vocabularies.py"]
     },
     {
+      "artifact_id": "devcontainer-base-image",
+      "consumers": [
+        "tools/devcontainer_image.py"
+      ]
+    },
+    {
       "artifact_id": "scorecard-action-image",
       "consumers": ["implementations/tooling/actions-policy.json"]
     },
     {
       "artifact_id": "sonar-scanner-cli",
       "consumers": ["implementations/tooling/actions-policy.json"]
+    },
+    {
+      "artifact_id": "cirros-guest-disk",
+      "consumers": ["tools/real-daemon/live_runner_inputs.py"]
     }
   ],
   "tracked_literals": [

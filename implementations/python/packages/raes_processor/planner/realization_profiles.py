@@ -8,6 +8,7 @@ from dataclasses import replace
 from raes_backend_protocols.manifest import BackendManifest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
+from raes_contracts.profile_selections import authored_resource_profiles, selected_profile_authority
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
 from raes_contracts.realization_profiles import (
     PLAN_PROFILE_CONTRACT,
@@ -24,25 +25,31 @@ def profile_resources(
     manifest: BackendManifest,
     snapshot: Mapping[str, object],
     context: DomainProfileResolutionContextModel | None,
-) -> tuple[Mapping[str, object], list[Diagnostic]]:
+) -> tuple[Mapping[str, object], list[Diagnostic], object]:
     """Retain a still-admitted backend choice; changed authority reconciles normally."""
 
     authority = model.profile_authority
-    if authority is None:
-        return resources, []
     diagnostic = Diagnostic(
         "realization.profile-unsupported",
         "provisioning",
         "profiles",
         "Plan profiles lack supported, pinned target authority.",
     )
-    if (
+    try:
+        authority = selected_profile_authority(authored_resource_profiles(resources.values()), context, authority)
+    except (AttributeError, TypeError, ValueError):
+        return resources, [diagnostic], authority
+    if authority is None:
+        diagnostics = []
+    elif (
         not {PLAN_PROFILE_CONTRACT, BACKEND_PREPARATION_CONTRACT} <= manifest.supported_contract_versions
         or profile_authority_violation(authority, context)
         or profile_context_digest(context) != manifest.domain_profile_context_digest
     ):
-        return resources, [diagnostic]
-    return _retained_profile_resources(authority, resources, snapshot, context, diagnostic)
+        diagnostics = [diagnostic]
+    else:
+        resources, diagnostics = _retained_profile_resources(authority, resources, snapshot, context, diagnostic)
+    return resources, diagnostics, authority
 
 
 def _retained_profile_resources(

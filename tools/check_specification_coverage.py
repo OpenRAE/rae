@@ -57,6 +57,7 @@ __all__ = [
 
 def validate_bundle(
     repo_root: Path,
+    manifest: dict[str, object],
     protocol: dict[str, object],
     snapshot: dict[str, object],
     analysis: dict[str, object],
@@ -64,9 +65,11 @@ def validate_bundle(
     """Validate bundle shape, execution evidence, joins, and claim honesty."""
 
     failures: list[PolicyFailure] = []
+    snapshot_path = str(manifest.get("snapshot_path"))
+    analysis_path = str(manifest.get("analysis_path"))
     catalogs = _validate_protocol(repo_root, protocol, failures)
-    _validate_snapshot(repo_root, protocol, snapshot, catalogs, failures)
-    _validate_analysis(protocol, snapshot, analysis, failures)
+    _validate_snapshot(repo_root, protocol, snapshot, catalogs, failures, snapshot_path)
+    _validate_analysis(protocol, snapshot, analysis, failures, analysis_path)
     return failures
 
 
@@ -86,6 +89,11 @@ def load_bundle(
 def load_bundles(
     repo_root: Path = REPO_ROOT,
 ) -> list[tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]]:
+    records = _load_bundle_index(repo_root)
+    return [_load_bundle_record(repo_root, manifest_path, manifest) for manifest_path, manifest in records]
+
+
+def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
     records = load_index_records(
         repo_root,
         index_path=MANIFEST_PATH,
@@ -94,7 +102,7 @@ def load_bundles(
         max_bytes=_MAX_FILE_BYTES,
     )
     current_path = current_release_path(records)
-    if dict(records)[current_path].get("revision") != "9.0.0" or {record.get("revision") for _, record in records} != {
+    if dict(records)[current_path].get("revision") != "15.0.0" or {record.get("revision") for _, record in records} != {
         "1.0.0",
         "1.1.0",
         "2.0.0",
@@ -105,12 +113,15 @@ def load_bundles(
         "7.0.0",
         "8.0.0",
         "9.0.0",
+        "10.0.0",
+        "11.0.0",
+        "12.0.0",
+        "13.0.0",
+        "14.0.0",
+        "15.0.0",
     }:
-        raise ValueError("coverage evidence requires the explicit current 9.0.0 release and supported history")
-    bundles = []
-    for manifest_path, manifest in records:
-        bundles.append(_load_bundle_record(repo_root, manifest_path, manifest))
-    return bundles
+        raise ValueError("coverage evidence requires the explicit current 15.0.0 release and supported history")
+    return records
 
 
 def _load_bundle_record(
@@ -140,27 +151,43 @@ def _load_bundle_record(
 
 def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
-        bundles = load_bundles(repo_root)
+        records = _load_bundle_index(repo_root)
+        current_path = current_release_path(records)
+        bundles = [
+            (manifest_path, _load_bundle_record(repo_root, manifest_path, manifest))
+            for manifest_path, manifest in records
+        ]
     except (OSError, ValueError) as exc:
         return [_failure("specification-coverage-bundle-invalid", str(exc), MANIFEST_PATH)]
     failures: list[PolicyFailure] = []
-    for manifest, protocol, snapshot, analysis in bundles:
-        validator = validate_bundle if manifest.get("revision") == "9.0.0" else validate_historical_bundle
-        failures.extend(validator(repo_root, protocol, snapshot, analysis))
+    for manifest_path, (manifest, protocol, snapshot, analysis) in bundles:
+        validator = validate_bundle if manifest_path == current_path else validate_historical_bundle
+        failures.extend(validator(repo_root, manifest, protocol, snapshot, analysis))
     return failures
 
 
 def validate_historical_bundle(
     repo_root: Path,
+    manifest: dict[str, object],
     protocol: dict[str, object],
     snapshot: dict[str, object],
     analysis: dict[str, object],
 ) -> list[PolicyFailure]:
     """Validate frozen archive integrity and recorded joins, not current replay."""
     failures: list[PolicyFailure] = []
+    snapshot_path = str(manifest.get("snapshot_path"))
+    analysis_path = str(manifest.get("analysis_path"))
     catalogs = _validate_protocol(repo_root, protocol, failures)
-    _validate_snapshot(repo_root, protocol, snapshot, catalogs, failures, replay_current=False)
-    _validate_analysis(protocol, snapshot, analysis, failures)
+    _validate_snapshot(
+        repo_root,
+        protocol,
+        snapshot,
+        catalogs,
+        failures,
+        snapshot_path,
+        replay_current=False,
+    )
+    _validate_analysis(protocol, snapshot, analysis, failures, analysis_path)
     return failures
 
 

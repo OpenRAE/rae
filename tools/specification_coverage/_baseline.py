@@ -30,9 +30,12 @@ def _baseline_snapshot(repo_root: Path, baseline: object) -> dict[str, object]:
     return load_bounded_json_object(repo_root, snapshot_path, max_bytes=_MAX_FILE_BYTES)
 
 
-def validate_current_deviations(repo_root: Path, snapshot: dict[str, object]) -> list[PolicyFailure]:
+def validate_current_deviations(
+    repo_root: Path,
+    snapshot: dict[str, object],
+    path: str,
+) -> list[PolicyFailure]:
     """Retain every artifact and require an exact disposition for each changed pin."""
-    path = "docs/research/specification-coverage/execution-snapshot-v9.json"
     try:
         baseline = _baseline_snapshot(repo_root, snapshot.get("baseline"))
         old = {item["path"]: item for item in baseline["artifacts"]}

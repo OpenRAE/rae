@@ -1,9 +1,9 @@
 {
-  "content_hash": "9e4af05fb7184b42a8f848f68a778c34e5abc3c1a0884c683d17991ae859d0e9",
+  "content_hash": "7834d0cd38425cdb9833774bcda37a6679f0b48f812d1f3f7adbc889fb17c2a2",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "9e4af05fb7184b42a8f848f68a778c34e5abc3c1a0884c683d17991ae859d0e9",
-    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206."
+    "content_hash": "7834d0cd38425cdb9833774bcda37a6679f0b48f812d1f3f7adbc889fb17c2a2",
+    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

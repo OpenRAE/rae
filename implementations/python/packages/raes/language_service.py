@@ -27,7 +27,9 @@ from .parser import _load_normalized_data, parse_sdl
 from .scenario import Scenario
 
 _MAX_INPUT_BYTES = 64 * 1024
-_SCENARIO_METADATA_FIELDS = frozenset({"name", "version", "description", "module", "imports", "realization"})
+_SCENARIO_METADATA_FIELDS = frozenset(
+    {"name", "version", "description", "semantic_revision", "module", "imports", "realization"}
+)
 _SECTION_FIELDS = tuple(field for field in Scenario.model_fields if field not in _SCENARIO_METADATA_FIELDS)
 _TARGETABLE_SECTION_FIELDS = tuple(field for field in _SECTION_FIELDS if is_targetable_section(field))
 _TOP_LEVEL_KEYS = tuple(Scenario.model_fields)

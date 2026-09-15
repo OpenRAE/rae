@@ -48,7 +48,7 @@ class _ReportContext:
     source_digest: str
     policy: ArtifactTransformationPolicy
     context_digest: str
-    canonicalization_profile: str = "raes-sdl-semantic/v1"
+    canonicalization_profile: str = "raes-sdl-semantic/v2"
 
 
 class _MigrationRefusal(Exception):
@@ -254,7 +254,7 @@ def migrate_sdl_classifications(
     except _MigrationRefusal as exc:
         return SDLTransformationResult(None, (), _report(context, code=exc.code))
     # Successful output uses the current canonical profile, as before migration refactoring.
-    context.canonicalization_profile = "raes-sdl-semantic/v1"
+    context.canonicalization_profile = "raes-sdl-semantic/v2"
     report = _report(
         context,
         target_digest=canonical_sdl_digest(target).value,

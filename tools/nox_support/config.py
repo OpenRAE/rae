@@ -72,3 +72,17 @@ EXPECT_FREE_THREADED_ENV = "RAES_EXPECT_FREE_THREADED"
 PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV = "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"
 PYTHON_CLOSURE_PROFILE_ENV = "RAES_PYTHON_CLOSURE_PROFILE"
 PYTHON_CLOSURE_WHEELHOUSE_ENV = "RAES_PYTHON_CLOSURE_WHEELHOUSE"
+
+# Local qualification harnesses emit bounded slice evidence that
+# `bootstrap_profile qualification-evidence --slice-evidence` binds into the
+# canonical qualification record; they never record a canonical passed case.
+INSTALLATION_QUALIFICATION_HARNESSES = {
+    "local-installation-qualification": (
+        "implementations/python/tests/issue_1219_installation_harness.py",
+        "generic-tool installation locks, crashes, and storage failures",
+    ),
+    "proof-input-qualification": (
+        "implementations/python/tests/issue_1220_proof_input_harness.py",
+        "proof-input tree installation, egress denial, and preflight",
+    ),
+}

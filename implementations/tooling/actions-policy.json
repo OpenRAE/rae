@@ -7,39 +7,6 @@
   ],
   "actions": [
     {
-      "source_id": "cache-restore",
-      "action": "actions/cache/restore",
-      "commit": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
-      "owner_roles": [
-        "Tooling"
-      ],
-      "reviewer_roles": [
-        "Security"
-      ],
-      "trust_root_refs": [
-        "git-commit-sha",
-        "reviewed-workflow-reference"
-      ],
-      "runtime": "node24",
-      "closure_review_ref": "https://raw.githubusercontent.com/actions/cache/55cc8345863c7cc4c66a329aec7e433d2d1c52a9/restore/action.yml",
-      "transitive_inputs": [
-        {
-          "input_id": "actions-cache-service",
-          "service_managed_exception_ref": "cache-restore-actions-cache-service"
-        }
-      ],
-      "security_effects": {
-        "closed_inputs": {},
-        "credentials": [],
-        "cache": [
-          {
-            "role": "restore"
-          }
-        ],
-        "artifact": []
-      }
-    },
-    {
       "source_id": "checkout",
       "action": "actions/checkout",
       "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
@@ -631,29 +598,6 @@
   ],
   "service_managed_exceptions": [
     {
-      "exception_id": "cache-restore-actions-cache-service",
-      "source_id": "cache-restore",
-      "action": "actions/cache/restore",
-      "input_id": "actions-cache-service",
-      "reason": "GitHub cache lookup and signed object responses are service-managed.",
-      "operation": "restore one exact Isabelle cache key",
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "credential_class": "actions-cache-token",
-      "credential_forwarding": "same-origin-only",
-      "owner_roles": [
-        "Tooling"
-      ],
-      "reviewer_roles": [
-        "Security"
-      ],
-      "evidence_ref": "https://raw.githubusercontent.com/actions/cache/55cc8345863c7cc4c66a329aec7e433d2d1c52a9/restore/action.yml",
-      "scope": "Restore-only; candidate verification has no cache-write action.",
-      "review_on": "2027-03-11"
-    },
-    {
       "exception_id": "checkout-github-source-service",
       "source_id": "checkout",
       "action": "actions/checkout",
@@ -993,7 +937,6 @@
       "host_profile_ids": [
         "public-linux-arm64",
         "public-macos-arm64",
-        "public-macos-x86_64",
         "public-ubuntu-24.04-x86_64"
       ],
       "trust_classes": [
@@ -1072,7 +1015,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -1082,7 +1024,7 @@
         "github.com",
         "results-receiver.actions.githubusercontent.com"
       ],
-      "cache_access": "restore",
+      "cache_access": "none",
       "artifact_access": "write-untrusted",
       "promotion_authority": false,
       "publishing_authority": false
@@ -1741,6 +1683,37 @@
       "artifact_access": "write-trusted",
       "promotion_authority": false,
       "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/bootstrap-qualification.yml",
+      "job": "development-image",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "untrusted-pr"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "releases.astral.sh",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
     }
   ],
   "use_sites": [
@@ -1999,7 +1972,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2031,7 +2003,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2044,40 +2015,6 @@
       "cache_role": "none",
       "artifact_role": "read-same-run",
       "source_id": "download-artifact",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/restore-pinned-isabelle-archive",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "Restore pinned Isabelle archive",
-      "action": "actions/cache/restore",
-      "commit": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
-      "inputs": {
-        "path": ".cache/raes-sdl/tooling/archives/Isabelle2025-2_linux.tar.gz",
-        "key": "isabelle-linux-x86-64-2025-2-a20a507bc7c1270d"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "actions-cache-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "restore",
-      "artifact_role": "none",
-      "source_id": "cache-restore",
       "trust_classes": [
         "manual",
         "protected-branch",
@@ -2100,7 +2037,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2131,7 +2067,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2163,7 +2098,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -2198,7 +2132,6 @@
       },
       "credential_classes": [
         "actions-artifact-token",
-        "actions-cache-token",
         "github-token"
       ],
       "allowed_origins": [
@@ -3652,6 +3585,120 @@
       "trust_classes": [
         "protected-branch",
         "scheduled"
+      ]
+    },
+    {
+      "use_id": "bootstrap-qualification/development-image/actions/checkout",
+      "workflow": ".github/workflows/bootstrap-qualification.yml",
+      "job": "development-image",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "untrusted-pr"
+      ]
+    },
+    {
+      "use_id": "bootstrap-qualification/development-image/actions/setup-python",
+      "workflow": ".github/workflows/bootstrap-qualification.yml",
+      "job": "development-image",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.14.7"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "releases.astral.sh"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "untrusted-pr"
+      ]
+    },
+    {
+      "use_id": "bootstrap-qualification/development-image/install-exact-uv-payload",
+      "workflow": ".github/workflows/bootstrap-qualification.yml",
+      "job": "development-image",
+      "step": "Install exact uv payload",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "version": "0.12.4",
+        "enable-cache": false
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "untrusted-pr"
+      ]
+    },
+    {
+      "use_id": "bootstrap-qualification/development-image/retain-bounded-clean-image-evidence",
+      "workflow": ".github/workflows/bootstrap-qualification.yml",
+      "job": "development-image",
+      "step": "Retain bounded clean-image evidence",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "development-image-${{ github.sha }}",
+        "path": "development-image-qualification.json",
+        "if-no-files-found": "error"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "untrusted-pr"
       ]
     }
   ],

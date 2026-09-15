@@ -1,9 +1,9 @@
 {
-  "content_hash": "1588418b989a637595a2615d1186b81d949cf2f55ab8373104a45306b273304f",
+  "content_hash": "1d33fec7ef53c65b20212f19c1328ba2495cd26559956a8bcf0f2801f62f426d",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "1588418b989a637595a2615d1186b81d949cf2f55ab8373104a45306b273304f",
-    "summary": "Added bounded named version predicates and software requirement refinements in embedded contracts for issue #1205. Restrict refinement purposes to their component, repository or trust identity owner. Preserve governed private runtime identities and finite operation vocabularies from issue #1206."
+    "content_hash": "1d33fec7ef53c65b20212f19c1328ba2495cd26559956a8bcf0f2801f62f426d",
+    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

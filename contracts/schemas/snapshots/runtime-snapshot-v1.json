@@ -8330,16 +8330,23 @@
           "type": "integer"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "schema_version": {
           "const": "participant-resource-budget-event/v1",
@@ -8507,16 +8514,23 @@
           "type": "string"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "schema_version": {
           "const": "participant-resource-budget-state/v1",
@@ -8605,16 +8619,23 @@
           "type": "string"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "unit": {
           "minLength": 1,
@@ -8831,16 +8852,23 @@
           "type": "string"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "starvation_bound_ticks": {
           "maximum": 1000000000,

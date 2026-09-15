@@ -559,7 +559,7 @@ def _normalized_model(domain_sizes: list[int], masks_by_symbol: list[list[int]])
         translation_profile="raes-sdl-authoring-translation/v1",
         source_digest="sha256:" + "1" * 64,
         authored_digest={
-            "profile": "raes-sdl-semantic/v1",
+            "profile": "raes-sdl-semantic/v2",
             "algorithm": "sha256",
             "value": "sha256:" + "2" * 64,
         },

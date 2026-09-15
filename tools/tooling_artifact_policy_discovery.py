@@ -52,6 +52,7 @@ class PythonScan:
     acquisition_count: int
     parsed: bool
     unknown_executable_count: int
+    network_call_count: int = 0
 
 
 def ast_name(node: ast.AST) -> str | None:
@@ -292,22 +293,24 @@ def _command_observation(node: ast.Call, resolved_name: str) -> tuple[int, int]:
     return int(acquisition), int(not acquisition and tokens_have_unknown_acquisition(tokens))
 
 
-def _acquisition_observation(nodes: Sequence[ast.AST], aliases: dict[str, str]) -> tuple[int, int]:
+def _acquisition_observation(nodes: Sequence[ast.AST], aliases: dict[str, str]) -> tuple[int, int, int]:
     aliases.update(_callable_aliases(nodes, aliases))
     openers = _url_openers(nodes, aliases)
     acquisition_count = 0
     unknown_count = 0
+    network_count = 0
     for node in nodes:
         if not isinstance(node, ast.Call) or (call_name := ast_name(node.func)) is None:
             continue
         resolved_name = _resolved_name(call_name, aliases)
         if _is_nested_opener_call(node, aliases) or _is_network_call(call_name, resolved_name, aliases, openers):
             acquisition_count += 1
+            network_count += 1
             continue
         acquisitions, unknown = _command_observation(node, resolved_name)
         acquisition_count += acquisitions
         unknown_count += unknown
-    return acquisition_count, unknown_count
+    return acquisition_count, unknown_count, network_count
 
 
 def python_scan(text: str) -> PythonScan:
@@ -319,8 +322,15 @@ def python_scan(text: str) -> PythonScan:
         return PythonScan(frozenset(), False, 0, False, 0)
     aliases = _aliases(nodes)
     artifact_ids, selection_valid = _selection_observation(nodes, aliases)
-    acquisition_count, unknown_count = _acquisition_observation(nodes, aliases)
-    return PythonScan(artifact_ids, selection_valid, acquisition_count, True, unknown_count)
+    acquisition_count, unknown_count, network_count = _acquisition_observation(nodes, aliases)
+    return PythonScan(
+        artifact_ids,
+        selection_valid,
+        acquisition_count,
+        True,
+        unknown_count,
+        network_count,
+    )
 
 
 def structured_acquisition(text: str, path: str) -> tuple[int, bool, int]:

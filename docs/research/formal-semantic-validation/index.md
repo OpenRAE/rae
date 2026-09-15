@@ -92,13 +92,42 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   baseline-release hash to the release 9.0.0 bytes already present on `dev`.
   Only that linkage and its enclosing digest changed; observations, timestamps,
   source-state provenance and claim ceilings were preserved.
-- [`bundles/retest-v10.json`](bundles/retest-v10.json) is current release 11.0.0.
+- [`bundles/retest-v10.json`](bundles/retest-v10.json) preserves release 11.0.0.
   It binds [`execution-snapshot-v10.json`](execution-snapshot-v10.json) and
   [`analysis-v10.json`](analysis-v10.json) to generic software refinements.
   Exactly two compiler result digests change from release 10.0.0; their
   stability and distinguishability outcomes remain unchanged. Prior captures,
   the retained protocol and claim ceilings remain intact. This capture adds
   no native backend or downstream qualification claim.
+- [`bundles/retest-v11.json`](bundles/retest-v11.json) preserves release 12.0.0.
+  It binds [`execution-snapshot-v11.json`](execution-snapshot-v11.json) and
+  [`analysis-v11.json`](analysis-v11.json) to partial inventory descriptions
+  integrated with the software refinements. Retained outcomes and digests do
+  not drift from release 11.0.0; no additional claim class is inferred.
+- [`bundles/retest-v12.json`](bundles/retest-v12.json) preserves release 13.0.0.
+  It binds [`execution-snapshot-v12.json`](execution-snapshot-v12.json) and
+  [`analysis-v12.json`](analysis-v12.json) to the inventory lookup and validator
+  maintainability refactor. Fresh replay retains the release-12 outcomes and
+  result digests, with no new claim class or historical capture rewrite.
+- [`bundles/retest-v13.json`](bundles/retest-v13.json) preserves release 14.0.0.
+  It binds [`execution-snapshot-v13.json`](execution-snapshot-v13.json) and
+  [`analysis-v13.json`](analysis-v13.json) to the typed selection implementation.
+  Production commands and participant fixtures replay without observation
+  drift from release 13.0.0; the preregistered claim limits remain unchanged.
+- [`bundles/retest-v14.json`](bundles/retest-v14.json) preserves release 15.0.0.
+  It binds [`execution-snapshot-v14.json`](execution-snapshot-v14.json) and
+  [`analysis-v14.json`](analysis-v14.json) to the selection-helper refactor.
+  Fresh production replay retains the release-14 observations and claim limits.
+- [`bundles/retest-v15.json`](bundles/retest-v15.json) preserves release 16.0.0.
+  It binds [`execution-snapshot-v15.json`](execution-snapshot-v15.json) and
+  [`analysis-v15.json`](analysis-v15.json) to progressive semantic revision
+  support. Fresh replay records two complete compiler digest changes, with
+  identical bounded outcomes and explicit deviations from release 15.0.0.
+- [`bundles/retest-v16.json`](bundles/retest-v16.json) is current release 17.0.0.
+  It binds [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
+  [`analysis-v16.json`](analysis-v16.json) to unconstrained realization-evidence
+  source semantics. Fresh replay retains every bounded outcome and records the
+  two changed compiler digests as explicit deviations from release 16.0.0.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -143,11 +172,18 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 10.0.0, rejects unsupported future
+Current validation requires explicit release 17.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
 code. Only the current release supports a current-code claim.
+
+The two JSON files in [`historical-artifacts/`](historical-artifacts/) preserve
+original baseline bytes recovered from Git revision
+`106b195e3dc0048a647e845876e8eaefe08e3d1b`. They remain immutable recovery
+material; the current release-10 linkage is described above. Validation admits
+an archived copy only through the independently pinned archive record and an
+exact requested digest, without network access or historical capture rewriting.
 
 The current capture's `source_state` records a base Git commit, the modified
 checkout state, and a deterministic digest of all reference-package Python
@@ -160,6 +196,19 @@ digest. A changed implementation requires a new explicitly supported release,
 not rewriting history or extending a digest allowlist. Classification migration
 is not a claim class in the retained preregistration and is not promoted to
 `demonstrated` by these controls.
+
+Release 13.0.0, [`bundles/retest-v12.json`](bundles/retest-v12.json), records
+issue #1207's partial-inventory implementation against the same 20 corpus cases
+and freshly executed participant checks. Outcome and result digests retain
+their previous values; source identity and the Python version record this
+capture's actual modified checkout. No new claim class is inferred.
+
+The pre-synchronization issue-1207 capture is retained in feature commit
+`b7d124a41518a7e9465f056ca25e25689eb4edda`, not selected as current evidence.
+Synchronization preserves the incoming release-9/10/11 bytes, including the
+baseline-link repair described above, and records the combined source in a new
+release. Neither branch's historical observation is relabeled as a merged-tree
+observation.
 
 ## Bounded conclusions
 
@@ -174,3 +223,23 @@ exploitability, or real-world non-exploitability.
 The production exploit-path JSON loader currently accepts duplicate keys. The
 research loader rejects duplicate keys at the artifact boundary, but this
 release does not claim that the production input boundary is stronger.
+
+The historical fallback is restricted by the immutable
+[`pins-v1.json`](historical-artifacts/pins-v1.json) record. The baseline gate pins
+that complete record's checksum independently of the submitted capture. It joins
+each indexed release path to the exact original manifest and snapshot bytes;
+new self-chosen archive digests cannot replace those observations. Future archive
+records must append a reviewed version and retain this record unchanged.
+
+Release 16 uses corpus revision 3 (`corpus/manifest-v3.json`) and production
+evidence v4 for the canonical-profile cutover. Its reconstructed exploit-path
+controls use current authoring and instantiated snapshot profiles v2. All four
+production outcomes are unchanged; their new digests are recorded as explicit
+deviations alongside the two compilation digests. Historical releases retain
+their original byte and observation joins without current snapshot admission.
+
+Release 17 retains corpus revision 3 and the four production evidence v4
+records. It freezes their progressive-profile shapes for historical admission,
+replays the same controls against current code, and records only the two
+compiler representation digest changes caused by the realization-evidence
+source correction. No outcome or preregistered claim strength changes.

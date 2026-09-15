@@ -10,11 +10,10 @@ policy + realized children) referencing that shell by ``control_interface_ref``.
 
 ``control_interface_ref`` is the ``control_interface_id`` of a same-node
 ``RuntimeControlInterface`` (resolved by ``validator.py``); this surface never
-imports or duplicates ``RuntimeControlInterface``. The
-``require_profile_for_privilege_class`` after-validator makes the host-root
-privilege escalation fact executable: a ``host_root_equivalent`` authority that
-does not carry a concrete ``control_interface_ref`` fails validation rather than
-silently shallow-encoding a defining privilege fact.
+imports or duplicates ``RuntimeControlInterface``. A partial description can
+record privileged posture without knowing the interface. This grants no
+execution authority; selected operations require separately admitted capability,
+access and a resolvable interface before mutation.
 """
 
 from enum import Enum
@@ -23,7 +22,7 @@ from pydantic import Field, field_validator, model_validator
 
 from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import SDLModel, is_variable_ref, parse_int_or_var
+from ._base import SDLModel, parse_int_or_var
 from .runtime_values import parse_runtime_enum_or_var, require_symbol
 
 __all__ = [
@@ -124,9 +123,8 @@ class RuntimeOrchestrationAuthority(SDLModel):
 
     ``control_interface_ref`` is the ``control_interface_id`` of a same-node
     ``RuntimeControlInterface`` (the docker.sock shell), resolved by
-    ``validator.py`` — referenced, never duplicated. The
-    ``privilege_class`` discriminator selects the required profile the
-    ``require_profile_for_privilege_class`` guard enforces.
+    ``validator.py`` — referenced, never duplicated. The privilege classification
+    is descriptive and does not select or authorize a privileged operation.
     """
 
     orchestration_authority_id: str
@@ -159,7 +157,6 @@ class RuntimeOrchestrationAuthority(SDLModel):
     @model_validator(mode="after")
     def validate_orchestration_authority(self) -> "RuntimeOrchestrationAuthority":
         self._reject_duplicate_local_ref_ids()
-        self.require_profile_for_privilege_class()
         return self
 
     # ------------------------------------------------------------------ #
@@ -183,34 +180,3 @@ class RuntimeOrchestrationAuthority(SDLModel):
                     f"'{self.orchestration_authority_id}' across {prior} and {label}"
                 )
             seen[value] = label
-
-    # ------------------------------------------------------------------ #
-    # Required-profile guard
-    # ------------------------------------------------------------------ #
-
-    def require_profile_for_privilege_class(self) -> None:
-        """Fail validation when a concrete privilege_class lacks its profile.
-
-        A ``${var}`` placeholder discriminator is exempt (nothing concrete is
-        asserted); ``unknown`` / ``other`` are permissive. A
-        ``host_root_equivalent`` authority REQUIRES a non-empty, non-``${var}``
-        ``control_interface_ref`` — a host-root-equivalent spawn surface must
-        resolve to a concrete control interface (the read_write docker.sock
-        resolution itself is enforced at scenario level by ``validator.py``), so
-        the privilege escalation fact cannot be silently shallow-encoded.
-        """
-        privilege = self.privilege_class
-        if is_variable_ref(privilege) or not isinstance(privilege, RuntimeOrchestrationPrivilegeClass):
-            return
-        if privilege is RuntimeOrchestrationPrivilegeClass.HOST_ROOT_EQUIVALENT:
-            self._require_host_root_equivalent_profile()
-        # NAMESPACED / UNKNOWN / OTHER impose no profile: the open tail is
-        # permissive by the enum-sentinel discipline.
-
-    def _require_host_root_equivalent_profile(self) -> None:
-        ref = self.control_interface_ref
-        if not ref or is_variable_ref(ref):
-            raise ValueError(
-                f"orchestration authority '{self.orchestration_authority_id}' privilege_class "
-                f"'host_root_equivalent' requires a non-empty control_interface_ref"
-            )
