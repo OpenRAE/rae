@@ -162,6 +162,30 @@ mandatory observation combined with backend mutation without a compensating
 owner. Nonretained backend-selected descriptions are immediate manager results,
 not archival evidence or recoverable control-plane bodies.
 
+Task, prospective run-plan, archival run, and study carriers may declare
+`evidence_requirement_relations`. Each relation is a typed `refine` or `extend`
+link from an exact task/run/study authority and immutable scenario snapshot to a
+canonical `evidence_requirements.<qualified-symbol>` declaration and an exact
+capture-specification requirement. The relationship preserves both obligations;
+it never serializes an overwritten effective requirement. Cross-artifact
+validation resolves only caller-supplied scenarios and capture specifications,
+and refinements fail closed unless every named dimension preserves the authored
+value and at least one has a governed monotone strengthening. Extensions and
+refinements therefore add independent capture demands to admission. Omitted
+relations add no capture detail and leave permitted realization choices to the
+backend. The authoritative trial compiler combines task and prospective
+run-plan relations, validates them against the immutable expanded scenario,
+and admits their capture specifications together with each selected scenario's
+base demands. Trial realization repeats that relation-aware compilation from
+the plan's digest-bound task, authoring input, scenario family, and capture
+specifications before processor planning. Authoritative archival run validation
+resolves task and run relations from the supplied evidence scenarios and
+capture specifications; authoritative study validation similarly resolves its
+own relations from explicit caller-supplied scenario and capture artifacts.
+The current comparison profile uses relation-aware task, run, and study owner
+projections so changing only an evidence obligation is a structural and
+semantic change.
+
 For EXP-706, one trial is one archival run record. Repeated runs of the same
 task are represented by multiple run records with distinct `run_id` values, a
 shared `task_ref`, and a compatible `scenario_snapshot_ref`. A repeated run
@@ -340,7 +364,8 @@ produce. It binds:
 - a run plan: optional stochastic controls, an episode control (turn order,
   logical step count, termination), either a condition `allocation` plan or a
   scalar `target_run_count`, a closed keyed selection-policy registry,
-  red-variant selections keyed by variant id, and an optional clock intent;
+  red-variant selections keyed by variant id, optional run-scoped evidence
+  requirement relations, and an optional clock intent;
 - study factors keyed by factor id;
 - capture-specification references, validity notes, and supporting artifacts.
 

@@ -2,9 +2,9 @@
   "contract_id": "experiment-run-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft",
-  "content_hash": "fd999638beb626786aaafc9610abad5e251d3c643bac4a8cc0d7793419418417",
+  "content_hash": "4c7127f77cf4ccdb7a0ca76c841ee6f33f28e28603e4bf99b634c68208f6001e",
   "last_change": {
-    "content_hash": "fd999638beb626786aaafc9610abad5e251d3c643bac4a8cc0d7793419418417",
-    "summary": "Reconcile issue #1209 partial realization descriptions with issue #1205 named version predicates in their shared recursive domain contract."
+    "content_hash": "4c7127f77cf4ccdb7a0ca76c841ee6f33f28e28603e4bf99b634c68208f6001e",
+    "summary": "Added typed archival run evidence-requirement refinement and extension lineage for issue #341."
   }
 }

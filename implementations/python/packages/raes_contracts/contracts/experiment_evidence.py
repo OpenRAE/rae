@@ -18,6 +18,12 @@ from .experiment_artifacts import (
     _validate_unique_experiment_references,
 )
 from .experiment_capture import ExperimentRawEvidenceContentModel
+from .experiment_evidence_refinement import (
+    ExperimentEvidenceRequirementRelationModel as ExperimentEvidenceRequirementRelationModel,
+)
+from .experiment_evidence_refinement import (
+    validate_evidence_requirement_relations as validate_evidence_requirement_relations,
+)
 from .experiment_manifest_references import (
     ExperimentCaptureSpecReferenceModel,
     ExperimentEvidenceRecordReferenceModel,

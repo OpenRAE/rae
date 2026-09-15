@@ -1,4 +1,4 @@
-"""Experiment task and apparatus-context contracts and validators."""
+"""Experiment apparatus-context contracts and validators."""
 
 from __future__ import annotations
 
@@ -8,11 +8,9 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
-from ..observation_demand import ObservationDemandDocument
 from ..versions import (
     BACKEND_MANIFEST_V2_SCHEMA_VERSION,
     EXPERIMENT_APPARATUS_CONTEXT_SCHEMA_VERSION,
-    EXPERIMENT_TASK_SCHEMA_VERSION,
     PARTICIPANT_IMPLEMENTATION_MANIFEST_V1_SCHEMA_VERSION,
     PROCESSOR_MANIFEST_V2_SCHEMA_VERSION,
 )
@@ -30,20 +28,17 @@ from .experiment_artifacts import (
 from .experiment_capture import ExperimentValidityNoteModel
 from .experiment_disclosure import (
     ExperimentApparatusConstraintModel,
-    ExperimentEvaluationProtocolModel,
-    ExperimentSplitAndLeakageControlsModel,
 )
 from .experiment_manifest_references import ExperimentManifestReferenceModel
 from .experiment_references import (
     ExperimentParameterModel,
     ExperimentReferenceModel,
-    ExperimentScenarioReferenceModel,
 )
+from .experiment_task import ExperimentTaskModel as ExperimentTaskModel
 from .manifests import ProcessorManifestV2Model
 from .participant_manifests import BackendManifestV2Model
 from .random_stream import RandomStreamControlBindingModel
-from .schema_invariants import _add_carrier_validation_basis_disclosure_invariant, _add_raes_invariant
-from .validation_disclosure import ValidationBasisDisclosureModel, validate_carrier_validation_basis_disclosures
+from .schema_invariants import _add_raes_invariant
 
 _ManifestReferenceKey = tuple[
     str,
@@ -56,41 +51,6 @@ _ManifestReferenceKey = tuple[
     str | None,
     str | None,
 ]
-
-
-class ExperimentTaskModel(ContractModel):
-    """Experiment task contract that separates scenario material from protocol intent."""
-
-    schema_version: Literal[EXPERIMENT_TASK_SCHEMA_VERSION]
-    task_id: NonEmptyString
-    task_version: NonEmptyString
-    title: NonEmptyString
-    description: NonEmptyString
-    scenario_ref: ExperimentScenarioReferenceModel
-    evaluation_protocol: ExperimentEvaluationProtocolModel
-    intended_use: NonEmptyString
-    non_use: list[NonEmptyString] = Field(default_factory=list)
-    population_or_construct: NonEmptyString
-    split_and_leakage_controls: ExperimentSplitAndLeakageControlsModel
-    apparatus_constraints: ExperimentApparatusConstraintModel
-    validity_notes: list[ExperimentValidityNoteModel] = Field(min_length=1)
-    artifact_refs: list[ExperimentArtifactRefModel] = Field(min_length=1)
-    validation_basis_disclosures: list[ValidationBasisDisclosureModel] = Field(default_factory=list)
-    observation_demands: ObservationDemandDocument | None = None
-
-    @model_validator(mode="after")
-    def _validate_task_validation_basis_disclosures(self) -> ExperimentTaskModel:
-        validate_carrier_validation_basis_disclosures(self, subject_kind="experiment_task")
-        return self
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
-        json_schema = handler(core_schema)
-        json_schema = handler.resolve_ref_schema(json_schema)
-        _add_carrier_validation_basis_disclosure_invariant(
-            json_schema, contract_id="experiment-task-v1", subject_kind="experiment_task"
-        )
-        return json_schema
 
 
 class ExperimentStochasticControlModel(ContractModel):

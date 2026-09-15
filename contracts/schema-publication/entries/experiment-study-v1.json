@@ -2,9 +2,9 @@
   "contract_id": "experiment-study-v1",
   "schema_path": "contracts/schemas/experiment-core/experiment-study-v1.json",
   "stability": "draft",
-  "content_hash": "c8eef5845c6b50a7c9a450239fb4547fca9ef3f21c446626035eb5cb937bb33f",
+  "content_hash": "3350cf447b75176db3d45df24a7966685ca51bfbde29401caa11e28413b1c0a8",
   "last_change": {
-    "summary": "Required study evidence conditions to consume content-validated run evidence bindings for issue #1112.",
-    "content_hash": "c8eef5845c6b50a7c9a450239fb4547fca9ef3f21c446626035eb5cb937bb33f"
+    "summary": "Added typed study evidence-requirement refinement and extension relations for issue #341.",
+    "content_hash": "3350cf447b75176db3d45df24a7966685ca51bfbde29401caa11e28413b1c0a8"
   }
 }

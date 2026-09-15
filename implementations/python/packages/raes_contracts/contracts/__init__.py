@@ -165,8 +165,10 @@ from .experiment_evidence import (
     ExperimentDerivedMeasureMethodModel,
     ExperimentDerivedMeasureModel,
     ExperimentEvidenceRecordModel,
+    ExperimentEvidenceRequirementRelationModel,
     ExperimentRealizedFormDisclosureModel,
     ExperimentRunTraceabilityModel,
+    validate_evidence_requirement_relations,
 )
 from .experiment_manifest_references import (
     ExperimentBackendReferenceModel,
@@ -188,12 +190,11 @@ from .experiment_references import (
 from .experiment_run import (
     ExperimentInvalidationModel,
     ExperimentResultSummaryModel,
-    ExperimentRunEvidenceInputs,
     ExperimentRunModel,
-    validate_experiment_run_against_task,
     validate_experiment_run_structure_against_task,
     validate_experiment_run_time_model,
 )
+from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs, validate_experiment_run_against_task
 from .experiment_selection import *
 from .experiment_spec import (
     ExperimentEpisodeControlModel,

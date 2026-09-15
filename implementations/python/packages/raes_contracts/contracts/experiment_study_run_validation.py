@@ -6,11 +6,10 @@ from collections.abc import Mapping
 
 from .experiment_apparatus import ExperimentTaskModel
 from .experiment_manifest_references import ExperimentEvidenceReferenceModel
-from .experiment_run import (
+from .experiment_run import ExperimentRunModel, validate_experiment_run_structure_against_task
+from .experiment_run_evidence_validation import (
     ExperimentRunEvidenceInputs,
-    ExperimentRunModel,
     validate_experiment_run_against_task,
-    validate_experiment_run_structure_against_task,
 )
 
 

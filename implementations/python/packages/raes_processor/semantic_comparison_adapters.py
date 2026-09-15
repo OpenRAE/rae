@@ -219,8 +219,14 @@ def project_artifact(
     scenario_version = profile.owner_projection_versions[ArtifactKind.SCENARIO]
     if type(artifact) is Scenario and scenario_version != "2":
         raise ValueError("current SDL requires scenario projection version 2, including untagged source")
-    if type(artifact) is ExperimentTaskModel and profile.owner_projection_versions[ArtifactKind.TASK] != "2":
-        raise ValueError("current tasks require task projection version 2")
+    current_revision_two = {
+        ExperimentTaskModel: ArtifactKind.TASK,
+        ExperimentRunModel: ArtifactKind.RUN,
+        ExperimentStudyModel: ArtifactKind.STUDY,
+    }
+    required_kind = current_revision_two.get(type(artifact))
+    if required_kind is not None and profile.owner_projection_versions[required_kind] != "2":
+        raise ValueError(f"current {required_kind.value} artifacts require projection version 2")
     coordinate = coordinate_for_artifact(
         artifact, exact_representation=expected.exact_representation, scenario_projection_version=scenario_version
     )
@@ -232,7 +238,9 @@ def project_artifact(
     root = _Subject(
         identity=coordinate.canonical_identity,
         representation_digest=(expected.exact_representation.byte_digest if expected.exact_representation else None),
-        structural_digest=canonical_json_digest(_owner_structural_payload(artifact)),
+        structural_digest=canonical_json_digest(
+            _owner_structural_payload(artifact, projection_version=projection_version)
+        ),
         semantic_digest=canonical_json_digest(_owner_semantic_payload(artifact, projection_version=projection_version)),
         structural_profile=structural_profile,
         semantic_profile=semantic_profile,
