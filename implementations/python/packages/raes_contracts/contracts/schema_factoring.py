@@ -4,14 +4,14 @@ import json
 from collections import Counter
 from collections.abc import Callable
 from copy import deepcopy
-from typing import Any
+from typing import Any, cast
 
 from .schema_invariants import _SCHEMA_MAP_KEYS, _SCHEMA_SUBSCHEMA_KEYS
 
 _DEFINITIONS = "$defs"
 
 
-def _map_children(node: dict[str, Any], transform: Callable[[Any, bool], Any]) -> dict[str, Any]:
+def _map_children(node: dict[str, Any], transform: Callable[[object, bool], object]) -> dict[str, Any]:
     result = deepcopy(node)
     for key in _SCHEMA_MAP_KEYS:
         if isinstance(result.get(key), dict):
@@ -49,10 +49,10 @@ def factor_shared_schema(schema: dict[str, Any]) -> dict[str, Any]:
     counts: Counter[str] = Counter()
     candidates: dict[str, dict[str, Any]] = {}
 
-    def key_of(node: Any) -> str:
+    def key_of(node: object) -> str:
         return json.dumps(node, sort_keys=True, separators=(",", ":"))
 
-    def count(node: Any, root: bool = False) -> Any:
+    def count(node: object, root: bool = False) -> object:
         if not isinstance(node, dict):
             return node
         if not root and {"$id", "$anchor", "$dynamicAnchor", "$dynamicRef"} & node.keys():
@@ -67,7 +67,7 @@ def factor_shared_schema(schema: dict[str, Any]) -> dict[str, Any]:
     names = _shared_names(counts, candidates, set(schema.get(_DEFINITIONS, {})))
     shared: dict[str, Any] = {}
 
-    def replace(node: Any, preserve: bool = False) -> Any:
+    def replace(node: object, preserve: bool = False) -> object:
         if not isinstance(node, dict):
             return node
         key = key_of(node)
@@ -78,6 +78,6 @@ def factor_shared_schema(schema: dict[str, Any]) -> dict[str, Any]:
             return {"$ref": f"#/$defs/{name}"}
         return _map_children(node, replace)
 
-    result = replace(schema, True)
+    result = cast(dict[str, Any], replace(schema, True))
     result.setdefault(_DEFINITIONS, {}).update(shared)
     return result
