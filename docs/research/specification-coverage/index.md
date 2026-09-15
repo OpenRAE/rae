@@ -81,10 +81,17 @@ this run does not repair them.
   digests, retaining the classifications, denominator, and claim limits.
 
 - [`execution-snapshot-v14.json`](execution-snapshot-v14.json) and
-  [`analysis-v14.json`](analysis-v14.json) are current release 14.0.0. The
+  [`analysis-v14.json`](analysis-v14.json) preserve release 14.0.0. The
   progressive revision implementation is bound to fresh source and package
   digests. Artifact re-execution and the derived analysis retain the bounded
   classifications and denominator.
+
+- [`execution-snapshot-v15.json`](execution-snapshot-v15.json) and
+  [`analysis-v15.json`](analysis-v15.json) are current release 15.0.0. Fresh
+  artifact replay binds the materialization-attestation implementation to
+  exact source and package digests. Classifications, the missing-concept
+  denominator, and claim limits are unchanged; dedicated regression tests
+  cover the new operational-provenance boundary separately.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -94,7 +101,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 14.0.0 and rejects duplicate or unsupported
+Current validation requires release 15.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

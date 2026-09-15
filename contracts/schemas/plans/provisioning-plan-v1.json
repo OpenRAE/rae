@@ -815,6 +815,49 @@
       "type": "object"
     },
     "JsonValue": {},
+    "MaterializationSource": {
+      "additionalProperties": false,
+      "description": "Trusted full source context sealed into the exact operation plan.",
+      "properties": {
+        "authored_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Authored Digest",
+          "type": "string"
+        },
+        "contract_id": {
+          "const": "backend-materialization-attestation-v1",
+          "default": "backend-materialization-attestation-v1",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "instantiated_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Instantiated Digest",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "snapshot": {
+          "maxLength": 1048576,
+          "minLength": 1,
+          "title": "Snapshot",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot",
+        "authored_digest",
+        "instantiated_digest",
+        "run_id"
+      ],
+      "title": "MaterializationSource",
+      "type": "object"
+    },
     "NullDomain": {
       "additionalProperties": false,
       "description": "The singleton JSON-null domain, distinct from omission or unknown.",
@@ -3155,6 +3198,17 @@
       "default": null,
       "title": "Instantiation Id"
     },
+    "materialization_source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MaterializationSource"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "observation_demands": {
       "items": {
         "$ref": "#/$defs/EffectiveObservationDemand"
@@ -3203,6 +3257,15 @@
         }
       ],
       "default": null
+    },
+    "purpose": {
+      "default": "execution",
+      "enum": [
+        "execution",
+        "inspection"
+      ],
+      "title": "Purpose",
+      "type": "string"
     },
     "realization_authority": {
       "items": {

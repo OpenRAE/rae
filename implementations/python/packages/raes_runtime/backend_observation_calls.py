@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
+from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .backend_calls import _BackendCallContext, _call_backend_apply
@@ -29,6 +30,7 @@ class _ObservationApplyRequest:
     runtime: ObservationRuntime | None
     durable_lifecycle_available: bool = False
     operation_id: str | None = None
+    materialization_archive: MaterializationArchive | None = None
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,7 @@ class _RuntimePlanApplyRequest:
     execute_observation: bool = True
     realization: _RealizationApplyContext | None = None
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None
+    materialization_archive: MaterializationArchive | None = None
 
 
 def _call_backend_apply_with_observation(
@@ -61,8 +64,9 @@ def _call_backend_apply_with_observation(
         *args,
         address=request.address,
         snapshot=request.snapshot,
-        realization=realization,
+        realization=realization or _RealizationApplyContext(manifest=request.manifest),
         call=_BackendCallContext(
+            materialization_archive=request.materialization_archive,
             operation_id=request.operation_id,
             information_state_context_resolver=information_state_context_resolver,
         ),
@@ -78,7 +82,8 @@ def _call_backend_apply_with_observation(
             operation_id=request.operation_id,
         )
         if diagnostic is not None:
-            result = ApplyResult(
+            result = replace(
+                result,
                 success=False,
                 snapshot=result.snapshot,
                 diagnostics=[*result.diagnostics, diagnostic],
@@ -86,7 +91,8 @@ def _call_backend_apply_with_observation(
                 details=result.details,
             )
         elif execution is not None and execution.metadata.realized_form_disclosures:
-            result = ApplyResult(
+            result = replace(
+                result,
                 success=result.success,
                 snapshot=result.snapshot,
                 diagnostics=result.diagnostics,
@@ -117,8 +123,9 @@ def _apply_runtime_plan_with_observation(
             snapshot,
             address=request.address,
             snapshot=snapshot,
-            realization=request.realization,
+            realization=request.realization or _RealizationApplyContext(manifest=target.manifest),
             call=_BackendCallContext(
+                materialization_archive=request.materialization_archive,
                 information_state_context_resolver=request.information_state_context_resolver,
             ),
         )
@@ -127,6 +134,7 @@ def _apply_runtime_plan_with_observation(
         plan,
         snapshot,
         request=_ObservationApplyRequest(
+            materialization_archive=request.materialization_archive,
             address=request.address,
             snapshot=snapshot,
             plan=plan,

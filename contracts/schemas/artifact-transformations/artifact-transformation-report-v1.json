@@ -58,6 +58,7 @@
     "ArtifactTransformationKind": {
       "enum": [
         "sdl-authoring",
+        "sdl-materialization",
         "portable-contract"
       ],
       "title": "ArtifactTransformationKind",

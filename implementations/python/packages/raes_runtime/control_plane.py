@@ -10,6 +10,7 @@ from typing import TypeVar
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
+from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -133,6 +134,7 @@ class RuntimeControlPlane(
         crossing_policy_resolver: ParticipantCrossingPolicyResolver | None = None,
         information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
         enforce_final_sink_flow_control: bool = True,
+        materialization_archive: MaterializationArchive | None = None,
     ) -> None:
         self._initialize_runtime_lifecycle()
         if store is not None and initial_snapshot is not None:
@@ -140,6 +142,7 @@ class RuntimeControlPlane(
         _require_crossing_policy_configuration(target, crossing_policy_resolver)
         _require_final_sink_flow_control_configuration(crossing_policy_resolver, enforce_final_sink_flow_control)
         self._target = target
+        self._materialization_archive = materialization_archive
         self._enforce_final_sink_flow_control = enforce_final_sink_flow_control
         self._store = store or InMemoryControlPlaneStore(initial_snapshot)
         try:

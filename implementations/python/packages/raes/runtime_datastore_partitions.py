@@ -11,8 +11,9 @@ Settings explicitly classified ``redacted`` / ``operator_secret`` omit their raw
 value, exactly as the relational ``DatabaseSetting`` does.
 """
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_filesystem import redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, parse_int_or_var
@@ -313,6 +314,14 @@ class RuntimeDatastoreSetting(SDLModel):
     names that look credential-bearing remain scenario content unless the
     author marks the value withheld.
     """
+
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
 
     setting_id: str
     scope: GovernedVocabulary[RuntimeDatastoreSettingScope] = RuntimeDatastoreSettingScope.ENGINE

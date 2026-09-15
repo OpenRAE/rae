@@ -66,6 +66,7 @@ class PhaseMemberRow:
     normalized: str
     expanded: str
     instantiated: str
+    materialized: str
     transfer: str
     line_no: int
 
@@ -198,10 +199,11 @@ def parse_phase_member_catalog(text: str) -> list[PhaseMemberRow]:
             normalized=cells[1].strip().lower(),
             expanded=cells[2].strip().lower(),
             instantiated=cells[3].strip().lower(),
-            transfer=cells[4].strip(),
+            materialized=cells[4].strip().lower(),
+            transfer=cells[5].strip(),
             line_no=line_no,
         )
-        for line_no, cells in _table(text, _PHASE_HEADING, 5)
+        for line_no, cells in _table(text, _PHASE_HEADING, 6)
     ]
     _unique(rows, "member", "phase-specific member")
     return rows

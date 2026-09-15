@@ -1,10 +1,10 @@
 {
+  "content_hash": "cd2073ed1d9466b95e6c74dc06b47e0ca7ad740a95d31ff2e5f526f1daa5ca3a",
   "contract_id": "sdl-candidate-synthesis-record-v1",
-  "schema_path": "contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-record-v1.json",
-  "stability": "draft",
-  "content_hash": "4defcefaf02857d5935deb8c47cd4d3b8c38307a220ebc712b047ffe80dfe90d",
   "last_change": {
-    "summary": "Initial publication of the digest-bound SDL candidate-synthesis record with closed provenance and explicit semantic-omission evidence for issue #988.",
-    "content_hash": "4defcefaf02857d5935deb8c47cd4d3b8c38307a220ebc712b047ffe80dfe90d"
-  }
+    "content_hash": "cd2073ed1d9466b95e6c74dc06b47e0ca7ad740a95d31ff2e5f526f1daa5ca3a",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-record-v1.json",
+  "stability": "draft"
 }

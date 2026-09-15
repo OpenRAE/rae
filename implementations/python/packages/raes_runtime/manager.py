@@ -12,6 +12,7 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.materialization import MaterializationArchive, MaterializationSubmission
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -47,6 +48,7 @@ class _RuntimeApplyState:
     details: dict[str, object]
     started_evaluator: bool = False
     failure: ApplyResult | None = None
+    materialization_attestation: MaterializationSubmission | None = None
 
 
 class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
@@ -59,6 +61,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         initial_snapshot: RuntimeSnapshot | None = None,
         stochastic_controls: Iterable[ExperimentStochasticControlModel] = (),
         information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
+        materialization_archive: MaterializationArchive | None = None,
     ) -> None:
         _validate_runtime_target_shape(
             manifest=target.manifest,
@@ -72,6 +75,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         self._target = target
         self._snapshot = initial_snapshot if initial_snapshot is not None else RuntimeSnapshot()
         self._information_state_context_resolver = information_state_context_resolver
+        self._materialization_archive = materialization_archive
         require_participant_information_state_snapshot(self._snapshot, information_state_context_resolver)
         self._participant_activity_controls = resolve_participant_activity_controls(stochastic_controls)
         self._time_declaration: TimeModelDeclarationModel | None = None
@@ -184,6 +188,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             execution_plan.provisioning,
             state.working_snapshot,
             request=_RuntimePlanApplyRequest(
+                materialization_archive=self._materialization_archive,
                 address="runtime.apply.provisioning",
                 execute_observation=execution_plan.observation_owner is RuntimeDomain.PROVISIONING,
                 realization=_RealizationApplyContext(
@@ -218,6 +223,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                 execution_plan.evaluation,
                 state.working_snapshot,
                 request=_RuntimePlanApplyRequest(
+                    materialization_archive=self._materialization_archive,
                     address=_APPLY_EVALUATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.EVALUATION,
                     information_state_context_resolver=self._information_state_context_resolver,
@@ -254,6 +260,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                 execution_plan.orchestration,
                 state.working_snapshot,
                 request=_RuntimePlanApplyRequest(
+                    materialization_archive=self._materialization_archive,
                     address=_APPLY_ORCHESTRATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.ORCHESTRATION,
                     information_state_context_resolver=self._information_state_context_resolver,
@@ -285,6 +292,8 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
 
     @staticmethod
     def _record_phase_result(state: _RuntimeApplyState, result: ApplyResult) -> None:
+        if result.materialization_attestation is not None:
+            state.materialization_attestation = result.materialization_attestation
         state.diagnostics.extend(result.diagnostics)
         state.changed_addresses.extend(result.changed_addresses)
         state.working_snapshot = result.snapshot

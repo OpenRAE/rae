@@ -40,6 +40,17 @@ def _provenance_diagnostics(
     snapshot: RuntimeSnapshot,
 ) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
+    if execution_plan.model.materialization_description is not None or any(
+        phase.purpose != "execution"
+        for phase in (execution_plan.provisioning, execution_plan.orchestration, execution_plan.evaluation)
+    ):
+        diagnostics.append(
+            _failure_diagnostic(
+                "runtime.descriptive-plan",
+                _RUNTIME_APPLY_ADDRESS,
+                "Materialization descriptions require explicit derivation before execution.",
+            )
+        )
     if execution_plan.target_name is None:
         diagnostics.append(
             _failure_diagnostic(

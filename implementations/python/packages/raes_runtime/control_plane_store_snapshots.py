@@ -95,6 +95,9 @@ def _realization_observations_payload(snapshot: RuntimeSnapshot) -> list[dict[st
 def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
     require_participant_autonomous_runtime_snapshot(snapshot)
     snapshot_fields: dict[str, Any] = {
+        "materialization_attestations": [
+            record.model_dump(mode="json") for record in snapshot.materialization_attestations
+        ],
         "entries": {
             address: {
                 "address": entry.address,
@@ -221,7 +224,13 @@ def _realization_provenance_from_payload(payload: dict[str, Any]) -> tuple[Reali
 
 
 def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+
     snapshot_fields: dict[str, Any] = {
+        "materialization_attestations": tuple(
+            MaterializationArchiveRecord.model_validate(record)
+            for record in payload.get("materialization_attestations", [])
+        ),
         "entries": _snapshot_entries_from_payload(payload),
         "orchestration_results": dict(payload.get("orchestration_results", {})),
         "orchestration_history": {

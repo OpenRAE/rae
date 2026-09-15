@@ -1,10 +1,10 @@
 {
+  "content_hash": "76e26273f6a500068b808854715ebb2f1f30ee9ccc09a763dc40ed3659bff1b5",
   "contract_id": "admitted-trial-plan-v1",
-  "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "c8e6c4c2fb6ee71aaef42c2fc0dc1e60d89424606ef470ed95e94af758a1cf78",
   "last_change": {
-    "summary": "Pinned exact capture-specification inputs into admitted trial plans for issue #1112.",
-    "content_hash": "c8e6c4c2fb6ee71aaef42c2fc0dc1e60d89424606ef470ed95e94af758a1cf78"
-  }
+    "content_hash": "76e26273f6a500068b808854715ebb2f1f30ee9ccc09a763dc40ed3659bff1b5",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
+  "stability": "draft"
 }

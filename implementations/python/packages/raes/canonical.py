@@ -14,9 +14,11 @@ from pydantic import ConfigDict, model_validator
 from ._base import SDLModel
 from ._errors import SDLParseError
 from ._source_profile import SDL_CANONICAL_PROFILE
+from .materialization import MaterializedScenario, admit_materialized_scenario
 from .scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
 INSTANTIATED_SNAPSHOT_PROFILE = "raes-sdl-instantiated-snapshot/v2"
+MATERIALIZED_SDL_PROFILE = "raes-sdl-materialized/v1"
 _LEGACY_SNAPSHOT_PROJECTION_REVISION = "instantiated-snapshot-v1/node-architecture-default"
 
 
@@ -34,8 +36,8 @@ class SDLCanonicalDigest:
 
 def canonical_sdl_bytes(scenario: Scenario | ExpandedScenario) -> bytes:
     """Return RFC 8785 bytes for one validated, post-expansion authoring scenario."""
-    if isinstance(scenario, InstantiatedScenario):
-        raise SDLParseError("Canonical SDL semantic identity requires an authoring scenario, not an instantiated one")
+    if not isinstance(scenario, (Scenario, ExpandedScenario)):
+        raise SDLParseError("Canonical SDL semantic identity requires an authoring scenario")
     if not scenario.semantic_validated:
         raise SDLParseError("Canonical SDL semantic identity requires successful semantic validation")
 
@@ -66,6 +68,31 @@ def canonical_sdl_digest(scenario: Scenario | ExpandedScenario) -> SDLCanonicalD
         profile=SDL_CANONICAL_PROFILE,
         algorithm="sha256",
         value=f"sha256:{digest}",
+    )
+
+
+def canonical_materialized_sdl_bytes(scenario: MaterializedScenario) -> bytes:
+    """Return a descriptive identity without reusing an input snapshot profile."""
+    if not isinstance(scenario, MaterializedScenario) or not scenario.semantic_validated:
+        raise SDLParseError("Materialized SDL identity requires a validated materialization description")
+    scenario = admit_materialized_scenario(scenario)
+    try:
+        return rfc8785.dumps(
+            {
+                "profile": MATERIALIZED_SDL_PROFILE,
+                "scenario": scenario.model_dump(mode="json", by_alias=True, exclude_unset=True),
+            }
+        )
+    except rfc8785.CanonicalizationError as exc:
+        raise SDLParseError("Materialized SDL canonicalization failed") from exc
+
+
+def canonical_materialized_sdl_digest(scenario: MaterializedScenario) -> SDLCanonicalDigest:
+    """Return the separately profiled identity of a materialization description."""
+    return SDLCanonicalDigest(
+        profile=MATERIALIZED_SDL_PROFILE,
+        algorithm="sha256",
+        value="sha256:" + hashlib.sha256(canonical_materialized_sdl_bytes(scenario)).hexdigest(),
     )
 
 

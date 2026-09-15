@@ -51,6 +51,7 @@ from .experiment_run_difficulty import (
 )
 from .experiment_run_stochastic import _validate_run_stochastic_draw_control_refs
 from .experiment_run_timing import validate_run_invalidation_status, validate_run_timing
+from .materialization_attestation import MaterializationArchiveRecord, validate_run_materializations
 from .participant_manifests import ParticipantImplementationProvenanceModel
 from .random_stream import RandomStreamDrawRecordModel
 from .schema_invariants import (
@@ -145,6 +146,7 @@ class ExperimentRunModel(ContractModel):
     traceability: ExperimentRunTraceabilityModel
     realized_form_disclosures: list[ExperimentRealizedFormDisclosureModel] = Field(default_factory=list)
     augmentation_disclosures: list[ExperimentAugmentationDisclosureModel] = Field(default_factory=list)
+    materialization_attestations: list[MaterializationArchiveRecord] = Field(default_factory=list, max_length=4096)
     evidence_artifacts: list[ExperimentArtifactRefModel] = Field(min_length=1)
     result_summaries: dict[NonEmptyString, ExperimentResultSummaryModel] = Field(min_length=1)
     deviations: list[NonEmptyString] = Field(default_factory=list)
@@ -165,6 +167,7 @@ class ExperimentRunModel(ContractModel):
         _validate_run_evidence_artifact_refs(self)
         _validate_run_realized_form_disclosures(self)
         _validate_run_augmentation_disclosures(self)
+        validate_run_materializations(self)
         _validate_realized_bindings(self.realized_bindings)
         validate_trial_run_provenance_binding(
             self.trial_provenance, run_id=self.run_id, scenario_digest=self.scenario_snapshot_ref.ref_digest

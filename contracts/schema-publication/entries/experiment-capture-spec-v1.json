@@ -1,10 +1,10 @@
 {
+  "content_hash": "3b62a12fa613afa8fd26dc4d5577b5597bf59f5e01d0aaf170b151fe754b7516",
   "contract_id": "experiment-capture-spec-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-capture-spec-v1.json",
-  "stability": "draft",
-  "content_hash": "c9deceefe7d25b9058b08c971c4e4ebe2436e794ec7eda52cdaf7233d3d25a6d",
   "last_change": {
-    "summary": "Added scoped demand semantics and governed output, selector, window, and redaction terms for issues #1212 and #1112.",
-    "content_hash": "c9deceefe7d25b9058b08c971c4e4ebe2436e794ec7eda52cdaf7233d3d25a6d"
-  }
+    "content_hash": "3b62a12fa613afa8fd26dc4d5577b5597bf59f5e01d0aaf170b151fe754b7516",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-capture-spec-v1.json",
+  "stability": "draft"
 }

@@ -2,10 +2,11 @@
 
 from enum import Enum
 
-from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
+from pydantic import ConfigDict, Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from raes.runtime_filesystem import redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel
@@ -49,6 +50,14 @@ class RuntimeEnvironmentVariableProvenance(str, Enum):
 
 class RuntimeEnvironmentVariable(SDLModel):
     """Required runtime environment variable with provenance and sensitivity."""
+
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
 
     name: str
     value: str = ""

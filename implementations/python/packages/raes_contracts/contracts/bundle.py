@@ -7,9 +7,11 @@ from functools import cache
 from typing import Any
 
 from raes.canonical import InstantiatedScenarioSnapshot
+from raes.materialization import MaterializedScenario
 from raes.scenario import InstantiatedScenario, Scenario
 
 from raes_contracts.artifact_requirements import ArtifactRequirementContractModel
+from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.observation_demand import ObservationDemandDocument
 
 from . import semantic_profiles, semantic_projection
@@ -39,6 +41,7 @@ from .experiment_run import ExperimentRunModel
 from .experiment_spec import ExperimentSpecModel, ExperimentStudyModel
 from .external_concept_bindings import ExternalConceptBindingDocumentModel
 from .manifests import ProcessorManifestV2Model
+from .materialization_attestation import MaterializationArchiveRecord, attach_materialization_invariants
 from .participant_flow_control import (
     ParticipantBoundaryFlowPolicyProfileModel,
 )
@@ -70,6 +73,7 @@ from .schema_constraints import (
     _raes_semantic_invariant_profile_schema_for_bundle,
     _validate_raes_semantic_invariant_annotations,
 )
+from .schema_factoring import factor_shared_schema
 from .schema_invariants import (
     _add_raes_invariant,
     _attach_experiment_datetime_invariants,
@@ -181,6 +185,9 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "sdl-authoring-input-v1": Scenario.model_json_schema(),
         "sdl-semantic-migration-context-v1": SDLSemanticMigrationContext.model_json_schema(),
         "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
+        "materialized-scenario-v1": MaterializedScenario.model_json_schema(),
+        "backend-materialization-attestation-v1": MaterializationSubmission.model_json_schema(),
+        "materialization-archive-record-v1": MaterializationArchiveRecord.model_json_schema(),
         "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
         "scenario-instantiation-request-v1": InstantiationRequestModel.model_json_schema(),
         "artifact-requirement-v1": ArtifactRequirementContractModel.model_json_schema(),
@@ -420,6 +427,7 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         ],
     )
     for contract_id, json_schema in bundle.items():
+        attach_materialization_invariants(contract_id, json_schema)
         _attach_sdl_identifier_constraints(contract_id, json_schema)
         _attach_instantiation_invariants(contract_id, json_schema)
         _attach_experiment_datetime_invariants(contract_id, json_schema)
@@ -436,6 +444,7 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
             json_schema=json_schema,
             known_contract_ids=known_contract_ids,
         )
+    bundle["materialized-scenario-v1"] = factor_shared_schema(bundle["materialized-scenario-v1"])
     return bundle
 
 

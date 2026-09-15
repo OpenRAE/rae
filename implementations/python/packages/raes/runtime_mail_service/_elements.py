@@ -7,8 +7,9 @@ stores, mailboxes, aliases, routing rules, queues, and settings) aggregated by
 
 import re
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
+from raes.runtime_filesystem import redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from .._base import SDLModel, is_variable_ref, parse_int_or_var
@@ -342,6 +343,14 @@ class RuntimeMailQueue(SDLModel):
 
 class RuntimeMailSetting(SDLModel):
     """A mail-service runtime setting with source/provenance and redaction."""
+
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
 
     setting_id: str
     component_ref: str = ""

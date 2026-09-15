@@ -27,3 +27,11 @@ It uses an empty external-reference registry and never invokes current artifact
 models, analyzers, solvers, or CLI replay for historical evidence. Shape admission
 and recorded digest agreement do not constitute semantic execution or establish
 compatibility. Current release evidence still uses current models and replay.
+
+`manifest-v2.json` adds frozen shapes for the four progressive evidence records
+from release 16.0.0, which became historical with the issue-1241 capture. Each
+shape enumerates the exact retained records; it is not a general reader for
+their SDL revision. Independent manifest and record pins select this archive.
+The same computed integrity checks verify their joins. The original v1
+manifest, shapes, and eight pre-cutover records remain unchanged. No historical
+case invokes a current model, analyzer, solver, or CLI.

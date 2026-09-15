@@ -9,7 +9,7 @@ from typing import BinaryIO, cast
 
 import rfc8785
 from blake3 import blake3
-from raes import canonical_sdl_digest
+from raes import MaterializedScenario, canonical_materialized_sdl_digest, canonical_sdl_digest
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
 from .contracts import (
@@ -132,6 +132,15 @@ def _experiment_parent_matches(manifest: AssociatedArtifactManifestModel, parent
 
 
 def _parent_matches(manifest: AssociatedArtifactManifestModel, parent: object) -> bool:
+    if manifest.parent_ref.ref_kind == "materialization-attestation":
+        reference = manifest.parent_ref
+        return (
+            isinstance(parent, MaterializedScenario)
+            and parent.semantic_validated
+            and parent.materialization_provenance.attestation_id == reference.ref_id
+            and reference.ref_version == "raes-sdl-materialized/v1"
+            and canonical_materialized_sdl_digest(parent).value == reference.ref_digest
+        )
     if manifest.parent_ref.ref_kind in {"scenario", "scenario-snapshot"}:
         return _scenario_parent_matches(manifest, parent)
     return _experiment_parent_matches(manifest, parent)

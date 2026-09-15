@@ -3,7 +3,7 @@
 import re
 from enum import Enum
 
-from pydantic import ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, ValidationInfo, field_validator, model_validator
 
 from raes.runtime_vocabulary import GovernedVocabulary
 
@@ -110,6 +110,24 @@ def redacted_raw_value_schema(
     }
 
 
+def flagged_raw_value_schema(*, flag_field: str, raw_field: str, array: bool = False) -> dict[str, object]:
+    """Publish the owning model's true-flag/raw-value omission rule."""
+    return {
+        "if": {
+            "properties": {
+                flag_field: {
+                    "anyOf": [
+                        {"const": True},
+                        {"type": "string", "pattern": r"^\s*(?:[Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Oo][Nn])\s*$"},
+                    ]
+                }
+            },
+            "required": [flag_field],
+        },
+        "then": {"properties": {raw_field: {"maxItems": 0} if array else {"maxLength": 0}}},
+    }
+
+
 _PRESENT_ONLY_FIELDS: tuple[str, ...] = (
     "owner_user",
     "owner_group",
@@ -124,6 +142,18 @@ _PRESENT_ONLY_FIELDS: tuple[str, ...] = (
 
 class RuntimeFilesystemEntry(SDLModel):
     """A filesystem entry observed inside a runtime node or container asset."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "if": {
+                "properties": {
+                    "presence": {"pattern": "^[Ee][Xx][Pp][Ee][Cc][Tt][Ee][Dd][_-][Aa][Bb][Ss][Ee][Nn][Tt]$"}
+                },
+                "required": ["presence"],
+            },
+            "then": {"properties": {name: {"enum": ["", None]} for name in _PRESENT_ONLY_FIELDS}},
+        }
+    )
 
     path: str
     entry_type: GovernedVocabulary[RuntimeFilesystemEntryType] = RuntimeFilesystemEntryType.OTHER

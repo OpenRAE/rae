@@ -67,6 +67,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "14.0.0",
         "15.0.0",
         "16.0.0",
+        "17.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -75,17 +76,13 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "16.0.0"
+    assert release.manifest["revision"] == "17.0.0"
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "3.0.0"
-    assert snapshot["baseline"]["release_revision"] == "15.0.0"
+    assert snapshot["baseline"]["release_revision"] == "16.0.0"
     assert {item["case_id"] for item in snapshot["deviations"]} == {
         "compile-repeatability-control",
         "compile-non-vacuity-control",
-        "finite-domain-satisfiable-v2",
-        "finite-domain-unsatisfiable-v2",
-        "typed-exploit-path-valid-v2",
-        "typed-exploit-path-invalid-v2",
     }
     assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
     assert all(
@@ -349,7 +346,6 @@ def test_historical_gate_rejects_substitution_with_current_evidence(
         item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "3.0.0"
     )
     protocol, corpus, snapshot, analysis = release.protocol, release.corpus, release.snapshot, release.analysis
-    case = next(item for item in corpus["cases"] if item["case_id"] == case_id)
     observation = next(item for item in snapshot["observations"] if item["case_id"] == case_id)
     evidence_path = observation["evidence_artifact_path"]
     _, _, _, current_snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
@@ -371,8 +367,8 @@ def test_historical_gate_rejects_substitution_with_current_evidence(
     failures = validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis, replay_current=False)
 
     assert (
-        "formal-validation-production-replay",
-        f"case {case_id!r} production replay failed (ValueError)",
+        "formal-validation-production-evidence-join",
+        f"case {case_id!r} source, configuration, outcome, CLI, replay, or evidence joins drifted",
         release.manifest["snapshot_path"],
     ) in {(f.rule_id, f.message, f.path) for f in failures}
 

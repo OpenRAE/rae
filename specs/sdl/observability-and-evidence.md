@@ -259,6 +259,14 @@ NOT be hidden in metadata, diagnostics, audit blobs, backend-native DTOs, or
 raw logs.
 
 Run-level processor/backend augmentation disclosures are carried by
+`experiment-run-v1`. Negotiated backend materializations also carry full
+[materialized SDL](materialization-attestation.md) in a protected archive,
+referenced through `materialization_attestations`. The typed
+`materialization-attestation` reference is a portable augmentation carrier,
+not captured evidence or the original scenario snapshot. Existing visibility,
+marking, evidence-reference and comparability obligations still apply.
+
+The classification record itself remains
 `experiment-run-v1` `augmentation_disclosures`. That carrier records the
 augmentation purpose, realization layer, additive classifications, portable
 carrier refs, disclosure policy, markings, observer/comparability effects, and

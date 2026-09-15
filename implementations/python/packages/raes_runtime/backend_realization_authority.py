@@ -99,13 +99,13 @@ def _bind_submitted_plan(
     )
     if submitted_plan is None:
         return args, realization
-    if not isinstance(submitted_plan, ProvisioningPlan):
-        return args, replace(realization, operation_plan=submitted_plan)
     bound_plan = replace(
         submitted_plan,
         operation_id=operation_id or submitted_plan.operation_id or str(uuid4()),
     )
     bound_args = tuple(bound_plan if arg is submitted_plan else arg for arg in args)
+    if not isinstance(submitted_plan, ProvisioningPlan):
+        return bound_args, replace(realization, operation_plan=bound_plan)
     if realization.plan is None or realization.plan is submitted_plan:
         realization = replace(realization, plan=bound_plan)
     else:

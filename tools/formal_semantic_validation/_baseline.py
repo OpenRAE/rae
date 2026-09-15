@@ -157,9 +157,12 @@ def _selected_baseline_manifest(
                 "13.0.0",
                 "14.0.0",
                 "15.0.0",
+                "16.0.0",
             }
             else "docs/research/formal-semantic-validation/protocol-v1.json",
-            "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
+            "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
+            if baseline.get("release_revision") == "16.0.0"
+            else "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
             if baseline.get("release_revision")
             in {
                 "3.0.0",

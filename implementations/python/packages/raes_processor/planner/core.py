@@ -37,6 +37,7 @@ from ..semantics.realization import (
     resolve_apparatus_realization_defaults,
 )
 from .manifest_validation import _validate_manifest
+from .materialization import planned_materialization_source
 from .operations import (
     _build_evaluation_plan,
     _build_operations,
@@ -383,6 +384,16 @@ def plan(
             instantiation_id=instantiation_id,
         ),
     )
+
+    if model.materialization_description is not None:
+        provisioning = replace(provisioning, purpose="inspection")
+        orchestration = replace(orchestration, purpose="inspection")
+        evaluation = replace(evaluation, purpose="inspection")
+    source, source_diagnostics = planned_materialization_source(model, manifest, scope)
+    diagnostics.extend(source_diagnostics)
+    provisioning = replace(provisioning, materialization_source=source)
+    orchestration = replace(orchestration, materialization_source=source)
+    evaluation = replace(evaluation, materialization_source=source)
 
     return ExecutionPlan(
         target_name=target_name,
