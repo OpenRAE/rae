@@ -14,6 +14,7 @@ from ..versions import (
     PARTICIPANT_IMPLEMENTATION_MANIFEST_V1_SCHEMA_VERSION,
     PROCESSOR_MANIFEST_V2_SCHEMA_VERSION,
 )
+from . import experiment_task as _experiment_task
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _canonical_digest, _parse_rfc3339_datetime
 from .capabilities import ApparatusIdentityModel
 from .experiment_artifacts import (
@@ -34,11 +35,12 @@ from .experiment_references import (
     ExperimentParameterModel,
     ExperimentReferenceModel,
 )
-from .experiment_task import ExperimentTaskModel as ExperimentTaskModel
 from .manifests import ProcessorManifestV2Model
 from .participant_manifests import BackendManifestV2Model
 from .random_stream import RandomStreamControlBindingModel
 from .schema_invariants import _add_raes_invariant
+
+ExperimentTaskModel = _experiment_task.ExperimentTaskModel
 
 _ManifestReferenceKey = tuple[
     str,

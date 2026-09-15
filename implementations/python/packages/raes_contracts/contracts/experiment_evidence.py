@@ -12,18 +12,13 @@ from ..versions import (
     EXPERIMENT_DERIVED_MEASURE_SCHEMA_VERSION,
     EXPERIMENT_EVIDENCE_RECORD_SCHEMA_VERSION,
 )
+from . import experiment_evidence_refinement as _evidence_refinement
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
 from .experiment_artifacts import (
     ExperimentDerivedMeasureReferenceModel,
     _validate_unique_experiment_references,
 )
 from .experiment_capture import ExperimentRawEvidenceContentModel
-from .experiment_evidence_refinement import (
-    ExperimentEvidenceRequirementRelationModel as ExperimentEvidenceRequirementRelationModel,
-)
-from .experiment_evidence_refinement import (
-    validate_evidence_requirement_relations as validate_evidence_requirement_relations,
-)
 from .experiment_manifest_references import (
     ExperimentCaptureSpecReferenceModel,
     ExperimentEvidenceRecordReferenceModel,
@@ -40,6 +35,9 @@ from .schema_invariants import (
     _extend_reported_value_status_schema,
     _validate_reported_value_status,
 )
+
+ExperimentEvidenceRequirementRelationModel = _evidence_refinement.ExperimentEvidenceRequirementRelationModel
+validate_evidence_requirement_relations = _evidence_refinement.validate_evidence_requirement_relations
 
 
 class ExperimentEvidenceRecordModel(ContractModel):

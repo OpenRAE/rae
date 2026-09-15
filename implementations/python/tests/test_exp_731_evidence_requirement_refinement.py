@@ -259,11 +259,10 @@ def test_refinement_rejects_changed_scenario_identity_and_wrong_authority() -> N
     relation_payload = _relation(scenario, authority_ref, dimensions=["field-selectors"])
     relation_payload["base_scenario_ref"]["ref_digest"] = "sha256:" + "0" * 64
     relation = ExperimentEvidenceRequirementRelationModel.model_validate(relation_payload)
+    capture_specs = {"capture-event-log-detail": _capture_spec(authority_ref)}
 
     with pytest.raises(ValueError, match="base_scenario_ref must match"):
-        validate_evidence_requirement_relations(
-            (relation,), scenario=scenario, capture_specs={"capture-event-log-detail": _capture_spec(authority_ref)}
-        )
+        validate_evidence_requirement_relations((relation,), scenario=scenario, capture_specs=capture_specs)
 
     wrong_task = copy.deepcopy(task_payload)
     wrong_task["scenario_ref"] = _scenario_ref(scenario)

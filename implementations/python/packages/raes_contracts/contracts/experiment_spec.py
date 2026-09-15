@@ -10,6 +10,7 @@ from pydantic_core import CoreSchema
 
 from ..observation_demand import ObservationDemandDocument
 from ..versions import EXPERIMENT_AUTHORING_INPUT_SCHEMA_VERSION
+from . import experiment_study_contract as _experiment_study_contract
 from .base import ContractModel, NonEmptyString, PositiveInteger
 from .difficulty_adaptation import DifficultyPolicyRegistryModel
 from .experiment_apparatus import ExperimentClockContextModel, ExperimentStochasticControlModel
@@ -41,8 +42,9 @@ from .experiment_selection import (
     _validate_selection_policy_registry,
 )
 from .experiment_study import ExperimentRunAllocationPlanModel, ExperimentStudyFactorModel
-from .experiment_study_contract import ExperimentStudyModel as ExperimentStudyModel
 from .schema_invariants import _add_raes_invariant
+
+ExperimentStudyModel = _experiment_study_contract.ExperimentStudyModel
 
 
 class ExperimentRunPlanModel(ContractModel):

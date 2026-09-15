@@ -31,6 +31,33 @@ _STUDY_AGAINST_TASKS_AND_RUNS_VALIDATOR = (
 )
 
 
+def _add_claim_bearing_study_schema(json_schema: JsonSchemaValue) -> None:
+    json_schema.setdefault("allOf", []).append(
+        {
+            "if": {
+                "properties": {"study_kind": {"enum": ["study", "benchmark"]}},
+                "required": ["study_kind"],
+            },
+            "then": {
+                "required": [
+                    "research_questions",
+                    "behavioral_claims",
+                    "run_allocation",
+                    "analysis_plan",
+                    "validity_notes",
+                ],
+                "properties": {
+                    "research_questions": {"minItems": 1},
+                    "behavioral_claims": {"minItems": 1},
+                    "run_allocation": {"type": "object"},
+                    "analysis_plan": {"type": "object"},
+                    "validity_notes": {"minItems": 1},
+                },
+            },
+        }
+    )
+
+
 class ExperimentStudyModel(ContractModel):
     """Study or collection contract for grouping experiment artifacts."""
 
@@ -140,30 +167,7 @@ class ExperimentStudyModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        json_schema.setdefault("allOf", []).append(
-            {
-                "if": {
-                    "properties": {"study_kind": {"enum": ["study", "benchmark"]}},
-                    "required": ["study_kind"],
-                },
-                "then": {
-                    "required": [
-                        "research_questions",
-                        "behavioral_claims",
-                        "run_allocation",
-                        "analysis_plan",
-                        "validity_notes",
-                    ],
-                    "properties": {
-                        "research_questions": {"minItems": 1},
-                        "behavioral_claims": {"minItems": 1},
-                        "run_allocation": {"type": "object"},
-                        "analysis_plan": {"type": "object"},
-                        "validity_notes": {"minItems": 1},
-                    },
-                },
-            }
-        )
+        _add_claim_bearing_study_schema(json_schema)
         _add_raes_invariant(
             json_schema,
             "claim-bearing-study-analysis-plan-required",
