@@ -123,13 +123,18 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v15.json`](analysis-v15.json) to progressive semantic revision
   support. Fresh replay records two complete compiler digest changes, with
   identical bounded outcomes and explicit deviations from release 15.0.0.
-- [`bundles/retest-v16.json`](bundles/retest-v16.json) is current release 17.0.0.
+- [`bundles/retest-v16.json`](bundles/retest-v16.json) preserves release 17.0.0.
   It binds [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
-  [`analysis-v16.json`](analysis-v16.json) to the materialization-attestation
-  implementation. Fresh replay records two compiled-representation digest
-  changes against release 16.0.0 with unchanged outcomes. The retained corpus
-  does not establish native backend attestation fidelity or new experimental
-  observation claims.
+  [`analysis-v16.json`](analysis-v16.json) to unconstrained realization-evidence
+  source semantics. Fresh replay retains every bounded outcome and records the
+  two changed compiler digests as explicit deviations from release 16.0.0.
+- [`bundles/retest-v17.json`](bundles/retest-v17.json) is current release 18.0.0.
+  It binds [`execution-snapshot-v17.json`](execution-snapshot-v17.json) and
+  [`analysis-v17.json`](analysis-v17.json) to the combined materialization-attestation
+  and unconstrained realization-evidence implementation. Fresh replay records
+  compiled-representation deviations from release 17.0.0 with unchanged outcomes.
+  The retained corpus does not establish native backend attestation fidelity or
+  new experimental observation claims.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -239,3 +244,9 @@ controls use current authoring and instantiated snapshot profiles v2. All four
 production outcomes are unchanged; their new digests are recorded as explicit
 deviations alongside the two compilation digests. Historical releases retain
 their original byte and observation joins without current snapshot admission.
+
+Release 17 retains corpus revision 3 and the four production evidence v4
+records. It freezes their progressive-profile shapes for historical admission,
+replays the same controls against current code, and records only the two
+compiler representation digest changes caused by the realization-evidence
+source correction. No outcome or preregistered claim strength changes.

@@ -317,31 +317,25 @@ _SATISFIABILITY_CONTROL_OUTCOMES = {
     "unsupported": "unsupported",
 }
 
-# Immutable admission pins for the finite pre-cutover research corpus at
-# a7c6b55cd056a82a146f5e7537743269f1d8ec24. Artifact metadata cannot rebind these.
-_ARCHIVAL_MANIFEST_SHA256 = "2c99aa95a6429ba9ec31eb2b34f312f0fa7cd8df4a17084eb7782a5ba7ba0560"
-_PROGRESSIVE_ARCHIVAL_MANIFEST_SHA256 = "e2cfd0d3a492a8304b322240d043dca4abfa66816e89066c000cb260150e7ef5"
-# Release 16 is historical after the issue-1241 capture. These exact records
-# are retained without invoking current models, solvers or semantic admission.
-_PROGRESSIVE_PRODUCTION_EVIDENCE_DIGESTS = frozenset(
-    {
-        "sha256:23c2cae7d95d4cc83d77ca576e3911477b169ecc311c977cb45490345f633b5a",
-        "sha256:317b5cad00aa7f4f7868dca66127611ba19d40ffd86f35815502622814df54c1",
-        "sha256:2d4d1a362751abd9544beb8af7f8c6331d04dac8f4abc315fb261f81fbaf4387",
-        "sha256:1b416bb5a4d29d57c961b769cc9d3af5d9328624e3eebf104d57f39a94c5bb97",
-    }
-)
+# Immutable admission pins for the finite retained research corpus. Artifact
+# metadata cannot rebind these frozen shapes or evidence records.
+_ARCHIVAL_MANIFEST_SHA256 = "b8a83a91bc50a4f1af8ebb214f3c2a38ec636e2a84fdd9d7440c0a3070285ecf"
 _RETAINED_PRODUCTION_EVIDENCE_DIGESTS = frozenset(
     {
         "sha256:03925bfe0b209c3c77069c97061aa63e8795389be7ed7b78376020b7dc87853c",  # finite-domain-satisfiable-v2.json
         "sha256:36e1a09e5ac51cfdd98be743c7b9e6073a6f3d02ac6377f60592fcb0a381a3e8",  # finite-domain-satisfiable-v3.json
+        "sha256:23c2cae7d95d4cc83d77ca576e3911477b169ecc311c977cb45490345f633b5a",  # finite-domain-satisfiable-v4.json
         # Unsatisfiable finite-domain evidence, revision 2.
         "sha256:c2dc067c406ee9c26837e9565b6b52f8a6268e06e95dbc5937a455700b0c8109",
         # Unsatisfiable finite-domain evidence, revision 3.
         "sha256:8816c3a2898193280321559545cfacd462f38172fe7fbe7b005610401563b629",
+        # Unsatisfiable finite-domain evidence, revision 4.
+        "sha256:317b5cad00aa7f4f7868dca66127611ba19d40ffd86f35815502622814df54c1",
         "sha256:1ec2ff4423088ad2ac6328aba7fbced5cd89b1569cff057e44ad30ef5c5befc0",  # typed-exploit-path-invalid-v2.json
         "sha256:b43be52d3fe4bb66fa35e296de496f286daaf09d69975218ddc30fc79b5df6d0",  # typed-exploit-path-invalid-v3.json
+        "sha256:1b416bb5a4d29d57c961b769cc9d3af5d9328624e3eebf104d57f39a94c5bb97",  # typed-exploit-path-invalid-v4.json
         "sha256:0683b55cd2a52ba626bb5cfbf10de109798d8d31ba467aabd13d4930df204798",  # typed-exploit-path-valid-v2.json
         "sha256:1c0fc5c8ecadc14e14b8993b4a3b59562a64bc35ef7dbf64f43ff7df9b5da472",  # typed-exploit-path-valid-v3.json
+        "sha256:2d4d1a362751abd9544beb8af7f8c6331d04dac8f4abc315fb261f81fbaf4387",  # typed-exploit-path-valid-v4.json
     }
 )

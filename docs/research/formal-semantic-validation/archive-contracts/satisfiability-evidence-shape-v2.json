@@ -1,356 +1,1368 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Frozen finite capture admission; not a general semantic reader.",
-  "enum": [
-    {
-      "analysis_profile": "raes-finite-domain-satisfiability-v1",
-      "authored_digest": {
-        "algorithm": "sha256",
-        "profile": "raes-sdl-semantic/v2",
-        "value": "sha256:ebffc254d8d4511a3aa77f6509892cd29cb4d90f5e53ed7d97bb1e54abc23bd0"
-      },
-      "diagnostics": [],
-      "imports": [],
-      "normalized_model": {
-        "authored_digest": {
-          "algorithm": "sha256",
-          "profile": "raes-sdl-semantic/v2",
-          "value": "sha256:ebffc254d8d4511a3aa77f6509892cd29cb4d90f5e53ed7d97bb1e54abc23bd0"
-        },
-        "clauses": [
-          {
-            "allowed_values": [
-              "linux",
-              "windows"
-            ],
-            "clause_id": "domain:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5",
-            "kind": "declared-domain",
-            "source_address": "/variables/platform",
-            "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5"
-          },
-          {
-            "allowed_values": [
-              "linux",
-              "windows"
-            ],
-            "clause_id": "target:9dc2b64c943ca097845e84d34e43e3bc07637339e595a080d7df391d837c0e08",
-            "kind": "target-domain",
-            "source_address": "/nodes/target/os",
-            "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5"
-          }
-        ],
-        "profile": "raes-finite-domain-constraints/v1",
-        "source_digest": "sha256:0ca9eaba9dc47171f7a042dc6753faa6c820c65ee966538f9d65fac5342202e8",
-        "symbols": [
-          {
-            "domain": [
-              "linux",
-              "windows"
-            ],
-            "sort": "string",
-            "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5",
-            "variable": "platform"
-          }
-        ],
-        "theory_profile": "raes-finite-domain-theory/v1",
-        "translation_profile": "raes-sdl-authoring-translation/v1"
-      },
-      "normalized_model_digest": "sha256:b18e8de0ce134b37021db5a52dc7f74a177641af6e3f7799d42f36f6709e6a91",
-      "outcome": "satisfiable",
-      "profile": "scenario-satisfiability-evidence/v1",
-      "solver_configuration": {
-        "auto_config": false,
-        "core_reduction": "sorted-deletion-subset-minimal/v1",
-        "engine": "z3",
-        "engine_version": "4.16.0",
-        "logic": "QF_LIA",
-        "model": true,
-        "package": "z3-solver",
-        "package_version": "4.16.0.0",
-        "profile": "raes-z3-finite-domain/v1",
-        "random_seed": 0,
-        "threads": 1,
-        "timeout_ms": 5000,
-        "unsat_core": true,
-        "witness_selection": "canonical-lexicographic/v1"
-      },
-      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
-      "source": {
-        "byte_digest": "sha256:0ca9eaba9dc47171f7a042dc6753faa6c820c65ee966538f9d65fac5342202e8",
-        "source_id": "satisfiable-control.sdl.yaml"
-      },
-      "unsat_core": null,
-      "unsupported": null,
-      "witness": {
-        "profile": "raes-satisfiability-witness/v1",
-        "snapshot": {
-          "profile": "raes-sdl-instantiated-snapshot/v2",
-          "scenario": {
-            "accounts": {},
-            "action_contracts": {},
-            "agents": {},
-            "assertions": {},
-            "behavior_specifications": {},
-            "clocks": {},
-            "conditions": {},
-            "content": {},
-            "deployment_cells": {},
-            "deployment_tenants": {},
-            "description": "",
-            "entities": {},
-            "events": {},
-            "evidence_requirements": {},
-            "features": {},
-            "forwarding_agents": [],
-            "generated_artifacts": {},
-            "identity_domains": {},
-            "identity_facades": {},
-            "identity_forests": {},
-            "infrastructure": {},
-            "injects": {},
-            "instantiation_provenance": {
-              "authored_digest": {
-                "algorithm": "sha256",
-                "profile": "raes-sdl-semantic/v2",
-                "value": "sha256:ebffc254d8d4511a3aa77f6509892cd29cb4d90f5e53ed7d97bb1e54abc23bd0"
+  "$comment": "Frozen closed shape for retained satisfiability evidence through formal-validation release 16.0.0.",
+  "$defs": {
+    "BindingOrigin": {
+      "description": "Why a concrete parameter value was selected.",
+      "enum": [
+        "provided",
+        "default"
+      ],
+      "title": "BindingOrigin",
+      "type": "string"
+    },
+    "ConstraintClauseKind": {
+      "description": "Meaning of a normalized finite-domain membership clause.",
+      "enum": [
+        "declared-domain",
+        "target-domain"
+      ],
+      "title": "ConstraintClauseKind",
+      "type": "string"
+    },
+    "ConstraintClauseModel": {
+      "additionalProperties": false,
+      "description": "One named finite-domain membership clause.",
+      "properties": {
+        "allowed_values": {
+          "items": {
+            "anyOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                },
+                "type": "string"
               },
-              "bindings": [
-                {
-                  "origin": "provided",
-                  "parameter": [
-                    "platform"
-                  ],
-                  "value": "linux"
-                }
-              ],
-              "capability_constraints": [
-                {
-                  "allowed_values": [
-                    "windows",
-                    "linux"
-                  ],
-                  "field_pointer": "/nodes/target/os",
-                  "kind": "allowed-values",
-                  "parameter": [
-                    "platform"
-                  ]
-                }
-              ],
-              "explicitness": [
-                {
-                  "classification": "exact",
-                  "model_path": "name",
-                  "parameters": [],
-                  "provenance": "author-declared",
-                  "reason": "authored concrete value"
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "maxItems": 256,
+          "title": "Allowed Values",
+          "type": "array"
+        },
+        "clause_id": {
+          "maxLength": 256,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z][a-z0-9._:-]*$",
+          "title": "Clause Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ConstraintClauseKind"
+        },
+        "source_address": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Source Address",
+          "type": "string"
+        },
+        "symbol_id": {
+          "maxLength": 256,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z][a-z0-9._:-]*$",
+          "title": "Symbol Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "clause_id",
+        "kind",
+        "symbol_id",
+        "source_address",
+        "allowed_values"
+      ],
+      "title": "ConstraintClauseModel",
+      "type": "object"
+    },
+    "ConstraintSort": {
+      "description": "Closed scalar sorts admitted by the v1 finite-domain theory.",
+      "enum": [
+        "string",
+        "integer",
+        "boolean"
+      ],
+      "title": "ConstraintSort",
+      "type": "string"
+    },
+    "ConstraintSymbolModel": {
+      "additionalProperties": false,
+      "description": "One canonically ordered finite-domain symbol.",
+      "properties": {
+        "domain": {
+          "items": {
+            "anyOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
                 },
-                {
-                  "classification": "exact",
-                  "model_path": "nodes.target.type",
-                  "parameters": [],
-                  "provenance": "author-declared",
-                  "reason": "authored concrete value"
-                },
-                {
-                  "classification": "constrained",
-                  "model_path": "nodes.target.os",
-                  "parameters": [
-                    [
-                      "platform"
-                    ]
-                  ],
-                  "provenance": "processor-derived",
-                  "reason": "parameter/default substitution preserved authored explicitness class"
-                },
-                {
-                  "classification": "constrained",
-                  "model_path": "nodes.target",
-                  "parameters": [
-                    [
-                      "platform"
-                    ]
-                  ],
-                  "provenance": "processor-derived",
-                  "reason": "parameter/default substitution preserved authored explicitness class"
-                },
-                {
-                  "classification": "constrained",
-                  "model_path": "nodes",
-                  "parameters": [
-                    [
-                      "platform"
-                    ]
-                  ],
-                  "provenance": "processor-derived",
-                  "reason": "parameter/default substitution preserved authored explicitness class"
-                },
-                {
-                  "classification": "exact",
-                  "model_path": "variables",
-                  "parameters": [],
-                  "provenance": "author-declared",
-                  "reason": "derived from child declarations"
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Domain",
+          "type": "array"
+        },
+        "sort": {
+          "$ref": "#/$defs/ConstraintSort"
+        },
+        "symbol_id": {
+          "maxLength": 256,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z][a-z0-9._:-]*$",
+          "title": "Symbol Id",
+          "type": "string"
+        },
+        "variable": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+          "title": "Variable",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol_id",
+        "variable",
+        "sort",
+        "domain"
+      ],
+      "title": "ConstraintSymbolModel",
+      "type": "object"
+    },
+    "DiagnosticModel": {
+      "additionalProperties": false,
+      "description": "Closed portable diagnostic shape for published contracts.",
+      "properties": {
+        "address": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Address",
+          "type": "string"
+        },
+        "code": {
+          "maxLength": 128,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "domain": {
+          "maxLength": 64,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Domain",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 512,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Message",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "default": "error"
+        }
+      },
+      "required": [
+        "code",
+        "domain",
+        "address",
+        "message"
+      ],
+      "title": "DiagnosticModel",
+      "type": "object"
+    },
+    "NormalizedConstraintModel": {
+      "additionalProperties": false,
+      "description": "Solver-neutral normalized RAES finite-domain constraint model.",
+      "properties": {
+        "authored_digest": {
+          "$ref": "#/$defs/SemanticDigest"
+        },
+        "clauses": {
+          "items": {
+            "$ref": "#/$defs/ConstraintClauseModel"
+          },
+          "maxItems": 512,
+          "title": "Clauses",
+          "type": "array"
+        },
+        "profile": {
+          "const": "raes-finite-domain-constraints/v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "source_digest": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "symbols": {
+          "items": {
+            "$ref": "#/$defs/ConstraintSymbolModel"
+          },
+          "maxItems": 128,
+          "title": "Symbols",
+          "type": "array"
+        },
+        "theory_profile": {
+          "const": "raes-finite-domain-theory/v1",
+          "title": "Theory Profile",
+          "type": "string"
+        },
+        "translation_profile": {
+          "const": "raes-sdl-authoring-translation/v1",
+          "title": "Translation Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "theory_profile",
+        "translation_profile",
+        "source_digest",
+        "authored_digest",
+        "symbols",
+        "clauses"
+      ],
+      "title": "NormalizedConstraintModel",
+      "type": "object"
+    },
+    "ParameterBinding": {
+      "additionalProperties": false,
+      "description": "One selected parameter value with an unambiguous qualified identity.",
+      "properties": {
+        "origin": {
+          "$ref": "#/$defs/BindingOrigin"
+        },
+        "parameter": {
+          "items": {
+            "allOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
                 }
-              ],
-              "imports": [],
-              "realization_constraints": [
-                {
-                  "concern": "compute-substrate",
-                  "domain": {
-                    "kind": "exact",
-                    "value": "virtual-machine"
-                  },
-                  "field_pointer": "/nodes/target",
-                  "namespace": [],
-                  "posture": "exact",
-                  "provenance": "legacy-node-type-vm"
-                }
-              ],
-              "realization_designations": [
-                {
-                  "field_pointer": "",
-                  "namespace": [],
-                  "posture": "unspecified"
-                }
-              ],
-              "selected_profile": "raes-finite-domain-satisfiability-v1"
+              }
+            ],
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
             },
-            "name": "satisfiable-control",
-            "nodes": {
-              "target": {
-                "architecture": null,
-                "asset_value": null,
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Parameter",
+          "type": "array"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "parameter",
+        "origin",
+        "value"
+      ],
+      "title": "ParameterBinding",
+      "type": "object"
+    },
+    "ResolvedImportProvenance": {
+      "additionalProperties": false,
+      "description": "Portable evidence emitted after one trusted module resolution.",
+      "properties": {
+        "bindings": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ParameterBinding"
+          },
+          "title": "Bindings",
+          "type": "array"
+        },
+        "content_digest": {
+          "default": "",
+          "maxLength": 71,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "export_hash": {
+          "default": "",
+          "maxLength": 71,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Export Hash",
+          "type": "string"
+        },
+        "manifest_digest": {
+          "default": "",
+          "maxLength": 71,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Manifest Digest",
+          "type": "string"
+        },
+        "module_id": {
+          "maxLength": 129,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Module Id",
+          "type": "string"
+        },
+        "module_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Module Version",
+          "type": "string"
+        },
+        "namespace": {
+          "items": {
+            "allOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                }
+              }
+            ],
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "minItems": 1,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "requested_digest": {
+          "default": "",
+          "maxLength": 71,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Requested Digest",
+          "type": "string"
+        },
+        "requested_source": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Requested Source",
+          "type": "string"
+        },
+        "requested_version": {
+          "default": "*",
+          "maxLength": 256,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Requested Version",
+          "type": "string"
+        },
+        "resolved_source": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Resolved Source",
+          "type": "string"
+        },
+        "signer_id": {
+          "default": "",
+          "maxLength": 256,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Signer Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "requested_source",
+        "module_id",
+        "module_version",
+        "resolved_source"
+      ],
+      "title": "ResolvedImportProvenance",
+      "type": "object"
+    },
+    "SatisfiabilityOutcome": {
+      "description": "Completed outcomes exposed by the governed analysis boundary.",
+      "enum": [
+        "satisfiable",
+        "unsatisfiable",
+        "unsupported"
+      ],
+      "title": "SatisfiabilityOutcome",
+      "type": "string"
+    },
+    "SatisfiableWitnessModel": {
+      "additionalProperties": false,
+      "description": "Independently admitted canonical instantiation witness.",
+      "properties": {
+        "profile": {
+          "const": "raes-satisfiability-witness/v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "snapshot": {
+          "description": "Only the two exact snapshots retained by the historical corpus are admitted; this is not a general legacy SDL reader.",
+          "enum": [
+            {
+              "profile": "raes-sdl-instantiated-snapshot/v1",
+              "scenario": {
+                "accounts": {},
+                "action_contracts": {},
+                "agents": {},
+                "assertions": {},
+                "behavior_specifications": {},
+                "clocks": {},
                 "conditions": {},
+                "content": {},
+                "deployment_cells": {},
+                "deployment_tenants": {},
                 "description": "",
-                "endpoint_persona": null,
+                "entities": {},
+                "events": {},
+                "evidence_requirements": {},
                 "features": {},
+                "forwarding_agents": [],
+                "generated_artifacts": {},
+                "identity_domains": {},
+                "identity_facades": {},
+                "identity_forests": {},
+                "infrastructure": {},
                 "injects": {},
-                "os": "linux",
-                "os_distribution": null,
-                "os_version": "",
-                "resources": null,
-                "roles": {},
-                "runtime": null,
-                "services": [],
-                "source": null,
-                "type": "compute"
+                "instantiation_provenance": {
+                  "authored_digest": {
+                    "algorithm": "sha256",
+                    "profile": "raes-sdl-semantic/v1",
+                    "value": "sha256:2d9a1d9e0ea8bb9fd9b5c63edc3bb49570b71e2ccd876bc201027da6defeae0f"
+                  },
+                  "bindings": [
+                    {
+                      "origin": "provided",
+                      "parameter": [
+                        "platform"
+                      ],
+                      "value": "linux"
+                    }
+                  ],
+                  "capability_constraints": [
+                    {
+                      "allowed_values": [
+                        "windows",
+                        "linux"
+                      ],
+                      "field_pointer": "/nodes/target/os",
+                      "kind": "allowed-values",
+                      "parameter": [
+                        "platform"
+                      ]
+                    }
+                  ],
+                  "explicitness": [
+                    {
+                      "classification": "exact",
+                      "model_path": "name",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "nodes.target.type",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target.os",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "variables",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "derived from child declarations"
+                    }
+                  ],
+                  "imports": [],
+                  "realization_designations": [],
+                  "selected_profile": "raes-finite-domain-satisfiability-v1"
+                },
+                "name": "satisfiable-control",
+                "nodes": {
+                  "target": {
+                    "architecture": null,
+                    "asset_value": null,
+                    "conditions": {},
+                    "description": "",
+                    "endpoint_persona": null,
+                    "features": {},
+                    "injects": {},
+                    "os": "linux",
+                    "os_version": "",
+                    "resources": null,
+                    "roles": {},
+                    "runtime": null,
+                    "services": [],
+                    "source": null,
+                    "type": "vm",
+                    "vulnerabilities": []
+                  }
+                },
+                "objectives": {},
+                "observation_boundaries": {},
+                "outcome_interpretation_rules": {},
+                "persistent_volumes": {},
+                "propositions": {},
+                "relationships": {},
+                "scripts": {},
+                "stories": {},
+                "temporal_constraints": {},
+                "time_domain_mappings": {},
+                "time_domains": {},
+                "time_progression_policies": {},
+                "version": "*",
+                "vulnerabilities": {},
+                "workflows": {}
               }
             },
-            "objectives": {},
-            "observation_boundaries": {},
-            "outcome_interpretation_rules": {},
-            "persistent_volumes": {},
-            "propositions": {},
-            "relationships": {},
-            "scripts": {},
-            "stories": {},
-            "temporal_constraints": {},
-            "time_domain_mappings": {},
-            "time_domains": {},
-            "time_progression_policies": {},
-            "version": "*",
-            "workflows": {}
-          }
+            {
+              "profile": "raes-sdl-instantiated-snapshot/v1",
+              "scenario": {
+                "accounts": {},
+                "action_contracts": {},
+                "agents": {},
+                "assertions": {},
+                "behavior_specifications": {},
+                "clocks": {},
+                "conditions": {},
+                "content": {},
+                "deployment_cells": {},
+                "deployment_tenants": {},
+                "description": "",
+                "entities": {},
+                "events": {},
+                "evidence_requirements": {},
+                "features": {},
+                "forwarding_agents": [],
+                "generated_artifacts": {},
+                "identity_domains": {},
+                "identity_facades": {},
+                "identity_forests": {},
+                "infrastructure": {},
+                "injects": {},
+                "instantiation_provenance": {
+                  "authored_digest": {
+                    "algorithm": "sha256",
+                    "profile": "raes-sdl-semantic/v1",
+                    "value": "sha256:5b6814a899aedd5d10d85a437d0e9253d785ccdf654ddc1e890988ad445bc280"
+                  },
+                  "bindings": [
+                    {
+                      "origin": "provided",
+                      "parameter": [
+                        "platform"
+                      ],
+                      "value": "linux"
+                    }
+                  ],
+                  "capability_constraints": [
+                    {
+                      "allowed_values": [
+                        "windows",
+                        "linux"
+                      ],
+                      "field_pointer": "/nodes/target/os",
+                      "kind": "allowed-values",
+                      "parameter": [
+                        "platform"
+                      ]
+                    }
+                  ],
+                  "explicitness": [
+                    {
+                      "classification": "exact",
+                      "model_path": "name",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "nodes.target.type",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target.os",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "variables",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "derived from child declarations"
+                    }
+                  ],
+                  "imports": [],
+                  "realization_constraints": [
+                    {
+                      "concern": "compute-substrate",
+                      "domain": {
+                        "kind": "exact",
+                        "value": "virtual-machine"
+                      },
+                      "field_pointer": "/nodes/target",
+                      "namespace": [],
+                      "posture": "exact",
+                      "provenance": "legacy-node-type-vm"
+                    }
+                  ],
+                  "realization_designations": [
+                    {
+                      "field_pointer": "",
+                      "namespace": [],
+                      "posture": "unspecified"
+                    }
+                  ],
+                  "selected_profile": "raes-finite-domain-satisfiability-v1"
+                },
+                "name": "satisfiable-control",
+                "nodes": {
+                  "target": {
+                    "architecture": null,
+                    "asset_value": null,
+                    "conditions": {},
+                    "description": "",
+                    "endpoint_persona": null,
+                    "features": {},
+                    "injects": {},
+                    "os": "linux",
+                    "os_distribution": null,
+                    "os_version": "",
+                    "resources": null,
+                    "roles": {},
+                    "runtime": null,
+                    "services": [],
+                    "source": null,
+                    "type": "compute"
+                  }
+                },
+                "objectives": {},
+                "observation_boundaries": {},
+                "outcome_interpretation_rules": {},
+                "persistent_volumes": {},
+                "propositions": {},
+                "relationships": {},
+                "scripts": {},
+                "stories": {},
+                "temporal_constraints": {},
+                "time_domain_mappings": {},
+                "time_domains": {},
+                "time_progression_policies": {},
+                "version": "*",
+                "workflows": {}
+              }
+            },
+            {
+              "profile": "raes-sdl-instantiated-snapshot/v2",
+              "scenario": {
+                "accounts": {},
+                "action_contracts": {},
+                "agents": {},
+                "assertions": {},
+                "behavior_specifications": {},
+                "clocks": {},
+                "conditions": {},
+                "content": {},
+                "deployment_cells": {},
+                "deployment_tenants": {},
+                "description": "",
+                "entities": {},
+                "events": {},
+                "evidence_requirements": {},
+                "features": {},
+                "forwarding_agents": [],
+                "generated_artifacts": {},
+                "identity_domains": {},
+                "identity_facades": {},
+                "identity_forests": {},
+                "infrastructure": {},
+                "injects": {},
+                "instantiation_provenance": {
+                  "authored_digest": {
+                    "algorithm": "sha256",
+                    "profile": "raes-sdl-semantic/v2",
+                    "value": "sha256:ebffc254d8d4511a3aa77f6509892cd29cb4d90f5e53ed7d97bb1e54abc23bd0"
+                  },
+                  "bindings": [
+                    {
+                      "origin": "provided",
+                      "parameter": [
+                        "platform"
+                      ],
+                      "value": "linux"
+                    }
+                  ],
+                  "capability_constraints": [
+                    {
+                      "allowed_values": [
+                        "windows",
+                        "linux"
+                      ],
+                      "field_pointer": "/nodes/target/os",
+                      "kind": "allowed-values",
+                      "parameter": [
+                        "platform"
+                      ]
+                    }
+                  ],
+                  "explicitness": [
+                    {
+                      "classification": "exact",
+                      "model_path": "name",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "nodes.target.type",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target.os",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "variables",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "derived from child declarations"
+                    }
+                  ],
+                  "imports": [],
+                  "realization_constraints": [
+                    {
+                      "concern": "compute-substrate",
+                      "domain": {
+                        "kind": "exact",
+                        "value": "virtual-machine"
+                      },
+                      "field_pointer": "/nodes/target",
+                      "namespace": [],
+                      "posture": "exact",
+                      "provenance": "legacy-node-type-vm"
+                    }
+                  ],
+                  "realization_designations": [
+                    {
+                      "field_pointer": "",
+                      "namespace": [],
+                      "posture": "unspecified"
+                    }
+                  ],
+                  "selected_profile": "raes-finite-domain-satisfiability-v1"
+                },
+                "name": "satisfiable-control",
+                "nodes": {
+                  "target": {
+                    "architecture": null,
+                    "asset_value": null,
+                    "conditions": {},
+                    "description": "",
+                    "endpoint_persona": null,
+                    "features": {},
+                    "injects": {},
+                    "os": "linux",
+                    "os_distribution": null,
+                    "os_version": "",
+                    "resources": null,
+                    "roles": {},
+                    "runtime": null,
+                    "services": [],
+                    "source": null,
+                    "type": "compute"
+                  }
+                },
+                "objectives": {},
+                "observation_boundaries": {},
+                "outcome_interpretation_rules": {},
+                "persistent_volumes": {},
+                "propositions": {},
+                "relationships": {},
+                "scripts": {},
+                "stories": {},
+                "temporal_constraints": {},
+                "time_domain_mappings": {},
+                "time_domains": {},
+                "time_progression_policies": {},
+                "version": "*",
+                "workflows": {}
+              }
+            }
+          ]
         },
-        "snapshot_digest": "sha256:2036b029d6fe2753b91fb43f2a6c63c94888556fce98fecc3d60be8478ad99e6"
-      }
+        "snapshot_digest": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Snapshot Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "snapshot",
+        "snapshot_digest"
+      ],
+      "title": "SatisfiableWitnessModel",
+      "type": "object"
     },
-    {
-      "analysis_profile": "raes-finite-domain-satisfiability-v1",
-      "authored_digest": {
-        "algorithm": "sha256",
-        "profile": "raes-sdl-semantic/v2",
-        "value": "sha256:1db6f35b04bb9562027fa427c15bbe9724a201b77971b377894a7f3001438c9b"
-      },
-      "diagnostics": [],
-      "imports": [],
-      "normalized_model": {
-        "authored_digest": {
-          "algorithm": "sha256",
-          "profile": "raes-sdl-semantic/v2",
-          "value": "sha256:1db6f35b04bb9562027fa427c15bbe9724a201b77971b377894a7f3001438c9b"
+    "SemanticDigest": {
+      "additionalProperties": false,
+      "description": "Profile-labelled digest of one expanded authoring scenario.",
+      "properties": {
+        "algorithm": {
+          "const": "sha256",
+          "title": "Algorithm",
+          "type": "string"
         },
-        "clauses": [
-          {
-            "allowed_values": [
-              "allow",
-              "linux"
-            ],
-            "clause_id": "domain:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5",
-            "kind": "declared-domain",
-            "source_address": "/variables/platform",
-            "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5"
+        "profile": {
+          "enum": [
+            "raes-sdl-semantic/v1",
+            "raes-sdl-semantic/v2"
+          ],
+          "title": "Profile",
+          "type": "string"
+        },
+        "value": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
-          {
-            "allowed_values": [
-              "linux"
-            ],
-            "clause_id": "target:9dc2b64c943ca097845e84d34e43e3bc07637339e595a080d7df391d837c0e08",
-            "kind": "target-domain",
-            "source_address": "/nodes/target/os",
-            "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5"
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "algorithm",
+        "value"
+      ],
+      "title": "SemanticDigest",
+      "type": "object"
+    },
+    "Severity": {
+      "description": "Diagnostic severity level.",
+      "enum": [
+        "error",
+        "warning",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "SolverConfigurationModel": {
+      "additionalProperties": false,
+      "description": "Complete output-affecting configuration for the pinned v1 Z3 adapter.",
+      "properties": {
+        "auto_config": {
+          "const": false,
+          "title": "Auto Config",
+          "type": "boolean"
+        },
+        "core_reduction": {
+          "const": "sorted-deletion-subset-minimal/v1",
+          "title": "Core Reduction",
+          "type": "string"
+        },
+        "engine": {
+          "const": "z3",
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "const": "4.16.0",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "logic": {
+          "const": "QF_LIA",
+          "title": "Logic",
+          "type": "string"
+        },
+        "model": {
+          "const": true,
+          "title": "Model",
+          "type": "boolean"
+        },
+        "package": {
+          "const": "z3-solver",
+          "title": "Package",
+          "type": "string"
+        },
+        "package_version": {
+          "const": "4.16.0.0",
+          "title": "Package Version",
+          "type": "string"
+        },
+        "profile": {
+          "const": "raes-z3-finite-domain/v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "random_seed": {
+          "const": 0,
+          "title": "Random Seed",
+          "type": "integer"
+        },
+        "threads": {
+          "const": 1,
+          "title": "Threads",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "const": 5000,
+          "title": "Timeout Ms",
+          "type": "integer"
+        },
+        "unsat_core": {
+          "const": true,
+          "title": "Unsat Core",
+          "type": "boolean"
+        },
+        "witness_selection": {
+          "const": "canonical-lexicographic/v1",
+          "title": "Witness Selection",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "engine",
+        "package",
+        "package_version",
+        "engine_version",
+        "logic",
+        "random_seed",
+        "timeout_ms",
+        "threads",
+        "auto_config",
+        "model",
+        "unsat_core",
+        "witness_selection",
+        "core_reduction"
+      ],
+      "title": "SolverConfigurationModel",
+      "type": "object"
+    },
+    "SourceArtifactIdentityModel": {
+      "additionalProperties": false,
+      "description": "Portable identity and exact-byte digest for the root SDL source.",
+      "properties": {
+        "byte_digest": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
-          {
-            "allowed_values": [
-              "allow"
-            ],
-            "clause_id": "target:e9000cc0717de395a14d405975dab5c9baaf9bdc98955c1f23e905ba53aea12e",
-            "kind": "target-domain",
-            "source_address": "/infrastructure/target/acls/0/action",
-            "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5"
-          }
-        ],
-        "profile": "raes-finite-domain-constraints/v1",
-        "source_digest": "sha256:cfef56a1f56d5f0db9da195377fd75694bdd0f0b92932fdb8fafcbd3f7baf6c5",
-        "symbols": [
-          {
-            "domain": [
-              "allow",
-              "linux"
-            ],
-            "sort": "string",
-            "symbol_id": "symbol:d294fcce0cc88587843099d85dd805aeef1b09a63b0db1dd3e4dc62a343c1db5",
-            "variable": "platform"
-          }
-        ],
-        "theory_profile": "raes-finite-domain-theory/v1",
-        "translation_profile": "raes-sdl-authoring-translation/v1"
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Byte Digest",
+          "type": "string"
+        },
+        "source_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[^\\r\\n]+$",
+          "title": "Source Id",
+          "type": "string"
+        }
       },
-      "normalized_model_digest": "sha256:3d10cb7db2171d6673f3c2acdd0ab9c3b2d3e80ec5718feaeec491f0200691d8",
-      "outcome": "unsatisfiable",
-      "profile": "scenario-satisfiability-evidence/v1",
-      "solver_configuration": {
-        "auto_config": false,
-        "core_reduction": "sorted-deletion-subset-minimal/v1",
-        "engine": "z3",
-        "engine_version": "4.16.0",
-        "logic": "QF_LIA",
-        "model": true,
-        "package": "z3-solver",
-        "package_version": "4.16.0.0",
-        "profile": "raes-z3-finite-domain/v1",
-        "random_seed": 0,
-        "threads": 1,
-        "timeout_ms": 5000,
-        "unsat_core": true,
-        "witness_selection": "canonical-lexicographic/v1"
+      "required": [
+        "source_id",
+        "byte_digest"
+      ],
+      "title": "SourceArtifactIdentityModel",
+      "type": "object"
+    },
+    "UnsatisfiableCoreModel": {
+      "additionalProperties": false,
+      "description": "Governed subset-minimal clause set, not a proof certificate.",
+      "properties": {
+        "clause_ids": {
+          "items": {
+            "maxLength": 256,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^[a-z][a-z0-9._:-]*$",
+            "type": "string"
+          },
+          "maxItems": 512,
+          "minItems": 1,
+          "title": "Clause Ids",
+          "type": "array"
+        },
+        "minimality": {
+          "const": "subset-minimal",
+          "title": "Minimality",
+          "type": "string"
+        },
+        "profile": {
+          "const": "raes-unsatisfiable-core/v1",
+          "title": "Profile",
+          "type": "string"
+        }
       },
-      "solver_configuration_digest": "sha256:1204635e17e759e9ad3bd6be2ecb28c6de05c07ead6dfdd15936ed5d3d5b81b2",
-      "source": {
-        "byte_digest": "sha256:cfef56a1f56d5f0db9da195377fd75694bdd0f0b92932fdb8fafcbd3f7baf6c5",
-        "source_id": "unsatisfiable-control.sdl.yaml"
+      "required": [
+        "profile",
+        "clause_ids",
+        "minimality"
+      ],
+      "title": "UnsatisfiableCoreModel",
+      "type": "object"
+    },
+    "UnsupportedAnalysisModel": {
+      "additionalProperties": false,
+      "description": "Stable fail-closed reason set for an unsupported analysis.",
+      "properties": {
+        "profile": {
+          "const": "raes-satisfiability-unsupported/v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "reason_codes": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Reason Codes",
+          "type": "array"
+        }
       },
-      "unsat_core": {
-        "clause_ids": [
-          "target:9dc2b64c943ca097845e84d34e43e3bc07637339e595a080d7df391d837c0e08",
-          "target:e9000cc0717de395a14d405975dab5c9baaf9bdc98955c1f23e905ba53aea12e"
-        ],
-        "minimality": "subset-minimal",
-        "profile": "raes-unsatisfiable-core/v1"
+      "required": [
+        "profile",
+        "reason_codes"
+      ],
+      "title": "UnsupportedAnalysisModel",
+      "type": "object"
+    }
+  },
+  "$id": "urn:raes:research:retained-satisfiability-evidence-shape:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Closed evidence envelope binding source, model, solver, and result.",
+  "properties": {
+    "analysis_profile": {
+      "const": "raes-finite-domain-satisfiability-v1",
+      "title": "Analysis Profile",
+      "type": "string"
+    },
+    "authored_digest": {
+      "$ref": "#/$defs/SemanticDigest"
+    },
+    "diagnostics": {
+      "items": {
+        "$ref": "#/$defs/DiagnosticModel"
       },
-      "unsupported": null,
-      "witness": null
+      "maxItems": 64,
+      "title": "Diagnostics",
+      "type": "array"
+    },
+    "imports": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ResolvedImportProvenance"
+      },
+      "title": "Imports",
+      "type": "array"
+    },
+    "normalized_model": {
+      "$ref": "#/$defs/NormalizedConstraintModel"
+    },
+    "normalized_model_digest": {
+      "minLength": 1,
+      "not": {
+        "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+      },
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Normalized Model Digest",
+      "type": "string"
+    },
+    "outcome": {
+      "$ref": "#/$defs/SatisfiabilityOutcome"
+    },
+    "profile": {
+      "const": "scenario-satisfiability-evidence/v1",
+      "title": "Profile",
+      "type": "string"
+    },
+    "solver_configuration": {
+      "$ref": "#/$defs/SolverConfigurationModel"
+    },
+    "solver_configuration_digest": {
+      "minLength": 1,
+      "not": {
+        "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+      },
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Solver Configuration Digest",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/SourceArtifactIdentityModel"
+    },
+    "unsat_core": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UnsatisfiableCoreModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "unsupported": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UnsupportedAnalysisModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "witness": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SatisfiableWitnessModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "analysis_profile",
+    "authored_digest",
+    "diagnostics",
+    "imports",
+    "normalized_model",
+    "normalized_model_digest",
+    "outcome",
+    "profile",
+    "solver_configuration",
+    "solver_configuration_digest",
+    "source",
+    "unsat_core",
+    "unsupported",
+    "witness"
+  ],
+  "title": "ScenarioSatisfiabilityEvidenceModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "scenario-satisfiability-evidence-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes.validator.SemanticValidator._verify_service_materialization"
     }
   ],
-  "title": "Exact retained progressive satisfiability records"
+  "x-raes-semantic-profile": {
+    "contract_id": "scenario-satisfiability-evidence-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
 }

@@ -1,0 +1,11 @@
+{
+  "schema_version": "backend-profile/v1",
+  "profile": "observability-evidence",
+  "required_contracts": [
+    "backend-manifest-v2",
+    "experiment-capture-spec-v1",
+    "experiment-evidence-record-v1",
+    "experiment-derived-measure-v1",
+    "experiment-run-v1"
+  ]
+}

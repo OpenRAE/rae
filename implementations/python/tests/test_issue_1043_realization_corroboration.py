@@ -18,13 +18,18 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     SnapshotEntry,
 )
-from raes_contracts.vocabulary import RealizationVerificationScope
+from raes_contracts.vocabulary import (
+    RealizationSupportMode,
+    RealizationVerificationScope,
+    observation_requirement_satisfied,
+    observation_strength_satisfies,
+)
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan, realization_disclosure
 from raes_runtime.control_plane_store import _snapshot_from_payload, _snapshot_payload
 
 
-def _scenario(*, configured: bool = True) -> str:
+def _scenario(*, configured: bool = True, open_agents: bool = False) -> str:
     settings = (
         """
               settings:
@@ -37,6 +42,17 @@ def _scenario(*, configured: bool = True) -> str:
         if configured
         else ""
     )
+    realization = (
+        """
+    realization:
+      default: closed
+      scopes:
+        - field_pointer: /nodes/worker/runtime/forwarding_agents
+          posture: open
+    """
+        if open_agents
+        else ""
+    )
     return f"""
     name: issue-1043-corroboration
     nodes:
@@ -47,6 +63,7 @@ def _scenario(*, configured: bool = True) -> str:
           forwarding_agents:
             - forwarding_agent_id: telemetry
     {settings}
+    {realization}
     """
 
 
@@ -161,12 +178,33 @@ def test_runtime_store_rejects_malformed_observation_instead_of_defaulting_it() 
 def test_planner_requires_operational_verification_without_inferred_observation_demand() -> None:
     model = _compiled()
     planned = plan(model, _manifest(RealizationVerificationScope.PRESENCE))
+    requirement = _forwarding_requirements(model)[0]
 
     assert model.observation_demands == ()
+    assert requirement.required_observation_strength is None
     assert any(
         diagnostic.code == "realization.under-observed-exact-requirement" and "forwarding-agents" in diagnostic.message
         for diagnostic in planned.diagnostics
     )
+
+
+@pytest.mark.parametrize("actual", tuple(ObservationStrength))
+@pytest.mark.parametrize("required", tuple(ObservationStrength))
+def test_observation_sources_are_not_a_total_strength_order(
+    actual: ObservationStrength,
+    required: ObservationStrength,
+) -> None:
+    assert observation_strength_satisfies(actual, required) is (actual is required)
+
+
+@pytest.mark.parametrize("actual", tuple(ObservationStrength))
+def test_unconstrained_source_still_requires_authoritative_readback(actual: ObservationStrength) -> None:
+    assert observation_requirement_satisfied(
+        actual_scope=RealizationVerificationScope.CONFIGURATION,
+        actual_source=actual,
+        required_scope=RealizationVerificationScope.CONFIGURATION,
+        required_source=None,
+    ) is (actual in {ObservationStrength.DAEMON_OBSERVED, ObservationStrength.GUEST_OBSERVED})
 
 
 def test_planner_accepts_presence_only_inventory_with_presence_capability() -> None:
@@ -220,3 +258,25 @@ def test_operational_observation_scope_controls_realization_acceptance() -> None
     assert any(diagnostic.code == "runtime.backend-contract-invalid" for diagnostic in weak_diagnostics)
     assert not any(diagnostic.code == "runtime.backend-contract-invalid" for diagnostic in strong_diagnostics)
     assert any(entry.requirement_kind == "forwarding-agents" for entry in strong_provenance)
+
+
+def test_open_disclosure_rejects_a_manifest_without_open_observation_posture() -> None:
+    model = compile_runtime_model(parse_sdl(_scenario(open_agents=True)))
+    constrained_manifest = _manifest(RealizationVerificationScope.CONFIGURATION)
+    declaration = constrained_manifest.realization_support[0]
+    open_manifest = replace(
+        constrained_manifest,
+        realization_support=(replace(declaration, support_mode=RealizationSupportMode.OPEN_REALIZATION),),
+    )
+    execution_plan = plan(model, open_manifest)
+    assert execution_plan.is_valid, execution_plan.diagnostics
+
+    diagnostics, provenance = realization_disclosure(
+        _forwarding_requirements(model),
+        execution_plan.provisioning,
+        _returned_snapshot(execution_plan, model, RealizationVerificationScope.CONFIGURATION),
+        manifest=constrained_manifest,
+    )
+
+    assert any(diagnostic.code == "runtime.backend-contract-invalid" for diagnostic in diagnostics)
+    assert provenance == ()

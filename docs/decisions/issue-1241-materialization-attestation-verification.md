@@ -66,3 +66,14 @@ source/execution/byte context required for full admission.
   definition per line. Expanding those references must recover the complete
   original schema, including every annotation. Nested reference scopes are
   refused; data-valued keywords and existing definition names are preserved.
+
+## Integration verification
+
+The merge retains the published coverage release 15.0.0 and formal release
+17.0.0 from `dev`. Fresh execution captures the combined implementation in
+coverage release 16.0.0 and formal release 18.0.0, with explicit compiler-digest
+deviations and unchanged bounded outcomes. The historical no-replay regression
+also covers formal release 17.0.0. Archived shape and computed integrity checks
+remain separate, with all twelve retained production records independently pinned.
+`test_each_source_bound_release_checks_its_explicit_baseline` checks every admitted
+release's baseline mapping and rejects a substituted baseline, including release 18.

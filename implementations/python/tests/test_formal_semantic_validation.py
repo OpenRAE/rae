@@ -39,6 +39,34 @@ def test_historical_bundle_integrity_is_clean() -> None:
     assert validate_bundle(REPO_ROOT, *_bundle(), replay_cases=False) == []
 
 
+def test_historical_failure_names_its_revision_specific_analysis_document() -> None:
+    release = deepcopy(copy_bundle(load_release_bundles, REPO_ROOT)[0])
+    release.analysis["protocol_revision"] = "stale"
+    manifest = {
+        "bundle_id": release.manifest["bundle_id"],
+        "revision": release.manifest["revision"],
+        "protocol_path": release.manifest["protocol_path"],
+        "corpus_path": release.manifest["corpus_path"],
+        "snapshot_path": release.manifest["snapshot_path"],
+        "analysis_path": release.manifest["analysis_path"],
+        "satisfiability_snapshot_path": None,
+        "satisfiability_analysis_path": None,
+    }
+
+    failures = validate_bundle(
+        REPO_ROOT,
+        manifest,
+        release.protocol,
+        release.corpus,
+        release.snapshot,
+        release.analysis,
+        replay_cases=False,
+    )
+
+    failure = next(item for item in failures if item.rule_id == "formal-validation-analysis-join")
+    assert failure.path == manifest["analysis_path"]
+
+
 @pytest.mark.integration
 def test_formal_evidence_gate_replays_real_participant_fixtures() -> None:
     assert formal_validation.evaluate(REPO_ROOT) == []
@@ -68,6 +96,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "15.0.0",
         "16.0.0",
         "17.0.0",
+        "18.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -76,10 +105,10 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "17.0.0"
+    assert release.manifest["revision"] == "18.0.0"
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "3.0.0"
-    assert snapshot["baseline"]["release_revision"] == "16.0.0"
+    assert snapshot["baseline"]["release_revision"] == "17.0.0"
     assert {item["case_id"] for item in snapshot["deviations"]} == {
         "compile-repeatability-control",
         "compile-non-vacuity-control",

@@ -9,16 +9,11 @@ from typing import Literal
 
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel, ConfigDict, Field
-from raes_contracts.canonical import canonical_json_digest
 from referencing import Registry
 
 from tools.policy.common import safe_repo_path
 
-from ._types import (
-    _ARCHIVAL_MANIFEST_SHA256,
-    _PROGRESSIVE_ARCHIVAL_MANIFEST_SHA256,
-    _PROGRESSIVE_PRODUCTION_EVIDENCE_DIGESTS,
-)
+from ._types import _ARCHIVAL_MANIFEST_SHA256
 
 _ARCHIVE_ROOT = "docs/research/formal-semantic-validation/archive-contracts"
 
@@ -27,7 +22,7 @@ class _ArchivedContract(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     mode: Literal["satisfiability", "exploit-path"]
-    path: str = Field(pattern=r"^docs/research/formal-semantic-validation/archive-contracts/[a-z-]+-v[12]\.json$")
+    path: str = Field(pattern=r"^docs/research/formal-semantic-validation/archive-contracts/[a-z-]+-v2\.json$")
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     source_revision: str = Field(pattern=r"^[a-f0-9]{40}$")
     source_schema: str = Field(min_length=1)
@@ -36,16 +31,13 @@ class _ArchivedContract(BaseModel):
 class _ArchiveManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    profile: Literal["raes-retained-production-evidence-shapes/v1", "raes-retained-production-evidence-shapes/v2"]
+    profile: Literal["raes-retained-production-evidence-shapes/v2"]
     contracts: tuple[_ArchivedContract, ...] = Field(min_length=2, max_length=2)
 
 
 def validate_archival_evidence_shape(repo_root: Path, payload: object, replay_mode: object) -> None:
-    progressive = canonical_json_digest(payload) in _PROGRESSIVE_PRODUCTION_EVIDENCE_DIGESTS
-    version = "v2" if progressive else "v1"
-    expected = _PROGRESSIVE_ARCHIVAL_MANIFEST_SHA256 if progressive else _ARCHIVAL_MANIFEST_SHA256
-    manifest_bytes = (repo_root / _ARCHIVE_ROOT / f"manifest-{version}.json").read_bytes()
-    if hashlib.sha256(manifest_bytes).hexdigest() != expected:
+    manifest_bytes = (repo_root / _ARCHIVE_ROOT / "manifest-v2.json").read_bytes()
+    if hashlib.sha256(manifest_bytes).hexdigest() != _ARCHIVAL_MANIFEST_SHA256:
         raise ValueError("historical production evidence archival manifest digest mismatch")
     manifest = _ArchiveManifest.model_validate_json(manifest_bytes)
     records = [record for record in manifest.contracts if record.mode == replay_mode]

@@ -87,11 +87,17 @@ this run does not repair them.
   classifications and denominator.
 
 - [`execution-snapshot-v15.json`](execution-snapshot-v15.json) and
-  [`analysis-v15.json`](analysis-v15.json) are current release 15.0.0. Fresh
-  artifact replay binds the materialization-attestation implementation to
-  exact source and package digests. Classifications, the missing-concept
-  denominator, and claim limits are unchanged; dedicated regression tests
-  cover the new operational-provenance boundary separately.
+  [`analysis-v15.json`](analysis-v15.json) preserve release 15.0.0. They
+  bind the unconstrained realization-evidence source semantics to fresh source
+  and package digests while retaining the protocol's bounded classifications,
+  denominator, and claim limits.
+
+- [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
+  [`analysis-v16.json`](analysis-v16.json) are current release 16.0.0. Fresh
+  replay binds the combined materialization-attestation and unconstrained
+  realization-evidence implementation to exact source and package digests.
+  Classifications, the denominator and claim limits are unchanged; dedicated
+  regression tests cover the operational-provenance boundary separately.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source

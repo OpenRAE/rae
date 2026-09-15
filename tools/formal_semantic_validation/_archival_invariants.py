@@ -1,4 +1,4 @@
-"""Computed integrity checks for immutable retained research records.
+"""Computed integrity checks for twelve immutable retained research records.
 
 These checks validate recorded joins, never parse or execute an old scenario.
 The independent corpus pins fence admission to the original captures, including
@@ -12,7 +12,7 @@ from typing import Any
 
 from raes_contracts.canonical import canonical_json_digest
 
-from ._types import _PROGRESSIVE_PRODUCTION_EVIDENCE_DIGESTS, _RETAINED_PRODUCTION_EVIDENCE_DIGESTS
+from ._types import _RETAINED_PRODUCTION_EVIDENCE_DIGESTS
 
 
 def _require(condition: bool, name: str) -> None:
@@ -77,7 +77,6 @@ def validate_archival_evidence_invariants(payload: Mapping[str, Any], replay_mod
     else:
         _exploit_path(payload)
     _require(
-        canonical_json_digest(payload)
-        in _RETAINED_PRODUCTION_EVIDENCE_DIGESTS | _PROGRESSIVE_PRODUCTION_EVIDENCE_DIGESTS,
+        canonical_json_digest(payload) in _RETAINED_PRODUCTION_EVIDENCE_DIGESTS,
         "record is not in the retained production evidence corpus",
     )
