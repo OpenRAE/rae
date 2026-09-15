@@ -455,6 +455,25 @@ jobs:
           print(f"installed release sdist passed {len(report['cases'])} conformance cases")
           PY
 
+      - name: Generate output-bound release evidence (#1226)
+        env:
+          DIST_DIR: ${{ runner.temp }}/raes-release-dist
+          EVIDENCE_DIR: ${{ runner.temp }}/raes-release-evidence
+          SMOKE_VENV: ${{ runner.temp }}/raes-release-smoke
+          SDIST_SMOKE_VENV: ${{ runner.temp }}/raes-release-sdist-smoke
+          RELEASE_TAG: ${{ needs.resolve-release.outputs.tag }}
+          GITHUB_WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.release_evidence generate \
+            --distribution-dir "${DIST_DIR}" \
+            --evidence-dir "${EVIDENCE_DIR}" \
+            --environment "${SMOKE_VENV}" \
+            --sdist-environment "${SDIST_SMOKE_VENV}" \
+            --profile public-linux-x86_64-cp312-all-extras \
+            --release-tag "${RELEASE_TAG}"
+
       - name: Upload the tested release distributions
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -465,7 +484,22 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  publish-pypi:
+      # Evidence is uploaded separately from the distributions: the corpus check
+      # rejects unexpected files beside the distributions, and the publishers
+      # consume the distribution directory as the exact wheel/sdist set.
+      - name: Upload the release evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-evidence-${{ needs.resolve-release.outputs.release_sha }}
+          path: ${{ runner.temp }}/raes-release-evidence/*.json
+          if-no-files-found: error
+          retention-days: 7
+
+  # Signing runs at its own protected producer boundary. It checks out nothing:
+  # a protected script launched inside a candidate checkout can still import or
+  # execute candidate code. It holds no PyPI environment and no storage-write
+  # identity, so an attestation credential cannot authorize publication (#1226).
+  attest-release:
     needs: [resolve-release, verify-release, integration-docker-release, build-release]
     if: >-
       always()
@@ -473,6 +507,119 @@ jobs:
       && needs.verify-release.result == 'success'
       && needs.integration-docker-release.result == 'success'
       && needs.build-release.result == 'success'
+      && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write       # OIDC identity for build-provenance signing only
+      attestations: write   # write the attestation; grants no publication scope
+    steps:
+      - name: Download the tested release distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-distributions-${{ needs.resolve-release.outputs.release_sha }}
+          path: dist/
+
+      - name: Download the release evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-evidence-${{ needs.resolve-release.outputs.release_sha }}
+          path: evidence/
+
+      - name: Measure the received bytes before signing
+        run: |
+          set -euo pipefail
+          wheels=(dist/raes-*.whl)
+          sdists=(dist/raes-*.tar.gz)
+          if [ "${#wheels[@]}" -ne 1 ] || [ ! -f "${wheels[0]}" ] \
+            || [ "${#sdists[@]}" -ne 1 ] || [ ! -f "${sdists[0]}" ]; then
+            echo "Expected exactly one wheel and one sdist before signing" >&2
+            exit 1
+          fi
+          if [ ! -f evidence/release-evidence-index.json ]; then
+            echo "Release evidence index is absent; refusing to sign" >&2
+            exit 1
+          fi
+          # Signing arbitrary candidate JSON would only authenticate an
+          # unchecked claim, so the bytes are hashed here before they are signed.
+          sha256sum "${wheels[0]}" "${sdists[0]}" evidence/*.json
+
+      - name: Attest the release subjects and their evidence
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/raes-*.whl
+            dist/raes-*.tar.gz
+            evidence/*.json
+          push-to-registry: false
+
+  # Admission is its own gate rather than a step inside a publisher: a job that
+  # holds a publication credential must not check out candidate source. Both
+  # publishers depend on this job, so absent or rejected evidence blocks the
+  # handoff instead of being an optional report (#1226).
+  admit-release:
+    needs: [resolve-release, verify-release, integration-docker-release, build-release, attest-release]
+    if: >-
+      always()
+      && needs.resolve-release.result == 'success'
+      && needs.verify-release.result == 'success'
+      && needs.integration-docker-release.result == 'success'
+      && needs.build-release.result == 'success'
+      && needs.attest-release.result == 'success'
+      && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.resolve-release.outputs.release_sha }}
+          persist-credentials: false
+
+      - name: Download the tested release distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-distributions-${{ needs.resolve-release.outputs.release_sha }}
+          path: dist/
+
+      - name: Download the release evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-evidence-${{ needs.resolve-release.outputs.release_sha }}
+          path: evidence/
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
+
+      - name: Admit the release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.release_evidence verify \
+            --distribution-dir dist \
+            --evidence-dir evidence \
+            --signer-workflow "${GITHUB_REPOSITORY}/.github/workflows/release-please.yml"
+
+  publish-pypi:
+    needs:
+      [resolve-release, verify-release, integration-docker-release, build-release, admit-release]
+    if: >-
+      always()
+      && needs.resolve-release.result == 'success'
+      && needs.verify-release.result == 'success'
+      && needs.integration-docker-release.result == 'success'
+      && needs.build-release.result == 'success'
+      && needs.admit-release.result == 'success'
       && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     environment: pypi
@@ -586,12 +733,13 @@ jobs:
           packages-dir: dist
 
   publish-github:
-    needs: [resolve-release, verify-release, build-release, publish-pypi]
+    needs: [resolve-release, verify-release, build-release, admit-release, publish-pypi]
     if: >-
       always()
       && needs.resolve-release.result == 'success'
       && needs.verify-release.result == 'success'
       && needs.build-release.result == 'success'
+      && needs.admit-release.result == 'success'
       && needs.publish-pypi.result == 'success'
       && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -609,6 +757,12 @@ jobs:
         with:
           name: release-distributions-${{ needs.resolve-release.outputs.release_sha }}
           path: dist/
+
+      - name: Download the release evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-evidence-${{ needs.resolve-release.outputs.release_sha }}
+          path: evidence/
 
       - name: Revalidate, attach, and publish the GitHub Release
         env:
@@ -702,6 +856,31 @@ jobs:
           fi
 
           gh release upload "${EXPECTED_TAG}" "${wheels[0]}" "${sdists[0]}" --clobber
+
+          # Retain the evidence on the durable Release, not only as a 7-day
+          # Actions artifact (#1226). Deliberately no --clobber: the incumbent
+          # --clobber above is a recorded #1227 gap, not a pattern to copy for
+          # retained evidence. Retention owner: Release.
+          evidence_files=(evidence/*.json)
+          if [ "${#evidence_files[@]}" -eq 0 ] || [ ! -f "${evidence_files[0]}" ]; then
+            echo "Release evidence is absent; refusing to finalize" >&2
+            exit 1
+          fi
+          gh release upload "${EXPECTED_TAG}" "${evidence_files[@]}"
+
+          # Read the retained bytes back and compare them, so the retention
+          # claim rests on observed stored content rather than on a successful
+          # upload call.
+          readback_dir="$(mktemp -d "${RUNNER_TEMP}/raes-evidence-readback.XXXXXX")"
+          for evidence_file in "${evidence_files[@]}"; do
+            gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
+              --dir "${readback_dir}" --pattern "$(basename "${evidence_file}")"
+            if ! cmp -s "${evidence_file}" "${readback_dir}/$(basename "${evidence_file}")"; then
+              echo "Retained evidence does not match the admitted bytes" >&2
+              exit 1
+            fi
+          done
+          echo "Retained ${#evidence_files[@]} evidence documents with verified readback digests"
 
           # Upload addresses a Release by tag. Re-read the object immediately
           # afterward so a delete/recreate race cannot make a replacement
