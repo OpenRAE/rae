@@ -20,7 +20,10 @@ import json
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeAlias
+
+# Parsed JSON is an untyped document tree; naming it is clearer than `Any`.
+JsonValue: TypeAlias = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
 
 SCHEMA_VERSION = "raes-release-evidence/v1"
 BUILD_INVENTORY_SCHEMA_VERSION = "raes-build-inventory/v1"
@@ -48,6 +51,26 @@ class AdmissionError(Exception):
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
         self.code = code
+
+
+@dataclass(frozen=True)
+class ReleaseIdentity:
+    """The run that produced a release, as one value.
+
+    These six fields are always produced, recorded and checked together, so
+    passing them as a group keeps a caller from supplying five of six or
+    transposing two strings of the same shape.
+    """
+
+    repository: str
+    source_sha: str
+    workflow_ref: str
+    # The producer workflow's own revision. ADR-107 keeps this distinct from the
+    # candidate source revision; they are different identities.
+    workflow_sha: str
+    run_id: str
+    run_attempt: str
+    tag: str
 
 
 @dataclass(frozen=True)
@@ -97,12 +120,7 @@ def build_evidence_index(
     *,
     distribution_dir: Path,
     evidence_dir: Path,
-    repository: str,
-    source_sha: str,
-    workflow_ref: str,
-    run_id: str,
-    run_attempt: str,
-    release_tag: str,
+    identity: ReleaseIdentity,
     profile_id: str,
     policy_hashes: Mapping[str, str],
 ) -> dict[str, Any]:
@@ -140,12 +158,13 @@ def build_evidence_index(
     return {
         "schema_version": SCHEMA_VERSION,
         "release": {
-            "repository": repository,
-            "source_sha": source_sha,
-            "workflow_ref": workflow_ref,
-            "run_id": run_id,
-            "run_attempt": run_attempt,
-            "tag": release_tag,
+            "repository": identity.repository,
+            "source_sha": identity.source_sha,
+            "workflow_ref": identity.workflow_ref,
+            "workflow_sha": identity.workflow_sha,
+            "run_id": identity.run_id,
+            "run_attempt": identity.run_attempt,
+            "tag": identity.tag,
         },
         "profile": {"python_closure_profile_id": profile_id},
         "policy": dict(policy_hashes),
@@ -169,12 +188,12 @@ def _load_bounded_json(path: Path, declared_sha256: str) -> Any:
         )
     try:
         return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_keys)
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         raise AdmissionError("admission-evidence-unparsable", f"{path.name} could not be parsed") from exc
 
 
-def _reject_duplicate_keys(pairs: Sequence[tuple[str, Any]]) -> dict[str, Any]:
-    seen: dict[str, Any] = {}
+def _reject_duplicate_keys(pairs: Sequence[tuple[str, JsonValue]]) -> dict[str, JsonValue]:
+    seen: dict[str, JsonValue] = {}
     for key, value in pairs:
         if key in seen:
             raise ValueError(f"duplicate key {key!r}")
@@ -182,19 +201,20 @@ def _reject_duplicate_keys(pairs: Sequence[tuple[str, Any]]) -> dict[str, Any]:
     return seen
 
 
-def _sbom_subject_digest(document: Any) -> str | None:
-    if not isinstance(document, Mapping):
-        return None
-    component = document.get("metadata", {})
-    component = component.get("component") if isinstance(component, Mapping) else None
-    if not isinstance(component, Mapping):
-        return None
-    for entry in component.get("hashes", []) or ():
-        if isinstance(entry, Mapping) and entry.get("alg") == "SHA-256":
-            content = entry.get("content")
-            if isinstance(content, str):
-                return content
-    return None
+def _sbom_subject_digest(document: JsonValue) -> str | None:
+    """Return the SHA-256 the document binds itself to, if it binds one."""
+
+    metadata = document.get("metadata") if isinstance(document, Mapping) else None
+    component = metadata.get("component") if isinstance(metadata, Mapping) else None
+    hashes = component.get("hashes") if isinstance(component, Mapping) else None
+    return next(
+        (
+            entry["content"]
+            for entry in (hashes or ())
+            if isinstance(entry, Mapping) and entry.get("alg") == "SHA-256" and isinstance(entry.get("content"), str)
+        ),
+        None,
+    )
 
 
 def _verify_subjects(distribution_dir: Path, index: Mapping[str, Any]) -> dict[str, str]:
@@ -238,28 +258,22 @@ def _verify_subjects(distribution_dir: Path, index: Mapping[str, Any]) -> dict[s
     return digests
 
 
-def _verify_evidence(
-    evidence_dir: Path,
-    index: Mapping[str, Any],
-    subject_digests: Mapping[str, str],
-) -> dict[str, str]:
-    """Admit the evidence directory against a fixed contract, not the index alone.
+def _require_declared_set(evidence_dir: Path, declared: Mapping[str, Any]) -> None:
+    """The directory must hold exactly the declared documents, plus the index.
 
-    The directory must contain exactly the declared documents plus the index
-    itself, and must carry every required document regardless of what the index
-    enumerates. An undeclared sidecar is refused before handoff: the signer and
-    the GitHub publisher both consume `evidence/*.json`, so an extra file would
-    otherwise be attested and retained without ever being semantically admitted.
+    The required set is fixed here rather than read from the index, so an index
+    naming fewer sidecars cannot discharge the obligation to carry them. An
+    undeclared sidecar is refused before handoff: the signer and the GitHub
+    publisher both consume `evidence/*.json`, so an extra file would otherwise be
+    attested and retained without ever being semantically admitted.
     """
 
-    declared = {record["filename"]: record for record in index["evidence"]}
     missing_required = sorted(set(REQUIRED_EVIDENCE) - set(declared))
     if missing_required:
         raise AdmissionError(
             "admission-required-evidence-missing",
             f"evidence index does not declare required documents: {missing_required}",
         )
-
     present = {path.name for path in sorted(evidence_dir.iterdir()) if path.is_file() and not path.is_symlink()}
     unexpected = sorted(present - set(declared) - {INDEX_FILENAME})
     if unexpected:
@@ -268,7 +282,10 @@ def _verify_evidence(
             f"evidence directory carries undeclared documents: {unexpected}",
         )
 
-    digests: dict[str, str] = {}
+
+def _load_declared(evidence_dir: Path, declared: Mapping[str, Any]) -> dict[str, Any]:
+    """Read every declared document at the digest the index recorded for it."""
+
     documents: dict[str, Any] = {}
     for filename, record in declared.items():
         path = evidence_dir / filename
@@ -278,24 +295,45 @@ def _verify_evidence(
                 f"declared evidence {filename} is absent",
             )
         documents[filename] = _load_bounded_json(path, record["sha256"])
-        digests[filename] = record["sha256"]
+    return documents
+
+
+def _check_document_subjects(filename: str, document: Any, admitted: set[str]) -> None:
+    """Every document must describe bytes that were actually admitted."""
+
+    if filename.endswith(".cdx.json"):
+        subject = _sbom_subject_digest(document)
+        if subject is None or subject not in admitted:
+            raise AdmissionError(
+                "admission-sbom-foreign-subject",
+                f"{filename} does not bind an admitted output subject",
+            )
+        return
+    if isinstance(document, Mapping) and document.get("schema_version") == BUILD_INVENTORY_SCHEMA_VERSION:
+        recorded = {item.get("sha256") for item in document.get("subjects", []) or () if isinstance(item, Mapping)}
+        if not recorded or not recorded <= admitted:
+            raise AdmissionError(
+                "admission-inventory-subject-mismatch",
+                f"{filename} records a subject that was not admitted",
+            )
+
+
+def _verify_evidence(
+    evidence_dir: Path,
+    index: Mapping[str, Any],
+    subject_digests: Mapping[str, str],
+) -> dict[str, str]:
+    """Admit the evidence directory against a fixed contract, not the index alone."""
+
+    declared = {record["filename"]: record for record in index["evidence"]}
+    _require_declared_set(evidence_dir, declared)
+    documents = _load_declared(evidence_dir, declared)
 
     admitted = set(subject_digests.values())
     for filename, document in documents.items():
-        if filename.endswith(".cdx.json"):
-            subject = _sbom_subject_digest(document)
-            if subject is None or subject not in admitted:
-                raise AdmissionError(
-                    "admission-sbom-foreign-subject",
-                    f"{filename} does not bind an admitted output subject",
-                )
-        elif isinstance(document, Mapping) and document.get("schema_version") == BUILD_INVENTORY_SCHEMA_VERSION:
-            recorded = {item.get("sha256") for item in document.get("subjects", []) or () if isinstance(item, Mapping)}
-            if not recorded or not recorded <= admitted:
-                raise AdmissionError(
-                    "admission-inventory-subject-mismatch",
-                    f"{filename} records a subject that was not admitted",
-                )
+        _check_document_subjects(filename, document, admitted)
+
+    digests = {filename: record["sha256"] for filename, record in declared.items()}
 
     # The index is evidence too. It is not listed in its own `evidence` array,
     # so bind it explicitly and require its attestation alongside the rest.
@@ -336,10 +374,7 @@ def verify_admission(
     index: Mapping[str, Any],
     attestations: Mapping[str, ProducerIdentity],
     approved_producers: Sequence[ProducerIdentity],
-    expected_repository: str,
-    expected_run_id: str,
-    expected_run_attempt: str,
-    expected_source_sha: str,
+    expected: ReleaseIdentity,
     policy_hashes: Mapping[str, str],
 ) -> None:
     """Refuse the release unless every subject and sidecar is admissible.
@@ -359,10 +394,11 @@ def verify_admission(
     if not isinstance(release, Mapping):
         raise AdmissionError("admission-index-unsupported", "evidence index has no release identity")
     if (
-        release.get("repository") != expected_repository
-        or release.get("run_id") != expected_run_id
-        or release.get("run_attempt") != expected_run_attempt
-        or release.get("source_sha") != expected_source_sha
+        release.get("repository") != expected.repository
+        or release.get("run_id") != expected.run_id
+        or release.get("run_attempt") != expected.run_attempt
+        or release.get("source_sha") != expected.source_sha
+        or release.get("tag") != expected.tag
     ):
         raise AdmissionError(
             "admission-run-identity-mismatch",
@@ -387,6 +423,7 @@ def verify_admission(
 
 __all__ = [
     "BUILD_INVENTORY_SCHEMA_VERSION",
+    "ReleaseIdentity",
     "INDEX_FILENAME",
     "REQUIRED_EVIDENCE",
     "MAX_EVIDENCE_BYTES",

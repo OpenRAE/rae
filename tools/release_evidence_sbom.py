@@ -104,7 +104,7 @@ def wheel_metadata(wheel_path: Path) -> Metadata:
         )
     try:
         return Metadata.from_email(payload.decode("utf-8"), validate=False)
-    except (UnicodeDecodeError, ValueError) as exc:
+    except ValueError as exc:
         raise RuntimeClosureError("wheel-metadata-invalid", "wheel metadata could not be parsed") from exc
 
 

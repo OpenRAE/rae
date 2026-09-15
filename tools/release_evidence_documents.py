@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any
 
 from tools.release_evidence_sbom import ReconciledClosure
@@ -36,6 +37,22 @@ CYCLONEDX_SPEC_VERSION = "1.6"
 BUILD_INVENTORY_SCHEMA_VERSION = "raes-build-inventory/v1"
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _EXTRA_PROPERTY = "raes:extra"
+
+
+@dataclass(frozen=True)
+class BuildInputs:
+    """What produced a release, as one value.
+
+    Interpreter, backend, tools, native inputs, actions and runner are recorded
+    together and never independently, so they travel together too.
+    """
+
+    interpreter: Mapping[str, Any]
+    build_backend: Mapping[str, Any]
+    tool_inputs: Sequence[Mapping[str, Any]]
+    native_inputs: Sequence[Mapping[str, Any]]
+    actions: Sequence[Mapping[str, Any]]
+    runner: Mapping[str, Any]
 
 
 class EvidenceDocumentError(Exception):
@@ -136,12 +153,7 @@ def render_runtime_sbom(
 def render_build_inventory(
     *,
     subjects: Sequence[Mapping[str, Any]],
-    interpreter: Mapping[str, Any],
-    build_backend: Mapping[str, Any],
-    tool_inputs: Sequence[Mapping[str, Any]],
-    native_inputs: Sequence[Mapping[str, Any]],
-    actions: Sequence[Mapping[str, Any]],
-    runner: Mapping[str, Any],
+    inputs: BuildInputs,
     lock_hashes: Mapping[str, str],
     policy_hashes: Mapping[str, str],
     release: Mapping[str, Any],
@@ -175,12 +187,12 @@ def render_build_inventory(
         "schema_version": BUILD_INVENTORY_SCHEMA_VERSION,
         "subjects": recorded,
         "profile": {"python_closure_profile_id": profile_id},
-        "interpreter": dict(interpreter),
-        "build_backend": dict(build_backend),
-        "tool_inputs": [dict(item) for item in tool_inputs],
-        "native_inputs": [dict(item) for item in native_inputs],
-        "actions": [dict(item) for item in actions],
-        "runner": dict(runner),
+        "interpreter": dict(inputs.interpreter),
+        "build_backend": dict(inputs.build_backend),
+        "tool_inputs": [dict(item) for item in inputs.tool_inputs],
+        "native_inputs": [dict(item) for item in inputs.native_inputs],
+        "actions": [dict(item) for item in inputs.actions],
+        "runner": dict(inputs.runner),
         "lock_hashes": dict(lock_hashes),
         "policy_hashes": dict(policy_hashes),
         "release": dict(release),
@@ -189,6 +201,7 @@ def render_build_inventory(
 
 __all__ = [
     "BUILD_INVENTORY_SCHEMA_VERSION",
+    "BuildInputs",
     "CYCLONEDX_SPEC_VERSION",
     "EvidenceDocumentError",
     "render_build_inventory",

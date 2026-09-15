@@ -15,6 +15,7 @@ import pytest
 from tools.release_evidence_documents import (
     BUILD_INVENTORY_SCHEMA_VERSION,
     CYCLONEDX_SPEC_VERSION,
+    BuildInputs,
     EvidenceDocumentError,
     render_build_inventory,
     render_runtime_sbom,
@@ -112,17 +113,19 @@ def _inventory(**overrides: object) -> dict:
             {"role": "wheel", "filename": "raes-1.2.3-py3-none-any.whl", "sha256": _SUBJECT_DIGEST},
             {"role": "sdist", "filename": "raes-1.2.3.tar.gz", "sha256": "b" * 64},
         ],
-        "interpreter": {
-            "implementation": "cpython",
-            "version": "3.12.14",
-            "abi": "cp312",
-            "platform": "x86_64-unknown-linux-gnu",
-        },
-        "build_backend": {"name": "hatchling", "version": "1.27.0"},
-        "tool_inputs": [{"name": "uv", "version": "0.12.4"}],
-        "native_inputs": [],
-        "actions": [{"action": "actions/checkout", "commit": "c" * 40}],
-        "runner": {"image": "ubuntu-24.04", "architecture": "x86_64", "observed": False},
+        "inputs": BuildInputs(
+            interpreter={
+                "implementation": "cpython",
+                "version": "3.12.14",
+                "abi": "cp312",
+                "platform": "x86_64-unknown-linux-gnu",
+            },
+            build_backend={"name": "hatchling", "version": "1.27.0"},
+            tool_inputs=[{"name": "uv", "version": "0.12.4"}],
+            native_inputs=[],
+            actions=[{"action": "actions/checkout", "commit": "c" * 40}],
+            runner={"image": "ubuntu-24.04", "architecture": "x86_64", "observed": False},
+        ),
         "lock_hashes": {"project_lock_sha256": "d" * 64, "tool_lock_sha256": "e" * 64},
         "policy_hashes": {"tooling_policy_sha256": "f" * 64},
         "release": {
@@ -165,8 +168,9 @@ def test_inventory_keeps_candidate_source_and_producer_workflow_separate() -> No
     """A workflow definition revision is not the candidate source revision."""
 
     release = _inventory()["release"]
+    assert "source_sha" in release
+    assert "workflow_sha" in release
     assert release["source_sha"] != release["workflow_sha"]
-    assert "source_sha" in release and "workflow_sha" in release
 
 
 def test_inventory_records_lock_and_policy_hashes_separately() -> None:

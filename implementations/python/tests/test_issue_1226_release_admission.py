@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -20,8 +21,19 @@ from tools.release_evidence_admission import (
     SCHEMA_VERSION,
     AdmissionError,
     ProducerIdentity,
+    ReleaseIdentity,
     build_evidence_index,
     verify_admission,
+)
+
+_IDENTITY = ReleaseIdentity(
+    repository="OpenRAE/rae",
+    source_sha="a" * 40,
+    workflow_ref="OpenRAE/rae/.github/workflows/release-please.yml@refs/heads/main",
+    workflow_sha="e" * 40,
+    run_id="1234567890",
+    run_attempt="1",
+    tag="v1.2.3",
 )
 
 _REPOSITORY = "OpenRAE/rae"
@@ -92,12 +104,7 @@ def release(tmp_path: Path) -> dict[str, object]:
     index = build_evidence_index(
         distribution_dir=dist,
         evidence_dir=evidence,
-        repository=_REPOSITORY,
-        source_sha=_SOURCE_SHA,
-        workflow_ref=_WORKFLOW_REF,
-        run_id=_RUN_ID,
-        run_attempt=_RUN_ATTEMPT,
-        release_tag="v1.2.3",
+        identity=_IDENTITY,
         profile_id="public-linux-x86_64-cp312-all-extras",
         policy_hashes={"tooling_policy_sha256": "b" * 64},
     )
@@ -129,10 +136,7 @@ def _verify(release: dict[str, object], **overrides: object) -> None:
         "index": release["index"],
         "attestations": release["attestations"],
         "approved_producers": (_APPROVED,),
-        "expected_repository": _REPOSITORY,
-        "expected_run_id": _RUN_ID,
-        "expected_run_attempt": _RUN_ATTEMPT,
-        "expected_source_sha": _SOURCE_SHA,
+        "expected": _IDENTITY,
         "policy_hashes": {"tooling_policy_sha256": "b" * 64},
     }
     kwargs.update(overrides)
@@ -278,13 +282,13 @@ def test_valid_signature_from_the_wrong_workflow_is_refused(release: dict[str, o
 
 def test_run_attempt_replay_is_refused(release: dict[str, object]) -> None:
     with pytest.raises(AdmissionError) as excinfo:
-        _verify(release, expected_run_attempt="2")
+        _verify(release, expected=replace(_IDENTITY, run_attempt="2"))
     assert excinfo.value.code == "admission-run-identity-mismatch"
 
 
 def test_foreign_repository_is_refused(release: dict[str, object]) -> None:
     with pytest.raises(AdmissionError) as excinfo:
-        _verify(release, expected_repository="attacker/rae")
+        _verify(release, expected=replace(_IDENTITY, repository="attacker/rae"))
     assert excinfo.value.code == "admission-run-identity-mismatch"
 
 
@@ -330,7 +334,7 @@ def test_source_sha_from_trusted_context_must_match(release: dict[str, object]) 
     """A replayed index cannot describe a different candidate source revision."""
 
     with pytest.raises(AdmissionError) as excinfo:
-        _verify(release, expected_source_sha="f" * 40)
+        _verify(release, expected=replace(_IDENTITY, source_sha="f" * 40))
     assert excinfo.value.code == "admission-run-identity-mismatch"
 
 

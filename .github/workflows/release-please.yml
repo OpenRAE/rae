@@ -602,12 +602,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          RELEASE_TAG: ${{ needs.resolve-release.outputs.tag }}
         run: |
           set -euo pipefail
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.release_evidence verify \
             --distribution-dir dist \
             --evidence-dir evidence \
+            --release-tag "${RELEASE_TAG}" \
             --signer-workflow "${GITHUB_REPOSITORY}/.github/workflows/release-please.yml"
 
   publish-pypi:

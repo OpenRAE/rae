@@ -269,8 +269,9 @@ def test_wheel_without_metadata_is_refused(tmp_path: Path) -> None:
 def test_oversized_metadata_member_is_refused(tmp_path: Path) -> None:
     """Evidence inputs are untrusted: a declared member cannot be read unbounded."""
 
+    oversized = _wheel(tmp_path, _METADATA + "# padding\n" * 200_000)
     with pytest.raises(RuntimeClosureError) as excinfo:
-        wheel_metadata(_wheel(tmp_path, _METADATA + "# padding\n" * 200_000))
+        wheel_metadata(oversized)
     assert excinfo.value.code == "wheel-metadata-oversized"
 
 

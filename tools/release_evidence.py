@@ -24,7 +24,8 @@ import os
 import subprocess
 import sys
 import tomllib
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -36,15 +37,18 @@ from tools.check_tooling_artifact_policy import tooling_policy_sha256
 from tools.generate_python_closures import reviewed_python_full_version
 from tools.generate_python_closures_locks import target_environment
 from tools.python_closure_profiles import load_python_closure_profile
+from tools.python_closure_wheelhouse import operator_path
 from tools.release_evidence_admission import (
     INDEX_FILENAME,
     AdmissionError,
     ProducerIdentity,
+    ReleaseIdentity,
     build_evidence_index,
     digest_file,
     verify_admission,
 )
 from tools.release_evidence_documents import (
+    BuildInputs,
     EvidenceDocumentError,
     render_build_inventory,
     render_runtime_sbom,
@@ -122,18 +126,31 @@ def _lock_hashes(repo_root: Path) -> dict[str, str]:
     return {key: digest_file(repo_root / value)[1] for key, value in paths.items()}
 
 
+@dataclass(frozen=True)
+class GeneratePaths:
+    """The four admitted directories one generation reads and writes."""
+
+    repo_root: Path
+    distribution_dir: Path
+    evidence_dir: Path
+    environment_dir: Path
+    sdist_environment_dir: Path
+
+
 def generate(
     *,
-    repo_root: Path,
-    distribution_dir: Path,
-    evidence_dir: Path,
-    environment_dir: Path,
-    sdist_environment_dir: Path,
+    paths: GeneratePaths,
     profile_id: str,
     release_tag: str,
     environment: Mapping[str, str],
 ) -> dict[str, Any]:
     """Write every evidence document for one built release."""
+
+    repo_root = paths.repo_root
+    distribution_dir = paths.distribution_dir
+    evidence_dir = paths.evidence_dir
+    environment_dir = paths.environment_dir
+    sdist_environment_dir = paths.sdist_environment_dir
 
     wheel, sdist, derived = _distribution_paths(distribution_dir)
     identity = release_identity(environment)
@@ -202,21 +219,23 @@ def generate(
                 "sha256": digest_file(derived)[1],
             },
         ],
-        interpreter={
-            "implementation": "cpython",
-            "version": markers["python_full_version"],
-            "abi": profile.abi,
-            "platform": profile.platform,
-        },
-        build_backend=_build_backend(repo_root),
-        tool_inputs=_tool_inputs(repo_root),
-        native_inputs=[],
-        actions=_workflow_actions(repo_root),
-        runner={
-            "image": environment.get("ImageOS", "unknown"),
-            "architecture": profile.platform,
-            "observed": False,
-        },
+        inputs=BuildInputs(
+            interpreter={
+                "implementation": "cpython",
+                "version": markers["python_full_version"],
+                "abi": profile.abi,
+                "platform": profile.platform,
+            },
+            build_backend=_build_backend(repo_root),
+            tool_inputs=_tool_inputs(repo_root),
+            native_inputs=[],
+            actions=_workflow_actions(repo_root),
+            runner={
+                "image": environment.get("ImageOS", "unknown"),
+                "architecture": profile.platform,
+                "observed": False,
+            },
+        ),
         lock_hashes=_lock_hashes(repo_root),
         policy_hashes=policy_hashes,
         release={**identity, "tag": release_tag},
@@ -227,12 +246,7 @@ def generate(
     index = build_evidence_index(
         distribution_dir=distribution_dir,
         evidence_dir=evidence_dir,
-        repository=identity["repository"],
-        source_sha=identity["source_sha"],
-        workflow_ref=identity["workflow_ref"],
-        run_id=identity["run_id"],
-        run_attempt=identity["run_attempt"],
-        release_tag=release_tag,
+        identity=ReleaseIdentity(**identity, tag=release_tag),
         profile_id=profile_id,
         policy_hashes=policy_hashes,
     )
@@ -273,7 +287,8 @@ def _workflow_actions(repo_root: Path) -> list[dict[str, str]]:
 
 def _run_verifier(command: Sequence[str]) -> str:
     try:
-        completed = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        # Fixed argv, no shell, closed stdin.
+        completed = subprocess.run(  # noqa: S603
             list(command),
             capture_output=True,
             text=True,
@@ -295,7 +310,7 @@ def collect_attestations(
     index: Mapping[str, Any],
     repository: str,
     signer_workflow: str,
-    runner: Any = _run_verifier,
+    runner: Callable[[Sequence[str]], str] = _run_verifier,
 ) -> dict[str, ProducerIdentity]:
     """Verify every admitted artifact through the maintained verifier."""
 
@@ -383,6 +398,9 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     verify_parser.add_argument("--distribution-dir", required=True, type=Path)
     verify_parser.add_argument("--evidence-dir", required=True, type=Path)
     verify_parser.add_argument("--signer-workflow", required=True)
+    # The tag is expected identity, so it comes from the trusted workflow
+    # context rather than from the index being verified.
+    verify_parser.add_argument("--release-tag", required=True)
     verify_parser.add_argument("--repo-root", default=REPO_ROOT, type=Path)
     return parser.parse_args(list(argv) if argv is not None else None)
 
@@ -390,13 +408,27 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     try:
+        # Canonicalize and admit operator input before it reaches a filesystem
+        # sink, so no `..` component survives into a read or write.
+        for name, purpose in (
+            ("repo_root", "repository root"),
+            ("distribution_dir", "distribution directory"),
+            ("evidence_dir", "evidence directory"),
+            ("environment", "smoke environment"),
+            ("sdist_environment", "sdist smoke environment"),
+        ):
+            value = getattr(args, name, None)
+            if value is not None:
+                setattr(args, name, operator_path(Path(value), purpose=purpose))
         if args.command == "generate":
             generate(
-                repo_root=args.repo_root,
-                distribution_dir=args.distribution_dir,
-                evidence_dir=args.evidence_dir,
-                environment_dir=args.environment,
-                sdist_environment_dir=args.sdist_environment,
+                paths=GeneratePaths(
+                    repo_root=args.repo_root,
+                    distribution_dir=args.distribution_dir,
+                    evidence_dir=args.evidence_dir,
+                    environment_dir=args.environment,
+                    sdist_environment_dir=args.sdist_environment,
+                ),
                 profile_id=args.profile,
                 release_tag=args.release_tag,
                 environment=os.environ,
@@ -421,10 +453,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             index=index,
             attestations=attestations,
             approved_producers=approved,
-            expected_repository=identity["repository"],
-            expected_run_id=identity["run_id"],
-            expected_run_attempt=identity["run_attempt"],
-            expected_source_sha=identity["source_sha"],
+            expected=ReleaseIdentity(**identity, tag=args.release_tag),
             policy_hashes=policy_hashes,
         )
         print("release evidence admitted")

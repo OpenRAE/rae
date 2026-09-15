@@ -205,12 +205,7 @@ def test_expected_identity_is_never_sourced_from_the_evidence_index() -> None:
         for node in ast.walk(tree)
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "verify_admission"
     )
-    guarded = {
-        "expected_repository",
-        "expected_run_id",
-        "expected_run_attempt",
-        "expected_source_sha",
-    }
+    guarded = {"expected"}
     seen = set()
     for keyword in call.keywords:
         if keyword.arg not in guarded:

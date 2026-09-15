@@ -46,9 +46,11 @@ def test_command_pins_repository_and_signer_workflow() -> None:
     )
     assert command[0] == "gh"
     assert command[1:3] == ["attestation", "verify"]
-    assert "--repo" in command and _REPOSITORY in command
+    assert "--repo" in command
+    assert _REPOSITORY in command
     assert "--signer-workflow" in command
-    assert "--format" in command and "json" in command
+    assert "--format" in command
+    assert "json" in command
 
 
 def test_command_is_fixed_argv_without_shell_interpolation() -> None:
@@ -88,19 +90,21 @@ def test_oversized_verifier_output_is_refused() -> None:
 
 
 def test_missing_certificate_identity_is_refused() -> None:
+    payload = json.dumps([{"verificationResult": {}}])
     with pytest.raises(VerifierError) as excinfo:
-        parse_verifier_output(json.dumps([{"verificationResult": {}}]))
+        parse_verifier_output(payload)
     assert excinfo.value.code == "verifier-identity-absent"
 
 
 def test_ambiguous_multiple_attestations_are_refused() -> None:
-    document = json.loads(_bundle())
+    payload = json.dumps(json.loads(_bundle()) * 2)
     with pytest.raises(VerifierError) as excinfo:
-        parse_verifier_output(json.dumps(document * 2))
+        parse_verifier_output(payload)
     assert excinfo.value.code == "verifier-ambiguous-attestation"
 
 
 def test_source_repository_uri_that_is_not_a_github_url_is_refused() -> None:
+    payload = _bundle(sourceRepositoryURI="https://evil.example/OpenRAE/rae")
     with pytest.raises(VerifierError) as excinfo:
-        parse_verifier_output(_bundle(sourceRepositoryURI="https://evil.example/OpenRAE/rae"))
+        parse_verifier_output(payload)
     assert excinfo.value.code == "verifier-identity-untrusted-host"

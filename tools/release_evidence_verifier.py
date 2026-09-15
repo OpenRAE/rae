@@ -16,12 +16,16 @@ out of scope. What this module owns is the boundary around that client:
 from __future__ import annotations
 
 import json
-from typing import Any
+from collections.abc import Mapping
+from typing import TypeAlias
 
 from tools.release_evidence_admission import ProducerIdentity
 
 # The verifier emits a small JSON array. Anything larger is malformed output or
 # a hostile response rather than a verdict.
+# The verifier emits a JSON document tree; naming it beats `Any`.
+JsonValue: TypeAlias = "str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]"
+
 MAX_VERIFIER_OUTPUT_BYTES = 1 * 1024 * 1024
 
 _GITHUB_PREFIX = "https://github.com/"
@@ -80,8 +84,8 @@ def _workflow_from_uri(value: object) -> str:
     return value[len(_GITHUB_PREFIX) :]
 
 
-def parse_verifier_output(payload: str) -> ProducerIdentity:
-    """Read exactly one clean verdict out of the maintained verifier's output."""
+def _sole_attestation(payload: str) -> JsonValue:
+    """Decode the verifier's output down to exactly one attestation."""
 
     if len(payload.encode("utf-8", errors="ignore")) > MAX_VERIFIER_OUTPUT_BYTES:
         raise VerifierError(
@@ -89,13 +93,12 @@ def parse_verifier_output(payload: str) -> ProducerIdentity:
             "attestation verifier output exceeds the reviewed size bound",
         )
     try:
-        document: Any = json.loads(payload)
+        document: JsonValue = json.loads(payload)
     except ValueError as exc:
         raise VerifierError(
             "verifier-output-unparsable",
             "attestation verifier output could not be parsed",
         ) from exc
-
     if not isinstance(document, list) or not document:
         raise VerifierError(
             "verifier-no-attestation",
@@ -106,19 +109,27 @@ def parse_verifier_output(payload: str) -> ProducerIdentity:
             "verifier-ambiguous-attestation",
             "attestation verifier returned more than one attestation for one subject",
         )
+    return document[0]
 
-    entry = document[0]
-    certificate = None
-    if isinstance(entry, dict):
-        result = entry.get("verificationResult")
-        signature = result.get("signature") if isinstance(result, dict) else None
-        certificate = signature.get("certificate") if isinstance(signature, dict) else None
-    if not isinstance(certificate, dict):
+
+def _certificate(entry: JsonValue) -> Mapping[str, JsonValue]:
+    """Reach the signing certificate, refusing any shape that lacks one."""
+
+    result = entry.get("verificationResult") if isinstance(entry, Mapping) else None
+    signature = result.get("signature") if isinstance(result, Mapping) else None
+    certificate = signature.get("certificate") if isinstance(signature, Mapping) else None
+    if not isinstance(certificate, Mapping):
         raise VerifierError(
             "verifier-identity-absent",
             "attestation carries no certificate identity",
         )
+    return certificate
 
+
+def parse_verifier_output(payload: str) -> ProducerIdentity:
+    """Read exactly one clean verdict out of the maintained verifier's output."""
+
+    certificate = _certificate(_sole_attestation(payload))
     issuer = certificate.get("issuer")
     if not isinstance(issuer, str) or not issuer:
         raise VerifierError(
