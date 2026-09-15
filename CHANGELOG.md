@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [5.0.0](https://github.com/OpenRAE/rae/compare/v4.1.0...v5.0.0) (2026-09-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* adopt progressive SDL semantics ([#1283](https://github.com/OpenRAE/rae/issues/1283))
+
+### Features
+
+* adopt progressive SDL semantics ([#1283](https://github.com/OpenRAE/rae/issues/1283)) ([1274d5a](https://github.com/OpenRAE/rae/commit/1274d5a11be5d0ce7e6104d5f0b9c1adfa0a1d2e))
+* **conformance:** add observability evidence fixture profile ([#1287](https://github.com/OpenRAE/rae/issues/1287)) ([00259d8](https://github.com/OpenRAE/rae/commit/00259d811e6c1fc6ba4880f7e1ebf603c30280d4))
+* **sdl:** configurable per-run random value generation ([#1282](https://github.com/OpenRAE/rae/issues/1282)) ([128f24b](https://github.com/OpenRAE/rae/commit/128f24b9d30ec4aa9ac9c71244a1a96ec2fcfe19))
+* **sdl:** extend typed profile selections ([#1278](https://github.com/OpenRAE/rae/issues/1278)) ([a7c6b55](https://github.com/OpenRAE/rae/commit/a7c6b55cd056a82a146f5e7537743269f1d8ec24))
+
+
+### Bug Fixes
+
+* allow unconstrained realization evidence sources ([#1288](https://github.com/OpenRAE/rae/issues/1288)) ([5152cfb](https://github.com/OpenRAE/rae/commit/5152cfbaa8f73c1620a08c19202fd02943fb8aaf))
+* **sdl:** admit partial runtime inventory descriptions ([#1271](https://github.com/OpenRAE/rae/issues/1271)) ([e262c3c](https://github.com/OpenRAE/rae/commit/e262c3c92f3bb9da2849dd635b54bd7ddf7afbb6))
+* **tooling:** harden verified installation publication ([#1275](https://github.com/OpenRAE/rae/issues/1275)) ([10293fe](https://github.com/OpenRAE/rae/commit/10293fe606ee04d4a0750b4b6553c8f884060025))
+* **tooling:** upgrade vulnerable cryptography and pip and retire the macOS x86_64 bootstrap profile ([#1269](https://github.com/OpenRAE/rae/issues/1269)) ([c5245b8](https://github.com/OpenRAE/rae/commit/c5245b867878086111c65b1aece91a0458466ea9))
+
 ## [4.1.0](https://github.com/OpenRAE/rae/compare/v4.0.0...v4.1.0) (2026-09-13)
 
 
