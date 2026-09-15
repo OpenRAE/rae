@@ -1,4 +1,4 @@
-"""Computed integrity checks for eight immutable pre-cutover research records.
+"""Computed integrity checks for the immutable retained research records.
 
 These checks validate recorded joins, never parse or execute an old scenario.
 The independent corpus pins fence admission to the original captures, including

@@ -27,3 +27,11 @@ It uses an empty external-reference registry and never invokes current artifact
 models, analyzers, solvers, or CLI replay for historical evidence. Shape admission
 and recorded digest agreement do not constitute semantic execution or establish
 compatibility. Current release evidence still uses current models and replay.
+
+`manifest-v2.json` appends frozen shapes for the four canonical-profile v2
+evidence records retained from release 16.0.0. It preserves the v1 manifest and
+schemas. The satisfiability shape admits only the retained v4 witness snapshot;
+both shapes require every serialized envelope field. Independent manifest and
+record pins retain the same closed archival admission and computed-join checks.
+Release 17.0.0 still replays those evidence records through production APIs and
+the CLI; archival admission never substitutes for that current-code check.

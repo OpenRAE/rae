@@ -34,4 +34,6 @@ Scenario authors may need to require that particular data be captured from parti
 - TESTS → TEST `implementations/python/tests/test_dsl_124_authored_evidence_requirements.py` (DSL-124 authored evidence requirement tests)
 - IMPLEMENTS → GITHUB_ISSUE `337` (Issue 337: Authored Data And Evidence Requirements)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/capture_admission.py` (Compiled authored evidence demand and backend admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/capture_dimensions.py` (Shared authored capture dimension projection)
+- TESTS → TEST `implementations/python/tests/test_issue_1237_capture_dimensions.py` (Independent authored demand projection and admission parity)
 - TESTS → TEST `implementations/python/tests/test_issue_1112_capture_admission.py` (Authored evidence demand admission and non-demand boundaries)

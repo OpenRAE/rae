@@ -10,6 +10,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..evidence_proof import ValidatedRunEvidence
 from ..versions import EXPERIMENT_RUN_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
 from .difficulty_provenance import DifficultyRunProvenanceModel
@@ -36,7 +37,6 @@ from .experiment_evidence import (
     ExperimentRunTraceabilityModel,
 )
 from .experiment_manifest_references import (
-    ExperimentEvidenceReferenceModel,
     ExperimentRunEvidenceArtifactReferenceModel,
 )
 from .experiment_references import (
@@ -432,12 +432,14 @@ def validate_experiment_run_against_task(
     run: ExperimentRunModel,
     *,
     evidence: ExperimentRunEvidenceInputs | None = None,
-) -> tuple[ExperimentEvidenceReferenceModel, ...]:
+) -> ValidatedRunEvidence:
     """Validate a task/run pair, including content-backed evidence when claimed."""
 
     validate_experiment_run_structure_against_task(task, run)
-    if not _task_claims_required_evidence(task):
-        return ()
+    from ..evidence_proof import _mint_validated_run_evidence
+
+    if not _task_claims_required_evidence(task) and evidence is None:
+        return _mint_validated_run_evidence(task, run, ())
     if evidence is None:
         raise ValueError("task/run validation requires content-backed evidence inputs")
     from ..evidence_satisfaction import validate_experiment_run_evidence

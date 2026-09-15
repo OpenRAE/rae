@@ -5,15 +5,12 @@ from __future__ import annotations
 import hashlib
 from typing import BinaryIO
 
-from jsonschema import Draft202012Validator
-
 from .contracts import (
     ExperimentArtifactRefModel,
     ExperimentCaptureRequirementModel,
     ExperimentEvidenceRecordModel,
-    schema_bundle,
 )
-from .evidence_output_validation import validate_evidence_output_contract
+from .evidence_output_validation import resolve_evidence_output_contract
 from .json_ingress import JSONValue, parse_bounded_json, parse_bounded_json_object
 
 _CHUNK_SIZE = 64 * 1024
@@ -59,29 +56,21 @@ def _json_pointer_resolves(document: object, pointer: str) -> bool:
 
 
 def _parse_contract_document(payload: bytes, *, media_type: str, output_contract: str) -> JSONValue:
-    schema = schema_bundle().get(output_contract)
-    if schema is None:
-        raise ValueError("evidence output_contract is not present in the authoritative contract registry")
-    root = schema.get("type")
-    if root not in {"object", "array"}:
-        raise ValueError("evidence output_contract does not declare a supported JSON root")
+    contract = resolve_evidence_output_contract(output_contract)
+    root = contract.root
     try:
+        if media_type not in contract.media_types:
+            raise ValueError("evidence media type is not supported by the declared output_contract")
         if media_type == "application/json":
             document = parse_bounded_json(payload, max_bytes=_MAX_ARTIFACT_BYTES, root=root)
-        elif media_type == "application/jsonl":
-            if root != "array":
-                raise ValueError("JSON Lines evidence requires an array-root output_contract")
+        else:
             lines = payload.splitlines()
             if not lines or any(not line.strip() for line in lines):
                 raise ValueError("JSON Lines evidence must contain non-empty object records")
             document = [parse_bounded_json_object(line, max_bytes=_MAX_ARTIFACT_BYTES) for line in lines]
-        else:
-            raise ValueError("evidence media type cannot be validated against the declared JSON output_contract")
     except ValueError as exc:
         raise ValueError("emitted evidence does not satisfy the declared output_contract") from exc
-    if next(Draft202012Validator(schema).iter_errors(document), None) is not None:
-        raise ValueError("emitted evidence does not satisfy the declared output_contract")
-    validate_evidence_output_contract(output_contract, document)
+    contract.validate(document)
     return document
 
 
