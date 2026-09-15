@@ -43,6 +43,9 @@ phases:
   - id: observability-conformance
     requirements:
       - ASR-525
+  - id: evidence-provenance
+    requirements:
+      - EXP-732
   - id: modular-control-semantics
     requirements:
       - SEM-235
@@ -137,6 +140,24 @@ phases:
       - gov-concept-authority
 
 ownership:
+  evidence-provenance:
+    - implementations/python/packages/raes_contracts/evidence_satisfaction.py
+    - implementations/python/tests/test_exp_732_evidence_provenance.py
+    - implementations/python/tests/test_requirement_governance.py
+    - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - docs/requirements/EXP-732/requirement.md
+    - docs/research/experiment-core/issue-342-exp-732-evidence-provenance-2026-09-15.md
+    - docs/research/specification-coverage/index.md
+    - docs/research/specification-coverage/execution-snapshot-v16.json
+    - docs/research/specification-coverage/analysis-v16.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-342-v16.json
+    - docs/research/formal-semantic-validation/index.md
+    - docs/research/formal-semantic-validation/execution-snapshot-v17.json
+    - docs/research/formal-semantic-validation/analysis-v17.json
+    - docs/research/formal-semantic-validation/bundles/retest-v17.json
+    - specs/formal/experiment-core/README.md
   observability-conformance:
     - contracts/profiles/backend/observability-evidence.json
     - contracts/fixtures/experiment-core/experiment-run-v1

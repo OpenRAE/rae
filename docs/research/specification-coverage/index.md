@@ -87,10 +87,17 @@ this run does not repair them.
   classifications and denominator.
 
 - [`execution-snapshot-v15.json`](execution-snapshot-v15.json) and
-  [`analysis-v15.json`](analysis-v15.json) are current release 15.0.0. They
+  [`analysis-v15.json`](analysis-v15.json) preserve release 15.0.0. They
   bind the unconstrained realization-evidence source semantics to fresh source
   and package digests while retaining the protocol's bounded classifications,
   denominator, and claim limits.
+
+- [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
+  [`analysis-v16.json`](analysis-v16.json) are current release 16.0.0. They
+  bind EXP-732 run, apparatus, measurement-channel, and augmentation-producer
+  provenance validation to fresh source and package digests. Protocol replay
+  retains the bounded classifications, denominator, and claim limits; the
+  dedicated provenance regression suite does not broaden this corpus's claims.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -100,7 +107,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 15.0.0 and rejects duplicate or unsupported
+Current validation requires release 16.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
