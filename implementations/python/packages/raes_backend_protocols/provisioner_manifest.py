@@ -50,6 +50,7 @@ def provisioner_capability_payload(provisioner: ProvisionerCapabilities) -> dict
         "supported_generated_artifact_delivery_modes": sorted(
             mode.value for mode in provisioner.supported_generated_artifact_delivery_modes
         ),
+        "supported_regeneration_scopes": sorted(scope.value for scope in provisioner.supported_regeneration_scopes),
         "supports_persistent_volumes": provisioner.supports_persistent_volumes,
         "constraints": dict(provisioner.constraints),
     }
@@ -81,6 +82,7 @@ def provisioner_from_model(model: ProvisionerCapabilitiesModel) -> ProvisionerCa
         supports_generated_artifacts=model.supports_generated_artifacts,
         supported_generated_artifact_kinds=frozenset(model.supported_generated_artifact_kinds),
         supported_generated_artifact_delivery_modes=frozenset(model.supported_generated_artifact_delivery_modes),
+        supported_regeneration_scopes=frozenset(model.supported_regeneration_scopes),
         supports_persistent_volumes=model.supports_persistent_volumes,
         constraints=dict(model.constraints),
     )

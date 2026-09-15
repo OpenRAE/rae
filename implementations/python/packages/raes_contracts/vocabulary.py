@@ -25,6 +25,22 @@ class GeneratedArtifactKind(str, Enum):
     CERTIFICATE_BUNDLE = "certificate_bundle"
     RENDERED_CONFIG = "rendered_config"
     SSH_KEY_BUNDLE = "ssh_key_bundle"
+    RANDOM_VALUE = "random_value"
+
+
+class GeneratedArtifactRegenerationScope(str, Enum):
+    """When a ``random_value`` generated artifact is regenerated (issue #1276).
+
+    Distinct from ``GeneratedArtifactLifecycle`` (change-driven reuse): scope
+    governs *freshness*. ``per_run`` regenerates for each fresh authoritative run;
+    ``per_instantiation`` regenerates for each distinct realized scenario instance;
+    ``once`` binds a single generation to the backend-owned artifact-instance
+    lifetime.
+    """
+
+    PER_RUN = "per_run"
+    PER_INSTANTIATION = "per_instantiation"
+    ONCE = "once"
 
 
 class GeneratedArtifactDeliveryMode(str, Enum):
@@ -42,6 +58,10 @@ class GeneratedArtifactDeliveryMode(str, Enum):
     MOUNT = "mount"
     ENVIRONMENT = "environment"
     ENV_FILE = "env_file"
+    # A generated-artifact output rendered into a content placement's text at
+    # backend materialization time (issue #1276). Authored on
+    # ``content.<name>.text_from``; the compiler derives the consumer projection.
+    CONTENT_TEXT = "content_text"
 
 
 class WorkflowFeature(str, Enum):

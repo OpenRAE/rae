@@ -41,6 +41,7 @@ from raes_contracts.plan_projection import (
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.planning import PlanScope
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
 from .capture_admission import compile_capture_spec_demands
@@ -291,7 +292,10 @@ def realize_admitted_trial_entry(
     execution_plan = build_execution_plan(
         runtime_model,
         runtime_backend,
-        target_name=target_name,
+        # Bind the target plus the admitted entry's authoritative run identity and
+        # its unique instantiation coordinate so per-run/per-instantiation generated
+        # values reconcile against the correct scope (issue #1276).
+        scope=PlanScope(target_name=target_name, run_id=entry.run_id, instantiation_id=plan_entry_id),
         artifact_availability=artifact_availability,
     )
     if not execution_plan.is_valid:

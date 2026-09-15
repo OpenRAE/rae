@@ -1,10 +1,10 @@
 {
+  "content_hash": "3d9a9f2676a4896441a61a72d1cba1c139dfbd93e603df864ec1c7233b646fd8",
   "contract_id": "evaluation-plan-v1",
-  "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560",
   "last_change": {
-    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
-    "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560"
-  }
+    "content_hash": "3d9a9f2676a4896441a61a72d1cba1c139dfbd93e603df864ec1c7233b646fd8",
+    "summary": "Carry value-free run_id and instantiation_id scope identity through the published plan model for issue #1276."
+  },
+  "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
+  "stability": "draft"
 }

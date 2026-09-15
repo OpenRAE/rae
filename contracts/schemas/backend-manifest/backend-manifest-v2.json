@@ -1029,6 +1029,11 @@
           "title": "Supported Truth Outcomes",
           "type": "array"
         },
+        "supports_deferred_expected_comparison": {
+          "default": false,
+          "title": "Supports Deferred Expected Comparison",
+          "type": "boolean"
+        },
         "supports_objectives": {
           "default": true,
           "title": "Supports Objectives",
@@ -1052,7 +1057,8 @@
       "enum": [
         "mount",
         "environment",
-        "env_file"
+        "env_file",
+        "content_text"
       ],
       "title": "GeneratedArtifactDeliveryMode",
       "type": "string"
@@ -1062,9 +1068,20 @@
       "enum": [
         "certificate_bundle",
         "rendered_config",
-        "ssh_key_bundle"
+        "ssh_key_bundle",
+        "random_value"
       ],
       "title": "GeneratedArtifactKind",
+      "type": "string"
+    },
+    "GeneratedArtifactRegenerationScope": {
+      "description": "When a ``random_value`` generated artifact is regenerated (issue #1276).\n\nDistinct from ``GeneratedArtifactLifecycle`` (change-driven reuse): scope\ngoverns *freshness*. ``per_run`` regenerates for each fresh authoritative run;\n``per_instantiation`` regenerates for each distinct realized scenario instance;\n``once`` binds a single generation to the backend-owned artifact-instance\nlifetime.",
+      "enum": [
+        "per_run",
+        "per_instantiation",
+        "once"
+      ],
+      "title": "GeneratedArtifactRegenerationScope",
       "type": "string"
     },
     "JsonValue": {},
@@ -2708,6 +2725,54 @@
               "supports_generated_artifacts"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "supported_generated_artifact_kinds": {
+                "contains": {
+                  "const": "random_value"
+                }
+              }
+            },
+            "required": [
+              "supported_generated_artifact_kinds"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supported_regeneration_scopes": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "supported_regeneration_scopes"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "supported_regeneration_scopes": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "supported_regeneration_scopes"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supported_generated_artifact_kinds": {
+                "contains": {
+                  "const": "random_value"
+                }
+              }
+            },
+            "required": [
+              "supported_generated_artifact_kinds"
+            ]
+          }
         }
       ],
       "properties": {
@@ -2823,6 +2888,14 @@
           "minItems": 1,
           "title": "Supported Os Families",
           "type": "array"
+        },
+        "supported_regeneration_scopes": {
+          "items": {
+            "$ref": "#/$defs/GeneratedArtifactRegenerationScope"
+          },
+          "title": "Supported Regeneration Scopes",
+          "type": "array",
+          "uniqueItems": true
         },
         "supported_service_materialization_profiles": {
           "items": {

@@ -782,6 +782,19 @@
       "title": "Diagnostics",
       "type": "array"
     },
+    "instantiation_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Instantiation Id"
+    },
     "observation_demands": {
       "items": {
         "$ref": "#/$defs/EffectiveObservationDemand"
@@ -795,6 +808,19 @@
       },
       "title": "Operations",
       "type": "array"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Run Id"
     },
     "startup_order": {
       "items": {

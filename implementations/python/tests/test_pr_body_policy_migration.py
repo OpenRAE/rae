@@ -14,7 +14,7 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
-LEGACY_DIGEST = "c3be7b261802eb2359714974778933cd4b7ef92e7b69a88f6bbd68b309a9d228"
+LEGACY_DIGEST = "715222ca14ffa6636f62ab06bfb1b30cd5a0e76e9a303fb602e309fe987a4e41"
 
 
 def _run_boundary(

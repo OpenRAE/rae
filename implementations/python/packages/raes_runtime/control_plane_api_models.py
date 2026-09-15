@@ -134,6 +134,8 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
             for item in model.realization_constraints
         ),
         operation_id=model.operation_id,
+        run_id=model.run_id,
+        instantiation_id=model.instantiation_id,
         observation_demands=tuple(model.observation_demands),
     )
 
@@ -172,6 +174,8 @@ def _evaluation_plan(model: EvaluationPlanModel) -> EvaluationPlan:
         ],
         startup_order=list(model.startup_order),
         diagnostics=[_diagnostic_from_mapping(payload) for payload in model.diagnostics],
+        run_id=model.run_id,
+        instantiation_id=model.instantiation_id,
         observation_demands=tuple(model.observation_demands),
     )
 

@@ -20,6 +20,7 @@ from raes_contracts.profile_selections import profile_selection_binding
 from ._base import SDLModel, normalize_enum_value, parse_bool_or_var
 from ._identifiers import PortableIdentifier
 from ._source import Source
+from .runtime_generated_value import GeneratedArtifactValueSource
 from .runtime_values import reject_duplicates
 
 
@@ -138,6 +139,10 @@ class Content(SDLModel):
     path: str = ""
     destination: str = ""
     text: str | None = None
+    # Deferred generated-artifact value bound into this content's text at backend
+    # materialization time (issue #1276). Carries no bytes; mutually exclusive
+    # with a literal ``text``. The generated value never appears in the SDL.
+    text_from: GeneratedArtifactValueSource | None = Field(default=None, exclude_if=lambda value: value is None)
     source: Source | None = None
     format: str = ""
     items: list[ContentItem] = Field(default_factory=list)
@@ -201,6 +206,15 @@ class Content(SDLModel):
 
         if self.type == ContentType.FILE and not self.path:
             raise ValueError("File content requires 'path'")
+
+        if self.text_from is not None:
+            if self.text is not None:
+                raise ValueError(
+                    "Content must not set both a literal 'text' and 'text_from'; "
+                    "a generated value is rendered from the referenced output"
+                )
+            if self.type != ContentType.FILE:
+                raise ValueError("Content 'text_from' is only valid for file content")
 
         is_search_index_schema = self._validate_search_index_schema_content()
         self._validate_ordinary_dataset_content(

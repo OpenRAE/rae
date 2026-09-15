@@ -196,15 +196,61 @@ def _account_credential_operation_diagnostic(
     return diagnostic
 
 
+def _operation_stateful_diagnostic(
+    operation: PlanOperation,
+    manifest: BackendManifest,
+    *,
+    node_specs: Mapping[str, object],
+    content_specs: Mapping[str, object],
+    exact_supported: bool,
+) -> Diagnostic | None:
+    """Diagnostic for one submitted operation, or ``None`` when it is admissible."""
+
+    admission = _STATEFUL_ADMISSION_BY_RESOURCE_TYPE.get(operation.resource_type)
+    if admission is None:
+        return None
+    capability_attribute, unsupported_code, resource_label = admission
+    diagnostic: Diagnostic | None = None
+    if not getattr(manifest.provisioner, capability_attribute):
+        diagnostic = Diagnostic(
+            code=unsupported_code,
+            domain="provisioning",
+            address=operation.address,
+            message=f"Provisioner does not support {resource_label}.",
+        )
+    elif operation.resource_type == "generated-artifact":
+        diagnostic = generated_artifact_payload_diagnostic(
+            address=operation.address,
+            spec=operation.payload.get("spec"),
+            provisioner=manifest.provisioner,
+            node_specs=node_specs,
+            content_specs=content_specs,
+        )
+    if diagnostic is None and not exact_supported:
+        diagnostic = Diagnostic(
+            code="realization.unsupported-exact-requirement",
+            domain="runtime-realization",
+            address=operation.address,
+            message=(
+                f"Backend declares no exact realization support for the submitted {operation.resource_type} resource."
+            ),
+        )
+    return diagnostic
+
+
 def _stateful_submission_diagnostic(
     plan: ProvisioningPlan,
     manifest: BackendManifest,
 ) -> Diagnostic | None:
-    diagnostic: Diagnostic | None = None
     node_specs = {
         operation.address: operation.payload.get("spec")
         for operation in plan.operations
         if operation.resource_type == "node"
+    }
+    content_specs = {
+        operation.address: operation.payload
+        for operation in plan.operations
+        if operation.resource_type == "content-placement"
     }
     exact_supported = any(
         declaration.domain == RUNTIME_REALIZATION_DOMAIN
@@ -212,39 +258,16 @@ def _stateful_submission_diagnostic(
         for declaration in manifest.realization_support
     )
     for operation in plan.operations:
-        admission = _STATEFUL_ADMISSION_BY_RESOURCE_TYPE.get(operation.resource_type)
-        if admission is None:
-            continue
-        capability_attribute, unsupported_code, resource_label = admission
-        if not getattr(manifest.provisioner, capability_attribute):
-            diagnostic = Diagnostic(
-                code=unsupported_code,
-                domain="provisioning",
-                address=operation.address,
-                message=f"Provisioner does not support {resource_label}.",
-            )
-        elif operation.resource_type == "generated-artifact":
-            artifact_diagnostic = generated_artifact_payload_diagnostic(
-                address=operation.address,
-                spec=operation.payload.get("spec"),
-                provisioner=manifest.provisioner,
-                node_specs=node_specs,
-            )
-            if artifact_diagnostic is not None:
-                diagnostic = artifact_diagnostic
-        if diagnostic is None and not exact_supported:
-            diagnostic = Diagnostic(
-                code="realization.unsupported-exact-requirement",
-                domain="runtime-realization",
-                address=operation.address,
-                message=(
-                    "Backend declares no exact realization support for the submitted "
-                    f"{operation.resource_type} resource."
-                ),
-            )
+        diagnostic = _operation_stateful_diagnostic(
+            operation,
+            manifest,
+            node_specs=node_specs,
+            content_specs=content_specs,
+            exact_supported=exact_supported,
+        )
         if diagnostic is not None:
-            break
-    return diagnostic
+            return diagnostic
+    return None
 
 
 def _submitted_operation_diagnostic(

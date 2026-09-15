@@ -148,7 +148,14 @@ class ReferenceProvisioner:
             self._mailbox_sink.remove_deleted(plan)
             if success:
                 self._mailbox_sink.materialize(account_mailbox_materializations(plan))
-        changed_artifacts = {op.address for op in plan.operations if op.resource_type == "generated-artifact"}
+        # Revoke stored outputs only for artifacts whose reconciliation actually
+        # changed them; an UNCHANGED op (e.g. a same-scope resume) retains its
+        # active value rather than losing it (issue #1276).
+        changed_artifacts = {
+            op.address
+            for op in plan.operations
+            if op.resource_type == "generated-artifact" and op.action is not ChangeAction.UNCHANGED
+        }
         self._generated_outputs = {
             key: value for key, value in self._generated_outputs.items() if key[0] not in changed_artifacts
         }
