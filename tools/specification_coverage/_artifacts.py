@@ -12,7 +12,6 @@ from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_re
 from tools.research_evidence import surface_digest
 from tools.specification_coverage._keys import (
     _ARTIFACT_KEYS,
-    _EXECUTION_SNAPSHOT_PATH,
     _IMPLEMENTATION_SURFACE_KEYS,
     _MAX_FILE_BYTES,
     _SHA256_RE,
@@ -82,10 +81,10 @@ def _validate_implementation_surfaces(
     repo_root: Path,
     snapshot: dict[str, object],
     failures: list[PolicyFailure],
+    path: str,
     *,
     replay_current: bool = True,
 ) -> None:
-    path = _EXECUTION_SNAPSHOT_PATH
     surfaces = _bounded_list(
         snapshot.get("implementation_surfaces"),
         failures,
@@ -236,10 +235,10 @@ def _validate_artifacts(
     repo_root: Path,
     snapshot: dict[str, object],
     failures: list[PolicyFailure],
+    path: str,
     *,
     replay_current: bool = True,
 ) -> tuple[dict[str, dict[str, object]], dict[str, dict[str, object]]]:
-    path = _EXECUTION_SNAPSHOT_PATH
     artifacts = _bounded_list(
         snapshot.get("artifacts"),
         failures,

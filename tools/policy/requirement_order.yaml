@@ -40,6 +40,9 @@ phases:
       - ASR-532
     blocked_until:
       - runtime-core
+  - id: observability-conformance
+    requirements:
+      - ASR-525
   - id: modular-control-semantics
     requirements:
       - SEM-235
@@ -135,6 +138,16 @@ phases:
       - gov-concept-authority
 
 ownership:
+  observability-conformance:
+    - contracts/profiles/backend/observability-evidence.json
+    - contracts/fixtures/experiment-core/experiment-run-v1
+    - contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-native-no-demand.yaml
+    - contracts/fixtures/sdl/sdl-yaml-v1/valid/observability-selected-demand.yaml
+    - docs/explain/reference/backend-conformance.md
+    - docs/requirements/ASR-525/requirement.md
+    - specs/formal/observability-evidence-plane.md
+    - implementations/python/tests/test_observability_evidence_conformance.py
+    - implementations/python/tests/test_runtime_contracts.py
   semantic-migration:
     - contracts/schemas/provenance/sdl-lineage-ledger-v1.json
     - docs/research/lineage/source-audit-2026-09-14.md
@@ -491,8 +504,11 @@ ownership:
     - implementations/python/tests/test_exp_731_archival_validation.py
     - implementations/python/tests/test_exp_731_evidence_requirement_refinement.py
     - implementations/python/tests/test_exp_731_trial_realization.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
     - implementations/python/tests/test_issue_1210_semantic_comparison.py
     - implementations/python/tests/test_runtime_contracts.py
+    - implementations/python/tests/test_specification_coverage.py
     - tools/generate_contract_schemas.py
     - CHANGELOG.md
 

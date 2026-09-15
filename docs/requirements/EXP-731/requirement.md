@@ -47,4 +47,7 @@ Different experiments may need to add or tighten evidence requirements without c
 - TESTS → TEST `implementations/python/tests/test_exp_731_evidence_requirement_refinement.py` (Carrier, lineage, monotonicity, semantic comparison, trial admission, and open-scope regression coverage)
 - TESTS → TEST `implementations/python/tests/test_exp_731_archival_validation.py` (Authoritative archival run and study cross-artifact relation validation)
 - TESTS → TEST `implementations/python/tests/test_exp_731_trial_realization.py` (Digest-bound relation revalidation during trial realization)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Integrated formal evidence release selection, immutable baseline, and replay coverage)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Current and historical research evidence release integrity coverage)
 - TESTS → TEST `implementations/python/tests/test_issue_1210_semantic_comparison.py` (Owner-projection revision compatibility coverage)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Integrated specification-coverage release selection and immutable bundle coverage)

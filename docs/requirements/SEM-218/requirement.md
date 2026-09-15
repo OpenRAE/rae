@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-09-13T00:00:00Z
+updated_at: 2026-09-14T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -53,6 +53,9 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parser.py` (Preserve authored profile data during normalization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_nodes_infra_network.py` (Apply existing architecture checks to canonical exact-package refinements)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_operational_verification.py` (Keep software constraints independent of unrequested observation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_observation_admission.py` (Claim-specific scope and optional exact-source admission)
+- TESTS → TEST `implementations/python/tests/test_issue_1077_os_identity_realization.py` (Operating-system corroboration with an unconstrained evidence source)
+- TESTS → TEST `implementations/python/tests/test_issue_1212_observation_demand.py` (Operational corroboration remains separate from experimental observation demand)
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Replay unchanged claim boundaries and exact compiler deviations)
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Replay the existing coverage protocol against current software semantics)
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Reject stale current captures while preserving historical evidence)

@@ -1,7 +1,7 @@
-# Realization Envelopes and Observation Strength
+# Realization Envelopes and Observation Provenance
 
 This page explains how RAES states, per backend configuration, **which scenario
-concerns it can realize and how strongly it can prove each one**. It is
+concerns it can realize and where its proof for each one comes from**. It is
 non-normative explanation; the governing decision is
 [ADR-070](../../decisions/adrs/adr-070-realization-envelope-semantics.md) and the
 formal semantics live in
@@ -19,13 +19,14 @@ Honest portability needs each backend to disclose, per concern, *what* it
 realizes and *how independently that realization is observed* — and to be unable
 to claim more than it can show.
 
-## Observation strength
+## Observation provenance
 
-Every governed concern carries an **observation strength** — the strongest
-evidence the selected configuration produces for it. The ladder is closed
+Every governed concern carries an **observation source**. The released wire
+field and enum retain the legacy name `observation_strength`, but the values are
+provenance alternatives rather than a total order. The vocabulary is closed
 (`raes_contracts.realization_envelope_carrier.ObservationStrength`):
 
-| Strength | Meaning |
+| Source | Meaning |
 | --- | --- |
 | `none` | Not observed (the concern is `unsupported` for this configuration). |
 | `driver-reported` | The driver asserts it; no independent readback. |
@@ -33,16 +34,29 @@ evidence the selected configuration produces for it. The ladder is closed
 | `guest-observed` | Read from **inside the realized guest** (its own `/proc`, `/sys`, `/etc`, link/file/account/service state). Proves the running system *is* what was requested, not just that an object exists. |
 
 A concern's **disposition** (`realized`, `transformed`, `descriptor-only`,
-`unsupported`) says whether and how it is realized; the strength says how it is
-proven. An `unsupported` concern must claim `none` — a configuration cannot
-disclose observation for something it does not realize.
+`unsupported`) says whether and how it is realized; the source says how it is
+proven. Sufficiency is claim-specific: coverage scope, value and execution
+binding, freshness, declared capability, and any explicit boundary or
+independence constraint matter independently of source. When an author leaves
+the source unconstrained, either daemon-native or guest-native readback may
+corroborate the claim if it satisfies those other conditions; `driver-reported`
+self-attestation alone is not authoritative corroboration. An `unsupported`
+concern must claim `none` — a configuration cannot disclose observation for
+something it does not realize.
+
+Source provenance is separate from visibility and collection effect. Closed
+realization scope allows non-mutating native readback, but does not authorize an
+in-world probe or sidecar; a claim that cannot otherwise be proved is rejected.
+Open scope permits only the available sufficient method with the least effect
+on the environment and participants, and any added apparatus is disclosed as
+part of the realized form and through the existing augmentation carrier.
 
 ## Concerns
 
 The concern taxonomy is closed (`RealizationConcern`): `topology`,
 `architecture`, `image`, `resource-allocation`, `network`, `content-placement`,
 `account-placement`, `feature-binding`, `service`, `acl`. A realization envelope
-discloses a strength and disposition for **every** concern, so gaps are explicit
+discloses a source and disposition for **every** concern, so gaps are explicit
 rather than implied.
 
 ## Configuration-bound identity
@@ -51,9 +65,9 @@ A realization envelope is bound to one **material configuration**, not to a
 backend in the abstract. Its secret-free configuration identity (architecture,
 image/appliance policy, network policy, supported concern set, guest-observation
 transport and probe-policy version, augmentation mechanism) is hashed into a
-`configuration_digest`, and the whole envelope into an `envelope_digest`. Raising
-a concern's strength requires a *new* configuration and envelope — you cannot
-relabel a weaker configuration as stronger. Published envelopes live under
+`configuration_digest`, and the whole envelope into an `envelope_digest`.
+Changing a concern's claimed source requires a *new* configuration and envelope
+— you cannot relabel one provenance as another. Published envelopes live under
 `contracts/realization-envelopes/` and are validated on load.
 
 ## The libvirt backend's configurations
@@ -64,14 +78,14 @@ three material configurations:
 - **`generic`** — qcow2/cloud-init driver; concerns are `driver-reported`.
 - **`techvault-appliance`** — boots a generated BusyBox initramfs appliance and
   reads topology/architecture/image/resource/network back at
-  `daemon-observed` strength; guest concerns are `unsupported`.
+  `daemon-observed` provenance; guest concerns are `unsupported`.
 - **`guest-certified-appliance`** — boots a guest-observing appliance through the
   production apply path and certifies concerns from **inside** the guest.
 
 The guest-certified envelope discloses (verified against
 `contracts/realization-envelopes/libvirt-qemu/guest-certified-appliance-v1.json`):
 
-| Concern | Disposition | Strength |
+| Concern | Disposition | Source |
 | --- | --- | --- |
 | topology | realized | daemon-observed |
 | architecture | realized | guest-observed |
@@ -114,7 +128,7 @@ gate. Then:
    (`raes_backend_libvirt.guest_observation`) runs ordered stages (daemon →
    transport → initialization → concern probes → cleanup); a later stage never
    repairs an earlier one. Each concern becomes a `RealizationObservation` at
-   `guest-observed` strength, compared to the requested realization. Failures are
+   `guest-observed` provenance, compared to the requested realization. Failures are
    distinct, stable, redacted `Diagnostic` codes naming the safe RAES address and
    observation level — never raw XML, UUIDs, host paths, URIs, or credentials.
 5. **Commit eligibility.** The provisioner cannot return success, changed

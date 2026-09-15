@@ -18,8 +18,7 @@ from raes_contracts.runtime_state import (
 )
 from raes_contracts.vocabulary import (
     RealizationSupportMode,
-    observation_strength_satisfies,
-    verification_scope_satisfies,
+    observation_requirement_satisfied,
 )
 
 from .realization_concerns import project_realization_concern
@@ -86,8 +85,12 @@ def manifest_corroborates(
     return any(
         (capability := declaration.observation_capabilities.get(capability_kind)) is not None
         and observation_posture_supported(requirement, declaration)
-        and verification_scope_satisfies(capability.verification_scope, observation.verification_scope)
-        and observation_strength_satisfies(capability.observation_strength, observation.observation_strength)
+        and observation_requirement_satisfied(
+            actual_scope=capability.verification_scope,
+            actual_source=capability.observation_strength,
+            required_scope=observation.verification_scope,
+            required_source=observation.observation_strength,
+        )
         for declaration in manifest.realization_support
         if declaration.domain == requirement.domain
     )

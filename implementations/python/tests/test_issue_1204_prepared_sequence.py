@@ -9,6 +9,7 @@ from raes import instantiate_scenario, parse_sdl
 from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.vocabulary import ObservationStrength
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_processor.planner.realization_preparation import preparation_authority
@@ -63,7 +64,9 @@ def test_prepared_delivery_preserves_sequence_order_with_overlapping_position_do
                     domain=authority.domain,
                     requirement_kind=authority.requirement_kind,
                     verification_scope=authority.verification_scope,
-                    observation_strength=authority.required_observation_strength,
+                    observation_strength=(
+                        authority.required_observation_strength or ObservationStrength.GUEST_OBSERVED
+                    ),
                 )
                 for authority in selected.realization_authority
                 if authority.requirement_kind == "runtime-container-dns"
