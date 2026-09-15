@@ -118,11 +118,22 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   It binds [`execution-snapshot-v14.json`](execution-snapshot-v14.json) and
   [`analysis-v14.json`](analysis-v14.json) to the selection-helper refactor.
   Fresh production replay retains the release-14 observations and claim limits.
-- [`bundles/retest-v15.json`](bundles/retest-v15.json) is current release 16.0.0.
+- [`bundles/retest-v15.json`](bundles/retest-v15.json) preserves release 16.0.0.
   It binds [`execution-snapshot-v15.json`](execution-snapshot-v15.json) and
   [`analysis-v15.json`](analysis-v15.json) to progressive semantic revision
   support. Fresh replay records two complete compiler digest changes, with
   identical bounded outcomes and explicit deviations from release 15.0.0.
+- [`bundles/retest-v16.json`](bundles/retest-v16.json) preserves release 17.0.0.
+  It binds [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
+  [`analysis-v16.json`](analysis-v16.json) to unconstrained realization-evidence
+  source semantics. Fresh replay retains every bounded outcome and records the
+  two changed compiler digests as explicit deviations from release 16.0.0.
+- [`bundles/retest-v17.json`](bundles/retest-v17.json) is current release 18.0.0.
+  It binds [`execution-snapshot-v17.json`](execution-snapshot-v17.json) and
+  [`analysis-v17.json`](analysis-v17.json) to EXP-732 provenance validation.
+  Fresh production and participant replay retains the release-17 outcomes and
+  result digests with no deviations. The dedicated provenance regression suite
+  does not promote this retained corpus to universal provenance assurance.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -167,7 +178,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 16.0.0, rejects unsupported future
+Current validation requires explicit release 18.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -232,3 +243,9 @@ controls use current authoring and instantiated snapshot profiles v2. All four
 production outcomes are unchanged; their new digests are recorded as explicit
 deviations alongside the two compilation digests. Historical releases retain
 their original byte and observation joins without current snapshot admission.
+
+Release 17 retains corpus revision 3 and the four production evidence v4
+records. It freezes their progressive-profile shapes for historical admission,
+replays the same controls against current code, and records only the two
+compiler representation digest changes caused by the realization-evidence
+source correction. No outcome or preregistered claim strength changes.

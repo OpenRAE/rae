@@ -1,7 +1,7 @@
 """Observation-capability admission for authored realization demands."""
 
 from raes_contracts.apparatus import RealizationSupportDeclaration
-from raes_contracts.vocabulary import observation_strength_satisfies, verification_scope_satisfies
+from raes_contracts.vocabulary import observation_requirement_satisfied
 
 from .realization_requirement import CompiledRealizationRequirement
 
@@ -16,16 +16,11 @@ def has_required_observation_support(
 
     return any(
         (capability := declaration.observation_capabilities.get(observation_kind)) is not None
-        and (
-            requirement.verification_scope is None
-            or verification_scope_satisfies(capability.verification_scope, requirement.verification_scope)
-        )
-        and (
-            requirement.required_observation_strength is None
-            or observation_strength_satisfies(
-                capability.observation_strength,
-                requirement.required_observation_strength,
-            )
+        and observation_requirement_satisfied(
+            actual_scope=capability.verification_scope,
+            actual_source=capability.observation_strength,
+            required_scope=requirement.verification_scope,
+            required_source=requirement.required_observation_strength,
         )
         for declaration in declarations
     )

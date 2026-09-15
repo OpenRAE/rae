@@ -59,7 +59,9 @@ def _plan(value: object) -> ProvisioningPlan:
     )
 
 
-def _authoritative_environment_plan() -> tuple[ProvisioningPlan, BackendManifest]:
+def _authoritative_environment_plan(
+    source: ObservationStrength = ObservationStrength.DAEMON_OBSERVED,
+) -> tuple[ProvisioningPlan, BackendManifest]:
     target = create_stub_target()
     declaration = target.manifest.realization_support[0]
     manifest = replace(
@@ -74,7 +76,7 @@ def _authoritative_environment_plan() -> tuple[ProvisioningPlan, BackendManifest
                     **declaration.observation_capabilities,
                     "runtime-environment": RealizationObservationCapability(
                         verification_scope=RealizationVerificationScope.CONFIGURATION,
-                        observation_strength=ObservationStrength.GUEST_OBSERVED,
+                        observation_strength=source,
                     ),
                 },
             ),
@@ -104,7 +106,11 @@ nodes:
     return execution.provisioning, manifest
 
 
-def _authoritative_snapshot(plan: ProvisioningPlan, value: object) -> RuntimeSnapshot:
+def _authoritative_snapshot(
+    plan: ProvisioningPlan,
+    value: object,
+    source: ObservationStrength = ObservationStrength.DAEMON_OBSERVED,
+) -> RuntimeSnapshot:
     operation = plan.operations[0]
     payload = deepcopy(operation.payload)
     payload["spec"]["node"]["runtime"]["environment"] = value
@@ -125,7 +131,7 @@ def _authoritative_snapshot(plan: ProvisioningPlan, value: object) -> RuntimeSna
                 domain="runtime-realization",
                 requirement_kind="runtime-environment",
                 verification_scope=RealizationVerificationScope.CONFIGURATION,
-                observation_strength=ObservationStrength.GUEST_OBSERVED,
+                observation_strength=source,
             ),
         ),
     )
@@ -373,3 +379,37 @@ def test_backend_boundary_rejects_unknown_observation_fields() -> None:
     assert result.snapshot == baseline
     assert [diagnostic.code for diagnostic in result.diagnostics] == ["runtime.backend-contract-invalid"]
     assert "do-not-persist" not in result.diagnostics[0].message
+
+
+def test_backend_boundary_rejects_source_not_declared_by_manifest() -> None:
+    observed = [
+        {
+            "name": "MODE",
+            "value": "production",
+            "value_classification": "plain",
+            "provenance": "runtime",
+            "source": "",
+        }
+    ]
+    plan, manifest = _authoritative_environment_plan(ObservationStrength.GUEST_OBSERVED)
+
+    def backend(_request, _previous) -> ApplyResult:
+        return ApplyResult(
+            success=True,
+            snapshot=_authoritative_snapshot(plan, observed, ObservationStrength.DAEMON_OBSERVED),
+            changed_addresses=[_ADDRESS],
+        )
+
+    baseline = RuntimeSnapshot()
+    result = _call_backend_apply(
+        backend,
+        plan,
+        baseline,
+        address="runtime.provision.node.worker",
+        snapshot=baseline,
+        realization=_RealizationApplyContext(plan=plan, manifest=manifest),
+    )
+
+    assert result.success is False
+    assert result.snapshot == baseline
+    assert [diagnostic.code for diagnostic in result.diagnostics] == ["runtime.backend-contract-invalid"]

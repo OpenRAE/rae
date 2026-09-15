@@ -18,8 +18,7 @@ from raes_contracts.vocabulary import (
     ProcessResourceLimitKind,
     ProcessResourceLimitScope,
     RealizationSupportMode,
-    observation_strength_satisfies,
-    verification_scope_satisfies,
+    observation_requirement_satisfied,
 )
 
 if TYPE_CHECKING:
@@ -140,15 +139,12 @@ def _observation_supported(
     capability = declaration.observation_capabilities.get("process-resource-limits")
     if capability is None:
         return False
-    scope_ok = requirement.verification_scope is None or verification_scope_satisfies(
-        capability.verification_scope,
-        requirement.verification_scope,
+    return observation_requirement_satisfied(
+        actual_scope=capability.verification_scope,
+        actual_source=capability.observation_strength,
+        required_scope=requirement.verification_scope,
+        required_source=requirement.required_observation_strength,
     )
-    strength_ok = requirement.required_observation_strength is None or observation_strength_satisfies(
-        capability.observation_strength,
-        requirement.required_observation_strength,
-    )
-    return scope_ok and strength_ok
 
 
 def _demands_admitted(

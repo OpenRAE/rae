@@ -9,7 +9,7 @@ from raes_contracts.vocabulary import ObservationStrength, RealizationVerificati
 from .realization_runtime_concern_profiles import RUNTIME_CONCERN_PROFILES
 
 _OPERATING_SYSTEM_KINDS = frozenset({"os-family", "os-distribution", "os-version"})
-_GUEST_CONFIGURATION_KINDS = frozenset(
+_CONFIGURATION_KINDS = frozenset(
     {
         "runtime-environment",
         "runtime-mounts",
@@ -36,13 +36,12 @@ def operational_verification_requirement(
     strength: ObservationStrength | None = None
     if concern_kind in _OPERATING_SYSTEM_KINDS and authored_value:
         scope = RealizationVerificationScope.PRESENCE
-        strength = ObservationStrength.GUEST_OBSERVED
     elif concern_kind == "forwarding-agents":
         scope = _forwarding_agent_scope(authored_value)
-        strength = ObservationStrength.DAEMON_OBSERVED
-    elif concern_kind in _GUEST_CONFIGURATION_KINDS:
+    elif concern_kind in _CONFIGURATION_KINDS:
         scope = RealizationVerificationScope.CONFIGURATION
-        strength = ObservationStrength.GUEST_OBSERVED
+        if concern_kind == "process-resource-limits":
+            strength = ObservationStrength.GUEST_OBSERVED
     return scope, strength
 
 

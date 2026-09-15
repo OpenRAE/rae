@@ -15,11 +15,13 @@ from .contracts import (
     ExperimentCaptureWindowModel,
     ExperimentEvidenceRecordModel,
     ExperimentEvidenceReferenceModel,
+    ExperimentReferenceModel,
     ExperimentRunModel,
     ExperimentTaskModel,
     validate_experiment_run_structure_against_task,
 )
 from .contracts.base import _parse_rfc3339_datetime
+from .contracts.experiment_artifacts import _identity_matches_reference, _reference_satisfies_requirement
 
 
 @dataclass(frozen=True)
@@ -70,7 +72,7 @@ def _validate_record_binding(
     _validate_record_execution_identity(task, run, record)
     _validate_record_window(run, capture_spec, requirement, record)
     _validate_record_disclosure(requirement, record)
-    _validate_record_source(requirement, record)
+    _validate_record_source(run, requirement, record)
 
 
 def _validate_record_capture_identity(
@@ -96,14 +98,31 @@ def _validate_record_execution_identity(
     run: ExperimentRunModel,
     record: ExperimentEvidenceRecordModel,
 ) -> None:
-    if record.run_ref.ref_id != run.run_id or (
-        record.run_ref.ref_version is not None and record.run_ref.ref_version != run.run_version
-    ):
+    run_reference = ExperimentReferenceModel(ref_kind="run", ref_id=run.run_id, ref_version=run.run_version)
+    if not _reference_satisfies_requirement(run_reference, record.run_ref):
         raise ValueError("evidence record run_ref does not match the experiment run")
     if record.task_ref is not None and (
         record.task_ref.ref_id != task.task_id or record.task_ref.ref_version != task.task_version
     ):
         raise ValueError("evidence record task_ref does not match the experiment task")
+    apparatus = run.apparatus_context
+    apparatus_reference = ExperimentReferenceModel(
+        ref_kind="apparatus-context", ref_id=apparatus.apparatus_context_id, ref_version=apparatus.context_version
+    )
+    if record.apparatus_context_ref is not None and not _reference_satisfies_requirement(
+        apparatus_reference, record.apparatus_context_ref
+    ):
+        raise ValueError("evidence record apparatus_context_ref does not match the run apparatus")
+
+
+def _validate_augmentation_producers(run: ExperimentRunModel) -> None:
+    for disclosure in run.augmentation_disclosures:
+        producer = disclosure.augmented_by_ref
+        if not any(
+            component.component_kind == producer.ref_kind and _identity_matches_reference(component.identity, producer)
+            for component in run.apparatus_context.components.values()
+        ):
+            raise ValueError("augmentation producer must resolve to the run apparatus")
 
 
 def _resolve_capture_window(
@@ -200,6 +219,7 @@ def _validate_redaction_state(
 
 
 def _validate_record_source(
+    run: ExperimentRunModel,
     requirement: ExperimentCaptureRequirementModel,
     record: ExperimentEvidenceRecordModel,
 ) -> None:
@@ -211,6 +231,12 @@ def _validate_record_source(
         for source in record.source_refs
     ):
         raise ValueError("evidence record source does not match the admitted measurement channel")
+    if not any(
+        _reference_satisfies_requirement(channel, required_source)
+        and any(_reference_satisfies_requirement(channel, source) for source in record.source_refs)
+        for channel in run.apparatus_context.measurement_channels
+    ):
+        raise ValueError("evidence measurement channel must resolve to the run apparatus")
 
 
 def _binding_satisfies_reference(
@@ -277,6 +303,7 @@ def validate_experiment_run_evidence(
     """
 
     validate_experiment_run_structure_against_task(task, run)
+    _validate_augmentation_producers(run)
     _validate_supplied_evidence_sets(run, capture_specs, evidence_records)
     requirements, records_by_requirement = _index_capture_evidence(capture_specs, evidence_records)
     _validate_task_requirement_ids(task, requirements)
