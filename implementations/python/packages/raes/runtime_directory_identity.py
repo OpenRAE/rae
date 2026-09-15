@@ -9,8 +9,9 @@ observed runtime facts, not top-level scenario account provisioning requests.
 from enum import Enum
 from typing import Any
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_filesystem import redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, parse_int_or_var
@@ -162,6 +163,14 @@ class RuntimeIdentityAttribute(SDLModel):
     passwords, Kerberos keys, keytabs, tokens, and client secrets out of
     fixtures, diagnostics, schemas, and generated runtime artifacts.
     """
+
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="values",
+            raw_value_schema={"type": "array", "minItems": 1},
+        )
+    )
 
     name: str
     values: list[str] = Field(default_factory=list)

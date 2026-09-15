@@ -19,8 +19,9 @@ classified ``redacted`` when the underlying command carries secret arguments.
 
 from enum import Enum
 
-from pydantic import ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_filesystem import flagged_raw_value_schema, redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import (
@@ -190,6 +191,19 @@ class ServiceUnitExecStart(SDLModel):
     argv -- if the underlying ``ExecStart=`` includes credentials, tokens, or
     operator-only arguments, the surface stores only the redacted shape.
     """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                flagged_raw_value_schema(flag_field="command_redacted", raw_field="command", array=False),
+                redacted_raw_value_schema(
+                    sensitivity_field="command_kind",
+                    raw_field="command",
+                    raw_value_schema={"type": "string", "minLength": 1},
+                ),
+            ]
+        }
+    )
 
     command_kind: GovernedVocabulary[ServiceUnitExecStartKind] = ServiceUnitExecStartKind.ABSOLUTE_PATH
     command: str = ""

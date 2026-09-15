@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-15T20:44:42.411923+00:00",
+  "captured_at": "2026-09-15T20:15:40.771565+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -641,17 +641,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "e1c1be63d2d8ec32b6a14f9e9ee8cd35eb4b870146f5b7fe2c923576996f894d",
+      "content_sha256": "9c986c5e379fc6afb05711051c116e48f00a66f0b231e5611246cd916771f3db",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "0d763e4909c8f4d345888600b67d75f19456a37a56e49f6fa6dd55508b76eb35",
+      "content_sha256": "e0492ae0c6217832f233e960a030a80eed13d4100890c202c4f88f2809d2c160",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "a64a4dd4f49c3ff1e3363793d81b1a7679190208ad105541d5c0701ef7dfebda",
+      "content_sha256": "ddf2cd2a7b46f895ea1a845bad7e90db1f05b2ef6abce3789b20ebb1698c7c7f",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -661,17 +661,18 @@
     "Repository-owned examples are exact execution artifacts but are not themselves the literature-derived request corpus; the protocol's requests and concepts are.",
     "No live range, participant, simulator federation, or provider provisioning engine was executed.",
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
-    "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim."
+    "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim.",
+    "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "2b21b5c88fc60c4545a302f4071cf8b781f04fe3",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1237-v17",
+  "raes_revision": "2ac0c5f9f6c9609101a2f9895d671bf2aee8773f",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1241-v17",
   "snapshot_revision": "17.0.0",
   "source_state": {
-    "base_revision": "2b21b5c88fc60c4545a302f4071cf8b781f04fe3",
+    "base_revision": "2ac0c5f9f6c9609101a2f9895d671bf2aee8773f",
     "checkout_state": "modified",
-    "implementation_digest": "db2cecc82df227e919de67185faf4befb819ff51694821213936451f81773b00",
+    "implementation_digest": "60bdfa60f08ff6bd41504e6c43d4c91f60ff48da8a974e64f972d53d48dfbc04",
     "profile": "python-reference-source/v2"
   }
 }

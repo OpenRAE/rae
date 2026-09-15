@@ -409,9 +409,9 @@
     {
       "path": "docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1241 materialization-attestation amendment.",
       "occurrences": 9,
-      "content_sha256": "0266694288598416667f79ac4089fcdcd17c65e0fe2cee942b35cd468bdf9480"
+      "content_sha256": "79863d36552359aa5a238a549ba9eac9b7d058cbe0ad054db639cffdc597036a"
     },
     {
       "path": "docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "894aca93e4d64a50800a184e58a691c222ac18cb870fefbfa4ccb2c64a8d9ec6"
+      "content_sha256": "e54907e06960f97ebbfee72e7b70444fb367b68f60fe56dab7fe5791478537e7"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

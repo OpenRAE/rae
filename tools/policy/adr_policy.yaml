@@ -174,6 +174,10 @@ module_boundaries:
           - raes_runtime.registry
         raes:
           - raes.parser
+          # Pure SDL admission, canonicalization and rendering for run archives.
+          - raes.materialization
+          - raes.canonical
+          - raes.formatting
     - id: raes_conformance
       root: implementations/python/packages/raes_conformance
       allowed_top_level_imports:

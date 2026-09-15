@@ -31,7 +31,9 @@ and recorded digest agreement do not constitute semantic execution or establish
 compatibility. Current release evidence still uses current models and replay.
 
 The original `manifest-v1.json` and its narrower pre-cutover shapes remain
-independently pinned. The gate accepts a retained record through either frozen
-shape version, then checks the complete record's immutable identity and joins.
-Current release 18.0.0 still uses production APIs and CLI replay; archival
-admission never substitutes for that current-code check.
+independently pinned. `manifest-v2.json` supplies frozen shapes for retained
+progressive evidence records that became historical with the materialization
+capture. The gate accepts a retained record through either frozen shape
+version, then checks the complete record's immutable identity and joins.
+Current release 20.0.0 uses production APIs and CLI replay; archival admission
+never substitutes for that current-code check.

@@ -10,7 +10,9 @@
     "ASR-519"
   ],
   "bindings": {
-    "implementations/python/tests/test_exp_732_evidence_provenance.py": ["EXP-708"],
+    "implementations/python/tests/test_exp_732_evidence_provenance.py": [
+      "EXP-708"
+    ],
     "implementations/python/tests/test_reference_backend_provisioner.py": [
       "SEM-218"
     ],
@@ -200,25 +202,28 @@
     "tools/requirement_context.py": [
       "GOV-913"
     ],
-    "docs/research/formal-semantic-validation/analysis-v18.json": [
-      "EXP-708"
-    ],
-    "docs/research/formal-semantic-validation/bundles/retest-v18.json": [
-      "EXP-708"
-    ],
-    "docs/research/formal-semantic-validation/execution-snapshot-v18.json": [
-      "EXP-708"
-    ],
-    "docs/research/specification-coverage/analysis-v17.json": [
-      "EXP-708"
-    ],
-    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v17.json": [
-      "EXP-708"
-    ],
-    "docs/research/specification-coverage/execution-snapshot-v17.json": [
-      "EXP-708"
-    ],
     "docs/research/specification-coverage/historical-artifacts/issue-1237-pre-provenance-sync-release-v16.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v19.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/analysis-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/historical-artifacts/issue-1237-pre-materialization-sync-release-v17.json": [
       "EXP-708"
     ]
   }

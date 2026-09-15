@@ -3,6 +3,7 @@
 from ..semantics.realization import realization_disclosure, sanitize_realization_snapshot
 from .account_credentials import account_credential_spec_is_valid
 from .core import plan
+from .materialization_admission import admit_materialization_submission, validate_materialization_archive_record
 from .ordering import snapshot_delete_order
 from .prepared_node_admission import prepared_node_capability_violation
 from .prepared_node_projection import sanitize_prepared_node_snapshot
@@ -16,6 +17,8 @@ from .realization_preparation import prepared_delivery_violation, prepared_reali
 from .stateful_admission import generated_artifact_payload_diagnostic
 
 __all__ = [
+    "admit_materialization_submission",
+    "validate_materialization_archive_record",
     "account_credential_spec_is_valid",
     "generated_artifact_payload_diagnostic",
     "plan",

@@ -14,6 +14,7 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 
 _TERMINAL_ACTION_STATUSES = frozenset({"succeeded", "failed", "partial_success", "rejected", "withheld"})
 _PROTECTED_SCHEDULER_SNAPSHOT_FIELDS = (
+    "materialization_attestations",
     "participant_autonomous_execution_states",
     "participant_execution_services",
 )

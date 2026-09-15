@@ -128,20 +128,27 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v16.json`](analysis-v16.json) to unconstrained realization-evidence
   source semantics. Fresh replay retains every bounded outcome and records the
   two changed compiler digests as explicit deviations from release 16.0.0.
-- [`bundles/retest-v17.json`](bundles/retest-v17.json) preserves release 18.0.0.
+- [`bundles/retest-v17.json`](bundles/retest-v17.json) is prior release 18.0.0.
   It binds [`execution-snapshot-v17.json`](execution-snapshot-v17.json) and
   [`analysis-v17.json`](analysis-v17.json) to EXP-732 provenance validation.
   Fresh production and participant replay retains the release-17 outcomes and
   result digests with no deviations. The dedicated provenance regression suite
   does not promote this retained corpus to universal provenance assurance.
-- [`bundles/retest-v18.json`](bundles/retest-v18.json) is current release 19.0.0.
+- [`bundles/retest-v18.json`](bundles/retest-v18.json) preserves release 19.0.0.
   It binds [`execution-snapshot-v18.json`](execution-snapshot-v18.json) and
-  [`analysis-v18.json`](analysis-v18.json) to the combined capture-proof and
-  apparatus-provenance validators. Fresh production and participant replay
-  retains release-18 outcomes and digests without expanding the claim limits.
-  Issue #1237's earlier release-18 capture remains byte-exact in feature commit
-  `2b21b5c88fc60c4545a302f4071cf8b781f04fe3`; the incoming published release
-  above is preserved, not replaced by that competing feature-branch capture.
+  [`analysis-v18.json`](analysis-v18.json) to the combined materialization-attestation
+  and EXP-732 provenance implementation. Fresh replay records compiled-representation
+  deviations from release 18.0.0 with unchanged outcomes. The retained corpus does
+  not establish native backend attestation fidelity or new experimental observations.
+- [`bundles/retest-v19.json`](bundles/retest-v19.json) is current release 20.0.0.
+  It binds [`execution-snapshot-v19.json`](execution-snapshot-v19.json) and
+  [`analysis-v19.json`](analysis-v19.json) to capture-proof authority integrated
+  with apparatus provenance and materialization attestations. Fresh replay
+  retains release-19 outcomes and digests without expanding claim limits.
+  Earlier issue-1237 captures remain byte-exact in feature commits
+  `2b21b5c88fc60c4545a302f4071cf8b781f04fe3` (release 18) and
+  `c75805c56330d402a52bd7a578785bb343bf3c30` (release 19), while the incoming
+  published captures above retain their original bytes.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.

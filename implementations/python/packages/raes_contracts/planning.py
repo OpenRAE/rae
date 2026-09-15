@@ -13,7 +13,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from raes.explicitness import ExplicitnessProvenance
 
@@ -22,11 +22,14 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import DomainDescriptor
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.materialization import MaterializationSource
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.realization_preparation import RealizationPreparationAuthority
 from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
 from raes_contracts.run_scope import PlanScope, _validate_optional_run_id
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
+
+_INVALID_PLAN_PURPOSE = "Invalid plan purpose"
 
 if TYPE_CHECKING:
     from raes_contracts.contracts import RealizationEnvelopeIdentityModel
@@ -377,8 +380,12 @@ class ProvisioningPlan:
     # and per-instantiation generated values reconcile against the correct scope.
     run_id: str | None = None
     instantiation_id: str | None = None
+    purpose: Literal["execution", "inspection"] = "execution"
+    materialization_source: MaterializationSource | None = None
 
     def __post_init__(self) -> None:
+        if self.purpose not in {"execution", "inspection"}:
+            raise ValueError(_INVALID_PLAN_PURPOSE)
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("ProvisioningPlan operation_id must be non-empty when present")
         _validate_optional_run_id(self.run_id, owner="ProvisioningPlan run_id")
@@ -404,8 +411,15 @@ class OrchestrationPlan:
     startup_order: list[str] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
+    purpose: Literal["execution", "inspection"] = "execution"
+    materialization_source: MaterializationSource | None = None
+    operation_id: str | None = None
 
     def __post_init__(self) -> None:
+        if self.operation_id is not None and not self.operation_id.strip():
+            raise ValueError("operation_id must be non-empty when present")
+        if self.purpose not in {"execution", "inspection"}:
+            raise ValueError(_INVALID_PLAN_PURPOSE)
         _validate_plan_addresses(
             self.resources,
             self.operations,
@@ -431,8 +445,15 @@ class EvaluationPlan:
     # resolves a random_value generated artifact against its original run binding.
     run_id: str | None = None
     instantiation_id: str | None = None
+    purpose: Literal["execution", "inspection"] = "execution"
+    materialization_source: MaterializationSource | None = None
+    operation_id: str | None = None
 
     def __post_init__(self) -> None:
+        if self.operation_id is not None and not self.operation_id.strip():
+            raise ValueError("operation_id must be non-empty when present")
+        if self.purpose not in {"execution", "inspection"}:
+            raise ValueError(_INVALID_PLAN_PURPOSE)
         _validate_plan_addresses(
             self.resources,
             self.operations,

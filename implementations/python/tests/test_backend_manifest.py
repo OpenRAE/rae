@@ -54,6 +54,7 @@ EXPECTED_SUPPORTED_CONTRACT_VERSIONS_V2 = [
         "experiment-binding-descriptors-v1",
         "realization-envelope-v1",
         "backend-realization-preparation-v1",
+        "backend-materialization-attestation-v1",
         "plan-realization-profiles-v1",
     }
 ]

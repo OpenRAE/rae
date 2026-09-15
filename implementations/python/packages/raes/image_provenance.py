@@ -17,7 +17,9 @@ appear in both with different meanings.
 from enum import Enum
 from typing import Any
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
+
+from raes.runtime_filesystem import redacted_raw_value_schema
 
 from ._base import SDLModel, parse_int_or_var
 from .runtime_configuration import RuntimeEnvironmentValueClassification
@@ -157,6 +159,14 @@ class ImageLayer(SDLModel):
 class ImageBuildArg(SDLModel):
     """An observed build argument with value-sensitivity classification."""
 
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
+
     name: str
     value: str = ""
     value_classification: GovernedVocabulary[RuntimeEnvironmentValueClassification] = (
@@ -202,6 +212,14 @@ class ImageBuildArg(SDLModel):
 
 class ImageEnvironmentDefault(SDLModel):
     """An image-default environment variable with sensitivity classification."""
+
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
 
     name: str
     value: str = ""

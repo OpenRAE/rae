@@ -1,9 +1,9 @@
 {
-  "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
+  "content_hash": "b0d85f3640c3387426f6cff131524fce3d8cbb30788fe9f9363b9c7d67959d9b",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "f4dc01e67eb06d5c91d21d2904fadf8a8f5633ade3886a590135d679eefc031c",
-    "summary": "Reconcile the #1210 progressive semantic cutover (explicit revision, migration decisions, and canonical authoring/snapshot profiles) with the #1276 StringPredicate expected/expected_from XOR invariant and random-value/scope/binding fields."
+    "content_hash": "b0d85f3640c3387426f6cff131524fce3d8cbb30788fe9f9363b9c7d67959d9b",
+    "summary": "Publish model-enforced omission rules for redacted runtime/image values and commands, and expected-absent filesystem facts (#1241 review)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

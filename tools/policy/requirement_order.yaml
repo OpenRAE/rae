@@ -74,6 +74,11 @@ phases:
       - SEM-218
     blocked_until:
       - reference-implementations
+  - id: materialization-provenance
+    requirements:
+      - SEM-225
+    blocked_until:
+      - reference-implementations
   - id: semantics-expansion
     patterns:
       - ^SEM-
@@ -408,6 +413,109 @@ ownership:
     - implementations/tooling/inventory-coverage.json
     - specs/formal
     - specs/sdl
+  # SEM-225 owns common SDL/contract semantics plus the exact runtime, archive,
+  # publication and documentation surfaces used by post-materialization reports.
+  materialization-provenance:
+    - contracts/schemas/artifact-requirements/artifact-requirement-v1.json
+    - contracts/schema-publication/entries/artifact-requirement-v1.json
+    - contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json
+    - contracts/schema-publication/entries/scenario-satisfiability-evidence-v1.json
+    - contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json
+    - contracts/schema-publication/entries/instantiated-scenario-snapshot-v1.json
+    - contracts/schemas/sdl/instantiated-scenario-v1.json
+    - contracts/schema-publication/entries/instantiated-scenario-v1.json
+    - contracts/schemas/sdl/sdl-authoring-input-v1.json
+    - contracts/schema-publication/entries/sdl-authoring-input-v1.json
+    - contracts/fixtures/experiment-core/materialization-archive-record-v1/invalid/wrong-phase.json
+    - contracts/fixtures/experiment-core/materialization-archive-record-v1/valid/reference.json
+    - contracts/fixtures/plans/backend-materialization-attestation-v1/invalid/wrong-phase.json
+    - contracts/fixtures/plans/backend-materialization-attestation-v1/valid/reference.json
+    - contracts/fixtures/sdl/materialized-scenario-v1/invalid/wrong-phase.json
+    - contracts/fixtures/sdl/materialized-scenario-v1/valid/reference.json
+    - contracts/schema-publication/entries/admitted-trial-plan-v1.json
+    - contracts/schema-publication/entries/artifact-transformation-report-v1.json
+    - contracts/schema-publication/entries/associated-artifact-manifest-v1.json
+    - contracts/schema-publication/entries/backend-manifest-v2.json
+    - contracts/schema-publication/entries/backend-materialization-attestation-v1.json
+    - contracts/schema-publication/entries/backend-profile-v1.json
+    - contracts/schema-publication/entries/evaluation-plan-v1.json
+    - contracts/schema-publication/entries/experiment-apparatus-context-v1.json
+    - contracts/schema-publication/entries/experiment-authoring-input-v1.json
+    - contracts/schema-publication/entries/experiment-capture-spec-v1.json
+    - contracts/schema-publication/entries/experiment-derived-measure-v1.json
+    - contracts/schema-publication/entries/experiment-evidence-record-v1.json
+    - contracts/schema-publication/entries/experiment-run-v1.json
+    - contracts/schema-publication/entries/experiment-study-v1.json
+    - contracts/schema-publication/entries/experiment-task-v1.json
+    - contracts/schema-publication/entries/external-concept-bindings-v1.json
+    - contracts/schema-publication/entries/materialization-archive-record-v1.json
+    - contracts/schema-publication/entries/materialized-scenario-v1.json
+    - contracts/schema-publication/entries/orchestration-plan-v1.json
+    - contracts/schema-publication/entries/provisioning-plan-v1.json
+    - contracts/schema-publication/entries/runtime-snapshot-v1.json
+    - contracts/schema-publication/entries/sdl-candidate-synthesis-record-v1.json
+    - contracts/schemas/artifact-transformations/artifact-transformation-report-v1.json
+    - contracts/schemas/associated-artifacts/associated-artifact-manifest-v1.json
+    - contracts/schemas/backend-manifest/backend-manifest-v2.json
+    - contracts/schemas/candidate-synthesis/sdl-candidate-synthesis-record-v1.json
+    - contracts/schemas/concept-authority/external-concept-bindings-v1.json
+    - contracts/schemas/experiment-core/experiment-apparatus-context-v1.json
+    - contracts/schemas/experiment-core/experiment-authoring-input-v1.json
+    - contracts/schemas/experiment-core/experiment-capture-spec-v1.json
+    - contracts/schemas/experiment-core/experiment-derived-measure-v1.json
+    - contracts/schemas/experiment-core/experiment-evidence-record-v1.json
+    - contracts/schemas/experiment-core/experiment-run-v1.json
+    - contracts/schemas/experiment-core/experiment-study-v1.json
+    - contracts/schemas/experiment-core/experiment-task-v1.json
+    - contracts/schemas/experiment-core/materialization-archive-record-v1.json
+    - contracts/schemas/plans/admitted-trial-plan-v1.json
+    - contracts/schemas/plans/backend-materialization-attestation-v1.json
+    - contracts/schemas/plans/evaluation-plan-v1.json
+    - contracts/schemas/plans/orchestration-plan-v1.json
+    - contracts/schemas/plans/provisioning-plan-v1.json
+    - contracts/schemas/profiles/backend-profile-v1.json
+    - contracts/schemas/sdl/materialized-scenario-v1.json
+    - contracts/schemas/snapshots/runtime-snapshot-v1.json
+    - docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md
+    - docs/decisions/adrs/adr-index.yaml
+    - docs/decisions/issue-1241-materialization-attestation-preflight.md
+    - docs/decisions/issue-1241-materialization-attestation-verification.md
+    - docs/explain/reference/materialization-attestations.md
+    - docs/explain/sdl/runtime-architecture.md
+    - docs/public/backends.md
+    - docs/requirements/SEM-225/requirement.md
+    - docs/research/formal-semantic-validation
+    - docs/research/specification-coverage
+    - implementations/python/packages/raes
+    - implementations/python/packages/raes_backend_stubs/manifest.py
+    - implementations/python/packages/raes_conformance/conformance/validators.py
+    - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_operations/run_artifacts.py
+    - implementations/python/packages/raes_processor
+    - implementations/python/packages/raes_reference_backend/manifest.py
+    - implementations/python/packages/raes_runtime/backend_calls.py
+    - implementations/python/packages/raes_runtime/backend_effect_transitions.py
+    - implementations/python/packages/raes_runtime/backend_input_contracts.py
+    - implementations/python/packages/raes_runtime/backend_materialization.py
+    - implementations/python/packages/raes_runtime/backend_observation_calls.py
+    - implementations/python/packages/raes_runtime/backend_realization_authority.py
+    - implementations/python/packages/raes_runtime/backend_snapshot_contracts.py
+    - implementations/python/packages/raes_runtime/control_plane.py
+    - implementations/python/packages/raes_runtime/control_plane_api_models.py
+    - implementations/python/packages/raes_runtime/control_plane_configuration.py
+    - implementations/python/packages/raes_runtime/control_plane_execution.py
+    - implementations/python/packages/raes_runtime/control_plane_plan_authorization.py
+    - implementations/python/packages/raes_runtime/control_plane_store_snapshots.py
+    - implementations/python/packages/raes_runtime/manager.py
+    - implementations/python/packages/raes_runtime/manager_plan_admission.py
+    - implementations/python/packages/raes_runtime/participant_action_validation.py
+    - implementations/python/packages/raes_runtime/participant_execution_control.py
+    - implementations/python/tests
+    - specs/formal/sdl-phases/README.md
+    - specs/sdl/README.md
+    - specs/sdl/document-model.md
+    - specs/sdl/materialization-attestation.md
+    - specs/sdl/observability-and-evidence.md
   semantics-expansion:
     - contracts/schemas/sdl
     # Shared description semantics and existing evidence lifecycle owners (SEM-218).

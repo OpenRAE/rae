@@ -98,6 +98,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "17.0.0",
         "18.0.0",
         "19.0.0",
+        "20.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -106,12 +107,28 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "19.0.0"
+    assert release.manifest["revision"] == "20.0.0"
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "3.0.0"
-    assert snapshot["baseline"]["release_revision"] == "18.0.0"
+    assert snapshot["baseline"]["release_revision"] == "19.0.0"
     assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
+
+
+def test_materialization_capture_preserves_recorded_digest_deviations() -> None:
+    release = next(
+        item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "19.0.0"
+    )
+    snapshot = release.snapshot
+    assert snapshot["baseline"]["release_revision"] == "18.0.0"
+    assert {item["case_id"] for item in snapshot["deviations"]} == {
+        "compile-repeatability-control",
+        "compile-non-vacuity-control",
+    }
+    assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
+    assert all(
+        item["baseline"]["actual_outcome"] == item["retest"]["actual_outcome"] for item in snapshot["deviations"]
+    )
 
 
 def test_current_analysis_evidence_selects_its_release_corpus() -> None:
@@ -369,7 +386,6 @@ def test_historical_gate_rejects_substitution_with_current_evidence(
         item for item in copy_bundle(load_release_bundles, REPO_ROOT) if item.manifest["revision"] == "3.0.0"
     )
     protocol, corpus, snapshot, analysis = release.protocol, release.corpus, release.snapshot, release.analysis
-    case = next(item for item in corpus["cases"] if item["case_id"] == case_id)
     observation = next(item for item in snapshot["observations"] if item["case_id"] == case_id)
     evidence_path = observation["evidence_artifact_path"]
     _, _, _, current_snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)

@@ -78,6 +78,8 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
     from raes_contracts.planning import PlannedRealizationConstraint
 
     return ProvisioningPlan(
+        materialization_source=model.materialization_source,
+        purpose=model.purpose,
         preparation=model.preparation,
         profile_authority=model.profile_authority,
         operations=[
@@ -142,6 +144,9 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
 
 def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
     return OrchestrationPlan(
+        operation_id=model.operation_id,
+        materialization_source=model.materialization_source,
+        purpose=model.purpose,
         operations=[
             OrchestrationOp(
                 action=ChangeAction(str(op.action)),
@@ -161,6 +166,9 @@ def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
 
 def _evaluation_plan(model: EvaluationPlanModel) -> EvaluationPlan:
     return EvaluationPlan(
+        operation_id=model.operation_id,
+        materialization_source=model.materialization_source,
+        purpose=model.purpose,
         operations=[
             EvaluationOp(
                 action=ChangeAction(str(op.action)),
@@ -199,6 +207,9 @@ def _operation_status_model(status: OperationStatus) -> OperationStatusModel:
 def _snapshot_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
     snapshot = envelope.snapshot
     payload = {
+        "materialization_attestations": [
+            record.model_dump(mode="json") for record in snapshot.materialization_attestations
+        ],
         "schema_version": envelope.schema_version,
         "entries": {
             address: {

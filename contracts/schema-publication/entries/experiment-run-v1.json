@@ -1,10 +1,10 @@
 {
+  "content_hash": "3c36dbfd4242f45da9fef3ef92166df119947dbde78849a6146d131744944532",
   "contract_id": "experiment-run-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
-  "stability": "draft",
-  "content_hash": "fd999638beb626786aaafc9610abad5e251d3c643bac4a8cc0d7793419418417",
   "last_change": {
-    "content_hash": "fd999638beb626786aaafc9610abad5e251d3c643bac4a8cc0d7793419418417",
-    "summary": "Reconcile issue #1209 partial realization descriptions with issue #1205 named version predicates in their shared recursive domain contract."
-  }
+    "content_hash": "3c36dbfd4242f45da9fef3ef92166df119947dbde78849a6146d131744944532",
+    "summary": "Preserve typed protected materialization archive records and distinct provenance references through run and runtime snapshots; original input and evidence semantics remain unchanged (#1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
+  "stability": "draft"
 }
