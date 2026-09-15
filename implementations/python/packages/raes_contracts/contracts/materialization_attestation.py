@@ -1,6 +1,8 @@
 """Typed run-archive reference for post-materialization SDL descriptions."""
 
-from typing import Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import Field, model_validator
 
@@ -9,6 +11,9 @@ from raes_contracts.materialization import MaterializationSource
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .experiment_references import ExperimentReferenceModel
+
+if TYPE_CHECKING:
+    from .experiment_run import ExperimentRunModel
 
 
 class MaterializationPlanModel(ContractModel):
@@ -39,7 +44,7 @@ class MaterializationArchiveRecord(ContractModel):
     operation_id: NonEmptyString
 
     @model_validator(mode="after")
-    def _validate_archive_join(self) -> "MaterializationArchiveRecord":
+    def _validate_archive_join(self) -> MaterializationArchiveRecord:
         if (
             self.artifact.role != "materialization-attestation"
             or self.reference.ref_id != self.artifact.artifact_id
@@ -52,7 +57,7 @@ class MaterializationArchiveRecord(ContractModel):
         return self
 
 
-def validate_run_materializations(run) -> None:
+def validate_run_materializations(run: ExperimentRunModel) -> None:
     """Bind descriptive carriers to the run's actual archived artifact records."""
     from raes_contracts.materialization import require_materialization_records
 
@@ -68,29 +73,33 @@ def validate_run_materializations(run) -> None:
                     raise ValueError("materialization carrier must bind an archived run artifact")
 
 
-def attach_materialization_invariants(contract_id: str, schema: dict) -> None:
+def attach_materialization_invariants(contract_id: str, schema: dict[str, Any]) -> None:
     """Disclose the context-dependent checks that schema shape alone cannot prove."""
     from .schema_invariants import _add_raes_invariant
 
     invariants = {
         "materialized-scenario-v1": (
             "materialized-sdl-source-and-inventory-binding",
-            "Complete origins, source/plan/predecessor/producer identity and realized inventory require the admitted source and execution context; descriptive admission grants no execution authority.",
+            "Complete origins, source/plan/predecessor/producer identity and realized inventory require "
+            "the admitted source and execution context; descriptive admission grants no execution authority.",
             "raes_processor.planner.admit_materialization_submission",
         ),
         "backend-materialization-attestation-v1": (
             "backend-materialization-submission-admission",
-            "SDL bytes require bounded parsing and semantic, original-authority, complete inventory and execution-context validation after materialization hooks.",
+            "SDL bytes require bounded parsing and semantic, original-authority, complete inventory "
+            "and execution-context validation after materialization hooks.",
             "raes_processor.planner.admit_materialization_submission",
         ),
         "materialization-archive-record-v1": (
             "materialization-archive-byte-and-lineage-binding",
-            "The typed record must join protected immutable published SDL bytes to their size, checksum, semantic identity, run and operation; metadata alone does not prove delivery.",
+            "The typed record must join protected immutable published SDL bytes to their size, checksum, "
+            "semantic identity, run and operation; metadata alone does not prove delivery.",
             "raes_processor.planner.validate_materialization_archive_record",
         ),
         "experiment-run-v1": (
             "run-materialization-carriers-archived",
-            "Materialization records belong to this run and materialization disclosure carriers bind exactly one archived record; the original scenario snapshot reference is not replaced.",
+            "Materialization records belong to this run and materialization disclosure carriers bind "
+            "exactly one archived record; the original scenario snapshot reference is not replaced.",
             "raes_contracts.contracts.materialization_attestation.validate_run_materializations",
         ),
     }

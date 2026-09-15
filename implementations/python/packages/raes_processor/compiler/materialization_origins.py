@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
+from typing import Any, TypeAlias
 
 from raes.explicitness import ExplicitnessProvenance
 from raes.materialization import MaterializedScenario
@@ -17,6 +18,7 @@ from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 from ..semantics.realization_concerns import registered_realization_concern_descriptors
 
 _ABSENT = object()
+_CollectionProfiles: TypeAlias = dict[tuple[str, ...], tuple[str, ...]]
 
 
 def materialization_differences(
@@ -38,7 +40,7 @@ def materialization_differences(
     return tuple(_differences(before, after, (), (), profiles))
 
 
-def _profiles(node_names, content_names) -> dict:
+def _profiles(node_names: Iterable[str], content_names: Iterable[str]) -> _CollectionProfiles:
     return {
         (
             item.descriptor.section,
@@ -93,17 +95,18 @@ def _origin(change: str, before_path: tuple[str, ...], after_path: tuple[str, ..
     )
 
 
-def _collection_identity(path: tuple[str, ...], profiles: dict) -> tuple[str, ...]:
+def _collection_identity(path: tuple[str, ...], profiles: _CollectionProfiles) -> tuple[str, ...]:
+    identity = ()
     if path in profiles:
-        return profiles[path]
-    if len(path) == 3 and path[0] == "nodes" and path[2] == "services":
-        return ("name",)
-    if len(path) >= 4 and path[0] == "nodes" and path[2] == "runtime":
-        return runtime_inventory_collection_identity(path[3].replace("_", "-"), _pointer(path[4:]))
-    return ()
+        identity = profiles[path]
+    elif len(path) == 3 and path[0] == "nodes" and path[2] == "services":
+        identity = ("name",)
+    elif len(path) >= 4 and path[0] == "nodes" and path[2] == "runtime":
+        identity = runtime_inventory_collection_identity(path[3].replace("_", "-"), _pointer(path[4:]))
+    return identity
 
 
-def _indexed(values: list, identity: tuple[str, ...]) -> dict[str, tuple[int, object]]:
+def _indexed(values: list[object], identity: tuple[str, ...]) -> dict[str, tuple[int, object]]:
     result = {}
     for index, value in enumerate(values):
         if not isinstance(value, dict) or any(field not in value for field in identity):
@@ -120,46 +123,84 @@ def _differences(
     after: object,
     before_path: tuple[str, ...],
     after_path: tuple[str, ...],
-    profiles: dict,
+    profiles: _CollectionProfiles,
 ) -> Iterator[MaterializationOrigin]:
+    if isinstance(before, dict) and isinstance(after, dict):
+        yield from _mapping_differences(before, after, before_path, after_path, profiles)
+    elif isinstance(before, list) and isinstance(after, list):
+        yield from _sequence_differences(before, after, before_path, after_path, profiles)
+    elif change := _leaf_change(before, after):
+        yield _origin(change, before_path, after_path)
+
+
+def _leaf_change(before: object, after: object) -> str | None:
+    change = None
     if before is _ABSENT:
-        yield _origin("added", before_path, after_path)
+        change = "added"
     elif after is _ABSENT:
-        yield _origin("removed", before_path, after_path)
-    elif isinstance(before, dict) and isinstance(after, dict):
-        for key in sorted(before.keys() | after.keys()):
+        change = "removed"
+    elif type(before) is not type(after) or before != after:
+        change = "selected"
+    return change
+
+
+def _mapping_differences(
+    before: dict[str, Any],
+    after: dict[str, Any],
+    before_path: tuple[str, ...],
+    after_path: tuple[str, ...],
+    profiles: _CollectionProfiles,
+) -> Iterator[MaterializationOrigin]:
+    for key in sorted(before.keys() | after.keys()):
+        yield from _differences(
+            before.get(key, _ABSENT),
+            after.get(key, _ABSENT),
+            (*before_path, key),
+            (*after_path, key),
+            profiles,
+        )
+
+
+def _sequence_differences(
+    before: list[object],
+    after: list[object],
+    before_path: tuple[str, ...],
+    after_path: tuple[str, ...],
+    profiles: _CollectionProfiles,
+) -> Iterator[MaterializationOrigin]:
+    identity = _collection_identity(after_path, profiles)
+    if identity:
+        yield from _keyed_differences(
+            _indexed(before, identity), _indexed(after, identity), before_path, after_path, profiles
+        )
+    else:
+        for index in range(max(len(before), len(after))):
             yield from _differences(
-                before.get(key, _ABSENT),
-                after.get(key, _ABSENT),
-                (*before_path, key),
-                (*after_path, key),
+                before[index] if index < len(before) else _ABSENT,
+                after[index] if index < len(after) else _ABSENT,
+                (*before_path, str(index)),
+                (*after_path, str(index)),
                 profiles,
             )
-    elif isinstance(before, list) and isinstance(after, list):
-        identity = _collection_identity(after_path, profiles)
-        if identity:
-            left, right = _indexed(before, identity), _indexed(after, identity)
-            for key in sorted(left.keys() | right.keys()):
-                left_index, left_value = left.get(key, (0, _ABSENT))
-                right_index, right_value = right.get(key, (0, _ABSENT))
-                yield from _differences(
-                    left_value,
-                    right_value,
-                    (*before_path, str(left_index)),
-                    (*after_path, str(right_index)),
-                    profiles,
-                )
-        else:
-            for index in range(max(len(before), len(after))):
-                yield from _differences(
-                    before[index] if index < len(before) else _ABSENT,
-                    after[index] if index < len(after) else _ABSENT,
-                    (*before_path, str(index)),
-                    (*after_path, str(index)),
-                    profiles,
-                )
-    elif type(before) is not type(after) or before != after:
-        yield _origin("selected", before_path, after_path)
+
+
+def _keyed_differences(
+    left: dict[str, tuple[int, object]],
+    right: dict[str, tuple[int, object]],
+    before_path: tuple[str, ...],
+    after_path: tuple[str, ...],
+    profiles: _CollectionProfiles,
+) -> Iterator[MaterializationOrigin]:
+    for key in sorted(left.keys() | right.keys()):
+        left_index, left_value = left.get(key, (0, _ABSENT))
+        right_index, right_value = right.get(key, (0, _ABSENT))
+        yield from _differences(
+            left_value,
+            right_value,
+            (*before_path, str(left_index)),
+            (*after_path, str(right_index)),
+            profiles,
+        )
 
 
 __all__ = ["materialization_differences", "materialization_node_payloads_match", "validate_materialization_origins"]

@@ -48,5 +48,7 @@ def test_tampered_source_cannot_reuse_the_original_input_identity():
     source = execution.provisioning.materialization_source
     changed = json.loads(source.snapshot)
     changed["scenario"]["description"] = "substituted"
+    source_type = type(source)
+    substituted = {**source.model_dump(), "snapshot": json.dumps(changed)}
     with pytest.raises(ValueError):
-        type(source).model_validate({**source.model_dump(), "snapshot": json.dumps(changed)})
+        source_type.model_validate(substituted)

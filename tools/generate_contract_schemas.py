@@ -154,12 +154,12 @@ def write_schema_bundle(schemas_dir: Path) -> None:
         output_path.write_text(_serialize_schema(name, schema), encoding="utf-8")
 
 
-def _serialize_schema(name: str, schema: dict) -> str:
+def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     """Keep large self-contained schemas readable one definition per line."""
     if name != "materialized-scenario-v1":
         return json.dumps(schema, indent=2, sort_keys=True) + "\n"
 
-    def compact(value):
+    def compact(value: object) -> str:
         return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
     members = []

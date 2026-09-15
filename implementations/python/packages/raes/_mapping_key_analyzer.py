@@ -235,21 +235,26 @@ class _MappingAnalyzer:
         suppress_field_migration: bool,
     ) -> None:
         if is_declaration_key_path(tokens) and not suppress_field_migration:
-            qualified = self._materialized and len(tokens) == 1
-            if qualified:
-                try:
-                    QualifiedName.parse(authored)
-                except ValueError:
-                    self._add_identifier_diagnostic(key_node, pointer_tokens=child_tokens)
-            else:
-                self._validate_identifier_node(key_node, pointer_tokens=child_tokens)
-            local_name = authored.rsplit(".", 1)[-1] if qualified else authored
-            if tokens == ["nodes"] and len(local_name) > 35:
-                self._add_identifier_diagnostic(key_node, pointer_tokens=child_tokens, node_limit=True)
+            self._validate_declaration_identifier(key_node, authored, tokens, child_tokens)
         if child_tokens == ["name"]:
             self._validate_identifier_node(value_node, pointer_tokens=child_tokens)
         if is_scalar_identifier_path(child_tokens):
             self._validate_identifier_node(value_node, pointer_tokens=child_tokens)
+
+    def _validate_declaration_identifier(
+        self, key_node: Node, authored: str, tokens: list[str], child_tokens: list[str]
+    ) -> None:
+        qualified = self._materialized and len(tokens) == 1
+        if qualified:
+            try:
+                QualifiedName.parse(authored)
+            except ValueError:
+                self._add_identifier_diagnostic(key_node, pointer_tokens=child_tokens)
+        else:
+            self._validate_identifier_node(key_node, pointer_tokens=child_tokens)
+        local_name = authored.rsplit(".", 1)[-1] if qualified else authored
+        if tokens == ["nodes"] and len(local_name) > 35:
+            self._add_identifier_diagnostic(key_node, pointer_tokens=child_tokens, node_limit=True)
 
     def _validate_identifier_node(self, node: Node, *, pointer_tokens: list[str]) -> None:
         if not isinstance(node, ScalarNode) or node.tag != _STRING_TAG or not is_portable_identifier(node.value):

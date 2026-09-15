@@ -14,6 +14,7 @@ def test_materialization_provenance_delivery_has_bounded_ownership():
     allowed = [
         "implementations/python/packages/raes_operations/run_artifacts.py",
         "implementations/python/packages/raes_runtime/backend_materialization.py",
+        "implementations/python/packages/raes_runtime/control_plane_configuration.py",
         "contracts/schemas/sdl/materialized-scenario-v1.json",
         "contracts/schema-publication/entries/materialized-scenario-v1.json",
         "docs/research/formal-semantic-validation/bundles/retest-v16.json",

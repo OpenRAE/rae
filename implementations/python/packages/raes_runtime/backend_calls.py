@@ -112,16 +112,18 @@ def _call_backend_apply(
         return _failed_apply_result(baseline_snapshot, _backend_contract_invalid(address, invalid))
     authority_diagnostics = _apply_authority_diagnostics(realization_context, address)
     if authority_diagnostics:
-        return ApplyResult(success=False, snapshot=baseline_snapshot, diagnostics=authority_diagnostics)
-    return _prepared_backend_result(
-        method,
-        args,
-        address=address,
-        snapshot=snapshot,
-        baseline_snapshot=baseline_snapshot,
-        realization=realization_context,
-        call=call_context,
-    )
+        result = ApplyResult(success=False, snapshot=baseline_snapshot, diagnostics=authority_diagnostics)
+    else:
+        result = _prepared_backend_result(
+            method,
+            args,
+            address=address,
+            snapshot=snapshot,
+            baseline_snapshot=baseline_snapshot,
+            realization=realization_context,
+            call=call_context,
+        )
+    return result
 
 
 def _invoke_backend_apply(

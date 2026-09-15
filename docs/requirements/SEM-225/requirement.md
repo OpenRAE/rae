@@ -125,6 +125,7 @@ If processors or backends add instrumentation or other augmentation, the ecosyst
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_realization_authority.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_snapshot_contracts.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py` (Attestation admission, execution isolation and durable runtime-owned references)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_configuration.py` (Typed archive ownership and compatible runtime configuration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_plan_authorization.py` (Attestation admission, execution isolation and durable runtime-owned references)

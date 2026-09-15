@@ -38,8 +38,9 @@ def test_archive_refuses_a_conflicting_republication_without_overwriting(tmp_pat
     first = archive.publish(json.dumps(materialized_payload()))
     path = tmp_path / first.reference.ref_path
     original = path.read_bytes()
+    conflicting = json.dumps(materialized_payload(description="different"))
     with pytest.raises(ValueError):
-        archive.publish(json.dumps(materialized_payload(description="different")))
+        archive.publish(conflicting)
     assert path.read_bytes() == original
 
 
@@ -48,8 +49,9 @@ def test_archive_rejects_untrusted_run_paths_before_writing(tmp_path, run_id):
     archive = _archive(tmp_path)
     payload = materialized_payload()
     payload["materialization_provenance"]["run_id"] = run_id
+    content = json.dumps(payload)
     with pytest.raises(ValueError):
-        archive.publish(json.dumps(payload))
+        archive.publish(content)
     assert not list(tmp_path.iterdir())
 
 
@@ -59,8 +61,9 @@ def test_archive_refuses_symlinked_run_directories(tmp_path):
     outside.mkdir()
     (tmp_path / "archive").mkdir()
     (tmp_path / "archive" / "runs").symlink_to(outside, target_is_directory=True)
+    content = json.dumps(materialized_payload())
     with pytest.raises((OSError, ValueError)):
-        archive.publish(json.dumps(materialized_payload()))
+        archive.publish(content)
     assert not list(outside.iterdir())
 
 
@@ -71,5 +74,6 @@ def test_archive_refuses_an_existing_symlink_artifact(tmp_path):
     saved = artifact.with_suffix(".saved")
     artifact.rename(saved)
     artifact.symlink_to(saved)
+    content = json.dumps(materialized_payload())
     with pytest.raises((OSError, ValueError)):
-        archive.publish(json.dumps(materialized_payload()))
+        archive.publish(content)

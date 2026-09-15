@@ -105,8 +105,9 @@ def test_origin_claims_must_exactly_account_for_actual_differences(change):
             **({"source_pointer": "/nodes/host"} if change == "selected" else {}),
         }
     ]
+    described = parse_sdl(json.dumps(payload))
     with pytest.raises(ValueError, match="origins"):
-        validate_materialization_origins(source, parse_sdl(json.dumps(payload)))
+        validate_materialization_origins(source, described)
 
 
 def test_replaced_keyed_member_has_distinct_removed_and_added_origins_at_same_index():

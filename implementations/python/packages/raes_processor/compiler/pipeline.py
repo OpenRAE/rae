@@ -173,15 +173,12 @@ def compile_runtime_model(
     """Compile an SDL scenario into bound runtime objects."""
 
     authority = _admitted_profile_authority(profile_authority)
-    scenario = (
-        admit_materialized_scenario(scenario)
-        if isinstance(scenario, MaterializedScenario)
-        else (
-            admit_instantiated_scenario(scenario)
-            if isinstance(scenario, InstantiatedScenario)
-            else instantiate_scenario(scenario)
-        )
-    )
+    if isinstance(scenario, MaterializedScenario):
+        scenario = admit_materialized_scenario(scenario)
+    elif isinstance(scenario, InstantiatedScenario):
+        scenario = admit_instantiated_scenario(scenario)
+    else:
+        scenario = instantiate_scenario(scenario)
     declaration_index = build_declaration_index(scenario)
     authority = compile_software_profiles(scenario, authority)
     diagnostics: list[Diagnostic] = []

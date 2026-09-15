@@ -23,8 +23,11 @@ import stat
 import tempfile
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 
 RUN_ID_LABEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 
@@ -90,7 +93,7 @@ class RunMaterializationArchive:
     def __init__(self, output_dir: Path) -> None:
         self.output_dir = Path(output_dir)
 
-    def publish(self, content: str):
+    def publish(self, content: str) -> MaterializationArchiveRecord:
         from raes.canonical import canonical_materialized_sdl_digest
         from raes.formatting import render_sdl_source
         from raes.materialization import MaterializedScenario

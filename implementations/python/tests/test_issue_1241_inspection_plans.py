@@ -69,7 +69,8 @@ def test_materializing_phase_operation_identity_is_bound_and_roundtrips(plan_typ
 
     _call_backend_apply(apply, plan_type(), previous, address="runtime.phase", snapshot=previous)
     assert len(received) == 1
-    assert isinstance(received[0], str) and received[0]
+    assert isinstance(received[0], str)
+    assert received[0]
     request = plan_type(operation_id=received[0])
     assert decode(encode(request)).operation_id == received[0]
     assert runtime_plan_digest(request) != runtime_plan_digest(plan_type())

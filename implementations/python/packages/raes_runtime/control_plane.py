@@ -4,13 +4,11 @@ Expose schema-oriented runtime execution as eagerly completed operations over an
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from threading import RLock
-from typing import TypeVar
+from typing import TypeVar, Unpack
 
-from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
-from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -25,9 +23,9 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshotEnvelope,
 )
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_processor.models import ParticipantBehaviorSpecificationRuntime
 
 from .control_plane_admission import RuntimeAdmissionMixin
+from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
     OperationExecutionRequest,
@@ -49,7 +47,6 @@ from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
-    ControlPlaneStore,
     InMemoryControlPlaneStore,
     SnapshotState,
 )
@@ -127,23 +124,20 @@ class RuntimeControlPlane(
     def __init__(
         self,
         target: _RuntimeTarget,
-        *,
-        initial_snapshot: RuntimeSnapshot | None = None,
-        store: ControlPlaneStore | None = None,
-        behavior_specifications: Mapping[str, ParticipantBehaviorSpecificationRuntime] | None = None,
-        crossing_policy_resolver: ParticipantCrossingPolicyResolver | None = None,
-        information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
-        enforce_final_sink_flow_control: bool = True,
-        materialization_archive: MaterializationArchive | None = None,
+        **options: Unpack[ControlPlaneOptions],
     ) -> None:
+        config = ControlPlaneConfiguration(**options)
+        initial_snapshot, store = config.initial_snapshot, config.store
+        crossing_policy_resolver = config.crossing_policy_resolver
+        information_state_context_resolver = config.information_state_context_resolver
         self._initialize_runtime_lifecycle()
         if store is not None and initial_snapshot is not None:
             raise ValueError("initial_snapshot cannot be combined with an explicit store")
         _require_crossing_policy_configuration(target, crossing_policy_resolver)
-        _require_final_sink_flow_control_configuration(crossing_policy_resolver, enforce_final_sink_flow_control)
+        _require_final_sink_flow_control_configuration(crossing_policy_resolver, config.enforce_final_sink_flow_control)
         self._target = target
-        self._materialization_archive = materialization_archive
-        self._enforce_final_sink_flow_control = enforce_final_sink_flow_control
+        self._materialization_archive = config.materialization_archive
+        self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
         self._store = store or InMemoryControlPlaneStore(initial_snapshot)
         try:
             self._mutation_authority = RuntimeMutationAuthority()
@@ -155,7 +149,7 @@ class RuntimeControlPlane(
                 self._runtime_lease = acquire_runtime_lease()
             self._snapshot_state = self._store.load_snapshot_state()
             self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
-            self._behavior_specifications = dict(behavior_specifications or {})
+            self._behavior_specifications = dict(config.behavior_specifications or {})
             self._crossing_policy_resolver = crossing_policy_resolver
             self._information_state_context_resolver = information_state_context_resolver
             self._ephemeral_idempotency_fingerprints: dict[str, str] = {}

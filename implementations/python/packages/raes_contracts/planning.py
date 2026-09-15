@@ -29,6 +29,8 @@ from raes_contracts.realization_structure import RealizationConstraintDocument, 
 from raes_contracts.run_scope import PlanScope, _validate_optional_run_id
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
+_INVALID_PLAN_PURPOSE = "Invalid plan purpose"
+
 if TYPE_CHECKING:
     from raes_contracts.contracts import RealizationEnvelopeIdentityModel
     from raes_contracts.domain_profiles import DomainProfileBindingModel
@@ -383,7 +385,7 @@ class ProvisioningPlan:
 
     def __post_init__(self) -> None:
         if self.purpose not in {"execution", "inspection"}:
-            raise ValueError("Invalid plan purpose")
+            raise ValueError(_INVALID_PLAN_PURPOSE)
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("ProvisioningPlan operation_id must be non-empty when present")
         _validate_optional_run_id(self.run_id, owner="ProvisioningPlan run_id")
@@ -417,7 +419,7 @@ class OrchestrationPlan:
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:
-            raise ValueError("Invalid plan purpose")
+            raise ValueError(_INVALID_PLAN_PURPOSE)
         _validate_plan_addresses(
             self.resources,
             self.operations,
@@ -451,7 +453,7 @@ class EvaluationPlan:
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:
-            raise ValueError("Invalid plan purpose")
+            raise ValueError(_INVALID_PLAN_PURPOSE)
         _validate_plan_addresses(
             self.resources,
             self.operations,

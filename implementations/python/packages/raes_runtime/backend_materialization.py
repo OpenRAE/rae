@@ -1,6 +1,7 @@
 """Negotiated attestation admission and protected archive publication after apply."""
 
 from dataclasses import replace
+from typing import cast
 
 from raes_contracts.materialization import MATERIALIZATION_ATTESTATION_CONTRACT, MaterializationArchive
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -20,9 +21,13 @@ def materialization_precondition(
     negotiated = manifest is not None and MATERIALIZATION_ATTESTATION_CONTRACT in manifest.supported_contract_versions
     if not negotiated and source is None:
         return None
+    error = None
     if not negotiated or source is None or archive is None or manifest.realization_envelope is None:
-        return "Materialization reporting requires negotiated support, trusted source context, configured identity and an archive owner."
-    return None
+        error = (
+            "Materialization reporting requires negotiated support, trusted source context, "
+            "configured identity and an archive owner."
+        )
+    return error
 
 
 def finalize_materialization(
@@ -33,7 +38,7 @@ def finalize_materialization(
     archive: MaterializationArchive | None,
 ) -> ApplyResult:
     """Publish bytes before accepted references; preserve valid cleanup on failure."""
-    accepted = replace(accepted, materialization_attestation=None)
+    accepted = cast(ApplyResult, replace(accepted, materialization_attestation=None))
     if not accepted.success:
         return accepted
     request = context.operation_plan
@@ -53,16 +58,22 @@ def finalize_materialization(
             materialization_attestations=(*previous.materialization_attestations, record),
         )
     except Exception:
-        return replace(
-            accepted,
-            success=False,
-            diagnostics=[
-                *accepted.diagnostics,
-                _failure_diagnostic(
-                    "runtime.materialization-attestation-invalid",
-                    "runtime.materialization",
-                    "Materialization attestation or protected archival delivery failed; retained resources require cleanup.",
-                ),
-            ],
+        accepted = cast(
+            ApplyResult,
+            replace(
+                accepted,
+                success=False,
+                diagnostics=[
+                    *accepted.diagnostics,
+                    _failure_diagnostic(
+                        "runtime.materialization-attestation-invalid",
+                        "runtime.materialization",
+                        "Materialization attestation or protected archival delivery failed; "
+                        "retained resources require cleanup.",
+                    ),
+                ],
+            ),
         )
-    return replace(accepted, snapshot=snapshot, materialization_attestation=admitted)
+    else:
+        accepted = cast(ApplyResult, replace(accepted, snapshot=snapshot, materialization_attestation=admitted))
+    return accepted

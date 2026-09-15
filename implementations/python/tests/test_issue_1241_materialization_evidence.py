@@ -55,6 +55,6 @@ def test_progressive_archival_admission_rejects_changed_recorded_payloads(mode):
     validate_archival_evidence_invariants(payload, mode)
     changed = deepcopy(payload)
     changed["source"]["byte_digest"] = "sha256:" + "0" * 64
+    validate_archival_evidence_shape(root, changed, mode)
     with pytest.raises(ValueError):
-        validate_archival_evidence_shape(root, changed, mode)
         validate_archival_evidence_invariants(changed, mode)

@@ -89,8 +89,9 @@ def test_materialized_parser_preserves_qualified_names_and_native_runtime_models
 
 @pytest.mark.parametrize("field,value", [("variables", {}), ("imports", []), ("module", None)])
 def test_materialized_phase_rejects_authoring_machinery(field, value):
+    content = json.dumps(materialized_payload(**{field: value}))
     with pytest.raises(SDLParseError):
-        parse_sdl(json.dumps(materialized_payload(**{field: value})))
+        parse_sdl(content)
 
 
 def test_materialized_phase_never_resolves_an_import(monkeypatch, tmp_path):
@@ -103,22 +104,23 @@ def test_materialized_phase_never_resolves_an_import(monkeypatch, tmp_path):
         raise AssertionError("materialized SDL must not invoke import resolution")
 
     monkeypatch.setattr(raes.composition, "expand_sdl_modules", unexpected_resolution)
+    content = json.dumps(materialized_payload(imports=[{"path": "untrusted.sdl", "as": "external"}]))
+    path = tmp_path / "attestation.sdl"
     with pytest.raises(SDLParseError):
-        parse_sdl(
-            json.dumps(materialized_payload(imports=[{"path": "untrusted.sdl", "as": "external"}])),
-            path=tmp_path / "attestation.sdl",
-        )
+        parse_sdl(content, path=path)
     assert calls == []
 
 
 def test_materialized_phase_rejects_unresolved_substitution():
+    content = json.dumps(materialized_payload(description="unresolved ${input}"))
     with pytest.raises(SDLParseError):
-        parse_sdl(json.dumps(materialized_payload(description="unresolved ${input}")))
+        parse_sdl(content)
 
 
 def test_authored_identifiers_remain_unqualified():
+    content = json.dumps({"name": "authored", "nodes": {"lab.host": {"type": "compute"}}})
     with pytest.raises(SDLParseError):
-        parse_sdl(json.dumps({"name": "authored", "nodes": {"lab.host": {"type": "compute"}}}))
+        parse_sdl(content)
 
 
 def test_materialized_roundtrip_uses_the_normal_renderer_and_its_own_digest():
@@ -184,15 +186,14 @@ def test_shared_canonical_comparison_preserves_materialization_artifact_kind():
 def test_materialized_phase_keeps_the_existing_semantic_reference_gate():
     from raes import SDLValidationError
 
-    with pytest.raises(SDLValidationError):
-        parse_sdl(
-            json.dumps(
-                materialized_payload(
-                    nodes={"host": {"type": "compute"}},
-                    infrastructure={"host": {"links": ["missing-network"]}},
-                )
-            )
+    content = json.dumps(
+        materialized_payload(
+            nodes={"host": {"type": "compute"}},
+            infrastructure={"host": {"links": ["missing-network"]}},
         )
+    )
+    with pytest.raises(SDLValidationError):
+        parse_sdl(content)
 
 
 @pytest.mark.parametrize("index", ["-1", "00", "+0"])
@@ -205,8 +206,9 @@ def test_materialization_origin_requires_canonical_array_indices(index):
             "origin": "backend-realized",
         }
     ]
+    content = json.dumps(payload)
     with pytest.raises(SDLParseError):
-        parse_sdl(json.dumps(payload))
+        parse_sdl(content)
 
 
 def test_direct_description_is_bounded_before_serialization():
@@ -232,16 +234,18 @@ def test_added_environment_cannot_embed_values_marked_as_redacted(classification
             }
         }
     )
+    content = json.dumps(payload)
     with pytest.raises(SDLParseError) as error:
-        parse_sdl(json.dumps(payload))
+        parse_sdl(content)
     assert "private-test-marker" not in str(error.value)
 
 
 def test_materialization_provenance_is_concrete_too():
     payload = materialized_payload()
     payload["materialization_provenance"]["operation_id"] = "${unbound}"
+    content = json.dumps(payload)
     with pytest.raises(SDLParseError):
-        parse_sdl(json.dumps(payload))
+        parse_sdl(content)
 
 
 def test_canonical_materialization_revalidates_direct_objects():

@@ -2,16 +2,20 @@
 
 import json
 from collections import Counter
+from collections.abc import Callable
 from copy import deepcopy
+from typing import Any
 
 from .schema_invariants import _SCHEMA_MAP_KEYS, _SCHEMA_SUBSCHEMA_KEYS
 
+_DEFINITIONS = "$defs"
 
-def _map_children(node, transform):
+
+def _map_children(node: dict[str, Any], transform: Callable[[Any, bool], Any]) -> dict[str, Any]:
     result = deepcopy(node)
     for key in _SCHEMA_MAP_KEYS:
         if isinstance(result.get(key), dict):
-            result[key] = {name: transform(value, key == "$defs") for name, value in result[key].items()}
+            result[key] = {name: transform(value, key == _DEFINITIONS) for name, value in result[key].items()}
     for key in _SCHEMA_SUBSCHEMA_KEYS:
         value = result.get(key)
         if isinstance(value, list):
@@ -21,20 +25,34 @@ def _map_children(node, transform):
     return result
 
 
-def factor_shared_schema(schema):
+def _shared_names(counts: Counter[str], candidates: dict[str, dict[str, Any]], existing: set[str]) -> dict[str, str]:
+    names = {}
+    index = 0
+    for key in sorted(counts):
+        if counts[key] < 2 or len(key) < 80 or "$ref" in candidates[key]:
+            continue
+        while f"_r{index}" in existing:
+            index += 1
+        names[key] = f"_r{index}"
+        existing.add(names[key])
+        index += 1
+    return names
+
+
+def factor_shared_schema(schema: dict[str, Any]) -> dict[str, Any]:
     """Share exact repeated subschemas inside a single local-reference resource.
 
     Original named definitions, annotations and data-valued keywords remain
     intact. Resource identifiers and anchors are refused rather than relocated.
     Factoring changes only representation, not the schema's admitted instances.
     """
-    counts = Counter()
-    candidates = {}
+    counts: Counter[str] = Counter()
+    candidates: dict[str, dict[str, Any]] = {}
 
-    def key_of(node):
+    def key_of(node: Any) -> str:
         return json.dumps(node, sort_keys=True, separators=(",", ":"))
 
-    def count(node, root=False):
+    def count(node: Any, root: bool = False) -> Any:
         if not isinstance(node, dict):
             return node
         if not root and {"$id", "$anchor", "$dynamicAnchor", "$dynamicRef"} & node.keys():
@@ -46,20 +64,10 @@ def factor_shared_schema(schema):
         return node
 
     count(schema, True)
-    existing = set(schema.get("$defs", {}))
-    names = {}
-    index = 0
-    for key in sorted(counts):
-        if counts[key] < 2 or len(key) < 80 or "$ref" in candidates[key]:
-            continue
-        while f"_r{index}" in existing:
-            index += 1
-        names[key] = f"_r{index}"
-        existing.add(names[key])
-        index += 1
-    shared = {}
+    names = _shared_names(counts, candidates, set(schema.get(_DEFINITIONS, {})))
+    shared: dict[str, Any] = {}
 
-    def replace(node, preserve=False):
+    def replace(node: Any, preserve: bool = False) -> Any:
         if not isinstance(node, dict):
             return node
         key = key_of(node)
@@ -71,5 +79,5 @@ def factor_shared_schema(schema):
         return _map_children(node, replace)
 
     result = replace(schema, True)
-    result.setdefault("$defs", {}).update(shared)
+    result.setdefault(_DEFINITIONS, {}).update(shared)
     return result
