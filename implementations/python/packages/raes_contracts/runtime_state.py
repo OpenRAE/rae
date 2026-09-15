@@ -11,6 +11,7 @@ from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts._snapshot_updates import _snapshot_updates, _validate_snapshot_update_keys
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.diagnostics import Diagnostic, Severity, portable_diagnostic_payload
+from raes_contracts.materialization import MaterializationSubmission, require_materialization_records
 from raes_contracts.operation_lifecycle import (
     OperationAdmissionContext,
     OperationKind,
@@ -29,6 +30,7 @@ from raes_contracts.versions import OPERATION_SCHEMA_VERSION, RUNTIME_SNAPSHOT_S
 if TYPE_CHECKING:
     from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
     from raes_contracts.contracts import RealizationEnvelopeIdentityModel
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
     from raes_contracts.contracts.time_model import TimeRuntimeStateModel
     from raes_contracts.domain_profiles import DomainProfileBindingModel
 
@@ -107,10 +109,12 @@ class RuntimeSnapshot:
     # concerns recorded across this snapshot's result / history surfaces.
     realization_provenance: tuple[RealizationProvenanceEntry, ...] = ()
     realization_observations: tuple[RealizationObservationDisclosure, ...] = ()
+    materialization_attestations: tuple[MaterializationArchiveRecord, ...] = ()
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        require_materialization_records(self.materialization_attestations)
         for map_key, entry in self.entries.items():
             require_compiled_address(map_key, field_name="snapshot map key")
             if map_key != entry.address:
@@ -181,9 +185,14 @@ class ApplyResult:
     details: dict[str, Any] = field(default_factory=dict)
     # Transient verification input. Snapshot/store/API codecs never serialize it.
     operational_realization_observations: tuple[RealizationObservationDisclosure, ...] = ()
+    materialization_attestation: MaterializationSubmission | None = None
 
     def __post_init__(self) -> None:
         _validate_changed_addresses(self.changed_addresses)
+        if self.materialization_attestation is not None and not isinstance(
+            self.materialization_attestation, MaterializationSubmission
+        ):
+            raise TypeError("materialization attestation requires a typed SDL submission")
         if not isinstance(self.operational_realization_observations, tuple) or any(
             not isinstance(item, RealizationObservationDisclosure) for item in self.operational_realization_observations
         ):

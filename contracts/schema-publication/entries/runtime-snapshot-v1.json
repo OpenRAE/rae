@@ -1,10 +1,10 @@
 {
+  "content_hash": "206e3e4927722e07d5588d19430b75b437098cc8467fe37f2611ac53e1bab555",
   "contract_id": "runtime-snapshot-v1",
-  "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
-  "stability": "draft",
-  "content_hash": "c372d06be77423f7c8c3d76615e9fd2b2c999e0cca20e7ac7825478889d77913",
   "last_change": {
-    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
-    "content_hash": "c372d06be77423f7c8c3d76615e9fd2b2c999e0cca20e7ac7825478889d77913"
-  }
+    "content_hash": "206e3e4927722e07d5588d19430b75b437098cc8467fe37f2611ac53e1bab555",
+    "summary": "Preserve typed protected materialization archive records and distinct provenance references through run and runtime snapshots; original input and evidence semantics remain unchanged (#1241)."
+  },
+  "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
+  "stability": "draft"
 }

@@ -1,10 +1,10 @@
 {
+  "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
   "contract_id": "experiment-authoring-input-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
-  "stability": "draft",
-  "content_hash": "27ae554df877205b23d2b352301d543cc62c4574ffb5b72bc403f703ed09a957",
   "last_change": {
-    "summary": "Added typed prospective run evidence-requirement refinement and extension relations for issue #341.",
-    "content_hash": "27ae554df877205b23d2b352301d543cc62c4574ffb5b72bc403f703ed09a957"
-  }
+    "content_hash": "2c2f2353cc8b5211af2d9604c317d945264202afbe517542d63de2d475848fc3",
+    "summary": "Add typed prospective run evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-authoring-input-v1.json",
+  "stability": "draft"
 }

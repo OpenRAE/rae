@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-341-v17",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1241-v17",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,8 +18,8 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v9.json",
-      "docs/research/specification-coverage/analysis-v9.json"
+      "docs/research/specification-coverage/execution-snapshot-v17.json",
+      "docs/research/specification-coverage/analysis-v17.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
     "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-15T19:55:04.362972+00:00",
+  "generated_at": "2026-09-15",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -83,6 +83,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-341-v17",
-  "snapshot_sha256": "a2507f2e98a7b0ce722af3ddaf24b6afede920b88bd5fdaeb8c6a7fec34518c0"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1241-v17",
+  "snapshot_sha256": "94f204acd650abd793b7aad0f986970df76f59f2b12294a1d0986d4435951117"
 }

@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-15T19:55:04.362972+00:00",
+  "captured_at": "2026-09-15T20:15:40.771565+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -616,42 +616,42 @@
     {
       "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
       "baseline_sha256": "54ba1a60220e27a55da9cd2a407d7d3ab836fa54460d0b0c6cad87c2e744ddbb",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Replay the retained preregistered artifact against the current evidence-provenance validation implementation.",
       "retest_sha256": "7d9c2b8222a71c168b1a644d083e3e165047802ca5b5c75e57aa3d3c9a73a530"
     },
     {
       "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
       "baseline_sha256": "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Replay the retained preregistered artifact against the current evidence-provenance validation implementation.",
       "retest_sha256": "a777f6a7ace95da145f1cce15431b667b47849c32b62aecb96643e2c7b780ed7"
     },
     {
       "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
       "baseline_sha256": "21952a752f4e8581a9fc3b872e4bc308150548170d38bcfc83dbbe35ff5e0b9f",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Replay the retained preregistered artifact against the current evidence-provenance validation implementation.",
       "retest_sha256": "f3edf713ac6af26bad609136851c6dd434bfb87ce919a2d8c4414c1035deeafc"
     },
     {
       "artifact_path": "contracts/fixtures/experiment-core/experiment-apparatus-context-v1/valid/reference.json",
       "baseline_sha256": "9536d897a09cbc6920e667e4f8f9371e51307aa0b3b5ff3c7de682dd783420ab",
-      "rationale": "Replay the retained preregistered artifact against the current typed-selection implementation.",
+      "rationale": "Replay the retained preregistered artifact against the current evidence-provenance validation implementation.",
       "retest_sha256": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299"
     }
   ],
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "5a09a721c03c3885f6f972d50bd3a0314127040d7f265cfdf94d8c60203ccf60",
+      "content_sha256": "9c986c5e379fc6afb05711051c116e48f00a66f0b231e5611246cd916771f3db",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "e10c5a9da21add15680ac5569a03f4eb7e135b19f0348181711b069bb8ff0ab2",
+      "content_sha256": "e0492ae0c6217832f233e960a030a80eed13d4100890c202c4f88f2809d2c160",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "a64a4dd4f49c3ff1e3363793d81b1a7679190208ad105541d5c0701ef7dfebda",
+      "content_sha256": "ddf2cd2a7b46f895ea1a845bad7e90db1f05b2ef6abce3789b20ebb1698c7c7f",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -661,17 +661,18 @@
     "Repository-owned examples are exact execution artifacts but are not themselves the literature-derived request corpus; the protocol's requests and concepts are.",
     "No live range, participant, simulator federation, or provider provisioning engine was executed.",
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
-    "This capture replays the retained protocol after integrating EXP-731 evidence-requirement refinement and EXP-732 provenance validation; it adds no independent backend or universal provenance assurance claim."
+    "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim.",
+    "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "73ed5351683109bcc41acebf08db96591c630ae8",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-341-v17",
+  "raes_revision": "2ac0c5f9f6c9609101a2f9895d671bf2aee8773f",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1241-v17",
   "snapshot_revision": "17.0.0",
   "source_state": {
-    "base_revision": "73ed5351683109bcc41acebf08db96591c630ae8",
+    "base_revision": "2ac0c5f9f6c9609101a2f9895d671bf2aee8773f",
     "checkout_state": "modified",
-    "implementation_digest": "0e9682f799a00dff8815d26123a99fb36ebe19a8f6555533fee653b6c1767245",
+    "implementation_digest": "60bdfa60f08ff6bd41504e6c43d4c91f60ff48da8a974e64f972d53d48dfbc04",
     "profile": "python-reference-source/v2"
   }
 }

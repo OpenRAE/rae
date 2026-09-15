@@ -3,6 +3,8 @@
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 
 PUBLIC_EXPORTS = [
+    "MaterializationArchiveRecord",
+    "MaterializationAttestationReferenceModel",
     "DescriptionCoverageModel",
     "DescriptionFactModel",
     "DescriptionProvenanceModel",

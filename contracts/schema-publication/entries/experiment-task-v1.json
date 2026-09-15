@@ -1,10 +1,10 @@
 {
+  "content_hash": "a86406cca05a5a6c3ef8e1119dd99a4dfbe5311782be340622ca2dbd4a72de1c",
   "contract_id": "experiment-task-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-task-v1.json",
-  "stability": "draft",
-  "content_hash": "7426f433c73826db00123af9e895583b9cda8e0a7515148e9e283d6e35d0a279",
   "last_change": {
-    "summary": "Added typed task evidence-requirement refinement and extension relations for issue #341.",
-    "content_hash": "7426f433c73826db00123af9e895583b9cda8e0a7515148e9e283d6e35d0a279"
-  }
+    "content_hash": "a86406cca05a5a6c3ef8e1119dd99a4dfbe5311782be340622ca2dbd4a72de1c",
+    "summary": "Add typed task evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-task-v1.json",
+  "stability": "draft"
 }

@@ -25,6 +25,7 @@ class ArtifactTransformationStatus(str, Enum):
 
 class ArtifactTransformationKind(str, Enum):
     SDL_AUTHORING = "sdl-authoring"
+    SDL_MATERIALIZATION = "sdl-materialization"
     PORTABLE_CONTRACT = "portable-contract"
 
 

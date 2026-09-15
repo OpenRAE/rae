@@ -141,6 +141,9 @@ def _snapshot_updates(
 ) -> dict[str, Any]:
     return {
         **_snapshot_result_updates(snapshot, updates),
+        "materialization_attestations": updates.get(
+            "materialization_attestations", snapshot.materialization_attestations
+        ),
         **_snapshot_participant_updates(snapshot, updates),
         "time_model_state": _time_model_state_update(
             updates,
@@ -167,6 +170,7 @@ def _snapshot_updates(
 
 
 _SNAPSHOT_UPDATE_KEYS = {
+    "materialization_attestations",
     "orchestration_results",
     "orchestration_history",
     "evaluation_results",

@@ -20,6 +20,7 @@ class ExperimentReferenceModel(ContractModel):
         "participant-implementation",
         "scenario",
         "scenario-snapshot",
+        "materialization-attestation",
         "task",
         "authoring-input",
         "protocol",
@@ -159,6 +160,7 @@ class AssociatedArtifactParentReferenceModel(ExperimentReferenceModel):
     ref_kind: Literal[
         "scenario",
         "scenario-snapshot",
+        "materialization-attestation",
         "task",
         "authoring-input",
         "apparatus-context",
@@ -171,6 +173,9 @@ class AssociatedArtifactParentReferenceModel(ExperimentReferenceModel):
         if self.ref_kind == "scenario":
             if self.ref_version is not None or self.ref_digest is not None or self.ref_path is not None:
                 raise ValueError("generic scenario parents are id-only; use scenario-snapshot for snapshot binding")
+        elif self.ref_kind == "materialization-attestation":
+            if self.ref_version != "raes-sdl-materialized/v1" or self.ref_digest is None or self.ref_path is None:
+                raise ValueError("materialization parents require their own canonical profile, digest and path")
         elif self.ref_kind != "scenario-snapshot" and (self.ref_digest is not None or self.ref_path is not None):
             raise ValueError(
                 "experiment associated-artifact parents must not carry ref_digest or ref_path without a "

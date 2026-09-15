@@ -1,10 +1,10 @@
 {
+  "content_hash": "2ba1e078b4b621310cddccd9370bb08983418842b8a2f00b2601e93e053243bb",
   "contract_id": "backend-profile-v1",
-  "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
-  "stability": "draft",
-  "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36",
   "last_change": {
-    "summary": "Negotiated read-only backend preparation and optional plan-level profile support for issue #1204.",
-    "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36"
-  }
+    "content_hash": "2ba1e078b4b621310cddccd9370bb08983418842b8a2f00b2601e93e053243bb",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
+  "stability": "draft"
 }

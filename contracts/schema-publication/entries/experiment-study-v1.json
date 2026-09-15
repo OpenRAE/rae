@@ -1,10 +1,10 @@
 {
+  "content_hash": "9b33261f1646aa64bb37b8d95b2d07c686049b1106ba5d064738742752e9992a",
   "contract_id": "experiment-study-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-study-v1.json",
-  "stability": "draft",
-  "content_hash": "3350cf447b75176db3d45df24a7966685ca51bfbde29401caa11e28413b1c0a8",
   "last_change": {
-    "summary": "Added typed study evidence-requirement refinement and extension relations for issue #341.",
-    "content_hash": "3350cf447b75176db3d45df24a7966685ca51bfbde29401caa11e28413b1c0a8"
-  }
+    "content_hash": "9b33261f1646aa64bb37b8d95b2d07c686049b1106ba5d064738742752e9992a",
+    "summary": "Add typed study evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-study-v1.json",
+  "stability": "draft"
 }

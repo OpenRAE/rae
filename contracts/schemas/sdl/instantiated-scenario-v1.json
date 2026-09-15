@@ -2435,6 +2435,25 @@
     "DatabaseSetting": {
       "additionalProperties": false,
       "description": "An observed database runtime setting with provenance and sensitivity.\n\nExplicit ``redacted``/``operator_secret`` classifications omit raw values;\ncredential-shaped names remain scenario content unless the author marks the\nvalue withheld.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -2495,6 +2514,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "DatabaseSetting",
       "type": "object"
     },
@@ -3183,6 +3215,25 @@
     "DnsRuntimeSetting": {
       "additionalProperties": false,
       "description": "Bounded DNS runtime setting with provenance and redaction.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -3243,6 +3294,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "DnsRuntimeSetting",
       "type": "object"
     },
@@ -5591,6 +5655,25 @@
     "ImageBuildArg": {
       "additionalProperties": false,
       "description": "An observed build argument with value-sensitivity classification.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -5635,6 +5718,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "ImageBuildArg",
       "type": "object"
     },
@@ -5754,6 +5850,25 @@
     "ImageEnvironmentDefault": {
       "additionalProperties": false,
       "description": "An image-default environment variable with sensitivity classification.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -5798,6 +5913,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "ImageEnvironmentDefault",
       "type": "object"
     },
@@ -13337,6 +13465,25 @@
     "RuntimeApplicationExposedField": {
       "additionalProperties": false,
       "description": "A route-visible fixture secret or intentionally exposed diagnostic field.\n\nThe sensitivity vocabulary is shared with the rest of the runtime surface.\nA ``redacted`` or ``operator_secret`` field must omit its raw ``value``.\nOther values, including credential-shaped fixture facts, are scenario\ncontent needed for range realization and participant observation.",
+      "if": {
+        "properties": {
+          "sensitivity": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "sensitivity"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -13381,6 +13528,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "RuntimeApplicationExposedField",
       "type": "object"
     },
@@ -16217,6 +16377,25 @@
     "RuntimeDatastoreSetting": {
       "additionalProperties": false,
       "description": "An observed datastore runtime setting with scope, provenance, and class.\n\nExplicit ``redacted`` / ``operator_secret`` classifications omit raw values;\nnames that look credential-bearing remain scenario content unless the\nauthor marks the value withheld.",
+      "if": {
+        "properties": {
+          "classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      },
       "properties": {
         "classification": {
           "anyOf": [
@@ -16310,6 +16489,19 @@
       "required": [
         "setting_id"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "RuntimeDatastoreSetting",
       "type": "object"
     },
@@ -16880,6 +17072,25 @@
         }
       ],
       "description": "Required runtime environment variable with provenance and sensitivity.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -16959,6 +17170,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "RuntimeEnvironmentVariable",
       "type": "object"
     },
@@ -17765,6 +17989,16 @@
     "RuntimeFilesystemEntry": {
       "additionalProperties": false,
       "description": "A filesystem entry observed inside a runtime node or container asset.",
+      "if": {
+        "properties": {
+          "presence": {
+            "pattern": "^[Ee][Xx][Pp][Ee][Cc][Tt][Ee][Dd][_-][Aa][Bb][Ss][Ee][Nn][Tt]$"
+          }
+        },
+        "required": [
+          "presence"
+        ]
+      },
       "properties": {
         "content_digest": {
           "default": "",
@@ -17959,6 +18193,58 @@
       "required": [
         "path"
       ],
+      "then": {
+        "properties": {
+          "content_digest": {
+            "enum": [
+              "",
+              null
+            ]
+          },
+          "digest_algorithm": {
+            "enum": [
+              "",
+              null
+            ]
+          },
+          "gid": {
+            "enum": [
+              "",
+              null
+            ]
+          },
+          "mode": {
+            "enum": [
+              "",
+              null
+            ]
+          },
+          "owner_group": {
+            "enum": [
+              "",
+              null
+            ]
+          },
+          "owner_user": {
+            "enum": [
+              "",
+              null
+            ]
+          },
+          "size": {
+            "enum": [
+              "",
+              null
+            ]
+          },
+          "uid": {
+            "enum": [
+              "",
+              null
+            ]
+          }
+        }
+      },
       "title": "RuntimeFilesystemEntry",
       "type": "object"
     },
@@ -18409,6 +18695,25 @@
     "RuntimeForwardingSetting": {
       "additionalProperties": false,
       "description": "An observed forwarding-agent runtime setting with provenance and class.\n\nExplicit ``redacted`` / ``operator_secret`` classifications omit raw values;\ncredential-shaped names remain scenario content unless the author marks the\nvalue withheld.",
+      "if": {
+        "properties": {
+          "classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      },
       "properties": {
         "classification": {
           "anyOf": [
@@ -18486,6 +18791,19 @@
       "required": [
         "setting_id"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "RuntimeForwardingSetting",
       "type": "object"
     },
@@ -18800,6 +19118,25 @@
     "RuntimeIdentityAttribute": {
       "additionalProperties": false,
       "description": "Observed identity attribute or bounded setting.\n\nSecret-bearing names must not carry raw values. This keeps directory\npasswords, Kerberos keys, keytabs, tokens, and client secrets out of\nfixtures, diagnostics, schemas, and generated runtime artifacts.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -18878,6 +19215,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "values": {
+              "minItems": 1,
+              "type": "array"
+            }
+          },
+          "required": [
+            "values"
+          ]
+        }
+      },
       "title": "RuntimeIdentityAttribute",
       "type": "object"
     },
@@ -19512,6 +19862,24 @@
     "RuntimeInitProcess": {
       "additionalProperties": false,
       "description": "Required backend-injected container init / PID-1 reaper configuration.\n\nModels authored container runtime intent \u2014 for example Docker Compose\n``init: true`` causing PID 1 to be ``/sbin/docker-init`` (tini). This is\ndistinct from the observed PID-1 process recorded in\n``runtime.processes``; see ADR-027.",
+      "if": {
+        "properties": {
+          "argv_redacted": {
+            "anyOf": [
+              {
+                "const": true
+              },
+              {
+                "pattern": "^\\s*(?:[Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Oo][Nn])\\s*$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "argv_redacted"
+        ]
+      },
       "properties": {
         "argv": {
           "items": {
@@ -19597,6 +19965,13 @@
           ],
           "default": null,
           "title": "Reaps Children"
+        }
+      },
+      "then": {
+        "properties": {
+          "argv": {
+            "maxItems": 0
+          }
         }
       },
       "title": "RuntimeInitProcess",
@@ -21044,6 +21419,25 @@
     "RuntimeMailSetting": {
       "additionalProperties": false,
       "description": "A mail-service runtime setting with source/provenance and redaction.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "component_ref": {
           "default": "",
@@ -21137,6 +21531,19 @@
         "setting_id",
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "RuntimeMailSetting",
       "type": "object"
     },
@@ -23964,6 +24371,25 @@
     "RuntimePlatformApplicationSetting": {
       "additionalProperties": false,
       "description": "An observed platform setting with provenance and sensitivity.\n\nExplicitly redacted/operator-secret settings must omit their raw ``value``.\nA setting name does not by itself redact SDL scenario content.",
+      "if": {
+        "properties": {
+          "classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      },
       "properties": {
         "classification": {
           "anyOf": [
@@ -24049,6 +24475,19 @@
       "required": [
         "setting_id"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "RuntimePlatformApplicationSetting",
       "type": "object"
     },
@@ -24439,7 +24878,36 @@
           "title": "Soft"
         },
         "subject": {
-          "$ref": "#/$defs/RuntimeProcessIdentity"
+          "$ref": "#/$defs/RuntimeProcessIdentity",
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "command_redacted": {
+                    "anyOf": [
+                      {
+                        "const": true
+                      },
+                      {
+                        "pattern": "^\\s*(?:[Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Oo][Nn])\\s*$",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "command_redacted"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "command": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "required": [
@@ -26264,6 +26732,25 @@
     "RuntimeSecurityMonitoringSetting": {
       "additionalProperties": false,
       "description": "A bounded manager setting with sensitivity classification.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "component_ref": {
           "default": "",
@@ -26357,6 +26844,19 @@
         "setting_id",
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "RuntimeSecurityMonitoringSetting",
       "type": "object"
     },
@@ -27365,6 +27865,24 @@
     "RuntimeSudoRule": {
       "additionalProperties": false,
       "description": "An observed sudo/sudoers privilege grant.\n\nThe portable model is the structured principal/run-as/command scope.\n``raw_entry`` may carry the original sudoers line only as optional\ndescriptive evidence; ``command_redacted`` marks a rule whose command\nscope was withheld because it carried sensitive arguments.",
+      "if": {
+        "properties": {
+          "command_redacted": {
+            "anyOf": [
+              {
+                "const": true
+              },
+              {
+                "pattern": "^\\s*(?:[Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Oo][Nn])\\s*$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "command_redacted"
+        ]
+      },
       "properties": {
         "command_redacted": {
           "anyOf": [
@@ -27477,6 +27995,13 @@
       "required": [
         "principal"
       ],
+      "then": {
+        "properties": {
+          "commands": {
+            "maxItems": 0
+          }
+        }
+      },
       "title": "RuntimeSudoRule",
       "type": "object"
     },
@@ -28207,6 +28732,69 @@
     },
     "ServiceUnitExecStart": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "command_redacted": {
+                "anyOf": [
+                  {
+                    "const": true
+                  },
+                  {
+                    "pattern": "^\\s*(?:[Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Oo][Nn])\\s*$",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "command_redacted"
+            ]
+          },
+          "then": {
+            "properties": {
+              "command": {
+                "maxLength": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "command_kind": {
+                "anyOf": [
+                  {
+                    "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                    "type": "string"
+                  },
+                  {
+                    "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "command_kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "command": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "command"
+              ]
+            }
+          }
+        }
+      ],
       "description": "A typed service-manager ``ExecStart`` configuration.\n\nMirrors the SSH ``ForcedCommand`` redaction discipline (ADR-031): the\n``command_kind`` discriminates how ``command`` is interpreted, and\n``command_redacted=True`` forces ``command`` empty and\n``command_kind=redacted``. The model never carries raw secret-bearing\nargv -- if the underlying ``ExecStart=`` includes credentials, tokens, or\noperator-only arguments, the surface stores only the redacted shape.",
       "properties": {
         "command": {
@@ -28415,6 +29003,69 @@
     },
     "SshForcedCommand": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "command_redacted": {
+                "anyOf": [
+                  {
+                    "const": true
+                  },
+                  {
+                    "pattern": "^\\s*(?:[Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Oo][Nn])\\s*$",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "command_redacted"
+            ]
+          },
+          "then": {
+            "properties": {
+              "command": {
+                "maxLength": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "command_kind": {
+                "anyOf": [
+                  {
+                    "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                    "type": "string"
+                  },
+                  {
+                    "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "command_kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "command": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "command"
+              ]
+            }
+          }
+        }
+      ],
       "description": "A typed sshd ``ForceCommand`` configuration.\n\nThe ``command_kind`` discriminates how ``command`` is interpreted:\n\n- ``absolute_path``: a concrete executable path (or ``${var}``) starting\n  with ``/``. Validated via ``absolute_path_or_var``.\n- ``internal_sftp``: the sshd-internal sftp subsystem; ``command`` must\n  equal the literal ``\"internal-sftp\"``.\n- ``redacted``: the underlying command is withheld from the SDL model\n  because it carries secrets, session identifiers, or operator-only\n  arguments; ``command`` must be empty and ``command_redacted`` must\n  be true.",
       "properties": {
         "command": {

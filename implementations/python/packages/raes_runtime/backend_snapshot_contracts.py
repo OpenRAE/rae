@@ -45,6 +45,7 @@ SNAPSHOT_CARRIER_OWNERS = {
     "time_management_contexts": "participant",
 }
 SNAPSHOT_VALUE_OWNERS = {
+    "materialization_attestations": "runtime",
     "time_model_state": "time",
     "realization_provenance": "runtime",
     "realization_observations": "observation",

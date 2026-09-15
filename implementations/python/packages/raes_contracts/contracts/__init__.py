@@ -243,6 +243,7 @@ from .manifests import (
     TimeCapabilitiesModel,
 )
 from .manifests import CleanupCapabilitiesModel as CleanupCapabilitiesModel
+from .materialization_attestation import MaterializationArchiveRecord, MaterializationAttestationReferenceModel
 from .observation_capture import ObservationCaptureOfferModel
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
