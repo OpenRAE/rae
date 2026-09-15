@@ -93,18 +93,26 @@ this run does not repair them.
   denominator, and claim limits.
 
 - [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
-  [`analysis-v16.json`](analysis-v16.json) are current release 16.0.0. Fresh
-  execution binds issue #1237's capture admission and evidence-proof authority
-  integrated with the unconstrained realization work to exact source and
-  package digests. Classifications, the denominator, and claim limits remain
-  unchanged.
+  [`analysis-v16.json`](analysis-v16.json) preserve release 16.0.0. They
+  bind EXP-732 run, apparatus, measurement-channel, and augmentation-producer
+  provenance validation to fresh source and package digests. Protocol replay
+  retains the bounded classifications, denominator, and claim limits; the
+  dedicated provenance regression suite does not broaden this corpus's claims.
 
-The pre-synchronization issue-1237 capture remains in feature commit
-`2d402e4ae922b59d399dbfc336cc2856d153c44a`. Its original manifest is also retained
-at `historical-artifacts/issue-1237-pre-sync-release-v15.json`, outside the
-active index. Its paths and hashes describe files at that commit, not the
-current checkout. Incoming published captures keep their exact bytes; release
-16 records fresh observations of the merged source.
+- [`execution-snapshot-v17.json`](execution-snapshot-v17.json) and
+  [`analysis-v17.json`](analysis-v17.json) are current release 17.0.0. Fresh
+  replay binds the combined capture-proof and apparatus-provenance validators
+  to exact source and package digests. Classifications, the denominator, and
+  claim limits remain unchanged.
+
+The pre-synchronization issue-1237 captures remain in feature commits
+`2d402e4ae922b59d399dbfc336cc2856d153c44a` (release 15) and
+`2b21b5c88fc60c4545a302f4071cf8b781f04fe3` (release 16). Their original
+manifests remain at `historical-artifacts/issue-1237-pre-sync-release-v15.json`
+and `historical-artifacts/issue-1237-pre-provenance-sync-release-v16.json`,
+outside the active index. Those paths and hashes describe files at the named
+commits, not the current checkout. Incoming published captures retain exact
+bytes; release 17 records fresh observations of the merged source.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -114,7 +122,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 16.0.0 and rejects duplicate or unsupported
+Current validation requires release 17.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

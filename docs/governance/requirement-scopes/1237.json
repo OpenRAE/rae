@@ -10,17 +10,40 @@
     "ASR-519"
   ],
   "bindings": {
-    "implementations/python/tests/test_reference_backend_provisioner.py": ["SEM-218"],
-    "implementations/python/tests/test_issue_1212_observation_demand.py": ["SEM-218"],
-    "docs/requirements/SEM-218/requirement.md": ["SEM-218"],
-    "docs/requirements/ASR-519/requirement.md": ["ASR-519"],
-    "implementations/python/packages/raes_processor/semantics/realization.py": ["SEM-218"],
-    "implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py": ["SEM-218"],
-    "implementations/python/packages/raes_contracts/realization_operational_observation.py": ["SEM-218"],
-    "implementations/python/packages/raes_conformance/_realization_validation.py": ["ASR-519"],
-    "implementations/python/tests/test_issue_1237_source_sufficiency.py": ["SEM-218"],
-    "implementations/python/tests/test_realization_honesty_conformance.py": ["ASR-519"],
-    "implementations/python/tests/test_corpus_packaging.py": ["GOV-913"],
+    "implementations/python/tests/test_exp_732_evidence_provenance.py": ["EXP-708"],
+    "implementations/python/tests/test_reference_backend_provisioner.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_issue_1212_observation_demand.py": [
+      "SEM-218"
+    ],
+    "docs/requirements/SEM-218/requirement.md": [
+      "SEM-218"
+    ],
+    "docs/requirements/ASR-519/requirement.md": [
+      "ASR-519"
+    ],
+    "implementations/python/packages/raes_processor/semantics/realization.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_contracts/realization_operational_observation.py": [
+      "SEM-218"
+    ],
+    "implementations/python/packages/raes_conformance/_realization_validation.py": [
+      "ASR-519"
+    ],
+    "implementations/python/tests/test_issue_1237_source_sufficiency.py": [
+      "SEM-218"
+    ],
+    "implementations/python/tests/test_realization_honesty_conformance.py": [
+      "ASR-519"
+    ],
+    "implementations/python/tests/test_corpus_packaging.py": [
+      "GOV-913"
+    ],
     ".github/workflows/canonical-verification.yml": [
       "GOV-913"
     ],
@@ -54,28 +77,10 @@
     "docs/requirements/GOV-913/requirement.md": [
       "GOV-913"
     ],
-    "docs/research/formal-semantic-validation/analysis-v17.json": [
-      "EXP-708"
-    ],
     "docs/research/formal-semantic-validation/archive-contracts/README.md": [
       "EXP-708"
     ],
-    "docs/research/formal-semantic-validation/bundles/retest-v17.json": [
-      "EXP-708"
-    ],
-    "docs/research/formal-semantic-validation/execution-snapshot-v17.json": [
-      "EXP-708"
-    ],
     "docs/research/formal-semantic-validation/index.md": [
-      "EXP-708"
-    ],
-    "docs/research/specification-coverage/analysis-v16.json": [
-      "EXP-708"
-    ],
-    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v16.json": [
-      "EXP-708"
-    ],
-    "docs/research/specification-coverage/execution-snapshot-v16.json": [
       "EXP-708"
     ],
     "docs/research/specification-coverage/historical-artifacts/issue-1237-pre-sync-release-v15.json": [
@@ -194,6 +199,27 @@
     ],
     "tools/requirement_context.py": [
       "GOV-913"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v18.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/analysis-v17.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v17.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v17.json": [
+      "EXP-708"
+    ],
+    "docs/research/specification-coverage/historical-artifacts/issue-1237-pre-provenance-sync-release-v16.json": [
+      "EXP-708"
     ]
   }
 }
