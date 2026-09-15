@@ -329,7 +329,8 @@ _RETAINED_PRODUCTION_EVIDENCE_DIGESTS = frozenset(
         "sha256:c2dc067c406ee9c26837e9565b6b52f8a6268e06e95dbc5937a455700b0c8109",
         # Unsatisfiable finite-domain evidence, revision 3.
         "sha256:8816c3a2898193280321559545cfacd462f38172fe7fbe7b005610401563b629",
-        "sha256:317b5cad00aa7f4f7868dca66127611ba19d40ffd86f35815502622814df54c1",  # revision 4
+        # Unsatisfiable finite-domain evidence, revision 4.
+        "sha256:317b5cad00aa7f4f7868dca66127611ba19d40ffd86f35815502622814df54c1",
         "sha256:1ec2ff4423088ad2ac6328aba7fbced5cd89b1569cff057e44ad30ef5c5befc0",  # typed-exploit-path-invalid-v2.json
         "sha256:b43be52d3fe4bb66fa35e296de496f286daaf09d69975218ddc30fc79b5df6d0",  # typed-exploit-path-invalid-v3.json
         "sha256:1b416bb5a4d29d57c961b769cc9d3af5d9328624e3eebf104d57f39a94c5bb97",  # typed-exploit-path-invalid-v4.json

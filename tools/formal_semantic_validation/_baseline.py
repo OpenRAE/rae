@@ -130,6 +130,34 @@ def _selected_baseline_manifest(
         return None
     indexed = indexed_records.get(baseline_path)
     baseline_manifest = _baseline_document(repo_root, baseline_path, baseline.get("release_sha256"))
+    baseline_revision = baseline.get("release_revision")
+    v2_revisions = {
+        "3.0.0",
+        "4.0.0",
+        "5.0.0",
+        "6.0.0",
+        "7.0.0",
+        "8.0.0",
+        "9.0.0",
+        "10.0.0",
+        "11.0.0",
+        "12.0.0",
+        "13.0.0",
+        "14.0.0",
+        "15.0.0",
+        "16.0.0",
+    }
+    expected_protocol_path = (
+        "docs/research/formal-semantic-validation/protocol-v2.json"
+        if baseline_revision in v2_revisions
+        else "docs/research/formal-semantic-validation/protocol-v1.json"
+    )
+    if baseline_revision == "16.0.0":
+        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
+    elif baseline_revision in v2_revisions:
+        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
+    else:
+        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v1.json"
     if (
         not isinstance(baseline_manifest, Mapping)
         or not isinstance(indexed, Mapping)
@@ -140,47 +168,7 @@ def _selected_baseline_manifest(
             baseline_manifest.get("protocol_path"),
             baseline_manifest.get("corpus_path"),
         )
-        != (
-            "docs/research/formal-semantic-validation/protocol-v2.json"
-            if baseline.get("release_revision")
-            in {
-                "3.0.0",
-                "4.0.0",
-                "5.0.0",
-                "6.0.0",
-                "7.0.0",
-                "8.0.0",
-                "9.0.0",
-                "10.0.0",
-                "11.0.0",
-                "12.0.0",
-                "13.0.0",
-                "14.0.0",
-                "15.0.0",
-                "16.0.0",
-            }
-            else "docs/research/formal-semantic-validation/protocol-v1.json",
-            "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
-            if baseline.get("release_revision") == "16.0.0"
-            else "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
-            if baseline.get("release_revision")
-            in {
-                "3.0.0",
-                "4.0.0",
-                "5.0.0",
-                "6.0.0",
-                "7.0.0",
-                "8.0.0",
-                "9.0.0",
-                "10.0.0",
-                "11.0.0",
-                "12.0.0",
-                "13.0.0",
-                "14.0.0",
-                "15.0.0",
-            }
-            else "docs/research/formal-semantic-validation/corpus/manifest-v1.json",
-        )
+        != (expected_protocol_path, expected_corpus_path)
     ):
         failures.append(
             _failure(
