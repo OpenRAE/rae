@@ -30,7 +30,7 @@ def test_each_source_bound_release_checks_its_explicit_baseline(revision, tamper
     assert [failure.rule_id for failure in failures] == (["formal-validation-baseline-selection"] if tampered else [])
 
 
-@pytest.mark.parametrize("revision", ["16.0.0", "17.0.0"])
+@pytest.mark.parametrize("revision", ["16.0.0", "17.0.0", "18.0.0"])
 def test_prior_progressive_capture_uses_only_frozen_integrity_checks(monkeypatch, revision):
     root = Path(__file__).resolve().parents[3]
     release = next(item for item in load_release_bundles(root) if item.manifest["revision"] == revision)

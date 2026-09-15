@@ -174,11 +174,12 @@ summaries must identify the metric, carry a value, and link to evidence. Every
 result-summary evidence reference must resolve to an artifact id in the same
 run's `evidence_artifacts` set. Cross-artifact task/run validation also checks
 that run apparatus satisfies task apparatus constraints, that run result metric
-ids are declared by the task evaluation protocol, and that concrete run
-evidence artifacts satisfy the task and metric evidence requirements, either by
-artifact id or by an artifact `satisfies_refs` entry. If a task or metric
-evidence requirement carries digest or path metadata, the matching run artifact
-MUST satisfy those fields with its concrete checksum and URI/path.
+ids are declared by the task evaluation protocol, and that task and metric
+evidence requirements resolve through capture requirements and evidence records
+to emitted artifact bytes. Artifact ids and `satisfies_refs` entries alone do
+not prove satisfaction. If a task or metric evidence requirement carries digest
+or path metadata, the validated binding MUST satisfy those fields with its
+concrete checksum and URI/path.
 
 ### Run Traceability
 
@@ -202,6 +203,48 @@ derived measures, claim/report artifacts, disclosures, and lineage refs are
 available for review. It does not guarantee executable replay, artifact
 dereference, hidden backend-state reconstruction, or derived-result
 recomputation.
+
+### Evidence Source And Augmentation Provenance
+
+EXP-732 uses the existing run as the archival join point. Preserve the authored
+SDL carrier at a pinned revision as well as the instantiated scenario snapshot;
+retain the capture specification and its requirement ids alongside the raw
+evidence records. A reference to a mutable authoring file cannot reconstruct
+historical intent. Capture-specification bindings remain explicit; unresolved
+SDL capture references fail admission rather than implying a generated binding.
+
+The portable chain has three distinct parts:
+
+- Authored intent: the retained scenario source/snapshot and capture
+  specification state what evidence was required. A record's
+  `capture_spec_ref` and `capture_requirement_ref` identify that obligation.
+- Realized sources: run `traceability.evidence_record_refs` identify the records
+  whose `source_refs`, capture window, content reference, and redaction/loss
+  disclosures describe capture. The admitted measurement channel must resolve
+  in the run apparatus and agree with a record source. A supplied
+  `apparatus_context_ref` must match that apparatus; omission remains valid
+  because the run already embeds it.
+- Augmentation: run `augmentation_disclosures` retain processor/backend
+  identity, purpose, carriers, affected refs, visibility, and observer effects.
+  The declared producer must resolve to a matching apparatus component.
+  Operational-only augmentation remains disclosed even when its purpose and
+  classifications do not require supporting captured evidence.
+
+`validate_experiment_run_against_task()` uses content-backed evidence inputs to
+check these execution and apparatus joins, together with the existing content
+proof. Run/apparatus and augmentation-producer references may omit a version;
+when supplied it must match. Digest/path qualifiers on those references cannot
+be verified from the supplied in-memory identities and are rejected. The
+separate content references retain checksums and locators for byte validation.
+Consumers also run `observability_evidence_conformance_diagnostics()` for
+portable affected-carrier and purpose-dependent evidence requirements.
+
+These checks preserve and validate the declared provenance chain; they do not
+collect evidence, retain external artifacts, resolve authored SDL into capture
+specifications, or attest every additional source or augmentation side effect.
+Archival callers must retain the referenced immutable artifacts. Unsupported,
+partial, or withheld capture stays disclosed without claiming satisfaction.
+The validator never dereferences locators or reads host paths.
 
 ### Realized Form Disclosure
 
