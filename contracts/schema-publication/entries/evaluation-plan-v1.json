@@ -1,9 +1,9 @@
 {
-  "content_hash": "3d9a9f2676a4896441a61a72d1cba1c139dfbd93e603df864ec1c7233b646fd8",
+  "content_hash": "f2f3de2ee2febe8058bdee02f41c6037517abf51062aa5c7c137ff407d650d59",
   "contract_id": "evaluation-plan-v1",
   "last_change": {
-    "content_hash": "3d9a9f2676a4896441a61a72d1cba1c139dfbd93e603df864ec1c7233b646fd8",
-    "summary": "Carry value-free run_id and instantiation_id scope identity through the published plan model for issue #1276."
+    "content_hash": "f2f3de2ee2febe8058bdee02f41c6037517abf51062aa5c7c137ff407d650d59",
+    "summary": "Carry authenticated full materialization source, inspection-only purpose and operation identity through runtime plans (#1241)."
   },
   "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
   "stability": "draft"

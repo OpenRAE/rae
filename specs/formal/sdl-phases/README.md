@@ -14,6 +14,7 @@ Let:
 - `A` be a normalized authoring object;
 - `E` be an expanded authoring object;
 - `I` be an instantiated scenario;
+- `M` be a descriptive materialized scenario;
 - `S` be an instantiated snapshot;
 - `tokens(x)` be every `${portable-id}` token occurring in a string value of
   `x` (mapping keys are not substitution sites); and
@@ -25,13 +26,16 @@ The phase shapes are:
 fields(A) subset-of C union {module, imports, realization, variables, variation_points}
 fields(E) subset-of C union {variables, variation_points, expansion_provenance}
 fields(I) subset-of C union {instantiation_provenance}
+fields(M) subset-of C union {materialization_provenance}
 fields(S) = {profile, scenario}
 ```
 
 The subset relation accounts for optional members of a closed shape. No member
 outside the relevant set is admitted. `name` is required in `A`, `E`, and `I`;
 `instantiation_provenance` is additionally required in `I`; both `profile` and
-`scenario` are required in `S`.
+`scenario` are required in `S`. `M` requires `name` and
+`materialization_provenance`; it describes the world without granting execution
+authority.
 
 ## Phase-specific member catalog
 
@@ -41,15 +45,16 @@ checked against the closed phase models; `optional`, `required`, and `forbidden`
 describe member admission, not whether an author chose to write an optional
 value.
 
-| Member | Normalized authoring | Expanded authoring | Instantiated | Transfer disposition |
-| --- | --- | --- | --- | --- |
-| `module` | optional | forbidden | forbidden | Consumed by expansion; verified module facts are represented by `expansion_provenance.imports` when imports are resolved. |
-| `imports` | optional | forbidden | forbidden | Consumed by expansion; resolved imports move to `expansion_provenance.imports` and later `instantiation_provenance.imports`. |
-| `realization` | optional | forbidden | forbidden | Normalized designation records move to `expansion_provenance.realization_designations` and later `instantiation_provenance.realization_designations`. |
-| `variables` | optional | optional | forbidden | Selected values move to provenance bindings; variable definitions do not survive instantiation. |
-| `variation_points` | optional | optional | forbidden | Composition preserves and namespaces family declarations. Recorded-selection integration consumes them before instantiation; unresolved non-empty families fail closed. |
-| `expansion_provenance` | forbidden | optional | forbidden | Its portable import, constraint, explicitness, and realization records feed instantiation provenance. |
-| `instantiation_provenance` | forbidden | forbidden | required | Required portable derivation context for an instantiated artifact. |
+| Member | Normalized authoring | Expanded authoring | Instantiated | Materialized | Transfer disposition |
+| --- | --- | --- | --- | --- | --- |
+| `module` | optional | forbidden | forbidden | forbidden | Consumed by expansion; verified module facts are represented by `expansion_provenance.imports` when imports are resolved. |
+| `imports` | optional | forbidden | forbidden | forbidden | Consumed by expansion; resolved imports move to `expansion_provenance.imports` and later `instantiation_provenance.imports`. |
+| `realization` | optional | forbidden | forbidden | forbidden | Normalized designation records move to `expansion_provenance.realization_designations` and later `instantiation_provenance.realization_designations`. |
+| `variables` | optional | optional | forbidden | forbidden | Selected values move to provenance bindings; variable definitions do not survive instantiation. |
+| `variation_points` | optional | optional | forbidden | forbidden | Composition preserves and namespaces family declarations. Recorded-selection integration consumes them before instantiation; unresolved non-empty families fail closed. |
+| `expansion_provenance` | forbidden | optional | forbidden | forbidden | Its portable import, constraint, explicitness, and realization records feed instantiation provenance. |
+| `instantiation_provenance` | forbidden | forbidden | required | forbidden | Required portable derivation context for an instantiated artifact; materialization refers to the source digest, never copies its history onto a different world. |
+| `materialization_provenance` | forbidden | forbidden | forbidden | required | Descriptive producer, execution, source and field/member lineage for the post-materialization world. |
 
 ## Transition Relations
 
@@ -60,11 +65,15 @@ normalize : Source -> A or error
 expand    : A -> E or error
 bind      : (A or E) x Parameters -> I or error
 snapshot  : I -> S or error
+describe  : (I, admitted execution, realized scope) -> M or error
 ```
 
 `expand` may be the identity on executable content when no imports exist, but
 the trusted expanded representation remains distinct. There is no supported
 transition from `I` back to `A` or `E`, and no parser treats `S` as source.
+The ordinary source parser also reads `M`, with no composition or binding.
+Its shared compiler/planner output is inspection-only. Executing a description
+requires an explicit new authoring derivation.
 
 ## Invariants
 
@@ -178,6 +187,15 @@ of `digest(I)` is identity under this canonical profile, not behavioral
 equivalence or bisimilarity.
 
 ## Evidence Mapping
+
+Materialized admission additionally requires exact native-identity differences
+from `I`, complete instance bindings and a match with the returned resource
+inventory in the producer's operation domain. The original execution authority
+gate remains independent and precedes attestation acceptance. Its canonical
+identity is `SHA256(JCS({profile: "raes-sdl-materialized/v1", scenario: M}))`.
+See [the materialization contract](../../sdl/materialization-attestation.md)
+and `test_issue_1241_materialization_*.py` for source-binding, origin, archival
+and restart evidence. A producer assertion does not prove physical-world truth.
 
 - typed phase and provenance records:
   `implementations/python/packages/raes/scenario.py` and

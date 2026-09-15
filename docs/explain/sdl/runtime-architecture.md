@@ -76,6 +76,13 @@ staged changes.
 
 ## Runtime Stages
 
+Negotiated backends also return a distinct descriptive SDL phase after
+materialization hooks. The runtime admits it against the original source,
+execution and complete scoped inventory, then publishes protected SDL bytes
+before persisting archive references. This does not replace realization
+authority, evidence acquisition or the original scenario snapshot. See
+[materialization attestations](../reference/materialization-attestations.md).
+
 ### 1. Instantiate + Compile
 
 `instantiate_scenario(raw_scenario, parameters=None, profile=None)` is the

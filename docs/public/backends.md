@@ -18,3 +18,7 @@ environment service.
 
 Start with the [backend schemas](https://github.com/OpenRAE/rae/tree/main/contracts/schemas/backend-manifest)
 and the [conformance API](api/contracts.rst).
+
+Backends can also report what they built as SDL. The runtime saves this record
+with the run. See [SDL run records](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/materialization-attestations.md)
+for the contract and setup.

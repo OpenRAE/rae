@@ -128,12 +128,18 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v16.json`](analysis-v16.json) to unconstrained realization-evidence
   source semantics. Fresh replay retains every bounded outcome and records the
   two changed compiler digests as explicit deviations from release 16.0.0.
-- [`bundles/retest-v17.json`](bundles/retest-v17.json) is current release 18.0.0.
+- [`bundles/retest-v17.json`](bundles/retest-v17.json) is prior release 18.0.0.
   It binds [`execution-snapshot-v17.json`](execution-snapshot-v17.json) and
   [`analysis-v17.json`](analysis-v17.json) to EXP-732 provenance validation.
   Fresh production and participant replay retains the release-17 outcomes and
   result digests with no deviations. The dedicated provenance regression suite
   does not promote this retained corpus to universal provenance assurance.
+- [`bundles/retest-v18.json`](bundles/retest-v18.json) is current release 19.0.0.
+  It binds [`execution-snapshot-v18.json`](execution-snapshot-v18.json) and
+  [`analysis-v18.json`](analysis-v18.json) to the combined materialization-attestation
+  and EXP-732 provenance implementation. Fresh replay records compiled-representation
+  deviations from release 18.0.0 with unchanged outcomes. The retained corpus does
+  not establish native backend attestation fidelity or new experimental observations.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.

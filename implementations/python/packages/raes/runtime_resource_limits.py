@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Annotated, Literal
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
 from raes_contracts.apparatus import ProcessResourceLimitCapability
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.vocabulary import ProcessResourceLimitKind, ProcessResourceLimitScope
+
+from raes.runtime_filesystem import flagged_raw_value_schema
 
 from ._base import SDLModel, WholeFieldVariableReference, contains_variable_token, parse_int_or_var
 from .runtime_capabilities import (
@@ -101,6 +103,14 @@ def _validate_process_limit_values(soft: RuntimeProcessLimitValue, hard: Runtime
 
 class RuntimeProcessResourceLimit(SDLModel):
     """One portable soft/hard process limit for a selected process or subtree."""
+
+    model_config = ConfigDict(
+        json_schema_extra=lambda schema: (
+            schema["properties"]["subject"]
+            .setdefault("allOf", [])
+            .append(flagged_raw_value_schema(flag_field="command_redacted", raw_field="command", array=True))
+        )
+    )
 
     resource: RuntimeProcessLimitResource
     soft: RuntimeProcessLimitValue

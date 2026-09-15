@@ -63,7 +63,9 @@ class RuntimePlanAuthorizationMixin:
         self,
         plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
     ) -> list[Diagnostic]:
-        if (not plan.operations and not plan_can_mutate(plan)) or self.is_planner_authorized_plan(plan):
+        if (
+            not plan.operations and not plan_can_mutate(plan) and plan.materialization_source is None
+        ) or self.is_planner_authorized_plan(plan):
             return []
         return [
             Diagnostic(

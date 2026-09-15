@@ -52,6 +52,7 @@ class RuntimeParticipantExecutionMixin:
                 )
             )
         state.failure = ApplyResult(
+            materialization_attestation=state.materialization_attestation,
             success=driver_started and not _has_error_diagnostic(state.diagnostics),
             snapshot=self._snapshot,
             diagnostics=state.diagnostics,

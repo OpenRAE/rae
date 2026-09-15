@@ -27,7 +27,8 @@ from ._transformation_types import (
     PortableContractTransformationResult,
     SDLAuthoringArtifact,
 )
-from .canonical import canonical_sdl_digest
+from .canonical import canonical_materialized_sdl_digest, canonical_sdl_digest
+from .materialization import MaterializedScenario
 from .scenario import ExpandedScenario, Scenario
 
 
@@ -89,8 +90,8 @@ def canonicalize_portable_contract(
 
 
 def compare_canonical_artifacts(
-    left: SDLAuthoringArtifact | ContractModel,
-    right: SDLAuthoringArtifact | ContractModel,
+    left: SDLAuthoringArtifact | MaterializedScenario | ContractModel,
+    right: SDLAuthoringArtifact | MaterializedScenario | ContractModel,
 ) -> CanonicalArtifactComparison:
     """Compare two artifacts of the same kind under their owning canonicalizer."""
 
@@ -98,6 +99,13 @@ def compare_canonical_artifacts(
         left_identity = canonical_sdl_digest(left)
         right_identity = canonical_sdl_digest(right)
         artifact_kind = ArtifactTransformationKind.SDL_AUTHORING
+        canonicalization_profile = left_identity.profile
+        left_digest = left_identity.value
+        right_digest = right_identity.value
+    elif isinstance(left, MaterializedScenario) and isinstance(right, MaterializedScenario):
+        left_identity = canonical_materialized_sdl_digest(left)
+        right_identity = canonical_materialized_sdl_digest(right)
+        artifact_kind = ArtifactTransformationKind.SDL_MATERIALIZATION
         canonicalization_profile = left_identity.profile
         left_digest = left_identity.value
         right_digest = right_identity.value

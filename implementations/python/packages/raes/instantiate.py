@@ -359,6 +359,8 @@ def _bind_scenario_content(
 
 
 def _validate_authoring_scenario(scenario: Scenario | ExpandedScenario) -> None:
+    if not isinstance(scenario, (Scenario, ExpandedScenario)):
+        raise SDLInstantiationError(["Instantiation requires authored SDL; descriptions require explicit derivation."])
     if isinstance(scenario, Scenario) and scenario.imports:
         raise SDLInstantiationError(["Scenario imports must be resolved by file-backed parsing before instantiation."])
     validator = SemanticValidator(scenario)

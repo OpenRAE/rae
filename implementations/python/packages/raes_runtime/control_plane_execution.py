@@ -353,6 +353,7 @@ def _apply_operation(
             request.plan,
             snapshot,
             request=_ObservationApplyRequest(
+                materialization_archive=control_plane._materialization_archive,
                 address=request.address,
                 snapshot=snapshot,
                 plan=request.plan,
