@@ -21,6 +21,18 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `1237` (Issue-bound mixed-requirement delivery governance and tooling CLI regression repair)
+- IMPLEMENTS → CODE_FILE `tools/policy/requirement_scope.py` (Exact file ownership with independent requirement status, prerequisite, and traceability enforcement)
+- IMPLEMENTS → CODE_FILE `tools/requirement_context.py` (Shared offline issue-scope resolution for local and CI gates)
+- IMPLEMENTS → CODE_FILE `tools/check_requirement_governance.py` (Fail-closed mixed-requirement command boundary)
+- IMPLEMENTS → CODE_FILE `tools/nox_support/runner.py` (Scoped local and hook policy cannot skip governance)
+- IMPLEMENTS → CODE_FILE `tools/nox_support/policy_lanes.py` (Canonical policy entrypoint resolves issue scope)
+- IMPLEMENTS → CONFIG `.github/workflows/canonical-verification.yml` (Numeric issue branches retain requirement governance in detached verification)
+- IMPLEMENTS → CONFIG `Makefile` (Policy delegates context resolution to the canonical gate)
+- TESTS → TEST `implementations/python/tests/test_issue_1237_requirement_scope.py` (Mixed-scope cross-owner, missing-assignment, malformed-authority, status, prerequisite, and ingress regressions)
+- DOCUMENTS → DOCUMENTATION `docs/governance/requirement-scopes/README.md` (Closed issue-bound scope format and enforcement semantics)
+- DOCUMENTS → DOCUMENTATION `docs/governance/requirement-scopes/1237.json` (Reviewed exact delivery assignments for issue 1237)
+
 - IMPLEMENTS → SPEC `specs/supply-chain/reusable-asset-trust-integrity.md` (Reusable Asset Trust, Authenticity, and Integrity (normative spec))
 - IMPLEMENTS → SPEC `contracts/schemas/asset-trust/reusable-asset-trust-policy-v1.json` (reusable-asset-trust-policy-v1 published schema)
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-071-reusable-asset-trust-and-integrity-policy.md` (ADR-071: Reusable Asset Trust and Integrity Policy)

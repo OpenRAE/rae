@@ -319,7 +319,8 @@ _SATISFIABILITY_CONTROL_OUTCOMES = {
 
 # Immutable admission pins for the finite retained research corpus. Artifact
 # metadata cannot rebind these frozen shapes or evidence records.
-_ARCHIVAL_MANIFEST_SHA256 = "b8a83a91bc50a4f1af8ebb214f3c2a38ec636e2a84fdd9d7440c0a3070285ecf"
+_ARCHIVAL_MANIFEST_SHA256 = "2c99aa95a6429ba9ec31eb2b34f312f0fa7cd8df4a17084eb7782a5ba7ba0560"
+_ARCHIVAL_MANIFEST_V2_SHA256 = "b8a83a91bc50a4f1af8ebb214f3c2a38ec636e2a84fdd9d7440c0a3070285ecf"
 _RETAINED_PRODUCTION_EVIDENCE_DIGESTS = frozenset(
     {
         "sha256:03925bfe0b209c3c77069c97061aa63e8795389be7ed7b78376020b7dc87853c",  # finite-domain-satisfiable-v2.json
