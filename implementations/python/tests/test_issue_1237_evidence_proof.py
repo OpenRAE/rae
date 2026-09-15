@@ -86,6 +86,133 @@ def test_proof_binding_is_a_snapshot_of_validated_artifact() -> None:
         proof.satisfies(run, reference)
 
 
+@pytest.mark.parametrize("target", ["task", "run", "spec", "record"])
+def test_proof_uses_metadata_snapshot_from_before_reader_callbacks(target: str) -> None:
+    task, run, spec, record, payload = _evidence_bundle()
+    original_task = task.model_copy(deep=True)
+    original_run = run.model_copy(deep=True)
+    original_record_id = record.evidence_record_id
+    original_spec_version = spec.spec_version
+    readers = {}
+
+    class MutatingReader(io.BytesIO):
+        def read(self, size=-1):
+            if target == "task":
+                task.title = "Changed during I/O"
+            elif target == "run":
+                run.run_id = "changed-during-io"
+            elif target == "spec":
+                spec.spec_version = "99.0.0"
+            elif target == "record":
+                record.evidence_record_id = "changed-during-io"
+            return super().read(size)
+
+    readers[run.evidence_artifacts[0].artifact_id] = MutatingReader(payload)
+    proof = validate_experiment_run_evidence(
+        task,
+        run,
+        capture_specs={spec.capture_spec_id: spec},
+        evidence_records={record.evidence_record_id: record},
+        artifact_readers=readers,
+    )
+    proof.require_context(original_task, original_run)
+    assert proof.bindings[0].record_id == original_record_id
+    assert proof.bindings[0].capture_spec_version == original_spec_version
+
+
+def test_proof_does_not_retain_plaintext_artifact_locators() -> None:
+    task, run, proof = _prove_bundle()
+    path = run.evidence_artifacts[0].uri
+    reference = task.evaluation_protocol.observation_requirements[0].model_copy(update={"ref_path": path})
+    assert proof.satisfies(run, reference)
+    assert not proof.satisfies(run, reference.model_copy(update={"ref_path": path + ".other"}))
+    assert path not in repr(asdict(proof.bindings[0]))
+
+
+@pytest.mark.parametrize(
+    "locator",
+    [
+        "https://user:password@example.invalid/evidence",
+        "https://example.invalid/evidence?token=private",
+        "runs/evidence.json?signature=private",
+        "file:///tmp/evidence.json",
+    ],
+)
+def test_unsafe_evidence_locators_fail_before_reader_io(locator):
+    task, run, spec, record, payload = _evidence_bundle()
+    run.evidence_artifacts[0].uri = locator
+    record.raw_content.content_uri = locator
+
+    class Unreadable(io.BytesIO):
+        def read(self, _size=-1):
+            pytest.fail("unsafe locator reached artifact I/O")
+
+    with pytest.raises(ValueError, match="locator"):
+        validate_experiment_run_evidence(
+            task,
+            run,
+            capture_specs={spec.capture_spec_id: spec},
+            evidence_records={record.evidence_record_id: record},
+            artifact_readers={run.evidence_artifacts[0].artifact_id: Unreadable(payload)},
+        )
+
+
+@pytest.mark.parametrize("limit", ["_MAX_EVIDENCE_ITEMS", "_MAX_TOTAL_EVIDENCE_BYTES"])
+def test_evidence_aggregate_limits_reject_before_reader_io(monkeypatch, limit):
+    import raes_contracts.evidence_satisfaction as evidence
+
+    task, run, spec, record, payload = _evidence_bundle()
+    monkeypatch.setattr(evidence, limit, 0, raising=False)
+    with pytest.raises(ValueError, match="validation limit"):
+        validate_experiment_run_evidence(
+            task,
+            run,
+            capture_specs={spec.capture_spec_id: spec},
+            evidence_records={record.evidence_record_id: record},
+            artifact_readers={},
+        )
+
+
+def test_shared_artifact_is_read_once_but_each_requirement_is_checked():
+    task, run, spec, record, payload = _evidence_bundle()
+    requirement = spec.capture_requirements["auth-log-evidence"]
+    spec.capture_requirements["second-evidence"] = requirement.model_copy(update={"requirement_id": "second-evidence"})
+    second = record.model_copy(
+        update={
+            "evidence_record_id": "second-record",
+            "capture_requirement_ref": "second-evidence",
+        }
+    )
+    run.traceability.evidence_record_refs.append(
+        run.traceability.evidence_record_refs[0].model_copy(update={"ref_id": "second-record"})
+    )
+    readers = {}
+
+    class MappingMutatingReader(io.BytesIO):
+        def read(self, size=-1):
+            readers.clear()
+            return super().read(size)
+
+    readers[run.evidence_artifacts[0].artifact_id] = MappingMutatingReader(payload)
+    proof = validate_experiment_run_evidence(
+        task,
+        run,
+        capture_specs={spec.capture_spec_id: spec},
+        evidence_records={record.evidence_record_id: record, second.evidence_record_id: second},
+        artifact_readers=readers,
+    )
+    assert {binding.requirement_id for binding in proof.bindings} == {"auth-log-evidence", "second-evidence"}
+    spec.capture_requirements["second-evidence"].field_selectors = ["/missing"]
+    with pytest.raises(ValueError, match="field selector"):
+        validate_experiment_run_evidence(
+            task,
+            run,
+            capture_specs={spec.capture_spec_id: spec},
+            evidence_records={record.evidence_record_id: record, second.evidence_record_id: second},
+            artifact_readers={run.evidence_artifacts[0].artifact_id: io.BytesIO(payload)},
+        )
+
+
 @pytest.mark.parametrize("consumer", ["run", "task", "study"])
 @pytest.mark.parametrize("failure", [None, "bytes", "checksum", "fields", "source", "window", "loss", "withheld"])
 def test_all_evidence_consumers_require_the_same_emitted_content(consumer: str, failure: str | None) -> None:

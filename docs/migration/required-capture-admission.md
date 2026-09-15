@@ -1,5 +1,19 @@
 # Required Capture Admission Migration
 
+Issue #1237 returns an immutable, process-local content proof from authoritative
+run validation. Metadata is snapshotted and revalidated before reader callbacks;
+consumers must retain that proof and reject it after task/run content changes.
+Revalidate from bytes after serialization or a process boundary.
+
+Evidence validation admits at most 1024 artifacts, capture specifications,
+capture requirements, records, or reader entries per invocation, with 256 MiB
+aggregate declared artifact bytes and 64 MiB per artifact. Shared artifacts are
+read once, but every capture requirement still receives its own relation,
+metadata, integrity, output-contract, and field-selector checks. Artifact
+locators remain inert: credential userinfo, secret query fields, fragments, host
+paths, and `file:` URIs are rejected; published relative artifact paths remain
+supported. Proof bindings retain only a locator identity digest.
+
 Issue #1112 changes capture support from descriptive capability discovery to a
 fail-closed execution contract.
 

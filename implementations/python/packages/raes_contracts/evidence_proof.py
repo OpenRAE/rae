@@ -7,7 +7,7 @@ content at ingress; reference metadata cannot restore validation authority.
 from __future__ import annotations
 
 from collections.abc import Collection
-from dataclasses import InitVar, dataclass, field
+from dataclasses import InitVar, dataclass
 from typing import TYPE_CHECKING
 
 from .canonical import canonical_json_digest
@@ -32,7 +32,7 @@ class ValidatedEvidenceBinding:
     output_contract: str
     artifact_id: str
     artifact_digest: str
-    artifact_path: str = field(repr=False)
+    artifact_path_digest: str
     _validation_key: InitVar[object]
 
     def __post_init__(self, _validation_key: object) -> None:
@@ -45,7 +45,7 @@ class ValidatedEvidenceBinding:
             and reference.ref_id == self.requirement_id
             and (reference.ref_version is None or reference.ref_version == self.record_version)
             and (reference.ref_digest is None or reference.ref_digest.casefold() == self.artifact_digest.casefold())
-            and (reference.ref_path is None or reference.ref_path == self.artifact_path)
+            and (reference.ref_path is None or canonical_json_digest(reference.ref_path) == self.artifact_path_digest)
         )
 
 

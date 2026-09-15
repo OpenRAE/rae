@@ -87,11 +87,24 @@ this run does not repair them.
   classifications and denominator.
 
 - [`execution-snapshot-v15.json`](execution-snapshot-v15.json) and
-  [`analysis-v15.json`](analysis-v15.json) are current release 15.0.0. Fresh
-  execution of the retained artifacts binds issue #1237's capture admission
-  and evidence-proof authority to exact source and package digests. The
-  classifications, denominator, historical captures, and claim limits remain
+  [`analysis-v15.json`](analysis-v15.json) preserve release 15.0.0. They
+  bind the unconstrained realization-evidence source semantics to fresh source
+  and package digests while retaining the protocol's bounded classifications,
+  denominator, and claim limits.
+
+- [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
+  [`analysis-v16.json`](analysis-v16.json) are current release 16.0.0. Fresh
+  execution binds issue #1237's capture admission and evidence-proof authority
+  integrated with the unconstrained realization work to exact source and
+  package digests. Classifications, the denominator, and claim limits remain
   unchanged.
+
+The pre-synchronization issue-1237 capture remains in feature commit
+`2d402e4ae922b59d399dbfc336cc2856d153c44a`. Its original manifest is also retained
+at `historical-artifacts/issue-1237-pre-sync-release-v15.json`, outside the
+active index. Its paths and hashes describe files at that commit, not the
+current checkout. Incoming published captures keep their exact bytes; release
+16 records fresh observations of the merged source.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -101,7 +114,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 15.0.0 and rejects duplicate or unsupported
+Current validation requires release 16.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

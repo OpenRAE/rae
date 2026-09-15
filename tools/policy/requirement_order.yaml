@@ -43,6 +43,9 @@ phases:
   - id: observability-conformance
     requirements:
       - ASR-525
+  - id: realization-honesty-conformance
+    requirements:
+      - ASR-519
   - id: modular-control-semantics
     requirements:
       - SEM-235
@@ -143,6 +146,10 @@ phases:
       - gov-concept-authority
 
 ownership:
+  realization-honesty-conformance:
+    - docs/requirements/ASR-519/requirement.md
+    - implementations/python/packages/raes_conformance/_realization_validation.py
+    - implementations/python/tests/test_realization_honesty_conformance.py
   experiment-evidence:
     - docs/requirements/ASR-530/requirement.md
     - docs/research/formal-semantic-validation

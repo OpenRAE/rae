@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1237-analysis-v16",
+  "analysis_id": "issue-1285-analysis-v16",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "3.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1237-execution-v16",
-  "generated_at": "2026-09-15",
+  "execution_id": "issue-1285-execution-v16",
+  "generated_at": "2026-09-14",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -134,8 +134,7 @@
     "Participant replay inherits the host environment and is not described as hermetic.",
     "Counterfactual necessity remains untested.",
     "Scoped observation demand is not a claim class in this preregistration and is not promoted to demonstrated by this retest.",
-    "The progressive migration boundary is verified by its dedicated regression suite; this retained corpus makes no universal cross-version equivalence claim.",
-    "Capture admission and evidence-proof authority are verified by issue-1237 regression tests, not promoted to a new claim class by this retained corpus."
+    "Realization evidence-source selection is verified by its dedicated regression suite; this retained corpus makes no universal backend-method claim."
   ],
   "plain_language_outcome": "The pinned RAES revision replays every retained v1 control and demonstrates the bounded finite-domain satisfiability and typed exploit-path claims with complete production evidence. Semantic, workflow, and compile-stability claims remain partial, and counterfactual necessity remains untested.",
   "protocol_revision": "2.0.0"

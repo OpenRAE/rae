@@ -1,5 +1,5 @@
 {
-  "$comment": "Frozen from 00259d811e6c1fc6ba4880f7e1ebf603c30280d4:contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json. Research archive shape only; no current admission or legacy semantic execution.",
+  "$comment": "Frozen closed shape for retained satisfiability evidence through formal-validation release 16.0.0.",
   "$defs": {
     "BindingOrigin": {
       "description": "Why a concrete parameter value was selected.",
@@ -479,7 +479,328 @@
           "type": "string"
         },
         "snapshot": {
+          "description": "Only the two exact snapshots retained by the historical corpus are admitted; this is not a general legacy SDL reader.",
           "enum": [
+            {
+              "profile": "raes-sdl-instantiated-snapshot/v1",
+              "scenario": {
+                "accounts": {},
+                "action_contracts": {},
+                "agents": {},
+                "assertions": {},
+                "behavior_specifications": {},
+                "clocks": {},
+                "conditions": {},
+                "content": {},
+                "deployment_cells": {},
+                "deployment_tenants": {},
+                "description": "",
+                "entities": {},
+                "events": {},
+                "evidence_requirements": {},
+                "features": {},
+                "forwarding_agents": [],
+                "generated_artifacts": {},
+                "identity_domains": {},
+                "identity_facades": {},
+                "identity_forests": {},
+                "infrastructure": {},
+                "injects": {},
+                "instantiation_provenance": {
+                  "authored_digest": {
+                    "algorithm": "sha256",
+                    "profile": "raes-sdl-semantic/v1",
+                    "value": "sha256:2d9a1d9e0ea8bb9fd9b5c63edc3bb49570b71e2ccd876bc201027da6defeae0f"
+                  },
+                  "bindings": [
+                    {
+                      "origin": "provided",
+                      "parameter": [
+                        "platform"
+                      ],
+                      "value": "linux"
+                    }
+                  ],
+                  "capability_constraints": [
+                    {
+                      "allowed_values": [
+                        "windows",
+                        "linux"
+                      ],
+                      "field_pointer": "/nodes/target/os",
+                      "kind": "allowed-values",
+                      "parameter": [
+                        "platform"
+                      ]
+                    }
+                  ],
+                  "explicitness": [
+                    {
+                      "classification": "exact",
+                      "model_path": "name",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "nodes.target.type",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target.os",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "variables",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "derived from child declarations"
+                    }
+                  ],
+                  "imports": [],
+                  "realization_designations": [],
+                  "selected_profile": "raes-finite-domain-satisfiability-v1"
+                },
+                "name": "satisfiable-control",
+                "nodes": {
+                  "target": {
+                    "architecture": null,
+                    "asset_value": null,
+                    "conditions": {},
+                    "description": "",
+                    "endpoint_persona": null,
+                    "features": {},
+                    "injects": {},
+                    "os": "linux",
+                    "os_version": "",
+                    "resources": null,
+                    "roles": {},
+                    "runtime": null,
+                    "services": [],
+                    "source": null,
+                    "type": "vm",
+                    "vulnerabilities": []
+                  }
+                },
+                "objectives": {},
+                "observation_boundaries": {},
+                "outcome_interpretation_rules": {},
+                "persistent_volumes": {},
+                "propositions": {},
+                "relationships": {},
+                "scripts": {},
+                "stories": {},
+                "temporal_constraints": {},
+                "time_domain_mappings": {},
+                "time_domains": {},
+                "time_progression_policies": {},
+                "version": "*",
+                "vulnerabilities": {},
+                "workflows": {}
+              }
+            },
+            {
+              "profile": "raes-sdl-instantiated-snapshot/v1",
+              "scenario": {
+                "accounts": {},
+                "action_contracts": {},
+                "agents": {},
+                "assertions": {},
+                "behavior_specifications": {},
+                "clocks": {},
+                "conditions": {},
+                "content": {},
+                "deployment_cells": {},
+                "deployment_tenants": {},
+                "description": "",
+                "entities": {},
+                "events": {},
+                "evidence_requirements": {},
+                "features": {},
+                "forwarding_agents": [],
+                "generated_artifacts": {},
+                "identity_domains": {},
+                "identity_facades": {},
+                "identity_forests": {},
+                "infrastructure": {},
+                "injects": {},
+                "instantiation_provenance": {
+                  "authored_digest": {
+                    "algorithm": "sha256",
+                    "profile": "raes-sdl-semantic/v1",
+                    "value": "sha256:5b6814a899aedd5d10d85a437d0e9253d785ccdf654ddc1e890988ad445bc280"
+                  },
+                  "bindings": [
+                    {
+                      "origin": "provided",
+                      "parameter": [
+                        "platform"
+                      ],
+                      "value": "linux"
+                    }
+                  ],
+                  "capability_constraints": [
+                    {
+                      "allowed_values": [
+                        "windows",
+                        "linux"
+                      ],
+                      "field_pointer": "/nodes/target/os",
+                      "kind": "allowed-values",
+                      "parameter": [
+                        "platform"
+                      ]
+                    }
+                  ],
+                  "explicitness": [
+                    {
+                      "classification": "exact",
+                      "model_path": "name",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "nodes.target.type",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "authored concrete value"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target.os",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes.target",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "constrained",
+                      "model_path": "nodes",
+                      "parameters": [
+                        [
+                          "platform"
+                        ]
+                      ],
+                      "provenance": "processor-derived",
+                      "reason": "parameter/default substitution preserved authored explicitness class"
+                    },
+                    {
+                      "classification": "exact",
+                      "model_path": "variables",
+                      "parameters": [],
+                      "provenance": "author-declared",
+                      "reason": "derived from child declarations"
+                    }
+                  ],
+                  "imports": [],
+                  "realization_constraints": [
+                    {
+                      "concern": "compute-substrate",
+                      "domain": {
+                        "kind": "exact",
+                        "value": "virtual-machine"
+                      },
+                      "field_pointer": "/nodes/target",
+                      "namespace": [],
+                      "posture": "exact",
+                      "provenance": "legacy-node-type-vm"
+                    }
+                  ],
+                  "realization_designations": [
+                    {
+                      "field_pointer": "",
+                      "namespace": [],
+                      "posture": "unspecified"
+                    }
+                  ],
+                  "selected_profile": "raes-finite-domain-satisfiability-v1"
+                },
+                "name": "satisfiable-control",
+                "nodes": {
+                  "target": {
+                    "architecture": null,
+                    "asset_value": null,
+                    "conditions": {},
+                    "description": "",
+                    "endpoint_persona": null,
+                    "features": {},
+                    "injects": {},
+                    "os": "linux",
+                    "os_distribution": null,
+                    "os_version": "",
+                    "resources": null,
+                    "roles": {},
+                    "runtime": null,
+                    "services": [],
+                    "source": null,
+                    "type": "compute"
+                  }
+                },
+                "objectives": {},
+                "observation_boundaries": {},
+                "outcome_interpretation_rules": {},
+                "persistent_volumes": {},
+                "propositions": {},
+                "relationships": {},
+                "scripts": {},
+                "stories": {},
+                "temporal_constraints": {},
+                "time_domain_mappings": {},
+                "time_domains": {},
+                "time_progression_policies": {},
+                "version": "*",
+                "workflows": {}
+              }
+            },
             {
               "profile": "raes-sdl-instantiated-snapshot/v2",
               "scenario": {
@@ -679,7 +1000,10 @@
           "type": "string"
         },
         "profile": {
-          "const": "raes-sdl-semantic/v2",
+          "enum": [
+            "raes-sdl-semantic/v1",
+            "raes-sdl-semantic/v2"
+          ],
           "title": "Profile",
           "type": "string"
         },
@@ -902,7 +1226,7 @@
       "type": "object"
     }
   },
-  "$id": "https://openrae.github.io/rae/schemas/scenario-satisfiability-evidence-v1.json",
+  "$id": "urn:raes:research:retained-satisfiability-evidence-shape:v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Closed evidence envelope binding source, model, solver, and result.",

@@ -6,7 +6,8 @@ from collections.abc import Mapping
 from datetime import datetime
 from typing import BinaryIO
 
-from ._evidence_content_validation import _validate_artifact_content
+from ._evidence_content_validation import _EvidenceContentCache, _validate_artifact_content
+from .canonical import canonical_json_digest
 from .contracts import (
     ExperimentArtifactRefModel,
     ExperimentCaptureRequirementModel,
@@ -24,6 +25,30 @@ from .evidence_proof import (
     ValidatedRunEvidence,
     _mint_validated_run_evidence,
 )
+
+_MAX_EVIDENCE_ITEMS = 1024
+_MAX_TOTAL_EVIDENCE_BYTES = 256 * 1024 * 1024
+
+
+def _validate_evidence_limits(
+    run: ExperimentRunModel,
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel],
+    evidence_records: Mapping[str, ExperimentEvidenceRecordModel],
+    artifact_readers: Mapping[str, BinaryIO],
+) -> None:
+    if (
+        max(
+            len(run.evidence_artifacts),
+            len(capture_specs),
+            len(evidence_records),
+            len(artifact_readers),
+            sum(len(spec.capture_requirements) for spec in capture_specs.values()),
+        )
+        > _MAX_EVIDENCE_ITEMS
+    ):
+        raise ValueError("evidence item count exceeds the bounded validation limit")
+    if sum(artifact.size_bytes for artifact in run.evidence_artifacts) > _MAX_TOTAL_EVIDENCE_BYTES:
+        raise ValueError("aggregate evidence bytes exceed the bounded validation limit")
 
 
 def _artifact_for_record(
@@ -254,6 +279,23 @@ def validate_experiment_run_evidence(
     identifiers and summaries as evidence.
     """
 
+    # Stabilize and revalidate the entire metadata cut before invoking caller
+    # readers. Their callbacks must not change already-checked facts or the
+    # context to which the resulting proof is bound. Readers themselves remain
+    # explicit streams, not copied or acquired through artifact locators.
+    _validate_evidence_limits(run, capture_specs, evidence_records, artifact_readers)
+    task = ExperimentTaskModel.model_validate(task.model_dump(mode="python"))
+    run = ExperimentRunModel.model_validate(run.model_dump(mode="python"))
+    capture_specs = {
+        key: ExperimentCaptureSpecModel.model_validate(spec.model_dump(mode="python"))
+        for key, spec in capture_specs.items()
+    }
+    evidence_records = {
+        key: ExperimentEvidenceRecordModel.model_validate(record.model_dump(mode="python"))
+        for key, record in evidence_records.items()
+    }
+    artifact_readers = dict(artifact_readers)
+    _validate_evidence_limits(run, capture_specs, evidence_records, artifact_readers)
     validate_experiment_run_structure_against_task(task, run)
     _validate_supplied_evidence_sets(run, capture_specs, evidence_records)
     requirements, records_by_requirement = _index_capture_evidence(capture_specs, evidence_records)
@@ -334,6 +376,7 @@ def _validate_evidence_bindings(
     artifact_readers: Mapping[str, BinaryIO],
 ) -> dict[str, ValidatedEvidenceBinding]:
     validated_bindings: dict[str, ValidatedEvidenceBinding] = {}
+    content_cache = _EvidenceContentCache()
     for requirement_id in sorted(requirements):
         capture_spec, requirement = requirements[requirement_id]
         records = records_by_requirement.get((capture_spec.capture_spec_id, requirement_id), [])
@@ -348,7 +391,13 @@ def _validate_evidence_bindings(
             record=record,
         )
         artifact = _artifact_for_record(run, record)
-        _validate_artifact_content(requirement, record, artifact, artifact_readers.get(artifact.artifact_id))
+        _validate_artifact_content(
+            requirement,
+            record,
+            artifact,
+            artifact_readers.get(artifact.artifact_id),
+            content_cache,
+        )
         validated_bindings[requirement_id] = ValidatedEvidenceBinding(
             requirement_id=requirement_id,
             capture_spec_id=capture_spec.capture_spec_id,
@@ -358,7 +407,7 @@ def _validate_evidence_bindings(
             output_contract=requirement.output_contract,
             artifact_id=artifact.artifact_id,
             artifact_digest=f"{artifact.checksum.algorithm}:{artifact.checksum.value}",
-            artifact_path=artifact.uri,
+            artifact_path_digest=canonical_json_digest(artifact.uri),
             _validation_key=_EVIDENCE_VALIDATION_KEY,
         )
     return validated_bindings

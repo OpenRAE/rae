@@ -184,7 +184,7 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
     assert not _replay_observation_matches(old, changed)
 
 
-@pytest.mark.parametrize("revision", ["3.0.0", "15.0.0", "16.0.0"])
+@pytest.mark.parametrize("revision", ["3.0.0", "15.0.0", "16.0.0", "17.0.0"])
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
     from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
     from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
@@ -210,7 +210,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "17.0.0"
+    assert release.manifest["revision"] == "18.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -256,11 +256,11 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest():
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "15.0.0"
+    assert manifest["revision"] == "16.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == "port-range-sdl")
     artifact["sha256"] = "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"
-    failures = validate_bundle(ROOT, protocol, snapshot, analysis)
+    failures = validate_bundle(ROOT, manifest, protocol, snapshot, analysis)
     assert "specification-coverage-artifact-digest" in {f.rule_id for f in failures}
 
 
@@ -274,7 +274,7 @@ def test_historical_specification_evidence_is_integrity_checked_without_executio
         raise AssertionError("must not execute an archived artifact on current code")
 
     monkeypatch.setattr(_artifacts, "_execute_artifact", forbidden)
-    assert coverage.validate_historical_bundle(ROOT, protocol, snapshot, analysis) == []
+    assert coverage.validate_historical_bundle(ROOT, manifest, protocol, snapshot, analysis) == []
 
 
 @pytest.mark.parametrize("value", ["0" * 64, "../outside"])
@@ -284,7 +284,7 @@ def test_historical_specification_archive_pin_tampering_fails(value):
     manifest, protocol, snapshot, analysis = copy_bundle(coverage.load_bundles, ROOT)[0]
     snapshot = deepcopy(snapshot)
     snapshot["artifacts"][0]["sha256"] = value
-    failures = coverage.validate_historical_bundle(ROOT, protocol, snapshot, analysis)
+    failures = coverage.validate_historical_bundle(ROOT, manifest, protocol, snapshot, analysis)
     assert "specification-coverage-artifact-digest" in {f.rule_id for f in failures}
 
 
@@ -409,8 +409,8 @@ def test_archive_content_tampering_fails_even_when_manifest_pin_is_unchanged(mon
         return payload
 
     monkeypatch.setattr(_artifacts, "load_bounded_json_object", changed_archive)
-    _, protocol, snapshot, analysis = copy_bundle(coverage.load_bundles, ROOT)[0]
-    failures = coverage.validate_historical_bundle(ROOT, protocol, snapshot, analysis)
+    manifest, protocol, snapshot, analysis = copy_bundle(coverage.load_bundles, ROOT)[0]
+    failures = coverage.validate_historical_bundle(ROOT, manifest, protocol, snapshot, analysis)
     assert "specification-coverage-artifact-digest" in {f.rule_id for f in failures}
 
 
@@ -442,6 +442,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "15.0.0",
             "16.0.0",
             "17.0.0",
+            "18.0.0",
         ]
         if family == "formal"
         else [
@@ -460,10 +461,11 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "12.0.0",
             "13.0.0",
             "14.0.0",
+            "15.0.0",
         ]
     )
     if family == "coverage":
-        revisions.append("15.0.0")
+        revisions.append("16.0.0")
     revisions.pop(-1 if removed == "current" else 0)
     monkeypatch.setattr(
         module,
@@ -479,7 +481,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
 def test_current_coverage_requires_exact_baseline_deviations(change):
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
-    _, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
+    manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
     if change == "missing":
         snapshot["deviations"].pop()
     elif change == "old_digest":
@@ -489,7 +491,7 @@ def test_current_coverage_requires_exact_baseline_deviations(change):
     else:
         snapshot["baseline"]["release_sha256"] = "0" * 64
     assert "specification-coverage-baseline-drift" in {
-        f.rule_id for f in validate_bundle(ROOT, protocol, snapshot, analysis)
+        f.rule_id for f in validate_bundle(ROOT, manifest, protocol, snapshot, analysis)
     }
 
 
@@ -510,16 +512,22 @@ def test_historical_archive_does_not_require_a_live_source_file(tmp_path):
     from tools.check_specification_coverage import load_bundles
     from tools.specification_coverage._artifacts import _validate_artifacts
 
-    _, _, snapshot, _ = copy_bundle(load_bundles, ROOT)[0]
+    manifest, _, snapshot, _ = copy_bundle(load_bundles, ROOT)[0]
     archive = Path("docs/research/specification-coverage/historical-artifacts")
     shutil.copytree(ROOT / archive, tmp_path / archive)
     assert all(not (tmp_path / item["path"]).exists() for item in snapshot["artifacts"])
     failures = []
-    artifacts, executed = _validate_artifacts(tmp_path, snapshot, failures, replay_current=False)
+    artifacts, executed = _validate_artifacts(
+        tmp_path,
+        snapshot,
+        failures,
+        manifest["snapshot_path"],
+        replay_current=False,
+    )
     assert failures == []
     assert len(artifacts) == len(executed) == 6
     failures = []
-    _validate_artifacts(tmp_path, snapshot, failures)
+    _validate_artifacts(tmp_path, snapshot, failures, manifest["snapshot_path"])
     assert {f.rule_id for f in failures} == {"specification-coverage-artifact-path"}
 
 

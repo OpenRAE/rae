@@ -123,11 +123,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v15.json`](analysis-v15.json) to progressive semantic revision
   support. Fresh replay records two complete compiler digest changes, with
   identical bounded outcomes and explicit deviations from release 15.0.0.
-- [`bundles/retest-v16.json`](bundles/retest-v16.json) is current release 17.0.0.
+- [`bundles/retest-v16.json`](bundles/retest-v16.json) preserves release 17.0.0.
   It binds [`execution-snapshot-v16.json`](execution-snapshot-v16.json) and
-  [`analysis-v16.json`](analysis-v16.json) to issue #1237's capture admission
-  and evidence-proof authority. Fresh production and participant replay retains
-  every release-16 outcome and result digest, with no additional claim class.
+  [`analysis-v16.json`](analysis-v16.json) to unconstrained realization-evidence
+  source semantics. Fresh replay retains every bounded outcome and records the
+  two changed compiler digests as explicit deviations from release 16.0.0.
+- [`bundles/retest-v17.json`](bundles/retest-v17.json) is current release 18.0.0.
+  It binds [`execution-snapshot-v17.json`](execution-snapshot-v17.json) and
+  [`analysis-v17.json`](analysis-v17.json) to issue #1237's capture admission
+  and evidence-proof authority integrated with the unconstrained realization
+  work. Fresh production and participant replay retains every release-17
+  outcome and result digest, without adding a claim class.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -172,7 +178,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 17.0.0, rejects unsupported future
+Current validation requires explicit release 18.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -212,6 +218,12 @@ observation.
 
 ## Bounded conclusions
 
+Issue #1237's pre-synchronization capture remains in feature commit
+`2d402e4ae922b59d399dbfc336cc2856d153c44a`. It is not selected as current
+evidence. Synchronization preserves the incoming release-17 bytes and records
+the combined source in release 18. Neither branch's earlier observation is
+relabeled as evidence for the merged tree.
+
 The satisfiable witness and subset-minimal unsatisfiable core establish results
 only for the declared finite-domain theory, translation, source, and pinned Z3
 configuration. The core is not a general proof certificate. The exploit-path
@@ -237,3 +249,9 @@ controls use current authoring and instantiated snapshot profiles v2. All four
 production outcomes are unchanged; their new digests are recorded as explicit
 deviations alongside the two compilation digests. Historical releases retain
 their original byte and observation joins without current snapshot admission.
+
+Release 17 retains corpus revision 3 and the four production evidence v4
+records. It freezes their progressive-profile shapes for historical admission,
+replays the same controls against current code, and records only the two
+compiler representation digest changes caused by the realization-evidence
+source correction. No outcome or preregistered claim strength changes.
