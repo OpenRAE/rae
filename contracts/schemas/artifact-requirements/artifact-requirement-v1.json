@@ -802,6 +802,25 @@
     "ImageBuildArg": {
       "additionalProperties": false,
       "description": "An observed build argument with value-sensitivity classification.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -834,6 +853,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "ImageBuildArg",
       "type": "object"
     },
@@ -923,6 +955,25 @@
     "ImageEnvironmentDefault": {
       "additionalProperties": false,
       "description": "An image-default environment variable with sensitivity classification.",
+      "if": {
+        "properties": {
+          "value_classification": {
+            "anyOf": [
+              {
+                "pattern": "^[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]$",
+                "type": "string"
+              },
+              {
+                "pattern": "^[Oo][Pp][Ee][Rr][Aa][Tt][Oo][Rr][_-][Ss][Ee][Cc][Rr][Ee][Tt]$",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "value_classification"
+        ]
+      },
       "properties": {
         "description": {
           "default": "",
@@ -955,6 +1006,19 @@
       "required": [
         "name"
       ],
+      "then": {
+        "not": {
+          "properties": {
+            "value": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
       "title": "ImageEnvironmentDefault",
       "type": "object"
     },

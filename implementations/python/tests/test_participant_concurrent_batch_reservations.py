@@ -1275,6 +1275,7 @@ def test_snapshot_ownership_exhaustively_classifies_every_runtime_field():
     assert classified == {field.name for field in dataclass_fields(RuntimeSnapshot)}
     actual_protected_fields = _PROTECTED_SCHEDULER_FIELDS
     assert actual_protected_fields == {
+        "materialization_attestations",
         "participant_autonomous_execution_states",
         "participant_execution_services",
     }

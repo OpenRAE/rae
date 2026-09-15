@@ -1,10 +1,10 @@
 {
+  "content_hash": "6f6ffd29ad197e95448b09e51291a6208a1f786fa068dfe260a7a8ff314ce642",
   "contract_id": "experiment-derived-measure-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-derived-measure-v1.json",
-  "stability": "draft",
-  "content_hash": "73d7bfbf2832e37573b29d6aa3420a92386df19efda0596a841e15d65addf24c",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "73d7bfbf2832e37573b29d6aa3420a92386df19efda0596a841e15d65addf24c"
-  }
+    "content_hash": "6f6ffd29ad197e95448b09e51291a6208a1f786fa068dfe260a7a8ff314ce642",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-derived-measure-v1.json",
+  "stability": "draft"
 }

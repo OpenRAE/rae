@@ -282,6 +282,7 @@ class ExperimentArtifactRefModel(ContractModel):
         "protocol",
         "metric-definition",
         "scenario-snapshot",
+        "materialization-attestation",
         "manifest",
         "apparatus-evidence",
         "observation",

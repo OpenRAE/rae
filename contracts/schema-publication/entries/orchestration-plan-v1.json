@@ -1,10 +1,10 @@
 {
+  "content_hash": "703e78cb10e001114c90bb04b30d1dfe61195c5582b6f908f33f276251f18f88",
   "contract_id": "orchestration-plan-v1",
-  "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892",
   "last_change": {
-    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
-    "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892"
-  }
+    "content_hash": "703e78cb10e001114c90bb04b30d1dfe61195c5582b6f908f33f276251f18f88",
+    "summary": "Carry authenticated full materialization source, inspection-only purpose and operation identity through runtime plans (#1241)."
+  },
+  "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
+  "stability": "draft"
 }

@@ -3,7 +3,9 @@
 import re
 from typing import Any
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+
+from raes.runtime_filesystem import flagged_raw_value_schema
 
 from ._base import SDLModel, is_variable_ref, parse_bool_or_var
 from .runtime_values import (
@@ -76,6 +78,10 @@ class RuntimeInitProcess(SDLModel):
     distinct from the observed PID-1 process recorded in
     ``runtime.processes``; see ADR-027.
     """
+
+    model_config = ConfigDict(
+        json_schema_extra=flagged_raw_value_schema(flag_field="argv_redacted", raw_field="argv", array=True)
+    )
 
     enabled: bool | str | None = None
     implementation: str = ""

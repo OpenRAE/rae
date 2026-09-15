@@ -421,11 +421,14 @@ adrs:
     pin: bbbcb25d36c0b81b4b19198321ae2578e433bc238465397367f5e7dcf3407138
   - id: ADR-078
     path: docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md
-    pin: d8e2630e332568681d5cf4df5f63971fc5a909c656d380b785e75c016a3744cb
+    pin: 096e95f3ed269f1e3a01814bcd10bf280109875dc8f1feeaec2955207a2126ed
     amendments:
       - date: 2026-07-12
         ref: "#724"
         summary: "Clarified that required instantiation provenance remains validated artifact identity metadata but is excluded from realization-envelope child-dimension enumeration."
+      - date: 2026-09-14
+        ref: "#1241"
+        summary: "Added the closed descriptive materialized SDL phase, execution-bound provenance and distinct protected archival identity without changing original realization authority."
   - id: ADR-079
     path: docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md
     pin: a16e021301c9b411c8efe54ac4933819a50bd10a27d13741cc7ce78d6bffbe14

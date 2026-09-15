@@ -1284,6 +1284,7 @@
             "participant-implementation",
             "scenario",
             "scenario-snapshot",
+            "materialization-attestation",
             "task",
             "authoring-input",
             "protocol",
@@ -2154,6 +2155,7 @@
             "protocol",
             "metric-definition",
             "scenario-snapshot",
+            "materialization-attestation",
             "manifest",
             "apparatus-evidence",
             "observation",
@@ -2272,6 +2274,7 @@
                         "derived-measure",
                         "evidence-record",
                         "manifest",
+                        "materialization-attestation",
                         "measurement-channel",
                         "profile",
                         "run",
@@ -3536,6 +3539,7 @@
             "participant-implementation",
             "scenario",
             "scenario-snapshot",
+            "materialization-attestation",
             "task",
             "authoring-input",
             "protocol",
@@ -4144,6 +4148,77 @@
         "value"
       ],
       "title": "LiteralBindingValueModel",
+      "type": "object"
+    },
+    "MaterializationArchiveRecord": {
+      "additionalProperties": false,
+      "description": "Published protected bytes and their distinct semantic identity.",
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/ExperimentArtifactRefModel"
+        },
+        "operation_id": {
+          "minLength": 1,
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "reference": {
+          "$ref": "#/$defs/MaterializationAttestationReferenceModel"
+        },
+        "run_id": {
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "artifact",
+        "run_id",
+        "operation_id"
+      ],
+      "title": "MaterializationArchiveRecord",
+      "type": "object"
+    },
+    "MaterializationAttestationReferenceModel": {
+      "additionalProperties": false,
+      "description": "A descriptive artifact identity, never the original scenario snapshot.",
+      "properties": {
+        "ref_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Ref Digest",
+          "type": "string"
+        },
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "materialization-attestation",
+          "default": "materialization-attestation",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_path": {
+          "minLength": 1,
+          "title": "Ref Path",
+          "type": "string"
+        },
+        "ref_version": {
+          "const": "raes-sdl-materialized/v1",
+          "default": "raes-sdl-materialized/v1",
+          "title": "Ref Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref_id",
+        "ref_digest",
+        "ref_path"
+      ],
+      "title": "MaterializationAttestationReferenceModel",
       "type": "object"
     },
     "NullDomain": {
@@ -7470,6 +7545,14 @@
       ],
       "default": null
     },
+    "materialization_attestations": {
+      "items": {
+        "$ref": "#/$defs/MaterializationArchiveRecord"
+      },
+      "maxItems": 4096,
+      "title": "Materialization Attestations",
+      "type": "array"
+    },
     "outcome_status": {
       "enum": [
         "succeeded",
@@ -7800,6 +7883,18 @@
       ],
       "level": "error",
       "validator": "raes_contracts.contracts.validate_experiment_run_structure_against_task"
+    },
+    {
+      "description": "Materialization records belong to this run and materialization disclosure carriers bind exactly one archived record; the original scenario snapshot reference is not replaced.",
+      "id": "run-materialization-carriers-archived",
+      "inputs": [
+        {
+          "contract_id": "experiment-run-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.materialization_attestation.validate_run_materializations"
     },
     {
       "description": "Run started_at, ended_at, invalidation invalidated_at, and evidence_artifacts created_at values must be valid RFC 3339 date-times, including only known valid UTC leap-second instants.",

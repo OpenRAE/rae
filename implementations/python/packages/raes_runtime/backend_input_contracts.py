@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import is_dataclass
 
 from pydantic import BaseModel
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
@@ -36,6 +37,8 @@ def backend_input_violation(
         and not any(value is service for service in service_dependencies)
     }
     for value in values.values():
+        if isinstance(value, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)) and value.purpose != "execution":
+            return "A descriptive inspection plan cannot authorize backend execution."
         if not validate_realization_value(
             value,
             limits=RUNTIME_SNAPSHOT_VALUE_LIMITS,
