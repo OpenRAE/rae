@@ -20,6 +20,11 @@ The ecosystem needs executable checks against silent instrumentation and plane c
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `340` (Observability conformance corpus and independent-demand regression coverage)
+- IMPLEMENTS → CODE `implementations/python/packages/raes_conformance/conformance/observability.py` (Augmentation and refinement conformance diagnostics)
+- IMPLEMENTS → CONFIG `contracts/profiles/backend/observability-evidence.json` (Opt-in fixture conformance contract set)
 - IMPLEMENTS → GITHUB_ISSUE `128` (Issue #128 - Observability evidence conformance implementation)
 - TESTS → TEST `implementations/python/tests/test_observability_evidence_conformance.py` (Tests verify observability augmentation and run-refinement conformance diagnostics)
+- TESTS → TEST `implementations/python/tests/test_runtime_contracts.py` (Published schema, model, and semantic-invalid run fixture checks)
+- TESTS → TEST `implementations/python/tests/test_requirement_governance.py` (Conformance ownership permits the opt-in corpus and rejects unrelated profiles or schema changes)
 - TESTS → TEST `contracts/fixtures/experiment-core/experiment-run-v1/invalid/augmentation-without-affected-refs.json` (Semantic-invalid fixture for incomplete augmentation provenance)
