@@ -134,12 +134,18 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   Fresh production and participant replay retains the release-17 outcomes and
   result digests with no deviations. The dedicated provenance regression suite
   does not promote this retained corpus to universal provenance assurance.
-- [`bundles/retest-v18.json`](bundles/retest-v18.json) is current release 19.0.0.
+- [`bundles/retest-v18.json`](bundles/retest-v18.json) preserves release 19.0.0.
   It binds [`execution-snapshot-v18.json`](execution-snapshot-v18.json) and
   [`analysis-v18.json`](analysis-v18.json) to the combined materialization-attestation
   and EXP-732 provenance implementation. Fresh replay records compiled-representation
   deviations from release 18.0.0 with unchanged outcomes. The retained corpus does
   not establish native backend attestation fidelity or new experimental observations.
+- [`bundles/retest-v19.json`](bundles/retest-v19.json) is current release 20.0.0.
+  It binds [`execution-snapshot-v19.json`](execution-snapshot-v19.json) and
+  [`analysis-v19.json`](analysis-v19.json) to the integrated EXP-731 refinement,
+  EXP-732 provenance, and materialization-attestation implementation. The
+  retained corpus replays without governed outcome drift and does not promote
+  these dedicated feature controls into new formal claim classes.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -184,7 +190,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 18.0.0, rejects unsupported future
+Current validation requires explicit release 20.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

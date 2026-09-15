@@ -132,6 +132,7 @@ phases:
       - EXP-703
       - EXP-704
       - EXP-705
+      - EXP-731
   - id: decision-record-governance
     requirements:
       - GOV-941
@@ -606,18 +607,37 @@ ownership:
     - implementations/python/tests
   experiment-core:
     - contracts/README.md
+    - contracts/profiles/semantic-comparison/reference-v2.json
+    - contracts/schema-publication/entries
     - contracts/schema-publication-manifest.json
     - contracts/schemas/README.md
     - contracts/schemas
     - contracts/fixtures/experiment-core
     - specs/formal/README.md
     - specs/formal/experiment-core
+    - specs/formal/observability-evidence-plane.md
     - docs/decisions/adrs
+    - docs/decisions/issue-341-exp-731-evidence-requirement-refinement-preflight.md
+    - docs/requirements/EXP-731
+    - docs/research/formal-semantic-validation
     - docs/research/experiment-core
+    - docs/research/specification-coverage
     - docs/index.md
     - docs/specs/formal.md
     - implementations/python/packages/raes_contracts
+    - implementations/python/packages/raes_processor/capture_admission.py
+    - implementations/python/packages/raes_processor/semantic_comparison_adapters.py
+    - implementations/python/packages/raes_processor/semantic_comparison_projections.py
+    - implementations/python/packages/raes_processor/trial_compiler/compiler.py
+    - implementations/python/packages/raes_processor/trial_realization.py
+    - implementations/python/tests/test_exp_731_archival_validation.py
+    - implementations/python/tests/test_exp_731_evidence_requirement_refinement.py
+    - implementations/python/tests/test_exp_731_trial_realization.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
+    - implementations/python/tests/test_issue_1210_semantic_comparison.py
     - implementations/python/tests/test_runtime_contracts.py
+    - implementations/python/tests/test_specification_coverage.py
     - tools/generate_contract_schemas.py
     - CHANGELOG.md
 

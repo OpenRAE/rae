@@ -258,11 +258,17 @@ class SemanticComparisonProfileModel(ContractModel):
             raise ValueError("comparison profile must declare the complete closed dependency rule set")
         if set(self.owner_projection_versions) != set(ArtifactKind):
             raise ValueError("comparison profile must declare every owner projection version")
+        revision_two_owners = {
+            ArtifactKind.SCENARIO,
+            ArtifactKind.TASK,
+            ArtifactKind.RUN,
+            ArtifactKind.STUDY,
+        }
         if any(
-            kind not in {ArtifactKind.SCENARIO, ArtifactKind.TASK} and version != "1"
+            kind not in revision_two_owners and version != "1"
             for kind, version in self.owner_projection_versions.items()
         ):
-            raise ValueError("only scenario and task owners support projection revision 2")
+            raise ValueError("the selected owner does not support projection revision 2")
         return self
 
 

@@ -180,7 +180,7 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
     assert not _replay_observation_matches(old, changed)
 
 
-@pytest.mark.parametrize("revision", ["3.0.0", "16.0.0"])
+@pytest.mark.parametrize("revision", ["3.0.0", "17.0.0"])
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
     from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
     from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
@@ -206,7 +206,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "19.0.0"
+    assert release.manifest["revision"] == "20.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -252,7 +252,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest():
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "17.0.0"
+    assert manifest["revision"] == "18.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == "port-range-sdl")
     artifact["sha256"] = "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"
@@ -440,6 +440,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "17.0.0",
             "18.0.0",
             "19.0.0",
+            "20.0.0",
         ]
         if family == "formal"
         else [
@@ -461,6 +462,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "15.0.0",
             "16.0.0",
             "17.0.0",
+            "18.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)
