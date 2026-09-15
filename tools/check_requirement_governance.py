@@ -218,11 +218,10 @@ def evaluate_against_ground_control(
     )
     try:
         if scope is not None:
-            return emit_failures(
-                evaluate_requirement_scope(REPO_ROOT, effective_paths, client=client, scope=scope),
-                as_json=as_json,
-            )
-        failures = evaluate_requirement_governance(REPO_ROOT, effective_paths, client=client, requirement_uid=uid)
+            failures = evaluate_requirement_scope(REPO_ROOT, effective_paths, client=client, scope=scope)
+        else:
+            failures = evaluate_requirement_governance(REPO_ROOT, effective_paths, client=client, requirement_uid=uid)
+            failures = apply_exceptions(failures, load_exceptions(REPO_ROOT), requirement_uid=uid)
     except GroundControlError as exc:
         rule_id, message = classify_ground_control_error(exc)
         return report_unevaluated(
@@ -231,7 +230,6 @@ def evaluate_against_ground_control(
             require_governance=require_governance,
             as_json=as_json,
         )
-    failures = apply_exceptions(failures, load_exceptions(REPO_ROOT), requirement_uid=uid)
     return emit_failures(failures, as_json=as_json)
 
 
@@ -331,7 +329,6 @@ def main() -> int:
         if args.paths
         else requirement_changed_paths(staged=args.staged, base_rev=args.base_rev)
     )
-    effective_paths = governed_requirement_paths(paths)
     try:
         uid, scope = resolve_requirement_context(REPO_ROOT, current_branch(REPO_ROOT), args.requirement_uid)
     except RequirementScopeError as exc:
@@ -344,6 +341,11 @@ def main() -> int:
             as_json=args.json,
             scope=scope,
         )
+    return _evaluate_legacy_context(args, paths, uid)
+
+
+def _evaluate_legacy_context(args: argparse.Namespace, paths: list[str], uid: str | None) -> int:
+    effective_paths = governed_requirement_paths(paths)
     if not requires_requirement_context(effective_paths) or is_dev_to_main_promotion():
         return 0
     if not uid:

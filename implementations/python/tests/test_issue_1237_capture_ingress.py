@@ -65,7 +65,8 @@ def _reseal_apparatus(admitted, apparatus):
 def test_capture_invariant_across_planning_compilation_realization_and_runtime(failure: str | None) -> None:
     request = _request_with_processor()
     accepted = compile_admitted_trial_plan(request)
-    assert accepted.plan is not None and accepted.diagnostics == ()
+    assert accepted.plan is not None
+    assert accepted.diagnostics == ()
     admitted = accepted.plan
     entry_id = next(iter(admitted.entries))
     instantiated = instantiate_admitted_trial_entry(plan=admitted, plan_entry_id=entry_id, family=request.family)
@@ -88,12 +89,14 @@ def test_capture_invariant_across_planning_compilation_realization_and_runtime(f
     inputs = _realization_inputs(request, admitted, task)
     control_plane = RuntimeControlPlane(target)
     if failure is None:
-        assert execution.is_valid and compilation.plan is not None
+        assert execution.is_valid
+        assert compilation.plan is not None
         assert realize_admitted_trial_entry(inputs=inputs, plan_entry_id=entry_id).execution_plan.is_valid
         control_plane.register_planner_produced_plan(execution)
         assert control_plane.is_planner_authorized_plan(execution.provisioning)
     else:
-        assert not execution.is_valid and compilation.plan is None
+        assert not execution.is_valid
+        assert compilation.plan is None
         assert any(item.code == f"capture.{diagnostic}" for item in execution.diagnostics)
         assert any(item.code == f"capture.{diagnostic}" for item in compilation.diagnostics)
         with pytest.raises(ValueError, match="processor planning failed"):

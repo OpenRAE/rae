@@ -153,8 +153,9 @@ def test_scope_rejects_malformed_or_ambiguous_authority(field, value):
 def test_scope_rejects_unknown_fields():
     from tools.policy.requirement_scope import RequirementScopeError, parse_requirement_scope
 
+    document = {**scope_document(), "fallback": True}
     with pytest.raises(RequirementScopeError):
-        parse_requirement_scope({**scope_document(), "fallback": True}, issue_number=1237)
+        parse_requirement_scope(document, issue_number=1237)
 
 
 def write_scope(root: Path, content=None):
@@ -261,7 +262,8 @@ def test_context_resolves_scope_on_numeric_issue_branch_and_preserves_legacy(tmp
 
     write_scope(tmp_path)
     uid, scope = resolve_requirement_context(tmp_path, "1237-capture-evidence-authority")
-    assert uid == "EXP-708" and scope.requirement_uids == ("EXP-708", "GOV-913")
+    assert uid == "EXP-708"
+    assert scope.requirement_uids == ("EXP-708", "GOV-913")
     assert resolve_requirement_context(tmp_path, "1238-GOV-918-other") == ("GOV-918", None)
     assert resolve_requirement_context(tmp_path, "dev") == (None, None)
 
@@ -392,7 +394,8 @@ def test_context_cli_fails_without_emitting_a_uid_on_invalid_scope(scope_repo, m
     monkeypatch.setattr(context, "REPO_ROOT", scope_repo)
     assert context.main(["--branch", "1237-capture"]) == 1
     output = capsys.readouterr()
-    assert output.out == "" and "context unavailable" in output.err
+    assert output.out == ""
+    assert "context unavailable" in output.err
 
 
 def test_scope_requires_available_authority_even_when_legacy_mode_allows_skip(scope_repo, monkeypatch, capsys):

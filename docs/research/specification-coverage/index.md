@@ -107,10 +107,15 @@ this run does not repair them.
   the operational-provenance boundary separately.
 
 - [`execution-snapshot-v18.json`](execution-snapshot-v18.json) and
-  [`analysis-v18.json`](analysis-v18.json) are current release 18.0.0. Fresh
+  [`analysis-v18.json`](analysis-v18.json) preserve release 18.0.0. Fresh
   replay binds capture-proof authority integrated with apparatus provenance
   and materialization attestations to exact source and package digests.
   Classifications, the denominator, and claim limits remain unchanged.
+
+- [`execution-snapshot-v19.json`](execution-snapshot-v19.json) and
+  [`analysis-v19.json`](analysis-v19.json) are current release 19.0.0. Fresh
+  replay binds the capture-dimension helper refactor to exact source and
+  package digests, preserving classifications, denominator, and claim limits.
 
 Earlier issue-1237 captures remain in feature commits
 `2d402e4ae922b59d399dbfc336cc2856d153c44a` (release 15),
@@ -131,7 +136,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 18.0.0 and rejects duplicate or unsupported
+Current validation requires release 19.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

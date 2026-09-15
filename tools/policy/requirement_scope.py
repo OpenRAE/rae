@@ -22,7 +22,7 @@ from tools.policy.requirement_governance import (
 from tools.tooling_artifact_policy_common import is_regular_repo_file
 
 _UID = re.compile(r"[A-Z]{3}-\d{3,}")
-_ISSUE_BRANCH = re.compile(r"([1-9][0-9]*)-[A-Za-z0-9][A-Za-z0-9._/-]*")
+_ISSUE_BRANCH = re.compile(r"([1-9]\d*)-[A-Za-z0-9][A-Za-z0-9._/-]*", flags=re.ASCII)
 _FIELDS = frozenset(
     {
         "schema_version",
@@ -86,7 +86,11 @@ def parse_requirement_scope(document: object, *, issue_number: int) -> Requireme
     primary = document["primary_requirement_uid"]
     if primary not in uids:
         raise RequirementScopeError("The primary requirement must be explicitly in scope.")
-    raw_bindings = document["bindings"]
+    bindings = _parse_bindings(document["bindings"], uids)
+    return RequirementScope(issue_number, primary, uids, MappingProxyType(bindings))
+
+
+def _parse_bindings(raw_bindings: object, uids: tuple[str, ...]) -> dict[str, tuple[str, ...]]:
     if not isinstance(raw_bindings, dict) or not raw_bindings:
         raise RequirementScopeError("Scope requires exact file assignments.")
     bindings = {}
@@ -97,7 +101,7 @@ def parse_requirement_scope(document: object, *, issue_number: int) -> Requireme
         if not set(owners) <= set(uids):
             raise RequirementScopeError("A file assignment names a requirement outside the declared scope.")
         bindings[path] = owners
-    return RequirementScope(issue_number, primary, uids, MappingProxyType(bindings))
+    return bindings
 
 
 def load_requirement_scope(repo_root: Path, branch: str | None) -> RequirementScope | None:

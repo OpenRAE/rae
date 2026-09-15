@@ -9,6 +9,18 @@ from typing import Literal
 Comparison = Literal[
     "equal", "optional-equal", "subset", "exact-subset", "pointers", "overlap", "sensitivity", "export"
 ]
+_DERIVED = "@derived"
+
+
+def _scalar_matches(comparison: Comparison, required: object, supported: object) -> bool:
+    matches = required == supported
+    if comparison == "optional-equal":
+        matches = not required or matches
+    elif comparison == "sensitivity":
+        matches = not required or supported == "*" or matches
+    elif comparison == "export":
+        matches = required == "not-required" or matches
+    return matches
 
 
 @dataclass(frozen=True)
@@ -25,14 +37,8 @@ class CaptureDimension:
     def matches(self, required: object, supported: object) -> bool:
         """Apply the dimension's own wildcard/empty-value semantics."""
 
-        if self.comparison == "equal":
-            return required == supported
-        if self.comparison == "optional-equal":
-            return not required or required == supported
-        if self.comparison == "sensitivity":
-            return not required or supported == "*" or required == supported
-        if self.comparison == "export":
-            return required == "not-required" or required == supported
+        if self.comparison in {"equal", "optional-equal", "sensitivity", "export"}:
+            return _scalar_matches(self.comparison, required, supported)
         if self.comparison == "overlap":
             return not required or bool(set(required).intersection(supported))
         wildcard = "" if self.comparison == "pointers" else "*"
@@ -58,23 +64,23 @@ CAPTURE_DIMENSIONS = (
         "artifact_roles", "artifact-role-mismatch", "subset", "artifact_role", "required_artifact_roles", "set"
     ),
     CaptureDimension("media_types", "media-type-mismatch", "overlap", "media_types", "expected_media_types", "set"),
-    CaptureDimension("capture_kind", "capture-kind-mismatch", "optional-equal", "@derived", "capture_kind"),
+    CaptureDimension("capture_kind", "capture-kind-mismatch", "optional-equal", _DERIVED, "capture_kind"),
     CaptureDimension("source_classes", "source-class-mismatch", "subset", "source_class", None, "set"),
     CaptureDimension("source_refs", "source-ref-mismatch", "subset", "source_refs", None, "set"),
     CaptureDimension("scopes", "scope-mismatch", "subset", "scope", "capture_scope", "set"),
     CaptureDimension("scope_refs", "scope-ref-mismatch", "exact-subset", "scope_refs", None, "set"),
-    CaptureDimension("channel_kinds", "channel-mismatch", "subset", "@derived", None, "set"),
-    CaptureDimension("channel_refs", "channel-ref-mismatch", "subset", "channel_refs", "@derived", "set"),
-    CaptureDimension("window_kinds", "window-mismatch", "subset", "@derived", "@derived", "set"),
+    CaptureDimension("channel_kinds", "channel-mismatch", "subset", _DERIVED, None, "set"),
+    CaptureDimension("channel_refs", "channel-ref-mismatch", "subset", "channel_refs", _DERIVED, "set"),
+    CaptureDimension("window_kinds", "window-mismatch", "subset", _DERIVED, _DERIVED, "set"),
     CaptureDimension("integrity_modes", "integrity-mismatch", "subset", "integrity", "integrity_requirements", "set"),
     CaptureDimension("sensitivity", "sensitivity-mismatch", "sensitivity", "sensitivity", "sensitivity"),
     CaptureDimension("availability", "availability-insufficient", "equal", None, None, required_value="available"),
     CaptureDimension("fidelity", "fidelity-insufficient", "equal", None, None, required_value="complete"),
-    CaptureDimension("disclosure", "disclosure-insufficient", "equal", "@derived", "@derived"),
+    CaptureDimension("disclosure", "disclosure-insufficient", "equal", _DERIVED, _DERIVED),
     CaptureDimension("retention_policy_refs", "retention-mismatch", "subset", "retention", "retention_policy", "set"),
     CaptureDimension("export_policy", "export-policy-mismatch", "export", None, None, default="not-required"),
     CaptureDimension(
-        "redaction_policy", "redaction-policy-mismatch", "equal", "@derived", "redaction_policy", default=None
+        "redaction_policy", "redaction-policy-mismatch", "equal", _DERIVED, "redaction_policy", default=None
     ),
 )
 CAPTURE_SET_FIELDS = tuple(dimension.name for dimension in CAPTURE_DIMENSIONS if dimension.collection == "set")
@@ -109,13 +115,15 @@ def capture_offer_fields(model: object) -> dict[str, object]:
 
 
 def _projection_value(dimension: CaptureDimension, value: object) -> object:
-    if dimension.collection != "scalar":
-        if value is None or value == "":
-            return ()
-        if isinstance(value, str):
-            return (str(getattr(value, "value", value)),)
-        return tuple(value)
-    return str(getattr(value, "value", value)) if value is not None else dimension.default
+    if dimension.collection == "scalar":
+        return str(getattr(value, "value", value)) if value is not None else dimension.default
+    if value is None or value == "":
+        values = ()
+    elif isinstance(value, str):
+        values = (str(getattr(value, "value", value)),)
+    else:
+        values = value
+    return tuple(values)
 
 
 def project_capture_dimensions(
@@ -134,7 +142,7 @@ def project_capture_dimensions(
         attribute = dimension.sdl_attribute if source == "sdl" else dimension.capture_attribute
         if dimension.name in overrides:
             value = overrides[dimension.name]
-        elif attribute == "@derived":
+        elif attribute == _DERIVED:
             raise ValueError(f"capture projection requires derived dimension {dimension.name}")
         else:
             value = None if attribute is None else getattr(requirement, attribute)

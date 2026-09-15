@@ -35,5 +35,5 @@ independently pinned. `manifest-v2.json` supplies frozen shapes for retained
 progressive evidence records that became historical with the materialization
 capture. The gate accepts a retained record through either frozen shape
 version, then checks the complete record's immutable identity and joins.
-Current release 20.0.0 uses production APIs and CLI replay; archival admission
+Current release 21.0.0 uses production APIs and CLI replay; archival admission
 never substitutes for that current-code check.

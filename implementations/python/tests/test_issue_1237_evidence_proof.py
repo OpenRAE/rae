@@ -41,10 +41,13 @@ def test_run_validation_returns_immutable_content_proof() -> None:
     assert proof.bindings[0].artifact_id == run.evidence_artifacts[0].artifact_id
     with pytest.raises(FrozenInstanceError):
         proof.bindings = ()
+    proof_type = type(proof)
     with pytest.raises(TypeError, match="content validation"):
-        type(proof)()
+        proof_type()
+    binding_type = type(proof.bindings[0])
+    binding_payload = asdict(proof.bindings[0])
     with pytest.raises(TypeError):
-        type(proof.bindings[0])(**asdict(proof.bindings[0]))
+        binding_type(**binding_payload)
 
 
 def test_condition_consumer_rejects_reference_metadata_as_proof() -> None:
@@ -147,13 +150,14 @@ def test_unsafe_evidence_locators_fail_before_reader_io(locator):
         def read(self, _size=-1):
             pytest.fail("unsafe locator reached artifact I/O")
 
+    reader = Unreadable(payload)
     with pytest.raises(ValueError, match="locator"):
         validate_experiment_run_evidence(
             task,
             run,
             capture_specs={spec.capture_spec_id: spec},
             evidence_records={record.evidence_record_id: record},
-            artifact_readers={run.evidence_artifacts[0].artifact_id: Unreadable(payload)},
+            artifact_readers={run.evidence_artifacts[0].artifact_id: reader},
         )
 
 
@@ -203,13 +207,14 @@ def test_shared_artifact_is_read_once_but_each_requirement_is_checked():
     )
     assert {binding.requirement_id for binding in proof.bindings} == {"auth-log-evidence", "second-evidence"}
     spec.capture_requirements["second-evidence"].field_selectors = ["/missing"]
+    reader = io.BytesIO(payload)
     with pytest.raises(ValueError, match="field selector"):
         validate_experiment_run_evidence(
             task,
             run,
             capture_specs={spec.capture_spec_id: spec},
             evidence_records={record.evidence_record_id: record, second.evidence_record_id: second},
-            artifact_readers={run.evidence_artifacts[0].artifact_id: io.BytesIO(payload)},
+            artifact_readers={run.evidence_artifacts[0].artifact_id: reader},
         )
 
 
