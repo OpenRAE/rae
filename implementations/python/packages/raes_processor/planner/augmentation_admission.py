@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from raes import admit_instantiated_scenario, parse_sdl
 from raes.observation_scope import semantic_scope_namespace
@@ -103,7 +103,10 @@ def compose_augmentation_admission(
     local = admit_prospective_content(
         parse_bounded_json_object(admission.preparation.content, max_bytes=MATERIALIZATION_MAX_BYTES)
     )
-    return replace(admission, cumulative_content=compose_materialization_content(original, preceding, local))
+    return cast(
+        AugmentationAdmission,
+        replace(admission, cumulative_content=compose_materialization_content(original, preceding, local)),
+    )
 
 
 def admit_augmentation_preparation(

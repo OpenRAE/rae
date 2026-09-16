@@ -120,7 +120,9 @@ def compose_materialization_content(
     return admitted
 
 
-def _compose_owned(base: Any, preceding: Any, local: Any, path: tuple[str, ...], profiles: _CollectionProfiles) -> Any:
+def _compose_owned(
+    base: object, preceding: object, local: object, path: tuple[str, ...], profiles: _CollectionProfiles
+) -> object:
     if type(local) is type(base) and local == base:
         return preceding
     if type(preceding) is type(base) and preceding == base:
@@ -129,8 +131,8 @@ def _compose_owned(base: Any, preceding: Any, local: Any, path: tuple[str, ...],
 
 
 def _compose_changed_containers(
-    base: Any, preceding: Any, local: Any, path: tuple[str, ...], profiles: _CollectionProfiles
-) -> Any:
+    base: object, preceding: object, local: object, path: tuple[str, ...], profiles: _CollectionProfiles
+) -> object:
     if all(isinstance(value, dict) for value in (base, preceding, local)):
         merged = {}
         for key in base.keys() | preceding.keys() | local.keys():

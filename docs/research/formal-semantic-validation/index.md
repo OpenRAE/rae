@@ -171,12 +171,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   active index at `historical-artifacts/issue-1242-pre-refinement-sync-release-v21.json`.
   That manifest's paths and hashes describe files at the named commit, not the
   current checkout; incoming published captures retain their exact bytes.
-- [`bundles/retest-v23.json`](bundles/retest-v23.json) is current release 24.0.0.
+- [`bundles/retest-v23.json`](bundles/retest-v23.json) preserves release 24.0.0.
   It binds [`execution-snapshot-v23.json`](execution-snapshot-v23.json) and
   [`analysis-v23.json`](analysis-v23.json) to the maintainability refactor of
   augmentation admission. Fresh production and participant replay retains
   release-23 outcomes and compiled digests, with no new deviations or claims.
   All previously published captures remain unchanged.
+- [`bundles/retest-v24.json`](bundles/retest-v24.json) is current release 25.0.0.
+  It binds [`execution-snapshot-v24.json`](execution-snapshot-v24.json) and
+  [`analysis-v24.json`](analysis-v24.json) to the tightened composition type
+  annotations. Fresh production and participant replay retains release-24
+  outcomes, digests, and claim limits. Earlier captures remain byte-exact.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
