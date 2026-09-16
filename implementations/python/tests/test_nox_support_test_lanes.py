@@ -295,8 +295,10 @@ def test_coverage_reduce_fails_closed_without_manifests(
     combined: list[object] = []
     monkeypatch.setattr(test_lanes, "_run", lambda *_a, **_k: combined.append("combine"))
 
+    session = _FakeSession()
+    reporter = _Reporter()
     with pytest.raises(RuntimeError, match="no shard manifests"):
-        test_lanes._run_coverage_reduce(_FakeSession(), _Reporter(), tmp_path, shard_count=2, source_sha="x")
+        test_lanes._run_coverage_reduce(session, reporter, tmp_path, shard_count=2, source_sha="x")
 
     assert combined == []
 
@@ -305,5 +307,6 @@ def test_collect_canonical_nodeids_parses_and_fails_closed(test_lanes: ModuleTyp
     session = _FakeSession(run_output="tests/a.py::t1\ntests/a.py::t2\n2 tests collected\n")
     assert test_lanes._collect_canonical_nodeids(session) == ["tests/a.py::t1", "tests/a.py::t2"]
 
+    empty_session = _FakeSession(run_output="0 tests collected\n")
     with pytest.raises(RuntimeError, match="no node ids"):
-        test_lanes._collect_canonical_nodeids(_FakeSession(run_output="0 tests collected\n"))
+        test_lanes._collect_canonical_nodeids(empty_session)

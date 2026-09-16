@@ -150,6 +150,34 @@ def read_manifest(path: Path) -> ShardManifest:
     return ShardManifest.from_dict(data)
 
 
+def _owned_ids(manifest: ShardManifest, count: int, source_sha: str | None, seen: set[str]) -> set[str]:
+    """Validate one manifest against the partition invariants and return its ids."""
+
+    if manifest.algorithm_version != SHARD_ALGORITHM_VERSION:
+        raise ShardManifestError(
+            f"shard {manifest.shard_index} used algorithm {manifest.algorithm_version!r}, "
+            f"expected {SHARD_ALGORITHM_VERSION!r}"
+        )
+    if manifest.shard_count != count:
+        raise ShardManifestError(
+            f"shard {manifest.shard_index} recorded shard_count {manifest.shard_count}, expected {count}"
+        )
+    if source_sha is not None and manifest.source_sha != source_sha:
+        raise ShardManifestError(
+            f"shard {manifest.shard_index} recorded source {manifest.source_sha!r}, expected {source_sha!r}"
+        )
+    ids = set(manifest.node_ids)
+    if len(ids) != len(manifest.node_ids):
+        raise ShardManifestError(f"shard {manifest.shard_index} recorded duplicate node ids")
+    overlap = seen & ids
+    if overlap:
+        raise ShardManifestError(f"shard {manifest.shard_index} overlaps earlier shards on {len(overlap)} node ids")
+    misowned = [nodeid for nodeid in ids if shard_for_nodeid(nodeid, count) != manifest.shard_index]
+    if misowned:
+        raise ShardManifestError(f"shard {manifest.shard_index} claims {len(misowned)} node ids it does not own")
+    return ids
+
+
 def verify_shard_partition(
     manifests: Sequence[ShardManifest],
     canonical_nodeids: Sequence[str],
@@ -181,29 +209,7 @@ def verify_shard_partition(
 
     seen: set[str] = set()
     for manifest in manifests:
-        if manifest.algorithm_version != SHARD_ALGORITHM_VERSION:
-            raise ShardManifestError(
-                f"shard {manifest.shard_index} used algorithm {manifest.algorithm_version!r}, "
-                f"expected {SHARD_ALGORITHM_VERSION!r}"
-            )
-        if manifest.shard_count != count:
-            raise ShardManifestError(
-                f"shard {manifest.shard_index} recorded shard_count {manifest.shard_count}, expected {count}"
-            )
-        if source_sha is not None and manifest.source_sha != source_sha:
-            raise ShardManifestError(
-                f"shard {manifest.shard_index} recorded source {manifest.source_sha!r}, expected {source_sha!r}"
-            )
-        ids = set(manifest.node_ids)
-        if len(ids) != len(manifest.node_ids):
-            raise ShardManifestError(f"shard {manifest.shard_index} recorded duplicate node ids")
-        overlap = seen & ids
-        if overlap:
-            raise ShardManifestError(f"shard {manifest.shard_index} overlaps earlier shards on {len(overlap)} node ids")
-        misowned = [nodeid for nodeid in ids if shard_for_nodeid(nodeid, count) != manifest.shard_index]
-        if misowned:
-            raise ShardManifestError(f"shard {manifest.shard_index} claims {len(misowned)} node ids it does not own")
-        seen |= ids
+        seen |= _owned_ids(manifest, count, source_sha, seen)
 
     if seen != canonical_set:
         missing = sorted(canonical_set - seen)

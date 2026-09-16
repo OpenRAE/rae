@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from tools.ci_latency_report import RunTiming, parse_run, percentile, summarize
+import io
+import json
+
+import pytest
+from tools.ci_latency_report import RunTiming, load_cohort, main, parse_run, percentile, summarize
 
 
 def _job(name: str, completed_at: str, conclusion: str) -> dict:
@@ -67,3 +71,53 @@ def test_summarize_reports_median_and_p95() -> None:
     # Only the failing run contributes a first-failure measurement.
     assert summary["time_to_first_failure_seconds"]["count"] == 1
     assert summary["final_required_completion_seconds"]["median"] == 200.0
+
+
+def test_load_cohort_parses_entries_and_fails_closed() -> None:
+    payload = [
+        {
+            "run": {
+                "id": 1,
+                "created_at": "2026-09-16T00:00:00Z",
+                "run_started_at": "2026-09-16T00:00:30Z",
+            },
+            "jobs": [_job("verify", "2026-09-16T00:05:30Z", "success")],
+        }
+    ]
+    timings = load_cohort(payload, ("verify", "sonar"))
+    assert len(timings) == 1
+    assert timings[0].queue_s == 30.0
+
+    with pytest.raises(ValueError, match="JSON array"):
+        load_cohort({"run": {}}, ("verify",))
+    with pytest.raises(ValueError, match="'run' object"):
+        load_cohort([{"jobs": []}], ("verify",))
+    with pytest.raises(ValueError, match="'jobs' must be"):
+        load_cohort([{"run": {"id": 1}, "jobs": {}}], ("verify",))
+
+
+def test_main_reads_stdin_and_prints_summary(capsys: pytest.CaptureFixture[str]) -> None:
+    payload = [
+        {
+            "run": {"id": 1, "created_at": "2026-09-16T00:00:00Z", "run_started_at": "2026-09-16T00:01:00Z"},
+            "jobs": [
+                _job("verify", "2026-09-16T00:05:00Z", "success"),
+                _job("sonar", "2026-09-16T00:06:00Z", "success"),
+            ],
+        }
+    ]
+    exit_code = main(
+        ["--required-check", "verify", "--required-check", "sonar"], stdin=io.StringIO(json.dumps(payload))
+    )
+    assert exit_code == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["runs"] == 1
+    assert report["queue_seconds"]["median"] == 60.0
+    assert report["final_required_completion_seconds"]["median"] == 300.0
+
+
+def test_main_defaults_required_checks(capsys: pytest.CaptureFixture[str]) -> None:
+    payload = [{"run": {"id": 9}, "jobs": []}]
+    assert main([], stdin=io.StringIO(json.dumps(payload))) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["runs"] == 1

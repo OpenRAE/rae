@@ -175,8 +175,9 @@ def test_verify_rejects_duplicate_canonical_ids() -> None:
 
 
 def test_verify_rejects_empty_canonical() -> None:
+    manifests = _manifests([], 1)
     with pytest.raises(ShardManifestError, match="empty"):
-        verify_shard_partition(_manifests([], 1), [], shard_count=1)
+        verify_shard_partition(manifests, [], shard_count=1)
 
 
 def test_verify_rejects_algorithm_version_drift() -> None:
@@ -292,8 +293,9 @@ def test_plugin_is_inert_without_shard_options() -> None:
 
 def test_plugin_requires_both_count_and_index() -> None:
     config = _StubConfig(_shard_options(raes_shard_count=4))
+    items = [_StubItem("tests/test_a.py::test_b")]
     with pytest.raises(pytest.UsageError):
-        pytest_shard_plugin.pytest_collection_modifyitems(config, [_StubItem("tests/test_a.py::test_b")])
+        pytest_shard_plugin.pytest_collection_modifyitems(config, items)
 
 
 def test_plugin_selects_owned_and_writes_manifest(tmp_path: Path) -> None:
