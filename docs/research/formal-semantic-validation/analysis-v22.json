@@ -124,7 +124,7 @@
   "corpus_revision": "3.0.0",
   "evidence_status": "partial",
   "execution_id": "issue-1005-execution-v22",
-  "generated_at": "2026-09-15",
+  "generated_at": "2026-09-16T02:16:08.146564+00:00",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -137,7 +137,7 @@
     "EXP-732 provenance joins are verified by their dedicated regression suite; this retained corpus makes no universal run, apparatus, source, or augmentation assurance claim.",
     "This retained corpus does not establish native backend attestation fidelity; materialization contract checks remain separate operational provenance, not experimental observations.",
     "Capture admission and evidence-proof authority are verified by issue-1237 regression tests, not promoted to a new claim class by this retained corpus.",
-    "Capture admission and evidence-proof authority are verified by issue-1237 regression tests, not promoted to a new claim class by this retained corpus."
+    "Evidence-requirement refinement lineage is outside this retained formal claim set; this retest refreshes integrated source provenance without promoting that feature to a formal claim."
   ],
   "plain_language_outcome": "The pinned RAES revision replays every retained v1 control and demonstrates the bounded finite-domain satisfiability and typed exploit-path claims with complete production evidence. Semantic, workflow, and compile-stability claims remain partial, and counterfactual necessity remains untested.",
   "protocol_revision": "2.0.0"

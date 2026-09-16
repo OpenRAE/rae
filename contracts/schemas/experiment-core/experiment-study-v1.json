@@ -396,6 +396,41 @@
       "title": "ExperimentArtifactRefModel",
       "type": "object"
     },
+    "ExperimentCaptureSpecReferenceModel": {
+      "additionalProperties": false,
+      "description": "Reference constrained to a declarative capture specification.",
+      "properties": {
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "capture-spec",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Version"
+        }
+      },
+      "required": [
+        "ref_kind",
+        "ref_id"
+      ],
+      "title": "ExperimentCaptureSpecReferenceModel",
+      "type": "object"
+    },
     "ExperimentChecksumModel": {
       "additionalProperties": false,
       "allOf": [
@@ -830,6 +865,160 @@
       "title": "ExperimentEvidenceRecordReferenceModel",
       "type": "object"
     },
+    "ExperimentEvidenceRequirementRelationModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "relation_kind": {
+                "const": "refine"
+              }
+            },
+            "required": [
+              "relation_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "refinement_dimensions": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "refinement_dimensions"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "relation_kind": {
+                "const": "extend"
+              }
+            },
+            "required": [
+              "relation_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "refinement_dimensions": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "One explicit scoped relationship to an immutable authored requirement.\n\nThe relation carries lineage only.  The authored requirement and the\nmaterialized capture requirement remain independent obligations.",
+      "properties": {
+        "authority_ref": {
+          "$ref": "#/$defs/ExperimentReferenceModel"
+        },
+        "base_requirement_address": {
+          "minLength": 1,
+          "title": "Base Requirement Address",
+          "type": "string"
+        },
+        "base_scenario_ref": {
+          "$ref": "#/$defs/ExperimentScenarioSnapshotReferenceModel"
+        },
+        "capture_requirement_ref": {
+          "minLength": 1,
+          "title": "Capture Requirement Ref",
+          "type": "string"
+        },
+        "capture_spec_ref": {
+          "$ref": "#/$defs/ExperimentCaptureSpecReferenceModel"
+        },
+        "provenance_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentReferenceModel"
+          },
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "refinement_dimensions": {
+          "items": {
+            "enum": [
+              "field-selectors",
+              "artifact-roles",
+              "integrity-requirements",
+              "loss-disclosure"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Refinement Dimensions",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "relation_id": {
+          "minLength": 1,
+          "title": "Relation Id",
+          "type": "string"
+        },
+        "relation_kind": {
+          "enum": [
+            "refine",
+            "extend"
+          ],
+          "title": "Relation Kind",
+          "type": "string"
+        },
+        "relation_version": {
+          "minLength": 1,
+          "title": "Relation Version",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "task",
+            "run",
+            "study"
+          ],
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relation_id",
+        "relation_version",
+        "relation_kind",
+        "scope",
+        "authority_ref",
+        "base_scenario_ref",
+        "base_requirement_address",
+        "capture_spec_ref",
+        "capture_requirement_ref",
+        "rationale"
+      ],
+      "title": "ExperimentEvidenceRequirementRelationModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Evidence requirement relations must resolve an exact immutable SDL declaration and a separately identified capture requirement. Refinements preserve every declared base dimension and strengthen at least one governed dimension; extensions remain independent obligations.",
+          "id": "evidence-requirement-relation-lineage-valid",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/evidence_requirements"
+            },
+            {
+              "contract_id": "experiment-capture-spec-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.validate_evidence_requirement_relations"
+        }
+      ]
+    },
     "ExperimentEvidenceSatisfactionReferenceModel": {
       "additionalProperties": false,
       "description": "Evidence concept reference that an artifact claims to satisfy.",
@@ -1120,6 +1309,68 @@
           "validator": "raes_contracts.contracts.ExperimentRunAllocationPlanModel._validate_condition_assignments"
         }
       ]
+    },
+    "ExperimentScenarioSnapshotReferenceModel": {
+      "additionalProperties": false,
+      "description": "Reference constrained to a sealed scenario snapshot.",
+      "properties": {
+        "ref_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Digest"
+        },
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "scenario-snapshot",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_path": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Path"
+        },
+        "ref_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Version"
+        }
+      },
+      "required": [
+        "ref_kind",
+        "ref_id"
+      ],
+      "title": "ExperimentScenarioSnapshotReferenceModel",
+      "type": "object"
     },
     "ExperimentStatisticalMethodModel": {
       "additionalProperties": false,
@@ -2113,6 +2364,13 @@
       "title": "Description",
       "type": "string"
     },
+    "evidence_requirement_relations": {
+      "items": {
+        "$ref": "#/$defs/ExperimentEvidenceRequirementRelationModel"
+      },
+      "title": "Evidence Requirement Relations",
+      "type": "array"
+    },
     "export_artifacts": {
       "items": {
         "$ref": "#/$defs/ExperimentArtifactRefModel"
@@ -2357,6 +2615,18 @@
       ],
       "level": "error",
       "validator": "raes_contracts.contracts.validation_disclosure.validate_carrier_validation_basis_disclosures"
+    },
+    {
+      "description": "Study-scoped evidence requirement relations must identify this exact study authority.",
+      "id": "study-evidence-requirement-relation-owner-valid",
+      "inputs": [
+        {
+          "contract_id": "experiment-study-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ExperimentStudyModel._validate_claim_bearing_study"
     },
     {
       "description": "When run_allocation compares evaluation runs, every shared stochastic_controls control_id across those runs must use a consistent executable_binding profile_ref and namespace, and either all or none of the runs that share the control_id may carry an executable_binding (EXP-718 common random numbers / controlled-variation comparability).",

@@ -156,13 +156,20 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   claim class; all previously published captures remain unchanged.
 - [`bundles/retest-v21.json`](bundles/retest-v21.json) preserves release 22.0.0.
   It binds [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
-  [`analysis-v21.json`](analysis-v21.json) to ASR-516 authoring-adapter
-  conformance support. Fresh production and participant replay retains the
-  release-21 outcomes and digests; no transport or new claim class is qualified.
+  [`analysis-v21.json`](analysis-v21.json) to the integrated capture-proof,
+  capture-dimension, and EXP-731 refinement implementation. Fresh replay
+  retains release-21 outcomes and digests without expanding the formal claim
+  set; every earlier release remains byte-exact.
 - [`bundles/retest-v22.json`](bundles/retest-v22.json) is current release 23.0.0.
   It binds [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
-  [`analysis-v22.json`](analysis-v22.json) to the authoring-conformance helper
-  refactor. Fresh replay retains release-22 outcomes, digests, and claim limits.
+  [`analysis-v22.json`](analysis-v22.json) to authoring conformance integrated
+  with EXP-731. Fresh replay retains release-22 outcomes, digests, and claim
+  limits; no transport or new claim class is qualified. The earlier feature
+  releases 22 and 23 remain byte-exact in commit
+  `b58c6a0bc3df3034a8cbee66542ed12cd3849232`. Their manifests are retained at
+  `historical-artifacts/issue-1005-pre-refinement-release-v22.json` and
+  `historical-artifacts/issue-1005-pre-refinement-release-v23.json`; their paths
+  and hashes describe that commit, not the current checkout.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.

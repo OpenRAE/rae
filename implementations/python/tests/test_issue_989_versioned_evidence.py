@@ -265,7 +265,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "22.0.0"
+    assert manifest["revision"] == "23.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
     artifact["sha256"] = old_digest
@@ -273,7 +273,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     assert "specification-coverage-artifact-digest" in {f.rule_id for f in failures}
 
 
-@pytest.mark.parametrize("revision", ["1.0.0", "20.0.0", "21.0.0"])
+@pytest.mark.parametrize("revision", ["1.0.0", "20.0.0", "21.0.0", "22.0.0"])
 def test_historical_specification_evidence_is_integrity_checked_without_execution(monkeypatch, revision):
     from tools import check_specification_coverage as coverage
     from tools.specification_coverage import _artifacts
@@ -486,6 +486,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "20.0.0",
             "21.0.0",
             "22.0.0",
+            "23.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)
