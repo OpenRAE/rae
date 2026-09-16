@@ -91,8 +91,9 @@ def test_audit_coverage_rejects_incomplete_or_stale_records(mutation):
         fields["unreviewed_field"] = "C"
     else:
         rows[model] = ("../../../specs/sdl/runtime-inventory.md", fields)
+    models = _models()
     with pytest.raises(AssertionError):
-        _check_coverage(rows, _models())
+        _check_coverage(rows, models)
 
 
 @pytest.mark.parametrize(
