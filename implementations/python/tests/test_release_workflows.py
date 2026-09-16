@@ -113,6 +113,7 @@ def _run_github_finalization(
     *,
     release_states: list[str],
     mismatched_download: bool = False,
+    tampered_evidence_readback: bool = False,
     moved_tag: bool = False,
     finalization_json: str = '{"id":1234,"tag_name":"v3.4.5","draft":false}',
 ) -> subprocess.CompletedProcess[str]:
@@ -127,6 +128,12 @@ def _run_github_finalization(
     dist.mkdir()
     (dist / "raes-3.4.5-py3-none-any.whl").write_bytes(b"tested wheel")
     (dist / "raes-3.4.5.tar.gz").write_bytes(b"tested sdist")
+    # The finalization step also attaches the release evidence to the durable
+    # Release and digest-compares it on readback (#1226).
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    (evidence / "release-evidence-index.json").write_bytes(b'{"schema_version":"raes-release-evidence/v1"}')
+    (evidence / "build-inventory.json").write_bytes(b'{"schema_version":"raes-build-inventory/v1"}')
 
     state_file = tmp_path / "release-states.jsonl"
     state_file.write_text("\n".join(release_states) + "\n", encoding="utf-8")
@@ -152,17 +159,35 @@ case "${1-}:${2-}" in
     printf '%s\n' download >> "$CALL_LOG"
     shift 2
     destination=""
+    patterns=""
     while [ "$#" -gt 0 ]; do
       case "$1" in
         --dir) destination="$2"; shift 2 ;;
+        --pattern) patterns="$patterns $2"; shift 2 ;;
         *) shift ;;
       esac
     done
     test -n "$destination"
     mkdir -p "$destination"
-    cp "$TEST_DIST_SOURCE"/* "$destination"/
-    if [ "$MISMATCH_DOWNLOAD" = "1" ]; then
+    served=0
+    for pattern in $patterns; do
+      for source in "$TEST_DIST_SOURCE/$pattern" "$TEST_EVIDENCE_SOURCE/$pattern"; do
+        if [ -f "$source" ]; then
+          cp "$source" "$destination"/
+          served=1
+        fi
+      done
+    done
+    if [ "$served" = "0" ]; then
+      cp "$TEST_DIST_SOURCE"/* "$destination"/
+    fi
+    if [ "$MISMATCH_DOWNLOAD" = "1" ] && [ -f "$destination/raes-3.4.5-py3-none-any.whl" ]; then
       printf '%s\n' tampered > "$destination/raes-3.4.5-py3-none-any.whl"
+    fi
+    if [ "$TAMPER_EVIDENCE_READBACK" = "1" ]; then
+      for served_file in "$destination"/*.json; do
+        [ -f "$served_file" ] && printf '%s\n' tampered > "$served_file"
+      done
     fi
     ;;
   api:*)
@@ -209,7 +234,9 @@ esac
         "STATE_COUNTER": str(state_counter),
         "CALL_LOG": str(call_log),
         "TEST_DIST_SOURCE": str(dist),
+        "TEST_EVIDENCE_SOURCE": str(evidence),
         "MISMATCH_DOWNLOAD": "1" if mismatched_download else "0",
+        "TAMPER_EVIDENCE_READBACK": "1" if tampered_evidence_readback else "0",
         "FINALIZATION_JSON": finalization_json,
     }
     return subprocess.run(
@@ -559,6 +586,9 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
         "verify-release",
         "integration-docker-release",
         "build-release",
+        # Absent or rejected evidence must block the handoff, so admission is a
+        # predecessor of publication rather than an optional report (#1226).
+        "admit-release",
     }
     assert "needs.verify-release.result == 'success'" in publish_pypi["if"]
     assert "needs.integration-docker-release.result == 'success'" in publish_pypi["if"]
@@ -567,11 +597,31 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     assert publish_pypi["environment"] == "pypi"
     assert publish_pypi["permissions"] == {"contents": "write", "id-token": "write"}
 
+    # OIDC is held by exactly two reviewed boundaries: the publisher, and the
+    # signer. They are separate jobs so an attestation credential never carries
+    # publication capability, and vice versa (#1226).
+    oidc_jobs = {name for name, job in jobs.items() if job.get("permissions", {}).get("id-token") == "write"}
+    assert oidc_jobs == {"publish-pypi", "attest-release"}
+
     for name, job in jobs.items():
         if name == "publish-pypi":
             continue
         assert job.get("environment") != "pypi"
-        assert job.get("permissions", {}).get("id-token") != "write"
+
+    attest = jobs["attest-release"]
+    assert attest["permissions"] == {
+        "contents": "read",
+        "id-token": "write",
+        "attestations": "write",
+    }
+    assert attest.get("environment") is None
+    # A protected script launched inside a candidate checkout can still import
+    # or execute candidate code, so the signer checks out nothing.
+    assert all(not step.get("uses", "").startswith("actions/checkout@") for step in attest["steps"])
+    # Only the signer may write attestations.
+    assert {name for name, job in jobs.items() if job.get("permissions", {}).get("attestations") == "write"} == {
+        "attest-release"
+    }
 
     upload = _named_step(jobs["build-release"], "Upload the tested release distributions")
     pypi_download = _named_step(publish_pypi, "Download the tested release distributions")
@@ -603,6 +653,7 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
         "resolve-release",
         "verify-release",
         "build-release",
+        "admit-release",
         "publish-pypi",
     }
     assert "needs.publish-pypi.result == 'success'" in publish_github["if"]
@@ -676,7 +727,14 @@ def test_github_finalization_revalidates_release_object_after_attachment(tmp_pat
 
     assert result.returncode != 0
     assert "Release identity changed during attachment; refusing public finalization" in result.stderr
-    assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["upload"]
+    # Attachment and evidence retention complete, then the re-read of the
+    # Release object rejects the identity change before public finalization.
+    assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == [
+        "upload",
+        "upload",
+        "download",
+        "download",
+    ]
 
 
 @pytest.mark.integration
@@ -707,6 +765,9 @@ def test_github_finalization_rejects_tampered_finalization_response(tmp_path: Pa
     assert "GitHub Release finalization response changed the verified identity" in result.stderr
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == [
         "upload",
+        "upload",
+        "download",
+        "download",
         "patch",
     ]
 
@@ -723,7 +784,34 @@ def test_github_finalization_uses_bound_id_and_accepts_verified_response(tmp_pat
     )
 
     assert result.returncode == 0, result.stderr
-    assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["upload", "patch"]
+    assert "Retained 2 evidence documents with verified readback digests" in result.stdout
+    assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == [
+        "upload",
+        "upload",
+        "download",
+        "download",
+        "patch",
+    ]
+
+
+@pytest.mark.integration
+def test_github_finalization_rejects_tampered_retained_evidence(tmp_path: Path) -> None:
+    """Retention rests on observed stored bytes, not on a successful upload call."""
+
+    result = _run_github_finalization(
+        tmp_path,
+        release_states=[
+            '{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}',
+            '{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}',
+            '{"databaseId":1234,"isDraft":false,"tagName":"v3.4.5"}',
+        ],
+        tampered_evidence_readback=True,
+    )
+
+    assert result.returncode != 0
+    assert "Retained evidence does not match the admitted bytes" in result.stderr
+    # The Release is never finalized public when the retained bytes disagree.
+    assert "patch" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
 
 
 @pytest.mark.integration
@@ -754,6 +842,43 @@ def test_github_finalization_rejects_mismatched_already_public_assets(tmp_path: 
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == ["download"]
 
 
+def test_every_always_job_gates_on_each_dependency_result() -> None:
+    """`needs:` membership alone gates nothing once a job uses `always()`.
+
+    With `if: always() && ...` GitHub runs the job even when a dependency
+    failed, so the only thing that actually blocks it is an explicit
+    `needs.<job>.result` clause. A test that asserts `needs:` membership without
+    that clause stays green while the real gate is deleted, which is how a
+    failed evidence admission could stop blocking publication (#1226).
+    """
+
+    workflow = _load(RELEASE_PATH)
+    ungated: dict[str, list[str]] = {}
+    for name, job in workflow["jobs"].items():
+        condition = str(job.get("if", ""))
+        if "always()" not in condition:
+            continue
+        needs = job.get("needs") or []
+        if isinstance(needs, str):
+            needs = [needs]
+        missing = [dependency for dependency in needs if f"needs.{dependency}.result" not in condition]
+        if missing:
+            ungated[name] = missing
+    assert ungated == {}, f"always()-conditioned jobs ignore a dependency result: {ungated}"
+
+
+def test_publication_requires_successful_evidence_admission() -> None:
+    """Rejected release evidence must block both publishers (#1226)."""
+
+    jobs = _load(RELEASE_PATH)["jobs"]
+    for publisher in ("publish-pypi", "publish-github"):
+        condition = str(jobs[publisher]["if"])
+        assert "needs.admit-release.result == 'success'" in condition, publisher
+    # And admission itself cannot run ahead of a successful signing boundary.
+    assert "needs.attest-release.result == 'success'" in str(jobs["admit-release"]["if"])
+    assert "needs.build-release.result == 'success'" in str(jobs["attest-release"]["if"])
+
+
 def test_release_gate_does_not_poll_mutable_check_or_branch_status() -> None:
     release_text = RELEASE_PATH.read_text(encoding="utf-8").lower()
     forbidden = ("gh run list", "check-runs", "/statuses/", "workflow_run")
@@ -780,6 +905,10 @@ _REVIEWED_JOB_WRITE_SCOPES = {
     ("docs.yml", "deploy"): {"pages", "id-token"},
     ("release-please.yml", "release-please"): {"contents", "pull-requests"},
     ("release-please.yml", "resolve-release"): {"contents"},
+    # Signing holds an OIDC and attestation identity only. It has no `contents`
+    # write and no PyPI environment, so an attestation credential cannot
+    # authorize publication (#1226).
+    ("release-please.yml", "attest-release"): {"attestations", "id-token"},
     ("release-please.yml", "publish-pypi"): {"contents", "id-token"},
     ("release-please.yml", "publish-github"): {"contents"},
     ("release-please.yml", "sync-dev"): {"pull-requests"},
