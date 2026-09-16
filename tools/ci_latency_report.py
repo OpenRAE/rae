@@ -79,6 +79,45 @@ def _job_elapsed(job: Mapping[str, object], started: datetime | None) -> tuple[s
     return str(job.get("name", "")), str(job.get("conclusion", "")), elapsed
 
 
+def _optional_min(values: Sequence[float]) -> float | None:
+    return min(values) if values else None
+
+
+def _optional_max(values: Sequence[float]) -> float | None:
+    return max(values) if values else None
+
+
+def _coerce_run_id(value: object) -> int:
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+@dataclass(frozen=True)
+class _JobTimings:
+    completions: list[float]
+    failures: list[float]
+    required_completions: list[float]
+
+
+def _aggregate_jobs(
+    jobs: Sequence[Mapping[str, object]],
+    started: datetime | None,
+    required: set[str],
+    failure_scope: set[str],
+) -> _JobTimings:
+    timings = _JobTimings([], [], [])
+    for job in jobs:
+        elapsed_job = _job_elapsed(job, started)
+        if elapsed_job is None:
+            continue
+        name, conclusion, elapsed = elapsed_job
+        timings.completions.append(elapsed)
+        if conclusion == "failure" and name in failure_scope:
+            timings.failures.append(elapsed)
+        if name in required and conclusion in {"success", "failure"}:
+            timings.required_completions.append(elapsed)
+    return timings
+
+
 def parse_run(
     run: Mapping[str, object],
     jobs: Sequence[Mapping[str, object]],
@@ -87,33 +126,18 @@ def parse_run(
     """Derive the latency metrics for a single run from its native timestamps."""
 
     required = set(required_checks)
-    failure_scope = required | {FAST_FEEDBACK_CHECK}
     created = _parse_timestamp(run.get("created_at"))
     started = _parse_timestamp(run.get("run_started_at")) or created
+    jobs_timing = _aggregate_jobs(jobs, started, required, required | {FAST_FEEDBACK_CHECK})
 
-    completions: list[float] = []
-    failure_times: list[float] = []
-    required_completions: list[float] = []
-    for job in jobs:
-        timed = _job_elapsed(job, started)
-        if timed is None:
-            continue
-        name, conclusion, elapsed = timed
-        completions.append(elapsed)
-        if conclusion == "failure" and name in failure_scope:
-            failure_times.append(elapsed)
-        if name in required and conclusion in {"success", "failure"}:
-            required_completions.append(elapsed)
-
-    run_id = run.get("id", 0)
     return RunTiming(
-        run_id=run_id if isinstance(run_id, int) and not isinstance(run_id, bool) else 0,
+        run_id=_coerce_run_id(run.get("id", 0)),
         head_sha=str(run.get("head_sha", "")),
         conclusion=str(run.get("conclusion", "")),
         queue_s=_seconds(created, started),
-        execution_s=max(completions) if completions else None,
-        time_to_first_failure_s=min(failure_times) if failure_times else None,
-        final_required_completion_s=max(required_completions) if required_completions else None,
+        execution_s=_optional_max(jobs_timing.completions),
+        time_to_first_failure_s=_optional_min(jobs_timing.failures),
+        final_required_completion_s=_optional_max(jobs_timing.required_completions),
     )
 
 
