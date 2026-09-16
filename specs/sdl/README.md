@@ -79,6 +79,7 @@ tests, rather than a prose rewrite. The catalogs are:
 | [`initial-service-state.md`](initial-service-state.md) | — | Service-target content materialization, tenant/reset ownership, exact backend admission, readback, and observational equivalence. |
 | [`participant-relationships.md`](participant-relationships.md) | — | Directed participant coordination, delegation, cooperation, competition and supervision, with optional checked refinements. |
 | [`materialization-attestation.md`](materialization-attestation.md) | — | Closed descriptive SDL after materialization, complete in-world origin reporting, execution binding and protected archival delivery. |
+| [`augmentation-scope.md`](augmentation-scope.md) | — | Open-by-default author permission for additional in-world effects, scoped restrictions, and pre-materialization refusal. |
 | [`observability-and-evidence.md`](observability-and-evidence.md) | **5. Observability and evidence planes** | Scenario-native observability, authored evidence requirements, processor/backend operational observability, captured evidence, derived analysis, and augmentation classification rules. |
 | [`scientific-scenario-completeness.md`](scientific-scenario-completeness.md) | — | REV1 intended-use profiles, atomic concern dispositions, separately revisioned delivery assessment, computed completeness, and explicit scientific non-claims. |
 | [`diagnostics.md`](diagnostics.md) | — | The parse / semantic-validation / instantiation stages, direct-artifact admission, and the normative error-vs-advisory classification criterion. |

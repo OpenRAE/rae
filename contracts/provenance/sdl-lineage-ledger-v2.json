@@ -1,6 +1,6 @@
 {
   "schema_version": "sdl-lineage-ledger/v1",
-  "reviewed_on": "2026-09-14",
+  "reviewed_on": "2026-09-16",
   "citations": [
     {
       "citation_id": "ocr-sdl-v0.21.2",
@@ -1867,6 +1867,37 @@
           ],
           "internal_authority_refs": [],
           "compatibility_direction": "raes_relative_to_source"
+        }
+      ]
+    },
+    {
+      "subject_id": "sdl-field:augmentation_scope",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+        "pointer": "#/properties/augmentation_scope",
+        "contract_id": "sdl-authoring-input-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+              "symbol_or_pointer": "#/properties/augmentation_scope"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "RAES defines binding open-by-default permission over the shared materialization-effect vocabulary; this is not an external-system compatibility claim.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "specs/sdl/augmentation-scope.md"
+          ],
+          "compatibility_direction": "not_applicable"
         }
       ]
     },

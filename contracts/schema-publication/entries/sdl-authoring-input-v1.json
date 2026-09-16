@@ -1,9 +1,9 @@
 {
-  "content_hash": "66be4cc62a2c11154a4aeabe22572f06707d4d51d456a2e39c2c56522eadc295",
+  "content_hash": "177a80e02c493218940e77468bee894a9d52722a24cf6f4aaa3c695d53cdaf80",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "66be4cc62a2c11154a4aeabe22572f06707d4d51d456a2e39c2c56522eadc295",
-    "summary": "Add explicit participant relationships with optional checked refinements and closed type/control bindings (ACT-612, #214)."
+    "content_hash": "177a80e02c493218940e77468bee894a9d52722a24cf6f4aaa3c695d53cdaf80",
+    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

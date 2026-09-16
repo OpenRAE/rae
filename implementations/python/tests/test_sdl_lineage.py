@@ -57,7 +57,7 @@ def test_real_lineage_ledger_is_valid_and_covers_exact_current_subject_set() -> 
     ledger = SDLLineageLedgerModel.model_validate(_payload())
     current = {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "current"}
     assert current == _canonical_subjects(REPO_ROOT)
-    assert len(current) == 90
+    assert len(current) == 91
     assert {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "removed"} == {
         "sdl-field:evaluations",
         "sdl-field:goals",

@@ -391,9 +391,27 @@ def plan(
         evaluation = replace(evaluation, purpose="inspection")
     source, source_diagnostics = planned_materialization_source(model, manifest, scope)
     diagnostics.extend(source_diagnostics)
-    provisioning = replace(provisioning, materialization_source=source)
-    orchestration = replace(orchestration, materialization_source=source)
-    evaluation = replace(evaluation, materialization_source=source)
+    scope_required = (
+        model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
+    )
+    provisioning = replace(
+        provisioning,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*provisioning.diagnostics, *source_diagnostics],
+    )
+    orchestration = replace(
+        orchestration,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*orchestration.diagnostics, *source_diagnostics],
+    )
+    evaluation = replace(
+        evaluation,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*evaluation.diagnostics, *source_diagnostics],
+    )
 
     return ExecutionPlan(
         target_name=target_name,

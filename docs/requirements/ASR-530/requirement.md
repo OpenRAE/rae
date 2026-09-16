@@ -21,8 +21,8 @@ Agent-assisted development can produce internally coherent code and documentatio
 
 ## Traceability
 
-- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v23.json` (Fresh source-bound replay after participant relationships, retaining outcomes and claim limits)
-- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-214-v22.json` (Fresh source-bound replay retaining coverage classifications and denominator)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v25.json` (Fresh source-bound replay after participant relationships and merged augmentation scope, retaining outcomes and claim limits)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-214-v25.json` (Fresh source-bound replay retaining coverage classifications and denominator)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v20.json` (Fresh source-bound release 21.0.0 with unchanged bounded replay outcomes)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v19.json` (Fresh release 19.0.0 preserves the original coverage classifications and denominator)
 - IMPLEMENTS → GITHUB_ISSUE `1205` (Current-source replay after generic software refinements)

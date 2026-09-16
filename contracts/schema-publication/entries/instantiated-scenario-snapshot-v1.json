@@ -1,9 +1,9 @@
 {
-  "content_hash": "6db4efecf7984b32db7eb9cf75be8842c54c3d7bcf589e426f7f6ba648c6bdc3",
+  "content_hash": "9bcbdc9a622a8f0871637de7678d07a3c8af5cef93c4c085c8b66c9834dafe6d",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "6db4efecf7984b32db7eb9cf75be8842c54c3d7bcf589e426f7f6ba648c6bdc3",
-    "summary": "Add explicit participant relationships with optional checked refinements and closed type/control bindings (ACT-612, #214)."
+    "content_hash": "9bcbdc9a622a8f0871637de7678d07a3c8af5cef93c4c085c8b66c9834dafe6d",
+    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

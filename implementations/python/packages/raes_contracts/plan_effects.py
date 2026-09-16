@@ -8,7 +8,9 @@ def plan_can_mutate(plan: object) -> bool:
 
     if isinstance(plan, ProvisioningPlan) and plan.preparation is not None:
         return True
-    return isinstance(plan, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)) and bool(plan.actionable_operations)
+    return isinstance(plan, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)) and bool(
+        plan.actionable_operations or plan.materialization_source is not None or plan.augmentation_scope_required
+    )
 
 
 __all__ = ["plan_can_mutate"]

@@ -1258,6 +1258,75 @@
       "title": "AssetValueLevel",
       "type": "string"
     },
+    "AugmentationScopePolicy": {
+      "additionalProperties": false,
+      "description": "Authors opt into restrictions; omission imposes no new authoring burden.",
+      "properties": {
+        "default": {
+          "default": "open",
+          "enum": [
+            "open",
+            "closed"
+          ],
+          "title": "Default",
+          "type": "string"
+        },
+        "scopes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/AugmentationScopeRule"
+          },
+          "maxItems": 256,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "title": "AugmentationScopePolicy",
+      "type": "object"
+    },
+    "AugmentationScopeRule": {
+      "additionalProperties": false,
+      "description": "One explicit node or concern permission, using a semantic address.",
+      "properties": {
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "permission": {
+          "enum": [
+            "open",
+            "closed"
+          ],
+          "title": "Permission",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "permission"
+      ],
+      "title": "AugmentationScopeRule",
+      "type": "object"
+    },
     "AuthorRealizationPosture": {
       "description": "Authored default posture, distinct from capability support modes.",
       "enum": [
@@ -6327,6 +6396,18 @@
           },
           "title": "Assertions",
           "type": "object"
+        },
+        "augmentation_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AugmentationScopePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "x-raes-realization-dimension": false
         },
         "behavior_specifications": {
           "additionalProperties": {

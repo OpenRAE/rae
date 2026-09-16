@@ -1,10 +1,9 @@
 """Shared runtime planning contracts and safe planned-resource readers.
 
-Backend and provisioner implementations should use the named
-``planned_*`` accessors in this module instead of traversing a
-:class:`PlannedResource` payload directly.  The accessors are total, perform no
-validation or normalization, and return ``None`` when a requested surface is
-missing or does not apply to the resource's domain and type.
+Backend and provisioner implementations should use the named ``planned_*``
+accessors instead of traversing a :class:`PlannedResource` payload directly.
+They perform no validation or normalization and return ``None`` when a requested
+surface is missing or does not apply to the resource's domain and type.
 """
 
 from __future__ import annotations
@@ -375,13 +374,13 @@ class ProvisioningPlan:
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
     preparation: RealizationPreparationAuthority | None = None
     profile_authority: PlanProfileAuthority | None = None
-    # Value-free run/instance scope identity (issue #1276). Carries no generated
-    # bytes; admission maps run_id to the ``run:<id>`` authority scope so per-run
-    # and per-instantiation generated values reconcile against the correct scope.
+    # Value-free run/instance identity (issue #1276), mapped to ``run:<id>``
+    # authority for per-run and per-instantiation generated-value reconciliation.
     run_id: str | None = None
     instantiation_id: str | None = None
     purpose: Literal["execution", "inspection"] = "execution"
     materialization_source: MaterializationSource | None = None
+    augmentation_scope_required: bool = False
 
     def __post_init__(self) -> None:
         if self.purpose not in {"execution", "inspection"}:
@@ -413,6 +412,7 @@ class OrchestrationPlan:
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
     purpose: Literal["execution", "inspection"] = "execution"
     materialization_source: MaterializationSource | None = None
+    augmentation_scope_required: bool = False
     operation_id: str | None = None
 
     def __post_init__(self) -> None:
@@ -447,6 +447,7 @@ class EvaluationPlan:
     instantiation_id: str | None = None
     purpose: Literal["execution", "inspection"] = "execution"
     materialization_source: MaterializationSource | None = None
+    augmentation_scope_required: bool = False
     operation_id: str | None = None
 
     def __post_init__(self) -> None:

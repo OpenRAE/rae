@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.contracts import (
     ExperimentStochasticControlModel,
     ParticipantInformationStateContextResolver,
@@ -24,6 +25,7 @@ from .apply_failure import maybe_synthesize_failure, rollback_services
 from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _apply_runtime_plan_with_observation, _RuntimePlanApplyRequest
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
+from .manager_augmentation import prepare_execution_augmentation
 from .manager_destroy import _DestroyPhaseMixin
 from .manager_plan_admission import runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
@@ -49,6 +51,7 @@ class _RuntimeApplyState:
     started_evaluator: bool = False
     failure: ApplyResult | None = None
     materialization_attestation: MaterializationSubmission | None = None
+    augmentation_previews: dict[RuntimeDomain, AugmentationPreparation] = field(default_factory=dict)
 
 
 class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
@@ -127,11 +130,22 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         if precondition_failure is not None:
             return precondition_failure
 
+        return self._apply_prepared_execution(execution_plan, diagnostics)
+
+    def _apply_prepared_execution(self, execution_plan: ExecutionPlan, diagnostics: list[Diagnostic]) -> ApplyResult:
+        execution_plan, previews, scope_diagnostics = prepare_execution_augmentation(
+            execution_plan, self._target, self._snapshot, self._materialization_archive
+        )
+        diagnostics.extend(scope_diagnostics)
+        if _has_error_diagnostic(scope_diagnostics):
+            return ApplyResult(success=False, snapshot=self._snapshot, diagnostics=diagnostics)
+
         state = _RuntimeApplyState(
             working_snapshot=execution_plan.base_snapshot,
             diagnostics=diagnostics,
             changed_addresses=[],
             details={},
+            augmentation_previews=previews,
         )
         self._run_apply_phases(execution_plan, state)
         if state.failure is None:
@@ -196,6 +210,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                     plan=execution_plan.provisioning,
                     manifest=execution_plan.manifest,
                     artifact_availability=execution_plan.artifact_availability,
+                    expected_augmentation=state.augmentation_previews.get(RuntimeDomain.PROVISIONING),
                 ),
                 information_state_context_resolver=self._information_state_context_resolver,
             ),
@@ -226,6 +241,10 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                     materialization_archive=self._materialization_archive,
                     address=_APPLY_EVALUATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.EVALUATION,
+                    realization=_RealizationApplyContext(
+                        manifest=execution_plan.manifest,
+                        expected_augmentation=state.augmentation_previews.get(RuntimeDomain.EVALUATION),
+                    ),
                     information_state_context_resolver=self._information_state_context_resolver,
                 ),
             )
@@ -263,6 +282,10 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
                     materialization_archive=self._materialization_archive,
                     address=_APPLY_ORCHESTRATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.ORCHESTRATION,
+                    realization=_RealizationApplyContext(
+                        manifest=execution_plan.manifest,
+                        expected_augmentation=state.augmentation_previews.get(RuntimeDomain.ORCHESTRATION),
+                    ),
                     information_state_context_resolver=self._information_state_context_resolver,
                 ),
             )

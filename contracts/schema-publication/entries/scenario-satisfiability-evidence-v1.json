@@ -1,9 +1,9 @@
 {
-  "content_hash": "4f39765f887f7b02eb1eaea770117a3d18d1b6cb55d86178d9bafa960b521d73",
+  "content_hash": "fb370118160da6f1ffe37594f1d17f6c14ae258859cf6d88df9fada4a966e805",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "4f39765f887f7b02eb1eaea770117a3d18d1b6cb55d86178d9bafa960b521d73",
-    "summary": "Add explicit participant relationships with optional checked refinements and closed type/control bindings (ACT-612, #214)."
+    "content_hash": "fb370118160da6f1ffe37594f1d17f6c14ae258859cf6d88df9fada4a966e805",
+    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"
