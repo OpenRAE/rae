@@ -1060,276 +1060,6 @@
       "publishing_authority": false
     },
     {
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "generic-tool-local-inputs",
-      "runner": "ubuntu-24.04",
-      "host_profile_ids": [
-        "public-ubuntu-24.04-x86_64"
-      ],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_access": "none",
-      "artifact_access": "write-untrusted",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "runner": "ubuntu-22.04",
-      "host_profile_ids": [
-        "proof-ubuntu-22.04-x86_64"
-      ],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_access": "none",
-      "artifact_access": "write-untrusted",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/ci.yml",
-      "job": "canonical",
-      "runner": "reusable-workflow",
-      "host_profile_ids": [],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [],
-      "cache_access": "none",
-      "artifact_access": "none",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/ci.yml",
-      "job": "fuzz",
-      "runner": "ubuntu-24.04",
-      "host_profile_ids": [
-        "public-ubuntu-24.04-x86_64"
-      ],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_access": "none",
-      "artifact_access": "none",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/ci.yml",
-      "job": "integration-docker",
-      "runner": "ubuntu-24.04",
-      "host_profile_ids": [
-        "public-ubuntu-24.04-x86_64"
-      ],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_access": "none",
-      "artifact_access": "none",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/ci.yml",
-      "job": "interpreters",
-      "runner": "ubuntu-24.04",
-      "host_profile_ids": [
-        "public-ubuntu-24.04-x86_64"
-      ],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "releases.astral.sh",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_access": "none",
-      "artifact_access": "write-untrusted",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/ci.yml",
-      "job": "sonar",
-      "runner": "ubuntu-24.04",
-      "host_profile_ids": [
-        "public-ubuntu-24.04-x86_64"
-      ],
-      "trust_classes": [
-        "protected-branch",
-        "same-repository-pr"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token",
-        "secret:sonar-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "binaries.sonarsource.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com",
-        "sonarcloud.io"
-      ],
-      "cache_access": "none",
-      "artifact_access": "read-same-run",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/ci.yml",
-      "job": "supply-chain",
-      "runner": "ubuntu-24.04",
-      "host_profile_ids": [
-        "public-ubuntu-24.04-x86_64"
-      ],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_access": "none",
-      "artifact_access": "write-untrusted",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
-      "workflow": ".github/workflows/ci.yml",
-      "job": "verify",
-      "runner": "ubuntu-24.04",
-      "host_profile_ids": [
-        "public-ubuntu-24.04-x86_64"
-      ],
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ],
-      "permissions": {
-        "contents": "read"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [],
-      "cache_access": "none",
-      "artifact_access": "none",
-      "promotion_authority": false,
-      "publishing_authority": false
-    },
-    {
       "workflow": ".github/workflows/docs.yml",
       "job": "build",
       "runner": "ubuntu-24.04",
@@ -1879,6 +1609,485 @@
       "promotion_authority": false,
       "publishing_authority": false,
       "protected_definition_ref": "job-condition:protected-main-workflow-definition"
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "checks",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "read-same-run",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "coverage-reduce",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "gate",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [],
+      "cache_access": "none",
+      "artifact_access": "none",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "integration",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "proof",
+      "runner": "ubuntu-22.04",
+      "host_profile_ids": [
+        "proof-ubuntu-22.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "sonar",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "protected-branch",
+        "same-repository-pr"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token",
+        "secret:sonar-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "binaries.sonarsource.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com",
+        "sonarcloud.io"
+      ],
+      "cache_access": "none",
+      "artifact_access": "read-same-run",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "test-shard",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "canonical",
+      "runner": "reusable-workflow",
+      "host_profile_ids": [],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [],
+      "cache_access": "none",
+      "artifact_access": "none",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fast-feedback",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "untrusted-pr"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "none",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fuzz",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "none",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "integration-docker",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "none",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "interpreters",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "releases.astral.sh",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "sonar",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [],
+      "cache_access": "none",
+      "artifact_access": "none",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "supply-chain",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "write-untrusted",
+      "promotion_authority": false,
+      "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/ci.yml",
+      "job": "verify",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [],
+      "cache_access": "none",
+      "artifact_access": "none",
+      "promotion_authority": false,
+      "publishing_authority": false
     }
   ],
   "use_sites": [
@@ -1994,828 +2203,6 @@
       "trust_classes": [
         "manual",
         "untrusted-pr"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/generic-tool-local-inputs/actions/checkout",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "generic-tool-local-inputs",
-      "step": "actions/checkout",
-      "action": "actions/checkout",
-      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
-      "inputs": {
-        "persist-credentials": false,
-        "ref": "${{ inputs.ref }}"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "checkout",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/generic-tool-local-inputs/actions/setup-python",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "generic-tool-local-inputs",
-      "step": "actions/setup-python",
-      "action": "actions/setup-python",
-      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
-      "inputs": {
-        "python-version": "3.12.14"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-python-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/generic-tool-local-inputs/install-uv",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "generic-tool-local-inputs",
-      "step": "Install uv",
-      "action": "astral-sh/setup-uv",
-      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
-      "inputs": {
-        "enable-cache": false,
-        "version": "0.12.4"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-uv",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/generic-tool-local-inputs/carry-locked-generic-tool-inputs-to-the-proof-host",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "generic-tool-local-inputs",
-      "step": "Carry locked generic-tool inputs to the proof host",
-      "action": "actions/upload-artifact",
-      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
-      "inputs": {
-        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
-        "path": ".canonical-tool-inputs",
-        "if-no-files-found": "error",
-        "include-hidden-files": true,
-        "retention-days": 1
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "write-untrusted",
-      "source_id": "upload-artifact-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/install-uv",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "Install uv",
-      "action": "astral-sh/setup-uv",
-      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
-      "inputs": {
-        "enable-cache": false,
-        "version": "0.12.4"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-uv",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/receive-locked-generic-tool-inputs",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "Receive locked generic-tool inputs",
-      "action": "actions/download-artifact",
-      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
-      "inputs": {
-        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
-        "path": ".canonical-tool-inputs"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "read-same-run",
-      "source_id": "download-artifact",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/actions/checkout",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "actions/checkout",
-      "action": "actions/checkout",
-      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
-      "inputs": {
-        "fetch-depth": 0,
-        "persist-credentials": false,
-        "ref": "${{ inputs.ref }}"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "checkout",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/actions/setup-python",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "actions/setup-python",
-      "action": "actions/setup-python",
-      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
-      "inputs": {
-        "python-version": "3.12.14"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-python-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/coverage-report",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "coverage-report",
-      "action": "actions/upload-artifact",
-      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
-      "inputs": {
-        "name": "coverage-report",
-        "path": "implementations/python/coverage.xml\nimplementations/python/coverage.json\n"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "write-untrusted",
-      "source_id": "upload-artifact-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "canonical-verification/verify/proof-host-evidence",
-      "workflow": ".github/workflows/canonical-verification.yml",
-      "job": "verify",
-      "step": "proof-host-evidence",
-      "action": "actions/upload-artifact",
-      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
-      "inputs": {
-        "name": "proof-host-${{ inputs.ref }}",
-        "path": "proof-host-qualification.json",
-        "if-no-files-found": "error"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "write-untrusted",
-      "source_id": "upload-artifact-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "reusable",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/fuzz/install-uv",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "fuzz",
-      "step": "Install uv",
-      "action": "astral-sh/setup-uv",
-      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
-      "inputs": {
-        "enable-cache": false,
-        "version": "0.12.4"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-uv",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/fuzz/actions/checkout",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "fuzz",
-      "step": "actions/checkout",
-      "action": "actions/checkout",
-      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
-      "inputs": {
-        "persist-credentials": false
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "checkout",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/fuzz/actions/setup-python",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "fuzz",
-      "step": "actions/setup-python",
-      "action": "actions/setup-python",
-      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
-      "inputs": {
-        "python-version": "3.12.14"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-python-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/integration-docker/install-uv",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "integration-docker",
-      "step": "Install uv",
-      "action": "astral-sh/setup-uv",
-      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
-      "inputs": {
-        "enable-cache": false,
-        "version": "0.12.4"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-uv",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/integration-docker/actions/checkout",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "integration-docker",
-      "step": "actions/checkout",
-      "action": "actions/checkout",
-      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
-      "inputs": {
-        "persist-credentials": false
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "checkout",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/integration-docker/actions/setup-python",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "integration-docker",
-      "step": "actions/setup-python",
-      "action": "actions/setup-python",
-      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
-      "inputs": {
-        "python-version": "3.12.14"
-      },
-      "credential_classes": [
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-python-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/interpreters/install-uv",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "interpreters",
-      "step": "Install uv",
-      "action": "astral-sh/setup-uv",
-      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
-      "inputs": {
-        "enable-cache": false,
-        "version": "0.12.4"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-uv",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/interpreters/upload-interpreter-qualification-evidence",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "interpreters",
-      "step": "Upload interpreter qualification evidence",
-      "action": "actions/upload-artifact",
-      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
-      "inputs": {
-        "name": "python-${{ matrix.python.feature }}-${{ github.sha }}",
-        "path": "python-qualification.json",
-        "if-no-files-found": "error"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "write-untrusted",
-      "source_id": "upload-artifact-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/interpreters/actions/checkout",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "interpreters",
-      "step": "actions/checkout",
-      "action": "actions/checkout",
-      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
-      "inputs": {
-        "persist-credentials": false
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "checkout",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/interpreters/actions/setup-python",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "interpreters",
-      "step": "actions/setup-python",
-      "action": "actions/setup-python",
-      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
-      "inputs": {
-        "python-version": "${{ matrix.python.payload }}"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "releases.astral.sh"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-python-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/sonar/sonarcloud-scan",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "sonar",
-      "step": "SonarCloud Scan",
-      "action": "sonarsource/sonarqube-scan-action",
-      "commit": "22918119ff8e1ca75a623e15c8296b6ea4fbe28f",
-      "inputs": {},
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token",
-        "secret:sonar-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "binaries.sonarsource.com",
-        "codeload.github.com",
-        "github.com",
-        "sonarcloud.io"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "sonarqube-scan",
-      "trust_classes": [
-        "protected-branch",
-        "same-repository-pr"
-      ]
-    },
-    {
-      "use_id": "ci/sonar/actions/checkout",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "sonar",
-      "step": "actions/checkout",
-      "action": "actions/checkout",
-      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
-      "inputs": {
-        "fetch-depth": 0,
-        "persist-credentials": false
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token",
-        "secret:sonar-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "checkout",
-      "trust_classes": [
-        "protected-branch",
-        "same-repository-pr"
-      ]
-    },
-    {
-      "use_id": "ci/sonar/actions/download-artifact",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "sonar",
-      "step": "actions/download-artifact",
-      "action": "actions/download-artifact",
-      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
-      "inputs": {
-        "name": "coverage-report",
-        "path": "implementations/python/"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token",
-        "secret:sonar-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "read-same-run",
-      "source_id": "download-artifact",
-      "trust_classes": [
-        "protected-branch",
-        "same-repository-pr"
-      ]
-    },
-    {
-      "use_id": "ci/supply-chain/install-uv",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "supply-chain",
-      "step": "Install uv",
-      "action": "astral-sh/setup-uv",
-      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
-      "inputs": {
-        "enable-cache": false,
-        "version": "0.12.4"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-uv",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/supply-chain/upload-osv-scanner-report",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "supply-chain",
-      "step": "Upload OSV-scanner report",
-      "action": "actions/upload-artifact",
-      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
-      "inputs": {
-        "name": "osv-scanner-report",
-        "path": "implementations/python/osv-scanner-report.json",
-        "if-no-files-found": "warn"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "*.blob.core.windows.net",
-        "api.github.com",
-        "codeload.github.com",
-        "github.com",
-        "results-receiver.actions.githubusercontent.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "write-untrusted",
-      "source_id": "upload-artifact-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/supply-chain/actions/checkout",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "supply-chain",
-      "step": "actions/checkout",
-      "action": "actions/checkout",
-      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
-      "inputs": {
-        "persist-credentials": false
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "checkout",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
-      ]
-    },
-    {
-      "use_id": "ci/supply-chain/actions/setup-python",
-      "workflow": ".github/workflows/ci.yml",
-      "job": "supply-chain",
-      "step": "actions/setup-python",
-      "action": "actions/setup-python",
-      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
-      "inputs": {
-        "python-version": "3.12.14"
-      },
-      "credential_classes": [
-        "actions-artifact-token",
-        "github-token"
-      ],
-      "allowed_origins": [
-        "api.github.com",
-        "codeload.github.com",
-        "github.com"
-      ],
-      "cache_role": "none",
-      "artifact_role": "none",
-      "source_id": "setup-python-direct",
-      "trust_classes": [
-        "manual",
-        "protected-branch",
-        "untrusted-pr",
-        "untrusted-ref"
       ]
     },
     {
@@ -4165,6 +3552,1481 @@
         "manual",
         "protected-branch"
       ]
+    },
+    {
+      "use_id": "canonical-verification/checks/install-uv",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "checks",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/checks/receive-locked-generic-tool-inputs",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "checks",
+      "step": "Receive locked generic-tool inputs",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
+        "path": ".canonical-tool-inputs"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/checks/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "checks",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "fetch-depth": 0,
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/checks/actions/setup-python",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "checks",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/coverage-reduce/install-uv",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "coverage-reduce",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/coverage-reduce/receive-integration-coverage-data",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "coverage-reduce",
+      "step": "Receive integration coverage data",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "coverage-integration-${{ inputs.ref }}",
+        "path": "${{ runner.temp }}/reduce"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/coverage-reduce/receive-shard-coverage-data-and-manifests",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "coverage-reduce",
+      "step": "Receive shard coverage data and manifests",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "pattern": "coverage-shard-*-${{ inputs.ref }}",
+        "path": "${{ runner.temp }}/reduce",
+        "merge-multiple": true
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/coverage-reduce/upload-combined-coverage-report",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "coverage-reduce",
+      "step": "Upload combined coverage report",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "coverage-report",
+        "path": "implementations/python/coverage.xml\nimplementations/python/coverage.json\n",
+        "if-no-files-found": "error",
+        "retention-days": 1
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/coverage-reduce/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "coverage-reduce",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/coverage-reduce/actions/setup-python",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "coverage-reduce",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/generic-tool-local-inputs/carry-locked-generic-tool-inputs-to-the-dependent-jobs",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "Carry locked generic-tool inputs to the dependent jobs",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
+        "path": ".canonical-tool-inputs",
+        "if-no-files-found": "error",
+        "include-hidden-files": true,
+        "retention-days": 1
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/generic-tool-local-inputs/install-uv",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/generic-tool-local-inputs/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/generic-tool-local-inputs/actions/setup-python",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "generic-tool-local-inputs",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/integration/install-uv",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "integration",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/integration/receive-locked-generic-tool-inputs",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "integration",
+      "step": "Receive locked generic-tool inputs",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
+        "path": ".canonical-tool-inputs"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/integration/upload-integration-coverage-data",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "integration",
+      "step": "Upload integration coverage data",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "coverage-integration-${{ inputs.ref }}",
+        "path": "${{ runner.temp }}/shard-out/.coverage.integration",
+        "if-no-files-found": "error",
+        "include-hidden-files": true,
+        "retention-days": 1
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/integration/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "integration",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/integration/actions/setup-python",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "integration",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/proof/install-uv",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "proof",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/proof/receive-locked-generic-tool-inputs",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "proof",
+      "step": "Receive locked generic-tool inputs",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
+        "path": ".canonical-tool-inputs"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/proof/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "proof",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/proof/actions/setup-python",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "proof",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/proof/proof-host-evidence",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "proof",
+      "step": "proof-host-evidence",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "proof-host-${{ inputs.ref }}",
+        "path": "proof-host-qualification.json",
+        "if-no-files-found": "error"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/sonar/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "sonar",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "fetch-depth": 0,
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token",
+        "secret:sonar-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "protected-branch",
+        "same-repository-pr"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/sonar/actions/download-artifact",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "sonar",
+      "step": "actions/download-artifact",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "coverage-report",
+        "path": "implementations/python/"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token",
+        "secret:sonar-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "protected-branch",
+        "same-repository-pr"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/sonar/scan",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "sonar",
+      "step": "scan",
+      "action": "sonarsource/sonarqube-scan-action",
+      "commit": "22918119ff8e1ca75a623e15c8296b6ea4fbe28f",
+      "inputs": {},
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token",
+        "secret:sonar-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "binaries.sonarsource.com",
+        "codeload.github.com",
+        "github.com",
+        "sonarcloud.io"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "sonarqube-scan",
+      "trust_classes": [
+        "protected-branch",
+        "same-repository-pr"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/test-shard/install-uv",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "test-shard",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/test-shard/upload-shard-coverage-data-and-ownership-manifest",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "test-shard",
+      "step": "Upload shard coverage data and ownership manifest",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "coverage-shard-${{ matrix.shard }}-${{ inputs.ref }}",
+        "path": "${{ runner.temp }}/shard-out/.coverage.shard-${{ matrix.shard }}\n${{ runner.temp }}/shard-out/shard-${{ matrix.shard }}.json\n",
+        "if-no-files-found": "error",
+        "include-hidden-files": true,
+        "retention-days": 1
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/test-shard/actions/checkout",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "test-shard",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false,
+        "ref": "${{ inputs.ref }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "canonical-verification/test-shard/actions/setup-python",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "test-shard",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/fast-feedback/install-uv",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fast-feedback",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "untrusted-pr"
+      ]
+    },
+    {
+      "use_id": "ci/fast-feedback/actions/checkout",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fast-feedback",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "fetch-depth": 0,
+        "persist-credentials": false
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "untrusted-pr"
+      ]
+    },
+    {
+      "use_id": "ci/fast-feedback/actions/setup-python",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fast-feedback",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "untrusted-pr"
+      ]
+    },
+    {
+      "use_id": "ci/fuzz/install-uv",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fuzz",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/fuzz/actions/checkout",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fuzz",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/fuzz/actions/setup-python",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "fuzz",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/integration-docker/install-uv",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "integration-docker",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/integration-docker/actions/checkout",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "integration-docker",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/integration-docker/actions/setup-python",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "integration-docker",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/interpreters/install-uv",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "interpreters",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/interpreters/upload-interpreter-qualification-evidence",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "interpreters",
+      "step": "Upload interpreter qualification evidence",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "python-${{ matrix.python.feature }}-${{ github.sha }}",
+        "path": "python-qualification.json",
+        "if-no-files-found": "error"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/interpreters/actions/checkout",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "interpreters",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/interpreters/actions/setup-python",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "interpreters",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "${{ matrix.python.payload }}"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "releases.astral.sh"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/supply-chain/install-uv",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "supply-chain",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/supply-chain/upload-osv-scanner-report",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "supply-chain",
+      "step": "Upload OSV-scanner report",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "osv-scanner-report",
+        "path": "implementations/python/osv-scanner-report.json",
+        "if-no-files-found": "warn"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-untrusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/supply-chain/actions/checkout",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "supply-chain",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "persist-credentials": false
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
+      "use_id": "ci/supply-chain/actions/setup-python",
+      "workflow": ".github/workflows/ci.yml",
+      "job": "supply-chain",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
     }
   ],
   "local_workflows": [
@@ -4175,10 +5037,14 @@
       "inputs": {
         "ref": "${{ github.sha }}",
         "base-rev": "${{ github.event.pull_request.base.sha || github.event.before || github.sha }}",
-        "requirement-branch": "${{ github.head_ref || github.ref_name }}"
+        "requirement-branch": "${{ github.head_ref || github.ref_name }}",
+        "sonar-enabled": true
       },
       "permissions": {
         "contents": "read"
+      },
+      "secrets": {
+        "sonar_token": "${{ secrets.SONAR_TOKEN }}"
       }
     },
     {
