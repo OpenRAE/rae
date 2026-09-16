@@ -118,28 +118,34 @@ jobs:
           version: "0.12.4"
       - name: Run deterministic test shard
         env:
+          # Write coverage/manifest artifacts under the runner temp dir, never the
+          # checkout: a new top-level directory in the checkout would fail the
+          # authority-boundary policy that the integration lane exercises.
           RAES_SHARD_COUNT: ${{ env.RAES_CI_SHARD_COUNT }}
           RAES_SHARD_INDEX: ${{ matrix.shard }}
           RAES_SHARD_SOURCE_SHA: ${{ inputs.ref }}
-          RAES_VERIFY_COVERAGE_FILE: ${{ github.workspace }}/shard-out/.coverage.shard-${{ matrix.shard }}
-          RAES_SHARD_MANIFEST: ${{ github.workspace }}/shard-out/shard-${{ matrix.shard }}.json
+          RAES_VERIFY_COVERAGE_FILE: ${{ runner.temp }}/shard-out/.coverage.shard-${{ matrix.shard }}
+          RAES_SHARD_MANIFEST: ${{ runner.temp }}/shard-out/shard-${{ matrix.shard }}.json
         run: |
-          mkdir -p "${{ github.workspace }}/shard-out"
+          mkdir -p "${{ runner.temp }}/shard-out"
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-shard
       - name: Upload shard coverage data and ownership manifest
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-shard-${{ matrix.shard }}-${{ inputs.ref }}
           path: |
-            shard-out/.coverage.shard-${{ matrix.shard }}
-            shard-out/shard-${{ matrix.shard }}.json
+            ${{ runner.temp }}/shard-out/.coverage.shard-${{ matrix.shard }}
+            ${{ runner.temp }}/shard-out/shard-${{ matrix.shard }}.json
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 1
 
   # Hermetic integration-marker suite; its coverage is combined with the shard
-  # coverage before the aggregate line floor is enforced.
+  # coverage before the aggregate line floor is enforced. Integration-marked
+  # policy tests exercise the installed generic tools (e.g. Conftest), so this
+  # lane installs them from the same-run locked inputs.
   integration:
+    needs: generic-tool-local-inputs
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -154,17 +160,27 @@ jobs:
         with:
           enable-cache: false
           version: "0.12.4"
+      - name: Receive locked generic-tool inputs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+      - name: Install locked generic tools from local inputs
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
       - name: Run integration lane
         env:
-          RAES_VERIFY_COVERAGE_FILE: ${{ github.workspace }}/shard-out/.coverage.integration
+          RAES_VERIFY_COVERAGE_FILE: ${{ runner.temp }}/shard-out/.coverage.integration
         run: |
-          mkdir -p "${{ github.workspace }}/shard-out"
+          mkdir -p "${{ runner.temp }}/shard-out"
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-integration-lane
       - name: Upload integration coverage data
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-integration-${{ inputs.ref }}
-          path: shard-out/.coverage.integration
+          path: ${{ runner.temp }}/shard-out/.coverage.integration
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 1
@@ -348,16 +364,18 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: coverage-shard-*-${{ inputs.ref }}
-          path: reduce
+          path: ${{ runner.temp }}/reduce
           merge-multiple: true
       - name: Receive integration coverage data
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: coverage-integration-${{ inputs.ref }}
-          path: reduce
+          path: ${{ runner.temp }}/reduce
       - name: Prove completeness and combine coverage
         env:
-          RAES_COVERAGE_REDUCE_DIR: ${{ github.workspace }}/reduce
+          # Keep the combined data outside the checkout so it never adds a
+          # top-level directory the authority-boundary policy would reject.
+          RAES_COVERAGE_REDUCE_DIR: ${{ runner.temp }}/reduce
           RAES_SHARD_COUNT: ${{ env.RAES_CI_SHARD_COUNT }}
           RAES_SHARD_SOURCE_SHA: ${{ inputs.ref }}
         run: |

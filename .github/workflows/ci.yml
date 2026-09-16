@@ -250,7 +250,7 @@ jobs:
           mkdir .canonical-tool-inputs
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile offline-kit-fetch \
             public-ubuntu-24.04-x86_64 .canonical-tool-inputs \
-            --artifact-id conftest --artifact-id gitleaks --artifact-id vale
+            --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
       - name: Install locked generic tools from local inputs
         run: >-
           uv run --project implementations/tooling/python --frozen --no-default-groups

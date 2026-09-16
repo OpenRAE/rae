@@ -3719,7 +3719,7 @@
       "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
       "inputs": {
         "name": "coverage-integration-${{ inputs.ref }}",
-        "path": "reduce"
+        "path": "${{ runner.temp }}/reduce"
       },
       "credential_classes": [
         "actions-artifact-token",
@@ -3752,7 +3752,7 @@
       "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
       "inputs": {
         "pattern": "coverage-shard-*-${{ inputs.ref }}",
-        "path": "reduce",
+        "path": "${{ runner.temp }}/reduce",
         "merge-multiple": true
       },
       "credential_classes": [
@@ -4033,6 +4033,39 @@
       ]
     },
     {
+      "use_id": "canonical-verification/integration/receive-locked-generic-tool-inputs",
+      "workflow": ".github/workflows/canonical-verification.yml",
+      "job": "integration",
+      "step": "Receive locked generic-tool inputs",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "canonical-generic-tool-inputs-${{ inputs.ref }}",
+        "path": ".canonical-tool-inputs"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch",
+        "reusable",
+        "untrusted-pr",
+        "untrusted-ref"
+      ]
+    },
+    {
       "use_id": "canonical-verification/integration/upload-integration-coverage-data",
       "workflow": ".github/workflows/canonical-verification.yml",
       "job": "integration",
@@ -4041,7 +4074,7 @@
       "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "inputs": {
         "name": "coverage-integration-${{ inputs.ref }}",
-        "path": "shard-out/.coverage.integration",
+        "path": "${{ runner.temp }}/shard-out/.coverage.integration",
         "if-no-files-found": "error",
         "include-hidden-files": true,
         "retention-days": 1
@@ -4417,7 +4450,7 @@
       "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "inputs": {
         "name": "coverage-shard-${{ matrix.shard }}-${{ inputs.ref }}",
-        "path": "shard-out/.coverage.shard-${{ matrix.shard }}\nshard-out/shard-${{ matrix.shard }}.json\n",
+        "path": "${{ runner.temp }}/shard-out/.coverage.shard-${{ matrix.shard }}\n${{ runner.temp }}/shard-out/shard-${{ matrix.shard }}.json\n",
         "if-no-files-found": "error",
         "include-hidden-files": true,
         "retention-days": 1
