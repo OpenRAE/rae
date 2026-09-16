@@ -174,7 +174,7 @@ def build_evidence_index(
     }
 
 
-def _load_bounded_json(path: Path, declared_sha256: str) -> Any:
+def _load_bounded_json(path: Path, declared_sha256: str) -> JsonValue:
     size, sha256 = digest_file(path)
     if sha256 != declared_sha256:
         raise AdmissionError(
@@ -298,7 +298,7 @@ def _load_declared(evidence_dir: Path, declared: Mapping[str, Any]) -> dict[str,
     return documents
 
 
-def _check_document_subjects(filename: str, document: Any, admitted: set[str]) -> None:
+def _check_document_subjects(filename: str, document: JsonValue, admitted: set[str]) -> None:
     """Every document must describe bytes that were actually admitted."""
 
     if filename.endswith(".cdx.json"):

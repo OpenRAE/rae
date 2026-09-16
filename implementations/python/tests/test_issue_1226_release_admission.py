@@ -281,14 +281,16 @@ def test_valid_signature_from_the_wrong_workflow_is_refused(release: dict[str, o
 
 
 def test_run_attempt_replay_is_refused(release: dict[str, object]) -> None:
+    expected = replace(_IDENTITY, run_attempt="2")
     with pytest.raises(AdmissionError) as excinfo:
-        _verify(release, expected=replace(_IDENTITY, run_attempt="2"))
+        _verify(release, expected=expected)
     assert excinfo.value.code == "admission-run-identity-mismatch"
 
 
 def test_foreign_repository_is_refused(release: dict[str, object]) -> None:
+    expected = replace(_IDENTITY, repository="attacker/rae")
     with pytest.raises(AdmissionError) as excinfo:
-        _verify(release, expected=replace(_IDENTITY, repository="attacker/rae"))
+        _verify(release, expected=expected)
     assert excinfo.value.code == "admission-run-identity-mismatch"
 
 
@@ -333,8 +335,9 @@ def test_failure_is_raised_before_any_publishable_set_is_returned(release: dict[
 def test_source_sha_from_trusted_context_must_match(release: dict[str, object]) -> None:
     """A replayed index cannot describe a different candidate source revision."""
 
+    expected = replace(_IDENTITY, source_sha="f" * 40)
     with pytest.raises(AdmissionError) as excinfo:
-        _verify(release, expected=replace(_IDENTITY, source_sha="f" * 40))
+        _verify(release, expected=expected)
     assert excinfo.value.code == "admission-run-identity-mismatch"
 
 

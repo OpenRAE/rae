@@ -79,10 +79,16 @@ def test_incomplete_release_identity_is_refused(missing: str) -> None:
 
 
 def test_release_identity_records_no_credential_material() -> None:
-    polluted = {**_ENVIRONMENT, "GITHUB_TOKEN": "ghp_secret", "PYPI_PASSWORD": "hunter2"}
+    # Sentinels deliberately carry no credential-shaped prefix: a literal that
+    # looks like a real token trips secret scanning on a file that holds none.
+    polluted = {
+        **_ENVIRONMENT,
+        "GITHUB_TOKEN": "sentinel-token-value-1226",
+        "PYPI_PASSWORD": "sentinel-password-value-1226",
+    }
     serialized = json.dumps(release_identity(polluted))
-    assert "ghp_secret" not in serialized
-    assert "hunter2" not in serialized
+    assert "sentinel-token-value-1226" not in serialized
+    assert "sentinel-password-value-1226" not in serialized
 
 
 def test_approved_producers_come_from_the_reviewed_admission_policy() -> None:

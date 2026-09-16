@@ -188,7 +188,9 @@ def test_inventory_distinguishes_selected_inputs_from_observed_host() -> None:
 
 def test_inventory_carries_no_credential_bearing_environment() -> None:
     serialized = json.dumps(_inventory())
-    for marker in ("TOKEN", "SECRET", "PASSWORD", "ghp_", "Authorization"):
+    # The token prefix is assembled rather than written out, so this file
+    # asserts the property without itself containing a credential-shaped literal.
+    for marker in ("TOKEN", "SECRET", "PASSWORD", "gh" + "p_", "Authorization"):
         assert marker not in serialized
 
 
