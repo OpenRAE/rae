@@ -56,8 +56,8 @@ replication geometry, key-value persistence posture, transport security, and
 settings, plus per-node engine provenance — version/
 build hash/build type, heap byte bounds, mlockall, a typed per-plugin-versioned
 plugin inventory, and a product-neutral client/peer endpoint inventory (published
-topology, not OS-bind or host-publication proof) - with an executable
-required-profile guard and internal RBAC delegated via `authorization_ref` -
+topology, not OS-bind or host-publication proof) - with partial descriptions,
+supplied-state integrity and internal RBAC delegated via `authorization_ref` -
 [ADR-048](../../decisions/adrs/adr-048-datastore-service-runtime-inventory.md),
 [ADR-058](../../decisions/adrs/adr-058-datastore-node-engine-provenance-and-endpoints.md)),
 security-platform application runtime inventory (composable provider-neutral
@@ -67,13 +67,13 @@ accepted but deprecated and do not imply completeness -
 [ADR-049](../../decisions/adrs/adr-049-platform-application-runtime-inventory.md)),
 forwarding / intel-sync agent runtime inventory (sources, transforms, ship
 targets, buffer policy, reload channels, and settings for log forwarders and
-intel-sync co-processes, with an executable required-profile guard and
+intel-sync co-processes, with optional composed pipelines and
 ship-target node/service refs that resolve at scenario scope -
 [ADR-050](../../decisions/adrs/adr-050-forwarding-agent-runtime-inventory.md)),
 container-spawn orchestration-authority runtime inventory (engine, scope, spawn
 templates, lifecycle policy, realized children, and a privilege class that
-references a same-node control-interface shell, with an executable
-required-profile guard -
+may reference a same-node control-interface shell; selected operations require
+independent support, prerequisites and authorization -
 [ADR-051](../../decisions/adrs/adr-051-orchestration-authority-runtime-inventory.md)),
 SIEM/security-monitoring manager runtime inventory (manager identity, listeners,
 components, enrolled agents, agent groups, detection-content sets, parsed

@@ -252,14 +252,20 @@ def test_current_production_evidence_replay_failure_is_not_hidden(monkeypatch):
     assert "formal-validation-production-replay" in {f.rule_id for f in failures}
 
 
-def test_specification_current_capture_does_not_accept_old_artifact_digest():
+@pytest.mark.parametrize(
+    ("artifact_id", "old_digest"),
+    [
+        ("port-range-sdl", "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"),
+        ("known-limitations", "129cf17810aad4c51988bc872e28fe43ae95019a80053c42d800ff7e2b9cc93e"),
+    ],
+)
+def test_specification_current_capture_does_not_accept_old_artifact_digest(artifact_id, old_digest):
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "19.0.0"
     snapshot = deepcopy(snapshot)
-    artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == "port-range-sdl")
-    artifact["sha256"] = "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"
+    artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
+    artifact["sha256"] = old_digest
     failures = validate_bundle(ROOT, manifest, protocol, snapshot, analysis)
     assert "specification-coverage-artifact-digest" in {f.rule_id for f in failures}
 
@@ -469,6 +475,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "17.0.0",
             "18.0.0",
             "19.0.0",
+            "20.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)
