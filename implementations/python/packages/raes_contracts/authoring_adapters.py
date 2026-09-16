@@ -146,19 +146,31 @@ class AuthoringAdapterComparisonModel(ContractModel):
     def _require_evidence(self) -> AuthoringAdapterComparisonModel:
         if self.reason_codes != tuple(sorted(set(self.reason_codes))):
             raise ValueError("reason_codes must be sorted and unique")
-        if (self.left is None and self.left_matches_expected) or (self.right is None and self.right_matches_expected):
-            raise ValueError("missing observations cannot match the vector")
+        comparable = self._require_observations()
+        has_artifacts = self._require_semantic_evidence(comparable)
+        if comparable:
+            self._require_applicability(has_artifacts)
+        return self
+
+    def _require_observations(self) -> bool:
+        for observation, matches in (
+            (self.left, self.left_matches_expected),
+            (self.right, self.right_matches_expected),
+        ):
+            if observation is None and matches:
+                raise ValueError("missing observations cannot match the vector")
         comparable = self.left is not None and self.right is not None
         if not comparable and any(relation != "incomparable" for relation in self.relations):
             raise ValueError("missing observations require incomparable axes")
+        return comparable
+
+    def _require_semantic_evidence(self, comparable: bool) -> bool:
         has_artifacts = comparable and self.left.outcome == self.right.outcome == "success"
         if has_artifacts != (self.semantic_result_digest is not None):
             raise ValueError("two successful observations require semantic evidence")
         if has_artifacts and self.semantic_relation == "not-applicable":
             raise ValueError("two artifacts require an applicable semantic relation")
-        if comparable:
-            self._require_applicability(has_artifacts)
-        return self
+        return has_artifacts
 
     def _require_applicability(self, has_artifacts: bool) -> None:
         no_artifacts = self.left.outcome == self.right.outcome == "refused"

@@ -129,11 +129,11 @@ def _semantic_comparison(
 
 def _semantic_relation(result: SemanticComparisonResultModel) -> str:
     # Exact textual representations are deliberately not a semantic assertion in v1.
-    if set(result.reason_codes) - {ComparisonReason.REPRESENTATION_EVIDENCE_MISSING}:
-        return "incomparable"
-    if any(
+    incomplete_context = bool(set(result.reason_codes) - {ComparisonReason.REPRESENTATION_EVIDENCE_MISSING})
+    unknown_changes = any(
         change.semantic_relation in {RelationStatus.UNKNOWN, RelationStatus.INCOMPARABLE} for change in result.changes
-    ):
+    )
+    if incomplete_context or unknown_changes:
         return "incomparable"
     if any(
         change.identity_relation != IdentityRelation.SAME or change.semantic_relation == RelationStatus.CHANGED

@@ -154,11 +154,15 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v20.json`](analysis-v20.json) to the capture-dimension helper
   refactor. Fresh replay retains release-20 outcomes and digests with no new
   claim class; all previously published captures remain unchanged.
-- [`bundles/retest-v21.json`](bundles/retest-v21.json) is current release 22.0.0.
+- [`bundles/retest-v21.json`](bundles/retest-v21.json) preserves release 22.0.0.
   It binds [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
   [`analysis-v21.json`](analysis-v21.json) to ASR-516 authoring-adapter
   conformance support. Fresh production and participant replay retains the
   release-21 outcomes and digests; no transport or new claim class is qualified.
+- [`bundles/retest-v22.json`](bundles/retest-v22.json) is current release 23.0.0.
+  It binds [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
+  [`analysis-v22.json`](analysis-v22.json) to the authoring-conformance helper
+  refactor. Fresh replay retains release-22 outcomes, digests, and claim limits.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -203,7 +207,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 22.0.0, rejects unsupported future
+Current validation requires explicit release 23.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

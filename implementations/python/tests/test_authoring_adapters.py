@@ -82,7 +82,8 @@ def test_published_contrasts_have_independent_expected_dispositions() -> None:
         assert report.semantic_relation == vector.contrast.semantic_relation
         assert report.diagnostic_relation == "equivalent"
         assert report.provenance_relation == "not-applicable"
-        assert report.left_matches_expected and not report.right_matches_expected
+        assert report.left_matches_expected
+        assert not report.right_matches_expected
         assert not report.conformant
 
 
@@ -104,6 +105,27 @@ def test_editorial_change_is_an_artifact_difference_without_semantic_change() ->
     assert result.report.semantic_relation == "equivalent"
     assert not result.report.conformant
     assert result.report.semantic_result_digest == canonical_json_digest(result.semantic_result.model_dump(mode="json"))
+
+
+@pytest.mark.parametrize("uncertainty", ["context", "change"])
+def test_semantic_uncertainty_remains_incomparable(monkeypatch, uncertainty) -> None:
+    from raes_conformance import authoring_adapters
+    from raes_contracts.semantic_comparison import ComparisonReason, RelationStatus
+
+    vector, output = _case()
+    baseline = compare_authoring_paths(vector, output, output).semantic_result
+    if uncertainty == "context":
+        incomplete = baseline.model_copy(update={"reason_codes": (ComparisonReason.IMPACT_SCOPE_PARTIAL,)})
+    else:
+        assert baseline.changes
+        changes = (baseline.changes[0].model_copy(update={"semantic_relation": RelationStatus.UNKNOWN}),)
+        incomplete = baseline.model_copy(update={"changes": changes})
+    monkeypatch.setattr(authoring_adapters, "analyze_semantic_comparison", lambda *_args: incomplete)
+    comparison = compare_authoring_paths(vector, output, output)
+    assert comparison.report.semantic_relation == "incomparable"
+    assert "semantic-context-incomplete" in comparison.report.reason_codes
+    assert not comparison.report.conformant
+    assert comparison.semantic_result is incomplete
 
 
 def test_each_input_must_match_the_exact_bound_source() -> None:
@@ -158,6 +180,8 @@ def test_portable_diagnostics_are_order_independent_but_not_ignored() -> None:
         ("target_digest", "sha256:" + "a" * 64),
         ("operation_profile", "remove-sdl-declaration/v1"),
         ("canonicalization_profile", "raes-sdl-semantic/v1"),
+        ("source_profile", "sdl-yaml/v1"),
+        ("target_profile", "sdl-yaml/v1"),
     ],
 )
 def test_stale_or_wrong_transformation_joins_are_incomparable(field, value) -> None:
@@ -249,8 +273,9 @@ def test_closed_vector_contract_rejects_tampering(mutate) -> None:
     vector, _ = _case()
     data = vector.model_dump(mode="json")
     mutate(data)
+    source = json.dumps(data)
     with pytest.raises(ValidationError):
-        parse_authoring_vector(json.dumps(data))
+        parse_authoring_vector(source)
 
 
 def test_strict_json_ingress_and_utf8_byte_limits() -> None:
@@ -337,6 +362,10 @@ def test_contracts_publish_contextual_invariants_and_bounded_report_ingress() ->
         {"artifact_relation": "not-applicable"},
         {"diagnostic_relation": "not-applicable"},
         {"reason_codes": ["artifacts-differ", "artifacts-differ"]},
+        {"left": None},
+        {"right": None},
+        {"left": None, "left_matches_expected": False},
+        {"right": None, "right_matches_expected": False},
     ],
 )
 def test_report_cannot_claim_missing_or_inapplicable_success_evidence(alter) -> None:

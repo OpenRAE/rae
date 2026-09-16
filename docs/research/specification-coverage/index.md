@@ -125,11 +125,16 @@ this run does not repair them.
   exact bytes.
 
 - [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
-  [`analysis-v21.json`](analysis-v21.json) are current release 21.0.0. Fresh
+  [`analysis-v21.json`](analysis-v21.json) preserve release 21.0.0. Fresh
   replay combines the corrected limitations evidence with ASR-516 authoring
   conformance support and exact source/package digests. Classifications,
   denominator, and claim limits remain unchanged; this capture does not
   qualify any adapter transport.
+
+- [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
+  [`analysis-v22.json`](analysis-v22.json) are current release 22.0.0. Fresh
+  replay binds the authoring-conformance helper refactor to exact source and
+  package digests, retaining classifications, denominator, and claim limits.
 
 The issue-1005 pre-sync release 20 capture remains in feature commit
 `17f61670a0485c5938e85d1f2d5879eb186b4b4b`. Its exact manifest is retained
@@ -156,7 +161,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 21.0.0 and rejects duplicate or unsupported
+Current validation requires release 22.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

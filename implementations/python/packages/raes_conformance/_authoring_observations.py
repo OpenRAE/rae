@@ -21,6 +21,7 @@ from raes_contracts.contracts import ArtifactTransformationReportModel
 from raes_contracts.diagnostics import DiagnosticModel
 from raes_processor.semantic_comparison import coordinate_for_artifact
 
+_VALIDATE_PROFILE = "validate-sdl/v1"
 _LIMITS = SDLParserLimits(
     max_input_bytes=65536,
     max_scalar_bytes=65536,
@@ -87,34 +88,52 @@ def observe_output(
     diagnostics = diagnostic_digest(output.diagnostics)
     if artifact is None and not output.diagnostics:
         raise ValueError("refusal requires structured diagnostics")
-    report = output.transformation_report
-    if report is not None:
-        # Reconstruct: model_copy/model_construct and nested mutation are not admission.
-        report = ArtifactTransformationReportModel.model_validate(report.model_dump(mode="json"))
-        if len(report.model_dump_json().encode("utf-8")) > 65536:
-            raise ValueError("transformation report exceeds the profile byte limit")
-        source_digest = canonical_sdl_digest(admit_source(vector.input_source)).value
-        if (
-            report.operation_profile != vector.operation.profile
-            or report.source_digest != source_digest
-            or report.target_digest != artifact_digest
-            or report.source_profile != "sdl-authoring-input/v1"
-            or report.target_profile != "sdl-authoring-input/v1"
-            or report.canonicalization_profile != "raes-sdl-semantic/v2"
-            or (report.status == "success") != (artifact is not None)
-        ):
-            raise ValueError("transformation evidence does not bind this operation and its artifacts")
-    elif vector.operation.profile != "validate-sdl/v1":
-        _require_pre_operation_refusal(vector.input_source, artifact)
-    if vector.operation.profile == "validate-sdl/v1" and report is not None:
-        raise ValueError("validation must not fabricate transformation provenance")
+    transformation_digest = _transformation_digest(vector, output.transformation_report, artifact, artifact_digest)
     return AuthoringObservationModel(
         outcome="success" if artifact is not None else "refused",
         artifact_coordinate=coordinate_for_artifact(artifact) if artifact is not None else None,
         canonical_artifact_digest=artifact_digest,
         diagnostics_digest=diagnostics,
-        transformation_digest=canonical_json_digest(report.model_dump(mode="json")) if report is not None else None,
+        transformation_digest=transformation_digest,
     ), artifact
+
+
+def _transformation_digest(
+    vector: AuthoringAdapterVectorModel,
+    report: ArtifactTransformationReportModel | None,
+    artifact: Scenario | None,
+    artifact_digest: str | None,
+) -> str | None:
+    if report is None:
+        if vector.operation.profile != _VALIDATE_PROFILE:
+            _require_pre_operation_refusal(vector.input_source, artifact)
+        return None
+    # Reconstruct: model_copy/model_construct and nested mutation are not admission.
+    report = ArtifactTransformationReportModel.model_validate(report.model_dump(mode="json"))
+    _require_transformation_bindings(vector, report, artifact_digest)
+    if vector.operation.profile == _VALIDATE_PROFILE:
+        raise ValueError("validation must not fabricate transformation provenance")
+    return canonical_json_digest(report.model_dump(mode="json"))
+
+
+def _require_transformation_bindings(
+    vector: AuthoringAdapterVectorModel,
+    report: ArtifactTransformationReportModel,
+    artifact_digest: str | None,
+) -> None:
+    if len(report.model_dump_json().encode("utf-8")) > 65536:
+        raise ValueError("transformation report exceeds the profile byte limit")
+    source_digest = canonical_sdl_digest(admit_source(vector.input_source)).value
+    if (
+        report.operation_profile != vector.operation.profile
+        or report.source_digest != source_digest
+        or report.target_digest != artifact_digest
+        or report.source_profile != "sdl-authoring-input/v1"
+        or report.target_profile != "sdl-authoring-input/v1"
+        or report.canonicalization_profile != "raes-sdl-semantic/v2"
+        or (report.status == "success") != (artifact_digest is not None)
+    ):
+        raise ValueError("transformation evidence does not bind this operation and its artifacts")
 
 
 def _require_pre_operation_refusal(source: str, artifact: Scenario | None) -> None:
@@ -136,7 +155,7 @@ def reference_authoring_output(vector: AuthoringAdapterVectorModel) -> Authoring
         if not exc.diagnostics:
             raise ValueError("this profile requires structured parser rejection evidence") from exc
         return AuthoringPathOutput(vector.input_source, None, exc.diagnostics)
-    if vector.operation.profile == "validate-sdl/v1":
+    if vector.operation.profile == _VALIDATE_PROFILE:
         return AuthoringPathOutput(vector.input_source, render_sdl_source(source).content)
     result = rename_sdl_declaration(
         source,
