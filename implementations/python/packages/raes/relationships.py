@@ -13,6 +13,7 @@ features describe *what provides auth*, and relationships describe
 from enum import Enum
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic.json_schema import JsonSchemaValue
 
 from ._base import SDLModel, normalize_enum_value
 from .deployment_tenancy import RelationshipCarrierPlacement, RelationshipSharedService
@@ -28,7 +29,7 @@ from .runtime_platform_application import RelationshipServiceIntegration
 _PARTICIPANT_EDGE_FIELDS = frozenset({"type", "source", "target", "description", "participant", "properties"})
 
 
-def _participant_detail_schema(schema: dict) -> None:
+def _participant_detail_schema(schema: JsonSchemaValue) -> None:
     """Publish the same type/detail pairing checked by the model validator."""
     other_details = {field: {"type": "null"} for field in schema["properties"] if field not in _PARTICIPANT_EDGE_FIELDS}
     schema.setdefault("allOf", []).append(
@@ -118,11 +119,13 @@ class Relationship(SDLModel):
     def validate_participant_detail(self) -> "Relationship":
         if (self.type == RelationshipType.PARTICIPANT) != (self.participant is not None):
             raise ValueError("participant relationship type and participant detail must be declared together")
-        if self.participant is not None:
-            if self.properties or any(
+        if self.participant is not None and (
+            self.properties
+            or any(
                 getattr(self, field) is not None
                 for field in type(self).model_fields
                 if field not in _PARTICIPANT_EDGE_FIELDS
-            ):
-                raise ValueError("participant relationships cannot carry properties or another typed detail")
+            )
+        ):
+            raise ValueError("participant relationships cannot carry properties or another typed detail")
         return self

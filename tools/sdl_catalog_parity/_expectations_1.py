@@ -30,7 +30,10 @@ from tools.sdl_catalog_parity._paths import (
     _SWITCH_BACKED,
 )
 
-_PARTICIPANT_VALIDATOR = "[participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py)"
+_PARTICIPANT_VALIDATOR = (
+    "[participant relationship validator]"
+    "(../../implementations/python/packages/raes/validator/_participant_relationships.py)"
+)
 _PARTICIPANT_PHASE = "semantic validation and instantiation"
 
 EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {

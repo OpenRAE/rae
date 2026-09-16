@@ -390,6 +390,27 @@ def _rewrite_deployment_sections(
         cell["node_refs"] = [_maybe_rename(name, symbols["nodes"]) for name in cell.get("node_refs", [])]
 
 
+def _rewrite_participant_relationship(
+    participant: object,
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    if not isinstance(participant, dict):
+        return
+    for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items():
+        participant[field] = [
+            _maybe_rename(ref, symbols["named"])
+            if section == "named"
+            else _rewrite_section_ref(ref, section, symbols[section])
+            for ref in participant.get(field, [])
+        ]
+    if participant.get("control_specification_ref"):
+        participant["control_specification_ref"] = _rewrite_section_ref(
+            participant["control_specification_ref"],
+            "behavior_specifications",
+            symbols["behavior_specifications"],
+        )
+
+
 def _rewrite_relationship_sections(
     payload: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
@@ -401,21 +422,7 @@ def _rewrite_relationship_sections(
             relationship["source"] = _maybe_rename(str(relationship["source"]), symbols["named"])
         if relationship.get("target"):
             relationship["target"] = _maybe_rename(str(relationship["target"]), symbols["named"])
-        participant = relationship.get("participant")
-        if isinstance(participant, dict):
-            for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items():
-                participant[field] = [
-                    _maybe_rename(ref, symbols["named"])
-                    if section == "named"
-                    else _rewrite_section_ref(ref, section, symbols[section])
-                    for ref in participant.get(field, [])
-                ]
-            if participant.get("control_specification_ref"):
-                participant["control_specification_ref"] = _rewrite_section_ref(
-                    participant["control_specification_ref"],
-                    "behavior_specifications",
-                    symbols["behavior_specifications"],
-                )
+        _rewrite_participant_relationship(relationship.get("participant"), symbols)
         domain_join = relationship.get("domain_join")
         if isinstance(domain_join, dict):
             domain_join["controller_refs"] = [

@@ -1,6 +1,7 @@
 """Participant relationship endpoint and refinement agreement checks."""
 
 from ..entities import flatten_entities
+from ..participant_behavior_specification import MixedControlControllerState, MixedControlParticipantOperation
 from ..participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS, ParticipantRelationship
 from ..relationships import Relationship
 from ..semantics._domain_topology_types import resolve_section_ref
@@ -47,30 +48,46 @@ class _ParticipantRelationshipsMixin:
         ref = detail.control_specification_ref
         if ref is None or self._is_unresolved_var(ref):
             return
+        control = self._participant_relation_control_policy(label, ref)
+        if control is None or source is None or target is None:
+            return
+        controlled, controller = (source, target) if detail.kind == "delegation" else (target, source)
+        states = self._participant_relation_controller_states(control, controlled, controller)
+        if not states:
+            self._err(f"{label} control_specification_ref contradicts participant/controller direction")
+        else:
+            self._participant_relation_control_scope(label, detail.scope_refs, states)
+
+    def _participant_relation_control_policy(self, label: str, ref: str) -> MixedControlParticipantOperation | None:
         name = resolve_section_ref(ref, "behavior_specifications", self._s.behavior_specifications)
         if name is None:
             self._err(f"{label} control_specification_ref must reference declared behavior_specifications")
-            return
+            return None
         control = self._s.behavior_specifications[name].mixed_control
         if control is None:
             self._err(f"{label} control_specification_ref requires an existing mixed_control declaration")
-            return
-        if source is None or target is None:
-            return
-        controlled, controller = (source, target) if detail.kind == "delegation" else (target, source)
-        states = [
+        return control
+
+    @staticmethod
+    def _participant_relation_controller_states(
+        control: MixedControlParticipantOperation, controlled: str, controller: str
+    ) -> list[MixedControlControllerState]:
+        if control.participant_ref != controlled:
+            return []
+        return [
             state
             for state in control.controller_states.values()
             if state.controller_ref == controller and state.authority_status == "active"
         ]
-        if control.participant_ref != controlled or not states:
-            self._err(f"{label} control_specification_ref contradicts participant/controller direction")
-            return
+
+    def _participant_relation_control_scope(
+        self, label: str, refs: list[str], states: list[MixedControlControllerState]
+    ) -> None:
         scope_index = self._operating_scope_ref_index()
         policy_scope = self._resolved_mixed_control_refs(
             [ref for state in states for ref in state.scope_refs], index=scope_index
         )
-        for ref in detail.scope_refs:
+        for ref in refs:
             if not self._is_unresolved_var(ref) and not scope_index.get(ref, set()).issubset(policy_scope):
                 self._err(f"{label} control_specification_ref must cover the selected relationship scope")
 
@@ -131,6 +148,16 @@ class _ParticipantRelationshipsMixin:
             related.update(interaction.related_actions)
         return related
 
+    def _participant_relation_endpoint_roles(self, endpoints: set[str]) -> tuple[set[str], bool]:
+        entities = flatten_entities(self._s.entities)
+        roles = {
+            entities[self._s.agents[name].entity].role for name in endpoints if self._s.agents[name].entity in entities
+        }
+        unresolved_role = any(self._is_unresolved_var(self._s.agents[name].entity) for name in endpoints) or any(
+            self._is_unresolved_var(role) for role in roles
+        )
+        return roles, unresolved_role
+
     def _participant_relation_behavior_refs(
         self,
         label: str,
@@ -141,13 +168,7 @@ class _ParticipantRelationshipsMixin:
         if source is None or target is None:
             return
         endpoints = {source, target}
-        entities = flatten_entities(self._s.entities)
-        roles = {
-            entities[self._s.agents[name].entity].role for name in endpoints if self._s.agents[name].entity in entities
-        }
-        unresolved_role = any(self._is_unresolved_var(self._s.agents[name].entity) for name in endpoints) or any(
-            self._is_unresolved_var(role) for role in roles
-        )
+        roles, unresolved_role = self._participant_relation_endpoint_roles(endpoints)
         for name in refs["behavior_specification_refs"]:
             behavior = self._s.behavior_specifications[name]
             if any(
