@@ -5,7 +5,7 @@ status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 created_at: 2026-04-05T01:59:50.501378Z
-updated_at: 2026-06-23T04:06:33.107397Z
+updated_at: 2026-09-16T00:50:48Z
 ---
 
 # SEM-225 — Realization Augmentation And Environment-Visibility Semantics
@@ -19,6 +19,39 @@ The ecosystem shall define explicit semantics for processor or backend augmentat
 If processors or backends add instrumentation or other augmentation, the ecosystem needs normative rules for when that remains apparatus-only and when it becomes part of the realized world.
 
 ## Traceability
+
+- IMPLEMENTS → GITHUB_ISSUE `1242` (Binding open-by-default author scope and pre-materialization refusal)
+- IMPLEMENTS → SPEC `specs/sdl/augmentation-scope.md` (Author burden rationale, scoped permission, pure preparation and refusal contract)
+- IMPLEMENTS → SPEC `contracts/provenance/sdl-lineage-ledger-v2.json` (Native lineage registration for the author scope field)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/backend-augmentation-scope-v1.json` (Bounded prospective SDL and requirement/impact references)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/augmentation_scope.py` (Independent open-by-default scope policy and namespace intersections)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/augmentation_preparation.py` (Bounded prospective effects and source/operation/predecessor/producer binding)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_effects.py` (Prospective materialization remains effectful even with empty operations)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/augmentation.py` (Read-only producer protocol and neutral-carrier adapter)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/scenario.py` (Shared author, instantiated and descriptive policy carrier)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_composition_provenance.py` (Shared namespaced semantic pointer rewriting)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_language_metadata.py` (Author scope completion fields)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_expand.py` (Preserve imported policy restrictions during expansion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_core.py` (Apply scope admission in source validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/prospective_content.py` (Ordinary SDL semantic admission without a fabricated attestation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_augmentation.py` (Import restrictions and native list identities survive composition)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/observation_scope.py` (Native semantic-address ownership across namespaced declarations)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_evidence_requirements.py` (Resolve author scope and import provenance before execution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/augmentation_admission.py` (Complete shared effects, scoped refusal and actual/prospective reconciliation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_augmentation.py` (Pure invocation admission and value-free operator diagnostics)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_augmentation.py` (All active producers checked before the first materializing phase)
+- TESTS → TEST `implementations/python/tests/test_issue_1242_augmentation_scope.py` (Omission, explicit policy, scoped exceptions, module and list identity preservation)
+- TESTS → TEST `implementations/python/tests/test_issue_1242_scope_admission.py` (Binding, complete effect coverage, impacts, native identity, bounds and ordinary realization)
+- TESTS → TEST `implementations/python/tests/test_issue_1242_scope_runtime.py` (Refusal before mutation, later phases, observation hooks, actual effects and detached-plan enforcement)
+- TESTS → TEST `implementations/python/tests/test_issue_1242_scope_contracts.py` (Closed wire schemas and honest structural-only conformance)
+- TESTS → TEST `implementations/python/tests/test_issue_1242_scope_durability.py` (Named evidence refusal, shared apparatus, restart and no replay)
+- TESTS → TEST `implementations/python/tests/test_issue_1242_review_regressions.py` (Canonical negotiation authority, advisory diagnostics, cumulative phase ownership and protected predecessor reads)
+- TESTS → TEST `implementations/python/tests/test_sdl_catalog_parity.py` (Scope field and checked section-count parity)
+- TESTS → TEST `implementations/python/tests/test_sdl_lineage.py` (Exact registered subject coverage for augmentation scope)
+- TESTS → TEST `implementations/python/tests/test_issue_1238_development_container.py` (Whole-checkout verification gate; retain independent platform-refusal cases under coverage)
+- TESTS → TEST `implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py` (Whole-checkout verification gate; keep cross-process runtime ownership checks in the integration lane)
+- IMPLEMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v24.json` (Fresh source-bound replay preserving prior captures and claim limits)
+- IMPLEMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1242-v24.json` (Retained corpus execution against the integrated scope implementation)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_factoring.py` (Lossless local schema-rule sharing within the publication budget)
 - TESTS → TEST `implementations/python/tests/test_issue_1241_schema_publication_size.py` (Self-contained schema size, exact expansion and reference-scope integrity)

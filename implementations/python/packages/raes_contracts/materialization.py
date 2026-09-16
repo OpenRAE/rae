@@ -30,6 +30,12 @@ class MaterializationSource(ContractModel):
     instantiated_digest: MaterializationDigest
     run_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
+    @property
+    def augmentation_scope_required(self) -> bool:
+        """Derive the permission obligation from bound SDL, not a plan's convenience flag."""
+        payload = parse_bounded_json_object(self.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
+        return payload["scenario"].get("augmentation_scope") is not None
+
     @model_validator(mode="after")
     def _validate_source_identity(self) -> MaterializationSource:
         payload = parse_bounded_json_object(self.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)
@@ -65,6 +71,8 @@ class MaterializationArchive(Protocol):
     """The incumbent run archive supplied by the runtime's operational owner."""
 
     def publish(self, content: str) -> MaterializationArchiveRecord: ...
+
+    def read(self, record: MaterializationArchiveRecord) -> MaterializationSubmission: ...
 
 
 def require_materialization_records(records: object) -> None:

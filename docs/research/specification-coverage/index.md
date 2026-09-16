@@ -131,13 +131,32 @@ this run does not repair them.
   while retaining the protocol's bounded classifications and claim limits.
 
 - [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
-  [`analysis-v22.json`](analysis-v22.json) are current release 22.0.0. They
-  bind the issue #1223 reviewed OCI mirror and pre-seed admission boundary to
-  exact source and package digests. That work lives in the development artifact
-  policy, the OCI layout and release-image modules, and the reference-backend
-  driver's resource naming; none of those are recorded implementation surfaces
-  or preregistered carriers, so every classification, the denominator and the
-  claim limits are unchanged and earlier captures retain their exact bytes.
+  [`analysis-v22.json`](analysis-v22.json) preserve release 22.0.0. Fresh
+  replay binds open-by-default augmentation scope integrated with EXP-731
+  evidence refinements to exact source and package digests. Passing-stage
+  pointers, classifications, denominator, and claim limits are retained. Native
+  backend scope enforcement is not evaluated by this corpus.
+
+- [`execution-snapshot-v23.json`](execution-snapshot-v23.json) and
+  [`analysis-v23.json`](analysis-v23.json) preserve release 23.0.0. Fresh
+  replay binds the augmentation-admission maintainability refactor to exact
+  source and package digests. Classifications, passing-stage pointers, and
+  claim limits remain unchanged; all earlier captures retain their exact bytes.
+
+- [`execution-snapshot-v24.json`](execution-snapshot-v24.json) and
+  [`analysis-v24.json`](analysis-v24.json) are current release 24.0.0. Fresh
+  replay binds the tightened composition type annotations to exact source and
+  package digests. Outcomes, classifications, and claim limits are unchanged;
+  all previously published captures remain byte-exact.
+
+Earlier issue-1242 captures remain byte-exact in feature commits
+`77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
+`1ab0580525136667bbc713d3c2f4a7820bab08da` (release 21). Their manifests
+remain outside the active index at
+`historical-artifacts/issue-1242-pre-sync-release-v20.json` and
+`historical-artifacts/issue-1242-pre-refinement-sync-release-v21.json`.
+Those paths and hashes describe files at the named commits, not the current
+checkout. Incoming published captures retain their exact bytes.
 
 Earlier issue-1237 captures remain in feature commits
 `2d402e4ae922b59d399dbfc336cc2856d153c44a` (release 15),
@@ -158,7 +177,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 22.0.0 and rejects duplicate or unsupported
+Current validation requires release 24.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

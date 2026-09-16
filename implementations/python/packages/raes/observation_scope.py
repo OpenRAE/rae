@@ -6,6 +6,7 @@ from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
     canonical_semantic_address,
+    semantic_address_contains,
 )
 
 from ._declarations import DeclarationIndex
@@ -54,10 +55,37 @@ def resolve_observation_scope(
     """Resolve an observation pointer through the shared semantic-address owner."""
 
     try:
-        canonical = canonical_semantic_address(pointer, root, collection_profiles=collection_profiles)
+        canonical = canonical_semantic_address(
+            pointer, root, collection_profiles=_scenario_collection_profiles(collection_profiles)
+        )
     except ValueError:
         return False, None
     return True, canonical
+
+
+def _scenario_collection_profiles(
+    profiles: tuple[RealizationCollectionProfile, ...],
+) -> tuple[RealizationCollectionProfile, ...]:
+    """Top-level list declarations retain their native identity across imports."""
+    profile = _declaration_collection_profile(["forwarding_agents", "0", "forwarding_agent_id"])
+    return profiles if any(item.field_pointer == profile.field_pointer for item in profiles) else (*profiles, profile)
+
+
+def semantic_scope_namespace(root: dict[str, object], pointer: str) -> tuple[str, ...]:
+    """Find the owning module using the declaration identity, never its list index."""
+    tokens = pointer.split("/")
+    if len(tokens) < 3:
+        return ()
+    identity = tokens[2].replace("~1", "/").replace("~0", "~")
+    if tokens[1] == "forwarding_agents":
+        for index, agent in enumerate(root.get("forwarding_agents", ())):
+            found, candidate = resolve_observation_scope(root, f"/forwarding_agents/{index}")
+            if found and semantic_address_contains(candidate, pointer):
+                identity = agent["forwarding_agent_id"]
+                break
+        else:
+            raise ValueError("scope has no admitted declaration owner")
+    return tuple(identity.split(".")[:-1])
 
 
 def _declaration_collection_profile(tokens: list[str]) -> RealizationCollectionProfile | None:

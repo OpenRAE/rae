@@ -12,7 +12,11 @@ from raes.nodes import Node
 from raes.runtime_inventory import runtime_inventory_collection_identity
 from raes.scenario import InstantiatedScenario, ScenarioContent
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.realization_structure import (
+    RealizationClosure,
+    RealizationCollectionProfile,
+    validate_realization_value,
+)
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 from ..semantics.realization_concerns import registered_realization_concern_descriptors
@@ -22,8 +26,8 @@ _CollectionProfiles: TypeAlias = dict[tuple[str, ...], tuple[str, ...]]
 
 
 def materialization_differences(
-    source: InstantiatedScenario,
-    materialized: MaterializedScenario,
+    source: ScenarioContent,
+    materialized: ScenarioContent,
 ) -> tuple[MaterializationOrigin, ...]:
     """Find changes without treating a containing authored node as an addition."""
     for value in (source, materialized):
@@ -55,6 +59,117 @@ def _profiles(node_names: Iterable[str], content_names: Iterable[str]) -> _Colle
         )
         if item.descriptor.collection_identity_fields
     }
+
+
+def materialization_collection_profiles(content: ScenarioContent) -> tuple[RealizationCollectionProfile, ...]:
+    """Expose the comparison owner's native identities to semantic-scope matching."""
+    profiles = _profiles(content.nodes, content.content)
+    closure = RealizationClosure(
+        posture="closed", universe="sdl-collection-members/v1", profile="recursive-realization-constraint/v1"
+    )
+    result = []
+
+    def visit(value: object, path: tuple[str, ...]) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                visit(child, (*path, key))
+        elif isinstance(value, list):
+            identity = _collection_identity(path, profiles)
+            if identity:
+                result.append(
+                    RealizationCollectionProfile(
+                        field_pointer=_pointer(path),
+                        collection_kind="sdl-collection",
+                        identity_fields=identity,
+                        closure=closure,
+                    )
+                )
+            for index, child in enumerate(value):
+                visit(child, (*path, str(index)))
+
+    visit(content.model_dump(mode="json"), ())
+    return tuple(result)
+
+
+def compose_materialization_content(
+    source: ScenarioContent, preceding: ScenarioContent, local: ScenarioContent
+) -> ScenarioContent:
+    """Compose disjoint producer-owned deltas using the comparison's native identities.
+
+    A producer describes only its own changes from the author source. It cannot
+    overwrite or re-claim a preceding producer's changed leaf or collection member.
+    """
+    from raes.prospective_content import admit_prospective_content
+    from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES
+
+    for content in (source, preceding, local):
+        materialization_differences(source, content)
+    values = [
+        {name: value for name, value in content.model_dump(mode="json").items() if name in ScenarioContent.model_fields}
+        for content in (source, preceding, local)
+    ]
+    profiles = _profiles(
+        set().union(*(value["nodes"] for value in values)), set().union(*(value["content"] for value in values))
+    )
+    merged = _compose_owned(*values, (), profiles)
+    if not validate_realization_value(merged, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS).conformant:
+        raise ValueError("cumulative prospective SDL exceeds portable bounds")
+    admitted = admit_prospective_content(merged)
+    if len(admitted.model_dump_json().encode("utf-8")) > MATERIALIZATION_MAX_BYTES:
+        raise ValueError("cumulative prospective SDL exceeds the byte limit")
+    return admitted
+
+
+def _compose_owned(
+    base: object, preceding: object, local: object, path: tuple[str, ...], profiles: _CollectionProfiles
+) -> object:
+    if type(local) is type(base) and local == base:
+        return preceding
+    if type(preceding) is type(base) and preceding == base:
+        return local
+    return _compose_changed_containers(base, preceding, local, path, profiles)
+
+
+def _compose_changed_containers(
+    base: object, preceding: object, local: object, path: tuple[str, ...], profiles: _CollectionProfiles
+) -> object:
+    if all(isinstance(value, dict) for value in (base, preceding, local)):
+        merged = {}
+        for key in base.keys() | preceding.keys() | local.keys():
+            value = _compose_owned(
+                base.get(key, _ABSENT), preceding.get(key, _ABSENT), local.get(key, _ABSENT), (*path, key), profiles
+            )
+            if value is not _ABSENT:
+                merged[key] = value
+        return merged
+    if all(isinstance(value, list) for value in (base, preceding, local)) and (
+        identity := _collection_identity(path, profiles)
+    ):
+        return _compose_owned_members(base, preceding, local, path, profiles, identity)
+    raise ValueError("prospective effects overlap another producer's ownership")
+
+
+def _compose_owned_members(
+    base: list[object],
+    preceding: list[object],
+    local: list[object],
+    path: tuple[str, ...],
+    profiles: _CollectionProfiles,
+    identity: tuple[str, ...],
+) -> list[object]:
+    original, prior, proposed = (_indexed(value, identity) for value in (base, preceding, local))
+    merged = []
+    for key in dict.fromkeys((*prior, *proposed, *original)):
+        value = _compose_owned(
+            original.get(key, (0, _ABSENT))[1],
+            prior.get(key, (0, _ABSENT))[1],
+            proposed.get(key, (0, _ABSENT))[1],
+            (*path, str(len(merged))),
+            profiles,
+        )
+        if value is not _ABSENT:
+            merged.append(value)
+    return merged
 
 
 def materialization_node_payloads_match(name: str, described: object, observed: object) -> bool:
@@ -99,6 +214,8 @@ def _collection_identity(path: tuple[str, ...], profiles: _CollectionProfiles) -
     identity = ()
     if path in profiles:
         identity = profiles[path]
+    elif path and path[0] == "forwarding_agents":
+        identity = runtime_inventory_collection_identity("forwarding-agents", _pointer(path[1:]))
     elif len(path) == 3 and path[0] == "nodes" and path[2] == "services":
         identity = ("name",)
     elif len(path) >= 4 and path[0] == "nodes" and path[2] == "runtime":

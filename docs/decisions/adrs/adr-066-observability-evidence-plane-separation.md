@@ -138,6 +138,17 @@ runtime, evidence, or provenance carriers. It must not hide in
 `RuntimeSnapshot.metadata`, evaluator details, diagnostics, audit blobs,
 backend DTOs, or raw logs.
 
+Issue #1242 adds an independent author-permission boundary in
+[`augmentation_scope`](../../../specs/sdl/augmentation-scope.md). Omission means
+open. A closed default would require authors to anticipate and authorize every
+backend addition, imposing a large, unexpected burden; restrictions are therefore
+explicit opt-ins, also preserving compatibility. Node/concern closures may not
+be widened by realization delegation, observation demand, import composition,
+or a later attestation. A producer that needs a forbidden in-world effect to
+satisfy a requirement must refuse before materialization, identifying the
+requirement and effect. Permission does not replace any visibility,
+comparability, or evidence obligation above.
+
 ### 7. Forwarding-agent ownership does not collapse the planes
 
 A forwarding agent marked `system_under_test` remains scenario-native
@@ -254,3 +265,4 @@ participant-visible, or comparability-relevant.
 |------|-----------|---------|
 | 2026-06-23 | #335 | Implemented SEM-225 run-level augmentation disclosures in `experiment-run-v1`, including separate environment-visible, participant-visible, and comparability-relevant validation. |
 | 2026-08-01 | #1043 | Separated forwarding-agent ownership, realization corroboration, evidence binding, and operational behavior claims. |
+| 2026-09-16 | #1242 | Added binding open-by-default augmentation scope, explicit author restrictions, pre-materialization refusal, and the author-burden rationale. |

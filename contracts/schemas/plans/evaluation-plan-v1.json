@@ -817,6 +817,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "augmentation_scope_required": {
+      "default": false,
+      "title": "Augmentation Scope Required",
+      "type": "boolean"
+    },
     "diagnostics": {
       "items": {
         "additionalProperties": true,
