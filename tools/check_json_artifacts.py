@@ -32,6 +32,10 @@ SCHEMA_DRIVER_PATHS = (
     "tools/generate_contract_schemas.py",
 )
 JSON_SCHEMA_WORKERS_ENV = "RAES_JSON_SCHEMA_WORKERS"
+_AUTHORING_ADAPTER_ROUTES = {
+    "contracts/profiles/authoring-adapters/": "authoring-adapter-profile-v1",
+    "contracts/fixtures/authoring-adapters-v1/cases/": "authoring-adapter-vector-v1",
+}
 
 
 @dataclass(frozen=True)
@@ -119,7 +123,7 @@ def collect_validation_targets(
     if should_run_full_validation(paths):
         return _collect_full_targets(repo_root)
 
-    targets: list[ValidationTarget] = []
+    targets = _authoring_adapter_targets(repo_root, paths=paths)
     for raw_path in paths:
         path = repo_root / raw_path
         if not path.exists():
@@ -202,7 +206,7 @@ def should_run_full_validation(paths: list[str]) -> bool:
 
 
 def _collect_full_targets(repo_root: Path) -> list[ValidationTarget]:
-    targets: list[ValidationTarget] = []
+    targets = _authoring_adapter_targets(repo_root)
     for schema in sorted((repo_root / "contracts" / "schemas").rglob("*.json")):
         targets.append(ValidationTarget(_repo_rel_from(repo_root, schema), None, "metaschema"))
     for artifact in sorted((repo_root / "contracts" / "concept-authority").glob("*.json")):
@@ -267,6 +271,26 @@ def _collect_full_targets(repo_root: Path) -> list[ValidationTarget]:
             )
         )
     return _dedupe_targets(targets)
+
+
+def _authoring_adapter_targets(repo_root: Path, *, paths: list[str] | None = None) -> list[ValidationTarget]:
+    targets = []
+    for prefix, contract in _AUTHORING_ADAPTER_ROUTES.items():
+        candidates = (
+            (repo_root / prefix).glob("*.json")
+            if paths is None
+            else (repo_root / path for path in paths if path.startswith(prefix) and path.endswith(".json"))
+        )
+        targets.extend(
+            ValidationTarget(
+                _repo_rel_from(repo_root, path),
+                f"contracts/schemas/authoring-adapters/{contract}.json",
+                "schema",
+            )
+            for path in candidates
+            if path.is_file()
+        )
+    return targets
 
 
 def _dedupe_targets(targets: list[ValidationTarget]) -> list[ValidationTarget]:

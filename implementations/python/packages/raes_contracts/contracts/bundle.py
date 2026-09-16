@@ -162,6 +162,11 @@ def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
 
 
 def _core_schema_bundle() -> dict[str, dict[str, Any]]:
+    from raes_contracts.authoring_adapters import (
+        AuthoringAdapterComparisonModel,
+        AuthoringAdapterProfileModel,
+        AuthoringAdapterVectorModel,
+    )
     from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
     from raes_contracts.realization_structure import RealizationConstraintDocument
     from raes_contracts.semantic_comparison import SemanticComparisonRequestModel, SemanticComparisonResultModel
@@ -195,6 +200,9 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         **transformation_schema_bundle(),
         "semantic-comparison-request-v1": SemanticComparisonRequestModel.model_json_schema(),
         "semantic-comparison-result-v1": SemanticComparisonResultModel.model_json_schema(),
+        "authoring-adapter-profile-v1": AuthoringAdapterProfileModel.model_json_schema(),
+        "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_json_schema(),
+        "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_json_schema(),
         "exploit-path-analysis-evidence-v1": ExploitPathAnalysisEvidenceModel.model_json_schema(),
         "scenario-satisfiability-evidence-v1": ScenarioSatisfiabilityEvidenceModel.model_json_schema(),
         "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),

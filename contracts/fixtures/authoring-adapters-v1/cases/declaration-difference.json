@@ -1,0 +1,35 @@
+{
+  "schema_version": "authoring-adapter-vector/v1",
+  "case_id": "declaration-difference",
+  "profile_digest": "sha256:74a1f92a49b44d92dcbdc175b138af6b2ee751aed26a606f42e8dfdefd9a1c90",
+  "input_source": "name: adapter-fixture\nnodes:\n  web:\n    type: switch\n",
+  "input_digest": "sha256:d891b872e2decad0ad13e7a4465bb720904b8ddb8aa3249f5064f06141d784aa",
+  "operation": {
+    "profile": "validate-sdl/v1",
+    "target_address": null,
+    "new_local_name": null
+  },
+  "operation_digest": "sha256:49eedb9ae9eaebc6fb19e5e75deaab1dd1bfeeae8f6fdac1682a2829cedf34f0",
+  "expected": {
+    "outcome": "success",
+    "artifact_coordinate": {
+      "canonical_identity": "scenario:adapter-fixture",
+      "canonicalization_profile": "raes-canonical-sdl/v2",
+      "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+      "exact_representation": null,
+      "artifact_kind": "scenario",
+      "lifecycle_phase": "normalized-authoring",
+      "source_profile": "sdl-normalized-authoring/v1",
+      "scenario_id": "adapter-fixture",
+      "scenario_version": "*"
+    },
+    "canonical_artifact_digest": "sha256:9cba4d8a0ee0b9839d2ece7695e6f26712e38208b47b5c58b264c89ea683845b",
+    "diagnostics_digest": "sha256:e3cbb2edde823c8e994bfc23531ba75ccefa16e546a0d710f5713e3819222108",
+    "transformation_digest": null
+  },
+  "contrast": {
+    "output_source": "name: adapter-fixture\nnodes:\n  edge:\n    type: switch\n",
+    "artifact_relation": "different",
+    "semantic_relation": "different"
+  }
+}

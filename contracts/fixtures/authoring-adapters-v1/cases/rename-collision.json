@@ -1,0 +1,20 @@
+{
+  "schema_version": "authoring-adapter-vector/v1",
+  "case_id": "rename-collision",
+  "profile_digest": "sha256:74a1f92a49b44d92dcbdc175b138af6b2ee751aed26a606f42e8dfdefd9a1c90",
+  "input_source": "name: adapter-fixture\nnodes:\n  web:\n    type: switch\n  frontend:\n    type: switch\n",
+  "input_digest": "sha256:02c4845511378e28e2e459c59c4506e31d2aab2aac62c34e2b393a7df7bdae19",
+  "operation": {
+    "profile": "rename-sdl-declaration/v1",
+    "target_address": "nodes.web",
+    "new_local_name": "frontend"
+  },
+  "operation_digest": "sha256:2090544d5513901d4f718cfd20eb11d110c11b72f6bc5373b290f89044702b95",
+  "expected": {
+    "outcome": "refused",
+    "artifact_coordinate": null,
+    "canonical_artifact_digest": null,
+    "diagnostics_digest": "sha256:f898edc5db51619266f5c3893c4abab578148d2e8dc17fb49e372cc695f13d51",
+    "transformation_digest": "sha256:0ff621c29c327da6ed2eba2f7721e9192fa3160c5ecd906757f113aa45f1ed20"
+  }
+}

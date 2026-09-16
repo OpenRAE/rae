@@ -53,6 +53,13 @@ These assets are intentionally language-neutral. Any conformance runners or
 implementation-specific validation helpers belong under `implementations/`,
 not here.
 
+The `authoring-adapter-*` contracts compose bounded authoring-path observations
+and comparisons. Their fixed vectors under `fixtures/authoring-adapters-v1/`
+compare canonical artifacts, diagnostics, transformation provenance and owner
+semantic results independently. See the
+[authoring-adapter contract](../specs/conformance/authoring-adapters.md) and
+[consumer guide](../docs/explain/reference/authoring-adapter-conformance.md).
+
 At the architecture level, the contract space spans more than just backend I/O.
 It includes:
 

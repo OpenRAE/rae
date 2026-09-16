@@ -1,0 +1,20 @@
+{
+  "schema_version": "authoring-adapter-vector/v1",
+  "case_id": "rename-invalid-source",
+  "profile_digest": "sha256:74a1f92a49b44d92dcbdc175b138af6b2ee751aed26a606f42e8dfdefd9a1c90",
+  "input_source": "name: first\nname: second\n",
+  "input_digest": "sha256:a4f1922eee529656b804f3f0d389906847eb5fe5275feefa06c67101f4a2f226",
+  "operation": {
+    "profile": "rename-sdl-declaration/v1",
+    "target_address": "nodes.web",
+    "new_local_name": "frontend"
+  },
+  "operation_digest": "sha256:2090544d5513901d4f718cfd20eb11d110c11b72f6bc5373b290f89044702b95",
+  "expected": {
+    "outcome": "refused",
+    "artifact_coordinate": null,
+    "canonical_artifact_digest": null,
+    "diagnostics_digest": "sha256:729dcd98eedf0f148134d935cb7aa9625ec4469950429be1510ef873a9f56ae7",
+    "transformation_digest": null
+  }
+}
