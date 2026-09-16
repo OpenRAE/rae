@@ -21,6 +21,8 @@ Requirement inventory expansion. Multi-participant behavior cannot remain portab
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_behavior.py` (Preserve interaction references under module namespaces)
+- TESTS → TEST `implementations/python/tests/test_act_612_relationship_integration.py` (Independent composed coordination references and endpoint agreement)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/README.md` (Participant Semantics Formal Design)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-022-participant-behavior-and-interaction-semantics.md` (ADR-022: Participant Behavior and Interaction Semantics)
 - TESTS → TEST `implementations/python/tests/test_sem_208_participant_behavior.py` (SEM-209 participant interaction semantics tests)

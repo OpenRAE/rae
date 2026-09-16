@@ -315,6 +315,28 @@ def test_evidence_provenance_policy_bounds_artifact_ownership(tmp_path: Path, pa
     assert [failure.rule_id for failure in failures] == expected_rules
 
 
+@pytest.mark.parametrize(
+    ("path", "expected_rules"),
+    [
+        ("docs/requirements/ACT-612/requirement.md", []),
+        ("docs/requirements/SEM-209/requirement.md", []),
+        ("contracts/schema-publication/entries/sdl-authoring-input-v1.json", []),
+        ("contracts/profiles/backend/provisioning-only.json", ["requirement-ownership-mismatch"]),
+        ("docs/research/unrelated.md", ["requirement-ownership-mismatch"]),
+    ],
+)
+def test_participant_policy_tracks_local_requirements_and_publication_shards(
+    tmp_path: Path, path: str, expected_rules: list[str]
+) -> None:
+    repo_root = setup_policy_repo(tmp_path)
+    client = FakeClient(
+        requirements={"ACT-612": {"id": "ACT-612", "uid": "ACT-612", "status": "ACTIVE"}},
+        traceability={},
+    )
+    failures = evaluate_requirement_governance(repo_root, [path], client=client, requirement_uid="ACT-612")
+    assert [failure.rule_id for failure in failures] == expected_rules
+
+
 def test_unmapped_requirement_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     client = make_client()

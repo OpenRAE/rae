@@ -1,9 +1,9 @@
 {
-  "content_hash": "f727eb41bc2faf63e05488c4c7d0d7ac5542f4e4c96b7637d41b0423488253ef",
+  "content_hash": "66be4cc62a2c11154a4aeabe22572f06707d4d51d456a2e39c2c56522eadc295",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "f727eb41bc2faf63e05488c4c7d0d7ac5542f4e4c96b7637d41b0423488253ef",
-    "summary": "Publish model-enforced omission rules for redacted runtime/image values and commands, and expected-absent filesystem facts (#1241 review)."
+    "content_hash": "66be4cc62a2c11154a4aeabe22572f06707d4d51d456a2e39c2c56522eadc295",
+    "summary": "Add explicit participant relationships with optional checked refinements and closed type/control bindings (ACT-612, #214)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

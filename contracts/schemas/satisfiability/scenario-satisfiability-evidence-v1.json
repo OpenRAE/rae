@@ -11004,6 +11004,160 @@
       "title": "ParticipantPreconditionClass",
       "type": "string"
     },
+    "ParticipantRelationship": {
+      "additionalProperties": false,
+      "description": "Directed authored intent; a declaration never grants operational rights.",
+      "if": {
+        "properties": {
+          "control_specification_ref": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "control_specification_ref"
+        ]
+      },
+      "properties": {
+        "authority_basis_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Authority Basis Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "behavior_specification_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Behavior Specification Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "control_specification_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Control Specification Ref"
+        },
+        "kind": {
+          "$ref": "#/$defs/ParticipantRelationshipKind"
+        },
+        "objective_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Objective Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "observation_boundary_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Observation Boundary Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "scope_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Scope Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "source_action_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Source Action Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "target_action_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Target Action Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "then": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "delegation",
+              "supervision"
+            ]
+          }
+        }
+      },
+      "title": "ParticipantRelationship",
+      "type": "object"
+    },
+    "ParticipantRelationshipKind": {
+      "description": "Portable relation meanings, independent of backend mechanisms.",
+      "enum": [
+        "coordination",
+        "delegation",
+        "cooperation",
+        "competition",
+        "supervision"
+      ],
+      "title": "ParticipantRelationshipKind",
+      "type": "string"
+    },
     "ParticipantResourceAccountingMode": {
       "enum": [
         "windowed_counter",
@@ -12433,6 +12587,73 @@
     },
     "Relationship": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "participant": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "type": {
+                "const": "participant"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "carrier_placement": {
+                "type": "null"
+              },
+              "database_access": {
+                "type": "null"
+              },
+              "domain_controller": {
+                "type": "null"
+              },
+              "domain_join": {
+                "type": "null"
+              },
+              "forest_trust": {
+                "type": "null"
+              },
+              "forwarding_edge": {
+                "type": "null"
+              },
+              "identity_federation": {
+                "type": "null"
+              },
+              "mail_access": {
+                "type": "null"
+              },
+              "participant": {
+                "type": "object"
+              },
+              "properties": {
+                "maxProperties": 0
+              },
+              "proxy_upstream": {
+                "type": "null"
+              },
+              "service_integration": {
+                "type": "null"
+              },
+              "shared_service": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "participant"
+            ]
+          }
+        }
+      ],
       "description": "A typed directed edge between two named scenario elements.\n\nSource and target can reference any named element in the scenario:\nnodes, features, accounts, entities, or infrastructure entries.\nThe validator checks that both endpoints resolve.\n\nThe ``properties`` dict carries type-specific metadata (e.g.,\n``trust_type: parent-child`` for AD trusts, ``protocol: SAML``\nfor federation). It's a flat dict rather than typed sub-models\nbecause relationship properties vary widely and we don't want\nto gate expressiveness on pre-modeling every variant.\n\n``database_access`` and ``mail_access`` are typed exceptions where\nprotocol/auth details need structural validation rather than prose.\n``forwarding_edge``, ``service_integration``, and ``proxy_upstream`` are\nthe same kind of typed exception for, respectively, a forwarding /\nintel-sync agent's inter-node trust edge (SCN-010 \u00a75.7), a platform\nconsumer-to-engine service integration, and a reverse-proxy/gateway\nroute-to-origin upstream hop. Each keeps protocol/auth/topology facts\nstructurally validated and cross-referable rather than buried in prose.",
       "properties": {
         "carrier_placement": {
@@ -12524,6 +12745,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/RelationshipMailAccess"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "participant": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantRelationship"
             },
             {
               "type": "null"
@@ -13205,7 +13437,8 @@
         "forest_trusts",
         "directory_federates_to",
         "placed_on_carrier",
-        "uses_shared_service"
+        "uses_shared_service",
+        "participant"
       ],
       "title": "RelationshipType",
       "type": "string"

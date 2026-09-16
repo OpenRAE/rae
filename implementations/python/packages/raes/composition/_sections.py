@@ -17,6 +17,7 @@ from .._identifiers import QualifiedName
 from .._module_symbols import FORWARDING_AGENTS_SECTION
 from .._module_symbols import HASHMAP_SECTIONS as _HASHMAP_SECTIONS
 from ..entities import flatten_entities
+from ..participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
 from ..scenario import ModuleDescriptor, ScenarioContent
 from ._references import (
     _maybe_rename,
@@ -400,6 +401,21 @@ def _rewrite_relationship_sections(
             relationship["source"] = _maybe_rename(str(relationship["source"]), symbols["named"])
         if relationship.get("target"):
             relationship["target"] = _maybe_rename(str(relationship["target"]), symbols["named"])
+        participant = relationship.get("participant")
+        if isinstance(participant, dict):
+            for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items():
+                participant[field] = [
+                    _maybe_rename(ref, symbols["named"])
+                    if section == "named"
+                    else _rewrite_section_ref(ref, section, symbols[section])
+                    for ref in participant.get(field, [])
+                ]
+            if participant.get("control_specification_ref"):
+                participant["control_specification_ref"] = _rewrite_section_ref(
+                    participant["control_specification_ref"],
+                    "behavior_specifications",
+                    symbols["behavior_specifications"],
+                )
         domain_join = relationship.get("domain_join")
         if isinstance(domain_join, dict):
             domain_join["controller_refs"] = [

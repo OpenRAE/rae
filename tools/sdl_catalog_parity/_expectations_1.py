@@ -30,6 +30,9 @@ from tools.sdl_catalog_parity._paths import (
     _SWITCH_BACKED,
 )
 
+_PARTICIPANT_VALIDATOR = "[participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py)"
+_PARTICIPANT_PHASE = "semantic validation and instantiation"
+
 EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
     "nodes.*.features[]": ("features", _SEMANTIC, _DANGLING, _NODE_VALIDATOR),
     "nodes.*.features.*": (
@@ -273,6 +276,54 @@ EXPECTATIONS_PART_1: dict[str, tuple[str, str, str, str]] = {
         _SEMANTIC,
         "fatal dangling or ambiguous; subtype may narrow domain",
         _RELATIONSHIP_VALIDATOR,
+    ),
+    "relationships.*.participant.source_action_refs[]": (
+        "action_contracts",
+        _PARTICIPANT_PHASE,
+        "fatal dangling, duplicate alias, or action unavailable to source",
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "relationships.*.participant.target_action_refs[]": (
+        "action_contracts",
+        _PARTICIPANT_PHASE,
+        "fatal dangling, duplicate alias, or action unavailable to target",
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "relationships.*.participant.objective_refs[]": (
+        "objectives",
+        _PARTICIPANT_PHASE,
+        "fatal dangling, duplicate alias, or unrelated objective owner",
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "relationships.*.participant.behavior_specification_refs[]": (
+        "behavior_specifications",
+        _PARTICIPANT_PHASE,
+        "fatal dangling, duplicate alias, or unrelated participant binding",
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "relationships.*.participant.authority_basis_refs[]": (
+        "any",
+        _PARTICIPANT_PHASE,
+        "fatal dangling, ambiguous, duplicate alias, or wider than source authority",
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "relationships.*.participant.scope_refs[]": (
+        "targetable",
+        _PARTICIPANT_PHASE,
+        "fatal duplicate alias or outside spatial/resource scope of either endpoint or selected control policy",
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "relationships.*.participant.observation_boundary_refs[]": (
+        "observation_boundaries",
+        _PARTICIPANT_PHASE,
+        "fatal dangling, duplicate alias, or unavailable source observation",
+        _PARTICIPANT_VALIDATOR,
+    ),
+    "relationships.*.participant.control_specification_ref": (
+        "behavior_specifications",
+        _PARTICIPANT_PHASE,
+        "fatal missing mixed-control policy or contradictory controller direction/scope",
+        _PARTICIPANT_VALIDATOR,
     ),
     "relationships.*.database_access.role_ref": (
         "derived:database_roles",

@@ -154,7 +154,7 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v20.json`](analysis-v20.json) to the capture-dimension helper
   refactor. Fresh replay retains release-20 outcomes and digests with no new
   claim class; all previously published captures remain unchanged.
-- [`bundles/retest-v21.json`](bundles/retest-v21.json) is current release 22.0.0.
+- [`bundles/retest-v21.json`](bundles/retest-v21.json) preserves release 22.0.0.
   It binds [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
   [`analysis-v21.json`](analysis-v21.json) to the integrated capture-proof,
   capture-dimension, and EXP-731 refinement implementation. Fresh replay
@@ -281,3 +281,12 @@ records. It freezes their progressive-profile shapes for historical admission,
 replays the same controls against current code, and records only the two
 compiler representation digest changes caused by the realization-evidence
 source correction. No outcome or preregistered claim strength changes.
+
+## Participant relationship replay
+
+Release 23.0.0 records a fresh replay after ACT-612 participant relationship
+authoring. [`execution-snapshot-v23.json`](execution-snapshot-v23.json)
+binds the current source digest; [`analysis-v23.json`](analysis-v23.json)
+retains the protocol’s bounded classifications and claim limits. Prior captures
+retain their exact bytes. These retained controls do not establish realized
+coordination, delegation, cooperation, competition, or supervision.

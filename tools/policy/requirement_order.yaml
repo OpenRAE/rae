@@ -544,10 +544,14 @@ ownership:
     - contracts/concept-authority
     - contracts/fixtures
     - contracts/schemas
+    - contracts/schema-publication
     - contracts/schema-publication-manifest.json
     - docs/decisions
     - docs/explain/reference
     - docs/explain/sdl
+    - docs/requirements
+    - docs/research/specification-coverage
+    - docs/research/formal-semantic-validation
     - specs/formal
     - specs/sdl
     - implementations/python/packages/raes
