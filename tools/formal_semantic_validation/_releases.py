@@ -285,7 +285,19 @@ def validate_retest_bundle(
     expected_corpus_revision = (
         "3.0.0"
         if release_revision
-        in {"16.0.0", "17.0.0", "18.0.0", "19.0.0", "20.0.0", "21.0.0", "22.0.0", "23.0.0", "24.0.0", "25.0.0", "26.0.0"}
+        in {
+            "16.0.0",
+            "17.0.0",
+            "18.0.0",
+            "19.0.0",
+            "20.0.0",
+            "21.0.0",
+            "22.0.0",
+            "23.0.0",
+            "24.0.0",
+            "25.0.0",
+            "26.0.0",
+        }
         else "2.0.0"
     )
     if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
