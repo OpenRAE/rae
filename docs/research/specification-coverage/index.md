@@ -118,11 +118,17 @@ this run does not repair them.
   package digests, preserving classifications, denominator, and claim limits.
 
 - [`execution-snapshot-v20.json`](execution-snapshot-v20.json) and
-  [`analysis-v20.json`](analysis-v20.json) are current release 20.0.0. Fresh
+  [`analysis-v20.json`](analysis-v20.json) preserve release 20.0.0. Fresh
   replay binds the issue #959 correction of stale mandatory-profile guidance
   in the limitations document. Runtime implementation, classifications,
   denominator and claim limits are unchanged; earlier captures retain their
   exact bytes.
+
+- [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
+  [`analysis-v21.json`](analysis-v21.json) are current release 21.0.0. They
+  bind the integrated capture-proof authority, capture-dimension helpers, and
+  EXP-731 evidence-requirement refinement to exact source and package digests
+  while retaining the protocol's bounded classifications and claim limits.
 
 Earlier issue-1237 captures remain in feature commits
 `2d402e4ae922b59d399dbfc336cc2856d153c44a` (release 15),
@@ -136,14 +142,14 @@ Those paths and hashes describe files at the named commits, not the current
 checkout. Incoming published captures retain their exact bytes.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
-exact archived source bytes, without executing current code. The ten source
+exact archived source bytes, without executing current code. The eleven source
 archives in `historical-artifacts/` are content-addressed JSON envelopes with
 base64-encoded original bytes and the Git revision from which those bytes were
 recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 20.0.0 and rejects duplicate or unsupported
+Current validation requires release 21.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
