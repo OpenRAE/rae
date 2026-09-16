@@ -1,6 +1,6 @@
 {
   "schema_version": "raes-development-actions-policy/v2",
-  "policy_revision": "2026-09-11",
+  "policy_revision": "2026-09-15",
   "exception_evaluation_date": "2026-09-11",
   "policy_refs": [
     "action-source-v1"
@@ -594,6 +594,76 @@
         "cache": [],
         "artifact": []
       }
+    },
+    {
+      "source_id": "attest-build-provenance",
+      "action": "actions/attest-build-provenance",
+      "commit": "4d101475d8b20a2381f78447822ac1eab6504dd8",
+      "owner_roles": [
+        "Release"
+      ],
+      "reviewer_roles": [
+        "Security"
+      ],
+      "trust_root_refs": [
+        "git-commit-sha",
+        "reviewed-workflow-reference"
+      ],
+      "runtime": "composite",
+      "closure_review_ref": "https://raw.githubusercontent.com/actions/attest-build-provenance/4d101475d8b20a2381f78447822ac1eab6504dd8/action.yml",
+      "transitive_inputs": [
+        {
+          "input_id": "nested-attest-action",
+          "action_source_ref": "attest"
+        }
+      ],
+      "security_effects": {
+        "closed_inputs": {
+          "push-to-registry": [
+            false
+          ]
+        },
+        "credentials": [
+          {
+            "credential_class": "github-oidc"
+          }
+        ],
+        "cache": [],
+        "artifact": []
+      }
+    },
+    {
+      "source_id": "attest",
+      "action": "actions/attest",
+      "commit": "508db95dd578ae2727ebd6217d5ba78e4fbda05d",
+      "owner_roles": [
+        "Release"
+      ],
+      "reviewer_roles": [
+        "Security"
+      ],
+      "trust_root_refs": [
+        "git-commit-sha",
+        "reviewed-workflow-reference"
+      ],
+      "runtime": "node24",
+      "closure_review_ref": "https://raw.githubusercontent.com/actions/attest/508db95dd578ae2727ebd6217d5ba78e4fbda05d/action.yml",
+      "transitive_inputs": [
+        {
+          "input_id": "attestation-service",
+          "service_managed_exception_ref": "attest-attestation-service"
+        }
+      ],
+      "security_effects": {
+        "closed_inputs": {},
+        "credentials": [
+          {
+            "credential_class": "github-oidc"
+          }
+        ],
+        "cache": [],
+        "artifact": []
+      }
     }
   ],
   "service_managed_exceptions": [
@@ -927,6 +997,32 @@
       "evidence_ref": "https://raw.githubusercontent.com/actions/upload-artifact/bbbca2ddaa5d8feaa63e36b76fdaad77386f024f/action.yml",
       "scope": "Nested only under the exact upload-pages source revision.",
       "review_on": "2027-03-11"
+    },
+    {
+      "exception_id": "attest-attestation-service",
+      "source_id": "attest",
+      "action": "actions/attest",
+      "input_id": "attestation-service",
+      "reason": "Sigstore signing and the GitHub attestations store are service-managed; the repository implements no cryptography or transport for them.",
+      "operation": "obtain an OIDC identity and record a build-provenance attestation for the measured subjects",
+      "allowed_origins": [
+        "api.github.com",
+        "fulcio.sigstore.dev",
+        "rekor.sigstore.dev",
+        "token.actions.githubusercontent.com",
+        "tuf-repo-cdn.sigstore.dev"
+      ],
+      "credential_class": "github-oidc",
+      "credential_forwarding": "same-origin-only",
+      "owner_roles": [
+        "Release"
+      ],
+      "reviewer_roles": [
+        "Security"
+      ],
+      "evidence_ref": "https://raw.githubusercontent.com/actions/attest/508db95dd578ae2727ebd6217d5ba78e4fbda05d/action.yml",
+      "scope": "Signs only the subjects measured in the protected signing job; grants no publication capability.",
+      "review_on": "2027-09-15"
     }
   ],
   "workflow_jobs": [
@@ -1714,6 +1810,75 @@
       "artifact_access": "write-untrusted",
       "promotion_authority": false,
       "publishing_authority": false
+    },
+    {
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "attest-release",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ],
+      "permissions": {
+        "contents": "read",
+        "id-token": "write",
+        "attestations": "write"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-oidc",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "fulcio.sigstore.dev",
+        "github.com",
+        "rekor.sigstore.dev",
+        "results-receiver.actions.githubusercontent.com",
+        "token.actions.githubusercontent.com",
+        "tuf-repo-cdn.sigstore.dev"
+      ],
+      "cache_access": "none",
+      "artifact_access": "read-same-run",
+      "promotion_authority": false,
+      "publishing_authority": false,
+      "protected_definition_ref": "job-condition:protected-main-workflow-definition"
+    },
+    {
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "admit-release",
+      "runner": "ubuntu-24.04",
+      "host_profile_ids": [
+        "public-ubuntu-24.04-x86_64"
+      ],
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ],
+      "permissions": {
+        "contents": "read"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_access": "none",
+      "artifact_access": "read-same-run",
+      "promotion_authority": false,
+      "publishing_authority": false,
+      "protected_definition_ref": "job-condition:protected-main-workflow-definition"
     }
   ],
   "use_sites": [
@@ -3699,6 +3864,306 @@
       "trust_classes": [
         "manual",
         "untrusted-pr"
+      ]
+    },
+    {
+      "use_id": "release-please/build-release/upload-the-release-evidence",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "build-release",
+      "step": "Upload the release evidence",
+      "action": "actions/upload-artifact",
+      "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "inputs": {
+        "name": "release-evidence-${{ needs.resolve-release.outputs.release_sha }}",
+        "path": "${{ runner.temp }}/raes-release-evidence/*.json",
+        "if-no-files-found": "error",
+        "retention-days": 7
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "write-trusted",
+      "source_id": "upload-artifact-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/attest-release/download-the-tested-release-distributions",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "attest-release",
+      "step": "Download the tested release distributions",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "release-distributions-${{ needs.resolve-release.outputs.release_sha }}",
+        "path": "dist/"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-oidc",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/attest-release/download-the-release-evidence",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "attest-release",
+      "step": "Download the release evidence",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "release-evidence-${{ needs.resolve-release.outputs.release_sha }}",
+        "path": "evidence/"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-oidc",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/attest-release/attest-the-release-subjects-and-their-evidence",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "attest-release",
+      "step": "Attest the release subjects and their evidence",
+      "action": "actions/attest-build-provenance",
+      "commit": "4d101475d8b20a2381f78447822ac1eab6504dd8",
+      "inputs": {
+        "subject-path": "dist/raes-*.whl\ndist/raes-*.tar.gz\nevidence/*.json\n",
+        "push-to-registry": false
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-oidc",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "fulcio.sigstore.dev",
+        "github.com",
+        "rekor.sigstore.dev",
+        "token.actions.githubusercontent.com",
+        "tuf-repo-cdn.sigstore.dev"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "attest-build-provenance",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/admit-release/actions/checkout",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "admit-release",
+      "step": "actions/checkout",
+      "action": "actions/checkout",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "inputs": {
+        "ref": "${{ needs.resolve-release.outputs.release_sha }}",
+        "persist-credentials": false
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "checkout",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/admit-release/download-the-tested-release-distributions",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "admit-release",
+      "step": "Download the tested release distributions",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "release-distributions-${{ needs.resolve-release.outputs.release_sha }}",
+        "path": "dist/"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/admit-release/download-the-release-evidence",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "admit-release",
+      "step": "Download the release evidence",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "release-evidence-${{ needs.resolve-release.outputs.release_sha }}",
+        "path": "evidence/"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/admit-release/actions/setup-python",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "admit-release",
+      "step": "actions/setup-python",
+      "action": "actions/setup-python",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "inputs": {
+        "python-version": "3.12.14"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-python-direct",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/admit-release/install-uv",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "admit-release",
+      "step": "Install uv",
+      "action": "astral-sh/setup-uv",
+      "commit": "20cfd1bf945f4377ade1205e4dbc17946fc9a30d",
+      "inputs": {
+        "enable-cache": false,
+        "version": "0.12.4"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "api.github.com",
+        "codeload.github.com",
+        "github.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "none",
+      "source_id": "setup-uv",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
+      ]
+    },
+    {
+      "use_id": "release-please/publish-github/download-the-release-evidence",
+      "workflow": ".github/workflows/release-please.yml",
+      "job": "publish-github",
+      "step": "Download the release evidence",
+      "action": "actions/download-artifact",
+      "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+      "inputs": {
+        "name": "release-evidence-${{ needs.resolve-release.outputs.release_sha }}",
+        "path": "evidence/"
+      },
+      "credential_classes": [
+        "actions-artifact-token",
+        "github-token"
+      ],
+      "allowed_origins": [
+        "*.blob.core.windows.net",
+        "api.github.com",
+        "codeload.github.com",
+        "github.com",
+        "results-receiver.actions.githubusercontent.com"
+      ],
+      "cache_role": "none",
+      "artifact_role": "read-same-run",
+      "source_id": "download-artifact",
+      "trust_classes": [
+        "manual",
+        "protected-branch"
       ]
     }
   ],

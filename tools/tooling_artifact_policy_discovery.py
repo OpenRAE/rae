@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import re
+import stat
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -349,13 +350,49 @@ def structured_acquisition(text: str, path: str) -> tuple[int, bool, int]:
     return len(ACQUISITION_COMMAND_RE.findall(text)) if parsed else 0, parsed, 0
 
 
+# One full policy evaluation AST-parses every tracked Python file, and a single
+# process commonly evaluates the policy several times (each
+# `load_python_closure_profile` call revalidates it first). Re-parsing an
+# unchanged file is pure waste, and at this repository's size it dominated the
+# evaluation, leaving the policy-heavy tests close to the suite's per-test
+# timeout under parallel load.
+#
+# The key is the file's own identity, so any edit — content or truncation —
+# invalidates the entry. Symlinks are never cached: their identity can change
+# without the link itself changing. This is a memo of a pure function, not a
+# relaxation of what is scanned.
+_SCAN_CACHE: dict[tuple[str, int, int], PythonScan | None] = {}
+_SCAN_CACHE_LIMIT = 8192
+
+
+def _scan_cache_key(repo_root: Path, path: str) -> tuple[str, int, int] | None:
+    """Identify one regular file for caching, or None when it must be re-read."""
+
+    try:
+        status = (repo_root / path).lstat()
+    except OSError:
+        return None
+    if not stat.S_ISREG(status.st_mode):
+        return None
+    return (path, status.st_size, status.st_mtime_ns)
+
+
 def tracked_python_scans(repo_root: Path, tracked_paths: Sequence[str]) -> dict[str, PythonScan | None]:
     scans: dict[str, PythonScan | None] = {}
     for path in tracked_paths:
         if Path(path).suffix != ".py":
             continue
+        key = _scan_cache_key(repo_root, path)
+        if key is not None and key in _SCAN_CACHE:
+            scans[path] = _SCAN_CACHE[key]
+            continue
         text = safe_text(repo_root, path)
-        scans[path] = None if text is None else python_scan(text)
+        scan = None if text is None else python_scan(text)
+        scans[path] = scan
+        if key is not None:
+            if len(_SCAN_CACHE) >= _SCAN_CACHE_LIMIT:
+                _SCAN_CACHE.clear()
+            _SCAN_CACHE[key] = scan
     return scans
 
 

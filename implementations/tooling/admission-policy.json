@@ -1,6 +1,6 @@
 {
   "schema_version": "raes-development-admission-policy/v1",
-  "policy_revision": "2026-09-07",
+  "policy_revision": "2026-09-15",
   "policies": [
     {
       "policy_id": "artifact-integrity-v1",
@@ -24,11 +24,28 @@
       "reviewer_roles": ["Security", "Tooling"]
     },
     {
+      "policy_id": "release-producer-v1",
+      "subject": "release-artifact",
+      "status": "active",
+      "accepted_evidence": ["build-provenance-attestation", "exact-output-digest"],
+      "reviewer_roles": ["Release", "Security"]
+    },
+    {
       "policy_id": "oci-input-v1",
       "subject": "oci-image",
       "status": "active",
       "accepted_evidence": ["oci-index-digest", "absent-signature-review", "reviewed-consumer-reference"],
       "reviewer_roles": ["Backend", "Security"]
+    }
+  ],
+  "release_producers": [
+    {
+      "producer_id": "github-actions-release-please",
+      "issuer": "https://token.actions.githubusercontent.com",
+      "repository": "OpenRAE/rae",
+      "workflow_ref": "OpenRAE/rae/.github/workflows/release-please.yml@refs/heads/main",
+      "signer_workflow": "OpenRAE/rae/.github/workflows/release-please.yml",
+      "reviewer_roles": ["Release", "Security"]
     }
   ],
   "denied_digests": []
