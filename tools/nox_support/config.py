@@ -67,6 +67,21 @@ MAX_LARGE_FILE_KB = "500"
 VERIFY_PROJECT_SYNCED_ENV = "RAES_VERIFY_PROJECT_SYNCED"
 VERIFY_COVERAGE_FILE_ENV = "RAES_VERIFY_COVERAGE_FILE"
 JSON_SCHEMA_WORKERS_ENV = "RAES_JSON_SCHEMA_WORKERS"
+
+# Deterministic CI test sharding (#935). The default-marker suite is partitioned
+# across concurrent shard jobs; the reducer proves completeness before combining
+# coverage. These are the shard producer/reducer seams shared by the workflow.
+SHARD_COUNT_ENV = "RAES_SHARD_COUNT"
+SHARD_INDEX_ENV = "RAES_SHARD_INDEX"
+SHARD_MANIFEST_ENV = "RAES_SHARD_MANIFEST"
+SHARD_SOURCE_SHA_ENV = "RAES_SHARD_SOURCE_SHA"
+COVERAGE_REDUCE_DIR_ENV = "RAES_COVERAGE_REDUCE_DIR"
+# The pytest plugin lives under the repo-root ``tools`` package; the shard
+# session exports the repo root so ``-p tools.pytest_shard_plugin`` imports
+# before the ini ``pythonpath`` is applied.
+SHARD_PLUGIN = "tools.pytest_shard_plugin"
+# The incumbent default-marker selection recorded in every shard manifest.
+DEFAULT_SUITE_EXPRESSION = "not fuzz and not integration and not docker"
 EXPECTED_PYTHON_ENV = "RAES_EXPECTED_PYTHON"
 EXPECT_FREE_THREADED_ENV = "RAES_EXPECT_FREE_THREADED"
 PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV = "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"
