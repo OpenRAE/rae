@@ -7,7 +7,7 @@ plan, a completed audit, a new normative contract, or permission to redesign
 all candidate surfaces in one change.
 
 The controlling decisions already exist in
-[ADR-012](../../decisions/adrs/adr-012-shared-concept-authority-and-aces-extension-discipline.md),
+ADR-012,
 [ADR-049](../../decisions/adrs/adr-049-platform-application-runtime-inventory.md),
 the [controlled-vocabulary specification](../../../specs/concept-authority/controlled-vocabularies.md),
 the [runtime-inventory specification](../../../specs/sdl/runtime-inventory.md),
