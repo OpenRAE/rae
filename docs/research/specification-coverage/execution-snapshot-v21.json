@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-16T00:22:06.634965+00:00",
+  "captured_at": "2026-09-16T04:13:34.240813+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,12 +647,12 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "d86459ed0fb7f5cd5ab89bbf581da753c7bfd9b3f2b91503fd23356427c9879c",
+      "content_sha256": "f572d71709d0ed54616077706454d53e9947eeaaa568a91616b582d0b7af23c5",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "ed351205979c8a80e10962146cc95f8a4019c593459d9e32b4f65aa0aca91f7f",
+      "content_sha256": "98503c81c78137711463b57912beafc38b8ceac8d201da60b15fcca880449613",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
@@ -669,17 +669,18 @@
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
     "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim.",
     "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix.",
-    "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged."
+    "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged.",
+    "Evidence-requirement refinement lineage is covered by the EXP-731 regression suite, not a new claim in this preregistered matrix."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-959-v20",
-  "snapshot_revision": "20.0.0",
+  "raes_revision": "67f041796b28e8d158932f39bfef7a49444f3a73",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-341-v21",
+  "snapshot_revision": "21.0.0",
   "source_state": {
-    "base_revision": "2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e",
+    "base_revision": "67f041796b28e8d158932f39bfef7a49444f3a73",
     "checkout_state": "modified",
-    "implementation_digest": "4dcfb6153100f2000b027ca378e4c22adcb84fd03fc3ad84474fee435e13ee37",
+    "implementation_digest": "732a58e79daa0d3491375de03b24f9c1fdcecd1da287031da2e6d4eedc5e7e34",
     "profile": "python-reference-source/v2"
   }
 }
