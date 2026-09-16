@@ -410,6 +410,7 @@ class ImmediateReporter:
 
 
 def test_policy_lanes_route_commands_and_report_skips(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "fixture-command-routing")
     session = types.SimpleNamespace()
     reporter = ImmediateReporter()
     commands: list[tuple[str, ...]] = []
@@ -1005,7 +1006,7 @@ def test_line_coverage_threshold_is_fixed_at_ninety_percent(
 
 
 @pytest.mark.integration
-def test_make_policy_skips_only_requirement_governance_without_a_uid() -> None:
+def test_make_policy_delegates_requirement_context_to_the_shared_nox_gate() -> None:
     environment = os.environ.copy()
     environment.pop("RAES_REQUIREMENT_UID", None)
     requirement_free = subprocess.run(
@@ -1026,20 +1027,20 @@ def test_make_policy_skips_only_requirement_governance_without_a_uid() -> None:
         text=True,
     ).stdout
 
-    assert requirement_free.rstrip().endswith("-- --skip-requirement")
+    assert "--skip-requirement" not in requirement_free
     assert "--skip-requirement" not in requirement_scoped
 
 
 def test_hook_policy_context_skips_only_requirement_free_branches(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("RAES_REQUIREMENT_UID", raising=False)
-    monkeypatch.setattr(nox_runner, "_git_lines", lambda *_args: ["1104-minimal-coverage-policy"])
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "1104-minimal-coverage-policy")
     assert nox_runner._requirement_aware_policy_args("--staged") == ["--staged", "--skip-requirement"]
 
-    monkeypatch.setattr(nox_runner, "_git_lines", lambda *_args: ["1104-ASR-505-coverage-policy"])
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "1104-ASR-505-coverage-policy")
     assert nox_runner._requirement_aware_policy_args("--staged") == ["--staged"]
 
     monkeypatch.setenv("RAES_REQUIREMENT_UID", "ASR-505")
-    monkeypatch.setattr(nox_runner, "_git_lines", lambda *_args: ["1104-minimal-coverage-policy"])
+    monkeypatch.setattr(nox_runner, "current_requirement_branch", lambda _root: "1104-minimal-coverage-policy")
     assert nox_runner._requirement_aware_policy_args("--staged") == ["--staged"]
 
 

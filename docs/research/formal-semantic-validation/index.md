@@ -134,12 +134,26 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   Fresh production and participant replay retains the release-17 outcomes and
   result digests with no deviations. The dedicated provenance regression suite
   does not promote this retained corpus to universal provenance assurance.
-- [`bundles/retest-v18.json`](bundles/retest-v18.json) is current release 19.0.0.
+- [`bundles/retest-v18.json`](bundles/retest-v18.json) preserves release 19.0.0.
   It binds [`execution-snapshot-v18.json`](execution-snapshot-v18.json) and
   [`analysis-v18.json`](analysis-v18.json) to the combined materialization-attestation
   and EXP-732 provenance implementation. Fresh replay records compiled-representation
   deviations from release 18.0.0 with unchanged outcomes. The retained corpus does
   not establish native backend attestation fidelity or new experimental observations.
+- [`bundles/retest-v19.json`](bundles/retest-v19.json) preserves release 20.0.0.
+  It binds [`execution-snapshot-v19.json`](execution-snapshot-v19.json) and
+  [`analysis-v19.json`](analysis-v19.json) to capture-proof authority integrated
+  with apparatus provenance and materialization attestations. Fresh replay
+  retains release-19 outcomes and digests without expanding claim limits.
+  Earlier issue-1237 captures remain byte-exact in feature commits
+  `2b21b5c88fc60c4545a302f4071cf8b781f04fe3` (release 18) and
+  `c75805c56330d402a52bd7a578785bb343bf3c30` (release 19), while the incoming
+  published captures above retain their original bytes.
+- [`bundles/retest-v20.json`](bundles/retest-v20.json) is current release 21.0.0.
+  It binds [`execution-snapshot-v20.json`](execution-snapshot-v20.json) and
+  [`analysis-v20.json`](analysis-v20.json) to the capture-dimension helper
+  refactor. Fresh replay retains release-20 outcomes and digests with no new
+  claim class; all previously published captures remain unchanged.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -223,6 +237,12 @@ release. Neither branch's historical observation is relabeled as a merged-tree
 observation.
 
 ## Bounded conclusions
+
+Issue #1237's pre-synchronization capture remains in feature commit
+`2d402e4ae922b59d399dbfc336cc2856d153c44a`. It is not selected as current
+evidence. Synchronization preserves the incoming release-17 bytes and records
+the combined source in release 18. Neither branch's earlier observation is
+relabeled as evidence for the merged tree.
 
 The satisfiable witness and subset-minimal unsatisfiable core establish results
 only for the declared finite-domain theory, translation, source, and pinned Z3

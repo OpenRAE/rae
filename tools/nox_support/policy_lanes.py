@@ -121,6 +121,9 @@ def _run_hygiene(
 
 
 def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> None:
+    from tools.nox_support.runner import _requirement_aware_policy_args
+
+    args = tuple(_requirement_aware_policy_args(*args))
     _sync_project(session)
     reporter.run(
         "policy / development artifact lock",

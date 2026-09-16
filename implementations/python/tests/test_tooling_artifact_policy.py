@@ -2794,13 +2794,17 @@ def test_tooling_policy_cli_emits_a_validated_selection(
 
 
 def test_python_closure_main_reports_success_after_showing_a_manifest(capsysbinary: pytest.CaptureFixture) -> None:
-    from tools.python_closure import load_python_closure_profile, main
+    from tools.python_closure import main
 
     profile_id = "public-linux-x86_64-cp314-tools"
-    profile = load_python_closure_profile(REPO_ROOT, profile_id)
+    # Read the expected bytes independently; main still performs the full policy
+    # validation, which must not be duplicated merely to construct the oracle.
+    profiles = _load(REPO_ROOT, PROFILES_PATH)["python_closure_profiles"]
+    (profile,) = [item for item in profiles if item["python_closure_profile_id"] == profile_id]
+    expected_manifest = (REPO_ROOT / profile["wheelhouse_manifest"]).read_bytes()
 
     assert main(["manifest-show", "--profile", profile_id]) == 0
-    assert capsysbinary.readouterr().out == profile.wheelhouse_manifest.read_bytes()
+    assert capsysbinary.readouterr().out == expected_manifest
 
 
 def test_tracked_python_scans_reuse_is_invalidated_by_any_edit(tmp_path: Path) -> None:

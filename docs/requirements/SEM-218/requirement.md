@@ -21,6 +21,12 @@ Current state: identified gap. Honest portability requires normative semantics f
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `1237` (Canonical source sufficiency at substrate admission boundaries)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_compute_substrate.py` (Independent scope and exact-source runtime admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_operational_observation.py` (Authoritative native readback and prior-disclosure reuse)
+- TESTS → TEST `implementations/python/tests/test_issue_1237_source_sufficiency.py` (Substrate binding, runtime source matching, and reuse regressions)
+- TESTS → TEST `implementations/python/tests/test_reference_backend_provisioner.py` (Driver-reported readback rejection without losing recoverable inventory)
+
 - TESTS → TEST `implementations/python/tests/test_issue_1206_review_regressions.py` (Unknown replication remains knowledge while private identities retain exact matching)
 
 - TESTS → TEST `implementations/python/tests/test_issue_1207_policy_ownership.py` (Bounded ownership of the partial-inventory contract delivery)

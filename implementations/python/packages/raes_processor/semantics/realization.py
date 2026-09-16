@@ -29,7 +29,8 @@ from raes_contracts.realization_envelope import (
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
 from raes_contracts.vocabulary import (
     Closure,
-    observation_strength_satisfies,
+    RealizationVerificationScope,
+    observation_requirement_satisfied,
 )
 
 from .artifact_realization import (
@@ -174,9 +175,16 @@ def _compute_substrate_claim_admits(
     if claim is None or claim.disposition.value == "unsupported" or claim.mechanism is None:
         return False
     domain_admitted = requirement.value_domain is None or scalar_in_domain(claim.mechanism, requirement.value_domain)
-    strength_admitted = requirement.required_observation_strength is None or observation_strength_satisfies(
-        claim.observation_strength,
-        requirement.required_observation_strength,
+    # Selection alone is not an observation demand. When corroboration is
+    # required, the substrate mechanism supplies presence, not configuration.
+    observation_required = (
+        requirement.verification_scope is not None or requirement.required_observation_strength is not None
+    )
+    strength_admitted = not observation_required or observation_requirement_satisfied(
+        actual_scope=RealizationVerificationScope.PRESENCE,
+        actual_source=claim.observation_strength,
+        required_scope=requirement.verification_scope,
+        required_source=requirement.required_observation_strength,
     )
     return domain_admitted and strength_admitted
 
