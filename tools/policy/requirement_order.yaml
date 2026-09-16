@@ -416,6 +416,18 @@ ownership:
   # SEM-225 owns common SDL/contract semantics plus the exact runtime, archive,
   # publication and documentation surfaces used by post-materialization reports.
   materialization-provenance:
+    - contracts/provenance/sdl-lineage-ledger-v2.json
+    - contracts/schemas/plans/backend-augmentation-scope-v1.json
+    - contracts/schema-publication/entries/backend-augmentation-scope-v1.json
+    - contracts/fixtures/plans/backend-augmentation-scope-v1/valid/reference.json
+    - contracts/fixtures/plans/backend-augmentation-scope-v1/invalid/partial-coverage.json
+    - docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md
+    - docs/decisions/issue-1242-scenario-scope-preflight.md
+    - implementations/python/packages/raes_backend_protocols/augmentation.py
+    - implementations/python/packages/raes_runtime/backend_augmentation.py
+    - implementations/python/packages/raes_runtime/manager_augmentation.py
+    - specs/sdl/augmentation-scope.md
+    - specs/sdl/sections.md
     - contracts/schemas/artifact-requirements/artifact-requirement-v1.json
     - contracts/schema-publication/entries/artifact-requirement-v1.json
     - contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json

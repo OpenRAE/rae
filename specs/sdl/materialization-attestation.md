@@ -125,6 +125,9 @@ supplied bytes to that identity and to the materialized parent. Run records
 carry these joins in `materialization_attestations`; disclosure references must
 resolve to a record belonging to the same run.
 
-This contract does not introduce a scenario-wide augmentation-permission
-policy, continuous exhaustive host scanning, cryptographic producer proof or
-automatic promotion of observations into author intent.
+Addition permission is governed separately by [augmentation scope](augmentation-scope.md).
+Omission means open; explicit closure is checked before materialization using
+the same in-world effect definition as this report. The attestation does not
+grant permission retrospectively. Neither contract introduces continuous
+exhaustive host scanning, cryptographic producer proof, or automatic promotion
+of observations into author intent.

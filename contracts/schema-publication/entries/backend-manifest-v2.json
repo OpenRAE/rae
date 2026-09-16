@@ -1,9 +1,9 @@
 {
-  "content_hash": "3351eaec2cee5642f52326bcdfb45d74dc7ce89ff055810524d41aef56add47a",
+  "content_hash": "0eee51b8e7efe661c4faf181a0eb39d18a556e8556013c8abf6c1d687f67f2ca",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "3351eaec2cee5642f52326bcdfb45d74dc7ce89ff055810524d41aef56add47a",
-    "summary": "Allow explicit backend-materialization-attestation-v1 negotiation without enabling unsupported backends by default (#1241)."
+    "content_hash": "0eee51b8e7efe661c4faf181a0eb39d18a556e8556013c8abf6c1d687f67f2ca",
+    "summary": "Permit explicit backend-augmentation-scope-v1 negotiation; unsupported implementations do not advertise it (#1242)."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

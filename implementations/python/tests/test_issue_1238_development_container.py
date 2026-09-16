@@ -542,12 +542,12 @@ def test_setup_selects_the_container_profile_for_the_running_platform() -> None:
     assert container_host_profile_id(REPO_ROOT, "linux-x86_64") == CONTAINER_HOST_PROFILE_ID
 
 
-def test_setup_refuses_an_architecture_without_a_qualified_container_profile() -> None:
+@pytest.mark.parametrize("platform_id", ["linux-arm64", "macos-arm64"])
+def test_setup_refuses_an_architecture_without_a_qualified_container_profile(platform_id: str) -> None:
     from tools.devcontainer_setup import DevcontainerSetupError, container_host_profile_id
 
-    for platform_id in ("linux-arm64", "macos-arm64"):
-        with pytest.raises(DevcontainerSetupError, match="no reviewed development container profile"):
-            container_host_profile_id(REPO_ROOT, platform_id)
+    with pytest.raises(DevcontainerSetupError, match="no reviewed development container profile"):
+        container_host_profile_id(REPO_ROOT, platform_id)
 
 
 class _FakeBootstrap:

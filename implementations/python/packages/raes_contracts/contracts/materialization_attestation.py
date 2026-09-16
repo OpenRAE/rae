@@ -23,6 +23,7 @@ class MaterializationPlanModel(ContractModel):
         default="execution", exclude_if=lambda value: value == "execution"
     )
     materialization_source: MaterializationSource | None = Field(default=None, exclude_if=lambda value: value is None)
+    augmentation_scope_required: bool = Field(default=False, strict=True, exclude_if=lambda value: not value)
     operation_id: NonEmptyString | None = Field(default=None, exclude_if=lambda value: value is None)
 
 

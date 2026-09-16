@@ -93,6 +93,51 @@ class RunMaterializationArchive:
     def __init__(self, output_dir: Path) -> None:
         self.output_dir = Path(output_dir)
 
+    def read(self, record):
+        """Resolve only protected, bounded bytes named by a validated archive record."""
+        from raes_contracts.materialization import (
+            MATERIALIZATION_MAX_BYTES,
+            MaterializationSubmission,
+            require_materialization_records,
+        )
+
+        require_materialization_records((record,))
+        relative = Path(record.reference.ref_path)
+        expected = Path("runs") / record.run_id / "attestations" / f"{record.reference.ref_id}.sdl"
+        if (
+            not is_valid_run_id_label(record.run_id)
+            or not is_valid_run_id_label(record.reference.ref_id)
+            or relative != expected
+            or relative.parts[:3] != ("runs", record.run_id, "attestations")
+            or any(component in {".", ".."} for component in relative.parts)
+            or len(relative.parts) != 4
+        ):
+            raise ValueError("invalid materialization archive path")
+        directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            for component in relative.parts[:-1]:
+                child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+                os.close(directory)
+                directory = child
+            descriptor = os.open(relative.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+            with os.fdopen(descriptor, "rb") as handle:
+                info = os.fstat(handle.fileno())
+                if (
+                    not stat.S_ISREG(info.st_mode)
+                    or stat.S_IMODE(info.st_mode) != 0o600
+                    or info.st_size > MATERIALIZATION_MAX_BYTES
+                ):
+                    raise ValueError("materialization archive is not a bounded protected regular file")
+                data = handle.read(MATERIALIZATION_MAX_BYTES + 1)
+        finally:
+            os.close(directory)
+        if (
+            len(data) != record.artifact.size_bytes
+            or hashlib.sha256(data).hexdigest() != record.artifact.checksum.value
+        ):
+            raise ValueError("materialization archive bytes do not match the retained record")
+        return MaterializationSubmission(sdl=data.decode("utf-8"))
+
     def publish(self, content: str) -> MaterializationArchiveRecord:
         from raes.canonical import canonical_materialized_sdl_digest
         from raes.formatting import render_sdl_source

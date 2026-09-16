@@ -3,9 +3,15 @@
 from dataclasses import replace
 from typing import cast
 
-from raes_contracts.materialization import MATERIALIZATION_ATTESTATION_CONTRACT, MaterializationArchive
+from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
+from raes_contracts.materialization import (
+    MATERIALIZATION_ATTESTATION_CONTRACT,
+    MaterializationArchive,
+    MaterializationSource,
+)
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.planner import admit_materialization_submission, validate_materialization_archive_record
+from raes_processor.planner.augmentation_admission import validate_actual_augmentation
 
 from .backend_realization_authority import _RealizationApplyContext
 from .diagnostics import _failure_diagnostic
@@ -18,6 +24,21 @@ def materialization_precondition(
     if request is None:
         return None
     source = getattr(request, "materialization_source", None)
+    required = getattr(request, "augmentation_scope_required", False)
+    if source is not None:
+        try:
+            source = MaterializationSource.model_validate(source.model_dump(mode="json"))
+            required = required or source.augmentation_scope_required
+        except (AttributeError, TypeError, ValueError):
+            return "Materialization reporting requires valid bound source context."
+    if required and (
+        manifest is None
+        or source is None
+        or not {AUGMENTATION_SCOPE_CONTRACT, MATERIALIZATION_ATTESTATION_CONTRACT}.issubset(
+            manifest.supported_contract_versions
+        )
+    ):
+        return "Explicit augmentation permission requires negotiated enforcement and bound source context."
     negotiated = manifest is not None and MATERIALIZATION_ATTESTATION_CONTRACT in manifest.supported_contract_versions
     if not negotiated and source is None:
         return None
@@ -51,6 +72,7 @@ def finalize_materialization(
         admitted = admit_materialization_submission(
             raw.materialization_attestation, request, context.manifest, previous, raw.snapshot
         )
+        validate_actual_augmentation(admitted, context.augmentation)
         record = archive.publish(admitted.sdl)
         validate_materialization_archive_record(admitted, record)
         snapshot = accepted.snapshot.with_entries(

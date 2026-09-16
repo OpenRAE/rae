@@ -1,9 +1,9 @@
 {
-  "content_hash": "2ba1e078b4b621310cddccd9370bb08983418842b8a2f00b2601e93e053243bb",
+  "content_hash": "8aaa6c66e5f9268b75c69e4c6281ed1f76e89d98c0179626d8104e2c59c192ba",
   "contract_id": "backend-profile-v1",
   "last_change": {
-    "content_hash": "2ba1e078b4b621310cddccd9370bb08983418842b8a2f00b2601e93e053243bb",
-    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+    "content_hash": "8aaa6c66e5f9268b75c69e4c6281ed1f76e89d98c0179626d8104e2c59c192ba",
+    "summary": "Permit explicit backend-augmentation-scope-v1 negotiation; unsupported implementations do not advertise it (#1242)."
   },
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft"

@@ -91,6 +91,7 @@ REFERENCE_COMPLETION_TARGETS = {
 }
 
 SECTION_FIELD_COMPLETIONS = {
+    "augmentation_scope": ("default", "scopes"),
     "realization": ("default", "scopes"),
     "nodes": (
         "type",

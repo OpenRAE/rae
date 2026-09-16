@@ -7,12 +7,14 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.materialization import MaterializationArchive
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
+from .backend_augmentation import prepare_auxiliary_augmentation
 from .backend_calls import _BackendCallContext, _call_backend_apply
-from .backend_realization_authority import _RealizationApplyContext
+from .backend_realization_authority import _bind_submitted_plan, _RealizationApplyContext
 from .observation_execution import (
     ObservationRuntime,
     execute_plan_observation_demand,
@@ -59,6 +61,20 @@ def _call_backend_apply_with_observation(
     )
     if admission is not None:
         return ApplyResult(success=False, snapshot=deepcopy(request.snapshot), diagnostics=[admission]), None
+    if (
+        request.manifest is not None
+        and AUGMENTATION_SCOPE_CONTRACT in request.manifest.supported_contract_versions
+        and getattr(request.plan, "observation_demands", ())
+    ):
+        args, realization = _bind_submitted_plan(
+            args, realization or _RealizationApplyContext(manifest=request.manifest), request.operation_id
+        )
+        request = replace(
+            request, plan=realization.operation_plan, operation_id=realization.operation_plan.operation_id
+        )
+        diagnostics = prepare_auxiliary_augmentation(request.runtime, request.plan, request.manifest, request.snapshot)
+        if diagnostics:
+            return ApplyResult(success=False, snapshot=deepcopy(request.snapshot), diagnostics=diagnostics), None
     result = _call_backend_apply(
         method,
         *args,

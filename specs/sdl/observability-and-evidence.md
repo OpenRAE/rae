@@ -7,6 +7,13 @@ runtime families. A future field still has to update `sections.md`,
 `references.md`, the published SDL schemas, the reference implementation,
 fixtures, and tests.
 
+[`augmentation_scope`](augmentation-scope.md) separately controls permission
+for in-world additions needed by capture or other apparatus. **Omission means
+open.** Authors must explicitly forbid additions: a closed default would impose
+a large, unexpected burden by requiring them to anticipate every backend's
+implementation details. Closed scope cannot be bypassed by silently installing
+instrumentation or omitting required evidence while claiming success.
+
 ## Plane Rule
 
 An SDL authoring construct that makes an observability or evidence claim MUST
