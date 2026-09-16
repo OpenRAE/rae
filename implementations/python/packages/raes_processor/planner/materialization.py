@@ -27,7 +27,10 @@ def planned_materialization_source(
                 code="augmentation.scope-unsupported",
                 domain="augmentation",
                 address="/augmentation_scope",
-                message="Explicit augmentation permission requires negotiated scope enforcement and materialization reporting.",
+                message=(
+                    "Explicit augmentation permission requires negotiated scope enforcement "
+                    "and materialization reporting."
+                ),
             )
         )
     if (

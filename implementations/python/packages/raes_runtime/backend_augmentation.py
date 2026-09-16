@@ -1,22 +1,50 @@
 """Pure scope admission at the common backend invocation boundary."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES
-from raes_processor.planner.augmentation_admission import admit_augmentation_preparation, compose_augmentation_admission
+from raes_processor.planner.augmentation_admission import (
+    AugmentationAdmission,
+    admit_augmentation_preparation,
+    compose_augmentation_admission,
+)
+
+from .backend_realization_authority import _RealizationApplyContext
+
+if TYPE_CHECKING:
+    from raes_backend_protocols.capabilities import BackendManifest
+    from raes_contracts.materialization import MaterializationArchive
+    from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+    from raes_contracts.runtime_state import RuntimeSnapshot
+
+_SCOPE_ADDRESS = "/augmentation_scope"
 
 
-def compose_augmentation_invocation(context, previous, archive, *, preceding=None):
+def compose_augmentation_invocation(
+    context: _RealizationApplyContext,
+    previous: RuntimeSnapshot,
+    archive: MaterializationArchive | None,
+    *,
+    preceding: AugmentationAdmission | None = None,
+) -> tuple[_RealizationApplyContext, list[Diagnostic]]:
     """Retain prior producer ownership in the common cumulative SDL expectation."""
     if context.augmentation is None or not context.augmentation.is_valid:
         return context, []
     try:
         admitted = compose_augmentation_admission(
-            context.augmentation, context.operation_plan, previous, archive, preceding=preceding
+            context.augmentation,
+            context.operation_plan,
+            previous,
+            archive,
+            preceding=preceding.cumulative_content if preceding is not None else None,
         )
         return replace(context, augmentation=admitted), []
     except Exception:
@@ -24,13 +52,18 @@ def compose_augmentation_invocation(context, previous, archive, *, preceding=Non
             Diagnostic(
                 code="augmentation.composition-invalid",
                 domain="augmentation",
-                address="/augmentation_scope",
-                message="Prospective effects cannot be composed with authenticated prior producer effects; this invocation attempted no mutation.",
+                address=_SCOPE_ADDRESS,
+                message=(
+                    "Prospective effects cannot be composed with authenticated prior producer effects; "
+                    "this invocation attempted no mutation."
+                ),
             )
         ]
 
 
-def prepare_augmentation_invocation(method, previous, context):
+def prepare_augmentation_invocation(
+    method: Callable[..., object] | None, previous: RuntimeSnapshot, context: _RealizationApplyContext
+) -> tuple[_RealizationApplyContext, list[Diagnostic]]:
     """No producer callback may mutate while discovering its prospective effects."""
     manifest, request = context.manifest, context.operation_plan
     if request is None or manifest is None or AUGMENTATION_SCOPE_CONTRACT not in manifest.supported_contract_versions:
@@ -53,17 +86,23 @@ def prepare_augmentation_invocation(method, previous, context):
             Diagnostic(
                 code="augmentation.preparation-invalid",
                 domain="augmentation",
-                address="/augmentation_scope",
-                message="Backend cannot provide a complete, bound read-only augmentation preparation; this invocation attempted no mutation.",
+                address=_SCOPE_ADDRESS,
+                message=(
+                    "Backend cannot provide a complete, bound read-only augmentation preparation; "
+                    "this invocation attempted no mutation."
+                ),
             )
         ]
     return replace(context, augmentation=admitted), list(admitted.diagnostics)
 
 
-def prepare_auxiliary_augmentation(producer, request, manifest, previous):
+def prepare_auxiliary_augmentation(
+    producer: object,
+    request: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    manifest: BackendManifest | None,
+    previous: RuntimeSnapshot,
+) -> list[Diagnostic]:
     """Hooks without an attested materialization boundary must be out-of-world."""
-    from .backend_realization_authority import _RealizationApplyContext
-
     if manifest is None or AUGMENTATION_SCOPE_CONTRACT not in manifest.supported_contract_versions:
         return []
     # Only the method owner matters here; preparation never invokes collect/initialize.
@@ -76,8 +115,11 @@ def prepare_auxiliary_augmentation(producer, request, manifest, previous):
             Diagnostic(
                 code="augmentation.phase-unattested",
                 domain="augmentation",
-                address="/augmentation_scope",
-                message="This hook needs in-world effects without an attested materialization boundary; materialize its apparatus in an admitted plan phase first.",
+                address=_SCOPE_ADDRESS,
+                message=(
+                    "This hook needs in-world effects without an attested materialization boundary; "
+                    "materialize its apparatus in an admitted plan phase first."
+                ),
             )
         ]
     return diagnostics

@@ -45,12 +45,20 @@ def backend_input_violation(
         ).conformant:
             return "Backend call input exceeds the admitted portable value bounds."
         if isinstance(value, (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)):
-            if type(value.augmentation_scope_required) is not bool:
-                return "Operation plan scope authorization must be a canonical boolean."
-            if not isinstance(value.diagnostics, (list, tuple)) or any(
-                not isinstance(diagnostic, Diagnostic) or diagnostic.is_error for diagnostic in value.diagnostics
-            ):
-                return "An invalid operation plan cannot authorize backend execution."
-            if value.purpose != "execution":
-                return "A descriptive inspection plan cannot authorize backend execution."
+            invalid = _operation_plan_violation(value)
+            if invalid:
+                return invalid
     return None
+
+
+def _operation_plan_violation(value: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str | None:
+    invalid = None
+    if type(value.augmentation_scope_required) is not bool:
+        invalid = "Operation plan scope authorization must be a canonical boolean."
+    elif not isinstance(value.diagnostics, (list, tuple)) or any(
+        not isinstance(diagnostic, Diagnostic) or diagnostic.is_error for diagnostic in value.diagnostics
+    ):
+        invalid = "An invalid operation plan cannot authorize backend execution."
+    elif value.purpose != "execution":
+        invalid = "A descriptive inspection plan cannot authorize backend execution."
+    return invalid

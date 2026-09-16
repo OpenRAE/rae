@@ -28,6 +28,7 @@ from uuid import uuid4
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
+    from raes_contracts.materialization import MaterializationSubmission
 
 RUN_ID_LABEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 
@@ -82,6 +83,21 @@ def atomic_write_json_artifact(path: Path, payload: Mapping[str, Any]) -> None:
         raise
 
 
+def _materialization_record_path(record: MaterializationArchiveRecord) -> Path:
+    relative = Path(record.reference.ref_path)
+    expected = Path("runs") / record.run_id / "attestations" / f"{record.reference.ref_id}.sdl"
+    if (
+        not is_valid_run_id_label(record.run_id)
+        or not is_valid_run_id_label(record.reference.ref_id)
+        or relative != expected
+        or relative.parts[:3] != ("runs", record.run_id, "attestations")
+        or any(component in {".", ".."} for component in relative.parts)
+        or len(relative.parts) != 4
+    ):
+        raise ValueError("invalid materialization archive path")
+    return relative
+
+
 class RunMaterializationArchive:
     """Publish admitted SDL through the run archive's protected byte boundary.
 
@@ -93,7 +109,7 @@ class RunMaterializationArchive:
     def __init__(self, output_dir: Path) -> None:
         self.output_dir = Path(output_dir)
 
-    def read(self, record):
+    def read(self, record: MaterializationArchiveRecord) -> MaterializationSubmission:
         """Resolve only protected, bounded bytes named by a validated archive record."""
         from raes_contracts.materialization import (
             MATERIALIZATION_MAX_BYTES,
@@ -102,17 +118,7 @@ class RunMaterializationArchive:
         )
 
         require_materialization_records((record,))
-        relative = Path(record.reference.ref_path)
-        expected = Path("runs") / record.run_id / "attestations" / f"{record.reference.ref_id}.sdl"
-        if (
-            not is_valid_run_id_label(record.run_id)
-            or not is_valid_run_id_label(record.reference.ref_id)
-            or relative != expected
-            or relative.parts[:3] != ("runs", record.run_id, "attestations")
-            or any(component in {".", ".."} for component in relative.parts)
-            or len(relative.parts) != 4
-        ):
-            raise ValueError("invalid materialization archive path")
+        relative = _materialization_record_path(record)
         directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
         try:
             for component in relative.parts[:-1]:

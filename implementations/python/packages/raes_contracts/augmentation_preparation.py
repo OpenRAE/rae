@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -13,6 +13,11 @@ from .materialization import MATERIALIZATION_MAX_BYTES, MaterializationDigest
 from .observation_demand import SemanticScope
 from .realization_structure import validate_realization_value
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
+
+if TYPE_CHECKING:
+    from .contracts import BackendManifestV2Model
+    from .planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+    from .runtime_state import RuntimeSnapshot
 
 RequirementReference = Annotated[
     str, Field(min_length=1, max_length=4096, pattern=r"^(?:backend-operational|/(?:[^~]|~[01])*)$")
@@ -54,13 +59,25 @@ class AugmentationPreparation(ContractModel):
         return self
 
     @classmethod
-    def for_request(cls, request, manifest, previous, *, content, effects=()) -> AugmentationPreparation:
+    def for_request(
+        cls,
+        request: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+        manifest: BackendManifestV2Model,
+        previous: RuntimeSnapshot,
+        *,
+        content: str,
+        effects: tuple[AugmentationEffect, ...] = (),
+    ) -> AugmentationPreparation:
         return cls(
             binding_digest=augmentation_binding_digest(request, manifest, previous), content=content, effects=effects
         )
 
 
-def augmentation_binding_digest(request, manifest, previous) -> str:
+def augmentation_binding_digest(
+    request: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    manifest: BackendManifestV2Model,
+    previous: RuntimeSnapshot,
+) -> str:
     """Seal the whole plan, including source, run, operation and producer identity."""
     from .plan_projection import runtime_plan_digest
     from .realization_preparation import preparation_snapshot_digest

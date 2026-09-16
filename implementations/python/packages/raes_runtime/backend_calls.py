@@ -87,16 +87,17 @@ def _prepared_backend_result(
         realization, baseline_snapshot, call.materialization_archive
     )
     if composition_diagnostics:
-        return ApplyResult(False, baseline_snapshot, diagnostics=[*diagnostics, *composition_diagnostics])
-    result = _invoke_backend_apply(
-        method,
-        args,
-        address=address,
-        snapshot=snapshot,
-        baseline_snapshot=baseline_snapshot,
-        realization=deepcopy(realization),
-        call=call,
-    )
+        result = ApplyResult(False, baseline_snapshot, diagnostics=composition_diagnostics)
+    else:
+        result = _invoke_backend_apply(
+            method,
+            args,
+            address=address,
+            snapshot=snapshot,
+            baseline_snapshot=baseline_snapshot,
+            realization=deepcopy(realization),
+            call=call,
+        )
     result.diagnostics = [*diagnostics, *result.diagnostics]
     return result
 

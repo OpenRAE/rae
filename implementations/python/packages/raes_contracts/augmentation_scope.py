@@ -59,11 +59,9 @@ def effective_augmentation_scope(
     if policy is None:
         return AugmentationScopeDecision("open", "")
     tokens = scope.split("/")
-    owner = (
-        namespace
-        if namespace is not None
-        else (tuple(tokens[2].replace("~1", "/").replace("~0", "~").split(".")[:-1]) if len(tokens) > 2 else ())
-    )
+    owner = namespace
+    if owner is None:
+        owner = tuple(tokens[2].replace("~1", "/").replace("~0", "~").split(".")[:-1]) if len(tokens) > 2 else ()
     layers: dict[tuple[str, ...], list[AugmentationScopeRule]] = {(): []}
     for rule in policy.scopes:
         if owner[: len(rule.namespace)] == rule.namespace and semantic_address_contains(rule.scope, scope):

@@ -5,13 +5,18 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import cache
+from typing import TYPE_CHECKING
 
 from raes import admit_instantiated_scenario, parse_sdl
 from raes.observation_scope import semantic_scope_namespace
 from raes.prospective_content import admit_prospective_content
 from raes.scenario import ScenarioContent
 from raes_backend_protocols.manifest import backend_manifest_v2_model
-from raes_contracts.augmentation_preparation import AugmentationPreparation, augmentation_binding_digest
+from raes_contracts.augmentation_preparation import (
+    AugmentationEffect,
+    AugmentationPreparation,
+    augmentation_binding_digest,
+)
 from raes_contracts.augmentation_scope import (
     AugmentationScopeDecision,
     AugmentationScopePolicy,
@@ -36,6 +41,13 @@ from ..compiler.materialization_origins import (
 from ..semantics.realization_concerns import registered_realization_concern_descriptors
 from .materialization_admission import validate_materialization_archive_record
 
+if TYPE_CHECKING:
+    from raes.materialization_provenance import MaterializationOrigin
+    from raes_backend_protocols.capabilities import BackendManifest
+    from raes_contracts.materialization import MaterializationArchive, MaterializationSubmission
+    from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+    from raes_contracts.runtime_state import RuntimeSnapshot
+
 
 @dataclass(frozen=True)
 class AugmentationAdmission:
@@ -48,7 +60,9 @@ class AugmentationAdmission:
         return not self.diagnostics
 
 
-def validate_actual_augmentation(submission, admission: AugmentationAdmission | None) -> None:
+def validate_actual_augmentation(
+    submission: MaterializationSubmission, admission: AugmentationAdmission | None
+) -> None:
     """Actual SDL must match the admitted prospective world, not a widened policy."""
     if admission is None:
         return
@@ -60,7 +74,14 @@ def validate_actual_augmentation(submission, admission: AugmentationAdmission | 
         raise ValueError("actual effects differ from admitted prospective SDL")
 
 
-def compose_augmentation_admission(admission, request, previous, archive, *, preceding=None):
+def compose_augmentation_admission(
+    admission: AugmentationAdmission,
+    request: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    previous: RuntimeSnapshot,
+    archive: MaterializationArchive | None,
+    *,
+    preceding: ScenarioContent | None = None,
+) -> AugmentationAdmission:
     """Compose phase-owned changes over the authenticated preceding common SDL."""
     source = request.materialization_source
     original = parse_bounded_json_object(source.snapshot, max_bytes=MATERIALIZATION_MAX_BYTES)["scenario"]
@@ -85,7 +106,12 @@ def compose_augmentation_admission(admission, request, previous, archive, *, pre
     return replace(admission, cumulative_content=compose_materialization_content(original, preceding, local))
 
 
-def admit_augmentation_preparation(report, request, manifest, previous) -> AugmentationAdmission:
+def admit_augmentation_preparation(
+    report: AugmentationPreparation,
+    request: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    manifest: BackendManifest,
+    previous: RuntimeSnapshot,
+) -> AugmentationAdmission:
     """Reject incomplete/unbound reports; render refusals only from resolved facts."""
     if not validate_realization_value(report, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
         raise ValueError("prospective report exceeds portable bounds")
@@ -161,7 +187,12 @@ def _require_requirement_references(references: tuple[str, ...], resolve: ScopeR
         resolve(reference)
 
 
-def _scope_decision(policy, location, namespace, source_scope) -> AugmentationScopeDecision:
+def _scope_decision(
+    policy: AugmentationScopePolicy | None,
+    location: str,
+    namespace: tuple[str, ...],
+    source_scope: ScopeResolver,
+) -> AugmentationScopeDecision:
     decision = effective_augmentation_scope(policy, location, namespace=namespace)
     if policy is None or decision.permission == "closed":
         return decision
@@ -174,7 +205,13 @@ def _scope_decision(policy, location, namespace, source_scope) -> AugmentationSc
 
 
 def _effect_diagnostics(
-    effect, difference, locations, policy, source_scope, *, ordinary_selection
+    effect: AugmentationEffect,
+    difference: MaterializationOrigin,
+    locations: tuple[tuple[str, tuple[str, ...]], ...],
+    policy: AugmentationScopePolicy | None,
+    source_scope: ScopeResolver,
+    *,
+    ordinary_selection: bool,
 ) -> tuple[Diagnostic, ...]:
     for location, namespace in locations:
         if location == difference.field_pointer and ordinary_selection:
@@ -186,14 +223,21 @@ def _effect_diagnostics(
                     code="augmentation.scope-closed",
                     domain="augmentation",
                     address=difference.field_pointer,
-                    message=f"Requirement {reference[:120]} needs {difference.change} {difference.field_pointer[:160]}; augmentation scope {decision.governing_scope[:120] or '/'} is closed.",
+                    message=(
+                        f"Requirement {reference[:120]} needs {difference.change} {difference.field_pointer[:160]}; "
+                        f"augmentation scope {decision.governing_scope[:120] or '/'} is closed."
+                    ),
                 )
                 for reference in effect.requirement_refs
             )
     return ()
 
 
-def _ordinary_selection(difference, original, request) -> bool:
+def _ordinary_selection(
+    difference: MaterializationOrigin,
+    original: ScenarioContent,
+    request: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+) -> bool:
     """Selecting a delegated platform is not installing apparatus or content."""
     if difference.change != "selected":
         return False

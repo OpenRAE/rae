@@ -1,10 +1,9 @@
 """Shared runtime planning contracts and safe planned-resource readers.
 
-Backend and provisioner implementations should use the named
-``planned_*`` accessors in this module instead of traversing a
-:class:`PlannedResource` payload directly.  The accessors are total, perform no
-validation or normalization, and return ``None`` when a requested surface is
-missing or does not apply to the resource's domain and type.
+Backend and provisioner implementations should use the named ``planned_*``
+accessors instead of traversing a :class:`PlannedResource` payload directly.
+They perform no validation or normalization and return ``None`` when a requested
+surface is missing or does not apply to the resource's domain and type.
 """
 
 from __future__ import annotations

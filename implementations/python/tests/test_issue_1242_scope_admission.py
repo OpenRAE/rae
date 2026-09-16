@@ -106,8 +106,9 @@ def test_unbound_incomplete_or_permission_changing_reports_are_refused(tamper):
         request = replace(request, operation_id="other-operation")
     elif tamper == "effects":
         report = report.model_copy(update={"effects": ()})
+    previous = RuntimeSnapshot()
     with pytest.raises(ValueError):
-        admit_augmentation_preparation(report, request, execution.manifest, RuntimeSnapshot())
+        admit_augmentation_preparation(report, request, execution.manifest, previous)
 
 
 def test_scope_checks_all_impacts_not_only_installation_location():

@@ -120,11 +120,17 @@ def compose_materialization_content(
     return admitted
 
 
-def _compose_owned(base, preceding, local, path, profiles):
+def _compose_owned(base: Any, preceding: Any, local: Any, path: tuple[str, ...], profiles: _CollectionProfiles) -> Any:
     if type(local) is type(base) and local == base:
         return preceding
     if type(preceding) is type(base) and preceding == base:
         return local
+    return _compose_changed_containers(base, preceding, local, path, profiles)
+
+
+def _compose_changed_containers(
+    base: Any, preceding: Any, local: Any, path: tuple[str, ...], profiles: _CollectionProfiles
+) -> Any:
     if all(isinstance(value, dict) for value in (base, preceding, local)):
         merged = {}
         for key in base.keys() | preceding.keys() | local.keys():
@@ -137,20 +143,31 @@ def _compose_owned(base, preceding, local, path, profiles):
     if all(isinstance(value, list) for value in (base, preceding, local)) and (
         identity := _collection_identity(path, profiles)
     ):
-        original, prior, proposed = (_indexed(value, identity) for value in (base, preceding, local))
-        merged = []
-        for key in dict.fromkeys((*prior, *proposed, *original)):
-            value = _compose_owned(
-                original.get(key, (0, _ABSENT))[1],
-                prior.get(key, (0, _ABSENT))[1],
-                proposed.get(key, (0, _ABSENT))[1],
-                (*path, str(len(merged))),
-                profiles,
-            )
-            if value is not _ABSENT:
-                merged.append(value)
-        return merged
+        return _compose_owned_members(base, preceding, local, path, profiles, identity)
     raise ValueError("prospective effects overlap another producer's ownership")
+
+
+def _compose_owned_members(
+    base: list[object],
+    preceding: list[object],
+    local: list[object],
+    path: tuple[str, ...],
+    profiles: _CollectionProfiles,
+    identity: tuple[str, ...],
+) -> list[object]:
+    original, prior, proposed = (_indexed(value, identity) for value in (base, preceding, local))
+    merged = []
+    for key in dict.fromkeys((*prior, *proposed, *original)):
+        value = _compose_owned(
+            original.get(key, (0, _ABSENT))[1],
+            prior.get(key, (0, _ABSENT))[1],
+            proposed.get(key, (0, _ABSENT))[1],
+            (*path, str(len(merged))),
+            profiles,
+        )
+        if value is not _ABSENT:
+            merged.append(value)
+    return merged
 
 
 def materialization_node_payloads_match(name: str, described: object, observed: object) -> bool:

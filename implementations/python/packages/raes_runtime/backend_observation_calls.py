@@ -87,6 +87,12 @@ def _call_backend_apply_with_observation(
             information_state_context_resolver=information_state_context_resolver,
         ),
     )
+    return _apply_observation_result(result, request)
+
+
+def _apply_observation_result(
+    result: ApplyResult, request: _ObservationApplyRequest
+) -> tuple[ApplyResult, PreparedObservationExecution | None]:
     execution = None
     if result.success:
         execution, diagnostic = execute_plan_observation_demand(

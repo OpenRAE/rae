@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.contracts import (
     ExperimentStochasticControlModel,
     ParticipantInformationStateContextResolver,
@@ -50,7 +51,7 @@ class _RuntimeApplyState:
     started_evaluator: bool = False
     failure: ApplyResult | None = None
     materialization_attestation: MaterializationSubmission | None = None
-    augmentation_previews: dict = field(default_factory=dict)
+    augmentation_previews: dict[RuntimeDomain, AugmentationPreparation] = field(default_factory=dict)
 
 
 class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
@@ -129,6 +130,9 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
         if precondition_failure is not None:
             return precondition_failure
 
+        return self._apply_prepared_execution(execution_plan, diagnostics)
+
+    def _apply_prepared_execution(self, execution_plan: ExecutionPlan, diagnostics: list[Diagnostic]) -> ApplyResult:
         execution_plan, previews, scope_diagnostics = prepare_execution_augmentation(
             execution_plan, self._target, self._snapshot, self._materialization_archive
         )

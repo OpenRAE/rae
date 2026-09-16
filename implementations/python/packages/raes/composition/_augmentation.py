@@ -1,5 +1,7 @@
 """Preserve imported author restrictions through the canonical rewrite seam."""
 
+from typing import Any
+
 from raes_contracts.augmentation_scope import AugmentationScopePolicy, AugmentationScopeRule
 from raes_contracts.realization_structure import semantic_address_contains
 
@@ -7,7 +9,7 @@ from .._composition_provenance import prefixed_scope_pointer
 from ..observation_scope import resolve_observation_scope
 
 
-def rewrite_augmentation_scope(payload: dict, symbols: dict, namespace: str) -> None:
+def rewrite_augmentation_scope(payload: dict[str, Any], symbols: dict[str, dict[str, str]], namespace: str) -> None:
     raw = payload.get("augmentation_scope")
     if raw is None:
         return
@@ -28,7 +30,7 @@ def rewrite_augmentation_scope(payload: dict, symbols: dict, namespace: str) -> 
     ).model_dump(mode="python")
 
 
-def _rewritten_scope(scope: str, payload: dict, symbols: dict) -> str:
+def _rewritten_scope(scope: str, payload: dict[str, Any], symbols: dict[str, dict[str, str]]) -> str:
     if not scope.startswith("/forwarding_agents/"):
         return prefixed_scope_pointer(scope, symbols=symbols)
     found, canonical = resolve_observation_scope(payload, scope)
@@ -55,7 +57,7 @@ def _rewritten_scope(scope: str, payload: dict, symbols: dict) -> str:
     raise ValueError("augmentation scope has no stable forwarding-agent identity")
 
 
-def merge_augmentation_scope(root: dict, incoming: dict) -> None:
+def merge_augmentation_scope(root: dict[str, Any], incoming: dict[str, Any]) -> None:
     if incoming.get("augmentation_scope") is None:
         return
     local = AugmentationScopePolicy.model_validate(root.get("augmentation_scope") or {})

@@ -236,8 +236,9 @@ def test_composition_uses_native_member_identity_and_rejects_overlapping_ownersh
     assert {service.name for service in combined.nodes["host"].services} == {"original", "collector", "listener"}
     with pytest.raises(ValueError, match="overlap"):
         compose_materialization_content(base, prior, prior)
+    removed = admit_prospective_content({"name": "scope", "nodes": {}})
     with pytest.raises(ValueError, match="overlap"):
-        compose_materialization_content(base, prior, admit_prospective_content({"name": "scope", "nodes": {}}))
+        compose_materialization_content(base, prior, removed)
 
 
 @pytest.mark.parametrize("overlap", [False, True])
@@ -264,7 +265,8 @@ def test_manager_composes_all_phases_before_mutation_and_preserves_cumulative_wo
     )
     execution = plan(execution.model, manifest, scope=PlanScope(run_id="run-1", target_name="scope"))
     assert execution.is_valid, execution.diagnostics
-    assert execution.evaluation.actionable_operations and execution.orchestration.actionable_operations
+    assert execution.evaluation.actionable_operations
+    assert execution.orchestration.actionable_operations
     calls = []
 
     class CumulativeReportingMixin:
@@ -305,10 +307,12 @@ def test_manager_composes_all_phases_before_mutation_and_preserves_cumulative_wo
     result = manager.apply(execution)
     assert result.success is not overlap, result.diagnostics
     if overlap:
-        assert provisioner.calls == 0 and calls == []
+        assert provisioner.calls == 0
+        assert calls == []
         assert any(item.code == "augmentation.composition-invalid" for item in result.diagnostics)
     else:
-        assert provisioner.calls == 1 and calls == ["evaluation-start", "orchestration-start"]
+        assert provisioner.calls == 1
+        assert calls == ["evaluation-start", "orchestration-start"]
         assert len(result.snapshot.materialization_attestations) == 3
         assert parse_sdl(result.materialization_attestation.sdl).nodes["host"].services[0].name == "metrics"
 
@@ -331,5 +335,6 @@ def test_prior_attestation_read_refuses_corruption_and_unsafe_paths(tmp_path, da
         record = record.model_copy(
             update={"reference": record.reference.model_copy(update={"ref_path": "/tmp/foreign.sdl"})}
         )
+    archive = RunMaterializationArchive(tmp_path)
     with pytest.raises((ValueError, OSError)):
-        RunMaterializationArchive(tmp_path).read(record)
+        archive.read(record)
