@@ -24,6 +24,7 @@ Different experiments may need to add or tighten evidence requirements without c
 - TESTS → TEST `implementations/python/tests/test_observability_evidence_conformance.py` (Tests verify capture-window and measurement-channel refinements preserve authored and evidence references)
 - IMPLEMENTS → GITHUB_ISSUE `341` (Issue #341 - Evidence Requirement Refinement And Extension)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py` (Public experiment-contract facade for evidence-requirement relations)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_evidence_requirement_exports.py` (Evidence-requirement facade exports extracted to keep the public contract surface within static-analysis limits)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Governed public evidence-requirement relation exports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_evidence_refinement.py` (Typed scoped relation, exact lineage resolution, and governed monotone refinement validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_evidence.py` (Evidence-contract public relation surface)
