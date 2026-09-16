@@ -31,6 +31,18 @@
       "reviewer_roles": ["Release", "Security"]
     },
     {
+      "policy_id": "oci-graph-v1",
+      "subject": "oci-image",
+      "status": "active",
+      "accepted_evidence": [
+        "oci-index-digest",
+        "oci-platform-graph-digests",
+        "absent-signature-review",
+        "reviewed-consumer-reference"
+      ],
+      "reviewer_roles": ["Backend", "Security"]
+    },
+    {
       "policy_id": "oci-input-v1",
       "subject": "oci-image",
       "status": "active",
