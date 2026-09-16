@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import (
@@ -18,6 +19,7 @@ from raes_contracts.planning import (
 )
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import realization_authority_diagnostics
+from raes_processor.planner.augmentation_admission import AugmentationAdmission
 
 from .diagnostics import _failure_diagnostic
 
@@ -34,6 +36,8 @@ class _RealizationApplyContext:
     resource_targets: frozenset[str] = frozenset()
     stop_domain: RuntimeDomain | None = None
     completion_plan: ProvisioningPlan | None = None
+    augmentation: AugmentationAdmission | None = None
+    expected_augmentation: AugmentationPreparation | None = None
 
 
 def _apply_authority_diagnostics(

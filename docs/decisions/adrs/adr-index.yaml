@@ -364,7 +364,7 @@ adrs:
     pin: 69f90581b2bcedc12bfb7ed8aa688787d7a0d9aa4cc49a90f8c631ecbae8a356
   - id: ADR-066
     path: docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md
-    pin: 5d061a0667b2505d311803adf94e507781c4ba70550892bbfbe50cc82c4120ac
+    pin: 98945754dae6d7df7eb21dd2a8d9dc938838d514e79fc42af7874dea8b63d764
     amendments:
       - date: 2026-06-23
         ref: "#335"
@@ -372,6 +372,9 @@ adrs:
       - date: 2026-08-01
         ref: "#1043"
         summary: "Separated forwarding-agent ownership, realization corroboration, evidence binding, and operational behavior claims."
+      - date: 2026-09-16
+        ref: "#1242"
+        summary: "Added binding open-by-default augmentation scope, explicit author restrictions, pre-materialization refusal, and the author-burden rationale."
   - id: ADR-068
     path: docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md
     pin: 12e6d644f7a90d50956964d8f0608737f9b4d8c7627819419a69974184c2781f

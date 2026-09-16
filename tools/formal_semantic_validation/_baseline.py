@@ -151,13 +151,16 @@ def _selected_baseline_manifest(
         "19.0.0",
         "20.0.0",
         "21.0.0",
+        "22.0.0",
+        "23.0.0",
+        "24.0.0",
     }
     expected_protocol_path = (
         "docs/research/formal-semantic-validation/protocol-v2.json"
         if baseline_revision in v2_revisions
         else "docs/research/formal-semantic-validation/protocol-v1.json"
     )
-    if baseline_revision in {"16.0.0", "17.0.0", "18.0.0", "19.0.0", "20.0.0", "21.0.0"}:
+    if baseline_revision in {"16.0.0", "17.0.0", "18.0.0", "19.0.0", "20.0.0", "21.0.0", "22.0.0", "23.0.0", "24.0.0"}:
         expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
     elif baseline_revision in v2_revisions:
         expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
