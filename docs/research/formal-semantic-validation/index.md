@@ -154,12 +154,18 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v20.json`](analysis-v20.json) to the capture-dimension helper
   refactor. Fresh replay retains release-20 outcomes and digests with no new
   claim class; all previously published captures remain unchanged.
-- [`bundles/retest-v21.json`](bundles/retest-v21.json) is current release 22.0.0.
+- [`bundles/retest-v21.json`](bundles/retest-v21.json) preserves release 22.0.0.
   It binds [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
   [`analysis-v21.json`](analysis-v21.json) to the integrated capture-proof,
   capture-dimension, and EXP-731 refinement implementation. Fresh replay
   retains release-21 outcomes and digests without expanding the formal claim
   set; every earlier release remains byte-exact.
+- [`bundles/retest-v22.json`](bundles/retest-v22.json) is current release 23.0.0.
+  It binds [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
+  [`analysis-v22.json`](analysis-v22.json) to the issue #1223 reviewed OCI
+  mirror and pre-seed admission boundary. That work does not participate in this
+  corpus, so fresh replay retains release-22 outcomes and digests with no new
+  claim class; every earlier release remains byte-exact.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.

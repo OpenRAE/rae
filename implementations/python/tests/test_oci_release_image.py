@@ -390,3 +390,28 @@ def test_import_admits_then_loads_then_reverifies(tmp_path, monkeypatch) -> None
 
     assert order == ["verify-layout", "import", "verify-daemon"]
     assert reference == f"{module.PRESEED_LOCAL_REPOSITORY}:{_INDEX_DIGEST.removeprefix('sha256:')}"
+
+
+def test_module_is_runnable_as_a_script_from_the_repository_root() -> None:
+    """The release lane invokes this file as a script, not as a package import.
+
+    Run that way, `sys.path[0]` is `tools/` rather than the repository root, so
+    the module's own package imports have to be made resolvable by the entry
+    point itself.
+    """
+
+    import sys
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[3]
+    completed = subprocess.run(
+        [sys.executable, "tools/oci_release_image.py", "--help"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "export" in completed.stdout and "import" in completed.stdout

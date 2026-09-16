@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Admission boundary for the reviewed release-test OCI image.
 
 Acquisition location and image identity are separate concerns. The identity is
@@ -26,7 +27,14 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-from tools.oci_image_layout import LayoutRejected, LockedPlatformGraph, OciDescriptor, verify_layout
+# The release lane runs this file as a script, so `sys.path[0]` is `tools/`
+# rather than the repository root and the package imports below would not
+# resolve. Every other tool entry point in this repository does the same.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.oci_image_layout import LayoutRejected, LockedPlatformGraph, OciDescriptor, verify_layout  # noqa: E402
 
 # The reviewed lock selection this module admits.
 RELEASE_TEST_IMAGE_ARTIFACT_ID = "release-test-alpine"
