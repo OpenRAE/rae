@@ -176,6 +176,7 @@ def _run_pytest(
     append_coverage: bool = False,
     finalize_coverage: bool = False,
     parallel: bool = False,
+    extra_env: dict[str, str] | None = None,
 ) -> None:
     _sync_project(session)
     normalized_args = [
@@ -185,9 +186,9 @@ def _run_pytest(
     command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
     if parallel:
         command.extend(["-n", "auto", "--maxprocesses=8", "--dist=worksteal"])
-    coverage_env: dict[str, str] | None = None
+    coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
     if coverage_file is not None:
-        coverage_env = {"COVERAGE_FILE": str(coverage_file)}
+        coverage_env = {**(coverage_env or {}), "COVERAGE_FILE": str(coverage_file)}
         command.extend(["--cov", "--cov-config=pyproject.toml", "--cov-report="])
         if append_coverage:
             command.append("--cov-append")

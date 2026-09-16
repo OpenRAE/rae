@@ -229,7 +229,7 @@ def test_canonical_verifier_requires_and_checks_out_an_exact_commit_sha() -> Non
     assert inputs["ref"]["type"] == "string"
     assert workflow["permissions"] == {"contents": "read"}
 
-    job = workflow["jobs"]["verify"]
+    job = workflow["jobs"]["checks"]
     checkout = job["steps"][0]
     assert checkout["with"]["fetch-depth"] == 0
     assert checkout["with"]["ref"] == "${{ inputs.ref }}"
@@ -245,55 +245,83 @@ def test_canonical_verifier_requires_and_checks_out_an_exact_commit_sha() -> Non
 
 def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> None:
     workflow = _load(CANONICAL_PATH)
-    assert set(workflow["jobs"]) == {"generic-tool-local-inputs", "verify"}
-    job = workflow["jobs"]["verify"]
-    assert job["needs"] == "generic-tool-local-inputs"
-    assert job["runs-on"] == "ubuntu-22.04"
+    # The monolithic verify job is now distributed across deterministic shards and
+    # parallel lanes (#935); the reusable graph remains the single full-gate owner.
+    assert set(workflow["jobs"]) == {
+        "generic-tool-local-inputs",
+        "test-shard",
+        "integration",
+        "checks",
+        "proof",
+        "coverage-reduce",
+        "sonar",
+        "gate",
+    }
 
-    step_names = [step.get("name") for step in job["steps"]]
-    assert "Restore pinned Isabelle archive" not in step_names
+    # Deterministic concurrent shards of the default-marker suite.
+    shard = workflow["jobs"]["test-shard"]
+    assert shard["strategy"]["matrix"]["shard"] == [0, 1, 2, 3]
+    assert shard["strategy"]["fail-fast"] is False
+    shard_run = _named_step(shard, "Run deterministic test shard")
+    assert "nox -f noxfile.py -s verify-shard" in shard_run["run"]
+    assert shard_run["env"]["RAES_SHARD_INDEX"] == "${{ matrix.shard }}"
+    assert shard_run["env"]["RAES_SHARD_COUNT"] == "${{ env.RAES_CI_SHARD_COUNT }}"
+
+    # The proof-bearing lane stays on Ubuntu 22.04 with the Bubblewrap sandbox.
+    proof = workflow["jobs"]["proof"]
+    assert proof["needs"] == "generic-tool-local-inputs"
+    assert proof["runs-on"] == "ubuntu-22.04"
+    step_names = [step.get("name") for step in proof["steps"]]
     assert "Install proof sandbox" in step_names
     assert "Admit the carried Isabelle archive with egress denied" in step_names
-    assert "Resolve requirement UID from branch" in step_names
     assert step_names.index("Install proof sandbox") < step_names.index(
         "Admit the carried Isabelle archive with egress denied"
     )
-    assert not any(str(step.get("uses", "")).startswith("actions/cache/") for step in job["steps"])
+    assert not any(str(step.get("uses", "")).startswith("actions/cache/") for step in proof["steps"])
 
     carrier = _named_step(
         workflow["jobs"]["generic-tool-local-inputs"], "Fetch the locked proof archive with the qualified client"
     )
     assert "offline-kit-fetch" in carrier["run"]
     assert "proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle" in carrier["run"]
-    acquire = _named_step(job, "Admit the carried Isabelle archive with egress denied")["run"]
+    acquire = _named_step(proof, "Admit the carried Isabelle archive with egress denied")["run"]
     assert acquire.startswith("bwrap --dev-bind / / --unshare-net --die-with-parent ")
     assert "implementations/tooling/python/.venv/bin/python -m tools.isabelle_tool acquire" in acquire
     assert "--local-input .canonical-tool-inputs/archives/isabelle/Isabelle2025-2_linux.tar.gz" in acquire
-    harness = _named_step(job, "Qualify proof-input installation slices")["run"]
+    replay = _named_step(proof, "Replay the pinned participant-opacity proof")["run"]
+    assert "nox -f noxfile.py -s participant-opacity-proof" in replay
+    harness = _named_step(proof, "Qualify proof-input installation slices")["run"]
     assert "nox -f noxfile.py -s proof-input-qualification -- --real-installation" in harness
     assert "--output proof-input-qualification.json" in harness
-    record = _named_step(job, "Record qualified proof-host evidence")["run"]
+    record = _named_step(proof, "Record qualified proof-host evidence")["run"]
     assert "--slice-evidence proof-input-qualification.json" in record
     assert step_names.index("Qualify proof-input installation slices") < step_names.index(
         "Record qualified proof-host evidence"
     )
-    evidence = _named_step(job, "Upload proof-host qualification evidence")
+    evidence = _named_step(proof, "Upload proof-host qualification evidence")
     assert evidence["with"]["path"] == "proof-host-qualification.json"
-    sandbox = _named_step(job, "Install proof sandbox")["run"]
+    sandbox = _named_step(proof, "Install proof sandbox")["run"]
     assert "bubblewrap fontconfig fonts-dejavu-core" in sandbox
     assert "fc-list" in sandbox
     assert "test -d /etc/fonts" in sandbox
     assert "test -d /usr/share/fonts" in sandbox
-    verify = _named_step(job, "Run canonical verification graph")
-    assert "nox -f noxfile.py -s verify" in verify["run"]
-    assert "--skip-requirement" in verify["run"]
 
-    coverage = _named_step(job, "Upload coverage report")
+    # Coverage is combined once, after a completeness proof, gated on both producers.
+    reduce = workflow["jobs"]["coverage-reduce"]
+    assert reduce["needs"] == ["test-shard", "integration"]
+    reduce_run = _named_step(reduce, "Prove completeness and combine coverage")["run"]
+    assert "nox -f noxfile.py -s verify-coverage-reduce" in reduce_run
+    coverage = _named_step(reduce, "Upload combined coverage report")
     assert coverage["if"] == "always()"
     assert coverage["with"]["path"].splitlines() == [
         "implementations/python/coverage.xml",
         "implementations/python/coverage.json",
     ]
+
+    # The full gate is an explicit fail-closed aggregate that distinguishes skips.
+    gate = workflow["jobs"]["gate"]
+    assert gate["if"] == "always()"
+    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "coverage-reduce"}
 
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
@@ -307,22 +335,31 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert canonical["with"]["ref"] == "${{ github.sha }}"
     assert "github.event.pull_request.base.sha" in canonical["with"]["base-rev"]
     assert canonical["with"]["requirement-branch"] == "${{ github.head_ref || github.ref_name }}"
+    assert canonical["with"]["sonar-enabled"] is True
+    assert canonical["secrets"]["sonar_token"] == "${{ secrets.SONAR_TOKEN }}"
 
-    # dev/main branch protection requires the existing `verify` check context.
+    # dev/main branch protection requires the `verify` and `sonar` contexts. Both
+    # are now decoupled joins over the reusable graph's outcomes (#935).
     verify = workflow["jobs"]["verify"]
     assert verify["needs"] == "canonical"
     assert verify["if"] == "always()"
-    result_join = _named_step(verify, "Preserve the required canonical verification status")
-    assert result_join["env"]["CANONICAL_RESULT"] == "${{ needs.canonical.result }}"
-    assert '"${CANONICAL_RESULT}" != "success"' in result_join["run"]
-    assert "verify" in workflow["jobs"]["sonar"]["needs"]
-    assert workflow["jobs"]["sonar"]["if"] == (
-        "(github.event_name == 'push' "
-        "&& (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) "
-        "|| (github.event_name == 'pull_request' "
-        "&& github.event.pull_request.head.repo.full_name == github.repository "
-        "&& github.actor != 'dependabot[bot]')"
-    )
+    verify_join = _named_step(verify, "Preserve the required canonical verification status")
+    assert verify_join["env"]["GATE_OUTCOME"] == "${{ needs.canonical.outputs.gate-outcome }}"
+    assert '"${GATE_OUTCOME}" != "success"' in verify_join["run"]
+
+    sonar = workflow["jobs"]["sonar"]
+    assert sonar["needs"] == "canonical"
+    assert sonar["if"] == "always()"
+    sonar_join = _named_step(sonar, "Preserve the required SonarCloud quality-gate status")
+    assert sonar_join["env"]["SONAR_OUTCOME"] == "${{ needs.canonical.outputs.sonar-outcome }}"
+
+    # The quality gate itself runs inside the reusable graph, trust-gated there so
+    # the token is never exposed to fork or Dependabot contexts.
+    reusable_sonar = _load(CANONICAL_PATH)["jobs"]["sonar"]
+    assert "inputs.sonar-enabled" in reusable_sonar["if"]
+    assert "github.event.pull_request.head.repo.full_name == github.repository" in reusable_sonar["if"]
+    assert "github.actor != 'dependabot[bot]'" in reusable_sonar["if"]
+    assert reusable_sonar["needs"] == "coverage-reduce"
 
     interpreters = workflow["jobs"]["interpreters"]
     assert interpreters["strategy"]["matrix"]["python"] == [
@@ -338,6 +375,36 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     }
     compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("required", "outcome", "exit_code"),
+    [
+        ("true", "success", 0),
+        ("true", "", 1),  # required but no verdict: scanner setup failed -> fail closed
+        ("true", "failure", 1),  # quality gate red
+        ("false", "", 0),  # fork / Dependabot: intentionally skipped
+        ("false", "failure", 1),  # defensive: a recorded failure still fails
+    ],
+)
+def test_sonar_join_requires_a_verdict_when_analysis_is_required(
+    tmp_path: Path,
+    required: str,
+    outcome: str,
+    exit_code: int,
+) -> None:
+    if shutil.which("bash") is None:
+        pytest.skip("the sonar join gate requires bash")
+    step = _named_step(_load(CI_PATH)["jobs"]["sonar"], "Preserve the required SonarCloud quality-gate status")
+    completed = subprocess.run(
+        ["bash", "-c", step["run"]],
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "SONAR_REQUIRED": required, "SONAR_OUTCOME": outcome},
+    )
+    assert completed.returncode == exit_code, completed.stderr
 
 
 def test_release_resolves_and_verifies_one_immutable_release_commit() -> None:
@@ -871,7 +938,7 @@ def test_canonical_exact_commit_gate_executes_and_rejects_a_different_checkout(
     completed, output = _run_exact_commit_gate(
         tmp_path,
         CANONICAL_PATH,
-        "verify",
+        "checks",
         "Bind verification to the exact commit and resolve policy base",
         {"STUB_HEAD": head, "EXPECTED_SHA": expected, "REQUESTED_BASE_SHA": ""},
     )

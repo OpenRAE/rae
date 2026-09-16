@@ -184,3 +184,126 @@ def test_restore_owner_write_reopens_sealed_directories_without_following_links(
     assert (root / "a" / "b").stat().st_mode & 0o777 == 0o700
     assert outside.stat().st_mode & 0o777 == 0o500
     outside.chmod(0o700)
+
+
+class _FakeSession:
+    """Minimal nox.Session stand-in for the shard/reduce lane tests."""
+
+    def __init__(self, run_output: str = "") -> None:
+        self._run_output = run_output
+        self.chdir_calls: list[object] = []
+
+    def chdir(self, path: object):  # noqa: ANN201 - context manager stand-in
+        import contextlib
+
+        self.chdir_calls.append(path)
+        return contextlib.nullcontext()
+
+    def run(self, *args: object, **kwargs: object) -> str:
+        return self._run_output
+
+
+def test_shard_lane_constructs_the_deterministic_partition_invocation(
+    monkeypatch: pytest.MonkeyPatch,
+    test_lanes: ModuleType,
+) -> None:
+    calls = _record_pytest(monkeypatch, test_lanes)
+    reporter = _Reporter()
+
+    test_lanes._run_shard_tests(
+        object(),
+        reporter,
+        Path("cov/.coverage.shard-1"),
+        shard_count=4,
+        shard_index=1,
+        manifest_path=Path("cov/shard-1.json"),
+        source_sha="deadbeef",
+    )
+
+    (args, kwargs) = calls[0]
+    assert args == (
+        "-q",
+        "-p",
+        "tools.pytest_shard_plugin",
+        "--shard-count",
+        "4",
+        "--shard-index",
+        "1",
+        "--shard-manifest",
+        "cov/shard-1.json",
+        "--shard-source-sha",
+        "deadbeef",
+        "--shard-suite-expression",
+        "not fuzz and not integration and not docker",
+    )
+    assert kwargs["coverage_file"] == Path("cov/.coverage.shard-1")
+    assert kwargs["finalize_coverage"] is False
+    assert kwargs["parallel"] is True
+    assert kwargs["extra_env"] == {"PYTHONPATH": str(test_lanes.REPO_ROOT)}
+
+
+def test_coverage_reduce_proves_completeness_before_combining(
+    monkeypatch: pytest.MonkeyPatch,
+    test_lanes: ModuleType,
+    tmp_path: Path,
+) -> None:
+    from tools.pytest_shard import SHARD_ALGORITHM_VERSION, ShardManifest, owned_nodeids, write_manifest
+
+    suite = [f"tests/test_m.py::t{index}" for index in range(20)]
+    for index in range(2):
+        write_manifest(
+            tmp_path / f"shard-{index}.json",
+            ShardManifest(
+                algorithm_version=SHARD_ALGORITHM_VERSION,
+                source_sha="sha1",
+                suite_expression="expr",
+                shard_count=2,
+                shard_index=index,
+                node_ids=tuple(owned_nodeids(suite, 2, index)),
+            ),
+        )
+
+    monkeypatch.setattr(test_lanes, "_sync_project", lambda _session: None)
+    monkeypatch.setattr(test_lanes, "_collect_canonical_nodeids", lambda _session: list(suite))
+    events: list[object] = []
+    monkeypatch.setattr(test_lanes, "_run", lambda *_a, **_k: events.append("combine"))
+    monkeypatch.setattr(test_lanes, "_write_and_check_coverage", lambda *_a, **_k: events.append("report"))
+
+    verify_calls: list[tuple[int, int, object]] = []
+    real_verify = test_lanes.verify_shard_partition
+
+    def _spy(manifests, canonical, *, shard_count, source_sha=None):  # noqa: ANN001, ANN202
+        verify_calls.append((len(list(manifests)), shard_count, source_sha))
+        events.append("proof")
+        real_verify(manifests, canonical, shard_count=shard_count, source_sha=source_sha)
+
+    monkeypatch.setattr(test_lanes, "verify_shard_partition", _spy)
+
+    test_lanes._run_coverage_reduce(_FakeSession(), _Reporter(), tmp_path, shard_count=2, source_sha="sha1")
+
+    assert verify_calls == [(2, 2, "sha1")]
+    # The completeness proof must run before any combine/report work.
+    assert events == ["proof", "combine", "report"]
+
+
+def test_coverage_reduce_fails_closed_without_manifests(
+    monkeypatch: pytest.MonkeyPatch,
+    test_lanes: ModuleType,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(test_lanes, "_sync_project", lambda _session: None)
+    combined: list[object] = []
+    monkeypatch.setattr(test_lanes, "_run", lambda *_a, **_k: combined.append("combine"))
+
+    with pytest.raises(RuntimeError, match="no shard manifests"):
+        test_lanes._run_coverage_reduce(_FakeSession(), _Reporter(), tmp_path, shard_count=2, source_sha="x")
+
+    assert combined == []
+
+
+def test_collect_canonical_nodeids_parses_and_fails_closed(test_lanes: ModuleType) -> None:
+    session = _FakeSession(run_output="tests/a.py::t1\ntests/a.py::t2\n2 tests collected\n")
+    assert test_lanes._collect_canonical_nodeids(session) == ["tests/a.py::t1", "tests/a.py::t2"]
+
+    with pytest.raises(RuntimeError, match="no node ids"):
+        test_lanes._collect_canonical_nodeids(_FakeSession(run_output="0 tests collected\n"))

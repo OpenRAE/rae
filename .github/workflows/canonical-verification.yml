@@ -1,8 +1,17 @@
 name: Canonical Verification
 
 # One exact-SHA admission graph shared by protected-branch CI and release
-# publication. It preserves the existing proof-bearing nox verification lane;
-# optional and networked jobs remain separate in the calling CI workflow.
+# publication. It preserves the existing proof-bearing nox verification lanes and
+# the ADR-103 coverage authority, but distributes the default-marker test suite
+# across deterministic concurrent shards (#935) so a full run finishes sooner and
+# SonarCloud can start as soon as the combined coverage is ready instead of after
+# the whole graph. Optional and networked jobs remain in the calling CI workflow.
+#
+# The caller sees this reusable workflow as one atomic job, so it exposes two
+# decoupled outcomes: `gate-outcome` (every required test/coverage/policy/proof
+# job) and `sonar-outcome` (the quality gate). ci.yml joins each to its own stable
+# branch-protection context; a failed quality gate never masks a passing test gate
+# and vice versa.
 
 on:
   workflow_call:
@@ -21,9 +30,31 @@ on:
         required: false
         default: ""
         type: string
+      sonar-enabled:
+        description: Run the SonarCloud quality gate inside this graph
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      sonar_token:
+        description: SonarCloud token; only consumed by the internally trust-gated sonar job
+        required: false
+    outputs:
+      gate-outcome:
+        description: success only when every required test, coverage, policy, and proof job succeeded
+        value: ${{ jobs.gate.outputs.outcome }}
+      sonar-outcome:
+        description: success, failure, or empty (skipped) result of the quality gate
+        value: ${{ jobs.sonar.outputs.outcome }}
 
 permissions:
   contents: read
+
+env:
+  # The number of concurrent default-suite shards. Keep this equal to the length
+  # of the test-shard matrix below; the reducer's completeness proof fails closed
+  # if they ever drift. There is no per-module shard table (#935).
+  RAES_CI_SHARD_COUNT: "4"
 
 jobs:
   generic-tool-local-inputs:
@@ -53,7 +84,7 @@ jobs:
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile offline-kit-fetch \
             proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle
-      - name: Carry locked generic-tool inputs to the proof host
+      - name: Carry locked generic-tool inputs to the dependent jobs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: canonical-generic-tool-inputs-${{ inputs.ref }}
@@ -62,19 +93,94 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
-  verify:
-    # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor.
-    # Keep the proof-bearing job on 22.04 so Bubblewrap enforces the sandbox
-    # without disabling a host security control on the runner.
+  # Deterministic concurrent shards of the default-marker suite. Each shard owns a
+  # SHA-256 partition of the collected node ids, runs xdist within its shard, and
+  # emits a combinable coverage data file plus an ownership manifest. Shards are
+  # credential-free and need no locked tool inputs (pure pytest).
+  test-shard:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
+      - name: Run deterministic test shard
+        env:
+          RAES_SHARD_COUNT: ${{ env.RAES_CI_SHARD_COUNT }}
+          RAES_SHARD_INDEX: ${{ matrix.shard }}
+          RAES_SHARD_SOURCE_SHA: ${{ inputs.ref }}
+          RAES_VERIFY_COVERAGE_FILE: ${{ github.workspace }}/shard-out/.coverage.shard-${{ matrix.shard }}
+          RAES_SHARD_MANIFEST: ${{ github.workspace }}/shard-out/shard-${{ matrix.shard }}.json
+        run: |
+          mkdir -p "${{ github.workspace }}/shard-out"
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-shard
+      - name: Upload shard coverage data and ownership manifest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-shard-${{ matrix.shard }}-${{ inputs.ref }}
+          path: |
+            shard-out/.coverage.shard-${{ matrix.shard }}
+            shard-out/shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+
+  # Hermetic integration-marker suite; its coverage is combined with the shard
+  # coverage before the aggregate line floor is enforced.
+  integration:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
+      - name: Run integration lane
+        env:
+          RAES_VERIFY_COVERAGE_FILE: ${{ github.workspace }}/shard-out/.coverage.integration
+        run: |
+          mkdir -p "${{ github.workspace }}/shard-out"
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-integration-lane
+      - name: Upload integration coverage data
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-integration-${{ inputs.ref }}
+          path: shard-out/.coverage.integration
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+
+  # Static hygiene, repository policy (requirement-aware, base-diff), lint,
+  # governed contract graph, and deterministic docs. These lanes produce no
+  # coverage; they run in parallel with the shards.
+  checks:
     needs: generic-tool-local-inputs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
           ref: ${{ inputs.ref }}
-
       - name: Bind verification to the exact commit and resolve policy base
         id: commit
         env:
@@ -86,13 +192,11 @@ jobs:
             echo "Canonical verification requires a full lowercase commit SHA, got '${EXPECTED_SHA}'" >&2
             exit 1
           fi
-
           actual_sha="$(git rev-parse HEAD)"
           if [ "${actual_sha}" != "${EXPECTED_SHA}" ]; then
             echo "Checkout mismatch: expected ${EXPECTED_SHA}, got ${actual_sha}" >&2
             exit 1
           fi
-
           base_sha="${REQUESTED_BASE_SHA}"
           if ! printf '%s\n' "${base_sha}" | grep -Eq '^[0-9a-f]{40}$' \
             || [ "${base_sha}" = "0000000000000000000000000000000000000000" ] \
@@ -103,32 +207,83 @@ jobs:
               exit 1
             fi
           fi
-
           echo "Verified exact commit ${EXPECTED_SHA}; policy base ${base_sha}"
           echo "base_rev=${base_sha}" >> "${GITHUB_OUTPUT}"
-
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12.14"
-
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
         with:
           enable-cache: false
           version: "0.12.4"
-
       - name: Receive locked generic-tool inputs
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: canonical-generic-tool-inputs-${{ inputs.ref }}
           path: .canonical-tool-inputs
-
       - name: Install locked generic tools from local inputs
         run: >-
           uv run --project implementations/tooling/python --frozen --no-default-groups
           python -m tools.bootstrap_profile
           generic-tools --local-input-root .canonical-tool-inputs
+      - name: Resolve requirement UID from branch
+        id: requirement
+        env:
+          BRANCH: ${{ inputs.requirement-branch }}
+        run: |
+          REQ_UID="$(uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.requirement_context --branch "${BRANCH}")"
+          echo "uid=${REQ_UID}" >> "${GITHUB_OUTPUT}"
+      - name: Run static, policy, and lint lanes
+        env:
+          RAES_REQUIREMENT_UID: ${{ steps.requirement.outputs.uid }}
+          RAES_REQUIREMENT_BRANCH: ${{ inputs.requirement-branch }}
+          GC_BASE_URL: ${{ vars.GC_BASE_URL }}
+        run: |
+          verify_args=(--include-policy --base-rev "${{ steps.commit.outputs.base_rev }}")
+          if [ -n "${{ steps.requirement.outputs.uid }}" ]; then
+            verify_args+=(--requirement-uid "${{ steps.requirement.outputs.uid }}")
+          else
+            verify_args+=(--skip-requirement)
+          fi
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-static-lane -- "${verify_args[@]}"
+      - name: Run governed contract graph
+        env:
+          RAES_REQUIREMENT_UID: ${{ steps.requirement.outputs.uid }}
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s contracts -- --base-rev "${{ steps.commit.outputs.base_rev }}"
+      - name: Run deterministic documentation checks
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs-local
 
+  # The proof-bearing lane stays on Ubuntu 22.04 so Bubblewrap enforces the
+  # sandbox without disabling a host security control on the runner.
+  proof:
+    needs: generic-tool-local-inputs
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
+      - name: Receive locked generic-tool inputs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: canonical-generic-tool-inputs-${{ inputs.ref }}
+          path: .canonical-tool-inputs
+      - name: Install locked generic tools from local inputs
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
       - name: Install proof sandbox
         run: |
           if ! command -v bwrap >/dev/null 2>&1 || ! command -v fc-list >/dev/null 2>&1 || [ -z "$(fc-list --format='%{file}\n' | head -n 1)" ]; then
@@ -138,40 +293,18 @@ jobs:
           test -d /etc/fonts
           test -d /usr/share/fonts
           test -n "$(fc-list --format='%{file}\n' | head -n 1)"
-
       - name: Admit the carried Isabelle archive with egress denied
         run: >-
           bwrap --dev-bind / / --unshare-net --die-with-parent
           implementations/tooling/python/.venv/bin/python -m tools.isabelle_tool acquire
           --local-input .canonical-tool-inputs/archives/isabelle/Isabelle2025-2_linux.tar.gz
-
-      - name: Resolve requirement UID from branch
-        id: requirement
-        env:
-          BRANCH: ${{ inputs.requirement-branch }}
+      - name: Replay the pinned participant-opacity proof
         run: |
-          REQ_UID="$(uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.requirement_context --branch "${BRANCH}")"
-          echo "uid=${REQ_UID}" >> "${GITHUB_OUTPUT}"
-
-      - name: Run canonical verification graph
-        env:
-          RAES_REQUIREMENT_UID: ${{ steps.requirement.outputs.uid }}
-          RAES_REQUIREMENT_BRANCH: ${{ inputs.requirement-branch }}
-          GC_BASE_URL: ${{ vars.GC_BASE_URL }}
-        run: |
-          verify_args=(--base-rev "${{ steps.commit.outputs.base_rev }}")
-          if [ -n "${{ steps.requirement.outputs.uid }}" ]; then
-            verify_args+=(--requirement-uid "${{ steps.requirement.outputs.uid }}")
-          else
-            verify_args+=(--skip-requirement)
-          fi
-          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify -- "${verify_args[@]}"
-
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s participant-opacity-proof
       - name: Qualify proof-input installation slices
         run: >-
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py
           -s proof-input-qualification -- --real-installation --output proof-input-qualification.json
-
       - name: Record qualified proof-host evidence
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile record-case T01 \
@@ -182,7 +315,6 @@ jobs:
             "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
             --python-artifact-id cpython-3.12 --case-result t01-result.json \
             --slice-evidence proof-input-qualification.json > proof-host-qualification.json
-
       - name: Upload proof-host qualification evidence
         id: proof-host-evidence
         if: always()
@@ -192,8 +324,45 @@ jobs:
           path: proof-host-qualification.json
           if-no-files-found: error
 
-      - name: Upload coverage report
-        id: coverage-report
+  # Prove the shards form a complete, disjoint partition of a fresh collection,
+  # then combine shard + integration coverage once and enforce the 90% floor. Runs
+  # only when both coverage producers succeed, so partial coverage is never
+  # reported.
+  coverage-reduce:
+    needs: [test-shard, integration]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
+      - name: Receive shard coverage data and manifests
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: coverage-shard-*-${{ inputs.ref }}
+          path: reduce
+          merge-multiple: true
+      - name: Receive integration coverage data
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage-integration-${{ inputs.ref }}
+          path: reduce
+      - name: Prove completeness and combine coverage
+        env:
+          RAES_COVERAGE_REDUCE_DIR: ${{ github.workspace }}/reduce
+          RAES_SHARD_COUNT: ${{ env.RAES_CI_SHARD_COUNT }}
+          RAES_SHARD_SOURCE_SHA: ${{ inputs.ref }}
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-coverage-reduce
+      - name: Upload combined coverage report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -201,3 +370,83 @@ jobs:
           path: |
             implementations/python/coverage.xml
             implementations/python/coverage.json
+          if-no-files-found: error
+          retention-days: 1
+
+  # SonarCloud quality gate. It runs inside this graph, depending only on the
+  # exact source and the combined coverage, so it starts as soon as coverage is
+  # ready. Its `if:` reduces the trust context to same-repository PRs and
+  # protected pushes exactly like the historical top-level job, so the token is
+  # never exposed to fork or Dependabot contexts.
+  sonar:
+    needs: coverage-reduce
+    runs-on: ubuntu-24.04
+    if: >-
+      inputs.sonar-enabled
+      && ((github.event_name == 'push'
+      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+      || (github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.actor != 'dependabot[bot]'))
+    outputs:
+      outcome: ${{ steps.result.outputs.outcome }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.ref }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage-report
+          path: implementations/python/
+      - name: SonarCloud Scan
+        id: scan
+        continue-on-error: true
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8
+        env:
+          SONAR_TOKEN: ${{ secrets.sonar_token }}
+      - name: Record quality-gate outcome
+        id: result
+        run: echo "outcome=${{ steps.scan.outcome }}" >> "${GITHUB_OUTPUT}"
+
+  # Fail-closed aggregate over every required job. A skipped or cancelled producer
+  # is distinguished from success, so a missing shard or a skipped reducer fails
+  # the gate rather than silently passing.
+  gate:
+    needs: [test-shard, integration, checks, proof, coverage-reduce]
+    if: always()
+    runs-on: ubuntu-24.04
+    outputs:
+      outcome: ${{ steps.aggregate.outputs.outcome }}
+    steps:
+      - name: Aggregate required job results
+        id: aggregate
+        env:
+          SHARD_RESULT: ${{ needs.test-shard.result }}
+          INTEGRATION_RESULT: ${{ needs.integration.result }}
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          PROOF_RESULT: ${{ needs.proof.result }}
+          REDUCE_RESULT: ${{ needs.coverage-reduce.result }}
+        run: |
+          set -euo pipefail
+          failed=""
+          for pair in \
+            "test-shard:${SHARD_RESULT}" \
+            "integration:${INTEGRATION_RESULT}" \
+            "checks:${CHECKS_RESULT}" \
+            "proof:${PROOF_RESULT}" \
+            "coverage-reduce:${REDUCE_RESULT}"; do
+            name="${pair%%:*}"
+            result="${pair#*:}"
+            if [ "${result}" != "success" ]; then
+              echo "required job ${name} concluded with '${result}'" >&2
+              failed="${failed} ${name}"
+            fi
+          done
+          if [ -n "${failed}" ]; then
+            echo "outcome=failure" >> "${GITHUB_OUTPUT}"
+            echo "canonical gate failed:${failed}" >&2
+            exit 1
+          fi
+          echo "outcome=success" >> "${GITHUB_OUTPUT}"

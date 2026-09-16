@@ -316,7 +316,7 @@ def test_canonical_proof_job_consumes_same_run_locked_generic_tool_inputs() -> N
     workflow_path = REPO_ROOT / ".github/workflows/canonical-verification.yml"
     workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
     prepare = workflow["jobs"]["generic-tool-local-inputs"]
-    verify = workflow["jobs"]["verify"]
+    verify = workflow["jobs"]["proof"]
     workflow_text = workflow_path.read_text(encoding="utf-8")
 
     assert prepare["runs-on"] == "ubuntu-24.04"

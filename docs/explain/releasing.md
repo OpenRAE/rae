@@ -24,8 +24,11 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    keeps draft releases discoverable by Release Please. The release workflow
    requires that tag and SHA to match and that the commit belong to `main`.
 4. The workflow invokes `.github/workflows/canonical-verification.yml` for that
-   exact SHA. This is the same proof-bearing `nox -s verify` gate used by CI.
-   It does not poll branch status or accept a check from another commit.
+   exact SHA. This is the same proof-bearing, exact-commit verification graph
+   used by CI: the same nox test, coverage, policy, contract, and proof lanes,
+   now distributed across concurrent jobs, with the same 90% coverage floor. The
+   release caller leaves the SonarCloud quality gate disabled. It does not poll
+   branch status or accept a check from another commit.
 5. A separate read-only job checks out that SHA and must complete the RUN-314
    reference-backend tests against a real container runtime. Release-required
    mode fails when the runtime or digest-pinned reviewed image is unavailable,
