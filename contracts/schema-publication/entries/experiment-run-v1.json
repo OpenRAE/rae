@@ -1,9 +1,9 @@
 {
-  "content_hash": "3c36dbfd4242f45da9fef3ef92166df119947dbde78849a6146d131744944532",
+  "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
   "contract_id": "experiment-run-v1",
   "last_change": {
-    "content_hash": "3c36dbfd4242f45da9fef3ef92166df119947dbde78849a6146d131744944532",
-    "summary": "Preserve typed protected materialization archive records and distinct provenance references through run and runtime snapshots; original input and evidence semantics remain unchanged (#1241)."
+    "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
+    "summary": "Preserve evidence-requirement lineage and protected materialization archive records through run and runtime snapshots (#341, #1241)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
   "stability": "draft"

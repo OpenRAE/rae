@@ -154,13 +154,23 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v20.json`](analysis-v20.json) to the capture-dimension helper
   refactor. Fresh replay retains release-20 outcomes and digests with no new
   claim class; all previously published captures remain unchanged.
-- [`bundles/retest-v21.json`](bundles/retest-v21.json) is current release 22.0.0.
+- [`bundles/retest-v21.json`](bundles/retest-v21.json) preserves release 22.0.0.
   It binds [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
-  [`analysis-v21.json`](analysis-v21.json) to open-by-default augmentation scope.
-  Fresh production and participant replay retains the registered outcomes and
-  claim limits, with two compiled-representation digest deviations. This corpus
-  does not establish native backend scope enforcement; previous captures retain
-  their exact bytes.
+  [`analysis-v21.json`](analysis-v21.json) to the integrated capture-proof,
+  capture-dimension, and EXP-731 refinement implementation. Fresh replay
+  retains release-21 outcomes and digests without expanding the formal claim
+  set; every earlier release remains byte-exact.
+- [`bundles/retest-v22.json`](bundles/retest-v22.json) is current release 23.0.0.
+  It binds [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
+  [`analysis-v22.json`](analysis-v22.json) to open-by-default augmentation scope
+  integrated with EXP-731 evidence refinements. Production and participant
+  replay retain the registered outcomes and claim limits; two compiled
+  representation digests change. This corpus does not establish native backend
+  scope enforcement. The earlier issue-1242 capture remains byte-exact in commit
+  `1ab0580525136667bbc713d3c2f4a7820bab08da`, with its manifest outside the
+  active index at `historical-artifacts/issue-1242-pre-refinement-sync-release-v21.json`.
+  That manifest's paths and hashes describe files at the named commit, not the
+  current checkout; incoming published captures retain their exact bytes.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -205,7 +215,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 22.0.0, rejects unsupported future
+Current validation requires explicit release 18.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

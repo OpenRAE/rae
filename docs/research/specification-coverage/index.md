@@ -125,17 +125,26 @@ this run does not repair them.
   exact bytes.
 
 - [`execution-snapshot-v21.json`](execution-snapshot-v21.json) and
-  [`analysis-v21.json`](analysis-v21.json) are current release 21.0.0. Fresh
-  replay binds open-by-default augmentation scope integrated with the corrected
-  limitations guidance to exact source and package digests. Passing-stage
+  [`analysis-v21.json`](analysis-v21.json) preserve release 21.0.0. They
+  bind the integrated capture-proof authority, capture-dimension helpers, and
+  EXP-731 evidence-requirement refinement to exact source and package digests
+  while retaining the protocol's bounded classifications and claim limits.
+
+- [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
+  [`analysis-v22.json`](analysis-v22.json) are current release 22.0.0. Fresh
+  replay binds open-by-default augmentation scope integrated with EXP-731
+  evidence refinements to exact source and package digests. Passing-stage
   pointers, classifications, denominator, and claim limits are retained. Native
   backend scope enforcement is not evaluated by this corpus.
 
-The pre-synchronization issue-1242 capture remains byte-exact in feature commit
-`77187a939a9872e5bd2fd93816f1fcd5ef6c5c08`. Its manifest is retained outside
-the active index at `historical-artifacts/issue-1242-pre-sync-release-v20.json`;
-its paths and hashes describe files at that commit, not the current checkout.
-The incoming issue-959 release 20.0.0 retains its exact bytes.
+Earlier issue-1242 captures remain byte-exact in feature commits
+`77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
+`1ab0580525136667bbc713d3c2f4a7820bab08da` (release 21). Their manifests
+remain outside the active index at
+`historical-artifacts/issue-1242-pre-sync-release-v20.json` and
+`historical-artifacts/issue-1242-pre-refinement-sync-release-v21.json`.
+Those paths and hashes describe files at the named commits, not the current
+checkout. Incoming published captures retain their exact bytes.
 
 Earlier issue-1237 captures remain in feature commits
 `2d402e4ae922b59d399dbfc336cc2856d153c44a` (release 15),
@@ -156,7 +165,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 21.0.0 and rejects duplicate or unsupported
+Current validation requires release 22.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

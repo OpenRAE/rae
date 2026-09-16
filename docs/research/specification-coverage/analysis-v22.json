@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-341-v21",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1242-v22",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-16T04:13:34.240813+00:00",
+  "generated_at": "2026-09-16T06:27:14.410933+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -52,7 +52,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem.",
+  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay of the integrated augmentation-scope implementation retains those classifications and claim limits; native backend scope enforcement is not evaluated.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -84,6 +84,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-341-v21",
-  "snapshot_sha256": "eef7242fc858af6a1a0310f5701938a6bb40e5d11ba212374d08067d789abe4a"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1242-v22",
+  "snapshot_sha256": "45aa5589e946d48216496028570d4eb86f3468e3704423f45cb1b0d847779d31"
 }
