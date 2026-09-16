@@ -6,11 +6,11 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, BinaryIO
 
+from ..evidence_proof import ValidatedRunEvidence, _mint_validated_run_evidence
 from .experiment_apparatus import ExperimentTaskModel
 from .experiment_capture import ExperimentCaptureSpecModel
 from .experiment_evidence import ExperimentEvidenceRecordModel
 from .experiment_evidence_refinement import validate_evidence_requirement_relations_against_artifacts
-from .experiment_manifest_references import ExperimentEvidenceReferenceModel
 from .experiment_run import ExperimentRunModel, validate_experiment_run_structure_against_task
 
 
@@ -35,7 +35,7 @@ def validate_experiment_run_against_task(
     run: ExperimentRunModel,
     *,
     evidence: ExperimentRunEvidenceInputs | None = None,
-) -> tuple[ExperimentEvidenceReferenceModel, ...]:
+) -> ValidatedRunEvidence:
     """Validate a task/run pair, including content-backed evidence when claimed."""
 
     validate_experiment_run_structure_against_task(task, run)
@@ -48,8 +48,8 @@ def validate_experiment_run_against_task(
             scenarios=evidence.scenarios,
             capture_specs=evidence.capture_specs,
         )
-    if not _task_claims_required_evidence(task):
-        return ()
+    if not _task_claims_required_evidence(task) and evidence is None:
+        return _mint_validated_run_evidence(task, run, ())
     if evidence is None:
         raise ValueError("task/run validation requires content-backed evidence inputs")
     from ..evidence_satisfaction import validate_experiment_run_evidence

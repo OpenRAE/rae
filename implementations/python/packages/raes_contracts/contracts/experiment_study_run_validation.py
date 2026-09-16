@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from ..evidence_proof import ValidatedRunEvidence
 from .experiment_apparatus import ExperimentTaskModel
-from .experiment_manifest_references import ExperimentEvidenceReferenceModel
 from .experiment_run import ExperimentRunModel, validate_experiment_run_structure_against_task
 from .experiment_run_evidence_validation import (
     ExperimentRunEvidenceInputs,
@@ -19,18 +19,17 @@ def validate_study_run_task_membership(
     evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None,
     *,
     structural_only: bool,
-) -> dict[tuple[str, str | None], tuple[ExperimentEvidenceReferenceModel, ...]]:
-    """Validate task membership and return only content-proven evidence refs."""
+) -> dict[tuple[str, str | None], ValidatedRunEvidence]:
+    """Validate task membership and preserve the content proof for each run."""
 
     task_by_key = {(task.task_id, task.task_version): task for task in matched_tasks}
-    validated_evidence: dict[tuple[str, str | None], tuple[ExperimentEvidenceReferenceModel, ...]] = {}
+    validated_evidence: dict[tuple[str, str | None], ValidatedRunEvidence] = {}
     for run in matched_runs:
         task = task_by_key.get((run.task_ref.ref_id, run.task_ref.ref_version))
         if task is None:
             raise ValueError("study run members must reference a supplied study task artifact")
         if structural_only:
             validate_experiment_run_structure_against_task(task, run)
-            validated_evidence[(run.run_id, run.run_version)] = ()
         else:
             validated_evidence[(run.run_id, run.run_version)] = validate_experiment_run_against_task(
                 task,

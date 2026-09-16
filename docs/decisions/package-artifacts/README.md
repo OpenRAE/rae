@@ -15,6 +15,9 @@ Read the documents in this order:
 5. [Operations and acceptance](operations.md): qualification, recovery and ownership.
 6. [Migration and issue graph](migration.md): implementation order and incumbent disposition.
 
+Issue-specific guidance: [#1226 / GOV-913 SBOM and provenance preflight](issue-1226-preflight.md)
+clarifies runtime/build inventory, producer trust and evidence-retention boundaries.
+
 The inventory was taken at `5d2f738f`, the `dev` tip on 2026-09-05. GitHub issue
 and PR states were read that day. Existing code is evidence of current
 behavior; statements using “must” describe the accepted target. Acceptance of

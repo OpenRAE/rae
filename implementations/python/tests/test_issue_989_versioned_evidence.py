@@ -35,7 +35,8 @@ def test_historical_evidence_rejects_malformed_shapes_even_with_rebound_digest(c
         _historical_production_replay(payload, observation, mode)
 
 
-def test_historical_shape_contract_cannot_be_replaced_with_an_open_schema(tmp_path):
+@pytest.mark.parametrize("version", [1, 2])
+def test_historical_shape_contract_cannot_be_replaced_with_an_open_schema(tmp_path, version):
     import json
     import shutil
 
@@ -43,15 +44,18 @@ def test_historical_shape_contract_cannot_be_replaced_with_an_open_schema(tmp_pa
 
     relative = Path("docs/research/formal-semantic-validation/archive-contracts")
     shutil.copytree(ROOT / relative, tmp_path / relative)
-    (tmp_path / relative / "satisfiability-evidence-shape-v2.json").write_text("{}\n")
+    (tmp_path / relative / f"satisfiability-evidence-shape-v{version}.json").write_text("{}\n")
     payload = json.loads(
-        (ROOT / "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v3.json").read_text()
+        (
+            ROOT / f"docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v{version + 2}.json"
+        ).read_text()
     )
     with pytest.raises(ValueError, match="archival shape digest mismatch"):
         validate_archival_evidence_shape(tmp_path, payload, "satisfiability")
 
 
-def test_historical_shape_manifest_cannot_authorize_a_replacement_schema(tmp_path):
+@pytest.mark.parametrize("version", [1, 2])
+def test_historical_shape_manifest_cannot_authorize_a_replacement_schema(tmp_path, version):
     import hashlib
     import json
     import shutil
@@ -60,9 +64,9 @@ def test_historical_shape_manifest_cannot_authorize_a_replacement_schema(tmp_pat
 
     relative = Path("docs/research/formal-semantic-validation/archive-contracts")
     shutil.copytree(ROOT / relative, tmp_path / relative)
-    schema_path = tmp_path / relative / "satisfiability-evidence-shape-v2.json"
+    schema_path = tmp_path / relative / f"satisfiability-evidence-shape-v{version}.json"
     schema_path.write_text("{}\n")
-    manifest_path = tmp_path / relative / "manifest-v2.json"
+    manifest_path = tmp_path / relative / f"manifest-v{version}.json"
     manifest = json.loads(manifest_path.read_text())
     manifest["contracts"][0]["sha256"] = hashlib.sha256(schema_path.read_bytes()).hexdigest()
     manifest_path.write_text(json.dumps(manifest))
@@ -180,7 +184,10 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
     assert not _replay_observation_matches(old, changed)
 
 
-@pytest.mark.parametrize("revision", ["3.0.0", "17.0.0"])
+@pytest.mark.parametrize(
+    "revision",
+    ["3.0.0", "15.0.0", "16.0.0", "17.0.0", "18.0.0", "19.0.0", "20.0.0", "21.0.0"],
+)
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
     from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
     from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
@@ -206,7 +213,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "20.0.0"
+    assert release.manifest["revision"] == "22.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -252,7 +259,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest():
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "18.0.0"
+    assert manifest["revision"] == "20.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == "port-range-sdl")
     artifact["sha256"] = "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec"
@@ -441,6 +448,8 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "18.0.0",
             "19.0.0",
             "20.0.0",
+            "21.0.0",
+            "22.0.0",
         ]
         if family == "formal"
         else [
@@ -463,6 +472,8 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "16.0.0",
             "17.0.0",
             "18.0.0",
+            "19.0.0",
+            "20.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)

@@ -133,12 +133,17 @@ def test_serialized_provenance_preserves_capture_sources_and_all_augmentation_pu
     restored_capture = ExperimentCaptureSpecModel.model_validate_json(capture.model_dump_json())
     restored_record = ExperimentEvidenceRecordModel.model_validate_json(record.model_dump_json())
     assert not observability_evidence_conformance_diagnostics(restored_run)
-    bindings = _validate(restored_run, restored_record, task=task, capture=restored_capture, content=content)
+    proof = _validate(restored_run, restored_record, task=task, capture=restored_capture, content=content)
+    proof.require_context(task, restored_run)
+    assert len(proof.bindings) == 1
+    binding = proof.bindings[0]
 
-    assert bindings[0].ref_id == restored_record.capture_requirement_ref
+    assert binding.requirement_id == restored_record.capture_requirement_ref
+    assert binding.record_id == restored_record.evidence_record_id
+    assert binding.artifact_id == restored_run.evidence_artifacts[0].artifact_id
     assert restored_record.capture_requirement_ref in restored_capture.capture_requirements
     assert restored_record.source_refs[0].model_dump(exclude_none=True) == (
-        restored_capture.capture_requirements[bindings[0].ref_id].channel_ref.model_dump(exclude_none=True)
+        restored_capture.capture_requirements[binding.requirement_id].channel_ref.model_dump(exclude_none=True)
     )
     assert restored_run.scenario_snapshot_ref == run.scenario_snapshot_ref
     assert len(restored_run.augmentation_disclosures) == 3

@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..evidence_proof import ValidatedRunEvidence
 from .experiment_apparatus import (
     ExperimentStochasticControlModel,
     ExperimentTaskModel,
@@ -97,9 +98,7 @@ class _RunAllocationCoverageState:
     """Mutable accumulator for `_validate_study_run_allocation_coverage` classification."""
 
     grouped_run_keys: dict[str, set[tuple[str, str | None]]]
-    validated_evidence_by_run: Mapping[tuple[str, str | None], tuple[ExperimentReferenceModel, ...]] = field(
-        default_factory=dict
-    )
+    validated_evidence_by_run: Mapping[tuple[str, str | None], ValidatedRunEvidence] = field(default_factory=dict)
     condition_by_run_key: dict[tuple[str, str | None], str] = field(default_factory=dict)
     ungrouped_run_refs: list[str] = field(default_factory=list)
     unknown_groupings: list[str] = field(default_factory=list)
@@ -135,7 +134,7 @@ def _classify_eligible_run_allocation_candidate(
     state: _RunAllocationCoverageState,
 ) -> None:
     assignment = allocation.condition_assignments[grouping]
-    validated_evidence = state.validated_evidence_by_run.get(run_key, ())
+    validated_evidence = state.validated_evidence_by_run.get(run_key)
     missing_condition_inputs = _run_satisfies_condition_assignment(run, assignment, validated_evidence)
     if missing_condition_inputs:
         joined_missing_inputs = "|".join(sorted(missing_condition_inputs))
@@ -224,7 +223,7 @@ def _validate_study_run_allocation_coverage(
     study: ExperimentStudyModel,
     runs: list[ExperimentRunModel],
     evaluation_run_members: list[ExperimentStudyMembershipModel],
-    validated_evidence_by_run: Mapping[tuple[str, str | None], tuple[ExperimentReferenceModel, ...]],
+    validated_evidence_by_run: Mapping[tuple[str, str | None], ValidatedRunEvidence],
 ) -> None:
     allocation = study.run_allocation
     if allocation is None:

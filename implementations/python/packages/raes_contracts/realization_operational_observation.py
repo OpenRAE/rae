@@ -9,6 +9,7 @@ from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.realization_envelope import ObservationStrength, RealizationConcern
 from raes_contracts.realization_observation_demand import compute_substrate_demand_applies
+from raes_contracts.vocabulary import RealizationVerificationScope, observation_requirement_satisfied
 
 if TYPE_CHECKING:
     from raes_contracts.realization_observation import RealizationObservation
@@ -123,6 +124,12 @@ def _prior_disclosure_reusable(
         disclosure.field_path != constraint.field_path
         or disclosure.envelope_digest != envelope.digest
         or disclosure.configuration_digest != envelope.configuration.configuration_digest
+        or not observation_requirement_satisfied(
+            actual_scope=disclosure.verification_scope,
+            actual_source=disclosure.observation_strength,
+            required_scope=RealizationVerificationScope.PRESENCE,
+            required_source=None,
+        )
     ):
         return False
     return constraint.value_domain is None or scalar_in_domain(disclosure.observed_value, constraint.value_domain)
@@ -140,8 +147,11 @@ def _native_compute_substrate_observation_valid(
 
 
 def _native_observation_shape_valid(observation: object) -> bool:
-    valid_source = (
-        isinstance(observation.source, ObservationStrength) and observation.source is not ObservationStrength.NONE
+    valid_source = isinstance(observation.source, ObservationStrength) and observation_requirement_satisfied(
+        actual_scope=RealizationVerificationScope.PRESENCE,
+        actual_source=observation.source,
+        required_scope=RealizationVerificationScope.PRESENCE,
+        required_source=None,
     )
     valid_version = isinstance(observation.observer_version, str) and bool(observation.observer_version.strip())
     valid_sequence = (

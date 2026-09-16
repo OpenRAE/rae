@@ -22,6 +22,30 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 _SHA256_PREFIX = "sha256:"
 _BUILD_CONSTRAINT_PYTHON_VERSIONS = ("3.11", "3.12", "3.13", "3.14")
 _TOOL_ROOT_NAME = "raes-development-tools"
+_ARTIFACT_LOCK = ("implementations", "tooling", "artifacts.lock.json")
+
+
+def reviewed_python_full_version(python_version: str, *, repo_root: Path = REPO_ROOT) -> str:
+    """Resolve the exact interpreter patch version the artifact lock pins.
+
+    Marker resolution is patch-sensitive, so the projection binds the reviewed
+    payload version rather than synthesizing one from the minor series.
+    """
+
+    lock = json.loads(repo_root.joinpath(*_ARTIFACT_LOCK).read_text(encoding="utf-8"))
+    artifacts = [
+        artifact
+        for artifact in lock.get("artifacts", [])
+        if isinstance(artifact, Mapping) and artifact.get("artifact_id") == f"cpython-{python_version}"
+    ]
+    if len(artifacts) != 1:
+        raise ValueError(f"artifact lock must pin exactly one cpython-{python_version} interpreter")
+    version = artifacts[0].get("version")
+    if not isinstance(version, str) or not version.startswith(f"{python_version}."):
+        raise ValueError(f"cpython-{python_version} is pinned to an invalid version {version!r}")
+    return version
+
+
 TARGETS = (
     (
         "public-linux-x86_64-cp311-all-extras",
@@ -81,7 +105,11 @@ def _build_group_dependencies(lock: Mapping[str, Any]) -> list[Mapping[str, Any]
     return dependencies
 
 
-def _build_constraint_packages(lock: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+def _build_constraint_packages(
+    lock: Mapping[str, Any],
+    *,
+    repo_root: Path = REPO_ROOT,
+) -> dict[str, Mapping[str, Any]]:
     """Select one exact version per build dependency across every supported runtime."""
 
     dependencies = _build_group_dependencies(lock)
@@ -89,7 +117,11 @@ def _build_constraint_packages(lock: Mapping[str, Any]) -> dict[str, Mapping[str
     for python_version in _BUILD_CONSTRAINT_PYTHON_VERSIONS:
         for package in locked_closure(
             lock,
-            target_environment(python_version, "x86_64-unknown-linux-gnu"),
+            target_environment(
+                python_version,
+                "x86_64-unknown-linux-gnu",
+                full_version=reviewed_python_full_version(python_version, repo_root=repo_root),
+            ),
             root_name=_TOOL_ROOT_NAME,
             include_root_optional=False,
             initial_dependencies=dependencies,
@@ -115,10 +147,10 @@ def _sha256_artifact_hashes(package: Mapping[str, Any]) -> list[str]:
     )
 
 
-def render_build_constraints(lock: Mapping[str, Any]) -> str:
+def render_build_constraints(lock: Mapping[str, Any], *, repo_root: Path = REPO_ROOT) -> str:
     """Render hash-complete build constraints for the reviewed build group."""
 
-    selected = _build_constraint_packages(lock)
+    selected = _build_constraint_packages(lock, repo_root=repo_root)
     lines: list[str] = []
     for name in sorted(selected):
         package = selected[name]
@@ -223,7 +255,11 @@ class _LockDefinition:
 def render_target(request: _TargetRequest) -> tuple[str, str]:
     """Render the pinned requirements and wheelhouse manifest for one target."""
 
-    environment = target_environment(request.python_version, request.platform)
+    environment = target_environment(
+        request.python_version,
+        request.platform,
+        full_version=reviewed_python_full_version(request.python_version, repo_root=request.repo_root),
+    )
     supported = _supported_tags(request.python_version, request.abi, request.platform)
     artifacts = [
         _artifact(package, _select_wheel(package, supported))
@@ -309,7 +345,10 @@ def generate(*, check: bool, repo_root: Path = REPO_ROOT) -> bool:
     tool_root = repo_root / "implementations" / "tooling" / "python"
     tool_lock_path = tool_root / "uv.lock"
     output_root = tool_root / "smoke"
-    constraints = render_build_constraints(tomllib.loads(tool_lock_path.read_text(encoding="utf-8")))
+    constraints = render_build_constraints(
+        tomllib.loads(tool_lock_path.read_text(encoding="utf-8")),
+        repo_root=repo_root,
+    )
     changed = _write_if_changed(tool_root / "build-constraints.txt", constraints, check=check)
     definitions = (
         _LockDefinition(

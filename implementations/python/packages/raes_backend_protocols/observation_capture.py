@@ -6,6 +6,9 @@ import re
 from collections.abc import Collection
 from dataclasses import dataclass
 
+from raes_contracts.capture_dimensions import CAPTURE_SET_FIELDS, capture_offer_payload
+from raes_contracts.evidence_output_validation import validate_evidence_output_offer
+
 
 def _validate_unique_non_empty_strings(field_name: str, values: Collection[str]) -> None:
     if any(not value.strip() for value in values):
@@ -48,34 +51,12 @@ class ObservationCaptureOffer:
         _validate_offer_identity(self)
         _validate_offer_collections(self)
         _validate_offer_governance(self)
+        validate_evidence_output_offer(self.output_contract, self.media_types)
 
     def to_payload(self) -> dict[str, object]:
         """Return the canonical plain-data representation."""
 
-        return {
-            "offer_id": self.offer_id,
-            "offer_version": self.offer_version,
-            "output_contract": self.output_contract,
-            "field_selectors": list(self.field_selectors),
-            "artifact_roles": sorted(self.artifact_roles),
-            "media_types": sorted(self.media_types),
-            "capture_kind": self.capture_kind,
-            "source_classes": sorted(self.source_classes),
-            "source_refs": sorted(self.source_refs),
-            "scopes": sorted(self.scopes),
-            "scope_refs": sorted(self.scope_refs),
-            "channel_kinds": sorted(self.channel_kinds),
-            "channel_refs": sorted(self.channel_refs),
-            "window_kinds": sorted(self.window_kinds),
-            "integrity_modes": sorted(self.integrity_modes),
-            "sensitivity": self.sensitivity,
-            "availability": self.availability,
-            "fidelity": self.fidelity,
-            "disclosure": self.disclosure,
-            "retention_policy_refs": sorted(self.retention_policy_refs),
-            "export_policy": self.export_policy,
-            "redaction_policy": self.redaction_policy,
-        }
+        return capture_offer_payload(self)
 
 
 def _validate_offer_identity(offer: ObservationCaptureOffer) -> None:
@@ -89,19 +70,7 @@ def _validate_offer_identity(offer: ObservationCaptureOffer) -> None:
 
 
 def _validate_offer_collections(offer: ObservationCaptureOffer) -> None:
-    for field_name in (
-        "artifact_roles",
-        "media_types",
-        "source_classes",
-        "source_refs",
-        "scopes",
-        "scope_refs",
-        "channel_kinds",
-        "channel_refs",
-        "window_kinds",
-        "integrity_modes",
-        "retention_policy_refs",
-    ):
+    for field_name in CAPTURE_SET_FIELDS:
         _validate_unique_non_empty_strings(f"ObservationCaptureOffer.{field_name}", getattr(offer, field_name))
     if not all((offer.field_selectors, offer.artifact_roles, offer.media_types, offer.source_classes, offer.scopes)):
         raise ValueError("capture offers require fields, artifact roles, media types, source classes, and scopes")

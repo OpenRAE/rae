@@ -150,13 +150,13 @@ jobs:
         env:
           BRANCH: ${{ inputs.requirement-branch }}
         run: |
-          REQ_UID="$(printf '%s\n' "${BRANCH}" | grep -oE '[A-Z]{3}-[0-9]{3}' | head -n1 || true)"
-          echo "Resolved branch='${BRANCH}' uid='${REQ_UID}'"
+          REQ_UID="$(uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.requirement_context --branch "${BRANCH}")"
           echo "uid=${REQ_UID}" >> "${GITHUB_OUTPUT}"
 
       - name: Run canonical verification graph
         env:
           RAES_REQUIREMENT_UID: ${{ steps.requirement.outputs.uid }}
+          RAES_REQUIREMENT_BRANCH: ${{ inputs.requirement-branch }}
           GC_BASE_URL: ${{ vars.GC_BASE_URL }}
         run: |
           verify_args=(--base-rev "${{ steps.commit.outputs.base_rev }}")

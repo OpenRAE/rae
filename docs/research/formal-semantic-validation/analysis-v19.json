@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-341-analysis-v19",
+  "analysis_id": "issue-1237-analysis-v19",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "3.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-341-execution-v19",
-  "generated_at": "2026-09-15T22:56:32.621089+00:00",
+  "execution_id": "issue-1237-execution-v19",
+  "generated_at": "2026-09-15",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -136,7 +136,7 @@
     "Scoped observation demand is not a claim class in this preregistration and is not promoted to demonstrated by this retest.",
     "EXP-732 provenance joins are verified by their dedicated regression suite; this retained corpus makes no universal run, apparatus, source, or augmentation assurance claim.",
     "This retained corpus does not establish native backend attestation fidelity; materialization contract checks remain separate operational provenance, not experimental observations.",
-    "Evidence-requirement refinement lineage is outside this retained formal claim set; this retest refreshes source provenance without promoting that feature to a formal claim."
+    "Capture admission and evidence-proof authority are verified by issue-1237 regression tests, not promoted to a new claim class by this retained corpus."
   ],
   "plain_language_outcome": "The pinned RAES revision replays every retained v1 control and demonstrates the bounded finite-domain satisfiability and typed exploit-path claims with complete production evidence. Semantic, workflow, and compile-stability claims remain partial, and counterfactual necessity remains untested.",
   "protocol_revision": "2.0.0"

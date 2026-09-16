@@ -21,6 +21,9 @@ Current state: identified gap. Honest portability needs executable checks agains
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `1237` (Exact observation-source conformance repair)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/_realization_validation.py` (Canonical exact-source honesty checks)
+
 - DOCUMENTS → GITHUB_ISSUE `490` (Issue #490 contributes the first ASR-519 conformance artifact (planner realization-support gate))
 - TESTS → TEST `implementations/python/tests/test_sem_218_runtime_realization.py` (SEM-218 runtime gate + provenance tests)
 - IMPLEMENTS → GITHUB_ISSUE `491` (SEM-218 realization enforcement 3/3 (issue #491))

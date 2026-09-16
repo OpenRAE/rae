@@ -3,18 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
 from datetime import datetime
 from typing import BinaryIO
 
-from ._evidence_content_validation import _validate_artifact_content
+from ._evidence_content_validation import _EvidenceContentCache, _validate_artifact_content
+from .canonical import canonical_json_digest
 from .contracts import (
     ExperimentArtifactRefModel,
     ExperimentCaptureRequirementModel,
     ExperimentCaptureSpecModel,
     ExperimentCaptureWindowModel,
     ExperimentEvidenceRecordModel,
-    ExperimentEvidenceReferenceModel,
     ExperimentReferenceModel,
     ExperimentRunModel,
     ExperimentTaskModel,
@@ -22,15 +21,36 @@ from .contracts import (
 )
 from .contracts.base import _parse_rfc3339_datetime
 from .contracts.experiment_artifacts import _identity_matches_reference, _reference_satisfies_requirement
+from .evidence_proof import (
+    _EVIDENCE_VALIDATION_KEY,
+    ValidatedEvidenceBinding,
+    ValidatedRunEvidence,
+    _mint_validated_run_evidence,
+)
+
+_MAX_EVIDENCE_ITEMS = 1024
+_MAX_TOTAL_EVIDENCE_BYTES = 256 * 1024 * 1024
 
 
-@dataclass(frozen=True)
-class _ValidatedEvidenceBinding:
-    """A requirement-to-record-to-artifact relation created only after proof."""
-
-    requirement_id: str
-    record: ExperimentEvidenceRecordModel
-    artifact: ExperimentArtifactRefModel
+def _validate_evidence_limits(
+    run: ExperimentRunModel,
+    capture_specs: Mapping[str, ExperimentCaptureSpecModel],
+    evidence_records: Mapping[str, ExperimentEvidenceRecordModel],
+    artifact_readers: Mapping[str, BinaryIO],
+) -> None:
+    if (
+        max(
+            len(run.evidence_artifacts),
+            len(capture_specs),
+            len(evidence_records),
+            len(artifact_readers),
+            sum(len(spec.capture_requirements) for spec in capture_specs.values()),
+        )
+        > _MAX_EVIDENCE_ITEMS
+    ):
+        raise ValueError("evidence item count exceeds the bounded validation limit")
+    if sum(artifact.size_bytes for artifact in run.evidence_artifacts) > _MAX_TOTAL_EVIDENCE_BYTES:
+        raise ValueError("aggregate evidence bytes exceed the bounded validation limit")
 
 
 def _artifact_for_record(
@@ -239,28 +259,16 @@ def _validate_record_source(
         raise ValueError("evidence measurement channel must resolve to the run apparatus")
 
 
-def _binding_satisfies_reference(
-    binding: _ValidatedEvidenceBinding,
-    reference: ExperimentEvidenceReferenceModel,
-) -> bool:
-    if reference.ref_version is not None and reference.ref_version != binding.record.record_version:
-        return False
-    if reference.ref_digest is not None:
-        artifact_digest = f"{binding.artifact.checksum.algorithm}:{binding.artifact.checksum.value}"
-        if artifact_digest.casefold() != reference.ref_digest.casefold():
-            return False
-    return reference.ref_path is None or binding.artifact.uri == reference.ref_path
-
-
 def _validate_task_evidence_bindings(
     task: ExperimentTaskModel,
     run: ExperimentRunModel,
-    bindings: Mapping[str, _ValidatedEvidenceBinding],
+    proof: ValidatedRunEvidence,
 ) -> None:
+    proof.require_context(task, run)
     missing_observations = sorted(
         reference.ref_id
         for reference in task.evaluation_protocol.observation_requirements
-        if (binding := bindings.get(reference.ref_id)) is None or not _binding_satisfies_reference(binding, reference)
+        if not proof.satisfies(run, reference)
     )
     if missing_observations:
         raise ValueError(
@@ -273,12 +281,7 @@ def _validate_task_evidence_bindings(
         result_artifact_ids = {reference.ref_id for reference in result.evidence_refs}
         metric = task.evaluation_protocol.metric_definitions[result.metric_id]
         for reference in metric.evidence_requirements:
-            binding = bindings.get(reference.ref_id)
-            if (
-                binding is None
-                or binding.artifact.artifact_id not in result_artifact_ids
-                or not _binding_satisfies_reference(binding, reference)
-            ):
+            if not proof.satisfies(run, reference, artifact_ids=result_artifact_ids):
                 missing_metric_evidence.append(f"{result_id}:{reference.ref_id}")
     if missing_metric_evidence:
         raise ValueError(
@@ -294,7 +297,7 @@ def validate_experiment_run_evidence(
     capture_specs: Mapping[str, ExperimentCaptureSpecModel],
     evidence_records: Mapping[str, ExperimentEvidenceRecordModel],
     artifact_readers: Mapping[str, BinaryIO],
-) -> tuple[ExperimentEvidenceReferenceModel, ...]:
+) -> ValidatedRunEvidence:
     """Prove task/run evidence claims against exact records and emitted bytes.
 
     The caller acquires immutable byte streams.  This validator never fetches
@@ -302,6 +305,23 @@ def validate_experiment_run_evidence(
     identifiers and summaries as evidence.
     """
 
+    # Stabilize and revalidate the entire metadata cut before invoking caller
+    # readers. Their callbacks must not change already-checked facts or the
+    # context to which the resulting proof is bound. Readers themselves remain
+    # explicit streams, not copied or acquired through artifact locators.
+    _validate_evidence_limits(run, capture_specs, evidence_records, artifact_readers)
+    task = ExperimentTaskModel.model_validate(task.model_dump(mode="python"))
+    run = ExperimentRunModel.model_validate(run.model_dump(mode="python"))
+    capture_specs = {
+        key: ExperimentCaptureSpecModel.model_validate(spec.model_dump(mode="python"))
+        for key, spec in capture_specs.items()
+    }
+    evidence_records = {
+        key: ExperimentEvidenceRecordModel.model_validate(record.model_dump(mode="python"))
+        for key, record in evidence_records.items()
+    }
+    artifact_readers = dict(artifact_readers)
+    _validate_evidence_limits(run, capture_specs, evidence_records, artifact_readers)
     validate_experiment_run_structure_against_task(task, run)
     _validate_augmentation_producers(run)
     _validate_supplied_evidence_sets(run, capture_specs, evidence_records)
@@ -314,8 +334,9 @@ def validate_experiment_run_evidence(
         records_by_requirement,
         artifact_readers,
     )
-    _validate_task_evidence_bindings(task, run, validated_bindings)
-    return tuple(_binding_reference(binding) for binding in validated_bindings.values())
+    proof = _mint_validated_run_evidence(task, run, tuple(validated_bindings.values()))
+    _validate_task_evidence_bindings(task, run, proof)
+    return proof
 
 
 def _validate_supplied_evidence_sets(
@@ -380,8 +401,9 @@ def _validate_evidence_bindings(
     requirements: Mapping[str, tuple[ExperimentCaptureSpecModel, ExperimentCaptureRequirementModel]],
     records_by_requirement: Mapping[tuple[str, str], list[ExperimentEvidenceRecordModel]],
     artifact_readers: Mapping[str, BinaryIO],
-) -> dict[str, _ValidatedEvidenceBinding]:
-    validated_bindings: dict[str, _ValidatedEvidenceBinding] = {}
+) -> dict[str, ValidatedEvidenceBinding]:
+    validated_bindings: dict[str, ValidatedEvidenceBinding] = {}
+    content_cache = _EvidenceContentCache()
     for requirement_id in sorted(requirements):
         capture_spec, requirement = requirements[requirement_id]
         records = records_by_requirement.get((capture_spec.capture_spec_id, requirement_id), [])
@@ -396,23 +418,26 @@ def _validate_evidence_bindings(
             record=record,
         )
         artifact = _artifact_for_record(run, record)
-        _validate_artifact_content(requirement, record, artifact, artifact_readers.get(artifact.artifact_id))
-        validated_bindings[requirement_id] = _ValidatedEvidenceBinding(
+        _validate_artifact_content(
+            requirement,
+            record,
+            artifact,
+            artifact_readers.get(artifact.artifact_id),
+            content_cache,
+        )
+        validated_bindings[requirement_id] = ValidatedEvidenceBinding(
             requirement_id=requirement_id,
-            record=record,
-            artifact=artifact,
+            capture_spec_id=capture_spec.capture_spec_id,
+            capture_spec_version=capture_spec.spec_version,
+            record_id=record.evidence_record_id,
+            record_version=record.record_version,
+            output_contract=requirement.output_contract,
+            artifact_id=artifact.artifact_id,
+            artifact_digest=f"{artifact.checksum.algorithm}:{artifact.checksum.value}",
+            artifact_path_digest=canonical_json_digest(artifact.uri),
+            _validation_key=_EVIDENCE_VALIDATION_KEY,
         )
     return validated_bindings
 
 
-def _binding_reference(binding: _ValidatedEvidenceBinding) -> ExperimentEvidenceReferenceModel:
-    return ExperimentEvidenceReferenceModel(
-        ref_kind="evidence",
-        ref_id=binding.requirement_id,
-        ref_version=binding.record.record_version,
-        ref_digest=f"{binding.artifact.checksum.algorithm}:{binding.artifact.checksum.value}",
-        ref_path=binding.artifact.uri,
-    )
-
-
-__all__ = ["validate_experiment_run_evidence"]
+__all__ = ["ValidatedEvidenceBinding", "ValidatedRunEvidence", "validate_experiment_run_evidence"]

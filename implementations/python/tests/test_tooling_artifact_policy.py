@@ -212,6 +212,16 @@ def _seed_policy(root: Path) -> Path:
                 },
             ],
             "denied_digests": [],
+            "release_producers": [
+                {
+                    "producer_id": "fixture-producer",
+                    "issuer": "https://token.actions.githubusercontent.com",
+                    "repository": "example/repo",
+                    "workflow_ref": "example/repo/.github/workflows/release.yml@refs/heads/main",
+                    "signer_workflow": "example/repo/.github/workflows/release.yml",
+                    "reviewer_roles": ["Release", "Security"],
+                }
+            ],
         },
     )
     _write_json(
@@ -2784,10 +2794,41 @@ def test_tooling_policy_cli_emits_a_validated_selection(
 
 
 def test_python_closure_main_reports_success_after_showing_a_manifest(capsysbinary: pytest.CaptureFixture) -> None:
-    from tools.python_closure import load_python_closure_profile, main
+    from tools.python_closure import main
 
     profile_id = "public-linux-x86_64-cp314-tools"
-    profile = load_python_closure_profile(REPO_ROOT, profile_id)
+    # Read the expected bytes independently; main still performs the full policy
+    # validation, which must not be duplicated merely to construct the oracle.
+    profiles = _load(REPO_ROOT, PROFILES_PATH)["python_closure_profiles"]
+    (profile,) = [item for item in profiles if item["python_closure_profile_id"] == profile_id]
+    expected_manifest = (REPO_ROOT / profile["wheelhouse_manifest"]).read_bytes()
 
     assert main(["manifest-show", "--profile", profile_id]) == 0
-    assert capsysbinary.readouterr().out == profile.wheelhouse_manifest.read_bytes()
+    assert capsysbinary.readouterr().out == expected_manifest
+
+
+def test_tracked_python_scans_reuse_is_invalidated_by_any_edit(tmp_path: Path) -> None:
+    """The scan cache is keyed by file identity, so an edit is never served stale.
+
+    Re-parsing every tracked Python file on each policy evaluation dominated the
+    evaluation cost, so unchanged files are memoized. That is only sound while
+    any edit invalidates the entry — including one that preserves the file size.
+    """
+
+    from tools.tooling_artifact_policy_discovery import tracked_python_scans
+
+    relative = "sample.py"
+    target = tmp_path / relative
+    target.write_text("x = 1\n", encoding="utf-8")
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is True
+
+    # Same byte length, different content: only the modification time differs.
+    unparsable = "x = (\n"
+    assert len(unparsable) == len("x = 1\n")
+    target.write_text(unparsable, encoding="utf-8")
+    os.utime(target, ns=(1_000_000_000, 2_000_000_000))
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is False
+
+    # And a length change is likewise observed rather than reused.
+    target.write_text("y = 2\ny = 3\n", encoding="utf-8")
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is True

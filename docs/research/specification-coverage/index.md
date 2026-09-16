@@ -107,10 +107,32 @@ this run does not repair them.
   the operational-provenance boundary separately.
 
 - [`execution-snapshot-v18.json`](execution-snapshot-v18.json) and
-  [`analysis-v18.json`](analysis-v18.json) are current release 18.0.0. They bind
-  the integrated EXP-731 refinement, EXP-732 provenance, and materialization
-  attestation implementation to fresh source and package digests while retaining
-  the protocol's bounded classifications, denominator, and claim limits.
+  [`analysis-v18.json`](analysis-v18.json) preserve release 18.0.0. Fresh
+  replay binds capture-proof authority integrated with apparatus provenance
+  and materialization attestations to exact source and package digests.
+  Classifications, the denominator, and claim limits remain unchanged.
+
+- [`execution-snapshot-v19.json`](execution-snapshot-v19.json) and
+  [`analysis-v19.json`](analysis-v19.json) preserve release 19.0.0. Fresh
+  replay binds the capture-dimension helper refactor to exact source and
+  package digests, preserving classifications, denominator, and claim limits.
+
+- [`execution-snapshot-v20.json`](execution-snapshot-v20.json) and
+  [`analysis-v20.json`](analysis-v20.json) are current release 20.0.0. They
+  bind the integrated capture-proof authority, capture-dimension helpers, and
+  EXP-731 evidence-requirement refinement to exact source and package digests
+  while retaining the protocol's bounded classifications and claim limits.
+
+Earlier issue-1237 captures remain in feature commits
+`2d402e4ae922b59d399dbfc336cc2856d153c44a` (release 15),
+`2b21b5c88fc60c4545a302f4071cf8b781f04fe3` (release 16), and
+`c75805c56330d402a52bd7a578785bb343bf3c30` (release 17). Their manifests
+remain outside the active index at
+`historical-artifacts/issue-1237-pre-sync-release-v15.json`,
+`historical-artifacts/issue-1237-pre-provenance-sync-release-v16.json`, and
+`historical-artifacts/issue-1237-pre-materialization-sync-release-v17.json`.
+Those paths and hashes describe files at the named commits, not the current
+checkout. Incoming published captures retain their exact bytes.
 
 Historical captures are checked for closed shapes, frozen analysis joins, and
 exact archived source bytes, without executing current code. The ten source
@@ -120,7 +142,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 18.0.0 and rejects duplicate or unsupported
+Current validation requires release 20.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

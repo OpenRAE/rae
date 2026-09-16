@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-341-v18",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1237-v18",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,8 +18,8 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v17.json",
-      "docs/research/specification-coverage/analysis-v17.json"
+      "docs/research/specification-coverage/execution-snapshot-v18.json",
+      "docs/research/specification-coverage/analysis-v18.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
     "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
@@ -39,12 +39,11 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-15T22:56:32.621089+00:00",
+  "generated_at": "2026-09-15",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
-    "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation.",
-    "The retained protocol does not test evidence-requirement refinement lineage; the dedicated EXP-731 regression suite covers that production boundary."
+    "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -84,6 +83,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-341-v18",
-  "snapshot_sha256": "8fe5e973d96be58ead011526a17285139b4d0f0a22550176c3b2f361e2dc4b62"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1237-v18",
+  "snapshot_sha256": "a73c43912e6f95697652c0cd89d0e2f51ca252a43bba85b96aaa5440bece5dd7"
 }

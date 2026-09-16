@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-15T22:56:32.621089+00:00",
+  "captured_at": "2026-09-15T21:22:34.264356+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -641,12 +641,12 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "bb6197ed068c607bc2b2c9a28eb34b470116b00e95dab986eb87f93ba2931c25",
+      "content_sha256": "c7cdbb05aef93de622bdfb3be137f614adc0747dd7feb64a21a94cdc4b517f94",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "7f7ed545849466e4d0a21f142a7d18f8894c7f91ff018a9ce1c86985ce1bf0c9",
+      "content_sha256": "ed351205979c8a80e10962146cc95f8a4019c593459d9e32b4f65aa0aca91f7f",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
@@ -662,18 +662,17 @@
     "No live range, participant, simulator federation, or provider provisioning engine was executed.",
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
     "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim.",
-    "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix.",
-    "Evidence-requirement refinement lineage is covered by its dedicated regression suite, not a new claim in this preregistered matrix."
+    "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "679c5f6c5860cb2f6ab19e86a3ca789c66fab534",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-341-v18",
+  "raes_revision": "c75805c56330d402a52bd7a578785bb343bf3c30",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1237-v18",
   "snapshot_revision": "18.0.0",
   "source_state": {
-    "base_revision": "679c5f6c5860cb2f6ab19e86a3ca789c66fab534",
+    "base_revision": "c75805c56330d402a52bd7a578785bb343bf3c30",
     "checkout_state": "modified",
-    "implementation_digest": "4793cde832ffcf6fd6c949057a52516659f09edc7164132b13809df7627140a6",
+    "implementation_digest": "b81619cf25cce6c5d42ad3380835a9f96ed0dfcdd49da973b2ad6e4615934ec5",
     "profile": "python-reference-source/v2"
   }
 }

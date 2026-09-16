@@ -30,10 +30,10 @@ models, analyzers, solvers, or CLI replay for historical evidence. Shape admissi
 and recorded digest agreement do not constitute semantic execution or establish
 compatibility. Current release evidence still uses current models and replay.
 
-`manifest-v2.json` adds frozen shapes for the four progressive evidence records
-from release 16.0.0, which became historical with the issue-1241 capture. Each
-shape enumerates the exact retained records; it is not a general reader for
-their SDL revision. Independent manifest and record pins select this archive.
-The same computed integrity checks verify their joins. The original v1
-manifest, shapes, and eight pre-cutover records remain unchanged. No historical
-case invokes a current model, analyzer, solver, or CLI.
+The original `manifest-v1.json` and its narrower pre-cutover shapes remain
+independently pinned. `manifest-v2.json` supplies frozen shapes for retained
+progressive evidence records that became historical with the materialization
+capture. The gate accepts a retained record through either frozen shape
+version, then checks the complete record's immutable identity and joins.
+Current release 21.0.0 uses production APIs and CLI replay; archival admission
+never substitutes for that current-code check.
