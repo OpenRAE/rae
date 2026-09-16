@@ -49,8 +49,9 @@ If processors or backends add instrumentation or other augmentation, the ecosyst
 - TESTS → TEST `implementations/python/tests/test_sdl_catalog_parity.py` (Scope field and checked section-count parity)
 - TESTS → TEST `implementations/python/tests/test_sdl_lineage.py` (Exact registered subject coverage for augmentation scope)
 - TESTS → TEST `implementations/python/tests/test_issue_1238_development_container.py` (Whole-checkout verification gate; retain independent platform-refusal cases under coverage)
+- TESTS → TEST `implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py` (Whole-checkout verification gate; keep cross-process runtime ownership checks in the integration lane)
 - IMPLEMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v21.json` (Fresh source-bound replay preserving prior captures and claim limits)
-- IMPLEMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1242-v20.json` (Retained corpus execution against the scope implementation)
+- IMPLEMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1242-v21.json` (Retained corpus execution against the integrated scope implementation)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_factoring.py` (Lossless local schema-rule sharing within the publication budget)
 - TESTS → TEST `implementations/python/tests/test_issue_1241_schema_publication_size.py` (Self-contained schema size, exact expansion and reference-scope integrity)

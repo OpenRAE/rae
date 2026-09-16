@@ -38,12 +38,18 @@ jobs:
       ref: ${{ github.sha }}
       base-rev: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
       requirement-branch: ${{ github.head_ref || github.ref_name }}
+      # Run the quality gate inside the reusable graph. The reusable sonar job is
+      # itself trust-gated to same-repository PRs and protected pushes, so the
+      # token below is never exposed to fork or Dependabot contexts.
+      sonar-enabled: true
+    secrets:
+      sonar_token: ${{ secrets.SONAR_TOKEN }}
 
-  # The repository's dev/main branch protections require the historical
-  # `verify` check context. Reusable jobs report nested contexts, so preserve
-  # that stable contract with a same-run result join. The reusable call owns the
-  # existing proof-bearing nox graph; this join cannot turn any failed or
-  # skipped admission job into success.
+  # The repository's dev/main branch protections require the historical `verify`
+  # and `sonar` check contexts. The reusable call is atomic to this caller, so it
+  # exposes two decoupled outcomes; each join below preserves one stable context
+  # and cannot turn a failed or skipped reusable job into success. A red quality
+  # gate no longer blocks the `verify` context and vice versa (#935).
   verify:
     needs: canonical
     if: always()
@@ -53,10 +59,10 @@ jobs:
     steps:
       - name: Preserve the required canonical verification status
         env:
-          CANONICAL_RESULT: ${{ needs.canonical.result }}
+          GATE_OUTCOME: ${{ needs.canonical.outputs.gate-outcome }}
         run: |
-          if [ "${CANONICAL_RESULT}" != "success" ]; then
-            echo "Canonical verification concluded with '${CANONICAL_RESULT}'" >&2
+          if [ "${GATE_OUTCOME}" != "success" ]; then
+            echo "Canonical verification gate concluded with '${GATE_OUTCOME}'" >&2
             exit 1
           fi
 
@@ -184,28 +190,85 @@ jobs:
           path: implementations/python/osv-scanner-report.json
           if-no-files-found: warn
 
+  # The quality gate now runs inside the reusable graph (decoupled from the full
+  # test gate). This join preserves the required `sonar` context by checking the
+  # reusable quality-gate outcome. When Sonar is required for this event
+  # (same-repository PR or protected push) the outcome MUST be success: an empty
+  # outcome then means the scan failed before recording a verdict (e.g. checkout
+  # or artifact download), which must fail closed rather than pass as "skipped".
+  # An empty outcome is only allowed for the trust contexts where Sonar is
+  # intentionally not run (fork or Dependabot pull request).
   sonar:
+    needs: canonical
+    if: always()
     runs-on: ubuntu-24.04
-    needs: [verify]
-    # GitHub withholds Actions secrets from forked and Dependabot pull requests.
-    # Run the quality gate for same-repository PRs so findings block the
-    # merge, while keeping the credential out of untrusted contribution paths.
-    if: >-
-      (github.event_name == 'push'
-      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
-      || (github.event_name == 'pull_request'
-      && github.event.pull_request.head.repo.full_name == github.repository
-      && github.actor != 'dependabot[bot]')
+    permissions:
+      contents: read
+    steps:
+      - name: Preserve the required SonarCloud quality-gate status
+        env:
+          SONAR_OUTCOME: ${{ needs.canonical.outputs.sonar-outcome }}
+          SONAR_REQUIRED: >-
+            ${{ (github.event_name == 'push'
+            && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+            || (github.event_name == 'pull_request'
+            && github.event.pull_request.head.repo.full_name == github.repository
+            && github.actor != 'dependabot[bot]') }}
+        run: |
+          if [ "${SONAR_REQUIRED}" = "true" ]; then
+            if [ "${SONAR_OUTCOME}" != "success" ]; then
+              echo "SonarCloud quality gate was required but concluded with '${SONAR_OUTCOME:-<no verdict>}'" >&2
+              exit 1
+            fi
+          elif [ -n "${SONAR_OUTCOME}" ] && [ "${SONAR_OUTCOME}" != "success" ]; then
+            echo "SonarCloud quality gate concluded with '${SONAR_OUTCOME}'" >&2
+            exit 1
+          fi
+
+  # Advisory early-feedback lane (#935): static/lint/policy for the diff plus any
+  # directly changed pytest modules, using the fail-closed change selector. It is
+  # NOT a required check and never a merge gate; the full-suite shards inside the
+  # canonical graph remain authoritative.
+  fast-feedback:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          name: coverage-report
-          path: implementations/python/
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8
+          python-version: "3.12.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v8
+        with:
+          enable-cache: false
+          version: "0.12.4"
+      - name: Fetch locked generic-tool inputs with the qualified client
+        run: |
+          mkdir .canonical-tool-inputs
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile offline-kit-fetch \
+            public-ubuntu-24.04-x86_64 .canonical-tool-inputs \
+            --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
+      - name: Install locked generic tools from local inputs
+        run: >-
+          uv run --project implementations/tooling/python --frozen --no-default-groups
+          python -m tools.bootstrap_profile
+          generic-tools --local-input-root .canonical-tool-inputs
+      - name: Resolve policy base and requirement UID
+        id: context
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          echo "base_rev=${BASE_SHA}" >> "${GITHUB_OUTPUT}"
+          REQ_UID="$(uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.requirement_context --branch "${BRANCH}")"
+          echo "uid=${REQ_UID}" >> "${GITHUB_OUTPUT}"
+      - name: Run advisory fast-feedback lane
+        env:
+          RAES_REQUIREMENT_UID: ${{ steps.context.outputs.uid }}
+          RAES_REQUIREMENT_BRANCH: ${{ github.head_ref }}
+          GC_BASE_URL: ${{ vars.GC_BASE_URL }}
+        run: |
+          uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-fast-feedback -- --base-rev "${{ steps.context.outputs.base_rev }}"

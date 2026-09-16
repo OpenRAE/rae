@@ -444,6 +444,14 @@ def job_credential_classes(
     workflow_secrets, workflow_unsupported = secret_classes(as_mapping(workflow.get("env")))
     job_context = dict(job)
     job_context.pop("steps", None)
+    if isinstance(job.get("uses"), str):
+        # A reusable-workflow call's `secrets:` mapping is admitted as a declared
+        # local-workflow call (exact secret set validated against `local_workflows`),
+        # not as a step/OIDC credential on this caller. Excluding only that block
+        # keeps the untrusted-secret gate focused on secrets that reach a step in an
+        # untrusted job; `env:` and every other body key are still scanned, and an
+        # undeclared or `inherit` secret still fails the reusable-call contract.
+        job_context.pop("secrets", None)
     job_secrets, job_unsupported = secret_classes(job_context)
     credentials = {"github-token", *workflow_secrets, *job_secrets}
     if permission_map.get("id-token") == "write":

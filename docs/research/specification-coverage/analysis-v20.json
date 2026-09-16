@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1242-v20",
+  "analysis_id": "raes-standardized-specification-coverage-issue-959-v20",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-16T04:37:27.999745+00:00",
+  "generated_at": "2026-09-16",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -51,7 +51,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained corpus replays against open-by-default augmentation scope without changing its preregistered classifications or claim limits. Native backend scope enforcement is not evaluated by this corpus.",
+  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -83,6 +83,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1242-v20",
-  "snapshot_sha256": "7ad8c9eb80fbf74ec6800f0bc162a8d0fbb0ece05d947bc21eaca6a5b9256578"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-959-v20",
+  "snapshot_sha256": "ac5d522e97311f125445bee53b162085c3bb0b6bdd4e563bff8f372f83e17c4e"
 }

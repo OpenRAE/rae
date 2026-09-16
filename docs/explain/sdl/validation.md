@@ -62,10 +62,10 @@ validation passes. See the [migration guide](../../migration/external-classifica
 | `verify_runtime_network_detection_engines` | Runtime network detection engines resolve optional same-node sensor refs, network-set refs, control-channel service refs, and filesystem-backed configuration/log/evidence/rule/output/control paths. |
 | `verify_runtime_security_monitoring_managers` | Runtime security-monitoring managers and listeners resolve to same-node service bindings. Manager/group/content/detection/setting file refs resolve to observed runtime filesystem entries when the node has file inventory. Agent group member refs, agent group refs, setting component refs, detection content-set refs, and detection correlation refs resolve inside the owning manager. Detection source artifact refs and target refs resolve through the generic named-ref index. |
 | `verify_runtime_app_authorizations` | Runtime application-internal RBAC stores resolve `permission_grants` and `role_mappings` `role_ref` values to roles declared within the same authorization (authorization-local role-permission and user-role assignment integrity). |
-| `verify_runtime_datastore_services` | Runtime datastore services resolve their owning transport `service` to a same-node service binding, and a non-empty, non-variable `authorization_ref` to an `app_authorization` declared on the same node. The model-local `require_profile_for_data_model` guard fails an under-populated `search_index`/`wide_column`/`key_value` instance. |
+| `verify_runtime_datastore_services` | Runtime datastore services resolve a supplied owning transport `service` to a same-node service binding, and a non-empty, non-variable `authorization_ref` to an `app_authorization` declared on the same node. Partial descriptions are valid; supplied partition contradictions, identities and manifest references remain checked. |
 | `verify_runtime_platform_applications` | Runtime platform applications resolve their owning transport `service` to a same-node service binding, a non-empty, non-variable `authorization_ref` to a same-node `app_authorization`, legacy content-object `references` to sibling `content_object_id` values, and `marking_refs` to sibling `marking_id` values. Provider-neutral capabilities are independently declared, carry stable application-local ids, and may be targeted by qualified refs; neither the deprecated `platform_kind` nor legacy content presence implies a capability or configuration completeness. |
-| `verify_runtime_forwarding_agents` | Runtime forwarding agents resolve each `ship_target`'s `target_node_ref`, when concrete, to a defined node, and a concrete `target_service_ref` to a service on the referenced node (or, for node-hosted agents only, on the owning node). Scenario-level forwarding agents require `target_node_ref` when `target_service_ref` is concrete, and `forwarding_agent_id` values are unique across node-hosted and scenario-level registries. The model-local `require_profile_for_agent_kind` guard fails an under-populated `log_forwarder` (requires a `buffer_policy` plus an ingestion `ship_target`, rejects `ioc_to_rule` transforms) or `content_sync` (requires an `api_pull` source, an `ioc_to_rule` transform, and a `reload_channel`, rejects a `buffer_policy` and `ship_target` enrollment endpoints) instance. |
-| `verify_runtime_orchestration_authorities` | Runtime orchestration authorities resolve a non-empty, non-variable `control_interface_ref` to a `RuntimeControlInterface` declared in the same node's `runtime.local_control_interfaces` (by `control_interface_id`); for a `host_root_equivalent` privilege class the referenced interface must additionally be a read-write docker socket (access `read_write`, kind `unix_socket`, path ending in `docker.sock`), with `${var}` interface access/kind/path permissive. The model-local `require_profile_for_privilege_class` guard fails a `host_root_equivalent` authority that carries no concrete `control_interface_ref`. |
+| `verify_runtime_forwarding_agents` | Runtime forwarding agents resolve each `ship_target`'s `target_node_ref`, when concrete, to a defined node, and a concrete `target_service_ref` to a service on the referenced node (or, for node-hosted agents only, on the owning node). Scenario-level forwarding agents require `target_node_ref` when `target_service_ref` is concrete, and `forwarding_agent_id` values are unique across node-hosted and scenario-level registries. Kind does not require an IOC/reload or buffering recipe; partial and composed pipelines remain valid. |
+| `verify_runtime_orchestration_authorities` | Runtime orchestration authorities resolve a non-empty, non-variable `control_interface_ref` to a `RuntimeControlInterface` declared in the same node's `runtime.local_control_interfaces` (by `control_interface_id`). Omitted interface knowledge is valid. A privilege class or Docker-socket filename does not establish effective authority; selected operations require independent support, prerequisites and authorization. |
 | `verify_runtime_mail_services` | Runtime mail services and listeners resolve optional same-node `Node.services` refs. Listener component refs, mailbox domain/store refs, alias target refs, routing source/target refs, and setting component refs resolve inside the owning mail service. Mailbox account refs resolve to top-level accounts, local-user refs resolve to `runtime.local_identity` when present, and setting source paths resolve to observed runtime filesystem entries when the node has file inventory. |
 | `verify_relationship_mail_access` | A relationship with `mail_access` must target a runtime mail service. Concrete `listener_ref`, `mailbox_ref`, and `domain_ref` values resolve within that target service, while protocol, auth-mechanism, and TLS-mode fields are structurally normalized by the `RelationshipMailAccess` model. |
 | `verify_agents` | Entity references resolve. Starting accounts and initial-knowledge accounts exist in accounts section. Allowed subnets and initial-knowledge subnets must resolve to switch-backed infrastructure entries. Initial-knowledge hosts must resolve to compute nodes. Initial-knowledge services exist in `nodes.*.services[].name`. Interactive-access targets resolve to compute nodes; optional accounts resolve to the same compute node and participant starting accounts; concrete target/channel pairs are unique per participant. |
@@ -277,14 +277,11 @@ bounds normalize human sizes to bytes and a concrete `heap_init_bytes` must not
 exceed a concrete `heap_max_bytes`; node-endpoint ports are validated to the
 1-65535 range with address and port kept split.
 Explicit redacted/operator-secret setting classifications omit raw values; names
-alone do not force omission. The `require_profile_for_data_model` guard makes the
-discriminator executable: a `${var}` placeholder is exempt and the open
-`unknown`/`other`/`relational` tail is permissive, but a concrete `search_index`
-requires at least one `index` partition carrying shard/replica geometry and at
-least one structured mapping manifest, a `wide_column` store requires at least
-one `keyspace` partition with a replication strategy and factor, and a
-`key_value` store requires a `persistence` profile and rejects
-relational/wide-column partitions. Mapping `partition_ref` values resolve to
+alone do not force omission. A `search_index`, `wide_column` or `key_value`
+description may omit geometry, mappings, replication or persistence. These are
+optional known facts, not a family-level completeness threshold. A supplied
+`key_value` declaration still rejects incompatible keyspace/column-family
+partitions. Mapping `partition_ref` values resolve to
 sibling datastore partitions, and template `mapping_ref` values resolve to
 sibling mapping manifests. Raw mapping/template response bodies are not model
 data; bounded manifests carry counts, summaries, digests, and evidence refs.
@@ -319,15 +316,11 @@ buffer crypto, reload-channel kinds, enrollment classifications, and setting
 provenance/classification are normalized from bounded enums while allowing
 full-value variables. A ship-target enrollment identity is never recorded — only
 the closed `none`/`redacted`/`operator_secret` lattice — and explicit
-redacted/operator-secret setting classifications omit raw values. The
-`require_profile_for_agent_kind`
-guard makes the `agent_kind` discriminator executable: a `${var}` placeholder is
-exempt and the open `unknown`/`other` tail is permissive, but a concrete
-`log_forwarder` requires a `buffer_policy` and at least one `ship_target` carrying
-an ingestion endpoint and rejects any `ioc_to_rule` transform, while a concrete
-`content_sync` requires at least one `api_pull` source, one `ioc_to_rule`
-transform, and one `reload_channel`, and rejects a `buffer_policy` and any
-`ship_target` enrollment endpoint. At scenario scope, a ship-target
+redacted/operator-secret setting classifications omit raw values. A concrete
+`log_forwarder` or `content_sync` kind does not require a particular set of
+sources, transforms, buffers, enrollment endpoints or reload channels. Partial
+descriptions and composed pipelines remain valid; selected operations enforce
+their actual prerequisites at admission. At scenario scope, a ship-target
 `target_node_ref` resolves to a defined node and a `target_service_ref` resolves
 to a service on the referenced node (or, for node-hosted agents only, on the
 owning node). Scenario-level agents have no owning node, so a concrete service
@@ -342,20 +335,18 @@ a relationship forwarding edge, not a re-typed ship target.
 The optional `runtime.orchestration_authorities` inventory has model-local and
 semantic rules. Orchestration-authority ids are stable concrete symbols and unique
 within a node runtime block; spawn-template and realized-child ids are unique
-across the authority. Engines and privilege classes are normalized from open
-taxonomies (both carry `unknown` and `other`) while allowing full-value variables,
+across the authority. Engine identities use the governed extension vocabulary;
+privilege classes retain their defined finite meanings and knowledge sentinels,
+while both allow full-value variables,
 and realized-child `count` accepts a non-negative integer, a `${var}`, or none.
-The `require_profile_for_privilege_class` guard makes the `privilege_class`
-discriminator executable: a `${var}` placeholder is exempt and `namespaced`/
-`unknown`/`other` are permissive, but a concrete `host_root_equivalent` authority
-requires a non-empty, non-variable `control_interface_ref`. At scenario scope a
+An authority may describe `host_root_equivalent` posture while its concrete
+interface remains unknown. That description grants no privilege. At scenario scope a
 non-empty, non-variable `control_interface_ref` resolves to a
 `RuntimeControlInterface` declared in the same node's
-`runtime.local_control_interfaces` (by `control_interface_id`); for a
-`host_root_equivalent` privilege class the referenced interface must additionally
-be a read-write docker socket (access `read_write`, kind `unix_socket`, path
-ending in `docker.sock`), with `${var}` interface access/kind/path treated as
-deferred and therefore permissive. The `RuntimeControlInterface` shell is
+`runtime.local_control_interfaces` (by `control_interface_id`). Neither a
+read-write mount nor a path ending in `docker.sock` proves effective access.
+Selected privileged operations independently require supported, authorized
+access and any genuinely required evidence. The `RuntimeControlInterface` shell is
 referenced, never duplicated: this surface carries the spawn contract (engine,
 scope, spawn templates, lifecycle policy, realized children) that the control
 interface model has no field for.
@@ -451,29 +442,47 @@ Neither an omitted implementation choice nor a complete abstract model needs a
 compulsory product/profile declaration. Identity and provenance fields do not
 create observation, retention or export demand.
 
-## Runtime required-profile guard convention
+## Runtime semantic review checklist
 
-Some runtime-family spines use an open enum-or-string discriminator to select a
-required profile from sibling structured fields. Those discriminators are not
-documentation-only claims: each documented required-profile discriminator must
-have a matching `require_profile_for_<field>` guard invoked by a registered
-Pydantic `mode="after"` model validator. This is the executable "cannot
-silently shallow-encode" guarantee for spines that actually make a
-discriminated completeness claim, currently `data_model`, `agent_kind`, and
-`privilege_class`. Platform applications deliberately do not use this
-convention: their deprecated `platform_kind` is classification, composable
-`capabilities` carry functional roles, and completeness is a separate
-requirement concern.
+The [issue 959 audit](../../research/language-extensibility/product-semantics-audit.md)
+records the motivating failure: backend recipes and captured specimens became
+compulsory author detail. A private extension catalog can reproduce that error.
+For a new or changed vocabulary, discriminator, profile or validation guard:
 
-The convention is enforced by
-`test_discriminated_runtime_spines_register_required_profile_guards` in
-`tests/test_runtime_family_invariants.py`. The lint discovers runtime-family
-models from `RuntimeConfiguration.model_fields`, identifies discriminator
-fields whose docs say they select a required profile and whose models carry
-sibling structured profile fields, and checks Pydantic's registered
-model-validator metadata for the corresponding guard call. A future runtime
-spine that declares the same required-profile discriminator shape but omits the
-guard fails the test suite.
+1. Name the semantic owner and distinguish domain identity, configured state,
+   capability, binding, policy, native data, realization, evidence and delivery.
+   Explain why an existing owner cannot carry the fact before adding one.
+2. State why a finite set is closed. A defined grammar operation, grant effect,
+   protection decision or exact schema version differs from a product catalog.
+   Use the owning native grammar for wire tokens and identifiers; do not force
+   every external name into the governed-vocabulary token syntax.
+3. Show a distinct implementation or private case and a partial description.
+   Check the whole record, including defaults and validators, not just whether
+   its identity field accepts an extension token.
+4. Check an inherited open parent with binding exact children. Optional detail
+   stays optional until its selected contract needs it. Preserve omitted,
+   empty, absent and unknown distinctions without per-field waivers or a
+   compulsory replacement catalog for backend-owned choices.
+5. Check a complete abstract model without fabricated OS, package, filesystem
+   or deployment prerequisites. A backend may resolve a needed concrete value
+   within its allowed scope; that does not make it mandatory author input.
+6. Separate representation/capture capability from requested reporting,
+   collection, retention and export. Exact scenario detail does not itself
+   request experimental telemetry. Retain genuinely selected evidence duties.
+7. Keep supplied integrity/security constraints and selected-operation
+   admission. A product identity, socket spelling, profile-shaped record or
+   schema-valid document is not authorization, support or conformance.
+8. Record schema/version, compatibility, migration, comparison and round-trip
+   impact. Reuse the existing identity/profile mechanisms. Retain bounded
+   product-specific data honestly; an attribute bag is not new semantics.
+
+#956 separated platform capabilities from optional content. #1207 removed the
+datastore, forwarding and orchestration required-profile guards. Do not restore
+them from historical examples. The existing family-invariant lint checks guard
+wiring only when model documentation explicitly declares that contract; it does
+not decide whether the contract is portable. The audit field-coverage test
+likewise detects missing review coverage, not semantic correctness. #1211 owns
+the integrated positive/negative lifecycle acceptance of this prevention rule.
 
 ## Static Semantic Invariants
 

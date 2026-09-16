@@ -221,7 +221,10 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "verify",
         "verify-changed",
         "verify-completion",
+        "verify-coverage-reduce",
+        "verify-fast-feedback",
         "verify-integration-lane",
+        "verify-shard",
         "verify-static-lane",
         "verify-tests-lane",
     }

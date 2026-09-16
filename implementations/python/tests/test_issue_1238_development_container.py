@@ -35,6 +35,7 @@ def _container_host_profile(host_profile_id: str = CONTAINER_HOST_PROFILE_ID) ->
     return hosts[0]
 
 
+@pytest.mark.integration
 def test_the_container_host_profile_resolves_one_reviewed_selection() -> None:
     selection = select_tooling_host_profile(REPO_ROOT, host_profile_id=CONTAINER_HOST_PROFILE_ID)
     host = selection["host_profile"]
@@ -76,6 +77,7 @@ def test_native_host_profiles_are_unchanged_by_the_container_variant() -> None:
         assert key not in native
 
 
+@pytest.mark.integration
 def test_repository_tooling_policy_admits_the_container_artifacts() -> None:
     failures = evaluate_tooling_artifact_policy(REPO_ROOT)
     assert [failure.render() for failure in failures] == []

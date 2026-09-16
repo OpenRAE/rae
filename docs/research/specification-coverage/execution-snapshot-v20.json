@@ -39,7 +39,7 @@
       "artifact_id": "known-limitations",
       "kind": "documentation",
       "path": "docs/explain/sdl/limitations.md",
-      "sha256": "129cf17810aad4c51988bc872e28fe43ae95019a80053c42d800ff7e2b9cc93e",
+      "sha256": "489eeab3ce682627682311581eb98af9abb9ff42a437145af266eefb71dc7fc4",
       "validator": "documentation evidence only"
     }
   ],
@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-16T04:37:27.999745+00:00",
+  "captured_at": "2026-09-16T00:22:06.634965+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -636,22 +636,28 @@
       "baseline_sha256": "9536d897a09cbc6920e667e4f8f9371e51307aa0b3b5ff3c7de682dd783420ab",
       "rationale": "Replay the retained preregistered artifact against the current evidence-provenance validation implementation.",
       "retest_sha256": "e6fa559c5e961f0aab448d0f70dead24aa74fa8ba5f20e1b72f88e11473c9299"
+    },
+    {
+      "artifact_path": "docs/explain/sdl/limitations.md",
+      "baseline_sha256": "129cf17810aad4c51988bc872e28fe43ae95019a80053c42d800ff7e2b9cc93e",
+      "rationale": "Correct historical mandatory-profile guidance after issue #1207; retain the preregistered missing-concept classifications and coverage limits.",
+      "retest_sha256": "489eeab3ce682627682311581eb98af9abb9ff42a437145af266eefb71dc7fc4"
     }
   ],
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "342c3738064eaf758f7f2e221873cd1d0795c38103c4d273a5f287a48fa7bf14",
+      "content_sha256": "d86459ed0fb7f5cd5ab89bbf581da753c7bfd9b3f2b91503fd23356427c9879c",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "fc7bb502c39ec526cb7bd428a487c9f6cd584e1adae5488edcdfd399bb5a0dba",
+      "content_sha256": "ed351205979c8a80e10962146cc95f8a4019c593459d9e32b4f65aa0aca91f7f",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "3884db290b1210ecd62061b5f225ca6cf35a4f19c2841b962a326a6a9dd6ff63",
+      "content_sha256": "ddf2cd2a7b46f895ea1a845bad7e90db1f05b2ef6abce3789b20ebb1698c7c7f",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -662,17 +668,18 @@
     "No live range, participant, simulator federation, or provider provisioning engine was executed.",
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
     "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim.",
-    "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix."
+    "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix.",
+    "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
   "raes_revision": "2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1242-v20",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-959-v20",
   "snapshot_revision": "20.0.0",
   "source_state": {
     "base_revision": "2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e",
     "checkout_state": "modified",
-    "implementation_digest": "d317dc91a76d620118877037ff0ff6650678889ac843fb0ee1330a21b2223b58",
+    "implementation_digest": "4dcfb6153100f2000b027ca378e4c22adcb84fd03fc3ad84474fee435e13ee37",
     "profile": "python-reference-source/v2"
   }
 }

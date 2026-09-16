@@ -264,6 +264,60 @@ fault-injection proxy. Test fixture protocol handling is not a production
 acquisition implementation. Maintain a few meaningful end-to-end cases against
 the actual clients; mocks of argv alone cannot prove the profile's behavior.
 
+### Issue #1226 output-bound release evidence
+
+`.github/workflows/release-please.yml` generates, signs, admits and retains the
+release evidence. `tools/release_evidence.py` is the entry point;
+`release_evidence_sbom.py` reconciles the runtime closure,
+`release_evidence_documents.py` renders the documents,
+`release_evidence_verifier.py` bounds the maintained verifier, and
+`release_evidence_admission.py` decides admission.
+
+Exact identities: CycloneDX 1.6 documents and the `raes-build-inventory/v1` and
+`raes-release-evidence/v1` records; `actions/attest-build-provenance`
+`4d101475d8b20a2381f78447822ac1eab6504dd8` (v4.2.2) over
+`actions/attest` `508db95dd578ae2727ebd6217d5ba78e4fbda05d`; verification through
+`gh attestation verify` pinned to the producer identity in
+`implementations/tooling/admission-policy.json`; closure profile
+`public-linux-x86_64-cp312-all-extras` on `public-ubuntu-24.04-x86_64`.
+Evidence binds the `tooling_policy_sha256` aggregate alongside separately named
+raw project-lock, tool-lock and build-constraint digests.
+
+- **T03**: `test_issue_1226_runtime_closure.py` drives the declared CPython
+  3.11-3.14 / ABI / extras qualification of the reconciliation. The base closure
+  is resolved independently of extras, `dev` and `docs` components are labelled
+  rather than recorded as unconditional runtime, and inconsistent metadata fails
+  instead of omitting an edge. `test_issue_1226_target_markers.py` binds each
+  reviewed target's full marker environment, so a cross-OS or patch-sensitive
+  projection no longer inherits the generator host.
+- **T04**: `test_issue_1226_release_evidence_cli.py` and
+  `test_release_workflows.py` prove the credential isolation at the real
+  boundary rather than by reading workflow YAML shape. The approved producer set
+  comes from reviewed policy, so a foreign signer cannot approve itself; the
+  build job holds no OIDC, attestation, promotion or publishing authority; and
+  the signer holds no publication identity and checks out nothing.
+- **T19**: `test_issue_1226_release_admission.py` covers missing, extra and
+  replaced wheel, sdist or SBOM, an SBOM naming a foreign subject, a substituted
+  input inventory, a sidecar swap, a run/attempt replay, a drifted policy hash,
+  a missing attestation, a foreign producer, a valid signature from the wrong
+  workflow, and malformed or oversized evidence. Each asserts a distinct stable
+  failure class and that admission refuses before any publisher obtains usable
+  output. `test_issue_1226_attestation_verifier.py` covers the verifier
+  boundary: an empty, ambiguous, malformed or oversized verdict never becomes
+  admission.
+
+Retention: the SBOMs, build inventory and evidence index are attached to the
+GitHub Release and digest-compared on readback, so they outlive the seven-day
+Actions artifact retention. Retention owner: Release. The existing `--clobber`
+on distribution attachment remains the recorded #1227 gap and is deliberately
+not used for evidence. Durable admission-bundle storage (#1224), full publisher
+admission and same-byte recovery (#1227) and operations qualification (#1228)
+remain outside this issue.
+
+This record describes implemented repository behavior. The release-time
+execution of T03/T04/T19 against a real tagged release is observed when the next
+release runs; the cases above execute in the repository verification graph.
+
 ### Issue #1217 bootstrap qualification evidence
 
 The v2 profile authority and `bootstrap-qualification.yml` bind T01, T02, T03,

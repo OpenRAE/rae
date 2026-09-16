@@ -461,11 +461,12 @@ The `runtime.datastore_services` surface is the SCN-010 (DSL-132) response to a
 gap for the participant-observable logical state of *non-relational* datastores
 — the search cluster, wide-column store, and key-value store that the
 irreducibly-relational `runtime.database_services` cannot shape. Its defining
-addition is the open `data_model` discriminator paired with a
-`require_profile_for_data_model` guard that makes each data model's defining
-geometry (search shard/replica counts, wide-column replication, key-value
-persistence, and bounded search-index mapping manifests) executable rather than
-optional. Search-index mappings and templates are captured as bounded manifests
+addition is a typed logical-state inventory with optional geometry, replication,
+persistence and bounded mapping manifests. Issue #1207 removed the historical
+`require_profile_for_data_model` completeness guard: the motivating deployment
+does not make those details compulsory in every valid description. Supplied
+structural contradictions and references remain checked; selected operations
+have their own admission requirements. Search-index mappings and templates are captured as bounded manifests
 with counts, summaries, digests, refs, and evidence pointers rather than as raw
 backend JSON bodies.
 
@@ -595,9 +596,10 @@ gap for the participant-observable agent-side shipping state — the
 the intel-sync co-process — that the SIEM/security-monitoring *manager*
 (`runtime.security_monitoring_managers`) and the detection-engine *consumer*
 (`runtime.network_detection_engines`) provably cannot shape. Its defining
-addition is the open `agent_kind` discriminator paired with a
-`require_profile_for_agent_kind` guard that makes each member's defining shipping
-profile executable rather than optional.
+addition is a typed source/transform/target inventory. Issue #1207 removed the
+historical `require_profile_for_agent_kind` guard: `agent_kind` does not require
+a particular deployment recipe, and composed or partial pipelines are valid.
+Supplied references and protection rules remain binding.
 
 RAES relies on prior work in four ways:
 
@@ -623,8 +625,9 @@ RAES relies on prior work in four ways:
   [SP 800-150](https://csrc.nist.gov/publications/detail/sp/800-150/final), Bianco's
   [Pyramid of Pain](https://detect-respond.blogspot.com/2013/03/the-pyramid-of-pain.html),
   and MITRE [ATT&CK](https://attack.mitre.org/) frame the `ioc_to_rule`
-  intel-sync transform — the API-pull-to-rule-reload shape — that the
-  `content_sync` profile makes executable.
+  intel-sync transform and its motivating API-pull-to-rule-reload shape. That
+  recipe is one optional configuration, not the meaning of every `content_sync`
+  application or proof that synchronization executed.
 - **Forwarder implementation lineage:** Elastic
   [Beats](https://www.elastic.co/beats/) and the
   [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) show the
@@ -642,8 +645,10 @@ through a control interface — a SOAR orchestrator or analyzer engine holding
 `docker.sock` read-write. `RuntimeControlInterface` types the docker.sock *shell*
 but carries no field for what the holder is authorized to *do*; this surface adds
 the spawn contract (engine, scope, spawn templates, lifecycle policy, realized
-children) referencing that shell, paired with a `require_profile_for_privilege_class`
-guard that makes the host-root privilege-escalation fact executable.
+children) referencing that shell. Issue #1207 removed the historical
+`require_profile_for_privilege_class` completeness guard and Docker-socket
+filename test. Partial interface knowledge is valid; actual selected privileged
+operations still require independent authorization and supported access.
 
 RAES relies on prior work in four ways:
 
@@ -667,7 +672,9 @@ RAES relies on prior work in four ways:
   privilege escalation, and MITRE ATT&CK
   [T1610](https://attack.mitre.org/techniques/T1610/) (Deploy Container) and
   [T1611](https://attack.mitre.org/techniques/T1611/) (Escape to Host) anchor the
-  adversary relevance the `host_root_equivalent` profile makes executable.
+  adversary relevance of a declared `host_root_equivalent` posture. Neither
+  that declaration nor a socket path proves effective privilege or authorizes
+  execution.
 - **Engine API lineage:** The
   [Docker Engine API](https://docs.docker.com/engine/api/) shows the spawn /
   lifecycle surface (container create/start/stop, image references) RAES records

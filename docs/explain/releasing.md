@@ -24,8 +24,11 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    keeps draft releases discoverable by Release Please. The release workflow
    requires that tag and SHA to match and that the commit belong to `main`.
 4. The workflow invokes `.github/workflows/canonical-verification.yml` for that
-   exact SHA. This is the same proof-bearing `nox -s verify` gate used by CI.
-   It does not poll branch status or accept a check from another commit.
+   exact SHA. This is the same proof-bearing, exact-commit verification graph
+   used by CI: the same nox test, coverage, policy, contract, and proof lanes,
+   now distributed across concurrent jobs, with the same 90% coverage floor. The
+   release caller leaves the SonarCloud quality gate disabled. It does not poll
+   branch status or accept a check from another commit.
 5. A separate read-only job checks out that SHA and must complete the RUN-314
    reference-backend tests against a real container runtime. Release-required
    mode fails when the runtime or digest-pinned reviewed image is unavailable,
@@ -88,6 +91,68 @@ Use `feat:`/`fix:` for consumer-visible changes so release-please cuts a release
   checks out and binds itself to that value.
 - `release-please-config.json` creates releases as drafts and forces the tag to
   exist immediately. Only the gated GitHub publication job removes draft state.
+
+## Release evidence: SBOM, build inventory, and provenance
+
+Every release produces evidence bound to the exact bytes it publishes (#1226):
+
+- **Runtime SBOMs** in CycloneDX 1.6, one for the wheel and one for the sdist.
+  Each names the distribution's runtime dependency closure with its dependency
+  edges, and binds the SHA-256 of the artifact it describes.
+- **A build/tool/native input inventory**, recorded separately from runtime
+  dependencies. It carries the interpreter and closure profile, the build
+  backend, the reviewed tool inputs, the pinned actions, and the lock and policy
+  hashes, along with the repository, source commit, producer workflow, run id,
+  and run attempt.
+- **A release evidence index** binding the published subject set and every
+  evidence document by size and digest.
+
+The runtime SBOM is **not** a dump of the smoke environment. That environment
+installs the full projected requirements and then the candidate with
+`--no-deps`, so it also holds the published `dev` and `docs` extras — reading it
+back would file Sphinx and pytest as runtime dependencies of `raes`. The closure
+is instead reconciled from three independent sources: the built wheel's own
+`Requires-Dist` metadata, the reviewed lock, and the observed installation. Any
+disagreement fails the release rather than silently dropping a dependency edge.
+
+The wheel, the original sdist, and the wheel rebuilt from that sdist are three
+distinct subjects. The sdist SBOM binds the original `.tar.gz`; the rebuilt
+wheel is recorded as a derived test subject and never stands in for either
+published artifact.
+
+### How it is signed and admitted
+
+Signing runs in its own `attest-release` job through
+`actions/attest-build-provenance`. That job checks out nothing, holds no PyPI
+environment and no `contents: write`, and measures the bytes it received before
+signing them — so an attestation credential cannot authorize publication.
+
+A separate `admit-release` job then verifies each subject with
+`gh attestation verify`, pinned to the issuer, repository, and signer workflow
+recorded in `implementations/tooling/admission-policy.json`. Those approved
+identities come from reviewed policy, never from the bundle being verified. Both
+publishers depend on that job, so absent or rejected evidence blocks the handoff
+instead of being an optional report. A cryptographically valid signature over
+the wrong repository, workflow, run, attempt, or subject is a rejection.
+
+### Where it is retained
+
+The evidence is attached to the GitHub Release beside the wheel and sdist, and
+read back and digest-compared after upload, so it outlives the seven-day Actions
+artifact retention. Retention owner: Release; the
+supported-release-lifetime-plus-one-year rule in
+[operations](../decisions/package-artifacts/operations.md) applies.
+
+### Verifying a release as a consumer
+
+```console
+$ gh attestation verify raes-1.2.3-py3-none-any.whl \
+    --repo OpenRAE/rae \
+    --signer-workflow OpenRAE/rae/.github/workflows/release-please.yml
+```
+
+Download the SBOM and build inventory from the same Release to inspect the
+recorded dependency closure and build inputs.
 
 ## Release bookkeeping does not re-run checks
 

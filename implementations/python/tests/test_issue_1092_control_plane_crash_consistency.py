@@ -1631,6 +1631,7 @@ def test_sqlite_sidecar_validation_rejects_unsafe_metadata(
                 store_paths_module._validate_sqlite_sidecar(sidecar)
 
 
+@pytest.mark.integration
 def test_local_store_repeated_multiprocess_wal_lifecycle(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     LocalControlPlaneStore(store_path)
@@ -2410,6 +2411,7 @@ def test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity(
     reacquired.close()
 
 
+@pytest.mark.integration
 def test_local_store_runtime_lease_blocks_another_process(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     owner = RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
@@ -2449,6 +2451,7 @@ def test_runtime_owner_directory_guard_survives_lock_path_replacement(tmp_path: 
 
 
 @pytest.mark.skipif("fork" not in get_all_start_methods(), reason="fork is unavailable")
+@pytest.mark.integration
 def test_inherited_runtime_owner_fails_closed_after_fork(tmp_path: Path) -> None:
     owner = RuntimeControlPlane(
         create_stub_target(),

@@ -212,6 +212,16 @@ def _seed_policy(root: Path) -> Path:
                 },
             ],
             "denied_digests": [],
+            "release_producers": [
+                {
+                    "producer_id": "fixture-producer",
+                    "issuer": "https://token.actions.githubusercontent.com",
+                    "repository": "example/repo",
+                    "workflow_ref": "example/repo/.github/workflows/release.yml@refs/heads/main",
+                    "signer_workflow": "example/repo/.github/workflows/release.yml",
+                    "reviewer_roles": ["Release", "Security"],
+                }
+            ],
         },
     )
     _write_json(
@@ -2795,3 +2805,30 @@ def test_python_closure_main_reports_success_after_showing_a_manifest(capsysbina
 
     assert main(["manifest-show", "--profile", profile_id]) == 0
     assert capsysbinary.readouterr().out == expected_manifest
+
+
+def test_tracked_python_scans_reuse_is_invalidated_by_any_edit(tmp_path: Path) -> None:
+    """The scan cache is keyed by file identity, so an edit is never served stale.
+
+    Re-parsing every tracked Python file on each policy evaluation dominated the
+    evaluation cost, so unchanged files are memoized. That is only sound while
+    any edit invalidates the entry — including one that preserves the file size.
+    """
+
+    from tools.tooling_artifact_policy_discovery import tracked_python_scans
+
+    relative = "sample.py"
+    target = tmp_path / relative
+    target.write_text("x = 1\n", encoding="utf-8")
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is True
+
+    # Same byte length, different content: only the modification time differs.
+    unparsable = "x = (\n"
+    assert len(unparsable) == len("x = 1\n")
+    target.write_text(unparsable, encoding="utf-8")
+    os.utime(target, ns=(1_000_000_000, 2_000_000_000))
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is False
+
+    # And a length change is likewise observed rather than reused.
+    target.write_text("y = 2\ny = 3\n", encoding="utf-8")
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is True
