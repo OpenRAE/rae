@@ -206,7 +206,7 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     assert "record-case T12" in workflow_text
     assert "bootstrap-offline-kit.tar" in workflow_text
     canonical = yaml.safe_load((REPO_ROOT / ".github/workflows/canonical-verification.yml").read_text(encoding="utf-8"))
-    assert canonical["jobs"]["verify"]["runs-on"] == "ubuntu-22.04"
+    assert canonical["jobs"]["proof"]["runs-on"] == "ubuntu-22.04"
     for path in sorted((REPO_ROOT / ".github/workflows").glob("*.yml")):
         parsed = yaml.safe_load(path.read_text(encoding="utf-8"))
         for job in parsed.get("jobs", {}).values():

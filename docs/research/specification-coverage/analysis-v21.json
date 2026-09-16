@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-959-v20",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1005-v21",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,8 +18,8 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v20.json",
-      "docs/research/specification-coverage/analysis-v20.json"
+      "docs/research/specification-coverage/execution-snapshot-v21.json",
+      "docs/research/specification-coverage/analysis-v21.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
     "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
@@ -83,6 +83,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-959-v20",
-  "snapshot_sha256": "ac5d522e97311f125445bee53b162085c3bb0b6bdd4e563bff8f372f83e17c4e"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1005-v21",
+  "snapshot_sha256": "691f7279025be5a3f9592ce723bbc84de0861ffb7ed0ac8591081a4c6fd3ae8b"
 }

@@ -372,7 +372,7 @@ def test_scope_reader_rejects_unsafe_authority(scope_repo, kind):
 def test_actual_ci_resolver_retains_governance_for_numeric_issue_branches(tmp_path):
     root = Path(__file__).resolve().parents[3]
     workflow = yaml.safe_load((root / ".github/workflows/canonical-verification.yml").read_text())
-    steps = workflow["jobs"]["verify"]["steps"]
+    steps = workflow["jobs"]["checks"]["steps"]
     step = next(step for step in steps if step.get("id") == "requirement")
     output = tmp_path / "github-output"
     environment = {**os.environ, "BRANCH": "1237-capture-evidence-authority", "GITHUB_OUTPUT": str(output)}

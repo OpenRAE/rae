@@ -255,7 +255,14 @@
         "caller_workflow": {"$ref": "#/$defs/workflowPath"},
         "caller_job": {"$ref": "#/$defs/identifier"},
         "inputs": {"$ref": "#/$defs/inputs"},
-        "permissions": {"$ref": "#/$defs/permissions"}
+        "permissions": {"$ref": "#/$defs/permissions"},
+        "secrets": {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 1,
+          "propertyNames": {"pattern": "^[A-Za-z0-9_-]+$"},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
       }
     },
     "dependabot": {

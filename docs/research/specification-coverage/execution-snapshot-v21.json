@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-16T00:22:06.634965+00:00",
+  "captured_at": "2026-09-16T04:22:39+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "d86459ed0fb7f5cd5ab89bbf581da753c7bfd9b3f2b91503fd23356427c9879c",
+      "content_sha256": "cd0b95690ccd5f66100bdc8c019e0aea8cb8e835c5f19aaa23fa94fd0018efbc",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -669,17 +669,18 @@
     "Missing concepts remain frozen in this snapshot and require separately scoped product work before a later rerun.",
     "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim.",
     "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix.",
-    "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged."
+    "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged.",
+    "This capture replays the retained protocol after ASR-516 authoring-adapter conformance support; it adds no new claim about actual CLI, agent, graphical, or documentation transport implementations."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-959-v20",
-  "snapshot_revision": "20.0.0",
+  "raes_revision": "17f61670a0485c5938e85d1f2d5879eb186b4b4b",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1005-v21",
+  "snapshot_revision": "21.0.0",
   "source_state": {
-    "base_revision": "2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e",
+    "base_revision": "17f61670a0485c5938e85d1f2d5879eb186b4b4b",
     "checkout_state": "modified",
-    "implementation_digest": "4dcfb6153100f2000b027ca378e4c22adcb84fd03fc3ad84474fee435e13ee37",
+    "implementation_digest": "beb5659b8f94599fc310c5c31efb62c643973751dff64c36b21161d455e867c2",
     "profile": "python-reference-source/v2"
   }
 }
