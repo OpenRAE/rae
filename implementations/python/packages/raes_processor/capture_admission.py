@@ -8,7 +8,11 @@ from raes.evidence_requirements import EvidenceRequirement
 from raes.scenario import ScenarioContent
 from raes_backend_protocols.capabilities import ObservationCapabilities, ObservationCaptureOffer
 from raes_contracts.capture_dimensions import CAPTURE_DIMENSIONS, project_capture_dimensions
-from raes_contracts.contracts import ExperimentCaptureSpecModel
+from raes_contracts.contracts import (
+    ExperimentCaptureSpecModel,
+    ExperimentEvidenceRequirementRelationModel,
+    validate_evidence_requirement_relations,
+)
 from raes_contracts.diagnostics import Diagnostic, Severity
 
 _CHANNEL_CAPTURE_KIND = {
@@ -151,6 +155,30 @@ def compile_capture_spec_demands(
     return tuple(demands)
 
 
+def compile_scoped_evidence_requirement_demands(
+    scenario: ScenarioContent,
+    capture_specs: tuple[ExperimentCaptureSpecModel, ...],
+    relations: tuple[ExperimentEvidenceRequirementRelationModel, ...],
+    *,
+    relation_scenario: ScenarioContent | None = None,
+) -> tuple[CaptureDemand, ...]:
+    """Compile immutable base and scoped obligations as a conjunction.
+
+    Relationship validation resolves only the supplied scenario and capture
+    specifications.  The two incumbent compilers remain the authorities for
+    their respective demand planes, so a scoped relation cannot overwrite an
+    authored demand or fill an unspecified backend choice.
+    """
+
+    supplied_specs = {f"{index}:{spec.capture_spec_id}": spec for index, spec in enumerate(capture_specs)}
+    validate_evidence_requirement_relations(
+        relations,
+        scenario=relation_scenario or scenario,
+        capture_specs=supplied_specs,
+    )
+    return (*compile_scenario_capture_demands(scenario), *compile_capture_spec_demands(capture_specs))
+
+
 def _offer_failures(demand: CaptureDemand, offer: ObservationCaptureOffer) -> tuple[str, ...]:
     return tuple(
         sorted(
@@ -206,5 +234,6 @@ __all__ = [
     "CaptureDemand",
     "capture_admission_diagnostics",
     "compile_capture_spec_demands",
+    "compile_scoped_evidence_requirement_demands",
     "compile_scenario_capture_demands",
 ]

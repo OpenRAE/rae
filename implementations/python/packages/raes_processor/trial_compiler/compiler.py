@@ -44,8 +44,7 @@ from raes_contracts.experiment_bindings import (
 from ..capture_admission import (
     CaptureDemand,
     capture_admission_diagnostics,
-    compile_capture_spec_demands,
-    compile_scenario_capture_demands,
+    compile_scoped_evidence_requirement_demands,
 )
 from .apparatus import (
     validate_selected_apparatus,
@@ -228,10 +227,16 @@ def _compile_entry(
     observations: tuple[ObservationCapabilities | None, ...],
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
     selected = _validate_selected_scenario(request, row, coordinate)
+    relations = (
+        *request.task.evidence_requirement_relations,
+        *request.experiment.run_plan.evidence_requirement_relations,
+    )
     _require_capture_admission(
-        (
-            *compile_scenario_capture_demands(selected),
-            *compile_capture_spec_demands(tuple(request.capture_specs.values())),
+        compile_scoped_evidence_requirement_demands(
+            selected,
+            tuple(request.capture_specs.values()),
+            relations,
+            relation_scenario=request.family,
         ),
         observations,
     )

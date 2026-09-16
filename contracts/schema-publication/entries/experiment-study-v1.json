@@ -1,9 +1,9 @@
 {
-  "content_hash": "0ed8f314af57a7a4d88fe1f2a61df3ac35d1e6c429a296eec96e8ebccfa914d2",
+  "content_hash": "9b33261f1646aa64bb37b8d95b2d07c686049b1106ba5d064738742752e9992a",
   "contract_id": "experiment-study-v1",
   "last_change": {
-    "content_hash": "0ed8f314af57a7a4d88fe1f2a61df3ac35d1e6c429a296eec96e8ebccfa914d2",
-    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+    "content_hash": "9b33261f1646aa64bb37b8d95b2d07c686049b1106ba5d064738742752e9992a",
+    "summary": "Add typed study evidence-requirement relations and distinct materialization-attestation references (#341, #1241)."
   },
   "schema_path": "contracts/schemas/experiment-core/experiment-study-v1.json",
   "stability": "draft"
