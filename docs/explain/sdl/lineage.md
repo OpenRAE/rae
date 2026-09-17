@@ -302,8 +302,12 @@ The `runtime.service_listeners` surface is issue #431's response to an
 observed gap in APTL's MISP container inventory. It is not a replacement for
 authored services, host-published port bindings, protocol-specific runtime
 inventories, or scanner output. It is the bounded node-scoped place for generic
-observed listener facts: bind endpoint, port, transport, address family,
-listener scope, owner, readiness evidence, and provenance.
+known listener facts: bind endpoint, port, transport, address family, listener
+scope, owner, readiness evidence, and provenance. These facts need not arrive
+as a complete endpoint tuple. RAES preserves omission, explicit empty values,
+open vocabulary values, and private exact values rather than converting them
+into wildcard binds or inferred observations; an operation that needs a usable
+endpoint owns the later completeness check.
 
 RAES relies on prior work in four ways:
 

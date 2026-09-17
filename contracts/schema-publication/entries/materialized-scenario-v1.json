@@ -1,9 +1,9 @@
 {
-  "content_hash": "41fdf195304dacb5fd90ec0bbb066600a873e6f522b86cc4377acd59349fe679",
+  "content_hash": "b60176367971e45a5136ffa4960360031676675bd7eb02ddd21155e8aa033bc3",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "41fdf195304dacb5fd90ec0bbb066600a873e6f522b86cc4377acd59349fe679",
-    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
+    "content_hash": "b60176367971e45a5136ffa4960360031676675bd7eb02ddd21155e8aa033bc3",
+    "summary": "Carry bounded augmentation permission and partial runtime listener descriptions (#1242, #1299)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

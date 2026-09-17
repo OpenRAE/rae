@@ -1,9 +1,9 @@
 {
-  "content_hash": "3b07f6d44c626b373b0d4be1bafa3f8cceba1186df996cdfb2fbac633f8ebd7a",
+  "content_hash": "ff6ef8554c500fe54e22d7126f0c54fb35e6fce4a12492e0a86ff82ba916d14b",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "3b07f6d44c626b373b0d4be1bafa3f8cceba1186df996cdfb2fbac633f8ebd7a",
-    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
+    "content_hash": "ff6ef8554c500fe54e22d7126f0c54fb35e6fce4a12492e0a86ff82ba916d14b",
+    "summary": "Carry bounded augmentation permission and partial runtime listener descriptions (#1242, #1299)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

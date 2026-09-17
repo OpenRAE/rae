@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from raes.materialization import MaterializedScenario
 from raes_contracts.augmentation_preparation import AugmentationPreparation
+from raes_contracts.authoring_adapters import (
+    AuthoringAdapterComparisonModel,
+    AuthoringAdapterProfileModel,
+    AuthoringAdapterVectorModel,
+)
 from raes_contracts.behavioral_relation_profiles import BehavioralRelationProfileModel
 from raes_contracts.behavioral_relations import BehavioralRelationCatalogModel
 from raes_contracts.contracts import (
@@ -90,6 +95,9 @@ from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_fail
 
 _SCHEMA_INVALID_DIAGNOSTIC_CODE = "conformance.schema-invalid"
 _MODEL_VALIDATORS = {
+    "authoring-adapter-profile-v1": AuthoringAdapterProfileModel.model_validate,
+    "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_validate,
+    "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_validate,
     "backend-manifest-v2": BackendManifestV2Model.model_validate,
     "participant-implementation-manifest-v1": ParticipantImplementationManifestModel.model_validate,
     "participant-implementation-provenance-v1": ParticipantImplementationProvenanceModel.model_validate,

@@ -155,6 +155,8 @@ def _selected_baseline_manifest(
         "23.0.0",
         "24.0.0",
         "25.0.0",
+        "26.0.0",
+        "27.0.0",
     }
     expected_protocol_path = (
         "docs/research/formal-semantic-validation/protocol-v2.json"
@@ -172,6 +174,8 @@ def _selected_baseline_manifest(
         "23.0.0",
         "24.0.0",
         "25.0.0",
+        "26.0.0",
+        "27.0.0",
     }:
         expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
     elif baseline_revision in v2_revisions:

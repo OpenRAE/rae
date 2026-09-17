@@ -58,11 +58,13 @@ same thing.
 ### 1. Model generic service listeners under node runtime
 
 Add `Node.runtime.service_listeners` as optional observed runtime inventory.
-Each listener has a stable `listener_id`, transport protocol, port or Unix
-socket path, bind address and/or interface, address family, listener scope,
-optional same-node service reference, optional process owner reference, typed
-published-port correlation refs, readiness/probe evidence, provenance, and
-evidence refs.
+Each listener has a stable `listener_id` and may carry transport protocol, port
+or Unix socket path, bind address and/or interface, address family, listener
+scope, optional same-node service reference, optional process owner reference,
+typed published-port correlation refs, readiness/probe evidence, provenance,
+and evidence refs. The inventory admits truthful partial descriptions; stable
+identity does not imply that a complete bind endpoint has been observed or
+selected.
 
 The owning node is implicit from the enclosing node. The surface is observed
 runtime state; it must not mutate `Node.services`, `runtime.network`, source
@@ -105,24 +107,63 @@ Named-reference validation and module-import alias rewriting recognize that
 shape so relationships and composed scenarios cannot silently point at stale
 or un-namespaced listener records.
 
+### 5. Separate description validity from complete endpoint admission
+
+Base listener validation rejects contradictions in supplied facts, not missing
+knowledge. Port bounds, stable identity, duplicate rejection, incompatible
+supplied Unix/network shapes, concrete address-family/scope contradictions, and
+concrete reference integrity remain binding. A partial TCP listener need not
+name an address or interface, a partial Unix listener need not name its socket
+path, and an unknown, other, variable, or governed private transport must not be
+classified as a network endpoint merely because it is not the core `unix`
+token.
+
+Missing, explicitly empty, unknown, and concrete values remain distinct.
+Source-preserving serialization uses field presence and does not materialize an
+omitted field. For compatibility, the historical omitted `protocol` default is
+still `tcp` in an instantiated artifact; instantiation provenance and recursive
+constraint origin must retain that it was a default rather than an authored or
+observed fact. An instantiated default must not erase an exact authored child,
+close an inherited open scope, or become evidence that TCP was observed.
+
+An inherited open scope may let an admitted backend select an omitted bind
+choice while every supplied descendant, such as an exact port, remains binding.
+When an operation or coverage-qualified effective-listener claim truly requires
+a complete endpoint, enforce that requirement at the existing owner: recursive
+realization authority plus backend preparation and the backend's installed
+`validate` semantics before apply, or coverage-aware description assessment for
+a complete report. The canonical `service-listeners` observed validator remains
+a shape, contradiction, and safe-projection gate; partial observations must not
+be rejected merely for being partial. Do not put an operational precondition
+back into general SDL parsing. A partial record grants no socket access,
+service authority, host publication, observation, retention, or export.
+
 ## Security and Validation Gates
 
 - Parser/model gate: listener ids are concrete stable symbols, not mapping keys
   or `${var}` placeholders.
 - SDL model gate: duplicate listener ids in a node runtime block are rejected.
-- Shape gate: network listeners require a port and address or interface; Unix
-  socket listeners require `socket_path` and must not set a port or address.
+- Shape gate: partial descriptions may omit endpoint fields. Supplied
+  Unix/network fields must remain mutually compatible; port bounds and field
+  shapes remain enforced.
 - Scope gate: concrete IP/socket facts must not contradict address family or
   listener scope.
-- Semantic validation gate: same-node service refs resolve and concrete
-  service/listener port+protocol values match.
+- Semantic validation gate: same-node service refs resolve and supplied known
+  service/listener port+protocol values match. Missing or unknown listener
+  values defer agreement; a governed private identity is concrete and binding.
 - Process-reference gate: `process_ref` resolves to a same-node runtime process
   name or PID when set.
 - Published-port correlation gate: `published_port_refs[]` entries resolve to
-  `runtime.network.published_ports[]` and match the listener's container-side
-  port/protocol.
-- Contract/schema gate: published JSON Schemas are generated from Python model
-  sources; generated schemas are not edited by hand.
+  `runtime.network.published_ports[]`; they match supplied known listener
+  container-side port/protocol facts without inventing omitted ones.
+- Realization/admission gate: reuse recursive realization constraints,
+  `service-listeners` projection, selected backend preparation, installed
+  backend validation, and coverage-aware effective-observation assessment.
+  Shape admission alone never proves endpoint completeness, and partial
+  coverage remains valid without satisfying a complete-report claim.
+- Contract/schema gate: published JSON Schemas under `contracts/schemas/` are
+  the governed authority. Keep the reference model/schema bundle identical and
+  update only affected schema-publication records when the contract changes.
 - Evidence gate: readiness probes, process names, scanner outputs, and native
   payloads remain evidence or bounded text. Do not store credentials, bearer
   tokens, raw secret probe headers, or raw backend inspect blobs in this
@@ -136,6 +177,12 @@ or un-namespaced listener records.
 - Do not infer host-public exposure from a wildcard address inside a container.
 - Do not treat Nmap output alone as proof of local bind address or owning
   process.
+- Do not treat omission, an empty value, `unknown`, a variable, and a governed
+  private identity as interchangeable.
+- Do not replace an omitted bind with `0.0.0.0`, `::`, a port, interface,
+  socket path, or a compulsory profile/catalog entry.
+- Do not make parser acceptance satisfy a selected operation's endpoint,
+  access, publication, or verification prerequisites.
 - Do not make uniqueness only `(protocol, port)`: IPv4/IPv6, wildcard,
   loopback, interface-specific, and Unix socket listeners can coexist.
 - Do not add backend-specific raw Docker, Kubernetes, systemd, scanner, or
@@ -150,6 +197,12 @@ or un-namespaced listener records.
 - Redesigning process inventory, host firewall policy, published-port
   semantics, runtime snapshots, control-plane APIs, persistence, logging, or
   workflow semantics.
+- Loosening `RuntimeSshServer.service`. ADR-031 deliberately models an sshd
+  daemon-policy record bound to an owning same-node service, not a generic
+  partial endpoint observation; broader partial SSH authoring requires its own
+  contract decision.
+- Adding a listener profile catalog, backend capture adapter, automatic socket
+  probe, or new observation/retention/export demand.
 - Requiring existing inventories that only use `Node.services[]` to change.
 
 ## Consequences
@@ -158,6 +211,9 @@ or un-namespaced listener records.
 
 - ACES can encode generic TCP/UDP/SCTP and Unix-socket listener facts without
   free-text-only semantics.
+- Sparse listener knowledge can round-trip without fabricated endpoint facts,
+  while selected complete endpoints remain subject to operation-specific
+  admission.
 - Local-only, wildcard, network-facing, and node-local listeners are
   distinguishable.
 - APTL's MISP inventory can record the nginx, supervisord, local runtime, and
@@ -194,3 +250,9 @@ or un-namespaced listener records.
 - [Nmap XML output](https://nmap.org/book/output-formats-xml-output.html).
 - [OpenTelemetry semantic conventions for attributes](https://opentelemetry.io/docs/specs/semconv/attributes-registry/server/).
 - [Open Cybersecurity Schema Framework](https://schema.ocsf.io/).
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-17 | #1299 | Separated partial listener descriptions from complete endpoint admission, preserved presence/default provenance, and retained the narrower ADR-031 SSH service binding. |

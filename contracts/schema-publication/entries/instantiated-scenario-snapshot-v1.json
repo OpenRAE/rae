@@ -1,9 +1,9 @@
 {
-  "content_hash": "14f569df12ebfddc014efcd650347b70d0c0585286ad766db4094bc6964c094d",
+  "content_hash": "73c4c16a2b3f5ddc89fee49b4432d611a2c2a68bb5d454f67eec349367b59b82",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "14f569df12ebfddc014efcd650347b70d0c0585286ad766db4094bc6964c094d",
-    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
+    "content_hash": "73c4c16a2b3f5ddc89fee49b4432d611a2c2a68bb5d454f67eec349367b59b82",
+    "summary": "Carry bounded augmentation permission and partial runtime listener descriptions (#1242, #1299)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"
