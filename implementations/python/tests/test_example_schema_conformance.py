@@ -1,10 +1,9 @@
 """Issue #501 (review CT-4) — worked examples conform to the *published* JSON Schema.
 
-``test_scenarios.py`` proves every ``examples/scenarios/*.sdl.yaml`` loads through the
-Pydantic parser, but Pydantic acceptance is not published-schema conformance, and the
-worked examples are the proof artifacts third parties read. This suite serializes each
-example with the canonical, contract-shaped publication serialization
-(``model_dump(mode="json", by_alias=True)`` — the same flags ``raes_processor/compiler.py``
+Every example loads through its production loader; SDL examples must also have a name
+and no advisories. Pydantic acceptance is not published-schema conformance, so this
+suite also serializes each example with the canonical, contract-shaped publication
+serialization (``model_dump(mode="json", by_alias=True)`` — the same flags ``raes_processor/compiler.py``
 uses) and validates the result against the *checked-in* published schema
 ``contracts/schemas/sdl/sdl-authoring-input-v1.json`` with ``Draft202012Validator``.
 
@@ -137,6 +136,9 @@ def test_example_conforms_to_published_schema(entry: CorpusEntry, path: Path) ->
     projection.
     """
     scenario = entry.loader(path)
+    if entry.contract_id == "sdl-authoring-input-v1":
+        assert scenario.name, path.name
+        assert scenario.advisories == [], path.name
     payload = scenario.model_dump(**entry.dump_kwargs)
 
     errors = sorted(entry.validator().iter_errors(payload), key=lambda error: error.json_path)

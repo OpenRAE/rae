@@ -17,6 +17,7 @@ from ..manifest_authority import (
     validate_processor_supported_contract_versions,
     validate_processor_supported_sdl_versions,
 )
+from ..operation_lifecycle import OperationKind
 from ..versions import PROCESSOR_MANIFEST_V2_SCHEMA_VERSION
 from ..vocabulary import ConceptFamilyId, ParticipantFeatureSupportLevel, ProcessorFeature
 from .base import _PROCESSOR_CONCEPT_BINDING_SCOPES, ContractModel, NonEmptyString
@@ -407,6 +408,24 @@ class CleanupCapabilitiesModel(ContractModel):
         return self
 
 
+class RecoveryObservationCapabilitiesModel(ContractModel):
+    """Operational crash-recovery observation support declaration."""
+
+    name: NonEmptyString
+    supported_operation_kinds: list[OperationKind] = Field(
+        min_length=1,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+    @model_validator(mode="after")
+    def _validate_supported_kinds(self) -> RecoveryObservationCapabilitiesModel:
+        if len(self.supported_operation_kinds) != len(set(self.supported_operation_kinds)):
+            raise ValueError("recovery supported_operation_kinds must be unique")
+        if OperationKind.INDETERMINATE_RESOLUTION in self.supported_operation_kinds:
+            raise ValueError("administrative resolution is not a recoverable backend effect")
+        return self
+
+
 class BackendCapabilitiesV2Model(ContractModel):
     provisioner: ProvisionerCapabilitiesModel
     orchestrator: OrchestratorCapabilitiesModel | None = None
@@ -415,6 +434,10 @@ class BackendCapabilitiesV2Model(ContractModel):
     observation: ObservationCapabilitiesModel | None = None
     cleanup: CleanupCapabilitiesModel | None = None
     time: TimeCapabilitiesModel | None = None
+    recovery_observation: RecoveryObservationCapabilitiesModel | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
 
 
 class ProcessorManifestV2Model(ContractModel):

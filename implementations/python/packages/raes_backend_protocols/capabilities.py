@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 from raes_contracts.manifest_authority import validate_backend_supported_contract_versions
+from raes_contracts.operation_lifecycle import OperationKind
 from raes_contracts.vocabulary import WorkflowFeature, WorkflowStatePredicateFeature
 
 from . import participant_capabilities as _participant_capabilities
@@ -265,6 +266,24 @@ class CleanupCapabilities:
 
 
 @dataclass(frozen=True)
+class RecoveryObservationCapabilities:
+    """Operational crash-recovery observation support, separate from EXP-715."""
+
+    name: str
+    supported_operation_kinds: frozenset[OperationKind]
+
+    def __post_init__(self) -> None:
+        if not self.name.strip():
+            raise ValueError("RecoveryObservationCapabilities.name must be non-empty")
+        if not self.supported_operation_kinds:
+            raise ValueError("RecoveryObservationCapabilities.supported_operation_kinds must not be empty")
+        if any(not isinstance(kind, OperationKind) for kind in self.supported_operation_kinds):
+            raise TypeError("supported_operation_kinds must contain OperationKind values")
+        if OperationKind.INDETERMINATE_RESOLUTION in self.supported_operation_kinds:
+            raise ValueError("administrative resolution is not a recoverable backend effect")
+
+
+@dataclass(frozen=True)
 class BackendCapabilitySet:
     """Backend-specific nested capability blocks."""
 
@@ -275,6 +294,7 @@ class BackendCapabilitySet:
     observation: ObservationCapabilities | None = None
     cleanup: CleanupCapabilities | None = None
     time: TimeCapabilities | None = None
+    recovery_observation: RecoveryObservationCapabilities | None = None
 
 
 def __getattr__(name: str) -> object:

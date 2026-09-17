@@ -29129,6 +29129,80 @@
     },
     "ServiceManagerUnit": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "manager_kind": {
+                "pattern": "^[sS][yY][sS][tT][eE][mM][dD]$"
+              }
+            },
+            "required": [
+              "manager_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unit_name": {
+                "pattern": "^[^\\s]+\\.[^\\s]+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "manager_kind": {
+                "anyOf": [
+                  {
+                    "pattern": "^(?:[oO][tT][hH][eE][rR]|[uU][nN][kK][nN][oO][wW][nN])$"
+                  },
+                  {
+                    "pattern": "^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "manager_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "active_state": {
+                "const": "unknown"
+              },
+              "enabled_state": {
+                "const": "unknown"
+              },
+              "exec_start": {
+                "const": null
+              },
+              "exit_code": {
+                "const": null
+              },
+              "load_state": {
+                "const": "unknown"
+              },
+              "main_pid": {
+                "const": null
+              },
+              "result": {
+                "const": "unknown"
+              },
+              "status_text": {
+                "const": ""
+              },
+              "sub_state": {
+                "const": ""
+              },
+              "unit_type": {
+                "const": "other"
+              }
+            }
+          }
+        }
+      ],
       "description": "Observed service-manager unit state on a realized range node.\n\nEach record carries a stable RAES ``unit_id`` (the reference target), the\nnative ``unit_name`` (e.g. ``sshd.service``), the participant-observable\nlifecycle facts captured by ``systemctl`` (load/active/sub/enabled/result),\nand bounded optional evidence: the unit-file path, an ``ExecStart``\ndescriptor with explicit redaction discipline, the main PID when present,\nand an optional same-node ``Node.services[]`` ref.\n\nThis is observed WHAT-IS state, not provisioning intent or authored\nbehavior; see ADR-035 for the boundary against ``Node.services``,\n``conditions``, ``runtime.processes``, ``runtime.container.init_process``,\n``runtime.operational_policy``, and ``runtime.ssh_servers``.",
       "properties": {
         "active_state": {
@@ -29306,9 +29380,11 @@
           "type": "string"
         },
         "unit_name": {
+          "default": "",
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
+          "pattern": "^\\S+$",
           "title": "Unit Name",
           "type": "string"
         },
@@ -29330,8 +29406,7 @@
         }
       },
       "required": [
-        "unit_id",
-        "unit_name"
+        "unit_id"
       ],
       "title": "ServiceManagerUnit",
       "type": "object"

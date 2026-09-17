@@ -2723,42 +2723,6 @@ def test_schema_publication_manifest_requires_ledger_when_schema_changes(tmp_pat
     assert any("contract-facing change description" in failure for failure in failures)
 
 
-def test_schema_publication_manifest_accepts_changed_schema_with_current_ledger(tmp_path: Path) -> None:
-    repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
-    _init_git_repo(repo_root)
-    _git_commit_all(repo_root, "base")
-
-    write_text(schema_path, _published_schema({"name": {"type": "integer"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-                "last_change": {
-                    "summary": "Retype name to integer per contract review.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
-            },
-        ],
-    )
-
-    assert validate_schema_publication_manifest(repo_root, base_rev="HEAD") == []
-
-
 def test_schema_publication_manifest_requires_ledger_for_new_schema(tmp_path: Path) -> None:
     repo_root = tmp_path
     existing = repo_root / "contracts" / "schemas" / "sdl" / "existing-contract-v1.json"

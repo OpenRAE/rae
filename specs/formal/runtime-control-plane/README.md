@@ -34,6 +34,7 @@ The proposed portable lifecycle is:
 UNRECORDED --admit/claim--> ACCEPTED --start--> RUNNING
 UNRECORDED --deny---------> DENIED (audit outcome only; no operation record)
 ACCEPTED  --cancel-------> CANCELLED
+ACCEPTED  --recover unknown legacy provenance--> INDETERMINATE
 RUNNING   --commit-------> SUCCEEDED | FAILED | CANCELLED | INDETERMINATE
 ```
 
@@ -47,7 +48,7 @@ store-specific transition table.
 
 | From \\ To | `ACCEPTED` | `RUNNING` | `SUCCEEDED` | `FAILED` | `CANCELLED` | `INDETERMINATE` |
 | --- | --- | --- | --- | --- | --- | --- |
-| `ACCEPTED` | illegal | legal: start | illegal | illegal | legal: cancel before invocation | illegal |
+| `ACCEPTED` | illegal | legal: start | illegal | illegal | legal: cancel before invocation | legal: migrated claim lacks write-ahead provenance |
 | `RUNNING` | illegal | illegal | legal: commit observed success | legal: commit observed failure or known-absent effect | legal: commit proven cancellation or known-absent effect | legal: commit outcome that cannot be established |
 | `SUCCEEDED` | illegal | illegal | illegal | illegal | illegal | illegal |
 | `FAILED` | illegal | illegal | illegal | illegal | illegal | illegal |

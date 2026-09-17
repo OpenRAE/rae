@@ -1,9 +1,9 @@
 {
-  "content_hash": "0eee51b8e7efe661c4faf181a0eb39d18a556e8556013c8abf6c1d687f67f2ca",
+  "content_hash": "867e452a3d269e1bcfa831fa9e5fd71ed28c638a02bb2898ae360827b254bb72",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "0eee51b8e7efe661c4faf181a0eb39d18a556e8556013c8abf6c1d687f67f2ca",
-    "summary": "Permit explicit backend-augmentation-scope-v1 negotiation; unsupported implementations do not advertise it (#1242)."
+    "content_hash": "867e452a3d269e1bcfa831fa9e5fd71ed28c638a02bb2898ae360827b254bb72",
+    "summary": "Declare backend-neutral operational recovery observation independently from EXP-715 evidence capture (#1179)."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

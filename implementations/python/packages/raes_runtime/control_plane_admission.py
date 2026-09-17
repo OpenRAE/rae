@@ -182,6 +182,15 @@ class RuntimeAdmissionMixin:
         exact_retry_fingerprint: str | None = None,
     ) -> ControlPlaneOperationRecord:
         self._assert_runtime_owner()
+        if record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION:
+            from .control_plane_recovery import unresolved_indeterminate_operation_ids
+
+            if unresolved_indeterminate_operation_ids(
+                self,
+                target_scope=record.status.context.target_scope,
+                run_scope=record.status.context.run_scope,
+            ):
+                raise RuntimeError("indeterminate operation requires resolution before effectful mutation")
         persisted = self._store_commits.claim_record(record)
         _require_matching_request(persisted, record)
         with self._operation_lock:
