@@ -151,10 +151,10 @@ this run does not repair them.
 
 - [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
   [`analysis-v25.json`](analysis-v25.json) are current release 25.0.0. Fresh
-  replay binds authoring-adapter semantic conformance alongside retained
-  augmentation scope work to exact source and package digests. Classifications,
-  denominator, and claim limits remain unchanged; neither adapter transport nor
-  native backend scope enforcement is evaluated by this corpus.
+  replay binds ACT-612 participant relationships together with the integrated
+  augmentation scope work to exact source and package digests. Outcomes,
+  classifications, and claim limits remain unchanged; published captures remain
+  byte-exact.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and

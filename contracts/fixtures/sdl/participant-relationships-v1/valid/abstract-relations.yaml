@@ -1,0 +1,42 @@
+name: abstract-participant-relationships
+entities:
+  team-a:
+    role: red
+  team-b:
+    role: blue
+agents:
+  alice:
+    entity: team-a
+  bob:
+    entity: team-b
+relationships:
+  coordination:
+    type: participant
+    source: agents.alice
+    target: bob
+    participant:
+      kind: coordination
+  delegation:
+    type: participant
+    source: agents.alice
+    target: bob
+    participant:
+      kind: delegation
+  cooperation:
+    type: participant
+    source: agents.alice
+    target: bob
+    participant:
+      kind: cooperation
+  competition:
+    type: participant
+    source: agents.alice
+    target: bob
+    participant:
+      kind: competition
+  supervision:
+    type: participant
+    source: agents.alice
+    target: bob
+    participant:
+      kind: supervision

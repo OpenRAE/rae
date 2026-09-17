@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1005-v25",
+  "analysis_id": "raes-standardized-specification-coverage-issue-214-v25",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-16T08:11:59.456468+00:00",
+  "generated_at": "2026-09-16",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -84,6 +84,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1005-v25",
-  "snapshot_sha256": "d140c5621993107a7b8cb1d1aa49cbf5dff74ff5e6dc58de358ce5186f3cbc9d"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-214-v25",
+  "snapshot_sha256": "ca0b737f0082f9da8b3b8382c507678ac0771a19d406061342e07b25cd27db68"
 }

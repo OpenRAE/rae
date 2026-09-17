@@ -1821,6 +1821,34 @@ never inferred from the SPN or node operating system. See the
 
 Typed directed edges between any named scenario elements. Adapted from STIX Relationship SROs.
 
+Participant relationships use `type: participant` with a typed `participant`
+detail. The kinds are `coordination`, `delegation`, `cooperation`, `competition`
+and `supervision`. Both endpoints name distinct agents. A sparse declaration
+is complete at its declared abstraction:
+
+```yaml
+entities:
+  researchers: {}
+agents:
+  lead: {entity: researchers}
+  peer: {entity: researchers}
+relationships:
+  shared-work:
+    type: participant
+    source: agents.lead
+    target: agents.peer
+    participant: {kind: cooperation}
+```
+
+Optional action, objective, behavior, authority, scope and observation references
+refine the declaration and are checked when supplied. Delegation and supervision
+can also reference an existing mixed-control specification. A relationship
+does not grant permissions, trigger a control handoff, disclose observations,
+or request evidence collection. Reciprocal relationships require explicit
+edges. See the {download}`participant relationship specification
+<../../../specs/sdl/participant-relationships.md>` for refinement rules and the
+boundary between declared intent and runtime occurrences.
+
 ```yaml
 relationships:
   exchange-auth:
