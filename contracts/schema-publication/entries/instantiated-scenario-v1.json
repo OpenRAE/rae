@@ -1,9 +1,9 @@
 {
-  "content_hash": "7e81e5b6d5d14e61a1c1962a49a42c6f037011b875daa558d5aa2d959964ebd9",
+  "content_hash": "744785f21df26a46f25c39abe2357968b929a865a651f5e697f4e1ec6fc03ecd",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "7e81e5b6d5d14e61a1c1962a49a42c6f037011b875daa558d5aa2d959964ebd9",
-    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
+    "content_hash": "744785f21df26a46f25c39abe2357968b929a865a651f5e697f4e1ec6fc03ecd",
+    "summary": "Separate portable service-manager identity and native names from explicitly selected systemd state (#1297)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

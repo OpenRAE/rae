@@ -1,9 +1,9 @@
 {
-  "content_hash": "41fdf195304dacb5fd90ec0bbb066600a873e6f522b86cc4377acd59349fe679",
+  "content_hash": "14051c0560415cdec437ed13b429b8a59fc22045de26a0d209b469ae209a6a7f",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "41fdf195304dacb5fd90ec0bbb066600a873e6f522b86cc4377acd59349fe679",
-    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
+    "content_hash": "14051c0560415cdec437ed13b429b8a59fc22045de26a0d209b469ae209a6a7f",
+    "summary": "Separate portable service-manager identity and native names from explicitly selected systemd state (#1297)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

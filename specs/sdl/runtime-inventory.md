@@ -90,6 +90,12 @@ authored `accounts`, runtime local identity, application authorization, database
 roles, and participant identities are distinct models and MUST NOT be collapsed
 into one.
 
+Service-manager rows use portable `unit_id` as their stable comparison key.
+Their optional `unit_name` is exact native data, not a portable systemd name.
+Only explicit `manager_kind: systemd` selects the flat systemd lifecycle-state
+contract; omitted manager/name fields preserve partiality and inherited
+delegation, while private managers require admitted profiles for richer state.
+
 Component software requirements, exact-package shorthand, optional typed
 acquisition refinements and the node-local shared `repository_state` surface
 follow [software-requirements.md](software-requirements.md). They do not add

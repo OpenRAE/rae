@@ -157,11 +157,18 @@ this run does not repair them.
   byte-exact.
 
 - [`execution-snapshot-v26.json`](execution-snapshot-v26.json) and
-  [`analysis-v26.json`](analysis-v26.json) are current release 26.0.0. Fresh
+  [`analysis-v26.json`](analysis-v26.json) preserve release 26.0.0. Fresh
   replay binds authoring-adapter conformance on the merged participant-
   relationship and augmentation source tree to exact source and package
   digests. Classifications and claim limits remain unchanged; adapter transport
   behavior is not evaluated by this corpus.
+
+- [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
+  [`analysis-v27.json`](analysis-v27.json) are current release 27.0.0. Fresh
+  replay binds issue #1297's portable service-manager identity, exact native
+  names, and selected systemd-state contract to exact source and package
+  digests. Classifications and claim limits remain unchanged; no live service
+  manager or backend execution is evaluated by this corpus.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
@@ -191,7 +198,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 26.0.0 and rejects duplicate or unsupported
+Current validation requires release 27.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

@@ -19,7 +19,15 @@ classified ``redacted`` when the underlying command carries secret arguments.
 
 from enum import Enum
 
-from pydantic import ConfigDict, ValidationInfo, field_validator, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    ValidationInfo,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from raes.runtime_filesystem import flagged_raw_value_schema, redacted_raw_value_schema
 from raes.runtime_vocabulary import GovernedVocabulary
@@ -53,6 +61,18 @@ _SUB_STATE_MAX_LEN = 64
 _STATUS_TEXT_MAX_LEN = 256
 _EXIT_CODE_MIN = 0
 _EXIT_CODE_MAX = 255
+_SYSTEMD_PROFILE_DEFAULTS: dict[str, object] = {
+    "unit_type": "other",
+    "load_state": "unknown",
+    "active_state": "unknown",
+    "sub_state": "",
+    "enabled_state": "unknown",
+    "result": "unknown",
+    "exit_code": None,
+    "status_text": "",
+    "main_pid": None,
+    "exec_start": None,
+}
 
 
 class ServiceManagerKind(str, Enum):
@@ -159,7 +179,7 @@ class ServiceUnitExecStartKind(str, Enum):
 
 
 def _validate_unit_name(value: str) -> str:
-    """Validate a native service-manager unit name (e.g. ``sshd.service``).
+    """Validate a concrete native service-manager unit name.
 
     Unit names are participant-visible data, not stable RAES ids, but they
     must be concrete to be useful for duplicate detection and downstream
@@ -174,10 +194,6 @@ def _validate_unit_name(value: str) -> str:
         raise ValueError("unit_name must be a non-empty string")
     if any(ch.isspace() for ch in value):
         raise ValueError(f"unit_name '{value}' must not contain whitespace")
-    if "." not in value:
-        raise ValueError(
-            f"unit_name '{value}' must include a unit-type suffix (e.g. '.service', '.socket')",
-        )
     return value
 
 
@@ -277,9 +293,41 @@ class ServiceManagerUnit(SDLModel):
     ``runtime.operational_policy``, and ``runtime.ssh_servers``.
     """
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                {
+                    "if": {
+                        "required": ["manager_kind"],
+                        "properties": {"manager_kind": {"pattern": r"^[sS][yY][sS][tT][eE][mM][dD]$"}},
+                    },
+                    "then": {"properties": {"unit_name": {"pattern": r"^[^\s]+\.[^\s]+$"}}},
+                },
+                {
+                    "if": {
+                        "required": ["manager_kind"],
+                        "properties": {
+                            "manager_kind": {
+                                "anyOf": [
+                                    {"pattern": r"^(?:[oO][tT][hH][eE][rR]|[uU][nN][kK][nN][oO][wW][nN])$"},
+                                    {"pattern": r"^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$"},
+                                ]
+                            }
+                        },
+                    },
+                    "then": {
+                        "properties": {
+                            field: {"const": default} for field, default in _SYSTEMD_PROFILE_DEFAULTS.items()
+                        }
+                    },
+                },
+            ]
+        }
+    )
+
     unit_id: str
     manager_kind: GovernedVocabulary[ServiceManagerKind] = ServiceManagerKind.SYSTEMD
-    unit_name: str
+    unit_name: str = Field(default="", pattern=r"^\S+$")
     unit_type: GovernedVocabulary[ServiceUnitKind] = ServiceUnitKind.OTHER
     load_state: GovernedVocabulary[ServiceUnitLoadState] = ServiceUnitLoadState.UNKNOWN
     active_state: GovernedVocabulary[ServiceUnitActiveState] = ServiceUnitActiveState.UNKNOWN
@@ -293,6 +341,13 @@ class ServiceManagerUnit(SDLModel):
     exec_start: ServiceUnitExecStart | None = None
     service: str = ""
     description: str = ""
+
+    @model_serializer(mode="wrap")
+    def _serialize_supplied_fields(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        """Keep omitted manager/name/state fields absent across lifecycle artifacts."""
+
+        serialized = handler(self)
+        return {field: value for field, value in serialized.items() if field in self.model_fields_set}
 
     @field_validator("unit_id")
     @classmethod
@@ -376,6 +431,21 @@ class ServiceManagerUnit(SDLModel):
 
     @model_validator(mode="after")
     def validate_exit_code_consistency(self) -> "ServiceManagerUnit":
+        manager_is_explicit = "manager_kind" in self.model_fields_set
+        manager_is_variable = isinstance(self.manager_kind, str) and is_variable_ref(self.manager_kind)
+        if manager_is_explicit and not manager_is_variable:
+            if self.manager_kind == ServiceManagerKind.SYSTEMD:
+                if self.unit_name and "." not in self.unit_name:
+                    raise ValueError("explicit systemd unit_name must include a unit-type suffix")
+            else:
+                non_default = [
+                    field
+                    for field, default in _SYSTEMD_PROFILE_DEFAULTS.items()
+                    if field in self.model_fields_set and getattr(self, field) != default
+                ]
+                if non_default:
+                    raise ValueError("non-systemd managers cannot carry explicit systemd profile state")
+
         # exit_code is meaningful only when result=exit_code (or when result is
         # a deferred variable). Recording an exit code under e.g. result=success
         # is a category error: success has no exit code attached as a fact.
