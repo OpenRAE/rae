@@ -186,7 +186,20 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
 
 @pytest.mark.parametrize(
     "revision",
-    ["3.0.0", "15.0.0", "16.0.0", "17.0.0", "18.0.0", "19.0.0", "20.0.0", "21.0.0", "22.0.0", "23.0.0", "24.0.0", "25.0.0"],
+    [
+        "3.0.0",
+        "15.0.0",
+        "16.0.0",
+        "17.0.0",
+        "18.0.0",
+        "19.0.0",
+        "20.0.0",
+        "21.0.0",
+        "22.0.0",
+        "23.0.0",
+        "24.0.0",
+        "25.0.0",
+    ],
 )
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
     from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
