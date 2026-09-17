@@ -266,7 +266,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "25.0.0"
+    assert manifest["revision"] == "26.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
     artifact["sha256"] = old_digest
@@ -461,6 +461,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "24.0.0",
             "25.0.0",
             "26.0.0",
+            "27.0.0",
         ]
         if family == "formal"
         else [
@@ -490,6 +491,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "23.0.0",
             "24.0.0",
             "25.0.0",
+            "26.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)

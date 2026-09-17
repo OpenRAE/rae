@@ -150,11 +150,20 @@ this run does not repair them.
   all previously published captures remain byte-exact.
 
 - [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
-  [`analysis-v25.json`](analysis-v25.json) are current release 25.0.0. Fresh
+  [`analysis-v25.json`](analysis-v25.json) preserve release 25.0.0. Fresh
   replay binds ACT-612 participant relationships together with the integrated
   augmentation scope work to exact source and package digests. Outcomes,
   classifications, and claim limits remain unchanged; published captures remain
   byte-exact.
+
+- [`execution-snapshot-v26.json`](execution-snapshot-v26.json) and
+  [`analysis-v26.json`](analysis-v26.json) are current release 26.0.0. They
+  bind the issue #1223 reviewed OCI mirror and pre-seed admission boundary to
+  exact source and package digests. That work lives in the development artifact
+  policy, the OCI layout and release-image modules, and the reference-backend
+  driver's resource naming; none of those are recorded implementation surfaces
+  or preregistered carriers, so every classification, the denominator and the
+  claim limits are unchanged and earlier captures retain their exact bytes.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
@@ -184,7 +193,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 25.0.0 and rejects duplicate or unsupported
+Current validation requires release 26.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
