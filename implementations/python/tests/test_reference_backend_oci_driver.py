@@ -241,7 +241,7 @@ def test_oci_destroy_removes_by_the_name_realize_used():
     driver.destroy(networks=(), containers=("provision.node.web",))
 
     rm_calls = [call["argv"] for call in recorder.calls]
-    runtime_name = provider_resource_name("provision.node.web", prefix="raes")
+    runtime_name = provider_resource_name("provision.node.web", prefix="raes", namespace="raes-ref-test")
     assert rm_calls == [["docker", "rm", "--force", runtime_name]]
 
 
@@ -268,13 +268,15 @@ def test_oci_attaches_container_to_requested_networks():
 
     run_argv = next(call["argv"] for call in recorder.calls if "run" in call["argv"])
     assert "--network" in run_argv
-    assert run_argv[run_argv.index("--network") + 1] == provider_resource_name("provision.network.lan", prefix="raes")
+    assert run_argv[run_argv.index("--network") + 1] == provider_resource_name(
+        "provision.network.lan", prefix="raes", namespace="raes-ref-test"
+    )
 
 
 def test_oci_joins_only_a_run_owned_target_network_namespace():
     owner_address = "provision.node.zzz-owner"
     capture_address = "provision.node.aaa-capture"
-    owner_name = provider_resource_name(owner_address, prefix="raes")
+    owner_name = provider_resource_name(owner_address, prefix="raes", namespace="raes-ref-test")
 
     class _OwnedTargetRecorder:
         def __init__(self) -> None:
@@ -317,7 +319,7 @@ def test_oci_joins_only_a_run_owned_target_network_namespace():
     run_calls = [call["argv"] for call in recorder.calls if "run" in call["argv"]]
     assert [argv[argv.index("--name") + 1] for argv in run_calls] == [
         owner_name,
-        provider_resource_name(capture_address, prefix="raes"),
+        provider_resource_name(capture_address, prefix="raes", namespace="raes-ref-test"),
     ]
     inspect_argv = next(call["argv"] for call in recorder.calls if "inspect" in call["argv"])
     assert inspect_argv[-1] == owner_name
@@ -357,7 +359,7 @@ def test_oci_rejects_stale_realized_namespace_target_before_side_effects():
 
 def test_oci_rejects_namespace_target_when_native_id_alone_mismatches():
     owner_address = "provision.node.owner"
-    owner_name = provider_resource_name(owner_address, prefix="raes")
+    owner_name = provider_resource_name(owner_address, prefix="raes", namespace="raes-ref-test")
 
     class _MismatchedOwnershipRecorder:
         def __init__(self) -> None:
@@ -574,7 +576,7 @@ def test_oci_rolls_back_realized_resources_on_partial_failure():
         "docker",
         "network",
         "rm",
-        provider_resource_name("provision.network.lan", prefix="raes"),
+        provider_resource_name("provision.network.lan", prefix="raes", namespace="ws"),
     ] in runner.calls
     assert driver.realized_addresses() == frozenset()
 
@@ -724,3 +726,54 @@ def test_oci_permission_error_becomes_diagnostic_not_raise():
     assert "reference-backend.driver.runtime-unavailable" in codes
     for diag in result.diagnostics:
         assert "Permission denied" not in diag.message
+
+
+def test_oci_resource_names_are_unique_per_workspace_for_the_same_address():
+    """Concurrent runs must not contend for one native container/network name."""
+
+    address = "provision.node.web"
+    network_address = "provision.network.lan"
+    names: list[tuple[str, str]] = []
+    for workspace in ("raes-ref-it-0a1b2c3d4e5f", "raes-ref-it-5f4e3d2c1b0a"):
+        recorder = _Recorder(stdout="id\n")
+        driver = OciDeploymentDriver(
+            runtime="docker",
+            workspace=workspace,
+            runner=recorder,
+            image_policy=ImageTrustPolicy(allowed_images=("img",)),
+        )
+        driver.realize(
+            networks=(NetworkSpec(address=network_address, name="lan"),),
+            containers=(ContainerSpec(address=address, name="web", image_ref="img"),),
+        )
+        run_argv = next(call["argv"] for call in recorder.calls if "run" in call["argv"])
+        network_argv = next(call["argv"] for call in recorder.calls if "network" in call["argv"])
+        names.append((run_argv[run_argv.index("--name") + 1], network_argv[-1]))
+
+    (first_container, first_network), (second_container, second_network) = names
+    assert first_container != second_container
+    assert first_network != second_network
+    # The name still commits to the address the compiler produced, so a reader
+    # can still tell which resource it is.
+    assert first_container.startswith("raes-provision.node.web-")
+    assert first_network.startswith("raes-provision.network.lan-")
+
+
+def test_oci_destroy_removes_the_workspace_scoped_name():
+    """Teardown must target this run's resource, not another run's."""
+
+    workspace = "raes-ref-it-0a1b2c3d4e5f"
+    recorder = _Recorder(stdout="id\n")
+    driver = OciDeploymentDriver(
+        runtime="docker",
+        workspace=workspace,
+        runner=recorder,
+        image_policy=ImageTrustPolicy(allowed_images=("img",)),
+    )
+    driver.realize(networks=(), containers=(ContainerSpec(address="provision.node.web", name="web", image_ref="img"),))
+    recorder.calls.clear()
+
+    driver.destroy(networks=(), containers=("provision.node.web",))
+
+    expected = provider_resource_name("provision.node.web", prefix="raes", namespace=workspace)
+    assert [call["argv"] for call in recorder.calls] == [["docker", "rm", "--force", expected]]
