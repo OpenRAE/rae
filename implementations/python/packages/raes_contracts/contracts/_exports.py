@@ -53,6 +53,7 @@ PUBLIC_EXPORTS = [
     "BackendCompatibilityModel",
     "BackendManifestV2Model",
     "BackendCapabilitiesV2Model",
+    "RecoveryObservationCapabilitiesModel",
     "BehavioralClaimBindingModel",
     "BEHAVIORAL_RELATION_PROFILE_SCHEMA_VERSION",
     "BehavioralRelationId",

@@ -677,7 +677,11 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     _authorize_provisioning_plan(restarted, target, provisioning_plan)
     recovered = restarted.get_operation(operation_id)
     assert recovered is not None
-    assert recovered.state is OperationState.RUNNING
+    assert recovered.state is OperationState.INDETERMINATE
+    assert [diagnostic.code for diagnostic in recovered.diagnostics] == [
+        "runtime.control-plane.recovery-effect-unobservable",
+        "runtime.control-plane.operation-indeterminate",
+    ]
     assert not any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in recovered.diagnostics)
 
     retry = restarted.submit_provisioning(
@@ -889,7 +893,7 @@ def test_runtime_poisoned_when_store_error_cannot_be_reconciled(monkeypatch: pyt
     control_plane.close()
 
 
-def test_startup_preserves_interrupted_records_without_record_only_terminalization(
+def test_startup_recovery_commit_failure_aborts_readiness_and_resumes_without_record_only_writes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -911,20 +915,20 @@ def test_startup_preserves_interrupted_records_without_record_only_terminalizati
 
     monkeypatch.setattr(store, "_upsert_record", fail_second_recovery_write)
     target = create_stub_target()
-    control_plane = RuntimeControlPlane(target, store=store)
+    with pytest.raises(OSError, match="injected recovery crash"):
+        RuntimeControlPlane(target, store=store)
 
-    assert writes == 0
+    assert writes == 2
     assert {record.status.state for record in store.load_records().values()} == {
-        OperationState.ACCEPTED,
+        OperationState.CANCELLED,
         OperationState.RUNNING,
     }
-    control_plane.close()
 
     restarted = RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
     recovered = restarted._operations.values()
     assert {record.status.state for record in recovered} == {
-        OperationState.ACCEPTED,
-        OperationState.RUNNING,
+        OperationState.CANCELLED,
+        OperationState.INDETERMINATE,
     }
     assert all(
         not any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in record.status.diagnostics)

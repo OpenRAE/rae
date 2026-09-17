@@ -74,6 +74,7 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             participant_runtime=target.participant_runtime,
             time_runtime=target.time_runtime,
             observation_runtime=target.observation_runtime,
+            recovery_observer=target.recovery_observer,
         )
         self._target = target
         self._snapshot = initial_snapshot if initial_snapshot is not None else RuntimeSnapshot()
