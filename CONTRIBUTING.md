@@ -104,7 +104,12 @@ hosted reader guide.
 
 ## Run the checks
 
-The full repository gate is:
+Commit hooks run file-scoped hygiene and secrets checks: whitespace, final
+newlines, YAML/JSON syntax, file size, conflict markers, private keys, and
+Gitleaks. No pre-push check is configured. Full tests, policy, contracts,
+lint, proof, and documentation validation remain required in CI/CD.
+
+The full repository gate is available locally when needed:
 
 ```shell
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
@@ -154,8 +159,8 @@ uv run --project implementations/tooling/python --frozen --no-default-groups nox
 
 It selects from status-aware changes against the branch's upstream ref and
 fails closed to the full local gate when classification is uncertain. The
-pre-push hook uses this lane. It does not weaken `verify`, which remains the
-unconditional pull-request gate.
+lane is opt-in, not a commit or push hook. It does not weaken `verify`, which
+remains the unconditional pull-request gate.
 
 Useful narrower sessions:
 
@@ -165,8 +170,8 @@ uv run --project implementations/tooling/python --frozen --no-default-groups nox
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -l
 ```
 
-Run the full gate before requesting review for language, contract, generated
-artifact, or shared runtime changes.
+Run targeted checks for the changes you make. CI/CD runs the full gate before
+merge, including language, contract, generated-artifact, and shared-runtime checks.
 
 ## Let Release Please write the changelog
 

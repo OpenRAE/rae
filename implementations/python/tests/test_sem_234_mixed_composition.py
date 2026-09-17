@@ -217,7 +217,8 @@ def test_authorization_precedes_routing_and_metadata_is_projected_with_payload()
     assert result.knowledge == frozenset({"status"})
     refused, outcome = _delivery(state, emitted=frozenset({"status", "secret-membership"}))
     assert outcome == "projection-widened"
-    assert refused.effects == () and refused.knowledge == state.knowledge
+    assert refused.effects == ()
+    assert refused.knowledge == state.knowledge
     assert refused.history == ("projection-widened",)
 
 
@@ -259,7 +260,8 @@ def test_every_stale_cut_coordinate_prevents_effects(field, value):
     state = _state()
     result, outcome = _delivery(state, expected=replace(state.cut, **{field: value}))
     assert outcome == "stale"
-    assert result.effects == () and result.knowledge == frozenset()
+    assert result.effects == ()
+    assert result.knowledge == frozenset()
 
 
 def test_revocation_open_loop_and_action_denial_cannot_be_overridden_by_provider():
@@ -276,7 +278,8 @@ def test_partial_order_needs_the_required_comparison_and_no_timestamp_tiebreak()
     state = _state()
     incomparable = frozenset({("event:0", "concurrent"), ("event:1", "concurrent")})
     denied, outcome = _delivery(state, order=incomparable)
-    assert outcome == "unresolved-order" and denied.effects == ()
+    assert outcome == "unresolved-order"
+    assert denied.effects == ()
     # A partial relation is sufficient for this comparison, without ordering every pair.
     partial = frozenset({("event:0", "event:1"), ("unrelated", "other")})
     assert _delivery(state, order=partial)[1] == "delivered"
@@ -287,14 +290,17 @@ def test_partial_order_needs_the_required_comparison_and_no_timestamp_tiebreak()
 def test_commit_and_attempt_are_not_delivery_and_failed_store_cannot_promise_history():
     state = _state()
     failed_commit, outcome = _delivery(state, committed=False)
-    assert outcome == "commit-failed" and failed_commit == state
+    assert outcome == "commit-failed"
+    assert failed_commit == state
     for result in ("failed", "unknown"):
         attempted, outcome = _delivery(state, result=result)
-        assert outcome == result and attempted.effects == (EDGE.key,)
+        assert outcome == result
+        assert attempted.effects == (EDGE.key,)
         assert attempted.knowledge == frozenset()
     delivered, _ = _delivery(state)
     replay, outcome = _delivery(delivered, expected=state.cut)
-    assert outcome == "stale" and replay.effects == delivered.effects
+    assert outcome == "stale"
+    assert replay.effects == delivered.effects
     assert replay.knowledge == delivered.knowledge
 
 
@@ -311,16 +317,19 @@ def _phased_plan():
 def test_phase_commit_preserves_trial_identity_controller_and_prior_knowledge():
     state, _ = _delivery(_state(_phased_plan()))
     result, outcome = model.advance(state, CONTEXT, expected=state.cut, trigger="trigger:advance", committed=True)
-    assert outcome == "phase-committed" and result.phase == 1
+    assert outcome == "phase-committed"
+    assert result.phase == 1
     assert dict(result.plan.phases[result.phase].allocations)["nodes.target"] == SIM.ref
     assert EMU.ref not in result.plan.phases[result.phase].members
     assert result.plan == state.plan
     assert result.cut.controller == state.cut.controller
-    assert result.knowledge == state.knowledge and result.effects == state.effects
+    assert result.knowledge == state.knowledge
+    assert result.effects == state.effects
     assert result.history[:-1] == state.history
     assert result.cut.revision == state.cut.revision + 1
     stale, outcome = model.advance(result, CONTEXT, expected=state.cut, trigger="trigger:advance", committed=True)
-    assert outcome == "stale" and stale.phase == result.phase
+    assert outcome == "stale"
+    assert stale.phase == result.phase
 
 
 def test_phases_cannot_activate_unadmitted_members_or_skip_pending_work():
@@ -332,7 +341,9 @@ def test_phases_cannot_activate_unadmitted_members_or_skip_pending_work():
     ):
         initial = replace(state, pending=pending)
         result, outcome = model.advance(initial, CONTEXT, expected=initial.cut, trigger=trigger, committed=committed)
-        assert outcome == reason and result.phase == 0 and result.effects == ()
+        assert outcome == reason
+        assert result.phase == 0
+        assert result.effects == ()
     invalid_phase = replace(PHASE, ref="phase:1", members=PHASE.members | {"late"})
     invalid = _state(replace(state.plan, phases=(PHASE, invalid_phase)))
     assert (
@@ -369,7 +380,8 @@ def test_delegated_abstract_completion_and_reporting_use_existing_description_ow
     offered_rule = Record((Field("internal", Atom(("private-route",))),))
     requested = denotation((request,), universe)
     offered = denotation((offered_rule,), universe)
-    assert requested == frozenset({0, 1}) and offered == frozenset({1})
+    assert requested == frozenset({0, 1})
+    assert offered == frozenset({1})
     assert not requested <= offered
     calls = []
     key = (("participant",), "actions")
@@ -379,10 +391,15 @@ def test_delegated_abstract_completion_and_reporting_use_existing_description_ow
         return ("inspect",)
 
     result = capture((Demand((), "none", forbid_experimental=True),), {key: producer}, {key})
-    assert calls == [] and result.collected == () and result.exported == ()
+    assert calls == []
+    assert result.collected == ()
+    assert result.exported == ()
     selected_demand = Demand((), "exhaustive", ("actions",), retain=True)
     result = capture((selected_demand,), {key: producer}, {key})
-    assert calls == ["collect"] and result.collected and result.retained and result.exported == ()
+    assert calls == ["collect"]
+    assert result.collected
+    assert result.retained
+    assert result.exported == ()
 
 
 def test_resolved_policy_and_authority_cannot_be_borrowed_from_another_edge_cut():

@@ -601,6 +601,8 @@ ownership:
     - implementations/python/tests/sem234_mixed_composition_model.py
     - implementations/python/tests/test_sem_234_mixed_composition.py
     - implementations/python/tests/test_sem_234_governance.py
+    # Supporting delivery-hook regression requested during #1013 review.
+    - implementations/python/tests/test_nox_shard_wiring.py
   semantics-expansion:
     - contracts/schemas/sdl
     # Shared description semantics and existing evidence lifecycle owners (SEM-218).

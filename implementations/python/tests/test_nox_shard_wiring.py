@@ -14,6 +14,8 @@ from collections.abc import Callable
 from types import ModuleType, SimpleNamespace
 
 import pytest
+import yaml
+from paths import REPO_ROOT
 from tools.verification_plan import ChangeRecord
 
 
@@ -64,6 +66,54 @@ def graph(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
 def noxfile_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
     _stub_nox(monkeypatch)
     return importlib.import_module("noxfile")
+
+
+def test_installed_hooks_only_run_file_scoped_hygiene():
+    config = yaml.safe_load((REPO_ROOT / ".pre-commit-config.yaml").read_text())
+    assert config["default_install_hook_types"] == ["pre-commit"]
+    hooks = [hook for repo in config["repos"] for hook in repo["hooks"]]
+    assert len(hooks) == 1
+    hook = hooks[0]
+    assert hook["stages"] == ["pre-commit"]
+    assert hook["pass_filenames"] is True
+    assert '-s hygiene -- "$@"' in hook["entry"]
+
+
+def test_hygiene_session_only_delegates_selected_files(monkeypatch, noxfile_module):
+    calls = []
+    monkeypatch.setattr(noxfile_module, "SessionReporter", lambda *args: _Reporter())
+    monkeypatch.setattr(noxfile_module, "_run_hygiene", lambda *args, **kwargs: calls.append(kwargs))
+
+    def unexpected(*args, **kwargs):
+        pytest.fail("commit hygiene must not invoke expensive verification")
+
+    for name in ("_run_policy", "_run_contracts", "_run_tests", "_run_pytest", "_run_parallel_verification"):
+        monkeypatch.setattr(noxfile_module, name, unexpected)
+    session = _Session()
+    session.posargs = [".pre-commit-config.yaml", "sample.py"]
+    noxfile_module.hygiene(session)
+    assert calls == [{"posargs": session.posargs, "default_all_files": True}]
+
+
+def test_hygiene_retains_fast_checks_and_both_secret_scanners(monkeypatch, graph):
+    lanes = importlib.import_module("tools.nox_support.policy_lanes")
+    paths = ["sample.py", "sample.yaml", "sample.json"]
+    calls = []
+    monkeypatch.setattr(lanes, "_parse_hygiene_posargs", lambda *a, **k: SimpleNamespace(paths=paths, source="test"))
+    monkeypatch.setattr(lanes, "_text_paths", lambda paths: paths)
+    monkeypatch.setattr(lanes, "_run_pre_commit_hook", lambda session, name, *a, **k: calls.append(name))
+    monkeypatch.setattr(lanes, "_run_gitleaks_dir_scan", lambda session, paths: calls.append("gitleaks"))
+    graph._run_hygiene(_Session(), _Reporter(), posargs=paths, default_all_files=False)
+    assert calls == [
+        "trailing-whitespace-fixer",
+        "end-of-file-fixer",
+        "check-yaml",
+        "check-json",
+        "check-added-large-files",
+        "check-merge-conflict",
+        "detect-private-key",
+        "gitleaks",
+    ]
 
 
 def test_fast_feedback_runs_changed_test_modules(monkeypatch: pytest.MonkeyPatch, graph: ModuleType) -> None:
