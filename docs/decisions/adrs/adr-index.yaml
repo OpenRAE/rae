@@ -235,7 +235,11 @@ adrs:
     pin: d2d244bdd3bbfe2d6eaecc2e69bc73a474f405ae7e1d4d8bbb5dd75dbed7826d
   - id: ADR-043
     path: docs/decisions/adrs/adr-043-runtime-service-listener-surface.md
-    pin: 10e261d7027b769097ae70fc139d8d2c452b48b48146ed67d6af171f970163c6
+    pin: 08e238b1ab607d1aca0ac8a5b3ac6190dc1728de0fb742a145bd662ba17cab6e
+    amendments:
+      - date: 2026-09-17
+        ref: "#1299"
+        summary: "Separated partial listener descriptions from complete endpoint admission, preserved presence/default provenance, and retained the narrower ADR-031 SSH service binding."
   - id: ADR-044
     path: docs/decisions/adrs/adr-044-network-detection-engine-runtime-inventory.md
     pin: 9272830dd30284ab864c62eb7bd74a563403bbfdff59992173d154785d55d3f7
