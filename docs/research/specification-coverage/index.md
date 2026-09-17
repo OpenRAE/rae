@@ -155,13 +155,19 @@ this run does not repair them.
   augmentation scope work to exact source and package digests. Outcomes,
   classifications, and claim limits remain unchanged; published captures remain
   byte-exact.
-
 - [`execution-snapshot-v26.json`](execution-snapshot-v26.json) and
   [`analysis-v26.json`](analysis-v26.json) preserve release 26.0.0. Fresh
   replay binds authoring-adapter conformance on the merged participant-
   relationship and augmentation source tree to exact source and package
   digests. Classifications and claim limits remain unchanged; adapter transport
   behavior is not evaluated by this corpus.
+- [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
+  [`analysis-v27.json`](analysis-v27.json) are current release 27.0.0. Fresh
+  replay binds issue #1299 partial runtime listener descriptions on the
+  integrated authoring-adapter source state to exact source and package
+  digests. Outcomes, classifications, and claim limits are unchanged; endpoint
+  completeness, backend admission, and adapter transport behavior are not new
+  claims.
 
 - [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
   [`analysis-v27.json`](analysis-v27.json) are current release 27.0.0. They

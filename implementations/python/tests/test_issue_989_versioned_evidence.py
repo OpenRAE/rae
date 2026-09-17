@@ -200,6 +200,7 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
         "24.0.0",
         "25.0.0",
         "26.0.0",
+        "27.0.0",
     ],
 )
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
