@@ -93,6 +93,7 @@ def _validate_retest_snapshot(
                 "27.0.0",
                 "28.0.0",
                 "29.0.0",
+                "30.0.0",
             }
             else set()
         ),
@@ -139,6 +140,7 @@ def _validate_retest_snapshot(
         "27.0.0",
         "28.0.0",
         "29.0.0",
+        "30.0.0",
     }:
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
     _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)

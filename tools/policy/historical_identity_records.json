@@ -206,9 +206,9 @@
     {
       "path": "docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1297 native service-manager contract amendment.",
       "occurrences": 3,
-      "content_sha256": "a8eb4df39f8b88781fee62ce83a2d2abee3951ebbeed5dc0c544a2a929ffad06"
+      "content_sha256": "79ef7d91b9efc4e31e217a5916d1fe64f1b688b10c0bd758028b20e7f92ae66b"
     },
     {
       "path": "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "8f4c54db81f8abb6544fc7ff36782cafd14bc6e2eec95d98c4f21a32ddd2c2be"
+      "content_sha256": "1f19a8c448412f29b74c9b9a06cbd38565169cd66bf939b3be48ef4b4f0c9246"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

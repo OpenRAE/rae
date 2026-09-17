@@ -203,7 +203,11 @@ adrs:
         summary: "Adopted generic software refinements, exact-package compatibility, shared final repository/trust identity and independent acquisition/reporting boundaries."
   - id: ADR-035
     path: docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md
-    pin: a8eb4df39f8b88781fee62ce83a2d2abee3951ebbeed5dc0c544a2a929ffad06
+    pin: 7f8f8cd95a368698d7b637fd2ee363be295e4cde7d85a46fe49f01462c03bc07
+    amendments:
+      - date: 2026-09-17
+        ref: "#1297"
+        summary: "Separated portable unit identity/native names from the explicitly selected systemd state profile and preserved omission semantics."
   - id: ADR-036
     path: docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md
     pin: 80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9
