@@ -124,7 +124,7 @@ def test_backend_service_dependency_is_not_copied_as_if_it_were_authority():
 
 def test_safe_snapshot_projection_preserves_native_participant_result_type():
     from raes_contracts.participant_binding import ParticipantActionApplyResult
-    from raes_runtime.backend_calls import _with_snapshot
+    from raes_runtime.backend_apply_results import _with_snapshot
 
     native = ParticipantActionApplyResult(True, RuntimeSnapshot())
     projected = _with_snapshot(native, RuntimeSnapshot(metadata={"accepted": True}))
@@ -135,12 +135,12 @@ def test_safe_snapshot_projection_preserves_native_participant_result_type():
 def test_final_sanitized_candidate_must_still_obey_shape_and_effect_ownership(monkeypatch):
     from dataclasses import replace
 
-    from raes_runtime import backend_calls
+    from raes_runtime import backend_apply_results
 
     def invalid_projection(result, **_):
         return replace(result, snapshot=RuntimeSnapshot(metadata={"unowned-sanitizer-write": True}))
 
-    monkeypatch.setattr(backend_calls, "_sanitize_backend_realization", invalid_projection)
+    monkeypatch.setattr(backend_apply_results, "_sanitize_backend_realization", invalid_projection)
     previous, returned = _return(ApplyResult(True, RuntimeSnapshot(metadata={"trusted": ["predecessor"]})))
     assert not returned.success
     assert returned.snapshot == previous
@@ -211,12 +211,12 @@ def test_value_admission_has_a_total_scalar_byte_budget():
 
 
 def test_native_transition_validation_errors_do_not_expose_candidate_values(monkeypatch):
-    from raes_runtime import backend_calls
+    from raes_runtime import backend_result_diagnostics
 
     def invalid_transition(*_):
         raise ValueError("private-transition-candidate")
 
-    monkeypatch.setattr(backend_calls, "validate_time_runtime_transition", invalid_transition)
+    monkeypatch.setattr(backend_result_diagnostics, "validate_time_runtime_transition", invalid_transition)
     previous, result = _return(ApplyResult(True, RuntimeSnapshot(metadata={"trusted": ["predecessor"]})))
     assert not result.success
     assert result.snapshot == previous

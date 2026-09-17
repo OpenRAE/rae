@@ -1,6 +1,7 @@
 """Compile enclosing portable node membership through the shared normalizer."""
 
 from dataclasses import replace
+from typing import cast
 
 from raes.identifiers import QualifiedName
 from raes.realization_designation import resolve_realization_designation
@@ -13,6 +14,7 @@ from raes_contracts.realization_collections import (
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
+    RealizationNormalizationMetadata,
     RealizationRelationStatus,
     evaluate_realization_constraint,
     normalize_realization_literal,
@@ -56,18 +58,20 @@ def planned_node_collection(model: RuntimeModel, plan: ProvisioningPlan) -> Prep
         members,
         semantic_profile=PORTABLE_NODE_COLLECTION_PROFILE,
         default_closure=closure,
-        collection_profiles=tuple(
-            RealizationCollectionProfile(
-                field_pointer=f"/{namespace}",
-                collection_kind="portable-node",
-                identity_fields=("address",),
-                closure=RealizationClosure(
-                    posture="open" if resolution.closure is Closure.OPEN_WORLD else "closed",
-                    universe="portable-node",
-                    profile=PORTABLE_NODE_COLLECTION_PROFILE,
-                ),
-            )
-            for namespace, resolution in resolutions.items()
+        metadata=RealizationNormalizationMetadata(
+            collection_profiles=tuple(
+                RealizationCollectionProfile(
+                    field_pointer=f"/{namespace}",
+                    collection_kind="portable-node",
+                    identity_fields=("address",),
+                    closure=RealizationClosure(
+                        posture="open" if resolution.closure is Closure.OPEN_WORLD else "closed",
+                        universe="portable-node",
+                        profile=PORTABLE_NODE_COLLECTION_PROFILE,
+                    ),
+                )
+                for namespace, resolution in resolutions.items()
+            ),
         ),
     )
     if built.status is not RealizationRelationStatus.CONFORMANT:
@@ -98,7 +102,7 @@ def retain_open_collection_nodes(plan: ProvisioningPlan) -> ProvisioningPlan:
             ).conformant:
                 continue
         kept.append(operation)
-    return replace(plan, operations=kept)
+    return cast("ProvisioningPlan", replace(plan, operations=kept))
 
 
 def prepared_node_collection_binding_violation(plan: ProvisioningPlan) -> str | None:
@@ -109,6 +113,26 @@ def prepared_node_collection_binding_violation(plan: ProvisioningPlan) -> str | 
     ):
         return "Backend preparation collection authority is not bound to the original membership."
     return None
+
+
+def _collection_membership_violation(
+    authority: object, selected: ProvisioningPlan, previous: RuntimeSnapshot
+) -> str | None:
+    """Check the selected membership plus retained predecessors against the authority."""
+
+    submitted = {operation.address for operation in selected.operations}
+    retained = [
+        ProvisionOp(ChangeAction.UNCHANGED, entry.address, entry.resource_type, entry.payload)
+        for entry in previous.entries.values()
+        if entry.domain == RuntimeDomain.PROVISIONING and entry.address not in submitted
+    ]
+    conformant = evaluate_realization_constraint(
+        authority.constraint_document,
+        node_collection_members(
+            [*selected.operations, *retained], namespaces=authority.constraint_document.root.fields
+        ),
+    ).conformant
+    return None if conformant else "Backend preparation does not satisfy enclosing node collection authority."
 
 
 def prepared_node_collection_violation(
@@ -123,20 +147,6 @@ def prepared_node_collection_violation(
         return "Backend preparation has no enclosing collection authority." if extra else None
     if any(operation.resource_type not in {"node", "network"} for operation in extra):
         return "Backend preparation exceeded its portable node collection universe."
-    invalid_binding = prepared_node_collection_binding_violation(original)
-    if invalid_binding:
-        return invalid_binding
-    submitted = {operation.address for operation in selected.operations}
-    retained = [
-        ProvisionOp(ChangeAction.UNCHANGED, entry.address, entry.resource_type, entry.payload)
-        for entry in previous.entries.values()
-        if entry.domain == RuntimeDomain.PROVISIONING and entry.address not in submitted
-    ]
-    if not evaluate_realization_constraint(
-        authority.constraint_document,
-        node_collection_members(
-            [*selected.operations, *retained], namespaces=authority.constraint_document.root.fields
-        ),
-    ).conformant:
-        return "Backend preparation does not satisfy enclosing node collection authority."
-    return None
+    return prepared_node_collection_binding_violation(original) or _collection_membership_violation(
+        authority, selected, previous
+    )

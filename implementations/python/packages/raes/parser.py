@@ -24,6 +24,7 @@ from ._legacy_node_migration import migrate_legacy_vm_nodes
 from ._mapping_scopes import (
     HASHMAP_SECTIONS,
     NESTED_HASHMAP_FIELDS,
+    PROFILE_JSON_FIELDS,
     MappingScope,
     is_literal_map_field,
     normalize_field_key,
@@ -34,6 +35,7 @@ from ._model_diagnostics import (
 )
 from ._source_profile import (
     DEFAULT_PARSER_LIMITS,
+    DEFAULT_SOURCE_PARSE_OPTIONS,
     SDL_SOURCE_FORMAT,
     SDLMigrationPolicy,
     SDLParserLimits,
@@ -41,6 +43,7 @@ from ._source_profile import (
 )
 from ._source_validation import _raise_source_limit
 from ._yaml_loader import load_sdl_yaml
+from .materialization import MaterializedScenario
 from .scenario import ExpandedScenario, Scenario
 from .validator import SemanticValidator
 
@@ -139,13 +142,19 @@ def _normalize_keys(data: Any, is_hashmap: bool = False) -> Any:
                 # Check if this field's children are user-defined HashMap keys
                 child_key = norm_k if isinstance(norm_k, str) else str(norm_k)
                 child_is_hashmap = _child_is_hashmap_field(child_key, v)
-            result[norm_k] = _normalize_keys(v, is_hashmap=child_is_hashmap)
+            result[norm_k] = _normalize_child(v, norm_k, is_hashmap, child_is_hashmap)
         return result
     if isinstance(data, list):
         # List items inherit the hashmap flag — if the parent dict had
         # user-defined keys, list items within it do too.
         return [_normalize_keys(item, is_hashmap=is_hashmap) for item in data]
     return data
+
+
+def _normalize_child(value: object, key: object, is_hashmap: bool, child_is_hashmap: bool) -> object:
+    if not is_hashmap and key in PROFILE_JSON_FIELDS:
+        return value
+    return _normalize_keys(value, is_hashmap=child_is_hashmap)
 
 
 def load_sdl_fragment(
@@ -329,7 +338,7 @@ def parse_sdl(
     source_format: str = SDL_SOURCE_FORMAT,
     migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
-) -> Scenario | ExpandedScenario:
+) -> Scenario | ExpandedScenario | MaterializedScenario:
     """Parse SDL YAML into a normalized or expanded authoring object.
 
     Handles SDL documents with ``name`` at the top level. Runs
@@ -359,14 +368,16 @@ def parse_sdl(
     data = _load_normalized_data(
         content,
         path=path,
-        source_format=source_format,
-        migration_policy=migration_policy,
-        limits=limits,
+        source_options=SDLSourceParseOptions(
+            source_format=source_format, migration_policy=migration_policy, limits=limits
+        ),
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
     )
     _reject_removed_scoring_sections(data, path=path)
-    if data.get("imports"):
+    if "materialization_provenance" in data:
+        scenario_cls = MaterializedScenario
+    elif data.get("imports"):
         if path is None:
             raise SDLParseError(
                 "SDL imports require file-backed parsing via parse_sdl_file()",
@@ -397,7 +408,7 @@ def parse_sdl(
     scenario._set_source_diagnostics(source_diagnostics)
 
     # Semantic validation
-    if not skip_semantic_validation:
+    if not skip_semantic_validation or isinstance(scenario, MaterializedScenario):
         validator = SemanticValidator(scenario)
         try:
             validator.validate()
@@ -412,7 +423,7 @@ def parse_sdl(
     return scenario
 
 
-def parse_sdl_file(path: Path, **kwargs: Any) -> Scenario | ExpandedScenario:
+def parse_sdl_file(path: Path, **kwargs: Any) -> Scenario | ExpandedScenario | MaterializedScenario:
     """Parse an SDL file into a normalized or expanded authoring object.
 
     Convenience wrapper around ``parse_sdl()`` that reads from a file.
@@ -426,26 +437,27 @@ def _load_normalized_data(
     content: str,
     *,
     path: Path | None = None,
-    source_format: str = SDL_SOURCE_FORMAT,
-    migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
-    limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
+    source_options: SDLSourceParseOptions = DEFAULT_SOURCE_PARSE_OPTIONS,
     source_diagnostics: list[SDLParseDiagnostic] | None = None,
     source_ranges: dict[str, SDLSourceRange] | None = None,
 ) -> dict[str, Any]:
     raw = load_sdl_yaml(
         content,
         path=path,
-        source_options=SDLSourceParseOptions(
-            source_format=source_format,
-            migration_policy=migration_policy,
-            limits=limits,
-        ),
+        source_options=source_options,
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
     )
 
     if not isinstance(raw, dict):
         raise SDLParseError("SDL must be a YAML mapping (not a scalar or list)", path=path)
+
+    from ._source_profile import PROGRESSIVE_SDL_REVISION
+
+    if "semantic_revision" in raw and raw["semantic_revision"] != PROGRESSIVE_SDL_REVISION:
+        raise SDLParseError(
+            "This parser requires the current semantic revision; explicitly migrate older source.", path=path
+        )
 
     data = _normalize_keys(raw)
     if any(not isinstance(key, str) for key in data):
@@ -455,7 +467,7 @@ def _load_normalized_data(
     migrate_legacy_vm_nodes(
         data,
         path=path,
-        migration_policy=migration_policy,
+        migration_policy=source_options.migration_policy,
         source_diagnostics=source_diagnostics,
         source_ranges=source_ranges,
     )

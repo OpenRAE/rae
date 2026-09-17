@@ -1,6 +1,7 @@
 """Top-level planning pipeline that reconciles a runtime model against a snapshot."""
 
 from dataclasses import replace
+from typing import cast
 
 from raes.realization_envelope import member
 from raes_backend_protocols.capabilities import BackendManifest
@@ -14,12 +15,19 @@ from raes_backend_protocols.service_materialization import service_materializati
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.planning import RuntimeDomain
+from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
+from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
 from ..compiler.time_model import time_model_contract_model
-from ..models import ExecutionPlan, RuntimeModel, RuntimeSnapshot
+from ..models import (
+    CompiledRealizationRequirement,
+    ExecutionPlan,
+    PlannedResource,
+    RuntimeModel,
+    RuntimeSnapshot,
+)
 from ..semantics.realization import (
     ApparatusRealizationDefaultResolver,
     artifact_requirement_diagnostics,
@@ -29,6 +37,7 @@ from ..semantics.realization import (
     resolve_apparatus_realization_defaults,
 )
 from .manifest_validation import _validate_manifest
+from .materialization import planned_materialization_source
 from .operations import (
     _build_evaluation_plan,
     _build_operations,
@@ -105,19 +114,13 @@ def _observation_owner(
     return RuntimeDomain.PROVISIONING
 
 
-def plan(
+def _resolved_realization(
     model: RuntimeModel,
     manifest: BackendManifest,
-    snapshot: RuntimeSnapshot | None = None,
-    *,
-    target_name: str | None = None,
-    apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
-    artifact_availability: ArtifactAvailabilityContext | None = None,
-    profile_context: DomainProfileResolutionContextModel | None = None,
-) -> ExecutionPlan:
-    """Reconcile a compiled runtime model against the current snapshot."""
+    apparatus_realization_default: ApparatusRealizationDefaultResolver | None,
+) -> tuple[RuntimeModel, tuple[CompiledRealizationRequirement, ...], tuple[object, ...], list[Diagnostic]]:
+    """Resolve apparatus defaults, lower deferred constraints, and materialize authority."""
 
-    snapshot = snapshot or RuntimeSnapshot()
     apparatus_decisions = resolve_apparatus_realization_defaults(
         model.realization_requirements,
         manifest,
@@ -134,28 +137,50 @@ def plan(
         manifest,
         apparatus_decisions=apparatus_decisions,
     )
-    effective_model = replace(model, realization_requirements=effective_requirements)
-    resources = _collect_resources(effective_model)
-    resources, profile_diagnostics = profile_resources(effective_model, resources, manifest, snapshot, profile_context)
-    preparation = preparation_authority(manifest)
-    envelope_diagnostics = (
-        list(member(effective_model.realization_instance, manifest.realization_envelope.expression).diagnostics)
-        if manifest.realization_envelope is not None and effective_model.realization_instance is not None
-        else []
+    return (
+        replace(model, realization_requirements=effective_requirements),
+        effective_requirements,
+        resolved_authority,
+        authority_diagnostics,
     )
-    if preparation is not None:
-        envelope_diagnostics = preparation_member_diagnostics(envelope_diagnostics, effective_requirements)
-    diagnostics = [
-        *profile_diagnostics,
+
+
+def _envelope_diagnostics(
+    effective_model: RuntimeModel,
+    manifest: BackendManifest,
+    effective_requirements: tuple[CompiledRealizationRequirement, ...],
+    *,
+    preparation: object | None,
+) -> list[Diagnostic]:
+    """Project envelope membership, keeping only statically decidable failures."""
+
+    envelope = manifest.realization_envelope
+    instance = effective_model.realization_instance
+    diagnostics = (
+        list(member(instance, envelope.expression).diagnostics) if envelope is not None and instance is not None else []
+    )
+    if preparation is None:
+        return diagnostics
+    return preparation_member_diagnostics(diagnostics, effective_requirements)
+
+
+def _admission_diagnostics(
+    effective_model: RuntimeModel,
+    manifest: BackendManifest,
+    effective_requirements: tuple[CompiledRealizationRequirement, ...],
+    *,
+    artifact_availability: ArtifactAvailabilityContext | None,
+    preparation: object | None,
+) -> list[Diagnostic]:
+    """Collect every static admission failure before any operation is planned."""
+
+    return [
         *effective_model.diagnostics,
         *_validate_manifest(effective_model, manifest),
         *_time_model_diagnostics(effective_model, manifest),
         *_participant_execution_diagnostics(effective_model, manifest),
         *capture_admission_diagnostics(effective_model.capture_demands, manifest.observation),
-        *realization_support_diagnostics(
-            effective_requirements,
-            manifest,
-        ),
+        *realization_support_diagnostics(effective_requirements, manifest),
         *realization_envelope_diagnostics(
             effective_requirements,
             manifest,
@@ -166,32 +191,89 @@ def plan(
             manifest,
             availability=artifact_availability,
         ),
-        *authority_diagnostics,
-        *envelope_diagnostics,
-        *_ordering_cycle_diagnostics(resources),
+        *_envelope_diagnostics(
+            effective_model,
+            manifest,
+            effective_requirements,
+            preparation=preparation,
+        ),
     ]
-    actions, deleted_entries = _build_operations(
-        resources,
-        snapshot,
-        effective_requirements,
-    )
 
-    provisioning = _build_provisioning_plan(
-        resources,
-        actions,
-        deleted_entries,
-        manifest,
-        effective_requirements,
-        resolved_authority,
-        effective_model.observation_demands,
-    )
+
+def _apply_regeneration_scope_bindings(
+    resources: dict[str, PlannedResource],
+    *,
+    run_id: str | None,
+    instantiation_id: str | None,
+) -> tuple[dict[str, PlannedResource], list[Diagnostic]]:
+    """Stamp a value-free scope binding onto per-run/per-instantiation random values.
+
+    A ``random_value`` generated artifact compiles to a value-free spec that is
+    byte-identical across runs, so structural reconciliation would return
+    ``UNCHANGED`` and the backend would never regenerate (issue #1276). Binding
+    the reconciliation identity to the authoritative run/instantiation scope makes
+    a new scope reconcile as an update while a resume within the same scope is
+    retained. ``once`` carries no binding, so it is stable for the artifact's
+    lifetime. A per-run/per-instantiation value with no matching identity fails
+    before mutation rather than silently regenerating or sharing a stale value.
+    """
+
+    diagnostics: list[Diagnostic] = []
+    updated = dict(resources)
+    for address, resource in resources.items():
+        if resource.resource_type != "generated-artifact":
+            continue
+        spec = resource.payload.get("spec", {})
+        if spec.get("generator") != GeneratedArtifactKind.RANDOM_VALUE.value:
+            continue
+        scope = spec.get("regeneration_scope")
+        if scope == GeneratedArtifactRegenerationScope.PER_RUN.value:
+            identity, missing = run_id, "run"
+        elif scope == GeneratedArtifactRegenerationScope.PER_INSTANTIATION.value:
+            identity, missing = instantiation_id, "instantiation"
+        else:
+            continue
+        if not identity:
+            diagnostics.append(
+                Diagnostic(
+                    code="provisioner.missing-regeneration-scope-identity",
+                    domain="provisioning",
+                    address=address,
+                    message=(
+                        f"A '{scope}' random value requires an authoritative {missing} identity to reconcile against."
+                    ),
+                )
+            )
+            continue
+        updated[address] = replace(resource, payload={**resource.payload, "scope_binding": f"{missing}:{identity}"})
+    return updated, diagnostics
+
+
+def _augment_provisioning(
+    provisioning: ProvisioningPlan,
+    *,
+    manifest: BackendManifest,
+    effective_model: RuntimeModel,
+    snapshot: RuntimeSnapshot,
+    preparation: object | None,
+    profile_authority: object,
+    scope: PlanScope | None,
+) -> tuple[ProvisioningPlan, list[Diagnostic]]:
+    """Bind preparation, run scope, and service/topology diagnostics onto the provisioning plan.
+
+    Returns the finalized plan and the diagnostics that must also surface on the
+    execution plan; service and topology diagnostics are additionally appended to
+    the provisioning plan's own diagnostic list, matching the pre-extraction flow.
+    """
+
+    extra: list[Diagnostic] = []
     if preparation is not None:
         try:
             preparation = preparation.model_copy(
                 update={"node_collection": planned_node_collection(effective_model, provisioning)}
             )
         except (TypeError, ValueError):
-            diagnostics.append(
+            extra.append(
                 Diagnostic(
                     code="realization.invalid-node-collection",
                     domain="provisioning",
@@ -200,7 +282,16 @@ def plan(
                 )
             )
     provisioning = retain_open_collection_nodes(
-        replace(provisioning, preparation=preparation, profile_authority=model.profile_authority)
+        cast(
+            "ProvisioningPlan",
+            replace(
+                provisioning,
+                preparation=preparation,
+                profile_authority=profile_authority,
+                run_id=scope.run_id if scope is not None else None,
+                instantiation_id=scope.instantiation_id if scope is not None else None,
+            ),
+        )
     )
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,
@@ -208,17 +299,119 @@ def plan(
         manifest.realization_envelope,
         manifest.realization_support,
     )
-    diagnostics.extend(materialization_diagnostics)
+    extra.extend(materialization_diagnostics)
     provisioning.diagnostics.extend(materialization_diagnostics)
     topology_diagnostics = domain_topology_plan_diagnostics(
         provisioning,
         snapshot=snapshot,
         supported_domain_profiles=manifest.provisioner.supported_domain_profiles,
     )
-    diagnostics.extend(topology_diagnostics)
+    extra.extend(topology_diagnostics)
     provisioning.diagnostics.extend(topology_diagnostics)
+    return provisioning, extra
+
+
+def plan(
+    model: RuntimeModel,
+    manifest: BackendManifest,
+    snapshot: RuntimeSnapshot | None = None,
+    *,
+    scope: PlanScope | None = None,
+    apparatus_realization_default: ApparatusRealizationDefaultResolver | None = None,
+    artifact_availability: ArtifactAvailabilityContext | None = None,
+    profile_context: DomainProfileResolutionContextModel | None = None,
+) -> ExecutionPlan:
+    """Reconcile a compiled runtime model against the current snapshot."""
+
+    snapshot = snapshot or RuntimeSnapshot()
+    target_name = scope.target_name if scope is not None else None
+    run_id = scope.run_id if scope is not None else None
+    instantiation_id = scope.instantiation_id if scope is not None else None
+    effective_model, effective_requirements, resolved_authority, authority_diagnostics = _resolved_realization(
+        model, manifest, apparatus_realization_default
+    )
+    resources = _collect_resources(effective_model)
+    resources, profile_diagnostics, profile_authority = profile_resources(
+        effective_model, resources, manifest, snapshot, profile_context
+    )
+    resources, regeneration_diagnostics = _apply_regeneration_scope_bindings(
+        resources, run_id=run_id, instantiation_id=instantiation_id
+    )
+    preparation = preparation_authority(manifest)
+    diagnostics = [
+        *profile_diagnostics,
+        *regeneration_diagnostics,
+        *_admission_diagnostics(
+            effective_model,
+            manifest,
+            effective_requirements,
+            artifact_availability=artifact_availability,
+            preparation=preparation,
+        ),
+        *authority_diagnostics,
+        *_ordering_cycle_diagnostics(resources),
+    ]
+    actions, deleted_entries = _build_operations(
+        resources,
+        snapshot,
+        effective_requirements,
+    )
+
+    provisioning, provisioning_diagnostics = _augment_provisioning(
+        _build_provisioning_plan(
+            resources,
+            actions,
+            deleted_entries,
+            manifest,
+            effective_requirements,
+            resolved_authority,
+            effective_model.observation_demands,
+        ),
+        manifest=manifest,
+        effective_model=effective_model,
+        snapshot=snapshot,
+        preparation=preparation,
+        profile_authority=profile_authority,
+        scope=scope,
+    )
+    diagnostics.extend(provisioning_diagnostics)
     orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
-    evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
+    evaluation = cast(
+        "EvaluationPlan",
+        replace(
+            _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands),
+            run_id=run_id,
+            instantiation_id=instantiation_id,
+        ),
+    )
+
+    if model.materialization_description is not None:
+        provisioning = replace(provisioning, purpose="inspection")
+        orchestration = replace(orchestration, purpose="inspection")
+        evaluation = replace(evaluation, purpose="inspection")
+    source, source_diagnostics = planned_materialization_source(model, manifest, scope)
+    diagnostics.extend(source_diagnostics)
+    scope_required = (
+        model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
+    )
+    provisioning = replace(
+        provisioning,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*provisioning.diagnostics, *source_diagnostics],
+    )
+    orchestration = replace(
+        orchestration,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*orchestration.diagnostics, *source_diagnostics],
+    )
+    evaluation = replace(
+        evaluation,
+        materialization_source=source,
+        augmentation_scope_required=scope_required,
+        diagnostics=[*evaluation.diagnostics, *source_diagnostics],
+    )
 
     return ExecutionPlan(
         target_name=target_name,

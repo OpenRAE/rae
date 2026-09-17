@@ -1,10 +1,10 @@
 {
+  "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
   "contract_id": "experiment-run-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
-  "stability": "draft",
-  "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75",
   "last_change": {
-    "summary": "Separated structural task/run validation from authoritative content-backed evidence satisfaction for issue #1112.",
-    "content_hash": "e793727d1562c90aa175ee0175fbf7db5003c9f06d12971c9acf1257d0327d75"
-  }
+    "content_hash": "11a33e0eab2c412c6162025e601a54b3d06eab2a12f038e8f847f700dbddffd9",
+    "summary": "Preserve evidence-requirement lineage and protected materialization archive records through run and runtime snapshots (#341, #1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-run-v1.json",
+  "stability": "draft"
 }

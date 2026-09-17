@@ -44,6 +44,14 @@ class _ControlPlaneApiAuth:
             request=request,
         )
 
+    def resolution_identity(self, request: Request) -> ControlPlaneIdentity:
+        identity = self._authenticated_identity(request)
+        return self._authorize(
+            identity,
+            roles={ControlPlaneRole.OPERATOR},
+            request=request,
+        )
+
     def _authenticated_identity(self, request: Request) -> ControlPlaneIdentity:
         try:
             return self._authenticate_request(request)
@@ -130,5 +138,10 @@ def _read_identity_dependency(request: Request) -> ControlPlaneIdentity:
     return request.app.state.control_plane_api_auth.read_identity(request)
 
 
+def _resolution_identity_dependency(request: Request) -> ControlPlaneIdentity:
+    return request.app.state.control_plane_api_auth.resolution_identity(request)
+
+
 _MutatingIdentity = Annotated[ControlPlaneIdentity, Depends(_mutating_identity_dependency)]
 _ReadIdentity = Annotated[ControlPlaneIdentity, Depends(_read_identity_dependency)]
+_ResolutionIdentity = Annotated[ControlPlaneIdentity, Depends(_resolution_identity_dependency)]

@@ -861,8 +861,8 @@ digest verification, rendering, locking, installation, and independent
 readback. The SDL cannot supply a `signed-by` path, an options map, a command,
 credentials, or private key material. `source` remains an opaque provenance
 label and `purl` remains package identity metadata; neither is parsed as a
-repository or executable value. Future package managers use their own closed
-profile and version rather than adding manager-specific options to this one.
+repository or executable value. New acquisition semantics use optional pinned
+domain profiles; they do not extend the legacy APT options surface.
 
 `software_components` records
 node-local software identity at component granularity with stable RAES ids,
@@ -875,6 +875,40 @@ capture method (see
 for the cross-surface observed-value and credential-posture inventory, and
 [ADR-034](../../decisions/adrs/adr-034-runtime-software-component-inventory.md)).
 
+For progressive authoring, use `software_components` with an enclosing open
+scope and add only the choices that matter:
+
+```yaml
+name: software-outcome
+realization: {default: open}
+nodes:
+  host:
+    type: compute
+    os: linux
+    os_distribution: x-kali:kali
+    runtime:
+      software_components:
+        - {component_id: scanner, name: scanner}
+        - {component_id: editor, name: editor, presence: optional, version: "2.0"}
+```
+
+The distribution uses the governed extension form, not a new core catalog
+entry. A component can add an exact `version`, an independently named
+`version_constraint`, or an exact `package` refinement. `package_version` is
+not its application version. `package_ref` names a legacy package row explicitly;
+equal names do not imply a relation. Optional acquisition `refinements` carry
+pinned public profile definitions and bounded values through the existing plan
+host. The target must independently support their semantics before execution.
+
+`runtime.repository_state` separately records shared repository and trust
+identities; component `repository_refs` and repository `trust_ref` resolve there.
+Use `presence: forbidden` for explicit final absence. An internal cache, private
+route or prebuilt image needs no authored repository, digest or acquisition
+telemetry. Requested software/OS descriptions use observation demand without
+promoting backend selections to evidence or authorizing retention/export.
+See the normative [software requirement contract](../../../specs/sdl/software-requirements.md)
+for version relation identities, compatibility, support and security boundaries.
+
 Container health results are evidence, not `runtime` fields. Put the authored
 healthcheck definition in `conditions`, bind it through `Node.conditions`, and
 record status, failing streak, timestamps, exit codes, and output separately;
@@ -885,11 +919,16 @@ and advisory snapshot state likewise belong in evidence. Derived severity
 counts belong in `ExperimentDerivedMeasureModel`; they do not automatically
 become native weakness facts. Authored classifications use standalone external concept bindings.
 
-`runtime.service_manager_units` records observed service-manager unit
-lifecycle state — what `systemctl` exposes from inside a realized range node.
-Each entry carries a stable RAES `unit_id`, a `manager_kind` (initially
-`systemd`, with `other` reserved), the native `unit_name` such as
-`sshd.service`, a `unit_type` (`service`/`socket`/`target`/`timer`/`path`/
+`runtime.service_manager_units` records portable unit identity plus selected
+service-manager state. Each entry carries a stable RAES `unit_id`, used as the
+key for comparison, and may carry a governed `manager_kind` and an exact native
+`unit_name`. Native names are preserved without normalization or a fabricated
+suffix, so OpenRC or private names such as `nginx` remain valid. Omitted
+manager/name leaves preserve partial knowledge and inherited open-scope
+delegation; explicit `unknown` is a knowledge state, not delegation.
+
+An explicitly selected `systemd` manager enables the existing lifecycle
+profile: a suffixed native name, `unit_type` (`service`/`socket`/`target`/`timer`/`path`/
 `mount`/`automount`/`swap`/`device`/`slice`/`scope`/`other`), and the
 participant-observable state quadruple `load_state` (loaded/not_found/masked/
 error/merged/stub/bad_setting/unknown), `active_state` (active/reloading/
@@ -906,7 +945,10 @@ a redactable `exec_start` (`command_kind` `absolute_path` / `redacted`, with
 `command_redacted` forcing an empty `command`). An optional `service` ref
 pointing at the same-node `Node.services[].name` (bare or
 `nodes.<node>.services.<name>`) ties a unit to the transport service it
-launches. This surface is observed WHAT-IS lifecycle state: it is not
+launches. Private manager identity does not authorize use of the systemd state
+fields; richer non-systemd state requires an exact admitted domain profile.
+The historical omitted-manager default remains readable, but does not become
+authored systemd intent. This surface is observed WHAT-IS state: it is not
 `Node.services` (transport bindings), not `conditions` (authored
 monitoring/readiness intent), not `runtime.processes` (live processes — a
 failed, disabled, static, or active/exited unit may have no live process),
@@ -961,16 +1003,20 @@ participate in relationships, generic reference validation, and module import
 rewriting (see
 [ADR-042](../../decisions/adrs/adr-042-network-sensor-runtime-monitoring.md)).
 
-`runtime.service_listeners` records observed in-node listener bind state:
-stable listener id, transport protocol, port or Unix socket path, bind address
-or interface, address family, listener scope, optional same-node service ref,
-optional process owner ref/name, readiness evidence, provenance, evidence refs,
-and optional typed correlations to `runtime.network.published_ports`. It is
+`runtime.service_listeners` records known in-node listener facts. A stable
+listener id is required; transport protocol, port or Unix socket path, bind
+address or interface, address family, listener scope, optional same-node
+service ref, optional process owner ref/name, readiness evidence, provenance,
+evidence refs, and typed correlations to `runtime.network.published_ports` may
+be supplied independently. Missing endpoint facts remain missing and must be
+completed or rejected by a backend operation that requires an admitted
+endpoint. The surface is
 distinct from `Node.services` (authored service identity), from
 `runtime.network.published_ports` (host publication), and from
 protocol-specific runtime inventories such as HTTP applications, DNS, mail, and
 database services. A wildcard address such as `0.0.0.0` or `::` is a wildcard
-inside the node namespace; host exposure remains a published-port fact. Fully
+inside the node namespace; a partial or wildcard description grants no access,
+and host exposure remains a published-port fact. Fully
 qualified refs such as
 `nodes.web.runtime.service_listeners.gunicorn-http-ipv4` participate in
 relationships, generic reference validation, and module import rewriting (see
@@ -1786,6 +1832,34 @@ never inferred from the SPN or node operating system. See the
 ## Relationships
 
 Typed directed edges between any named scenario elements. Adapted from STIX Relationship SROs.
+
+Participant relationships use `type: participant` with a typed `participant`
+detail. The kinds are `coordination`, `delegation`, `cooperation`, `competition`
+and `supervision`. Both endpoints name distinct agents. A sparse declaration
+is complete at its declared abstraction:
+
+```yaml
+entities:
+  researchers: {}
+agents:
+  lead: {entity: researchers}
+  peer: {entity: researchers}
+relationships:
+  shared-work:
+    type: participant
+    source: agents.lead
+    target: agents.peer
+    participant: {kind: cooperation}
+```
+
+Optional action, objective, behavior, authority, scope and observation references
+refine the declaration and are checked when supplied. Delegation and supervision
+can also reference an existing mixed-control specification. A relationship
+does not grant permissions, trigger a control handoff, disclose observations,
+or request evidence collection. Reciprocal relationships require explicit
+edges. See the {download}`participant relationship specification
+<../../../specs/sdl/participant-relationships.md>` for refinement rules and the
+boundary between declared intent and runtime occurrences.
 
 ```yaml
 relationships:

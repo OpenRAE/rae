@@ -19,16 +19,14 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
-from ._base import (
-    SDLModel,
-    is_variable_ref,
-    parse_int_or_var,
-)
+from raes.runtime_vocabulary import GovernedVocabulary
+
+from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from ._classification_guard import LegacyClassificationGuard
+from .runtime_application_values import RuntimeApplicationExposedField
 from .runtime_filesystem import RuntimeSensitivityClassification
 from .runtime_values import (
     coerce_string_list,
-    enforce_observed_value_redaction,
     parse_optional_bool_or_var,
     parse_runtime_enum_or_var,
 )
@@ -59,12 +57,6 @@ _MAX_REDIRECT_STATUS_CODE = 399
 # Standard HTTP request methods (RFC 9110 + PATCH). Backend-observed surfaces
 # normalize to this portable spelling; ``${var}`` placeholders pass through.
 _HTTP_METHODS = frozenset({"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"})
-
-# Sensitivity classes whose raw value must never be recorded.
-_REDACTED_SENSITIVITIES = (
-    RuntimeSensitivityClassification.REDACTED,
-    RuntimeSensitivityClassification.OPERATOR_SECRET,
-)
 
 
 class RuntimeApplicationProtocol(str, Enum):
@@ -134,7 +126,7 @@ class RuntimeApplicationParameter(SDLModel):
     """
 
     name: str
-    location: RuntimeApplicationParameterLocation | str = RuntimeApplicationParameterLocation.OTHER
+    location: GovernedVocabulary[RuntimeApplicationParameterLocation] = RuntimeApplicationParameterLocation.OTHER
     required: bool | str | None = None
     data_type: str = ""
     description: str = ""
@@ -221,7 +213,7 @@ class RuntimeApplicationDisclosure(SDLModel):
     trigger: str = ""
     status_code: int | str | None = None
     disclosure: str = ""
-    sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
+    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
     description: str = ""
 
     @field_validator("status_code", mode="before")
@@ -245,46 +237,6 @@ class RuntimeApplicationDisclosure(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeSensitivityClassification, field_name="sensitivity")
 
 
-class RuntimeApplicationExposedField(SDLModel):
-    """A route-visible fixture secret or intentionally exposed diagnostic field.
-
-    The sensitivity vocabulary is shared with the rest of the runtime surface.
-    A ``redacted`` or ``operator_secret`` field must omit its raw ``value``.
-    Other values, including credential-shaped fixture facts, are scenario
-    content needed for range realization and participant observation.
-    """
-
-    name: str
-    sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    value: str = ""
-    description: str = ""
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not isinstance(v, str) or not v.strip():
-            raise ValueError("exposed field name must be a non-empty string")
-        return v
-
-    @field_validator("sensitivity", mode="before")
-    @classmethod
-    def normalize_sensitivity(
-        cls,
-        v: RuntimeSensitivityClassification | str,
-    ) -> RuntimeSensitivityClassification | str:
-        return parse_runtime_enum_or_var(v, RuntimeSensitivityClassification, field_name="sensitivity")
-
-    @model_validator(mode="after")
-    def validate_redacted_value(self) -> "RuntimeApplicationExposedField":
-        enforce_observed_value_redaction(
-            owner_label=f"exposed field '{self.name}'",
-            value=self.value,
-            classification=self.sensitivity,
-            redacted_classifications=_REDACTED_SENSITIVITIES,
-        )
-        return self
-
-
 class RuntimeApplicationRouteUpstreamTarget(SDLModel):
     """The origin a reverse-proxied route forwards to.
 
@@ -299,7 +251,7 @@ class RuntimeApplicationRouteUpstreamTarget(SDLModel):
 
     target_node_ref: str = ""
     target_service: str = ""
-    scheme: RuntimeApplicationRouteUpstreamScheme | str = RuntimeApplicationRouteUpstreamScheme.HTTP
+    scheme: GovernedVocabulary[RuntimeApplicationRouteUpstreamScheme] = RuntimeApplicationRouteUpstreamScheme.HTTP
     tls_terminated_here: bool | str | None = None
 
     @field_validator("scheme", mode="before")
@@ -415,7 +367,7 @@ class RuntimeApplicationSurface(SDLModel):
 
     application_id: str
     service: str = ""
-    protocol: RuntimeApplicationProtocol | str = RuntimeApplicationProtocol.HTTP
+    protocol: GovernedVocabulary[RuntimeApplicationProtocol] = RuntimeApplicationProtocol.HTTP
     name: str = ""
     base_path: str = ""
     framework: str = ""

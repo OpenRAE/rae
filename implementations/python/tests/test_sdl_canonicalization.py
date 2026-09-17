@@ -1,4 +1,4 @@
-"""Canonical semantic identity tests for ``raes-sdl-semantic/v1``."""
+"""Canonical semantic identity tests for ``raes-sdl-semantic/v2``."""
 
 from __future__ import annotations
 
@@ -70,12 +70,12 @@ def test_canonical_digest_is_profile_labelled_and_repeatable() -> None:
     second = canonical_sdl_digest(scenario)
 
     assert first == second
-    assert first.profile == SDL_CANONICAL_PROFILE == "raes-sdl-semantic/v1"
+    assert first.profile == SDL_CANONICAL_PROFILE == "raes-sdl-semantic/v2"
     assert first.algorithm == "sha256"
     assert first.value.startswith("sha256:")
     assert len(first.value) == len("sha256:") + 64
     assert first.as_dict() == {
-        "profile": "raes-sdl-semantic/v1",
+        "profile": "raes-sdl-semantic/v2",
         "algorithm": "sha256",
         "value": first.value,
     }
@@ -150,7 +150,7 @@ def test_canonical_payload_carries_profile_and_module_provenance_channels() -> N
 
     assert payload.startswith(b'{"module_node_variable_refs":{}')
     assert b'"module_variable_specs":{}' in payload
-    assert b'"profile":"raes-sdl-semantic/v1"' in payload
+    assert b'"profile":"raes-sdl-semantic/v2"' in payload
     assert b'"scenario":{"name":"envelope"}' in payload
 
 

@@ -13,6 +13,7 @@ from raes_contracts.contracts.participant_resource_budgets import (
     participant_resource_budget_state_ref,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.resource_measure_profiles import resource_measure_supported
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .participant_resource_pool_ledger import (
@@ -108,6 +109,15 @@ def _payload(
 
 
 def _matching_pool(demand: ResourceDemand, capabilities: ResourceCapabilities) -> ResourcePool | None:
+    if not resource_measure_supported(
+        demand.resource_kind,
+        unit=demand.unit,
+        accounting_mode=demand.accounting_mode,
+        meter_profile_ref=demand.meter_profile_ref,
+        reset=demand.reset,
+        context=getattr(capabilities, "domain_profile_context", None),
+    ):
+        return None
     return next(
         (
             pool

@@ -3,6 +3,7 @@
 from collections.abc import Callable, Mapping
 
 from raes.scenario import InstantiatedScenario
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 from ..models import (
     Diagnostic,
@@ -136,7 +137,11 @@ def _compile_participant_behaviors(
             )
             target_address = target_addresses[0]
             account_address = account_addresses[0] if account_addresses else ""
-            channel = str(getattr(access.channel, "value", access.channel))
+            channel = (
+                access.channel
+                if isinstance(access.channel, DomainProfileBindingModel)
+                else str(getattr(access.channel, "value", access.channel))
+            )
             interactive_access.append(
                 ParticipantInteractiveAccessRuntime(
                     access_id=access_id,

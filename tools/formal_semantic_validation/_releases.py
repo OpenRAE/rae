@@ -153,7 +153,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "9.0.0",
+                replay_current=manifest.get("revision") == "31.0.0",
             )
         )
     else:
@@ -216,6 +216,43 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
     return failures
 
 
+_HISTORICAL_RETEST_REVISIONS = frozenset(
+    {
+        "3.0.0",
+        "4.0.0",
+        "5.0.0",
+        "6.0.0",
+        "7.0.0",
+        "8.0.0",
+        "9.0.0",
+        "10.0.0",
+        "11.0.0",
+        "12.0.0",
+        "13.0.0",
+        "14.0.0",
+        "15.0.0",
+        "16.0.0",
+        "17.0.0",
+        "18.0.0",
+        "19.0.0",
+        "20.0.0",
+        "21.0.0",
+        "22.0.0",
+        "23.0.0",
+        "24.0.0",
+        "25.0.0",
+        "26.0.0",
+        "27.0.0",
+        "28.0.0",
+        "29.0.0",
+        "30.0.0",
+    }
+)
+
+_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"31.0.0"}
+_SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}
+
+
 def validate_retest_bundle(
     repo_root: Path,
     release: EvidenceRelease,
@@ -234,22 +271,15 @@ def validate_retest_bundle(
     snapshot_path = str(release.manifest.get("snapshot_path"))
     analysis_path = str(release.manifest.get("analysis_path"))
     release_revision = release.manifest.get("revision")
-    if not replay_current and release_revision not in {
-        "3.0.0",
-        "4.0.0",
-        "5.0.0",
-        "6.0.0",
-        "7.0.0",
-        "8.0.0",
-    }:
+    if not replay_current and release_revision not in _HISTORICAL_RETEST_REVISIONS:
         return [
             _failure(
                 "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 8.0.0 can use integrated historical validation",
+                "only releases 3.0.0 through 30.0.0 can use integrated historical validation",
                 snapshot_path,
             )
         ]
-    if release_revision not in {"3.0.0", "4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}:
+    if release_revision not in _SUPPORTED_RETEST_REVISIONS:
         failures.append(
             _failure(
                 "formal-validation-retest-release",
@@ -257,16 +287,40 @@ def validate_retest_bundle(
                 release.manifest_path,
             )
         )
-    if protocol.get("revision") != "2.0.0" or corpus.get("revision") != "2.0.0":
+    expected_corpus_revision = (
+        "3.0.0"
+        if release_revision
+        in {
+            "16.0.0",
+            "17.0.0",
+            "18.0.0",
+            "19.0.0",
+            "20.0.0",
+            "21.0.0",
+            "22.0.0",
+            "23.0.0",
+            "24.0.0",
+            "25.0.0",
+            "26.0.0",
+            "27.0.0",
+            "28.0.0",
+            "29.0.0",
+            "30.0.0",
+            "31.0.0",
+        }
+        else "2.0.0"
+    )
+    if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
         failures.append(
             _failure(
                 "formal-validation-retest-revision",
-                "the integrated retest must bind protocol and corpus revision 2.0.0",
+                "the integrated retest must bind protocol revision 2.0.0 "
+                f"and corpus revision {expected_corpus_revision}",
                 release.manifest_path,
             )
         )
 
-    if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}:
+    if release_revision in _SOURCE_BOUND_RETEST_REVISIONS:
         _current_retest_source_failures(
             repo_root,
             snapshot,
@@ -291,9 +345,7 @@ def validate_retest_bundle(
         failures,
         snapshot_path,
     )
-    baseline_cases = (
-        cases_by_id if release_revision in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"} else historical_cases
-    )
+    baseline_cases = cases_by_id if release_revision in _SOURCE_BOUND_RETEST_REVISIONS else historical_cases
     _validate_baseline_drift(repo_root, snapshot, baseline_cases, failures, snapshot_path)
     _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
     return failures
@@ -326,6 +378,28 @@ def _current_retest_source_failures(
         "7.0.0": "6.0.0",
         "8.0.0": "7.0.0",
         "9.0.0": "8.0.0",
+        "10.0.0": "9.0.0",
+        "11.0.0": "10.0.0",
+        "12.0.0": "11.0.0",
+        "13.0.0": "12.0.0",
+        "14.0.0": "13.0.0",
+        "15.0.0": "14.0.0",
+        "16.0.0": "15.0.0",
+        "17.0.0": "16.0.0",
+        "18.0.0": "17.0.0",
+        "19.0.0": "18.0.0",
+        "20.0.0": "19.0.0",
+        "21.0.0": "20.0.0",
+        "22.0.0": "21.0.0",
+        "23.0.0": "22.0.0",
+        "24.0.0": "23.0.0",
+        "25.0.0": "24.0.0",
+        "26.0.0": "25.0.0",
+        "27.0.0": "26.0.0",
+        "28.0.0": "27.0.0",
+        "29.0.0": "28.0.0",
+        "30.0.0": "29.0.0",
+        "31.0.0": "30.0.0",
     }[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(

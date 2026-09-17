@@ -7,9 +7,12 @@ from functools import cache
 from typing import Any
 
 from raes.canonical import InstantiatedScenarioSnapshot
+from raes.materialization import MaterializedScenario
 from raes.scenario import InstantiatedScenario, Scenario
 
 from raes_contracts.artifact_requirements import ArtifactRequirementContractModel
+from raes_contracts.augmentation_preparation import AugmentationPreparation
+from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.observation_demand import ObservationDemandDocument
 
 from . import semantic_profiles, semantic_projection
@@ -39,6 +42,7 @@ from .experiment_run import ExperimentRunModel
 from .experiment_spec import ExperimentSpecModel, ExperimentStudyModel
 from .external_concept_bindings import ExternalConceptBindingDocumentModel
 from .manifests import ProcessorManifestV2Model
+from .materialization_attestation import MaterializationArchiveRecord, attach_materialization_invariants
 from .participant_flow_control import (
     ParticipantBoundaryFlowPolicyProfileModel,
 )
@@ -70,6 +74,7 @@ from .schema_constraints import (
     _raes_semantic_invariant_profile_schema_for_bundle,
     _validate_raes_semantic_invariant_annotations,
 )
+from .schema_factoring import factor_shared_schema
 from .schema_invariants import (
     _add_raes_invariant,
     _attach_experiment_datetime_invariants,
@@ -109,7 +114,60 @@ def _domain_profile_schema_bundle() -> dict[str, dict[str, Any]]:
     }
 
 
+def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
+    """Experiment, trial, time, and runtime-plan contract schemas."""
+
+    from ..provenance import SDLLineageLedgerModel
+    from ..scientific_completeness import (
+        ScientificCompletenessAssessmentModel,
+        ScientificCompletenessTaxonomyModel,
+    )
+    from ..validation_profiles import ValidationProfileCatalogModel
+
+    return {
+        "experiment-apparatus-context-v1": ExperimentApparatusContextModel.model_json_schema(),
+        "experiment-authoring-input-v1": ExperimentSpecModel.model_json_schema(),
+        "experiment-binding-descriptors-v1": ExperimentBindingDescriptorSetModel.model_json_schema(),
+        "experiment-capture-spec-v1": ExperimentCaptureSpecModel.model_json_schema(),
+        "experiment-derived-measure-v1": ExperimentDerivedMeasureModel.model_json_schema(),
+        "experiment-evidence-record-v1": ExperimentEvidenceRecordModel.model_json_schema(),
+        "experiment-run-v1": ExperimentRunModel.model_json_schema(),
+        "experiment-study-v1": ExperimentStudyModel.model_json_schema(),
+        "experiment-task-v1": ExperimentTaskModel.model_json_schema(),
+        "admitted-trial-plan-v1": AdmittedTrialPlanModel.model_json_schema(),
+        "trial-cleanup-plan-v1": TrialCleanupPlanModel.model_json_schema(),
+        "trial-cleanup-receipt-v1": TrialCleanupReceiptModel.model_json_schema(),
+        "scheduler-isolation-proof-v1": SchedulerIsolationProofModel.model_json_schema(),
+        "batch-execution-receipt-v1": BatchExecutionReceiptModel.model_json_schema(),
+        "time-model-v1": TimeModelDeclarationModel.model_json_schema(),
+        "time-runtime-state-v1": TimeRuntimeStateModel.model_json_schema(),
+        "realized-time-model-v1": RealizedTimeModelProvenanceModel.model_json_schema(),
+        "provisioning-plan-v1": ProvisioningPlanModel.model_json_schema(),
+        "orchestration-plan-v1": OrchestrationPlanModel.model_json_schema(),
+        "evaluation-plan-v1": EvaluationPlanModel.model_json_schema(),
+        "runtime-snapshot-v1": RuntimeSnapshotEnvelopeModel.model_json_schema(),
+        "workflow-result-envelope-v1": WorkflowExecutionStateModel.model_json_schema(),
+        "workflow-history-event-stream-v1": _event_stream_schema(
+            "WorkflowHistoryEventStream",
+            WorkflowHistoryEventModel.model_json_schema(),
+        ),
+        "workflow-cancellation-request-v1": WorkflowCancellationRequestModel.model_json_schema(),
+        "evaluation-result-envelope-v1": EvaluationResultStateModel.model_json_schema(),
+        "proposition-truth-result-v1": PropositionTruthResultModel.model_json_schema(),
+        "sdl-lineage-ledger-v1": SDLLineageLedgerModel.model_json_schema(),
+        "scientific-completeness-taxonomy-v1": ScientificCompletenessTaxonomyModel.model_json_schema(),
+        "scientific-completeness-assessment-v1": ScientificCompletenessAssessmentModel.model_json_schema(),
+        "validation-profile-catalog-v1": ValidationProfileCatalogModel.model_json_schema(),
+        "validation-basis-disclosure-v1": ValidationBasisDisclosureDocumentModel.model_json_schema(),
+    }
+
+
 def _core_schema_bundle() -> dict[str, dict[str, Any]]:
+    from raes_contracts.authoring_adapters import (
+        AuthoringAdapterComparisonModel,
+        AuthoringAdapterProfileModel,
+        AuthoringAdapterVectorModel,
+    )
     from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
     from raes_contracts.realization_structure import RealizationConstraintDocument
     from raes_contracts.semantic_comparison import SemanticComparisonRequestModel, SemanticComparisonResultModel
@@ -123,20 +181,20 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         ParticipantOpacityModelCheckEvidenceModel,
         ParticipantOpacityModelCheckInputModel,
     )
-    from ..provenance import SDLLineageLedgerModel
     from ..realization_profiles import PlanProfileAuthority
     from ..satisfiability import ScenarioSatisfiabilityEvidenceModel
-    from ..scientific_completeness import (
-        ScientificCompletenessAssessmentModel,
-        ScientificCompletenessTaxonomyModel,
-    )
-    from ..validation_profiles import ValidationProfileCatalogModel
+    from ..sdl_semantic_migration import SDLSemanticMigrationContext
     from .backend_preparation import BackendPreparationResponseModel
 
     return {
         "raes-semantic-invariants-v1": _raes_semantic_invariant_profile_schema_for_bundle(),
         "sdl-authoring-input-v1": Scenario.model_json_schema(),
+        "sdl-semantic-migration-context-v1": SDLSemanticMigrationContext.model_json_schema(),
         "instantiated-scenario-v1": InstantiatedScenario.model_json_schema(),
+        "materialized-scenario-v1": MaterializedScenario.model_json_schema(),
+        "backend-materialization-attestation-v1": MaterializationSubmission.model_json_schema(),
+        "backend-augmentation-scope-v1": AugmentationPreparation.model_json_schema(),
+        "materialization-archive-record-v1": MaterializationArchiveRecord.model_json_schema(),
         "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
         "scenario-instantiation-request-v1": InstantiationRequestModel.model_json_schema(),
         "artifact-requirement-v1": ArtifactRequirementContractModel.model_json_schema(),
@@ -144,6 +202,9 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         **transformation_schema_bundle(),
         "semantic-comparison-request-v1": SemanticComparisonRequestModel.model_json_schema(),
         "semantic-comparison-result-v1": SemanticComparisonResultModel.model_json_schema(),
+        "authoring-adapter-profile-v1": AuthoringAdapterProfileModel.model_json_schema(),
+        "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_json_schema(),
+        "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_json_schema(),
         "exploit-path-analysis-evidence-v1": ExploitPathAnalysisEvidenceModel.model_json_schema(),
         "scenario-satisfiability-evidence-v1": ScenarioSatisfiabilityEvidenceModel.model_json_schema(),
         "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),
@@ -180,40 +241,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         ),
         "participant-boundary-flow-policy-v1": ParticipantBoundaryFlowPolicyProfileModel.model_json_schema(),
         "random-stream-vector-v1": RandomStreamVectorModel.model_json_schema(),
-        "experiment-apparatus-context-v1": ExperimentApparatusContextModel.model_json_schema(),
-        "experiment-authoring-input-v1": ExperimentSpecModel.model_json_schema(),
-        "experiment-binding-descriptors-v1": ExperimentBindingDescriptorSetModel.model_json_schema(),
-        "experiment-capture-spec-v1": ExperimentCaptureSpecModel.model_json_schema(),
-        "experiment-derived-measure-v1": ExperimentDerivedMeasureModel.model_json_schema(),
-        "experiment-evidence-record-v1": ExperimentEvidenceRecordModel.model_json_schema(),
-        "experiment-run-v1": ExperimentRunModel.model_json_schema(),
-        "experiment-study-v1": ExperimentStudyModel.model_json_schema(),
-        "experiment-task-v1": ExperimentTaskModel.model_json_schema(),
-        "admitted-trial-plan-v1": AdmittedTrialPlanModel.model_json_schema(),
-        "trial-cleanup-plan-v1": TrialCleanupPlanModel.model_json_schema(),
-        "trial-cleanup-receipt-v1": TrialCleanupReceiptModel.model_json_schema(),
-        "scheduler-isolation-proof-v1": SchedulerIsolationProofModel.model_json_schema(),
-        "batch-execution-receipt-v1": BatchExecutionReceiptModel.model_json_schema(),
-        "time-model-v1": TimeModelDeclarationModel.model_json_schema(),
-        "time-runtime-state-v1": TimeRuntimeStateModel.model_json_schema(),
-        "realized-time-model-v1": RealizedTimeModelProvenanceModel.model_json_schema(),
-        "provisioning-plan-v1": ProvisioningPlanModel.model_json_schema(),
-        "orchestration-plan-v1": OrchestrationPlanModel.model_json_schema(),
-        "evaluation-plan-v1": EvaluationPlanModel.model_json_schema(),
-        "runtime-snapshot-v1": RuntimeSnapshotEnvelopeModel.model_json_schema(),
-        "workflow-result-envelope-v1": WorkflowExecutionStateModel.model_json_schema(),
-        "workflow-history-event-stream-v1": _event_stream_schema(
-            "WorkflowHistoryEventStream",
-            WorkflowHistoryEventModel.model_json_schema(),
-        ),
-        "workflow-cancellation-request-v1": WorkflowCancellationRequestModel.model_json_schema(),
-        "evaluation-result-envelope-v1": EvaluationResultStateModel.model_json_schema(),
-        "proposition-truth-result-v1": PropositionTruthResultModel.model_json_schema(),
-        "sdl-lineage-ledger-v1": SDLLineageLedgerModel.model_json_schema(),
-        "scientific-completeness-taxonomy-v1": ScientificCompletenessTaxonomyModel.model_json_schema(),
-        "scientific-completeness-assessment-v1": ScientificCompletenessAssessmentModel.model_json_schema(),
-        "validation-profile-catalog-v1": ValidationProfileCatalogModel.model_json_schema(),
-        "validation-basis-disclosure-v1": ValidationBasisDisclosureDocumentModel.model_json_schema(),
+        **_experiment_schema_bundle(),
     }
 
 
@@ -409,6 +437,7 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         ],
     )
     for contract_id, json_schema in bundle.items():
+        attach_materialization_invariants(contract_id, json_schema)
         _attach_sdl_identifier_constraints(contract_id, json_schema)
         _attach_instantiation_invariants(contract_id, json_schema)
         _attach_experiment_datetime_invariants(contract_id, json_schema)
@@ -425,6 +454,7 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
             json_schema=json_schema,
             known_contract_ids=known_contract_ids,
         )
+    bundle["materialized-scenario-v1"] = factor_shared_schema(bundle["materialized-scenario-v1"])
     return bundle
 
 

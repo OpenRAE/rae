@@ -21,6 +21,9 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 
 ## Traceability
 
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing SEM-230 authority in SEM-234 without changing its runtime contract)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent SEM-230 authority)
 - TESTS → TEST `implementations/python/tests/test_sem_233_flow_control_contracts.py` (SEM-230 portable information-flow contract tests)
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json` (SEM-230 portable participant flow-control relation schema)
 - IMPLEMENTS → GITHUB_ISSUE `1002` (Issue #1002 portable flow-control contracts)
@@ -32,7 +35,7 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 - IMPLEMENTS → CODE_FILE `tools/check_behavioral_relation_claims.py` (Behavioral relation claim policy checker)
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-085-participant-information-flow-and-control.md` (ADR-085 participant information-flow and control decision)
 - IMPLEMENTS → DOCUMENTATION `docs/explain/sdl/lineage.md` (SDL formal lineage and prior-work mapping)
-- IMPLEMENTS → CONFIG `contracts/provenance/sdl-lineage-ledger-v1.json` (Machine-readable SDL lineage ledger)
+- IMPLEMENTS → CONFIG `contracts/provenance/sdl-lineage-ledger-v2.json` (Machine-readable SDL lineage ledger)
 - IMPLEMENTS → CONFIG `specs/formal/assurance-fulfillment.yaml` (Formal assurance fulfillment mapping)
 - IMPLEMENTS → DOCUMENTATION `docs/research/lineage/source-audit-2026-07-12.md` (Formal lineage source audit)
 - TESTS → TEST `implementations/python/tests/sem230_information_flow_model.py` (SEM-230 bounded information-flow model)

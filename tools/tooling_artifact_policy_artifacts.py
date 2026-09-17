@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,20 @@ from tools.tooling_artifact_policy_common import (
     string_set,
     walk_forbidden_keys,
 )
+from tools.tooling_artifact_policy_oci import (
+    GRAPH_EVIDENCE,
+    artifact_graph_failures,
+    declares_graph,
+    platform_graph_failures,
+)
+from tools.verified_tree_archive import MAX_TREE_EXPANDED_BYTES, MAX_TREE_MEMBERS
+from tools.verified_tree_validation import MAX_TREE_RAW_BYTES
+
+# Proof hosts must carry the native closure the offline replay executes with.
+# The capability-to-package mapping is fixed per reviewed native family.
+PROOF_HOST_NATIVE_CLOSURE = {
+    "ubuntu-apt": frozenset({"bubblewrap", "fontconfig", "fonts-dejavu-core", "libc-bin"}),
+}
 
 
 def _profiles(
@@ -125,7 +140,7 @@ def _artifact_metadata_failures(artifact_id: str, artifact: Mapping[str, Any]) -
     return failures
 
 
-def _artifact_policy_failures(
+def _artifact_policy_failures(  # NOSONAR -- the class-to-evidence map is deliberately explicit.
     artifact_id: str,
     artifact: Mapping[str, Any],
     policies: Mapping[str, Mapping[str, Any]],
@@ -147,6 +162,8 @@ def _artifact_policy_failures(
     elif artifact_class == "oci-image":
         subjects = {"oci-image"}
         evidence = {"oci-index-digest", "reviewed-consumer-reference"}
+        if declares_graph(artifact):
+            evidence.add(GRAPH_EVIDENCE)
     if as_mapping(artifact.get("authenticity")).get("status") == "absent-reviewed":
         evidence.add("absent-signature-review")
     return policy_join_failures(
@@ -300,6 +317,50 @@ def _manifest_entry_failures(
     return failures
 
 
+def _installed_tree_within_bounds(tree: Mapping[str, Any], platform: Mapping[str, Any]) -> bool:
+    counts = [tree.get(name) for name in ("file_count", "directory_count", "symlink_count", "expanded_bytes")]
+    raw_sizes = [as_mapping(entry).get("size") for entry in as_list(platform.get("raw_manifest"))]
+    if not all(isinstance(value, int) and not isinstance(value, bool) for value in (*counts, *raw_sizes)):
+        return False
+    return (
+        sum(counts[:3]) <= MAX_TREE_MEMBERS
+        and counts[3] <= MAX_TREE_EXPANDED_BYTES
+        and len(raw_sizes) == 1
+        and raw_sizes[0] <= MAX_TREE_RAW_BYTES
+    )
+
+
+def _installed_tree_failures(
+    artifact_id: str,
+    artifact_class: object,
+    platform: Mapping[str, Any],
+) -> list[PolicyFailure]:
+    installed_tree = platform.get("installed_tree")
+    tree = as_mapping(installed_tree)
+    if artifact_class != "native-tool":
+        rule, message = (
+            (None, "")
+            if installed_tree is None
+            else (
+                "tooling-installed-tree-class",
+                f"{artifact_id} declares an installed tree outside the native-tool class",
+            )
+        )
+    elif not tree:
+        rule, message = (
+            "tooling-installed-tree-required",
+            f"{artifact_id} native-tool installation lacks a reviewed complete installed-tree identity",
+        )
+    elif not _installed_tree_within_bounds(tree, platform):
+        rule, message = (
+            "tooling-installed-tree-bounds",
+            f"{artifact_id} installed tree exceeds the implementation-owned tree installation bounds",
+        )
+    else:
+        rule, message = None, ""
+    return [] if rule is None else [failure(rule, message, ARTIFACT_LOCK_PATH)]
+
+
 def _manifest_failures(
     repo_root: Path,
     artifact_id: str,
@@ -321,6 +382,7 @@ def _manifest_failures(
                     denied_digests,
                 )
             )
+    failures.extend(_installed_tree_failures(artifact_id, artifact_class, platform))
     installed_identity = as_mapping(platform.get("installed_identity"))
     if installed_identity:
         if installed_identity.get("version") != artifact_version:
@@ -454,6 +516,18 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
                     PROFILES_PATH,
                 )
             )
+        required_closure = PROOF_HOST_NATIVE_CLOSURE.get(str(host.get("native_family")))
+        closure_packages = string_set(as_mapping(host.get("offline_kit")).get("host_prerequisite_package_ids"))
+        if proof_support == "linux-x86_64-required" and (
+            required_closure is None or required_closure - closure_packages
+        ):
+            failures.append(
+                failure(
+                    "tooling-host-proof-closure",
+                    f"{host_id} offline kit omits the Bubblewrap, fontconfig, font, or locale providers",
+                    PROFILES_PATH,
+                )
+            )
         for evidence_id in string_set(host.get("qualification_record_ids")):
             record = evidence.get(evidence_id)
             if record is None or record.get("host_profile_id") != host_id:
@@ -494,20 +568,29 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
     return failures
 
 
-def _platform_failures(
+def _platform_failures(  # NOSONAR -- each platform join is an independently reportable policy failure.
     repo_root: Path,
     artifact_id: str,
     artifact: Mapping[str, Any],
     platform: Mapping[str, Any],
     profiles: Mapping[str, Mapping[str, Any]],
+    policies: Mapping[str, Mapping[str, Any]],
     denied_digests: set[str],
 ) -> list[PolicyFailure]:
     failures = _source_url_failures(artifact_id, platform)
+    source = as_mapping(artifact.get("source"))
+    if len(as_list(source.get("locator_refs"))) != len(as_list(platform.get("source_urls"))):
+        failures.append(
+            failure(
+                "tooling-locator-arity",
+                f"{artifact_id} source URLs must correspond one-to-one with its ordered locator references",
+                ARTIFACT_LOCK_PATH,
+            )
+        )
     platform_id = platform.get("platform_id")
     if not isinstance(platform_id, str):
         return failures
     canonical_platform = normalize_platform_id(platform_id)
-    source = as_mapping(artifact.get("source"))
     for profile_id in string_set(platform.get("profile_ids")):
         failures.extend(
             _profile_link_failures(
@@ -528,6 +611,7 @@ def _platform_failures(
             denied_digests,
         )
     )
+    failures.extend(platform_graph_failures(artifact_id, artifact, platform, policies, denied_digests))
     return failures
 
 
@@ -587,16 +671,24 @@ def _has_dependency_cycle(known_artifacts: set[str], dependency_graph: Mapping[s
     return any(visit(artifact_id) for artifact_id in sorted(known_artifacts))
 
 
+@dataclass
+class _LockScan:
+    """Authority documents and the cross-artifact state a lock walk accumulates."""
+
+    profiles: Mapping[str, Mapping[str, Any]]
+    policies: Mapping[str, Mapping[str, Any]]
+    denied_digests: set[str]
+    identities: set[tuple[str, str, str]]
+    dependency_graph: dict[str, set[str]]
+
+
 def _artifact_platform_failures(
     repo_root: Path,
     artifact_id: str,
     artifact: Mapping[str, Any],
-    profiles: Mapping[str, Mapping[str, Any]],
-    denied_digests: set[str],
-    identities: set[tuple[str, str, str]],
-    dependency_graph: dict[str, set[str]],
+    scan: _LockScan,
 ) -> list[PolicyFailure]:
-    failures: list[PolicyFailure] = []
+    failures: list[PolicyFailure] = artifact_graph_failures(artifact_id, as_list(artifact.get("platforms")))
     for platform_value in as_list(artifact.get("platforms")):
         platform = as_mapping(platform_value)
         platform_id = platform.get("platform_id")
@@ -608,7 +700,7 @@ def _artifact_platform_failures(
             normalize_platform_id(platform_id),
             distribution_id if isinstance(distribution_id, str) else "",
         )
-        if identity in identities:
+        if identity in scan.identities:
             failures.append(
                 failure(
                     "tooling-artifact-identity-duplicate",
@@ -616,9 +708,13 @@ def _artifact_platform_failures(
                     ARTIFACT_LOCK_PATH,
                 )
             )
-        identities.add(identity)
-        dependency_graph[artifact_id].update(string_set(platform.get("dependencies")))
-        failures.extend(_platform_failures(repo_root, artifact_id, artifact, platform, profiles, denied_digests))
+        scan.identities.add(identity)
+        scan.dependency_graph[artifact_id].update(string_set(platform.get("dependencies")))
+        failures.extend(
+            _platform_failures(
+                repo_root, artifact_id, artifact, platform, scan.profiles, scan.policies, scan.denied_digests
+            )
+        )
     return failures
 
 
@@ -664,10 +760,7 @@ def artifact_failures(repo_root: Path, documents: Mapping[str, dict[str, Any]]) 
                 repo_root,
                 artifact_id,
                 artifact,
-                profiles,
-                denied_digests,
-                identities,
-                dependency_graph,
+                _LockScan(profiles, policies, denied_digests, identities, dependency_graph),
             )
         )
     known_artifacts = set(artifact_ids)

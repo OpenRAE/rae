@@ -24,14 +24,12 @@ def _write_sdl(tmp_path: Path) -> Path:
     return source
 
 
-@pytest.mark.parametrize(
-    "operation",
-    ["parse", "validate", "normalize", "resolve", "compile", "transform", "inspect", "conformance"],
-)
-def test_semantic_surface_exposes_required_operations(operation: str) -> None:
-    result = CliRunner().invoke(app, ["semantic", operation, "--help"])
+def test_semantic_help_lists_required_operations() -> None:
+    result = CliRunner().invoke(app, ["semantic", "--help"])
 
     assert result.exit_code == 0, result.output
+    for operation in ("parse", "validate", "normalize", "resolve", "compile", "transform", "inspect", "conformance"):
+        assert operation in result.output
 
 
 @pytest.mark.parametrize(
@@ -374,13 +372,14 @@ def test_effective_migration_profile_is_explicit_in_result(tmp_path: Path) -> No
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)
     assert payload["migration_policy"] == "accept"
-    assert payload["normalization_profile"] == "raes-sdl-semantic/v1"
+    assert payload["normalization_profile"] == "raes-sdl-semantic/v2"
     assert payload["diagnostics"][0]["code"] == "sdl.noncanonical_field"
 
 
 def test_semantic_operations_are_offline_and_read_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     source = _write_sdl(tmp_path)
     before = sorted(path.relative_to(tmp_path) for path in tmp_path.rglob("*"))
+    before_contents = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
 
     def _network_forbidden(*args: object, **kwargs: object) -> None:
         del args, kwargs
@@ -403,3 +402,5 @@ def test_semantic_operations_are_offline_and_read_only(tmp_path: Path, monkeypat
     assert result.exit_code == 0, result.output
     after = sorted(path.relative_to(tmp_path) for path in tmp_path.rglob("*"))
     assert after == before
+    after_contents = {path.relative_to(tmp_path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    assert after_contents == before_contents

@@ -5,7 +5,7 @@ from copy import deepcopy
 import pytest
 from raes import parse_sdl
 from raes_contracts.plan_projection import provisioning_plan_model
-from raes_contracts.planning import ChangeAction, ProvisionOp
+from raes_contracts.planning import ChangeAction, PlanScope, ProvisionOp
 from raes_contracts.runtime_state import OperationState
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
@@ -38,7 +38,7 @@ def test_authenticated_api_rejects_collection_tampering_before_any_backend_callb
     backend = RecordingBackend(manifest)
     target = RuntimeTarget(name="prepared-collection", manifest=manifest, provisioner=backend)
     control_plane = RuntimeControlPlane(target)
-    execution = plan(compile_runtime_model(_scenario()), manifest, target_name=target.name)
+    execution = plan(compile_runtime_model(_scenario()), manifest, scope=PlanScope(target_name=target.name))
     control_plane.register_planner_produced_plan(execution)
     payload = provisioning_plan_model(execution.provisioning).model_dump(mode="json", exclude_none=True)
     tampered = deepcopy(payload)
@@ -90,13 +90,15 @@ def test_rejected_prepared_node_update_keeps_admitted_extra_across_durable_reloa
     target = RuntimeTarget(name="durable-collection", manifest=manifest, provisioner=backend)
     store = LocalControlPlaneStore(tmp_path / "prepared-state")
     owner = RuntimeControlPlane(target, store=store)
-    first = plan(compile_runtime_model(_scenario()), manifest, owner.snapshot, target_name=target.name)
+    first = plan(compile_runtime_model(_scenario()), manifest, owner.snapshot, scope=PlanScope(target_name=target.name))
     owner.register_planner_produced_plan(first)
     receipt = owner.submit_provisioning(first.provisioning)
     assert owner.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
     predecessor = _snapshot_payload(owner.snapshot)
     assert "provision.node.extra" in owner.snapshot.entries
-    second = plan(compile_runtime_model(_scenario()), manifest, owner.snapshot, target_name=target.name)
+    second = plan(
+        compile_runtime_model(_scenario()), manifest, owner.snapshot, scope=PlanScope(target_name=target.name)
+    )
     owner.register_planner_produced_plan(second)
     backend.reject_delivery = True
     receipt = owner.submit_provisioning(second.provisioning)

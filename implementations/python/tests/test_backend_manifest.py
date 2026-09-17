@@ -54,6 +54,8 @@ EXPECTED_SUPPORTED_CONTRACT_VERSIONS_V2 = [
         "experiment-binding-descriptors-v1",
         "realization-envelope-v1",
         "backend-realization-preparation-v1",
+        "backend-materialization-attestation-v1",
+        "backend-augmentation-scope-v1",
         "plan-realization-profiles-v1",
     }
 ]
@@ -121,6 +123,7 @@ def test_backend_manifest_v2_roundtrip_from_stub_manifest():
         "rendered_config",
         "ssh_key_bundle",
     ]
+    assert model.capabilities.provisioner.supported_regeneration_scopes == []
     assert model.capabilities.orchestrator.supported_workflow_features == [
         WorkflowFeature.CALL,
         WorkflowFeature.CANCELLATION,
@@ -204,9 +207,10 @@ def test_backend_manifest_schema_requires_true_support_flag_for_nonempty_support
 
     provisioner[supported_values] = []
     if support_flag == "supports_generated_artifacts":
-        # supports_generated_artifacts also gates the delivery-mode list; clear it
-        # too so the otherwise-consistent payload validates.
+        # supports_generated_artifacts also gates the delivery-mode and
+        # regeneration-scope lists; clear them too so the payload validates.
         provisioner["supported_generated_artifact_delivery_modes"] = []
+        provisioner["supported_regeneration_scopes"] = []
     validator.validate(payload)
     BackendManifestV2Model.model_validate(payload)
 

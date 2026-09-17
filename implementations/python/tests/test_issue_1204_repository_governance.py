@@ -3,6 +3,20 @@
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def repository_governance_environment(monkeypatch):
+    """Keep the gate's decisions sourced from the repository under test.
+
+    ``check_requirement_governance`` reads the GitHub Actions pull-request refs
+    to recognise a dev-to-main promotion and to recover the branch from a
+    detached PR checkout. Left in place, the workflow's own refs decide these
+    tests: a promotion pull request exempts every governed path and the gate
+    stops before it inspects the fixture repository at all.
+    """
+    for name in ("GITHUB_HEAD_REF", "GITHUB_BASE_REF"):
+        monkeypatch.delenv(name, raising=False)
+
+
 @pytest.fixture
 def merging_repository(tmp_path):
     import subprocess
@@ -86,6 +100,22 @@ def test_merge_governance_preserves_the_staged_boundary(merging_repository, monk
         assert ("implementations/incoming.py" in observed) is includes_unstaged
 
 
+def test_dev_to_main_promotion_exempts_the_merge_diff(merging_repository, monkeypatch):
+    from tools import check_requirement_governance as gate
+
+    root, _git, _write = merging_repository
+    observed = []
+    monkeypatch.setattr(gate, "REPO_ROOT", root)
+    monkeypatch.setattr(
+        gate, "evaluate_configured_governance", lambda paths, *_args, **_kwargs: observed.extend(paths) or 0
+    )
+    monkeypatch.setenv("GITHUB_HEAD_REF", "dev")
+    monkeypatch.setenv("GITHUB_BASE_REF", "main")
+    monkeypatch.setattr("sys.argv", ["check", "--requirement-uid", "ASR-532"])
+    assert gate.main() == 0
+    assert observed == []
+
+
 @pytest.mark.parametrize("staged", [False, True])
 def test_explicit_governance_base_is_not_replaced_during_merge(merging_repository, monkeypatch, staged):
     from tools import check_requirement_governance as gate
@@ -162,8 +192,10 @@ def test_invalid_repository_requirement_fails_closed(tmp_path, mutation):
         outside = tmp_path / "outside.md"
         path.rename(outside)
         path.symlink_to(outside)
+    client = RepositoryRequirementClient(tmp_path)
+
     with pytest.raises(RepositoryRequirementError):
-        RepositoryRequirementClient(tmp_path).get_requirement("raes-sdl", uid)
+        client.get_requirement("raes-sdl", uid)
 
 
 def test_configured_repository_governance_never_uses_or_falls_back_to_http(tmp_path, monkeypatch, capsys):
@@ -201,5 +233,7 @@ def test_ambiguous_or_excessively_nested_metadata_is_a_governed_failure(tmp_path
 
     path = _requirement(tmp_path)
     path.write_text(f"---\n{metadata}\n---\n", encoding="utf-8")
+    client = RepositoryRequirementClient(tmp_path)
+
     with pytest.raises(RepositoryRequirementError):
-        RepositoryRequirementClient(tmp_path).get_requirement("raes-sdl", "ASR-532")
+        client.get_requirement("raes-sdl", "ASR-532")

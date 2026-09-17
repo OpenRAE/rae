@@ -29,6 +29,6 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - TESTS → TEST `implementations/python/tests/test_sdl_validator.py` (Validator tests for aggregated errors and advisory emission)
 - TESTS → TEST `implementations/python/tests/test_sdl_parser.py` (Parser tests for author-visible advisories)
 - TESTS → TEST `implementations/python/tests/test_sdl_fuzz.py` (Fuzz tests for clean diagnostic behavior under invalid inputs)
-- TESTS → TEST `implementations/python/tests/test_scenarios.py` (Scenario loading tests expecting advisory-clean curated examples)
+- TESTS → TEST `implementations/python/tests/test_example_schema_conformance.py` (Scenario loading and published-schema tests expecting advisory-clean curated examples)
 - IMPLEMENTS → SPEC `specs/sdl/diagnostics.md` (specs/sdl/diagnostics.md §5: normative SDL error-vs-advisory classification criterion)
 - TESTS → TEST `implementations/python/tests/test_sdl_diagnostic_boundary.py` (AST drift guard for validator advisory/error channel separation)

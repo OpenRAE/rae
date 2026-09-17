@@ -83,7 +83,9 @@ def profile_resource_address(binding: DomainProfileBindingModel) -> str:
     return address
 
 
-def profile_binding_tree(bindings: tuple[DomainProfileBindingModel, ...]) -> dict:
+def profile_binding_tree(
+    bindings: tuple[DomainProfileBindingModel, ...],
+) -> dict[tuple[str, ...], DomainProfileBindingModel]:
     """Flatten only after bounded shape admission, retaining full nested identity."""
 
     if not validate_realization_value(bindings, python_carriers=True).conformant:
@@ -102,14 +104,12 @@ def profile_binding_tree(bindings: tuple[DomainProfileBindingModel, ...]) -> dic
     return result
 
 
-def _require_authority(authority, context) -> tuple[PlanProfileAuthority, DomainProfileResolutionContextModel]:
-    if not isinstance(authority, PlanProfileAuthority) or not isinstance(context, DomainProfileResolutionContextModel):
-        raise ValueError(_REFUSAL)
-    if not validate_realization_value((authority, context), python_carriers=True).conformant:
-        raise ValueError(_REFUSAL)
-    authority = PlanProfileAuthority.model_validate(authority.model_dump(mode="json"))
-    context = DomainProfileResolutionContextModel.model_validate(context.model_dump(mode="json"))
-    bindings = profile_binding_tree(authority.bindings)
+def _require_constraint_and_definition_cover(
+    authority: PlanProfileAuthority,
+    bindings: dict[tuple[str, ...], DomainProfileBindingModel],
+) -> dict[str, object]:
+    """Require constraints and definitions to cover the binding tree exactly."""
+
     constraints = {item.binding_path: item for item in authority.constraints}
     if len(constraints) != len(authority.constraints) or constraints.keys() != bindings.keys():
         raise ValueError(_REFUSAL)
@@ -118,20 +118,45 @@ def _require_authority(authority, context) -> tuple[PlanProfileAuthority, Domain
         item.coordinate.definition_digest for item in bindings.values()
     }:
         raise ValueError(_REFUSAL)
+    return definitions
+
+
+def _require_resolvable_definitions(
+    definitions: dict[str, object], context: DomainProfileResolutionContextModel
+) -> None:
+    """Require every pinned definition to resolve identically in the local context."""
+
     for definition in definitions.values():
         resolved = resolve_domain_profile_definition(definition.coordinate, context)
         if not resolved.resolved or resolved.definition != definition:
             raise ValueError(_REFUSAL)
+
+
+def _binding_owner_admitted(binding: DomainProfileBindingModel) -> bool:
+    """Report whether one binding is owned by the planning constraint contract."""
+
+    owner = binding.owner
+    return (
+        owner.owning_contract_id == PLAN_PROFILE_CONTRACT
+        and owner.concept_family == "resource-realization"
+        and owner.lifecycle_phase == "planning"
+        and owner.use is DomainProfileBindingUse.CONSTRAINT
+        and binding.provenance.basis is DomainProfileBindingBasis.AUTHOR_SUPPLIED
+    )
+
+
+def _require_binding_ownership(
+    bindings: dict[tuple[str, ...], DomainProfileBindingModel],
+    authority: PlanProfileAuthority,
+) -> None:
+    """Require each binding to keep its owner, resource, and authored constraint."""
+
+    constraints = {item.binding_path: item for item in authority.constraints}
     for path, binding in bindings.items():
-        owner = binding.owner
-        if (
-            owner.owning_contract_id != PLAN_PROFILE_CONTRACT
-            or owner.concept_family != "resource-realization"
-            or owner.lifecycle_phase != "planning"
-            or owner.use is not DomainProfileBindingUse.CONSTRAINT
-            or binding.provenance.basis is not DomainProfileBindingBasis.AUTHOR_SUPPLIED
-            or (len(path) > 1 and profile_resource_address(bindings[path[:-1]]) != profile_resource_address(binding))
-        ):
+        nested_owner_differs = len(path) > 1 and profile_resource_address(
+            bindings[path[:-1]]
+        ) != profile_resource_address(binding)
+        if not _binding_owner_admitted(binding) or nested_owner_differs:
             raise ValueError(_REFUSAL)
         profile_resource_address(binding)
         constraint = constraints[path]
@@ -140,12 +165,27 @@ def _require_authority(authority, context) -> tuple[PlanProfileAuthority, Domain
             or constraint.source_binding != realization_constraint_binding(constraint.document, binding.value)
         ):
             raise ValueError(_REFUSAL)
+
+
+def _require_authority(
+    authority: object, context: object
+) -> tuple[PlanProfileAuthority, DomainProfileResolutionContextModel]:
+    if not isinstance(authority, PlanProfileAuthority) or not isinstance(context, DomainProfileResolutionContextModel):
+        raise ValueError(_REFUSAL)
+    if not validate_realization_value((authority, context), python_carriers=True).conformant:
+        raise ValueError(_REFUSAL)
+    authority = PlanProfileAuthority.model_validate(authority.model_dump(mode="json"))
+    context = DomainProfileResolutionContextModel.model_validate(context.model_dump(mode="json"))
+    bindings = profile_binding_tree(authority.bindings)
+    definitions = _require_constraint_and_definition_cover(authority, bindings)
+    _require_resolvable_definitions(definitions, context)
+    _require_binding_ownership(bindings, authority)
     if not admit_domain_profile_bindings(authority.bindings, context, policy=_POLICY).admitted:
         raise ValueError(_REFUSAL)
     return authority, context
 
 
-def profile_authority_violation(authority, context) -> str | None:
+def profile_authority_violation(authority: object, context: object) -> str | None:
     """Revalidate pinned input against separately configured local trust/support."""
 
     try:
@@ -155,7 +195,7 @@ def profile_authority_violation(authority, context) -> str | None:
     return None
 
 
-def profile_selection_violation(authority, bindings, context) -> str | None:
+def profile_selection_violation(authority: object, bindings: object, context: object) -> str | None:
     """Conjoin every nested profile relation; absence and opaque data fail closed."""
 
     try:

@@ -11,6 +11,7 @@ from raes_contracts.realization_envelope import (
     RealizationConcern,
 )
 from raes_contracts.realization_observation import RealizationObservation
+from raes_contracts.vocabulary import RealizationVerificationScope, observation_requirement_satisfied
 
 from ._realization_models import (
     ExpectedRealizationObservation,
@@ -36,12 +37,6 @@ _RESOURCE_CONCERNS: dict[str, frozenset[RealizationConcern]] = {
     "account-placement": frozenset({RealizationConcern.ACCOUNT_PLACEMENT}),
     "domain-controller-placement": frozenset({RealizationConcern.TOPOLOGY}),
     "feature-binding": frozenset({RealizationConcern.FEATURE_BINDING}),
-}
-_STRENGTH_RANK = {
-    ObservationStrength.NONE: 0,
-    ObservationStrength.DRIVER_REPORTED: 1,
-    ObservationStrength.DAEMON_OBSERVED: 2,
-    ObservationStrength.GUEST_OBSERVED: 3,
 }
 
 
@@ -137,13 +132,17 @@ def _expected_observation_diagnostics(
         ]
     item = candidates[0]
     diagnostics: list[Diagnostic] = []
-    required = strengths.get(expected.concern, ObservationStrength.NONE)
-    if _STRENGTH_RANK[item.source] < _STRENGTH_RANK[required]:
+    if not observation_requirement_satisfied(
+        actual_scope=RealizationVerificationScope.PRESENCE,
+        actual_source=item.source,
+        required_scope=None,
+        required_source=strengths.get(expected.concern),
+    ):
         diagnostics.append(
             diagnostic(
                 "conformance.observation-strength-insufficient",
                 address,
-                "The realization observation is weaker than the configuration requires.",
+                "The realization observation source does not match the configuration requirement.",
             )
         )
     if not _observation_binding_valid(item, address, request):

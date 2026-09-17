@@ -1,6 +1,9 @@
 """Security-monitoring manager runtime inventory models."""
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+
+from raes.runtime_filesystem import redacted_raw_value_schema
+from raes.runtime_vocabulary import GovernedVocabulary
 
 from .._base import SDLModel, parse_int_or_var
 from ..runtime_filesystem import RuntimeSensitivityClassification
@@ -40,7 +43,7 @@ class RuntimeSecurityMonitoringListener(SDLModel):
 
     listener_id: str
     service: str = ""
-    role: RuntimeSecurityMonitoringListenerRole | str = RuntimeSecurityMonitoringListenerRole.OTHER
+    role: GovernedVocabulary[RuntimeSecurityMonitoringListenerRole] = RuntimeSecurityMonitoringListenerRole.OTHER
     protocol: str = ""
     auth_required: bool | str | None = None
     tls_enabled: bool | str | None = None
@@ -69,9 +72,11 @@ class RuntimeSecurityMonitoringComponent(SDLModel):
     """A manager daemon, module, or internal component."""
 
     component_id: str
-    kind: RuntimeSecurityMonitoringComponentKind | str = RuntimeSecurityMonitoringComponentKind.OTHER
+    kind: GovernedVocabulary[RuntimeSecurityMonitoringComponentKind] = RuntimeSecurityMonitoringComponentKind.OTHER
     name: str
-    status: RuntimeSecurityMonitoringComponentStatus | str = RuntimeSecurityMonitoringComponentStatus.UNKNOWN
+    status: GovernedVocabulary[RuntimeSecurityMonitoringComponentStatus] = (
+        RuntimeSecurityMonitoringComponentStatus.UNKNOWN
+    )
     enabled: bool | str | None = None
     process_ref: str = ""
     description: str = ""
@@ -113,7 +118,7 @@ class RuntimeSecurityMonitoringAgent(SDLModel):
 
     agent_id: str
     name: str
-    status: RuntimeSecurityMonitoringAgentStatus | str = RuntimeSecurityMonitoringAgentStatus.UNKNOWN
+    status: GovernedVocabulary[RuntimeSecurityMonitoringAgentStatus] = RuntimeSecurityMonitoringAgentStatus.UNKNOWN
     address: str = ""
     version: str = ""
     os: str = ""
@@ -174,8 +179,8 @@ class RuntimeSecurityMonitoringContentSet(SDLModel):
     """A manager-owned rule, decoder, policy, list, or query corpus."""
 
     content_id: str
-    kind: RuntimeSecurityMonitoringContentKind | str = RuntimeSecurityMonitoringContentKind.OTHER
-    format: RuntimeSecurityMonitoringContentFormat | str = RuntimeSecurityMonitoringContentFormat.UNKNOWN
+    kind: GovernedVocabulary[RuntimeSecurityMonitoringContentKind] = RuntimeSecurityMonitoringContentKind.OTHER
+    format: GovernedVocabulary[RuntimeSecurityMonitoringContentFormat] = RuntimeSecurityMonitoringContentFormat.UNKNOWN
     name: str = ""
     file_count: int | str | None = None
     file_refs: list[str] = Field(default_factory=list)
@@ -227,12 +232,24 @@ class RuntimeSecurityMonitoringContentSet(SDLModel):
 class RuntimeSecurityMonitoringSetting(SDLModel):
     """A bounded manager setting with sensitivity classification."""
 
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="value_classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
+
     setting_id: str
     component_ref: str = ""
     name: str
     value: str = ""
-    value_classification: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
-    provenance: RuntimeSecurityMonitoringSettingProvenance | str = RuntimeSecurityMonitoringSettingProvenance.UNKNOWN
+    value_classification: GovernedVocabulary[RuntimeSensitivityClassification] = (
+        RuntimeSensitivityClassification.UNKNOWN
+    )
+    provenance: GovernedVocabulary[RuntimeSecurityMonitoringSettingProvenance] = (
+        RuntimeSecurityMonitoringSettingProvenance.UNKNOWN
+    )
     source_path: str = ""
     description: str = ""
 
@@ -283,8 +300,12 @@ class RuntimeSecurityMonitoringManager(SDLModel):
 
     security_monitoring_manager_id: str
     service: str = ""
-    implementation: RuntimeSecurityMonitoringImplementation | str = RuntimeSecurityMonitoringImplementation.UNKNOWN
-    manager_kind: RuntimeSecurityMonitoringManagerKind | str = RuntimeSecurityMonitoringManagerKind.UNKNOWN
+    implementation: GovernedVocabulary[RuntimeSecurityMonitoringImplementation] = (
+        RuntimeSecurityMonitoringImplementation.UNKNOWN
+    )
+    manager_kind: GovernedVocabulary[RuntimeSecurityMonitoringManagerKind] = (
+        RuntimeSecurityMonitoringManagerKind.UNKNOWN
+    )
     version: str = ""
     revision: str = ""
     name: str = ""

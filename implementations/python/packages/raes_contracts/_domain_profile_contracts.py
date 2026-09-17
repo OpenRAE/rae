@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 
 from pydantic import (
     ConfigDict,
@@ -85,10 +85,10 @@ class DomainProfileSchemaModel(_FrozenContractModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _seal_schema_digest(cls, value: Any) -> Any:
+    def _seal_schema_digest(cls, value: object) -> object:
         if not isinstance(value, dict):
             return value
-        payload = dict(value)
+        payload: dict[str, object] = dict(value)
         document = payload.get("schema_document")
         if payload.get("schema_digest") is None and isinstance(document, dict):
             payload["schema_digest"] = canonical_json_digest(document)

@@ -4,14 +4,25 @@
   "title": "RAES development artifact lock",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "lock_revision", "artifacts"],
+  "required": [
+    "schema_version",
+    "lock_revision",
+    "artifacts"
+  ],
   "properties": {
-    "schema_version": {"const": "raes-development-artifact-lock/v1"},
-    "lock_revision": {"type": "string", "format": "date"},
+    "schema_version": {
+      "const": "raes-development-artifact-lock/v1"
+    },
+    "lock_revision": {
+      "type": "string",
+      "format": "date"
+    },
     "artifacts": {
       "type": "array",
       "minItems": 1,
-      "items": {"$ref": "#/$defs/artifact"}
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
     }
   },
   "$defs": {
@@ -19,125 +30,397 @@
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": {"type": "string", "minLength": 1}
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "manifestEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path", "sha256", "size"],
+      "required": [
+        "path",
+        "sha256",
+        "size"
+      ],
       "properties": {
         "path": {
           "type": "string",
           "minLength": 1,
           "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\u0000]+$"
         },
-        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "size": {"type": "integer", "minimum": 1},
-        "executable": {"type": "boolean"}
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "executable": {
+          "type": "boolean"
+        }
       }
     },
     "platform": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["platform_id", "source_urls", "raw_manifest", "dependencies", "profile_ids"],
+      "required": [
+        "platform_id",
+        "source_urls",
+        "raw_manifest",
+        "dependencies",
+        "profile_ids"
+      ],
       "properties": {
-        "platform_id": {"type": "string", "minLength": 1},
-        "distribution_id": {"type": "string", "minLength": 1},
+        "platform_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "distribution_id": {
+          "type": "string",
+          "minLength": 1
+        },
         "source_urls": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"type": "string", "pattern": "^https://"}
+          "items": {
+            "type": "string",
+            "pattern": "^https://"
+          }
         },
         "raw_manifest": {
           "type": "array",
           "minItems": 1,
-          "items": {"$ref": "#/$defs/manifestEntry"}
+          "items": {
+            "$ref": "#/$defs/manifestEntry"
+          }
         },
         "installed_manifest": {
           "type": "array",
           "minItems": 1,
-          "items": {"$ref": "#/$defs/manifestEntry"}
+          "items": {
+            "$ref": "#/$defs/manifestEntry"
+          }
+        },
+        "installed_tree": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "format",
+            "manifest_sha256",
+            "file_count",
+            "directory_count",
+            "symlink_count",
+            "expanded_bytes"
+          ],
+          "properties": {
+            "format": {
+              "const": "tar.gz"
+            },
+            "manifest_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "file_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "directory_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "symlink_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "expanded_bytes": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
         },
         "installed_identity": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["implementation", "version", "abi", "target"],
+          "required": [
+            "implementation",
+            "version",
+            "abi",
+            "target"
+          ],
           "properties": {
-            "implementation": {"type": "string", "minLength": 1},
-            "version": {"type": "string", "minLength": 1},
-            "abi": {"type": "string", "minLength": 1},
-            "target": {"type": "string", "minLength": 1}
+            "implementation": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "abi": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "type": "string",
+              "minLength": 1
+            }
           }
+        },
+        "oci_graph": {
+          "$ref": "#/$defs/ociGraph"
         },
         "dependencies": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "profile_ids": {"$ref": "#/$defs/nonEmptyStrings"},
-        "host_profile_ids": {"$ref": "#/$defs/nonEmptyStrings"}
+        "profile_ids": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "host_profile_ids": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        }
       },
       "oneOf": [
-        {"required": ["installed_manifest"]},
-        {"required": ["installed_identity"]}
+        {
+          "required": [
+            "installed_manifest"
+          ]
+        },
+        {
+          "required": [
+            "installed_identity"
+          ]
+        }
       ]
     },
     "artifact": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "artifact_id", "artifact_class", "version", "owner", "consumers",
-        "trust_root_refs", "availability_class", "retention_class", "license",
-        "authenticity", "policy_refs", "source", "platforms"
+        "artifact_id",
+        "artifact_class",
+        "version",
+        "owner",
+        "consumers",
+        "trust_root_refs",
+        "availability_class",
+        "retention_class",
+        "license",
+        "authenticity",
+        "policy_refs",
+        "source",
+        "platforms"
       ],
       "properties": {
-        "artifact_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
-        "artifact_class": {
-          "enum": ["generic-cli", "source-snapshot", "bootstrap", "native-tool", "oci-image"]
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
         },
-        "version": {"type": "string", "minLength": 1},
-        "support_level": {"enum": ["blocking", "advisory"]},
-        "owner": {"type": "string", "minLength": 1},
-        "consumers": {"$ref": "#/$defs/nonEmptyStrings"},
-        "trust_root_refs": {"$ref": "#/$defs/nonEmptyStrings"},
-        "availability_class": {"enum": ["R", "L", "N"]},
-        "retention_class": {"enum": ["supported-input", "operational-cache", "release-evidence"]},
+        "artifact_class": {
+          "enum": [
+            "generic-cli",
+            "source-snapshot",
+            "bootstrap",
+            "native-tool",
+            "oci-image",
+            "vm-base-image"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "support_level": {
+          "enum": [
+            "blocking",
+            "advisory"
+          ]
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consumers": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "trust_root_refs": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
+        "availability_class": {
+          "enum": [
+            "R",
+            "L",
+            "N"
+          ]
+        },
+        "retention_class": {
+          "enum": [
+            "supported-input",
+            "operational-cache",
+            "release-evidence"
+          ]
+        },
         "license": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["spdx", "redistribution", "review_ref"],
+          "required": [
+            "spdx",
+            "redistribution",
+            "review_ref"
+          ],
           "properties": {
-            "spdx": {"type": "string", "minLength": 1},
-            "redistribution": {"enum": ["allowed", "restricted", "not-applicable"]},
-            "review_ref": {"type": "string", "minLength": 1}
+            "spdx": {
+              "type": "string",
+              "minLength": 1
+            },
+            "redistribution": {
+              "enum": [
+                "allowed",
+                "restricted",
+                "not-applicable"
+              ]
+            },
+            "review_ref": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "authenticity": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "decision_ref"],
+          "required": [
+            "status",
+            "decision_ref"
+          ],
           "properties": {
-            "status": {"enum": ["verified", "absent-reviewed"]},
-            "decision_ref": {"type": "string", "minLength": 1}
+            "status": {
+              "enum": [
+                "verified",
+                "absent-reviewed"
+              ]
+            },
+            "decision_ref": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
-        "policy_refs": {"$ref": "#/$defs/nonEmptyStrings"},
+        "policy_refs": {
+          "$ref": "#/$defs/nonEmptyStrings"
+        },
         "source": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["repository", "release", "asset", "locator_refs"],
+          "required": [
+            "repository",
+            "release",
+            "asset",
+            "locator_refs"
+          ],
           "properties": {
-            "repository": {"type": "string", "minLength": 1},
-            "release": {"type": "string", "minLength": 1},
-            "asset": {"type": "string", "minLength": 1},
-            "locator_refs": {"$ref": "#/$defs/nonEmptyStrings"}
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "release": {
+              "type": "string",
+              "minLength": 1
+            },
+            "asset": {
+              "type": "string",
+              "minLength": 1
+            },
+            "locator_refs": {
+              "$ref": "#/$defs/nonEmptyStrings"
+            }
           }
         },
         "platforms": {
           "type": "array",
           "minItems": 1,
-          "items": {"$ref": "#/$defs/platform"}
+          "items": {
+            "$ref": "#/$defs/platform"
+          }
+        }
+      }
+    },
+    "ociDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "ociDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "digest",
+        "size"
+      ],
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/ociDigest"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "ociGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "manifest",
+        "config",
+        "layers",
+        "diff_ids",
+        "architecture",
+        "os"
+      ],
+      "properties": {
+        "index": {
+          "$ref": "#/$defs/ociDescriptor"
+        },
+        "manifest": {
+          "$ref": "#/$defs/ociDescriptor"
+        },
+        "config": {
+          "$ref": "#/$defs/ociDescriptor"
+        },
+        "layers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ociDescriptor"
+          }
+        },
+        "diff_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/ociDigest"
+          }
+        },
+        "architecture": {
+          "type": "string",
+          "minLength": 1
+        },
+        "os": {
+          "type": "string",
+          "minLength": 1
+        },
+        "variant": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

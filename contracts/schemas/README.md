@@ -42,7 +42,7 @@ anchors, aliases, Core scalar resolution, and resource limits are specified in
 contract. It requires `instantiation_provenance`, forbids `variables`,
 `imports`, and `module` even when empty/null, and forbids a `${name}` token in
 every string value. `sdl/instantiated-scenario-snapshot-v1.json` adds the
-required `raes-sdl-instantiated-snapshot/v1` canonical profile envelope. The
+required `raes-sdl-instantiated-snapshot/v2` canonical profile envelope. The
 `x-raes-realization-dimension: false` annotation on
 `instantiation_provenance` declares that this required exchange metadata is
 excluded only from realization-envelope child-dimension enumeration; it remains
@@ -293,6 +293,17 @@ study members, and study factors is represented with keyed object maps.
 Run traceability and realized-form disclosure invariants keep claims grounded
 in evidence/derived-measure refs and keep realized choices distinct from
 authored scenario meaning and result values.
+Task, run-plan, run, and study schemas also embed the same closed
+`ExperimentEvidenceRequirementRelationModel`. Its semantic invariant requires
+exact authored-scenario/declaration lineage, exact capture-specification
+coordinates, carrier-owned task/run/study authority, and fail-closed governed
+refinement comparisons. Generic JSON Schema validates the relation shape;
+consumers apply `validate_evidence_requirement_relations()` with resolved SDL
+and capture-specification inputs before treating the relationship as valid.
+The trial compiler and realization path apply this validation through
+`compile_scoped_evidence_requirement_demands()` before capability admission and
+processor planning. Governed semantic comparison selects relation-aware
+version-2 projections for current task, run, and study carriers.
 Cross-artifact or graph invariants that standard JSON Schema cannot express are
 published under the RAES semantic-invariant profile with `x-raes-invariants`
 entries that name the validator and input contract paths. The generated schemas

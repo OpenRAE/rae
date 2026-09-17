@@ -3,7 +3,8 @@
 from raes.architectures import normalize_architecture
 from raes.infrastructure import MINIMUM_NODE_COUNT
 from raes.nodes import OSFamily
-from raes.value_parsing import extract_variable_name, parse_enum_or_var, parse_int_or_var
+from raes.runtime_values import parse_runtime_enum_identity
+from raes.value_parsing import extract_variable_name, parse_int_or_var
 from raes_backend_protocols.account_features import provisioner_account_features
 
 from ..models import CompiledCapabilityConstraint, Diagnostic, NodeRuntime, ResolvedResource, RuntimeModel
@@ -44,20 +45,10 @@ def _os_allowed_value(
     address: str,
 ) -> tuple[str | None, Diagnostic | None]:
     try:
-        parsed = parse_enum_or_var(raw_value, OSFamily, field_name="os")
+        return parse_runtime_enum_identity(raw_value, OSFamily, field_name="os"), None
     except ValueError as exc:
-        message = f"Variable '{variable_name}' allowed_values contain value {raw_value!r} invalid for nodes.os: {exc}."
-    else:
-        if extract_variable_name(parsed) is not None:
-            message = f"Variable '{variable_name}' has a non-concrete nodes.os domain."
-        elif isinstance(parsed, OSFamily):
-            return parsed.value, None
-        else:
-            message = (
-                f"Variable '{variable_name}' allowed_values contain value {raw_value!r} "
-                "that could not be validated for nodes.os."
-            )
-    return None, _error_diagnostic(_OS_FAMILY_DOMAIN_INVALID, address, message)
+        message = f"Variable '{variable_name}' has an invalid nodes.os domain: {exc}."
+        return None, _error_diagnostic(_OS_FAMILY_DOMAIN_INVALID, address, message)
 
 
 def _validate_os_allowed_values(

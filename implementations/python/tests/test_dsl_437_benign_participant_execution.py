@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 
@@ -84,6 +85,24 @@ def _advance_stepped_clock_to_tick(manager: RuntimeManager, target_tick: int) ->
         assert advanced.success
         current_tick += SCENARIO_CLOCK_STEP_TICKS
     return advanced
+
+
+# The real-time clock driver advances on wall-clock ticks, so how long a driver
+# outcome takes is a property of the runner, not of the semantics under test.
+# The verify lane runs the suite under coverage tracing on a contended host,
+# where a driver thread is descheduled well past its nominal tick period. The
+# waits below poll for the outcome and return the moment it holds, so this
+# budget only ever changes the failing case: a driver that never recomputes
+# still fails the following assertion, while one that is merely slow does not.
+_DRIVER_OUTCOME_BUDGET_SECONDS = 15.0
+
+
+def _await_driver_outcome(condition: Callable[[], bool]) -> None:
+    """Wait for one real-time driver outcome without pinning it to the tick period."""
+
+    deadline = time.monotonic() + _DRIVER_OUTCOME_BUDGET_SECONDS
+    while not condition() and time.monotonic() < deadline:
+        time.sleep(0.01)
 
 
 def _scenario_yaml(*, role: str = "green") -> str:
@@ -1987,9 +2006,7 @@ def test_runtime_manager_automatically_drives_wall_paced_participant_clock() -> 
     manager = RuntimeManager(target)
 
     applied = manager.apply(manager.plan(scenario))
-    deadline = time.monotonic() + 1.0
-    while len(participant_runtime.native_actions) < 2 and time.monotonic() < deadline:
-        time.sleep(0.01)
+    _await_driver_outcome(lambda: len(participant_runtime.native_actions) >= 2)
 
     assert applied.success
     assert len(participant_runtime.native_actions) == 2
@@ -2051,7 +2068,25 @@ def test_wall_driver_cannot_advance_during_time_state_readback() -> None:
     assert manager.destroy().success
 
 
-def test_wall_driver_recomputes_after_pause_and_resume() -> None:
+def test_wall_driver_recomputes_after_pause_and_resume(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+
+    import raes_runtime.participant_clock_driver as driver_module
+
+    clock_time = 0.0
+    started: list[ParticipantClockDriver] = []
+    waits: list[float] = []
+
+    def controlled_wait(delay: float) -> bool:
+        nonlocal clock_time
+        waits.append(delay)
+        clock_time += delay
+        return False
+
+    # Step the real driver at controlled deadlines; thread scheduling must not
+    # decide whether the first tick happens before this test can pause it.
+    monkeypatch.setattr(driver_module, "time", SimpleNamespace(monotonic=lambda: clock_time))
+    monkeypatch.setattr(ParticipantClockDriver, "start", lambda driver: started.append(driver))
     payload = yaml.safe_load(_scenario_yaml())
     payload["time_domains"]["scenario"]["tick_period_seconds"] = {"numerator": 1, "denominator": 5}
     progression = payload["time_progression_policies"]["scenario-progression"]
@@ -2075,17 +2110,29 @@ def test_wall_driver_recomputes_after_pause_and_resume() -> None:
         if specification.autonomous_execution is not None
     )
 
-    assert manager.pause_time(policy.clock_address).success
-    time.sleep(0.25)
-    assert manager.read_time_state().clocks[policy.clock_address].coordinate.tick == 0
-    assert manager.resume_time(policy.clock_address).success
-    deadline = time.monotonic() + 1.0
-    while len(participant_runtime.native_actions) < 2 and time.monotonic() < deadline:
-        time.sleep(0.01)
+    try:
+        (driver,) = started
+        monkeypatch.setattr(driver._stop, "wait", controlled_wait)
+        assert driver._run_once()
+        assert waits == [pytest.approx(0.2)]
 
-    assert len(participant_runtime.native_actions) == 2
-    assert manager.participant_clock_driver_status()["failure"] is None
-    assert manager.destroy().success
+        # The pre-pause deadline has elapsed, but the paused clock must not
+        # advance. Resuming must start a fresh interval, not reuse that deadline.
+        assert manager.pause_time(policy.clock_address).success
+        assert driver._run_once()
+        assert manager.read_time_state().clocks[policy.clock_address].coordinate.tick == 0
+        assert len(participant_runtime.native_actions) == 1
+        assert manager.resume_time(policy.clock_address).success
+        assert driver._run_once()
+        assert waits[-1] == pytest.approx(0.2)
+        assert len(participant_runtime.native_actions) == 1
+
+        assert driver._run_once()
+        assert manager.read_time_state().clocks[policy.clock_address].coordinate.tick == 1
+        assert len(participant_runtime.native_actions) == 2
+        assert manager.participant_clock_driver_status()["failure"] is None
+    finally:
+        assert manager.destroy().success
 
 
 def test_wall_driver_discards_transition_stale_after_manual_advance() -> None:
@@ -2213,9 +2260,7 @@ def test_wall_driver_records_an_unexpected_runtime_exception() -> None:
         lock=threading.RLock(),
     )
     driver.start()
-    deadline = time.monotonic() + 1.0
-    while driver.failure is None and time.monotonic() < deadline:
-        time.sleep(0.01)
+    _await_driver_outcome(lambda: driver.failure is not None)
 
     assert driver.failure is not None
     assert driver.failure.diagnostics[0].code == "runtime.participant-clock-driver-failed"

@@ -108,4 +108,7 @@ operation-specific support declarations.
 Issue #1203 owns recursive public authoring syntax. Issue #1204 owns
 compiler/planner/runtime carriage and mutation-boundary integration. Later
 profile-specific migrations can reuse this seam without changing its exact
-identity or offline-resolution rules.
+identity or offline-resolution rules. The
+[typed selection contract](../../../specs/sdl/profile-selections.md) applies
+that seam to artifact generation, service and account materialization,
+identity/access descriptions and participant resource measures.

@@ -9,7 +9,7 @@ import nox
 from tools.nox_support.config import (
     MAX_LARGE_FILE_KB,
     PRIVATE_KEY_EXCLUDE_PREFIXES,
-    PROJECT_ROOT,
+    REPO_ROOT,
 )
 from tools.nox_support.runner import (
     SessionReporter,
@@ -24,6 +24,7 @@ from tools.nox_support.runner import (
     _sync_project,
     _text_paths,
 )
+from tools.python_closure_profiles import frozen_tool_command
 
 _NO_TEXT_FILES_REASON = "no text files selected"
 _STAGED_SKIP_REASON = "skipped on staged check; runs on push and verify"
@@ -120,6 +121,9 @@ def _run_hygiene(
 
 
 def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> None:
+    from tools.nox_support.runner import _requirement_aware_policy_args
+
+    args = tuple(_requirement_aware_policy_args(*args))
     _sync_project(session)
     reporter.run(
         "policy / development artifact lock",
@@ -129,12 +133,7 @@ def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> 
         "policy / conftest self-verify",
         lambda: _run(
             session,
-            "uv",
-            "run",
-            "--project",
-            str(PROJECT_ROOT),
-            "--frozen",
-            "python",
+            *frozen_tool_command(REPO_ROOT, "python"),
             "-c",
             "from tools.policy.conftest_tool import verify_conftest_policy; verify_conftest_policy()",
         ),

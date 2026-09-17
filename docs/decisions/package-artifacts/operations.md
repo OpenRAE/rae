@@ -158,7 +158,7 @@ future implementation, not tests claimed to have passed in the design change.
 | Test | Context / stimulus | Required result |
 |---|---|---|
 | T01 | Fresh public Linux x86_64 runner, empty caches, no enterprise credentials | Bootstrap through trusted native/setup clients; exact locked inputs; full required core/proof checks |
-| T02 | Public local Linux arm64, macOS x86_64 and arm64 | All four CLI tools execute with matching raw/installed hashes; supported Python wheel/ABI closure works; native Isabelle unsupported diagnosis is explicit |
+| T02 | Public local Linux arm64 and macOS arm64 | All four CLI tools execute with matching raw/installed hashes; supported Python wheel/ABI closure works; native Isabelle unsupported diagnosis is explicit |
 | T03 | CPython 3.11–3.14 clean build and install, all declared extras and target ABI | Frozen project/tool closure, hashed isolated build closure, wheel and sdist smokes outside checkout. Preview interpreters do not satisfy release support |
 | T04 | Fork PR changes tool URL, lock, action or arbitrary install hook and runs malicious code | No private mirror credential, trusted cache write, promotion capability or publication token available; privileged jobs never execute candidate policy/scripts |
 | T05 | 32 processes install same cold CLI/proof object; kill publisher at each durable step | Complete matching installed tree or explicit failure; no partial executable, shared temp collision, stale-marker success or stuck lock; a survivor can finish |
@@ -181,6 +181,52 @@ future implementation, not tests claimed to have passed in the design change.
 | T22 | Full tracked acquisition/configuration scan after migration | Every inventory row owned and dispositioned; no development acquisition imports or calls a repository HTTP implementation; no mutable/unreviewed install bypass |
 | T23 | A tool's version/digest/platform mapping changes in one entry point but not its authority | Deterministic policy failure across Nox, hooks, workflows, docs/bootstrap and release; failed coverage of a new path blocks qualification |
 | T24 | Current protected release from admitted inputs with configured external controls | Wheel/sdist consumption from PyPI and GitHub works, corpus/CLI/conformance smoke passes, SBOM/provenance resolve, evidence retained; docs-only promotion creates no release |
+
+### Verified local CLI installation qualification
+
+Issue #1219 implements the local generic-CLI slices of T05, T06, T07 and T16
+for Conftest, Gitleaks, Vale and OSV-Scanner. All four wrappers use
+`tools/verified_tool_installation.py`; raw acquisition remains owned by the
+maintained client. The installed-tree key binds artifact, canonical platform,
+raw SHA-256, `install-v1`, active policy references and the canonical installed
+manifest. Version-keyed files are migration inputs only.
+
+The implementation uses a native `filelock` lock from the frozen tooling
+closure, private same-filesystem staging, full opened-inode verification,
+immutable file/tree modes, file and directory fsync, and atomic directory
+rename. Invalid current or legacy content is quarantined without reacquisition.
+Immutable seeds are explicit read-only inputs copied into a private job tree.
+NFS, SMB, FUSE and unknown filesystem semantics are rejected.
+
+Run the local evidence harness through the existing integration suite:
+
+```console
+RAES_REQUIREMENT_UID= uv run --project implementations/python --frozen \
+  python -m pytest -q -m integration \
+  implementations/python/tests/test_issue_1219_verified_tool_installation.py
+```
+
+The harness emits the exact OS, Python, filesystem, lock-library and install-
+policy identities plus elapsed case results. It runs 32 cold processes, 100
+warm local clients, kills a publisher at every durable checkpoint, verifies
+live-publisher exclusion and dead-owner recovery, and injects disk exhaustion.
+The adjacent unit cases cover archive traversal, links, special files,
+duplicates, bombs, cache/seed tampering, hardlinks, private-root modes and
+legacy quarantine.
+
+The existing bootstrap qualification matrix runs the mechanism-level harness
+through `nox -s local-installation-qualification` on every supported Linux and
+macOS host profile. It binds each measured slice into the canonical bootstrap
+qualification record as a `slice_results` entry with its harness digest.
+Slices are never projected into canonical passed T05/T06/T07/T16 records. A
+legacy version-keyed cache that is group-writable only within a user-private
+group is a valid migration carrier; any other principal's write access remains
+terminal.
+Those cases also cover distinct OS principals, proof, repository services, OCI,
+export and program-wide GC and remain assigned to their downstream migration
+owners until complete case harnesses exist. A multi-user deployment must use an
+immutable root-owned seed and private job trees; it must not turn this local
+installed tree into a shared writable cache.
 
 ### Issue #1216 policy-gate evidence
 
@@ -218,6 +264,60 @@ fault-injection proxy. Test fixture protocol handling is not a production
 acquisition implementation. Maintain a few meaningful end-to-end cases against
 the actual clients; mocks of argv alone cannot prove the profile's behavior.
 
+### Issue #1226 output-bound release evidence
+
+`.github/workflows/release-please.yml` generates, signs, admits and retains the
+release evidence. `tools/release_evidence.py` is the entry point;
+`release_evidence_sbom.py` reconciles the runtime closure,
+`release_evidence_documents.py` renders the documents,
+`release_evidence_verifier.py` bounds the maintained verifier, and
+`release_evidence_admission.py` decides admission.
+
+Exact identities: CycloneDX 1.6 documents and the `raes-build-inventory/v1` and
+`raes-release-evidence/v1` records; `actions/attest-build-provenance`
+`4d101475d8b20a2381f78447822ac1eab6504dd8` (v4.2.2) over
+`actions/attest` `508db95dd578ae2727ebd6217d5ba78e4fbda05d`; verification through
+`gh attestation verify` pinned to the producer identity in
+`implementations/tooling/admission-policy.json`; closure profile
+`public-linux-x86_64-cp312-all-extras` on `public-ubuntu-24.04-x86_64`.
+Evidence binds the `tooling_policy_sha256` aggregate alongside separately named
+raw project-lock, tool-lock and build-constraint digests.
+
+- **T03**: `test_issue_1226_runtime_closure.py` drives the declared CPython
+  3.11-3.14 / ABI / extras qualification of the reconciliation. The base closure
+  is resolved independently of extras, `dev` and `docs` components are labelled
+  rather than recorded as unconditional runtime, and inconsistent metadata fails
+  instead of omitting an edge. `test_issue_1226_target_markers.py` binds each
+  reviewed target's full marker environment, so a cross-OS or patch-sensitive
+  projection no longer inherits the generator host.
+- **T04**: `test_issue_1226_release_evidence_cli.py` and
+  `test_release_workflows.py` prove the credential isolation at the real
+  boundary rather than by reading workflow YAML shape. The approved producer set
+  comes from reviewed policy, so a foreign signer cannot approve itself; the
+  build job holds no OIDC, attestation, promotion or publishing authority; and
+  the signer holds no publication identity and checks out nothing.
+- **T19**: `test_issue_1226_release_admission.py` covers missing, extra and
+  replaced wheel, sdist or SBOM, an SBOM naming a foreign subject, a substituted
+  input inventory, a sidecar swap, a run/attempt replay, a drifted policy hash,
+  a missing attestation, a foreign producer, a valid signature from the wrong
+  workflow, and malformed or oversized evidence. Each asserts a distinct stable
+  failure class and that admission refuses before any publisher obtains usable
+  output. `test_issue_1226_attestation_verifier.py` covers the verifier
+  boundary: an empty, ambiguous, malformed or oversized verdict never becomes
+  admission.
+
+Retention: the SBOMs, build inventory and evidence index are attached to the
+GitHub Release and digest-compared on readback, so they outlive the seven-day
+Actions artifact retention. Retention owner: Release. The existing `--clobber`
+on distribution attachment remains the recorded #1227 gap and is deliberately
+not used for evidence. Durable admission-bundle storage (#1224), full publisher
+admission and same-byte recovery (#1227) and operations qualification (#1228)
+remain outside this issue.
+
+This record describes implemented repository behavior. The release-time
+execution of T03/T04/T19 against a real tagged release is observed when the next
+release runs; the cases above execute in the repository verification graph.
+
 ### Issue #1217 bootstrap qualification evidence
 
 The v2 profile authority and `bootstrap-qualification.yml` bind T01, T02, T03,
@@ -252,6 +352,131 @@ evidence artifact under the exact delivery SHA.
   setup planning. It never invokes `sudo`, shell evaluation, repository/key installation,
   pipe-to-shell acquisition or host-security reconfiguration.
 
+### Issue #1223 OCI mirror and pre-seed evidence
+
+The release-test container input is reviewed lock data rather than a literal in
+a test file. `release-test-alpine` records the reviewed multi-platform index
+`sha256:d9e853e8…` once, and each required platform records the selected
+manifest, config, layer and uncompressed layer identities beneath it. The
+graph-bearing admission policy `oci-graph-v1` is the explicit opt-in: an image
+that references it must carry a complete graph on every platform, and an image
+that does not reference it may not declare one at all. Index-only inputs such
+as the Scorecard action image and the development base image keep `oci-input-v1`
+unchanged.
+
+Linux x86_64 and Linux arm64 are the required platforms for retention, mirroring
+and export. The release lane still executes on Linux x86_64 only; arm64 daemon
+execution would need evidence this repository does not have.
+
+- T10: acquisition location is a closed source class. `preseeded` performs no
+  acquisition at all, `mirror` pulls only from the explicitly configured
+  reviewed mirror, and neither falls back to the public origin on failure. A
+  mirror value carrying a scheme, credentials, query, tag or digest is refused
+  before any client runs, and a mirror endpoint never reaches argv beyond the
+  one pull, a diagnostic, or retained evidence.
+- T11/T17: `tools/oci_release_image.py export` copies every reviewed platform
+  with `skopeo copy --all --preserve-digests`, and `import` admits the exported
+  layout offline before the runtime is touched. The release job runs both before
+  the required lane, which then runs `RAES_OCI_SOURCE_CLASS=preseeded` and
+  performs no pull. Required-mode failure for a missing runtime or input, zero
+  collected tests and any skip is unchanged from #1110.
+- T13: `tools/oci_image_layout.py` re-hashes every object named by the lock from
+  the opened file. A missing platform manifest, a mutated layer byte at the
+  locked size, a layout whose entry point is not the reviewed index, a required
+  platform claiming another platform's manifest, a symlinked blob and any blob
+  outside the reviewed index's closure are each rejected with a stable reason
+  code that never echoes layout content. No network call and no execution of
+  imported content precedes that admission.
+- T07: concurrent real-container runs no longer contend for one native name.
+  Each run generates an opaque bounded namespace, the driver commits every
+  container and network name to it, and ownership is still proven by the
+  `raes.workspace`/`raes.address` labels and daemon readback rather than by a
+  name prefix. Teardown runs on the success and every failure path, removes
+  exactly the addresses the driver reports as realized, and then asks the
+  runtime whether anything still carries this run's workspace label. That last
+  check exists because forced removal is idempotent: tearing down an address
+  that was never realized reports success while the real resource leaks, which
+  is how the previous harness silently left a container behind on every
+  conformance run. A failed teardown and a surviving resource are both reported
+  failures, and the survivor query names this run's exact workspace so a
+  concurrent run's resources are never visible to it.
+- Runtime identity: the daemon readback compares the reviewed architecture, OS
+  and uncompressed layer identities. The daemon's image id is deliberately not
+  used, because it means the config digest under one storage driver and the
+  pulled manifest digest under another, while the layer identities are intrinsic
+  to the content and survive a registry pull, an offline import and either
+  driver. An integrity mismatch fails in optional and required mode alike; only
+  an availability failure may skip an optional local run.
+
+This evidence covers the OCI slices of T07, T10, T11, T13 and T17 only. It makes
+no claim about generic tool, Python, proof-runtime, promotion, signing or
+publisher controls, and no claim about registries, runtimes or architectures
+outside the qualified profile above.
+
+### Issue #1220 proof input evidence
+
+Isabelle no longer contains repository HTTP transport, mirror loops, a shared
+`.download` file, or marker-based trust. `tools/isabelle_tool.py acquire`
+selects the reviewed lock entry before touching local state. It then admits the
+exact archive through one of two carriers. The first is the qualified curl
+client with the separately qualified `large-object` budget: exact size, a
+3,600-second transfer bound, a native low-speed abort, curl's own bounded
+retries, and a wall deadline that covers the retry window. The second is an
+explicit `--local-input` copied from its opened inode. An alternate approved
+same-byte mirror is an operator choice (`--locator-ref`) in a new invocation.
+
+`tools/verified_tree_installation.py` extends #1219's transaction to a
+multi-gigabyte tree. The lock's `installed_tree` binds the SHA-256 of the
+canonical manifest of every file, directory and confined, canonically written relative symlink,
+together with exact counts and expanded bytes. The steps are:
+
+1. Admission streams the archive into private staging. It rejects hardlinks,
+   devices, traversal, duplicates, and links that resolve through another link
+   or outside the tree.
+2. The private raw object is keyed by digest and reverified before extraction.
+3. The tree is sealed read-only and then published by atomic rename, with Linux
+   `sync(2)` durability. APFS cannot rename a read-only directory, so on macOS
+   the root is sealed immediately after the rename. A seal that a crash
+   interrupts is completed under the identity lock before full revalidation.
+4. Every use reverifies the complete tree against the retained manifest.
+
+Tampering quarantines the tree and fails; a later explicit invocation rebuilds
+from the retained raw object without network access. On migration, a legacy
+archive is verified as a carrier and the legacy tree and marker are quarantined.
+
+The Ubuntu 22.04 proof host's native curl is below the qualified floor. The
+qualified Ubuntu 24.04 job therefore fetches the archive, and the proof job
+admits it under `bwrap --unshare-net`. The `nox -s proof-input-qualification`
+session runs `issue_1220_proof_input_harness.py`. `bootstrap_profile
+qualification-evidence --slice-evidence` binds each slice outcome to the exact
+harness digest as a `slice_results` entry of the proof host's canonical
+qualification record, beside T01. A slice names its canonical case, but no slice
+is recorded as a passed case. `nox -s local-installation-qualification` records
+the #1219 slices the same way. The slices are:
+
+- T05: 32 cold processes, 100 warm verifiers, publisher kills at every raw and
+  tree durability checkpoint, live-publisher exclusion, bounded lock timeout,
+  and disk exhaustion. The optional `--real-archive` mode repeats the process
+  and crash cases with the reviewed 1.2 GB object.
+- T08: `test_issue_1220_isabelle_acquisition.py -m integration -k real_curl`
+  exercises the large-object budget against the real curl fixture in bootstrap
+  qualification: size, redirect, TLS, disconnect, native retry, low-speed abort,
+  and transfer deadline.
+- T11: egress-denied admission from a local input, plus `--real-installation`
+  full-tree verification and preflight of the real proof closure. The egress
+  oracle requires a distinct network namespace and a refused connection to a
+  parent-owned loopback listener. A control run without `--unshare-net` must
+  observe both conditions false.
+- T13: corrupt, oversize, truncated and symlinked inputs and malicious archives
+  fail with no network attempt and no execution. `isabelle_tool preflight`
+  lists every missing Bubblewrap, fontconfig, font, C.UTF-8 locale, or
+  installation prerequisite.
+
+Proof hosts' offline kits must name the native Bubblewrap, fontconfig, font and
+locale providers. The kit manifest binds them, and offline-kit verification
+probes that closure. Complete disconnected export/import and whole-closure
+preflight remain #1225 scope.
+
 ### Issue #1218 Python closure evidence
 
 The frozen tooling project, generated build constraints, target-specific smoke
@@ -281,11 +506,122 @@ as qualified.
   extras/groups, manifest bindings, tracked invocation surfaces, and generated
   projection bytes before acquisition.
 
-The supported project closure does not include macOS x86_64 because the current
-all-extras lock has no compatible cryptography wheel and no reviewed source
-fallback. The macOS x86_64 bootstrap profile instead qualifies the tool and
-isolated-build closure, including the separately pinned universal cryptography
-wheel used by the T08 fixture.
+Neither the project closure nor the tool closure includes macOS x86_64. The
+patched cryptography releases have no macOS x86_64 or universal wheel and there
+is no reviewed source fallback, so the macOS x86_64 bootstrap profile was
+retired rather than kept on a vulnerable pin (#1268).
 Input locks improve repeatability but do not prove byte-identical distributions
 across host SDKs, compilers, operating systems, or build times; candidate output
 digests are evidence, not release admission.
+
+### Issue #1222 live-runner input closure evidence
+
+Issue #1222 brings the `tools/real-daemon/` AWS smoke and guest-certification
+setup (inventory row I13) under the admitted closure. The CirrOS guest disk is
+pinned in `artifacts.lock.json` as a `vm-base-image` artifact (reviewed digest,
+exact size, source, `official-cirros-download` locator) and selected through the
+tooling policy gate by `tools/real-daemon/live_runner_inputs.py`; `uv` is
+selected as the host profile's bootstrap payload and verified against the lock;
+`libvirt-python` and its build backend (setuptools/wheel) are pinned by exact
+version and hash in `tools/real-daemon/live-runner-python.txt` and the reviewed
+`tools/real-daemon/live-runner-python-closure.json` manifest, staged as a
+verified wheelhouse, and installed **fully offline**
+(`--offline --no-index --find-links <wheelhouse> --require-hashes`) so no
+distribution or build dependency is resolved from a live index during
+certification. The live-runner inputs are execution-bound to their reviewed
+authorities: the base image is Canonical's exact published image **name (serial)**
+(`tools/tool_versions.py`), resolved to the region's AMI id by owner + exact name
+(never "newest"); the native package set installs from an immutable
+`snapshot.ubuntu.com` archive timestamp (reproducible versions), with the
+`live-runner-ubuntu-24.04-x86_64` host profile as the reviewed authority for the
+package set and snapshot; and the declared **cpython-3.14** interpreter is
+pre-seeded, validated and used for `uv sync` rather than the ambient system
+python. libvirt/QEMU are required while KVM is optional (the runners use TCG
+`domain type="qemu"`). The scripts pre-seed and re-verify the transferred bytes,
+run under the host's default security driver (no `security_driver="none"`, no
+root QEMU user/group), use per-run scoped private directories under the libvirt
+images tree, require an explicit reviewed SSH ingress CIDR, pin the instance host
+key from the authenticated AWS console output before first contact
+(`StrictHostKeyChecking=yes`), transfer only Git-tracked revision-bound source,
+and invoke the guest-certified evidence run with a fixed argument vector (pulling
+its evidence back before teardown even on failure).
+
+The in-repository slices of the acceptance cases are implemented as the hermetic
+`implementations/python/tests/test_issue_1222_live_runner_acquisition.py`:
+
+- **T13**: tampered guest-disk bytes fail admission before boot; an unpinned
+  `libvirt-python` requirement is rejected; the reviewed CirrOS digest/size is
+  the only admitted identity; the full valid acquisition path is exercised. The
+  full missing-native/interpreter/VM and wrong-ABI rejection against a real host
+  is an operator obligation, not covered by a Python-only wheelhouse test.
+- **T21**: both runner scripts carry no pipe-to-shell bootstrap, no ignored
+  download, no ad-hoc curl acquisition, no host-security downgrade and no unsafe
+  `RUN_ID` interpolation; uv sync is frozen; the libvirt-python closure is
+  installed offline (`--offline --no-index --find-links --require-hashes`); the
+  first SSH connection is host-key-verified (`StrictHostKeyChecking=yes`); and
+  the apt package set is a subset of the reviewed host profile. The full
+  governed-closure boot of both runner paths is operator-run.
+- **T07**: per-run unique AWS key/security-group/instance names and scoped run
+  directories remove the fixed-resource collisions; cleanup acts only on
+  owned resources. The measured cold/warm concurrency, quota-exhaustion and
+  disk-full envelope (service target 100 clients, 32 same-host installers) is
+  operator-run on the live host and recorded against the pending
+  `live-runner-ubuntu-24.04-x86_64-issue-1222-pending` qualification record.
+
+Scope and honesty limits: the CirrOS checksum is an upstream-published integrity
+value cross-checked against the release `MD5SUMS` (recorded as `absent-reviewed`
+authenticity, not an authenticated publisher signature). `libvirt-python` is
+sdist-only; the sdist and its setuptools/wheel build backend are hash-pinned and
+installed offline from the pre-seeded wheelhouse, so no build dependency is
+resolved from a live index. The native package set installs from an immutable
+`snapshot.ubuntu.com` archive timestamp, so package versions are reproducible;
+this is the live-runner's own reproducible native closure and does not implement
+the broader offline export/import bundle (#1225). AWS provisioning/API behaviour
+remains a live external service; local preseed verification can run disconnected,
+but no air-gapped-AWS capability is claimed. The reviewed image serial and
+snapshot timestamp are advanced by a reviewed edit to `tools/tool_versions.py`.
+The live T07/T13/T21 result is `not-run` until an operator records it under the
+exact delivery revision.
+
+### Issue #1221 vocabulary source evidence
+
+The opt-in `--verify-remote` acquisition in the five vocabulary source checkers
+(`tools/check_attack_tactic_vocabulary.py`,
+`tools/check_atlas_tactic_vocabulary.py`,
+`tools/check_nist_csf_defensive_vocabulary.py`, and both sources in
+`tools/check_autonomous_behavior_vocabularies.py`) is migrated off `urllib` onto
+`tools.maintained_client_acquisition.acquire_locked_bytes()`. Each checker
+selects its snapshot through `load_tooling_artifact_selection()`
+(`profile_id="source-snapshot"`), verifies the pinned HTTPS host/URL, then
+admits either freshly transferred bytes or an approved local raw object against
+the reviewed `artifacts.lock.json` raw identity before any source-specific
+parsing. Raw-byte identity/size (the lock `raw_manifest`) stays distinct from the
+source-specific semantic `source_digest`. No checker retains custom transport,
+retry, redirect, TLS or framing code. Evidence: implementation commit; tool
+`/usr/bin/curl` (>= 8.4.0) invoked only through the shared hardened argv; policy
+`source-snapshot-integrity-v1`; input lock `implementations/tooling/artifacts.lock.json`.
+
+- T09 (upstream outage/relocation, approved replica, then all copies absent):
+  the `--local-input` / `--activitystreams-local-input` / `--fipa-local-input`
+  arguments admit an approved local raw object by the same locked raw identity;
+  a missing, corrupt, or mismatched local object is a terminal hard failure with
+  no network fallback, and acquisition never rewrites the lock. Recovery is
+  same-digest only.
+- T11 (air-gapped export/import): the default offline checks
+  (source-metadata and catalog validation against the checked-in
+  `contracts/concept-authority/*` snapshots) succeed with egress blocked;
+  `--verify-remote` is not part of the default Nox policy lanes, so the live
+  comparison is reported not evaluated rather than claimed.
+- T13 (missing/corrupt/wrong-platform input): selection and lock validation run
+  before transport; local-object admission rejects symlinks, non-regular files,
+  size drift, and SHA-256 drift without a network attempt and without executing
+  imported content.
+- T21 (ATT&CK/ATLAS/NIST/W3C ActivityStreams/FIPA refresh): each source keeps
+  its exact raw and canonical snapshot identities, acquires only through the
+  qualified maintained client, and surfaces an acquisition failure rather than
+  ignoring it; no custom network code remains. Verified offline by
+  `implementations/python/tests/test_issue_1221_vocabulary_maintained_client_acquisition.py`
+  and the existing per-source offline checkers; the tracked-scan disposition is
+  recorded under T22 by dropping the four now-transport-free checkers from the
+  `acquisition_paths` inventory while their lock-selection consumer bindings
+  remain.

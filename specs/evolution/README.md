@@ -14,3 +14,6 @@ The governing decision is
 - [`deprecation-records.yaml`](deprecation-records.yaml) is the reviewable
   record surface for GOV-902 deprecation and lifecycle notices, validated by
   `tools/check_deprecation_lifecycle.py` against the complete-record contract.
+
+- [`progressive-semantics.md`](progressive-semantics.md) defines explicit SDL
+  revision selection and author-authorized migration for GOV-903.

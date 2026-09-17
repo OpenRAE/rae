@@ -13,14 +13,14 @@ from raes_backend_stubs.stubs import create_stub_manifest
 from raes_contracts.apparatus import RealizationObservationCapability
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
-from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
+from raes_contracts.runtime_state import RealizationObservationDisclosure, RuntimeSnapshot, SnapshotEntry
 from raes_contracts.vocabulary import (
     ObservationStrength,
     RealizationSupportMode,
     RealizationVerificationScope,
 )
 from raes_processor.compiler import compile_runtime_model
-from raes_processor.planner import plan, realization_authority_disclosure
+from raes_processor.planner import plan, realization_authority_disclosure, realization_disclosure
 from raes_processor.semantics.realization import (
     CompiledRealizationRequirement,
     realization_support_diagnostics,
@@ -38,11 +38,11 @@ def _runtime_descriptors():
     )
 
 
-def test_runtime_boundary_inventory_partitions_all_32_fields_once() -> None:
+def test_runtime_boundary_inventory_partitions_all_runtime_fields_once() -> None:
     inventory = runtime_configuration_boundary_inventory()
 
     assert tuple(item.field_name for item in inventory) == tuple(RuntimeConfiguration.model_fields)
-    assert len(inventory) == 32
+    assert len(inventory) == 33
     assert all(item.concern_kinds or item.delegated_paths or item.observation_only_paths for item in inventory)
     assert all(
         item.semantic_owner
@@ -248,7 +248,7 @@ def test_typed_projection_canonicalizes_model_defaults() -> None:
     assert isinstance(minimal, list)
     assert isinstance(minimal[0], dict)
     assert minimal[0]["engine"] == "other"
-    assert minimal[0]["protocol"] == "other"
+    assert minimal[0]["protocol"] == "unknown"
     assert minimal == project_realization_concern("runtime-database-services", minimal)
 
 
@@ -446,7 +446,7 @@ nodes:
                     **declaration.observation_capabilities,
                     "runtime-packages": RealizationObservationCapability(
                         verification_scope=RealizationVerificationScope.CONFIGURATION,
-                        observation_strength=ObservationStrength.GUEST_OBSERVED,
+                        observation_strength=ObservationStrength.DAEMON_OBSERVED,
                     ),
                 },
             ),
@@ -456,11 +456,99 @@ nodes:
     assert requirement.explicitness is ExplicitnessClass.EXACT
     assert model.observation_demands == ()
     assert requirement.verification_scope is RealizationVerificationScope.CONFIGURATION
-    assert requirement.required_observation_strength is ObservationStrength.GUEST_OBSERVED
+    assert requirement.required_observation_strength is None
     assert [item.code for item in realization_support_diagnostics((requirement,), manifest)] == [
         "realization.unsupported-exact-requirement"
     ]
     assert realization_support_diagnostics((requirement,), supported) == []
+
+
+def test_open_runtime_disclosure_rejects_a_manifest_without_open_observation_posture() -> None:
+    model = compile_runtime_model(
+        parse_sdl(
+            """
+name: issue-1078-open-package-disclosure
+nodes:
+  worker:
+    type: compute
+    resources: {ram: 1 gib, cpu: 1}
+    runtime:
+      packages:
+        - {manager: apt, name: bash, version: '5.2'}
+"""
+        )
+    )
+    requirement = next(item for item in model.realization_requirements if item.requirement_kind == "runtime-packages")
+    open_requirement = replace(
+        requirement,
+        explicitness=ExplicitnessClass.OPEN,
+        structure=None,
+        constraint_document=None,
+        constraint_binding=None,
+    )
+    manifest = create_stub_manifest()
+    declaration = manifest.realization_support[0]
+    capability = RealizationObservationCapability(
+        verification_scope=RealizationVerificationScope.CONFIGURATION,
+        observation_strength=ObservationStrength.DAEMON_OBSERVED,
+    )
+    constrained_manifest = replace(
+        manifest,
+        realization_support=(
+            replace(
+                declaration,
+                support_mode=RealizationSupportMode.CONSTRAINED,
+                supported_exact_requirement_kinds=(
+                    declaration.supported_exact_requirement_kinds | {"runtime-packages"}
+                ),
+                observation_capabilities={
+                    **declaration.observation_capabilities,
+                    "runtime-packages": capability,
+                },
+            ),
+        ),
+    )
+    open_manifest = replace(
+        constrained_manifest,
+        realization_support=(
+            replace(constrained_manifest.realization_support[0], support_mode=RealizationSupportMode.OPEN_REALIZATION),
+        ),
+    )
+    execution = plan(model, open_manifest)
+    assert execution.is_valid, execution.diagnostics
+    operation = next(operation for operation in execution.provisioning.operations if operation.resource_type == "node")
+    snapshot = RuntimeSnapshot(
+        entries={
+            operation.address: SnapshotEntry(
+                address=operation.address,
+                domain=RuntimeDomain.PROVISIONING,
+                resource_type=operation.resource_type,
+                payload=deepcopy(operation.payload),
+                ordering_dependencies=operation.ordering_dependencies,
+                refresh_dependencies=operation.refresh_dependencies,
+            )
+        },
+        realization_observations=(
+            RealizationObservationDisclosure(
+                address=open_requirement.address,
+                field_path=open_requirement.field_path,
+                domain=open_requirement.domain,
+                requirement_kind=open_requirement.requirement_kind,
+                verification_scope=RealizationVerificationScope.CONFIGURATION,
+                observation_strength=ObservationStrength.DAEMON_OBSERVED,
+            ),
+        ),
+    )
+
+    diagnostics, provenance = realization_disclosure(
+        (open_requirement,),
+        execution.provisioning,
+        snapshot,
+        manifest=constrained_manifest,
+    )
+
+    assert any(diagnostic.code == "runtime.backend-contract-invalid" for diagnostic in diagnostics)
+    assert provenance == ()
 
 
 def test_portable_runtime_concerns_do_not_own_observation_policy() -> None:

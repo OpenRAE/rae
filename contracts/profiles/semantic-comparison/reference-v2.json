@@ -1,0 +1,35 @@
+{
+  "profile_id": "raes-semantic-comparison/v1",
+  "analyzer_profile": "raes-reference-semantic-comparator/v1",
+  "projection_profile": "owner-specific-admitted-artifact-projection/v1",
+  "impact_closure_policy": "declared-exact-artifact-set/v1",
+  "identity_axis": "canonical-owner-identity/v1",
+  "textual_axis": "exact-representation-digest/v1",
+  "structural_axis": "owner-shape-projection/v1",
+  "semantic_axis": "owner-semantic-projection/v1",
+  "dependency_rule_versions": {
+    "experiment-capture-scope-reference": "1",
+    "experiment-run-scenario-snapshot-reference": "1",
+    "experiment-run-task-reference": "1",
+    "experiment-study-membership": "1",
+    "experiment-task-scenario-reference": "1",
+    "external-concept-subject": "1",
+    "scenario-import": "1"
+  },
+  "owner_projection_versions": {
+    "evidence-specification": "1",
+    "external-concept-bindings": "1",
+    "module": "1",
+    "run": "2",
+    "scenario": "2",
+    "study": "2",
+    "task": "2"
+  },
+  "limits": {
+    "max_subjects": 4096,
+    "max_dependency_edges": 8192,
+    "max_path_depth": 8,
+    "max_paths": 1024,
+    "max_diagnostics": 64
+  }
+}

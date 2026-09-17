@@ -48,7 +48,9 @@ class _AcquisitionObservation:
         return self.acquisition_count + self.unknown_count
 
 
-def _admission_policies(documents: Mapping[str, dict[str, Any]]) -> dict[str, Mapping[str, Any]]:
+def _admission_policies(
+    documents: Mapping[str, dict[str, Any]],
+) -> dict[str, Mapping[str, Any]]:
     admission = documents.get(ADMISSION_POLICY_PATH) or {}
     return {
         item["policy_id"]: item
@@ -115,6 +117,32 @@ def _row_policy_failures(
                 require_all_evidence_per_policy=False,
             )
         )
+    return failures
+
+
+def _governed_http_failures(
+    coverage: Mapping[str, Any],
+    python_scans: Mapping[str, PythonScan | None],
+) -> list[PolicyFailure]:
+    """Reject repository HTTP transport in an acquisition path claimed as governed.
+
+    Maintained clients own acquisition transport. A path that still performs
+    in-process HTTP must remain an explicit legacy remediation with its owner.
+    """
+
+    failures: list[PolicyFailure] = []
+    for acquisition_value in as_list(coverage.get("acquisition_paths")):
+        acquisition = as_mapping(acquisition_value)
+        path = acquisition.get("path")
+        scan = python_scans.get(path) if isinstance(path, str) else None
+        if acquisition.get("disposition") == "governed" and scan is not None and scan.network_call_count:
+            failures.append(
+                failure(
+                    "tooling-governed-repository-http",
+                    "governed acquisition path performs in-process repository HTTP instead of a maintained client",
+                    path,
+                )
+            )
     return failures
 
 
@@ -277,4 +305,5 @@ def inventory_failures(
     owned, ownership_failures = _owned_paths(coverage, inventory_ids)
     failures.extend(ownership_failures)
     failures.extend(_acquisition_failures(repo_root, tracked_paths, python_scans, owned))
+    failures.extend(_governed_http_failures(coverage, python_scans))
     return failures

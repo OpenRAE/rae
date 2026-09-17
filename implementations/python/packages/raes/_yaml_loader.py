@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from yaml.nodes import Node
+from yaml.nodes import MappingNode, Node, ScalarNode
 
 from ._errors import (
     SDLParseDiagnostic,
@@ -72,6 +72,11 @@ def load_sdl_yaml(
         )
         constructed = loader.construct_document(root)
         validate_constructed_domain(constructed, path=path)
+        if source_options.required_semantic_revision is not None and (
+            not isinstance(constructed, dict)
+            or constructed.get("semantic_revision") != source_options.required_semantic_revision
+        ):
+            raise SDLParseError("Imported source must carry the selected semantic revision.", path=path)
         return constructed
     except SDLParseError:
         raise
@@ -123,6 +128,15 @@ def compose_sdl_yaml(
             loader.dispose()
 
 
+def _is_materialized_mapping(root: Node, scope: MappingScope, base_pointer: str) -> bool:
+    return (
+        not base_pointer
+        and scope is MappingScope.STRUCTURAL
+        and isinstance(root, MappingNode)
+        and any(isinstance(key, ScalarNode) and key.value == "materialization_provenance" for key, _value in root.value)
+    )
+
+
 def _validate_mapping_keys(
     root: Node,
     *,
@@ -137,6 +151,7 @@ def _validate_mapping_keys(
         migration_policy=migration_policy,
         path=path,
         source_ranges=source_ranges,
+        materialized=_is_materialized_mapping(root, scope, base_pointer),
     ).analyze(
         root,
         scope=scope,

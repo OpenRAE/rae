@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import (
@@ -18,6 +19,7 @@ from raes_contracts.planning import (
 )
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import realization_authority_diagnostics
+from raes_processor.planner.augmentation_admission import AugmentationAdmission
 
 from .diagnostics import _failure_diagnostic
 
@@ -34,6 +36,8 @@ class _RealizationApplyContext:
     resource_targets: frozenset[str] = frozenset()
     stop_domain: RuntimeDomain | None = None
     completion_plan: ProvisioningPlan | None = None
+    augmentation: AugmentationAdmission | None = None
+    expected_augmentation: AugmentationPreparation | None = None
 
 
 def _apply_authority_diagnostics(
@@ -81,9 +85,10 @@ def _submitted_authority_matches(realization: _RealizationApplyContext) -> bool:
     if not isinstance(realization.operation_plan, ProvisioningPlan):
         return False
     try:
-        return runtime_plan_digest(realization.plan) == runtime_plan_digest(realization.operation_plan)
+        matches = runtime_plan_digest(realization.plan) == runtime_plan_digest(realization.operation_plan)
     except (AttributeError, TypeError, ValueError):
-        return False
+        matches = False
+    return matches
 
 
 def _bind_submitted_plan(
@@ -98,13 +103,13 @@ def _bind_submitted_plan(
     )
     if submitted_plan is None:
         return args, realization
-    if not isinstance(submitted_plan, ProvisioningPlan):
-        return args, replace(realization, operation_plan=submitted_plan)
     bound_plan = replace(
         submitted_plan,
         operation_id=operation_id or submitted_plan.operation_id or str(uuid4()),
     )
     bound_args = tuple(bound_plan if arg is submitted_plan else arg for arg in args)
+    if not isinstance(submitted_plan, ProvisioningPlan):
+        return bound_args, replace(realization, operation_plan=bound_plan)
     if realization.plan is None or realization.plan is submitted_plan:
         realization = replace(realization, plan=bound_plan)
     else:

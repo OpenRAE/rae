@@ -12,11 +12,13 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 """
 
 from collections.abc import Mapping
-from typing import ClassVar
+from typing import ClassVar, Literal
 
 from pydantic import ConfigDict, Field, PrivateAttr, model_validator
+from raes_contracts.augmentation_scope import OptionalAugmentationScope
 
 from ._base import SDLModel
+from ._capability_binding_normalization import normalize_capability_binding
 from ._classification_guard import LegacyClassificationGuard
 from ._errors import SDLParseDiagnostic
 from ._identifiers import (
@@ -255,6 +257,11 @@ class ScenarioContent(LegacyClassificationGuard):
     name: PortableIdentifier
     version: str = "*"
     description: str = ""
+    semantic_revision: Literal["raes-progressive-semantics/v1"] | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
+    )
 
     # OCR-derived topology and exercise-narrative sections.
     nodes: dict[str, Node] = Field(default_factory=dict)
@@ -287,6 +294,7 @@ class ScenarioContent(LegacyClassificationGuard):
     outcome_interpretation_rules: dict[str, OutcomeInterpretationRule] = Field(default_factory=dict)
     behavior_specifications: dict[str, ParticipantBehaviorSpecification] = Field(default_factory=dict)
     evidence_requirements: dict[str, EvidenceRequirement] = Field(default_factory=dict)
+    augmentation_scope: OptionalAugmentationScope = None
     time_domains: dict[str, TimeDomain] = Field(default_factory=dict)
     clocks: dict[str, Clock] = Field(default_factory=dict)
     time_domain_mappings: dict[str, TimeDomainMapping] = Field(default_factory=dict)
@@ -439,7 +447,7 @@ class InstantiatedScenario(ScenarioContent):
         title="SDL Instantiated Scenario v1",
         json_schema_extra={
             "x-raes-document-phase": "instantiated-scenario",
-            "x-raes-authored-identity-profile": "raes-sdl-semantic/v1",
+            "x-raes-authored-identity-profile": "raes-sdl-semantic/v2",
         },
     )
 
@@ -482,6 +490,9 @@ class InstantiatedScenario(ScenarioContent):
                 ) from exc
             if constraint.parameter not in binding_values:
                 raise ValueError("Capability constraint references an unresolved parameter identity")
-            if not _json_value_equal(concrete_value, binding_values[constraint.parameter]):
-                raise ValueError("Capability constraint binding does not match the concrete field value")
+            binding = binding_values[constraint.parameter]
+            if not _json_value_equal(concrete_value, binding):
+                binding = normalize_capability_binding(self, constraint.field_pointer, binding)
+                if not _json_value_equal(concrete_value, binding):
+                    raise ValueError("Capability constraint binding does not match the concrete field value")
         return self

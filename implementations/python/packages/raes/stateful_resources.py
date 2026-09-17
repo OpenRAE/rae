@@ -6,10 +6,12 @@ from enum import Enum
 from pathlib import PurePosixPath
 
 from pydantic import Field, field_validator, model_validator
-from raes_contracts.vocabulary import GeneratedArtifactKind
+from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ._base import SDLModel
 from ._identifiers import PortableIdentifier
+from .random_value import SECRET_MIN_ENTROPY_BITS, RandomValueRecipe
 
 
 class GeneratedArtifactLifecycle(str, Enum):
@@ -115,6 +117,29 @@ class GeneratedArtifactConsumer(StatefulResourceConsumer):
         return self
 
 
+def _validate_random_value_recipe(artifact: GeneratedArtifact) -> None:
+    """Couple the random-value recipe to its generator kind and secret-entropy floor."""
+
+    is_random_value = artifact.generator is GeneratedArtifactKind.RANDOM_VALUE
+    if not is_random_value:
+        if artifact.random_value is not None:
+            raise ValueError("random_value recipe is only valid for the random_value generator")
+        if artifact.regeneration_scope is not None:
+            raise ValueError("regeneration_scope is only valid for the random_value generator")
+        return
+    if artifact.random_value is None:
+        raise ValueError("random_value generator requires a random_value recipe")
+    if artifact.regeneration_scope is None:
+        raise ValueError("random_value generator requires a regeneration_scope")
+    if len(artifact.outputs) != 1:
+        raise ValueError("random_value generator requires exactly one output")
+    floor = artifact.random_value.min_entropy_bits or 0
+    if artifact.outputs[0].sensitivity is ResourceSensitivity.SECRET:
+        floor = max(floor, SECRET_MIN_ENTROPY_BITS)
+    if artifact.random_value.effective_entropy_bits() < floor:
+        raise ValueError(f"random value output requires at least {floor} bits of entropy")
+
+
 def _validate_generated_artifact_identity(artifact: GeneratedArtifact) -> None:
     names = [output.name for output in artifact.outputs]
     paths = [output.path for output in artifact.outputs]
@@ -133,6 +158,8 @@ def _selected_generated_artifact_outputs(artifact: GeneratedArtifact) -> set[str
     outputs_by_name = {output.name: output for output in artifact.outputs}
     selected_output_names: set[str] = set()
     for consumer in artifact.consumers:
+        if isinstance(artifact.generator, DomainProfileBindingModel) and not consumer.selected_outputs:
+            raise ValueError("Private generated artifact consumers must select at least one output")
         if artifact.generator is GeneratedArtifactKind.SSH_KEY_BUNDLE and not consumer.selected_outputs:
             raise ValueError("SSH generated artifact consumers must select at least one output")
         for selected_output in consumer.selected_outputs:
@@ -161,8 +188,12 @@ def _validate_ssh_output_selection(artifact: GeneratedArtifact, selected_output_
 class GeneratedArtifact(SDLModel):
     """Desired generated configuration or certificate/key material."""
 
-    generator: GeneratedArtifactKind
+    generator: GeneratedArtifactKind | DomainProfileBindingModel
     lifecycle: GeneratedArtifactLifecycle
+    regeneration_scope: GeneratedArtifactRegenerationScope | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    random_value: RandomValueRecipe | None = Field(default=None, exclude_if=lambda value: value is None)
     provenance: str = Field(min_length=1)
     outputs: list[GeneratedArtifactOutput] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
     # Consumers may be empty when a generated artifact is consumed only as a node
@@ -176,6 +207,7 @@ class GeneratedArtifact(SDLModel):
 
     @model_validator(mode="after")
     def _unique_outputs_and_consumers(self) -> GeneratedArtifact:
+        _validate_random_value_recipe(self)
         _validate_generated_artifact_identity(self)
         selected_output_names = _selected_generated_artifact_outputs(self)
         _validate_ssh_output_selection(self, selected_output_names)
@@ -224,6 +256,7 @@ __all__ = (
     "GeneratedArtifactLifecycle",
     "GeneratedArtifactOutput",
     "GeneratedArtifactOutputDisposition",
+    "GeneratedArtifactRegenerationScope",
     "PersistentVolume",
     "ResourceSensitivity",
     "StatefulResourceConsumer",

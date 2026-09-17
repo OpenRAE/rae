@@ -13,6 +13,7 @@ from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
 from ..compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
 from ..domain_profiles import DomainProfileBindingModel
+from ..materialization import require_materialization_records
 from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
     RealizationAuthorityMode,
@@ -33,6 +34,7 @@ from .execution_state import (
     WorkflowExecutionStateModel,
     WorkflowHistoryEventModel,
 )
+from .materialization_attestation import MaterializationArchiveRecord, MaterializationPlanModel
 from .operating_systems import ObservedOperatingSystemIdentityModel
 from .participant_control import ParticipantControlOccurrenceModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
@@ -55,6 +57,7 @@ from .participant_runtime import (
     ParticipantEpisodeStateModel,
 )
 from .realization_observation_validation import validate_realization_observation_disclosure
+from .snapshot_budget_validation import validate_execution_service_budget_projection
 from .snapshot_entry import SnapshotEntryModel as SnapshotEntryModel
 from .time_model import TimeRuntimeStateModel
 
@@ -84,10 +87,7 @@ def _require_operation_identities(operations: list[PlanOperationModel], domain: 
             raise ValueError("Only provisioning operations can host profile bindings")
 
 
-def _require_startup_order_addresses(
-    operations: list[PlanOperationModel],
-    startup_order: list[str],
-) -> None:
+def _require_startup_order_addresses(operations: list[PlanOperationModel], startup_order: list[str]) -> None:
     if len(startup_order) != len(set(startup_order)):
         raise ValueError("Plan startup_order addresses must be unique")
     operation_addresses = {operation.address for operation in operations}
@@ -96,14 +96,17 @@ def _require_startup_order_addresses(
         raise ValueError("Plan startup_order must reference admitted operation addresses")
 
 
+_SHA256_PATTERN = r"^sha256:[a-f0-9]{64}$"
+
+
 class RealizationEnvelopeIdentityModel(ContractModel):
     """Immutable realization-envelope identity carried across runtime contracts."""
 
     contract_id: Literal["realization-envelope-v1"] = "realization-envelope-v1"
     envelope_id: NonEmptyString
     schema_version: Literal["realization-envelope/v1"] = "realization-envelope/v1"
-    digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
-    configuration_digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
+    digest: Annotated[str, Field(pattern=_SHA256_PATTERN)]
+    configuration_digest: Annotated[str, Field(pattern=_SHA256_PATTERN)]
 
 
 class PlannedRealizationConstraintModel(ContractModel):
@@ -128,7 +131,7 @@ class RealizationAuthorityBoundModel(ContractModel):
 
     value_pointer: Annotated[str, Field(pattern=r"^(?:/(?:[^~/]|~[01])*)*$")]
     domain: DomainDescriptor
-    identity_digest: Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")] | None = None
+    identity_digest: Annotated[str, Field(pattern=_SHA256_PATTERN)] | None = None
 
 
 class ResolvedRealizationAuthorityModel(ContractModel):
@@ -211,7 +214,7 @@ class ResolvedRealizationAuthorityModel(ContractModel):
         default=None, exclude_if=lambda value: value is None
     )
     constraint_binding: str | None = Field(
-        default=None, pattern=r"^sha256:[a-f0-9]{64}$", exclude_if=lambda value: value is None
+        default=None, pattern=_SHA256_PATTERN, exclude_if=lambda value: value is None
     )
 
     @model_validator(mode="after")
@@ -220,33 +223,43 @@ class ResolvedRealizationAuthorityModel(ContractModel):
             raise ValueError("realization authority cannot carry two independently editable structures")
         if (self.constraint_document is None) != (self.constraint_binding is None):
             raise ValueError("recursive authority requires its source binding")
-        if self.mode is RealizationAuthorityMode.CONSTRAINED and not self.bounds and self.constraint_document is None:
-            raise ValueError("constrained realization authority requires typed bounds")
-        if self.mode is not RealizationAuthorityMode.CONSTRAINED and self.bounds:
-            raise ValueError("only constrained realization authority may carry typed bounds")
-        if (
-            self.source is RealizationResolutionSource.LEGACY_DEFAULT
-            and self.mode is not RealizationAuthorityMode.CLOSED
-        ):
-            raise ValueError("legacy realization default must resolve closed")
-        if self.source is RealizationResolutionSource.APPARATUS_DEFAULT and self.mode not in {
-            RealizationAuthorityMode.CLOSED,
-            RealizationAuthorityMode.OPEN,
-        }:
-            raise ValueError("apparatus realization default must resolve open or closed")
+        self._require_mode_bounds()
+        self._require_resolution_source()
         bound_keys = [(bound.identity_digest, bound.value_pointer) for bound in self.bounds]
         if len(bound_keys) != len(set(bound_keys)):
             raise ValueError("realization authority bounds must identify unique value leaves")
         return self
 
+    def _require_mode_bounds(self) -> None:
+        """Only constrained authority carries typed bounds, and it must carry some."""
 
-class ProvisioningPlanModel(ContractModel):
+        constrained = self.mode is RealizationAuthorityMode.CONSTRAINED
+        if constrained and not self.bounds and self.constraint_document is None:
+            raise ValueError("constrained realization authority requires typed bounds")
+        if not constrained and self.bounds:
+            raise ValueError("only constrained realization authority may carry typed bounds")
+
+    def _require_resolution_source(self) -> None:
+        """Each default resolution source admits only its own authority modes."""
+
+        if self.source is RealizationResolutionSource.LEGACY_DEFAULT and (
+            self.mode is not RealizationAuthorityMode.CLOSED
+        ):
+            raise ValueError("legacy realization default must resolve closed")
+        apparatus_modes = {RealizationAuthorityMode.CLOSED, RealizationAuthorityMode.OPEN}
+        if self.source is RealizationResolutionSource.APPARATUS_DEFAULT and self.mode not in apparatus_modes:
+            raise ValueError("apparatus realization default must resolve open or closed")
+
+
+class ProvisioningPlanModel(MaterializationPlanModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
     realization_authority: list[ResolvedRealizationAuthorityModel]
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     realization_constraints: list[PlannedRealizationConstraintModel] = Field(default_factory=list)
     operation_id: NonEmptyString | None = None
+    run_id: NonEmptyString | None = None
+    instantiation_id: NonEmptyString | None = None
     observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
     preparation: RealizationPreparationAuthority | None = Field(default=None, exclude_if=lambda value: value is None)
     profile_authority: PlanProfileAuthority | None = Field(default=None, exclude_if=lambda value: value is None)
@@ -271,7 +284,7 @@ class ProvisioningPlanModel(ContractModel):
         return self
 
 
-class OrchestrationPlanModel(ContractModel):
+class OrchestrationPlanModel(MaterializationPlanModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     startup_order: list[CompiledAddress] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
@@ -285,10 +298,12 @@ class OrchestrationPlanModel(ContractModel):
         return self
 
 
-class EvaluationPlanModel(ContractModel):
+class EvaluationPlanModel(MaterializationPlanModel):
     operations: list[PlanOperationModel] = Field(default_factory=list)
     startup_order: list[CompiledAddress] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
+    run_id: NonEmptyString | None = None
+    instantiation_id: NonEmptyString | None = None
     observation_demands: list[EffectiveObservationDemand] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -334,8 +349,8 @@ class RealizationObservationDisclosureModel(ContractModel):
     observed_value: NonEmptyString | None = None
     operating_system: ObservedOperatingSystemIdentityModel | None = None
     operation_id: NonEmptyString | None = None
-    envelope_digest: str | None = Field(default=None, pattern=r"^sha256:[a-f0-9]{64}$")
-    configuration_digest: str | None = Field(default=None, pattern=r"^sha256:[a-f0-9]{64}$")
+    envelope_digest: str | None = Field(default=None, pattern=_SHA256_PATTERN)
+    configuration_digest: str | None = Field(default=None, pattern=_SHA256_PATTERN)
     observer_version: NonEmptyString | None = None
     sequence: int | None = Field(default=None, ge=0)
     binding_verified: bool = False
@@ -354,38 +369,6 @@ def _require_embedded_map_keys(
     for map_key, value in values.items():
         if map_key != getattr(value, attribute):
             raise ValueError(message)
-
-
-def _validate_execution_service_budget_projection(
-    services: Mapping[str, ParticipantExecutionServiceStateModel],
-    budget_states: Mapping[str, ParticipantResourceBudgetStateModel],
-) -> None:
-    budget_refs = set(budget_states)
-    for service in services.values():
-        missing = sorted(set(service.resource_budget_state_refs) - budget_refs)
-        if missing:
-            raise ValueError(
-                "Participant execution service references missing resource-budget states: " + ", ".join(missing)
-            )
-        concurrency = [
-            budget_states[budget_ref]
-            for budget_ref in service.resource_budget_state_refs
-            if budget_states[budget_ref].resource_kind == "concurrent_actions"
-        ]
-        if not concurrency:
-            continue
-        if len(concurrency) != 1:
-            raise ValueError(
-                "Participant execution service must reference exactly one authoritative concurrency budget"
-            )
-        authoritative = concurrency[0]
-        projection = (service.capacity, service.reserved, service.in_flight)
-        authority = (authoritative.limit, authoritative.reserved, authoritative.current_use)
-        if projection != authority:
-            raise ValueError(
-                "Participant execution service concurrency projection must "
-                "equal its authoritative resource-budget state"
-            )
 
 
 class RuntimeSnapshotEnvelopeModel(ContractModel):
@@ -430,11 +413,13 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     time_model_state: TimeRuntimeStateModel | None = None
     realization_provenance: list[RealizationProvenanceEntryModel] = Field(default_factory=list)
     realization_observations: list[RealizationObservationDisclosureModel] = Field(default_factory=list)
+    materialization_attestations: list[MaterializationArchiveRecord] = Field(default_factory=list, max_length=4096)
     realization_envelope: RealizationEnvelopeIdentityModel | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _validate_entry_addresses(self) -> RuntimeSnapshotEnvelopeModel:
+        require_materialization_records(tuple(self.materialization_attestations))
         _require_embedded_map_keys(
             self.entries,
             "address",
@@ -473,7 +458,7 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
         for participant_address, records in self.information_state_history.items():
             if any(record.participant_address != participant_address for record in records):
                 raise ValueError("Information-state history map key must equal embedded participant_address")
-        _validate_execution_service_budget_projection(
+        validate_execution_service_budget_projection(
             self.participant_execution_services,
             self.participant_resource_budget_states,
         )

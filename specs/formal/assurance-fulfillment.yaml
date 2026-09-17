@@ -366,6 +366,14 @@ entries:
     # participant surface. ASR-535 makes no model-check or proof claim.
     delivered_artifacts:
       - kind: invariant_list
+        path: specs/formal/participant-semantics/cross-backend-participant-control.md
+      - kind: abstract_state_machine_model
+        path: implementations/python/tests/sem234_mixed_composition_model.py
+      - kind: unit_tests
+        path: implementations/python/tests/test_sem_234_mixed_composition.py
+      - kind: property_based_or_differential_tests
+        path: implementations/python/tests/test_sem_234_mixed_composition.py
+      - kind: invariant_list
         path: specs/formal/participant-semantics/README.md
       - kind: unit_tests
         path: implementations/python/tests/test_sem_230_information_flow_control.py

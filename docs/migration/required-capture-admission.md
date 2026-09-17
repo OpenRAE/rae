@@ -1,5 +1,19 @@
 # Required Capture Admission Migration
 
+Issue #1237 returns an immutable, process-local content proof from authoritative
+run validation. Metadata is snapshotted and revalidated before reader callbacks;
+consumers must retain that proof and reject it after task/run content changes.
+Revalidate from bytes after serialization or a process boundary.
+
+Evidence validation admits at most 1024 artifacts, capture specifications,
+capture requirements, records, or reader entries per invocation, with 256 MiB
+aggregate declared artifact bytes and 64 MiB per artifact. Shared artifacts are
+read once, but every capture requirement still receives its own relation,
+metadata, integrity, output-contract, and field-selector checks. Artifact
+locators remain inert: credential userinfo, secret query fields, fragments, host
+paths, and `file:` URIs are rejected; published relative artifact paths remain
+supported. Proof bindings retain only a locator identity digest.
+
 Issue #1112 changes capture support from descriptive capability discovery to a
 fail-closed execution contract.
 
@@ -40,3 +54,32 @@ record, and artifact. Study conditions that require evidence consume the same
 validated requirement-to-artifact bindings.
 Historical `satisfies_refs`, payload summaries, and backend assertions remain
 metadata; they are not proof of emitted content.
+
+## Shared proof and extension points
+
+Issue #1237 makes `validate_experiment_run_evidence()` and
+`validate_experiment_run_against_task()` return `ValidatedRunEvidence` from
+`raes_contracts.evidence_proof`. Task observation checks, metric artifact
+relations, study allocation, and evidence conditions consume that proof.
+Its bindings contain immutable snapshots of the validated capture, record,
+and artifact identities. Canonical task/run content digests prevent reuse for
+another run or after the validated inputs change. Callers must obtain a new
+proof by validating the exact content again; reference tuples and serialized
+metadata cannot construct a proof. Structural-only validation does not produce
+evidence bindings.
+
+Evidence output eligibility lives in
+`raes_contracts.evidence_output_validation.evidence_output_registrations()`.
+Each entry couples a published schema resolved through the contract corpus,
+the owning semantic validator, and its JSON root. JSON Lines is supported only
+for array roots. Offers and emitted content fail closed if either the schema
+or semantic owner is missing. Schema references resolve offline.
+`contracts/schema-publication-manifest.json` remains the publication ledger.
+
+Capture extensions use `raes_contracts.capture_dimensions.CAPTURE_DIMENSIONS`.
+Each dimension declares its authored projection, collection representation,
+comparison rule, and diagnostic. The Pydantic offer and protocol dataclass
+retain explicit fields. Additions must cover both authored projections,
+manifest round trips, independent matching/diagnostic cases, and the shared
+pre-effect conformance tests. Exact scope targets, wildcard subsets, media
+overlap, availability, fidelity, and disclosure retain distinct semantics.

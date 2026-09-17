@@ -12,7 +12,12 @@ This document is the issue #77 formal design artifact for:
 It is governed by ADR-067. It composes the participant semantics from ADR-022
 with SDL participant framing, participant runtime records, backend-facing
 contracts, controlled vocabularies, and participant implementation provenance.
-It is a design artifact, not an implementation artifact.
+It remains the normative design artifact for the complete behavior-model
+family. That historical role does not make all implementation coverage absent:
+the delivered ACT-606 slice below provides SDL authoring, semantic validation,
+generated schema coverage, compiled runtime records, and focused tests. It
+does not establish complete ACT-602, ACT-607, or ACT-608 behavior-model
+enforcement or mixed-backend conformance.
 
 ## Current Coverage And Gap
 

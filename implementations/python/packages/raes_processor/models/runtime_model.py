@@ -3,6 +3,7 @@
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from raes.materialization import MaterializedScenario
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.addressing import require_compiled_address
@@ -155,6 +156,7 @@ class RuntimeModel:
     # portable ProvisioningPlan authority collection.
     realization_authority: tuple[CompiledRealizationAuthority, ...] = ()
     realization_instance: InstantiatedScenario | None = None
+    materialization_description: MaterializedScenario | None = None
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
     profile_authority: PlanProfileAuthority | None = None
 

@@ -21,7 +21,7 @@ from raes_contracts.contracts import (
     validate_participant_information_state_context,
 )
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, RuntimeSnapshotEnvelope
-from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
+from raes_runtime.backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
 from raes_runtime.control_plane_api_models import _snapshot_model
 from raes_runtime.control_plane_store import (
     _require_expected_history_heads,
@@ -920,7 +920,7 @@ def test_backend_ingestion_rejects_unresolved_or_forged_new_information_state() 
         RuntimeSnapshot(),
         address="runtime.participant-information-state",
         snapshot=RuntimeSnapshot(),
-        information_state_context_resolver=_forged_resolver,
+        call=_BackendCallContext(information_state_context_resolver=_forged_resolver),
         realization=_RealizationApplyContext(
             effect_owners=frozenset({"participant"}), effect_targets=frozenset({participant})
         ),
@@ -931,7 +931,7 @@ def test_backend_ingestion_rejects_unresolved_or_forged_new_information_state() 
         RuntimeSnapshot(),
         address="runtime.participant-information-state",
         snapshot=RuntimeSnapshot(),
-        information_state_context_resolver=_context_resolver,
+        call=_BackendCallContext(information_state_context_resolver=_context_resolver),
         realization=_RealizationApplyContext(
             effect_owners=frozenset({"participant"}), effect_targets=frozenset({participant})
         ),

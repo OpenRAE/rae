@@ -19,7 +19,6 @@ from tools.specification_coverage._primitives import (
     _json_sha256,
 )
 
-_ANALYSIS_PATH = "docs/research/specification-coverage/analysis-v1.json"
 _FAILING_STAGE_OUTCOMES = {"failed", "not_run", "tool_failed"}
 
 
@@ -230,8 +229,8 @@ def _validate_analysis(
     snapshot: dict[str, object],
     analysis: dict[str, object],
     failures: list[PolicyFailure],
+    path: str,
 ) -> None:
-    path = _ANALYSIS_PATH
     if not _exact_keys(
         analysis,
         _ANALYSIS_KEYS,

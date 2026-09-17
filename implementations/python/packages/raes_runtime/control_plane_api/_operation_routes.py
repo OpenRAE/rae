@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict
 from raes_contracts.contracts import (
     EvaluationPlanModel,
     OperationReceiptModel,
@@ -23,8 +24,9 @@ from ..control_plane_api_models import (
     _provisioning_plan,
     _snapshot_model,
 )
+from ..control_plane_recovery import IndeterminateResolutionDisposition
 from ..control_plane_security import ControlPlaneSecurityConfig
-from ._auth import _MutatingIdentity, _ReadIdentity
+from ._auth import _MutatingIdentity, _ReadIdentity, _ResolutionIdentity
 from ._offload import _control_plane_calls
 from ._responses import (
     _CONFLICT_RESPONSES,
@@ -33,6 +35,12 @@ from ._responses import (
     _record_operation_receipt_audit,
     _set_snapshot_revision_header,
 )
+
+
+class _IndeterminateResolutionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    disposition: IndeterminateResolutionDisposition
 
 
 def _install_request_guards(
@@ -88,6 +96,35 @@ def _register_operation_submission_routes(
     _register_provisioning_submission_route(app, control_plane)
     _register_orchestration_submission_route(app, control_plane)
     _register_evaluation_submission_route(app, control_plane)
+    _register_indeterminate_resolution_route(app, control_plane)
+
+
+def _register_indeterminate_resolution_route(
+    app: FastAPI,
+    control_plane: RuntimeControlPlane,
+) -> None:
+    @app.post("/operations/{operation_id}/resolution", responses={403: {}, 404: {}, 409: {}})
+    async def resolve_indeterminate_operation(
+        operation_id: str,
+        request: Request,
+        resolution: _IndeterminateResolutionRequest,
+        identity: _ResolutionIdentity,
+    ) -> OperationReceiptModel:
+        try:
+            receipt = await _control_plane_calls(request).mutate(
+                control_plane.resolve_indeterminate_operation,
+                operation_id,
+                disposition=resolution.disposition,
+                idempotency_key=request.headers.get("idempotency-key", ""),
+                identity=identity,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="indeterminate operation not found") from exc
+        except PermissionError as exc:
+            raise HTTPException(status_code=403, detail="indeterminate resolution forbidden") from exc
+        except (TypeError, ValueError, RuntimeError) as exc:
+            raise HTTPException(status_code=409, detail="indeterminate resolution conflict") from exc
+        return _receipt_response(receipt)
 
 
 def _register_provisioning_submission_route(

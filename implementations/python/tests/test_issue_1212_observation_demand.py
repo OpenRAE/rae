@@ -1537,7 +1537,7 @@ def test_realization_detail_creates_no_experimental_demand_but_keeps_operational
         if requirement.requirement_kind == "runtime-environment"
     )
     assert environment.verification_scope is not None
-    assert environment.required_observation_strength is not None
+    assert environment.required_observation_strength is None
 
 
 def test_backend_does_not_persist_unrequested_realization_observations() -> None:
@@ -1597,7 +1597,22 @@ def test_backend_does_not_persist_unrequested_realization_observations() -> None
     assert control_plane.snapshot.realization_observations == ()
 
 
-def test_native_realization_readback_is_not_reused_as_unprotected_retention() -> None:
+@pytest.mark.parametrize(
+    "backend,mechanism,expected",
+    [
+        ("stub", "x-openrae:in-process-emulation", "failed"),
+        ("libvirt", "virtual-machine", "succeeded"),
+    ],
+)
+def test_native_realization_readback_is_not_reused_as_unprotected_retention(backend, mechanism, expected) -> None:
+    from libvirt_conformance_fixtures import RecordingLibvirtDriver
+    from raes_backend_libvirt import create_libvirt_target
+
+    class DemandSelectedDriver(RecordingLibvirtDriver):
+        def realize(self, **kwargs):
+            # Collection is performed only by the explicitly selected observe call.
+            return replace(super().realize(**kwargs), observations=())
+
     scenario = parse_sdl(
         """
         name: exact-backend-selected-telemetry
@@ -1612,7 +1627,7 @@ def test_native_realization_readback_is_not_reused_as_unprotected_retention() ->
             type: compute
             source: exact-image
             resources: {ram: 1 gib, cpu: 1}
-        """
+        """.replace("x-openrae:in-process-emulation", mechanism)
     )
     selector = _selector("/nodes/kali", "compute-substrate", kind="field")
     demands = normalize_observation_demands(
@@ -1631,7 +1646,11 @@ def test_native_realization_readback_is_not_reused_as_unprotected_retention() ->
         ),
         target_scopes=("/nodes/kali",),
     ).effective
-    target = create_stub_target()
+    target = (
+        create_stub_target()
+        if backend == "stub"
+        else create_libvirt_target(driver=DemandSelectedDriver(), driver_mode="generic")
+    )
     execution_plan = RuntimeManager(target).plan(scenario)
     provisioning = execution_plan.provisioning
     provisioning = replace(provisioning, observation_demands=demands)
@@ -1640,7 +1659,8 @@ def test_native_realization_readback_is_not_reused_as_unprotected_retention() ->
 
     receipt = control_plane.submit_provisioning(provisioning)
 
-    assert control_plane.get_operation(receipt.operation_id).state.value == "succeeded"
+    status = control_plane.get_operation(receipt.operation_id)
+    assert status.state.value == expected, [item.message for item in status.diagnostics]
     assert control_plane.snapshot.realization_observations == ()
 
 

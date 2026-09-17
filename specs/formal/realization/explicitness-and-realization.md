@@ -391,26 +391,45 @@ does not pick values for underspecified concerns.
 
 For a concern governed by an applicable operational verification or selected
 observation contract, value equality alone is not sufficient corroboration.
-That contract supplies the required verification scope and strength; exact
-inventory detail alone MUST NOT invent experimental capture. The manifest MUST disclose a
+That contract supplies the required verification scope and MAY supply an exact
+evidence-source constraint; an omitted source constraint leaves the method open
+without removing corroboration. Exact inventory detail alone MUST NOT invent
+experimental capture. The manifest MUST disclose a
 concern-keyed observation capability whose scope covers that demand, and the
 returned runtime snapshot MUST carry a value-free observation disclosure for
 the same address, field path, domain, and requirement kind. The disclosure's
-scope and observation-strength source MUST be supported by the selected
-manifest declaration. Missing, malformed, under-scoped, or unsupported
+scope and actual source provenance MUST be supported by the selected manifest
+declaration. Source categories are alternatives rather than a strength order;
+an unconstrained source still requires authoritative readback and MUST NOT be
+satisfied by `none` or `driver-reported` self-attestation alone. When a source
+is explicitly constrained it MUST match exactly. Missing, malformed,
+under-scoped, or unsupported
 corroboration is a `runtime.backend-contract-invalid` failure before snapshot
 persistence.
+
+Evidence-source provenance, in-world versus out-of-world visibility, and the
+effect of collection on the realized world are independent coordinates. A
+closed effective realization scope MUST NOT add an in-world probe, sidecar,
+service, account, mount, package, listener, or forwarding path merely to obtain
+corroboration; non-mutating native readback remains permitted, and an otherwise
+unprovable claim MUST be rejected before mutation. An open effective scope MAY
+add observation apparatus only when needed for sufficient proof and MUST select
+the available sufficient method with the least environment and participant
+effect. Added apparatus MUST pass normal realization authority and preparation
+and MUST be reported through the realized-form and SEM-225 augmentation
+disclosures with its visibility and comparability effects.
 
 The qualified concerns include `forwarding-agents` and
 `process-resource-limits`. Forwarding-agent scopes are `presence` (identity,
 placement, and implementation inventory) and `configuration` (authored
 child/configuration projection). Process-resource limits require
-`configuration` scope and `guest-observed` strength because desired-payload,
-container-runtime, or hypervisor configuration does not prove the effective
-limit inside the workload. The existing `ObservationStrength` values remain
-the source axis; they do not prove forwarding behavior, process readiness, or
-resource sufficiency. Delivery, transform, reload, health, and failure claims
-belong to governed proposition, probe, truth, and evidence contracts.
+`configuration` scope and an exact `guest-observed` source constraint because
+desired-payload, container-runtime, or hypervisor configuration does not prove
+the effective limit inside the workload. The existing `ObservationStrength`
+values remain the source axis; they do not prove forwarding behavior, process
+readiness, or resource sufficiency. Delivery, transform, reload, health, and
+failure claims belong to governed proposition, probe, truth, and evidence
+contracts.
 
 ### Portable process-resource-limit concern
 

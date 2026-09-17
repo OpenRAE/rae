@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import pytest
 from raes_contracts.realization_structure import evaluate_realization_constraint
+from raes_contracts.vocabulary import ObservationStrength
 from raes_processor.semantics.realization_concerns import project_realization_concern
 from test_issue_1200_mixed_runtime_constraints import _fixture
 
@@ -118,10 +119,10 @@ def _apply_with_observations(plan, manifest, runtime):
                 domain=a.domain,
                 requirement_kind=a.requirement_kind,
                 verification_scope=a.verification_scope,
-                observation_strength=a.required_observation_strength,
+                observation_strength=(a.required_observation_strength or ObservationStrength.GUEST_OBSERVED),
             )
             for a in plan.realization_authority
-            if a.verification_scope is not None and a.required_observation_strength is not None
+            if a.verification_scope is not None
         ),
     )
     previous = RuntimeSnapshot()

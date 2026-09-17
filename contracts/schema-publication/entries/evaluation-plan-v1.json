@@ -1,10 +1,10 @@
 {
+  "content_hash": "cf76df1286058ff5dd35f44cdcbcac91d0cd45178b5006f70f509fd25948003b",
   "contract_id": "evaluation-plan-v1",
-  "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560",
   "last_change": {
-    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
-    "content_hash": "c8e938bc3ef02c3e7315771c468f4a19021ff4f7186f9b92bb76e1ca6ace2560"
-  }
+    "content_hash": "cf76df1286058ff5dd35f44cdcbcac91d0cd45178b5006f70f509fd25948003b",
+    "summary": "Bind explicit augmentation-scope negotiation to the canonical phase plan independently of diagnostics (#1242)."
+  },
+  "schema_path": "contracts/schemas/plans/evaluation-plan-v1.json",
+  "stability": "draft"
 }

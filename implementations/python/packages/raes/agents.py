@@ -20,9 +20,11 @@ combines ``allowed_subnets`` with the broader ``operating_scope`` list.
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 
-from ._base import SDLModel, WholeFieldVariableReference, parse_enum_or_var
+from ._base import SDLModel, WholeFieldVariableReference
 from ._identifiers import PortableIdentifier
+from .profile_selections import parse_profile_or_enum
 
 
 class ParticipantInteractiveAccessChannel(str, Enum):
@@ -40,13 +42,13 @@ class ParticipantInteractiveAccess(SDLModel):
     """
 
     target_ref: str = Field(min_length=1)
-    channel: ParticipantInteractiveAccessChannel | WholeFieldVariableReference
+    channel: ParticipantInteractiveAccessChannel | DomainProfileBindingModel | WholeFieldVariableReference
     account_ref: str | None = Field(default=None, min_length=1)
 
     @field_validator("channel", mode="before")
     @classmethod
     def parse_channel(cls, value: object) -> ParticipantInteractiveAccessChannel | str:
-        return parse_enum_or_var(
+        return parse_profile_or_enum(
             value,
             ParticipantInteractiveAccessChannel,
             field_name="channel",

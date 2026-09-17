@@ -21,6 +21,9 @@ Static scenarios become predictable after one run. CALDERA's fact-based variable
 
 ## Traceability
 
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing SCE-002 authority in SEM-234 without changing its runtime contract)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent SCE-002 authority)
 - DOCUMENTS → GITHUB_ISSUE `788` (SCE-002: publish the admitted experiment trial-plan contract)
 - DOCUMENTS → GITHUB_ISSUE `652` (Design: scenario variation and deterministic trial realization (SCE-002))
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-084-scenario-variation-and-deterministic-trial-realization.md` (ADR-084: Scenario Variation and Deterministic Trial Realization)

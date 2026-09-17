@@ -15,6 +15,8 @@ kind + bounded attributes + typed references — never raw object bodies.
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import SDLModel
 from .runtime_platform_application_content import (
     RuntimePlatformApplicationCapability,
@@ -80,7 +82,7 @@ class RuntimePlatformApplication(SDLModel):
 
     platform_application_id: str
     service: str = ""
-    platform_kind: RuntimePlatformApplicationKind | str = Field(
+    platform_kind: GovernedVocabulary[RuntimePlatformApplicationKind] = Field(
         default=RuntimePlatformApplicationKind.UNKNOWN,
         description=(
             "Legacy product-family category retained for compatibility; does not imply capabilities "
@@ -169,10 +171,14 @@ class RelationshipServiceIntegration(SDLModel):
 
     consumer_ref: str = ""
     engine_ref: str = ""
-    integration_kind: RelationshipServiceIntegrationKind | str = RelationshipServiceIntegrationKind.UNKNOWN
+    integration_kind: GovernedVocabulary[RelationshipServiceIntegrationKind] = (
+        RelationshipServiceIntegrationKind.UNKNOWN
+    )
     auth_principal_ref: str = ""
     enabled: bool | str | None = None
-    direction: RelationshipServiceIntegrationDirection | str = RelationshipServiceIntegrationDirection.BIDIRECTIONAL
+    direction: GovernedVocabulary[RelationshipServiceIntegrationDirection] = (
+        RelationshipServiceIntegrationDirection.BIDIRECTIONAL
+    )
     description: str = ""
 
     @field_validator("integration_kind", mode="before")

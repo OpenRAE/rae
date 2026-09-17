@@ -15,6 +15,7 @@ from tools.formal_semantic_validation._replay import (
     _replay_observation_matches,
     replay_case,
 )
+from tools.formal_semantic_validation._retest_header import _validate_retest_header
 from tools.formal_semantic_validation._retest_participants import (
     _validate_retest_participant_observations,
 )
@@ -22,17 +23,14 @@ from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
     _is_sequence,
-    _nonempty_string,
     _stable_ids,
     _string_list,
 )
 from tools.formal_semantic_validation._types import (
     _COMMAND_KEYS,
-    _COMMIT_RE,
     _OBSERVATION_V2_KEYS,
     _SHA256_RE,
     _SNAPSHOT_V2_KEYS,
-    _VERSION_KEYS,
     PRODUCTION_EVIDENCE_REPLAY_MODES,
     EvidenceRelease,
 )
@@ -67,7 +65,37 @@ def _validate_retest_snapshot(
         _SNAPSHOT_V2_KEYS
         | (
             {"source_state"}
-            if release.manifest.get("revision") in {"4.0.0", "5.0.0", "6.0.0", "7.0.0", "8.0.0", "9.0.0"}
+            if release.manifest.get("revision")
+            in {
+                "4.0.0",
+                "5.0.0",
+                "6.0.0",
+                "7.0.0",
+                "8.0.0",
+                "9.0.0",
+                "10.0.0",
+                "11.0.0",
+                "12.0.0",
+                "13.0.0",
+                "14.0.0",
+                "15.0.0",
+                "16.0.0",
+                "17.0.0",
+                "18.0.0",
+                "19.0.0",
+                "20.0.0",
+                "21.0.0",
+                "22.0.0",
+                "23.0.0",
+                "24.0.0",
+                "25.0.0",
+                "26.0.0",
+                "27.0.0",
+                "28.0.0",
+                "29.0.0",
+                "30.0.0",
+                "31.0.0",
+            }
             else set()
         ),
         rule_id="formal-validation-snapshot-shape",
@@ -93,6 +121,28 @@ def _validate_retest_snapshot(
         "7.0.0",
         "8.0.0",
         "9.0.0",
+        "10.0.0",
+        "11.0.0",
+        "12.0.0",
+        "13.0.0",
+        "14.0.0",
+        "15.0.0",
+        "16.0.0",
+        "17.0.0",
+        "18.0.0",
+        "19.0.0",
+        "20.0.0",
+        "21.0.0",
+        "22.0.0",
+        "23.0.0",
+        "24.0.0",
+        "25.0.0",
+        "26.0.0",
+        "27.0.0",
+        "28.0.0",
+        "29.0.0",
+        "30.0.0",
+        "31.0.0",
     }:
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
     _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)
@@ -184,49 +234,6 @@ def _retest_observation_failures(
             )
         )
     return expected_release_paths
-
-
-def _validate_retest_header(
-    protocol: Mapping[str, object],
-    corpus: Mapping[str, object],
-    snapshot: Mapping[str, object],
-    failures: list[PolicyFailure],
-    path: str,
-) -> None:
-    if (
-        snapshot.get("protocol_revision") != protocol.get("revision")
-        or snapshot.get("corpus_revision") != corpus.get("revision")
-        or snapshot.get("execution_status") != "complete"
-    ):
-        failures.append(
-            _failure(
-                "formal-validation-snapshot-revision",
-                "retest snapshot must bind the selected revisions and a complete execution",
-                path,
-            )
-        )
-    revision = snapshot.get("raes_revision")
-    if not isinstance(revision, str) or not _COMMIT_RE.fullmatch(revision):
-        failures.append(
-            _failure(
-                "formal-validation-revision-pin",
-                "retest snapshot must pin a full RAES commit",
-                path,
-            )
-        )
-    versions = snapshot.get("versions")
-    if (
-        not isinstance(versions, Mapping)
-        or set(versions) != _VERSION_KEYS
-        or not all(_nonempty_string(value) for value in versions.values())
-    ):
-        failures.append(
-            _failure(
-                "formal-validation-version-disclosure",
-                "retest snapshot must record the bounded output-affecting versions",
-                path,
-            )
-        )
 
 
 def _validate_retest_commands(

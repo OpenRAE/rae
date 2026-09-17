@@ -33,6 +33,11 @@ def _scope_to_vocabulary_id() -> dict[str, str]:
     }
 
 
+def controlled_vocabulary_id_for_scope(scope: str) -> str | None:
+    """Return the catalog-owned vocabulary for a declared scope, if any."""
+    return _scope_to_vocabulary_id().get(scope)
+
+
 def validate_controlled_vocabulary_value(vocabulary_id: str, value: str) -> None:
     catalog = load_controlled_vocabulary_catalog()
     try:

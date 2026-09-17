@@ -49,7 +49,7 @@ from ._models import (
     RealizationSequenceConstraint,
     RecursiveRealizationStructure,
 )
-from ._normalization import normalize_realization_literal
+from ._normalization import RealizationNormalizationMetadata, normalize_realization_literal
 from ._semantic_addresses import canonical_semantic_address, semantic_address_contains
 
 __all__ = [
@@ -89,6 +89,7 @@ __all__ = [
     "canonical_semantic_address",
     "downgrade_recursive_realization_structure",
     "evaluate_realization_constraint",
+    "RealizationNormalizationMetadata",
     "normalize_realization_literal",
     "realization_constraint_refines",
     "semantic_address_contains",

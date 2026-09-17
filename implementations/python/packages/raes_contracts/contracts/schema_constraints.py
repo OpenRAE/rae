@@ -164,6 +164,11 @@ def _attach_scenario_identifier_constraints(contract_id: str, schema: dict[str, 
             else _portable_property_names(maximum=local_maximum)
         )
     _attach_runtime_identifier_constraints(schema)
+    binding = schema.get(_DEFS_KEY, {}).get("MaterializedResourceBinding")
+    if isinstance(binding, dict):
+        properties = binding["properties"]
+        properties["node_name"] = _qualified_property_names()
+        properties["source_node"] = {"anyOf": [_qualified_property_names(), {"type": "null"}], "default": None}
     forwarding_id_schema = _qualified_property_names() if qualified else _portable_property_names()
     _constrain_collection_item_field(
         scenario_schema,
@@ -262,6 +267,7 @@ def _attach_instantiation_invariants(contract_id: str, json_schema: dict[str, An
     """
     if contract_id not in {
         _INSTANTIATION_INVARIANT_CONTRACT_ID,
+        "materialized-scenario-v1",
         _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
         _SATISFIABILITY_EVIDENCE_CONTRACT_ID,
     }:

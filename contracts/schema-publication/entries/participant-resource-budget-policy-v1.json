@@ -2,9 +2,9 @@
   "contract_id": "participant-resource-budget-policy-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-resource-budget-policy-v1.json",
   "stability": "draft",
-  "content_hash": "3e01d6b28246fe7cf60f7b201c2b9fcebd869d1a3c4d8549098a6050870ee08b",
+  "content_hash": "ee57048f0ec559488c83111d1e74fc6597f58d8b4230685a84687a6d1902d994",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "3e01d6b28246fe7cf60f7b201c2b9fcebd869d1a3c4d8549098a6050870ee08b"
+    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
+    "content_hash": "ee57048f0ec559488c83111d1e74fc6597f58d8b4230685a84687a6d1902d994"
   }
 }

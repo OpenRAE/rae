@@ -2,9 +2,8 @@
 
 Covers the OPEN ``data_model`` discriminator spine, the typed cluster / node /
 partition / persistence / transport-security / setting children, secret-bearing
-setting redaction, duplicate-id rejection, and — the core correctness feature —
-the ``require_profile_for_data_model`` guard (positive for each model plus each
-REQUIRE / REJECT negative).
+setting redaction, duplicate-id rejection, partial descriptions and retained
+structural contradictions. Selected completeness is tested at admission.
 """
 
 from __future__ import annotations
@@ -613,21 +612,24 @@ def test_node_rejects_duplicate_roles() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_search_index_requires_index_partition() -> None:
-    with pytest.raises(ValidationError, match="requires at least one partition with kind 'index'"):
-        RuntimeDatastoreService(**_search_index_service(partitions=[]))
+def test_search_index_accepts_empty_configured_partitions() -> None:
+    service = RuntimeDatastoreService(**_search_index_service(partitions=[], mappings=[], templates=[]))
+    assert service.partitions == []
 
 
-def test_search_index_requires_shard_replica_geometry() -> None:
-    with pytest.raises(ValidationError, match="must carry shard_count and replica_count geometry"):
-        RuntimeDatastoreService(
-            **_search_index_service(partitions=[{"partition_id": "idx", "kind": "index", "shard_count": 3}])
+def test_search_index_preserves_partial_geometry() -> None:
+    service = RuntimeDatastoreService(
+        **_search_index_service(
+            partitions=[{"partition_id": "idx", "kind": "index", "shard_count": 3}], mappings=[], templates=[]
         )
+    )
+    assert service.partitions[0].shard_count == 3
+    assert service.partitions[0].replica_count is None
 
 
-def test_search_index_requires_mapping_manifest() -> None:
-    with pytest.raises(ValidationError, match="requires at least one structured mapping manifest"):
-        RuntimeDatastoreService(**_search_index_service(mappings=[]))
+def test_search_index_accepts_empty_mapping_inventory() -> None:
+    service = RuntimeDatastoreService(**_search_index_service(mappings=[], templates=[]))
+    assert service.mappings == []
 
 
 def test_mapping_partition_ref_must_resolve() -> None:
@@ -720,9 +722,9 @@ def test_published_sdl_schemas_include_mapping_and_template_manifests() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_key_value_requires_persistence() -> None:
-    with pytest.raises(ValidationError, match="data_model 'key_value' requires a persistence profile"):
-        RuntimeDatastoreService(**_key_value_service(persistence=None))
+def test_key_value_does_not_require_persistence_knowledge() -> None:
+    service = RuntimeDatastoreService(**_key_value_service(persistence=None))
+    assert service.persistence is None
 
 
 def test_key_value_rejects_relational_partitions() -> None:
@@ -739,33 +741,26 @@ def test_key_value_rejects_relational_partitions() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_wide_column_requires_keyspace_partition() -> None:
-    with pytest.raises(ValidationError, match="requires at least one partition with kind 'keyspace'"):
-        RuntimeDatastoreService(**_wide_column_service(partitions=[]))
+def test_wide_column_accepts_empty_configured_keyspaces() -> None:
+    service = RuntimeDatastoreService(**_wide_column_service(partitions=[]))
+    assert service.partitions == []
 
 
-def test_wide_column_requires_replication_strategy_and_factor() -> None:
-    with pytest.raises(ValidationError, match="must carry replication_strategy and replication_factor"):
-        RuntimeDatastoreService(
-            **_wide_column_service(
-                partitions=[{"partition_id": "ks", "kind": "keyspace", "name": "thehive"}],
-            )
+def test_wide_column_preserves_unknown_replication() -> None:
+    service = RuntimeDatastoreService(
+        **_wide_column_service(partitions=[{"partition_id": "ks", "kind": "keyspace", "name": "thehive"}])
+    )
+    assert service.partitions[0].replication_factor is None
+
+
+def test_wide_column_preserves_strategy_without_fabricating_factor() -> None:
+    service = RuntimeDatastoreService(
+        **_wide_column_service(
+            partitions=[{"partition_id": "ks", "kind": "keyspace", "replication_strategy": "simple_strategy"}]
         )
-
-
-def test_wide_column_rejects_keyspace_missing_factor() -> None:
-    with pytest.raises(ValidationError, match="must carry replication_strategy and replication_factor"):
-        RuntimeDatastoreService(
-            **_wide_column_service(
-                partitions=[
-                    {
-                        "partition_id": "ks",
-                        "kind": "keyspace",
-                        "replication_strategy": "simple_strategy",
-                    }
-                ],
-            )
-        )
+    )
+    assert service.partitions[0].replication_strategy == "simple_strategy"
+    assert service.partitions[0].replication_factor is None
 
 
 # --------------------------------------------------------------------------- #
@@ -841,9 +836,8 @@ def test_endpoint_role_normalizes_hyphen_alias_and_open_sentinels() -> None:
 
 
 def test_endpoint_role_rejects_unrecognized_value() -> None:
-    # An unrecognized (non-var) role must raise with the closed-set error
-    # envelope, never silently pass through as an arbitrary string.
-    with pytest.raises(ValidationError, match="role must be one of: client, peer, unknown, other"):
+    # An unqualified private role must fail the governed identity grammar.
+    with pytest.raises(ValidationError, match="role must be one of the known terms"):
         RuntimeDatastoreNodeEndpoint(endpoint_id="e1", role="gossip")
 
 

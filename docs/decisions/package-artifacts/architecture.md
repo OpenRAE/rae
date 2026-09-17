@@ -210,7 +210,7 @@ not by admitting `file:` redirects from an HTTP request.
 
 | Component | Target platform and qualification |
 |---|---|
-| Conftest, Gitleaks, Vale, OSV | Linux x86_64/arm64 and macOS x86_64/arm64, matching existing selectors; all four need raw/installed digests and real execution smoke before migration completion |
+| Conftest, Gitleaks, Vale, OSV | Linux x86_64/arm64 and macOS arm64, matching existing selectors (macOS x86_64 retired in #1268); all four need raw/installed digests and real execution smoke before migration completion |
 | Python environment | CPython 3.11, 3.12, 3.13, 3.14 within current metadata bounds; qualify available wheel/ABI closure per selected OS/architecture. 3.14t stays advisory; Windows is not a repository-tool qualification claim |
 | Isabelle/proof | Linux x86_64 with qualified Bubblewrap, locale, fontconfig/fonts and process limits. macOS/arm64 contributors use a qualified Linux x86_64 host/VM; no native proof-support claim or hidden proof skip |
 | OCI release input | Retain pinned multiarch index and the selected platform manifests/config/layers. Current hosted release target is Linux x86_64; arm64 needs daemon/native execution evidence before claiming an arm64 release-test profile |

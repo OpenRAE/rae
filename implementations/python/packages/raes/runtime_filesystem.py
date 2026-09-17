@@ -3,7 +3,9 @@
 import re
 from enum import Enum
 
-from pydantic import ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, ValidationInfo, field_validator, model_validator
+
+from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from .runtime_values import absolute_path_or_var, parse_runtime_enum_or_var
@@ -108,6 +110,24 @@ def redacted_raw_value_schema(
     }
 
 
+def flagged_raw_value_schema(*, flag_field: str, raw_field: str, array: bool = False) -> dict[str, object]:
+    """Publish the owning model's true-flag/raw-value omission rule."""
+    return {
+        "if": {
+            "properties": {
+                flag_field: {
+                    "anyOf": [
+                        {"const": True},
+                        {"type": "string", "pattern": r"^\s*(?:[Tt][Rr][Uu][Ee]|1|[Yy][Ee][Ss]|[Oo][Nn])\s*$"},
+                    ]
+                }
+            },
+            "required": [flag_field],
+        },
+        "then": {"properties": {raw_field: {"maxItems": 0} if array else {"maxLength": 0}}},
+    }
+
+
 _PRESENT_ONLY_FIELDS: tuple[str, ...] = (
     "owner_user",
     "owner_group",
@@ -123,9 +143,21 @@ _PRESENT_ONLY_FIELDS: tuple[str, ...] = (
 class RuntimeFilesystemEntry(SDLModel):
     """A filesystem entry observed inside a runtime node or container asset."""
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "if": {
+                "properties": {
+                    "presence": {"pattern": "^[Ee][Xx][Pp][Ee][Cc][Tt][Ee][Dd][_-][Aa][Bb][Ss][Ee][Nn][Tt]$"}
+                },
+                "required": ["presence"],
+            },
+            "then": {"properties": {name: {"enum": ["", None]} for name in _PRESENT_ONLY_FIELDS}},
+        }
+    )
+
     path: str
-    entry_type: RuntimeFilesystemEntryType | str = RuntimeFilesystemEntryType.OTHER
-    presence: RuntimeFilesystemPresence | str = RuntimeFilesystemPresence.PRESENT
+    entry_type: GovernedVocabulary[RuntimeFilesystemEntryType] = RuntimeFilesystemEntryType.OTHER
+    presence: GovernedVocabulary[RuntimeFilesystemPresence] = RuntimeFilesystemPresence.PRESENT
     owner_user: str = ""
     owner_group: str = ""
     uid: int | str | None = None
@@ -136,8 +168,8 @@ class RuntimeFilesystemEntry(SDLModel):
     digest_algorithm: str = ""
     source_path: str = ""
     provenance: str = ""
-    stability: RuntimeFilesystemStability | str = RuntimeFilesystemStability.UNKNOWN
-    sensitivity: RuntimeSensitivityClassification | str = RuntimeSensitivityClassification.UNKNOWN
+    stability: GovernedVocabulary[RuntimeFilesystemStability] = RuntimeFilesystemStability.UNKNOWN
+    sensitivity: GovernedVocabulary[RuntimeSensitivityClassification] = RuntimeSensitivityClassification.UNKNOWN
     description: str = ""
 
     @field_validator("path")

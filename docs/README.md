@@ -7,6 +7,7 @@ working records that remain visible in the repository.
 ## Work on the repository
 
 - [Development workflow](DEVELOPMENT_WORKFLOW.md)
+- [Development container](explain/development-container.md)
 - [Coding standards](explain/reference/coding-standards.md)
 - [Documentation style guide](explain/reference/documentation-style-guide.md)
 - [Release process](explain/releasing.md)

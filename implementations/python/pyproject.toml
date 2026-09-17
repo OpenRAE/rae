@@ -28,7 +28,7 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
     "sse-starlette>=2.0.0",
-    "asyncssh>=2.23.0",
+    "asyncssh>=2.24.0",
     "mcp>=1.28.1,<3",
     # Typed domain-profile validation is deliberately pinned to one inert,
     # in-process Draft 2020-12 implementation (issue #1202).
@@ -36,6 +36,8 @@ dependencies = [
     "jsonschema-specifications==2025.9.1",
     "referencing==0.37.0",
     "packaging>=23.0",
+    # Pure Debian/RPM comparison; selected by exact software semantic contracts.
+    "univers==32.0.1",
     "rfc8785>=0.1.4,<0.2",
     "blake3>=1.0.8,<2",
     # Pinned to the governed raes-z3-finite-domain/v1 solver profile. The
@@ -149,6 +151,8 @@ exclude_also = [
     # IO, exercised only by the opt-in docker integration tests, never in the
     # hermetic suite.
     "def _default_runner",
+    # A module's CLI entry guard is never taken under import-based testing.
+    "if __name__ == .__main__.:",
 ]
 
 [tool.coverage.xml]

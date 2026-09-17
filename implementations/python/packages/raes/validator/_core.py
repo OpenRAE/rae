@@ -226,6 +226,7 @@ class _ValidatorCore:
         self._verify_workflows()
         self._verify_participant_outcomes()
         self._verify_evidence_requirements()
+        self._verify_augmentation_scope()
         self._verify_time_model()
         self._verify_variables()
         self._verify_variation_points()

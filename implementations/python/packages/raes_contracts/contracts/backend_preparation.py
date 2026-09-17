@@ -7,6 +7,8 @@ from typing import Literal
 from pydantic import Field, StrictBool, model_validator
 from pydantic_core import to_jsonable_python
 
+from raes_contracts.canonical import jsonable_fallback
+
 from ..diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
 from ..planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain, require_plan_operation_identity
 from ..realization_preparation import BACKEND_PREPARATION_CONTRACT, RealizationPreparation
@@ -77,7 +79,7 @@ def preparation_response_model(response: RealizationPreparation) -> BackendPrepa
         request_digest=response.request_digest,
         predecessor_digest=response.predecessor_digest,
         success=response.success,
-        operations=to_jsonable_python(response.operations),
+        operations=to_jsonable_python(response.operations, fallback=jsonable_fallback),
         diagnostics=[portable_diagnostic_payload(item) for item in response.diagnostics],
     )
 

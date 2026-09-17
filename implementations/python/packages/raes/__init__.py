@@ -3,7 +3,7 @@
 A backend-agnostic scenario specification language with revision-pinned syntax
 and translated-model ancestry in Open Cyber Range SDL plus RAES-native
 extensions. The normative derivation boundary is recorded in
-``contracts/provenance/sdl-lineage-ledger-v1.json``; this module does not claim
+``contracts/provenance/sdl-lineage-ledger-v2.json``; this module does not claim
 drop-in compatibility.
 """
 
@@ -17,6 +17,11 @@ except PackageNotFoundError:
 
 __all__ = [
     "admit_instantiated_scenario",
+    "admit_materialized_scenario",
+    "MaterializedScenario",
+    "MATERIALIZED_SDL_PROFILE",
+    "canonical_materialized_sdl_bytes",
+    "canonical_materialized_sdl_digest",
     "__version__",
     "canonical_instantiated_sdl_bytes",
     "canonical_instantiated_sdl_digest",
@@ -78,6 +83,9 @@ def __getattr__(name: str):
     }:
         module = import_module("raes._errors")
     elif name in {
+        "canonical_materialized_sdl_bytes",
+        "canonical_materialized_sdl_digest",
+        "MATERIALIZED_SDL_PROFILE",
         "canonical_instantiated_sdl_bytes",
         "canonical_instantiated_sdl_digest",
         "canonical_sdl_bytes",
@@ -104,6 +112,8 @@ def __getattr__(name: str):
         module = import_module("raes._declarations")
     elif name in {"admit_instantiated_scenario", "instantiate_scenario"}:
         module = import_module("raes.instantiate")
+    elif name in {"admit_materialized_scenario", "MaterializedScenario"}:
+        module = import_module("raes.materialization")
     elif name == "validate_experiment_selection_against_family":
         module = import_module("raes.experiment_selection")
     elif name in {"ExpandedScenarioBindingTargetResolver", "select_scenario_family"}:

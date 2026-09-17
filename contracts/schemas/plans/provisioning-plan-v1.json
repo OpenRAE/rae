@@ -815,6 +815,49 @@
       "type": "object"
     },
     "JsonValue": {},
+    "MaterializationSource": {
+      "additionalProperties": false,
+      "description": "Trusted full source context sealed into the exact operation plan.",
+      "properties": {
+        "authored_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Authored Digest",
+          "type": "string"
+        },
+        "contract_id": {
+          "const": "backend-materialization-attestation-v1",
+          "default": "backend-materialization-attestation-v1",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "instantiated_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Instantiated Digest",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "snapshot": {
+          "maxLength": 1048576,
+          "minLength": 1,
+          "title": "Snapshot",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot",
+        "authored_digest",
+        "instantiated_digest",
+        "run_id"
+      ],
+      "title": "MaterializationSource",
+      "type": "object"
+    },
     "NullDomain": {
       "additionalProperties": false,
       "description": "The singleton JSON-null domain, distinct from omission or unknown.",
@@ -2028,7 +2071,8 @@
               "governed-reference": "#/$defs/GovernedReferenceDomain",
               "null": "#/$defs/NullDomain",
               "numeric-interval": "#/$defs/NumericIntervalDomain",
-              "record": "#/$defs/RecordDomain"
+              "record": "#/$defs/RecordDomain",
+              "version": "#/$defs/VersionDomain"
             },
             "propertyName": "kind"
           },
@@ -2044,6 +2088,9 @@
             },
             {
               "$ref": "#/$defs/NullDomain"
+            },
+            {
+              "$ref": "#/$defs/VersionDomain"
             },
             {
               "$ref": "#/$defs/NumericIntervalDomain"
@@ -3044,12 +3091,97 @@
       ],
       "title": "ResolvedRealizationAuthorityModel",
       "type": "object"
+    },
+    "VersionDomain": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "lower": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "lower"
+          ]
+        },
+        {
+          "properties": {
+            "upper": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "upper"
+          ]
+        }
+      ],
+      "description": "An optional one-sided or bounded restriction; exact SDL strings stay exact.\n\nComparison equality is relation-owned. This never asserts correspondence\nbetween an application version and a distribution package version.",
+      "properties": {
+        "kind": {
+          "const": "version",
+          "default": "version",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lower": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lower"
+        },
+        "lower_closed": {
+          "default": true,
+          "title": "Lower Closed",
+          "type": "boolean"
+        },
+        "relation": {
+          "$ref": "#/$defs/DomainProfileSemanticContractModel"
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upper"
+        },
+        "upper_closed": {
+          "default": true,
+          "title": "Upper Closed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "relation"
+      ],
+      "title": "VersionDomain",
+      "type": "object"
     }
   },
   "$id": "https://openrae.github.io/rae/schemas/provisioning-plan-v1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "augmentation_scope_required": {
+      "default": false,
+      "title": "Augmentation Scope Required",
+      "type": "boolean"
+    },
     "diagnostics": {
       "items": {
         "additionalProperties": true,
@@ -3057,6 +3189,30 @@
       },
       "title": "Diagnostics",
       "type": "array"
+    },
+    "instantiation_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Instantiation Id"
+    },
+    "materialization_source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MaterializationSource"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "observation_demands": {
       "items": {
@@ -3107,6 +3263,15 @@
       ],
       "default": null
     },
+    "purpose": {
+      "default": "execution",
+      "enum": [
+        "execution",
+        "inspection"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
     "realization_authority": {
       "items": {
         "$ref": "#/$defs/ResolvedRealizationAuthorityModel"
@@ -3131,6 +3296,19 @@
         }
       ],
       "default": null
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Run Id"
     }
   },
   "required": [

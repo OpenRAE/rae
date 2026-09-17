@@ -6,17 +6,21 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.domain_profiles import DomainProfileBindingModel, DomainProfileCoordinateModel
 
 DOMAIN_NODE_ROLES = frozenset({"controller", "member"})
 
 
-def domain_topology_profile(payload: Mapping[str, object]) -> str:
+def domain_topology_profile(payload: Mapping[str, object]) -> str | DomainProfileCoordinateModel:
     """Return the concrete domain profile carried by a resource payload."""
 
     binding = payload.get("domain_topology")
-    if not isinstance(binding, Mapping):
-        return ""
-    profile = binding.get("profile")
+    profile = binding.get("profile") if isinstance(binding, Mapping) else None
+    if isinstance(profile, (Mapping, DomainProfileBindingModel)):
+        try:
+            return DomainProfileBindingModel.model_validate(profile).coordinate
+        except ValueError:
+            return "invalid-profile"
     return profile if isinstance(profile, str) else ""
 
 
@@ -25,7 +29,7 @@ class DomainTopologyBinding:
     """Normalized domain realization intent attached to a plan resource."""
 
     domain_id: str
-    profile: str
+    profile: str | DomainProfileBindingModel
     dns_name: str
     netbios_name: str
     authority_account_address: str
@@ -33,7 +37,12 @@ class DomainTopologyBinding:
     controller_addresses: tuple[str, ...]
 
     def __post_init__(self) -> None:
-        for field_name in ("domain_id", "profile", "dns_name", "netbios_name"):
+        required_fields = (
+            ("domain_id",)
+            if isinstance(self.profile, DomainProfileBindingModel)
+            else ("domain_id", "profile", "dns_name", "netbios_name")
+        )
+        for field_name in required_fields:
             value = getattr(self, field_name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"DomainTopologyBinding.{field_name} must be non-empty")
@@ -81,7 +90,9 @@ class DomainTopologyBinding:
             raise ValueError("DomainTopologyBinding.controller_addresses must be a sequence")
         return cls(
             domain_id=required_string("domain_id"),
-            profile=required_string("profile"),
+            profile=DomainProfileBindingModel.model_validate(payload["profile"])
+            if isinstance(payload.get("profile"), (Mapping, DomainProfileBindingModel))
+            else required_string("profile"),
             dns_name=required_string("dns_name"),
             netbios_name=required_string("netbios_name"),
             authority_account_address=required_string("authority_account_address"),

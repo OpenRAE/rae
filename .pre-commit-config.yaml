@@ -1,20 +1,14 @@
 fail_fast: true
-default_install_hook_types: [pre-commit, pre-push]
+default_install_hook_types: [pre-commit]
 
 repos:
   - repo: local
     hooks:
-      - id: nox-pre-commit
-        name: nox pre-commit gate
-        entry: bash -c 'unset $(git rev-parse --local-env-vars); uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hook-pre-commit -- "$@"' --
+      # Full validation and tests run in CI, not in commit or push hooks.
+      - id: nox-hygiene
+        name: file hygiene and secrets
+        entry: bash -c 'unset $(git rev-parse --local-env-vars); uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hygiene -- "$@"' --
         language: system
         pass_filenames: true
         require_serial: true
         stages: [pre-commit]
-      - id: nox-pre-push
-        name: nox pre-push verify
-        entry: bash -c 'unset $(git rev-parse --local-env-vars); uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hook-pre-push'
-        language: system
-        pass_filenames: false
-        require_serial: true
-        stages: [pre-push]

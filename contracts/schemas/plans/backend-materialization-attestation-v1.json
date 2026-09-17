@@ -1,0 +1,48 @@
+{
+  "$id": "https://openrae.github.io/rae/schemas/backend-materialization-attestation-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A producer's bounded SDL bytes; admission is owned by the SDL consumer.",
+  "properties": {
+    "contract_id": {
+      "const": "backend-materialization-attestation-v1",
+      "default": "backend-materialization-attestation-v1",
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "sdl": {
+      "maxLength": 1048576,
+      "minLength": 1,
+      "title": "Sdl",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sdl"
+  ],
+  "title": "MaterializationSubmission",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "SDL bytes require bounded parsing and semantic, original-authority, complete inventory and execution-context validation after materialization hooks.",
+      "id": "backend-materialization-submission-admission",
+      "inputs": [
+        {
+          "contract_id": "backend-materialization-attestation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_processor.planner.admit_materialization_submission"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "backend-materialization-attestation-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

@@ -1,10 +1,10 @@
 {
+  "content_hash": "924e2f828a3e8bade4a59edb18dd24aa1801d4fa6f17856e894e330b2b72bb68",
   "contract_id": "provisioning-plan-v1",
-  "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15",
   "last_change": {
-    "summary": "Carried recursive authority, prepared portable membership and authenticated profile constraints with pinned definitions for issue #1204.",
-    "content_hash": "5a0c2a960af91f3f9a11f7dd4f4a01d3db0fb460b1816b818e83de9e13e6ae15"
-  }
+    "content_hash": "924e2f828a3e8bade4a59edb18dd24aa1801d4fa6f17856e894e330b2b72bb68",
+    "summary": "Bind explicit augmentation-scope negotiation to the canonical phase plan independently of diagnostics (#1242)."
+  },
+  "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
+  "stability": "draft"
 }

@@ -70,7 +70,9 @@ from ..realization_designation import (
     designation_records,
 )
 from ..scenario import ExpandedScenario, ImportDecl, ModuleDescriptor, ScenarioContent
+from ._augmentation import merge_augmentation_scope, rewrite_augmentation_scope
 from ._behavior import _behavior_reference_maps, _rewrite_agent_sections, _rewrite_behavior_sections
+from ._profiles import rewrite_profile_selections
 from ._references import _rewrite_variable_tokens
 from ._sections import (
     _rewrite_account_and_domain_sections,
@@ -109,6 +111,7 @@ def _rewrite_payload_with_symbols(
 
     namespaced = dict(payload)
     tool_affordance_refs, _ = _behavior_reference_maps(namespaced, symbols, namespace)
+    rewrite_profile_selections(namespaced, symbols)
     _rewrite_foundational_sections(namespaced, symbols)
     _rewrite_proposition_sections(namespaced, symbols)
     _rewrite_narrative_sections(namespaced, symbols)
@@ -121,6 +124,7 @@ def _rewrite_payload_with_symbols(
     _rewrite_agent_sections(namespaced, symbols)
     _rewrite_behavior_sections(namespaced, symbols)
     _rewrite_terminal_sections(namespaced, symbols, tool_affordance_refs)
+    rewrite_augmentation_scope(namespaced, symbols, namespace)
 
     rewritten = _rewrite_variable_tokens(namespaced, symbols["variables"])
     if not isinstance(rewritten, dict):
@@ -161,6 +165,7 @@ def _merge_sections(
     path: Path,
 ) -> dict[str, Any]:
     merged = dict(root)
+    merge_augmentation_scope(merged, incoming)
     for section_name in _HASHMAP_SECTIONS:
         current = dict(merged.get(section_name, {}))
         additions = dict(incoming.get(section_name, {}))
@@ -203,6 +208,7 @@ class _ImportContext:
     source_diagnostics: list[SDLParseDiagnostic] | None
     verified_sources: _VerifiedSourceBundle | None
     registry_base_dir: Path
+    semantic_revision: str | None
 
 
 @dataclass(frozen=True)
@@ -270,6 +276,7 @@ def _expand_one_import(
             source_format=context.source_format,
             migration_policy=context.migration_policy,
             limits=context.limits,
+            required_semantic_revision=context.semantic_revision,
         ),
         source_diagnostics=context.source_diagnostics,
         verified_sources=context.verified_sources,
@@ -279,11 +286,16 @@ def _expand_one_import(
     imported_raw = _load_normalized_data(
         resolved_import.source_document.text,
         path=import_path,
-        source_format=context.source_format,
-        migration_policy=context.migration_policy,
-        limits=context.limits,
+        source_options=SDLSourceParseOptions(
+            source_format=context.source_format,
+            migration_policy=context.migration_policy,
+            limits=context.limits,
+            required_semantic_revision=context.semantic_revision,
+        ),
         source_diagnostics=context.source_diagnostics,
     )
+    if imported_raw.get("semantic_revision") != context.semantic_revision:
+        raise SDLParseError("Imported SDL semantic revision must match the root revision.", path=import_path)
     imported_expanded, inner_provenance = expand_sdl_modules(
         imported_raw,
         path=import_path,
@@ -449,6 +461,7 @@ def expand_sdl_modules(
         source_diagnostics=source_diagnostics,
         verified_sources=expansion_context.verified_sources,
         registry_base_dir=registry_base_dir,
+        semantic_revision=data.get("semantic_revision"),
     )
 
     for raw_import in merged.get("imports", []):

@@ -131,6 +131,7 @@ def _attach_experiment_datetime_invariants(contract_id: str, json_schema: dict[s
 def _attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
     if contract_id not in {
         "sdl-authoring-input-v1",
+        "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
     }:
@@ -188,6 +189,7 @@ def _add_carrier_validation_basis_disclosure_invariant(
 def _attach_initial_service_state_invariants(contract_id: str, json_schema: dict[str, Any]) -> None:
     if contract_id not in {
         "sdl-authoring-input-v1",
+        "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
         "scenario-satisfiability-evidence-v1",
@@ -255,6 +257,7 @@ _SDL_AUTHORING_CONTRACT_ID = "sdl-authoring-input-v1"
 _SDL_IDENTIFIER_CONTRACT_IDS = frozenset(
     {
         _SDL_AUTHORING_CONTRACT_ID,
+        "materialized-scenario-v1",
         _INSTANTIATION_INVARIANT_CONTRACT_ID,
         _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
     }

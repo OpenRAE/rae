@@ -41,9 +41,10 @@ from raes_contracts.plan_projection import (
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.planning import PlanScope
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
-from .capture_admission import compile_capture_spec_demands
+from .capture_admission import compile_scoped_evidence_requirement_demands
 from .compiler import compile_scenario_runtime_model
 from .models import ExecutionPlan
 from .planner import plan as build_execution_plan
@@ -281,17 +282,26 @@ def realize_admitted_trial_entry(
         family=inputs.family,
     )
     runtime_model = compile_scenario_runtime_model(instantiated)
+    relations = (
+        *inputs.task.evidence_requirement_relations,
+        *inputs.experiment.run_plan.evidence_requirement_relations,
+    )
     runtime_model = replace(
         runtime_model,
-        capture_demands=(
-            *runtime_model.capture_demands,
-            *compile_capture_spec_demands(tuple(inputs.capture_specs.values())),
+        capture_demands=compile_scoped_evidence_requirement_demands(
+            instantiated,
+            tuple(inputs.capture_specs.values()),
+            relations,
+            relation_scenario=inputs.family,
         ),
     )
     execution_plan = build_execution_plan(
         runtime_model,
         runtime_backend,
-        target_name=target_name,
+        # Bind the target plus the admitted entry's authoritative run identity and
+        # its unique instantiation coordinate so per-run/per-instantiation generated
+        # values reconcile against the correct scope (issue #1276).
+        scope=PlanScope(target_name=target_name, run_id=entry.run_id, instantiation_id=plan_entry_id),
         artifact_availability=artifact_availability,
     )
     if not execution_plan.is_valid:

@@ -10,12 +10,10 @@ provably cannot shape. It covers both the log-shipping sidecars
 shape in the intel-to-content direction — so the second never forks a third
 family.
 
-The OPEN ``agent_kind`` discriminator selects the family member; the
-``require_profile_for_agent_kind`` after-validator makes each member's defining
-profile executable so an under-populated instance FAILS validation rather than
-silently shallow-encoding a defining shipping fact. A ``${var}`` discriminator
-is exempt (nothing concrete is asserted); the ``unknown`` / ``other`` tail is
-permissive.
+The OPEN ``agent_kind`` discriminator describes function, not an execution
+recipe. Sources, transforms, destinations, buffering and reload channels are
+independent optional configured facts. Selected execution contracts enforce
+necessary completeness at admission.
 
 This is observed runtime state attached to ``Node.runtime``. Secret-bearing
 setting values are scenario content unless explicitly classified
@@ -23,7 +21,10 @@ setting values are scenario content unless explicitly classified
 closed enrollment lattice because they intentionally carry no raw value field.
 """
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+
+from raes.runtime_filesystem import redacted_raw_value_schema
+from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, is_variable_ref, parse_int_or_var
 from ._identifiers import require_qualified_identifier
@@ -41,6 +42,7 @@ from .runtime_forwarding_agent_vocab import (
     RuntimeForwardingSourceKind,
     RuntimeForwardingTransformKind,
 )
+from .runtime_forwarding_buffer import RuntimeForwardingBufferPolicy
 from .runtime_security_monitoring import RuntimeSecurityMonitoringListenerRole
 from .runtime_values import (
     enforce_observed_value_redaction,
@@ -89,9 +91,9 @@ class RuntimeForwardingSource(SDLModel):
     """An observed forwarder input source (tailed path, API pull, or queue)."""
 
     source_id: str
-    kind: RuntimeForwardingSourceKind | str = RuntimeForwardingSourceKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeForwardingSourceKind] = RuntimeForwardingSourceKind.UNKNOWN
     location: str = ""
-    parse_format: RuntimeForwardingParseFormat | str = RuntimeForwardingParseFormat.UNKNOWN
+    parse_format: GovernedVocabulary[RuntimeForwardingParseFormat] = RuntimeForwardingParseFormat.UNKNOWN
     selector: str = ""
     description: str = ""
 
@@ -115,7 +117,7 @@ class RuntimeForwardingTransform(SDLModel):
     """An observed transform applied between a source and a ship target."""
 
     transform_id: str
-    kind: RuntimeForwardingTransformKind | str = RuntimeForwardingTransformKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeForwardingTransformKind] = RuntimeForwardingTransformKind.UNKNOWN
     sid_namespace: str = ""
     description: str = ""
 
@@ -145,8 +147,8 @@ class RuntimeForwardingShipTarget(SDLModel):
     target_service_ref: str = ""
     ingestion_port: int | str | None = None
     enrollment_port: int | str | None = None
-    protocol: RuntimeForwardingProtocol | str = RuntimeForwardingProtocol.UNKNOWN
-    enrollment_identity_classification: RuntimeForwardingEnrollmentClassification | str = (
+    protocol: GovernedVocabulary[RuntimeForwardingProtocol] = RuntimeForwardingProtocol.UNKNOWN
+    enrollment_identity_classification: GovernedVocabulary[RuntimeForwardingEnrollmentClassification] = (
         RuntimeForwardingEnrollmentClassification.NONE
     )
     description: str = ""
@@ -188,37 +190,6 @@ class RuntimeForwardingShipTarget(SDLModel):
         )
 
 
-class RuntimeForwardingBufferPolicy(SDLModel):
-    """The single observed buffer / back-pressure posture of a forwarder.
-
-    Captures the ``client_buffer`` shape: queue capacity, events-per-second
-    ceiling, at-rest/in-transit crypto, and reconnect interval. Its presence is
-    the defining profile a ``log_forwarder`` must carry.
-    """
-
-    buffer_policy_id: str
-    queue_capacity: int | str | None = None
-    eps: int | str | None = None
-    crypto: RuntimeForwardingBufferCrypto | str = RuntimeForwardingBufferCrypto.UNKNOWN
-    reconnect_seconds: int | str | None = None
-    description: str = ""
-
-    @field_validator("buffer_policy_id")
-    @classmethod
-    def validate_buffer_policy_id(cls, v: str) -> str:
-        return require_symbol(v, field_name="buffer_policy_id")
-
-    @field_validator("queue_capacity", "eps", "reconnect_seconds", mode="before")
-    @classmethod
-    def parse_counts(cls, v: object, info: ValidationInfo) -> int | str | None:
-        return parse_int_or_var(v, minimum=0, field_name=info.field_name) if v is not None else v
-
-    @field_validator("crypto", mode="before")
-    @classmethod
-    def normalize_crypto(cls, v: RuntimeForwardingBufferCrypto | str) -> object:
-        return parse_runtime_enum_or_var(v, RuntimeForwardingBufferCrypto, field_name="crypto")
-
-
 class RuntimeForwardingReloadChannel(SDLModel):
     """An observed downstream reload channel a content-sync agent drives.
 
@@ -229,7 +200,7 @@ class RuntimeForwardingReloadChannel(SDLModel):
 
     reload_channel_id: str
     target_ref: str = ""
-    kind: RuntimeForwardingReloadChannelKind | str = RuntimeForwardingReloadChannelKind.UNKNOWN
+    kind: GovernedVocabulary[RuntimeForwardingReloadChannelKind] = RuntimeForwardingReloadChannelKind.UNKNOWN
     description: str = ""
 
     @field_validator("reload_channel_id")
@@ -251,11 +222,21 @@ class RuntimeForwardingSetting(SDLModel):
     value withheld.
     """
 
+    model_config = ConfigDict(
+        json_schema_extra=redacted_raw_value_schema(
+            sensitivity_field="classification",
+            raw_field="value",
+            raw_value_schema={"type": "string", "minLength": 1},
+        )
+    )
+
     setting_id: str
     name: str = ""
     value: str = ""
-    provenance: RuntimeForwardingSettingProvenance | str = RuntimeForwardingSettingProvenance.UNKNOWN
-    classification: RuntimeForwardingSettingClassification | str = RuntimeForwardingSettingClassification.PLAIN
+    provenance: GovernedVocabulary[RuntimeForwardingSettingProvenance] = RuntimeForwardingSettingProvenance.UNKNOWN
+    classification: GovernedVocabulary[RuntimeForwardingSettingClassification] = (
+        RuntimeForwardingSettingClassification.PLAIN
+    )
     description: str = ""
 
     @field_validator("setting_id")
@@ -287,16 +268,19 @@ class RuntimeForwardingSetting(SDLModel):
 class RuntimeForwardingAgent(SDLModel):
     """Node-scoped runtime inventory for a forwarding / intel-sync agent.
 
-    The single forwarder spine. The ``agent_kind`` discriminator selects the
-    required profile the ``require_profile_for_agent_kind`` guard enforces.
+    The single forwarder spine permits partial descriptions and composed pipelines.
     Cadence composes a ``runtime.scheduled_jobs`` entry; the inter-node trust
     edge composes a ``RelationshipForwardingEdge`` — neither is re-typed here.
     """
 
     forwarding_agent_id: str
-    implementation: RuntimeForwardingAgentImplementation | str = RuntimeForwardingAgentImplementation.UNKNOWN
-    agent_kind: RuntimeForwardingAgentKind | str = RuntimeForwardingAgentKind.UNKNOWN
-    ownership_role: RuntimeForwardingAgentOwnershipRole | str = RuntimeForwardingAgentOwnershipRole.SYSTEM_UNDER_TEST
+    implementation: GovernedVocabulary[RuntimeForwardingAgentImplementation] = (
+        RuntimeForwardingAgentImplementation.UNKNOWN
+    )
+    agent_kind: GovernedVocabulary[RuntimeForwardingAgentKind] = RuntimeForwardingAgentKind.UNKNOWN
+    ownership_role: GovernedVocabulary[RuntimeForwardingAgentOwnershipRole] = (
+        RuntimeForwardingAgentOwnershipRole.SYSTEM_UNDER_TEST
+    )
     version: str = ""
     name: str = ""
     sources: list[RuntimeForwardingSource] = Field(default_factory=list)
@@ -330,7 +314,6 @@ class RuntimeForwardingAgent(SDLModel):
     @model_validator(mode="after")
     def validate_forwarding_agent(self) -> "RuntimeForwardingAgent":
         self._reject_duplicate_local_ref_ids()
-        self.require_profile_for_agent_kind()
         return self
 
     # ------------------------------------------------------------------ #
@@ -360,72 +343,6 @@ class RuntimeForwardingAgent(SDLModel):
                 )
             seen[value] = label
 
-    # ------------------------------------------------------------------ #
-    # Required-profile guard
-    # ------------------------------------------------------------------ #
-
-    def require_profile_for_agent_kind(self) -> None:
-        """Fail validation when a concrete ``agent_kind`` lacks its profile.
-
-        A ``${var}`` placeholder discriminator is exempt (nothing concrete is
-        asserted); the OPEN ``unknown`` / ``other`` sentinels impose no profile
-        (permissive tail). ``log_forwarder`` and ``content_sync`` each REQUIRE
-        (and REJECT) specific child state per SCN-010 §5.5.
-        """
-        kind = self.agent_kind
-        if is_variable_ref(kind) or not isinstance(kind, RuntimeForwardingAgentKind):
-            return
-        if kind is RuntimeForwardingAgentKind.LOG_FORWARDER:
-            self._require_log_forwarder_profile()
-        elif kind is RuntimeForwardingAgentKind.CONTENT_SYNC:
-            self._require_content_sync_profile()
-        # UNKNOWN / OTHER impose no profile by the enum-sentinel discipline.
-
-    def _profile_error(self, requirement: str) -> ValueError:
-        return ValueError(
-            f"forwarding agent '{self.forwarding_agent_id}' agent_kind '{self.agent_kind.value}' requires {requirement}"
-        )
-
-    def _has_transform_kind(self, kind: RuntimeForwardingTransformKind) -> bool:
-        return any(t.kind is kind for t in self.transforms)
-
-    def _has_source_kind(self, kind: RuntimeForwardingSourceKind) -> bool:
-        return any(s.kind is kind for s in self.sources)
-
-    def _require_log_forwarder_profile(self) -> None:
-        # REQUIRES a buffer_policy AND >=1 ship_target with an ingestion endpoint.
-        if self.buffer_policy is None:
-            raise self._profile_error("a buffer_policy")
-        if not any(target.has_ingestion_endpoint() for target in self.ship_targets):
-            raise self._profile_error(">=1 ship_target carrying an ingestion endpoint")
-        # REJECTS any ioc_to_rule transform — that is the content_sync shape.
-        if self._has_transform_kind(RuntimeForwardingTransformKind.IOC_TO_RULE):
-            raise ValueError(
-                f"forwarding agent '{self.forwarding_agent_id}' agent_kind 'log_forwarder' must not carry "
-                f"a transform of kind 'ioc_to_rule'"
-            )
-
-    def _require_content_sync_profile(self) -> None:
-        # REQUIRES >=1 api_pull source AND >=1 ioc_to_rule transform AND >=1 reload_channel.
-        if not self._has_source_kind(RuntimeForwardingSourceKind.API_PULL):
-            raise self._profile_error(">=1 source of kind 'api_pull'")
-        if not self._has_transform_kind(RuntimeForwardingTransformKind.IOC_TO_RULE):
-            raise self._profile_error(">=1 transform of kind 'ioc_to_rule'")
-        if not self.reload_channels:
-            raise self._profile_error(">=1 reload_channel")
-        # REJECTS a buffer_policy and any ship_target enrollment endpoint.
-        if self.buffer_policy is not None:
-            raise ValueError(
-                f"forwarding agent '{self.forwarding_agent_id}' agent_kind 'content_sync' must not carry "
-                f"a buffer_policy"
-            )
-        offending = next((t for t in self.ship_targets if t.has_enrollment_endpoint()), None)
-        if offending is not None:
-            raise ValueError(
-                f"forwarding agent '{self.forwarding_agent_id}' agent_kind 'content_sync' must not carry "
-                f"a ship_target enrollment endpoint (ship_target '{offending.target_id}')"
-            )
-
 
 class RelationshipForwardingEdge(SDLModel):
     """Typed forwarding-trust detail carried by a top-level relationship edge.
@@ -445,14 +362,16 @@ class RelationshipForwardingEdge(SDLModel):
     """
 
     forwarder_ref: str
-    target_listener_role: RuntimeSecurityMonitoringListenerRole | str = RuntimeSecurityMonitoringListenerRole.OTHER
+    target_listener_role: GovernedVocabulary[RuntimeSecurityMonitoringListenerRole] = (
+        RuntimeSecurityMonitoringListenerRole.OTHER
+    )
     enrollment_identity_ref: str = ""
-    enrollment_identity_classification: RuntimeForwardingEnrollmentClassification | str = (
+    enrollment_identity_classification: GovernedVocabulary[RuntimeForwardingEnrollmentClassification] = (
         RuntimeForwardingEnrollmentClassification.NONE
     )
     protocol: str = ""
     crypto_method: str = ""
-    parse_format: RuntimeForwardingParseFormat | str = RuntimeForwardingParseFormat.UNKNOWN
+    parse_format: GovernedVocabulary[RuntimeForwardingParseFormat] = RuntimeForwardingParseFormat.UNKNOWN
     description: str = ""
 
     @field_validator("forwarder_ref")

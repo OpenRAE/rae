@@ -367,7 +367,7 @@ class TestOperatingSystemCompilationAndAdmission:
 
         assert by_field["nodes.web.os_distribution"].requirement_kind == "os-distribution"
         assert by_field["nodes.web.os_version"].requirement_kind == "os-version"
-        assert by_field["nodes.web.os_version"].required_observation_strength.value == "guest-observed"
+        assert by_field["nodes.web.os_version"].required_observation_strength is None
 
     def test_exact_unsupported_release_fails_before_backend_execution(self) -> None:
         from raes import parse_sdl
@@ -540,6 +540,47 @@ class TestBoundOperatingSystemObservation:
             "os-distribution",
             "os-version",
         }
+
+    def test_open_os_disclosure_rejects_a_manifest_without_open_observation_posture(self) -> None:
+        from dataclasses import replace
+
+        from raes import parse_sdl
+        from raes.explicitness import ExplicitnessClass
+        from raes_contracts.vocabulary import RealizationSupportMode
+        from raes_processor.compiler import compile_runtime_model
+        from raes_processor.planner import plan, realization_disclosure
+
+        model = compile_runtime_model(parse_sdl(_OS_NODE_SCENARIO))
+        constrained_manifest = _os_manifest("22.04")
+        declaration = constrained_manifest.realization_support[0]
+        open_manifest = replace(
+            constrained_manifest,
+            realization_support=(replace(declaration, support_mode=RealizationSupportMode.OPEN_REALIZATION),),
+        )
+        execution_plan = plan(model, open_manifest)
+        assert execution_plan.is_valid, execution_plan.diagnostics
+
+        version_requirement = next(
+            requirement
+            for requirement in model.realization_requirements
+            if requirement.requirement_kind == "os-version"
+        )
+        open_requirement = replace(
+            version_requirement,
+            explicitness=ExplicitnessClass.OPEN,
+            structure=None,
+            constraint_document=None,
+            constraint_binding=None,
+        )
+        diagnostics, provenance = realization_disclosure(
+            (open_requirement,),
+            execution_plan.provisioning,
+            self._snapshot(execution_plan, version="22.04"),
+            manifest=constrained_manifest,
+        )
+
+        assert any(diagnostic.code == "runtime.backend-contract-invalid" for diagnostic in diagnostics)
+        assert provenance == ()
 
     def test_family_only_requirement_cannot_use_snapshot_echo(self) -> None:
         from raes import parse_sdl

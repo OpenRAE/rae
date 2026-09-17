@@ -2,9 +2,8 @@
 
 Covers the OPEN ``agent_kind`` discriminator spine, the typed source / transform
 / ship-target / buffer-policy / reload-channel / setting children, secret-bearing
-setting + enrollment-identity redaction, duplicate-id rejection, and — the core
-correctness feature — the ``require_profile_for_agent_kind`` guard (positive for
-``log_forwarder`` and ``content_sync`` plus each REQUIRE / REJECT negative).
+setting + enrollment-identity redaction, duplicate-id rejection, partial
+descriptions and composed pipelines. Selected completeness belongs to admission.
 """
 
 from __future__ import annotations
@@ -262,29 +261,22 @@ def test_log_forwarder_positive_profile() -> None:
     assert any(target.has_ingestion_endpoint() for target in agent.ship_targets)
 
 
-def test_log_forwarder_requires_buffer_policy() -> None:
-    with pytest.raises(ValidationError, match="requires a buffer_policy"):
-        RuntimeForwardingAgent(**_log_forwarder(buffer_policy=None))
+def test_log_forwarder_allows_no_buffer_policy() -> None:
+    agent = RuntimeForwardingAgent(**_log_forwarder(buffer_policy=None))
+    assert agent.buffer_policy is None
 
 
-def test_log_forwarder_requires_ingestion_endpoint() -> None:
-    with pytest.raises(ValidationError, match="requires >=1 ship_target carrying an ingestion endpoint"):
-        RuntimeForwardingAgent(
-            **_log_forwarder(
-                ship_targets=[
-                    {"target_id": "manager", "enrollment_port": 1515, "protocol": "syslog"},
-                ]
-            )
-        )
+def test_log_forwarder_allows_partial_endpoint_knowledge() -> None:
+    agent = RuntimeForwardingAgent(
+        **_log_forwarder(ship_targets=[{"target_id": "manager", "enrollment_port": 1515, "protocol": "syslog"}])
+    )
+    assert agent.ship_targets[0].ingestion_port is None
+    assert agent.ship_targets[0].enrollment_port == 1515
 
 
-def test_log_forwarder_rejects_ioc_to_rule_transform() -> None:
-    with pytest.raises(ValidationError, match="must not carry a transform of kind 'ioc_to_rule'"):
-        RuntimeForwardingAgent(
-            **_log_forwarder(
-                transforms=[{"transform_id": "bad", "kind": "ioc_to_rule"}],
-            )
-        )
+def test_log_forwarder_can_compose_ioc_transform() -> None:
+    agent = RuntimeForwardingAgent(**_log_forwarder(transforms=[{"transform_id": "convert", "kind": "ioc_to_rule"}]))
+    assert agent.transforms[0].kind is RuntimeForwardingTransformKind.IOC_TO_RULE
 
 
 # --------------------------------------------------------------------------- #
@@ -301,56 +293,39 @@ def test_content_sync_positive_profile() -> None:
     assert agent.reload_channels
 
 
-def test_content_sync_requires_api_pull_source() -> None:
-    with pytest.raises(ValidationError, match="requires >=1 source of kind 'api_pull'"):
-        RuntimeForwardingAgent(
-            **_content_sync(
-                sources=[{"source_id": "s", "kind": "tailed_path"}],
-            )
-        )
+def test_content_sync_can_use_a_file_source() -> None:
+    agent = RuntimeForwardingAgent(**_content_sync(sources=[{"source_id": "s", "kind": "tailed_path"}]))
+    assert agent.sources[0].kind is RuntimeForwardingSourceKind.TAILED_PATH
 
 
-def test_content_sync_requires_ioc_to_rule_transform() -> None:
-    with pytest.raises(ValidationError, match="requires >=1 transform of kind 'ioc_to_rule'"):
-        RuntimeForwardingAgent(
-            **_content_sync(
-                transforms=[{"transform_id": "t", "kind": "parse"}],
-            )
-        )
+def test_content_sync_can_use_a_non_ioc_transform() -> None:
+    agent = RuntimeForwardingAgent(**_content_sync(transforms=[{"transform_id": "t", "kind": "parse"}]))
+    assert agent.transforms[0].kind is RuntimeForwardingTransformKind.PARSE
 
 
-def test_content_sync_requires_reload_channel() -> None:
-    with pytest.raises(ValidationError, match="requires >=1 reload_channel"):
-        RuntimeForwardingAgent(**_content_sync(reload_channels=[]))
+def test_content_sync_can_have_no_reload_channel() -> None:
+    agent = RuntimeForwardingAgent(**_content_sync(reload_channels=[]))
+    assert agent.reload_channels == []
 
 
-def test_content_sync_rejects_buffer_policy() -> None:
-    with pytest.raises(ValidationError, match="must not carry a buffer_policy"):
-        RuntimeForwardingAgent(
-            **_content_sync(
-                buffer_policy={"buffer_policy_id": "b", "queue_capacity": 1},
-            )
-        )
+def test_content_sync_can_buffer_work() -> None:
+    agent = RuntimeForwardingAgent(**_content_sync(buffer_policy={"buffer_policy_id": "b", "queue_capacity": 1}))
+    assert agent.buffer_policy.queue_capacity == 1
 
 
-def test_content_sync_rejects_enrollment_port_endpoint() -> None:
-    with pytest.raises(ValidationError, match="must not carry a ship_target enrollment endpoint"):
-        RuntimeForwardingAgent(
-            **_content_sync(
-                ship_targets=[{"target_id": "rules", "enrollment_port": 1515}],
-            )
-        )
+def test_content_sync_can_declare_enrollment_endpoint() -> None:
+    agent = RuntimeForwardingAgent(**_content_sync(ship_targets=[{"target_id": "rules", "enrollment_port": 1515}]))
+    assert agent.ship_targets[0].enrollment_port == 1515
 
 
-def test_content_sync_rejects_enrollment_identity_classification() -> None:
-    with pytest.raises(ValidationError, match="must not carry a ship_target enrollment endpoint"):
-        RuntimeForwardingAgent(
-            **_content_sync(
-                ship_targets=[
-                    {"target_id": "rules", "enrollment_identity_classification": "operator_secret"},
-                ]
-            )
-        )
+def test_content_sync_preserves_protected_enrollment_posture() -> None:
+    agent = RuntimeForwardingAgent(
+        **_content_sync(ship_targets=[{"target_id": "rules", "enrollment_identity_classification": "operator_secret"}])
+    )
+    assert (
+        agent.ship_targets[0].enrollment_identity_classification
+        is RuntimeForwardingEnrollmentClassification.OPERATOR_SECRET
+    )
 
 
 def test_content_sync_allows_ship_target_without_enrollment() -> None:

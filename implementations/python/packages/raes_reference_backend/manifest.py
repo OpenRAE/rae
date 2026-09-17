@@ -55,6 +55,7 @@ REFERENCE_BACKEND_NAME = "reference-emulation"
 REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(
     contract_id
     for contract_id in BACKEND_SUPPORTED_CONTRACT_IDS
+    if contract_id not in {"backend-materialization-attestation-v1", "backend-augmentation-scope-v1"}
     if contract_id
     not in {"experiment-binding-descriptors-v1", "backend-realization-preparation-v1", "plan-realization-profiles-v1"}
 )
@@ -128,6 +129,8 @@ def _concept_bindings(*, with_time: bool) -> tuple[ConceptBinding, ...]:
 
 def _realization_support(
     envelope: BackendRealizationEnvelopeModel,
+    *,
+    mailbox_sink: object | None = None,
 ) -> tuple[RealizationSupportDeclaration, ...]:
     substrate_claim = next(claim for claim in envelope.concerns if claim.concern.value == "compute-substrate")
     return (
@@ -146,7 +149,8 @@ def _realization_support(
                     "workflow-state-predicate",
                 }
             ),
-            supported_exact_requirement_kinds=frozenset({"declared-capability-match"}),
+            supported_exact_requirement_kinds=frozenset({"declared-capability-match"})
+            | ({"runtime-mail-services"} if mailbox_sink is not None else set()),
             disclosure_kinds=frozenset(
                 {
                     "backend-manifest-v2",
@@ -273,7 +277,16 @@ def _capabilities(
     *,
     with_time: bool,
     envelope: BackendRealizationEnvelopeModel,
+    mailbox_sink: object | None = None,
+    profile_context: object | None = None,
 ) -> BackendCapabilitySet:
+    from raes_contracts.artifact_generation import DIGEST_ARTIFACT_SEMANTICS
+
+    generator_profiles = frozenset(
+        row.coordinate
+        for row in getattr(profile_context, "support_declarations", ())
+        if row.semantic_contract == DIGEST_ARTIFACT_SEMANTICS
+    )
     configuration = envelope.configuration
     return BackendCapabilitySet(
         provisioner=ProvisionerCapabilities(
@@ -282,11 +295,20 @@ def _capabilities(
             supported_os_families=frozenset(configuration.supported_os_families),
             supported_node_architectures=frozenset({"x86_64", "aarch64"}),
             supported_content_types=frozenset(configuration.supported_content_types),
-            supported_account_features=frozenset(configuration.supported_account_features),
+            supported_account_features=frozenset(configuration.supported_account_features)
+            | ({"credential_bindings"} if mailbox_sink is not None else set()),
             supported_domain_profiles=frozenset(configuration.supported_domain_profiles),
             max_total_nodes=None,
             supports_acls=configuration.supports_acls,
             supports_accounts=bool(configuration.supported_account_features),
+            # The reference backend makes generated-artifact outputs available only
+            # through its in-process readback; it does not write them into deployed
+            # containers, so it does not advertise the security-sensitive
+            # random_value generator/delivery it cannot realize end-to-end (issue
+            # #1276). A backend that implements atomic container delivery declares
+            # the capability; tests exercise the generator via a capability override.
+            supports_generated_artifacts=bool(generator_profiles),
+            supported_generated_artifact_kinds=generator_profiles,
         ),
         orchestrator=OrchestratorCapabilities(
             name="reference-emulation-orchestrator",
@@ -346,6 +368,14 @@ def create_reference_backend_manifest(*, with_time: bool = False, **config) -> B
         str(config.get("driver_mode") or getattr(driver, "driver_mode", ReferenceDriverMode.IN_PROCESS_EMULATION.value))
     )
     envelope = load_reference_realization_envelope(mode)
+    if config.get("mailbox_sink") is not None:
+        from .mailbox_materialization import InProcessMailboxSink
+
+        if (
+            not isinstance(config["mailbox_sink"], InProcessMailboxSink)
+            or mode is not ReferenceDriverMode.IN_PROCESS_EMULATION
+        ):
+            raise ValueError("The protected mailbox sink requires the in-process reference target")
     profile_contracts = frozenset()
     profile_digest = None
     if config.get("domain_profile_context") is not None:
@@ -370,7 +400,12 @@ def create_reference_backend_manifest(*, with_time: bool = False, **config) -> B
         ),
         compatible_processors=frozenset({"raes-reference-processor"}),
         concept_bindings=_concept_bindings(with_time=with_time),
-        realization_support=_realization_support(envelope),
-        capabilities=_capabilities(with_time=with_time, envelope=envelope),
+        realization_support=_realization_support(envelope, mailbox_sink=config.get("mailbox_sink")),
+        capabilities=_capabilities(
+            with_time=with_time,
+            envelope=envelope,
+            mailbox_sink=config.get("mailbox_sink"),
+            profile_context=config.get("domain_profile_context"),
+        ),
         realization_envelope=envelope,
     )

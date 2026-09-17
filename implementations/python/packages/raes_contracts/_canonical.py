@@ -31,3 +31,23 @@ def canonical_json_digest(payload: JsonValue) -> str:
     """
 
     return "sha256:" + hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
+
+
+#: Prefix marking a carrier that is outside the modelled realization value space.
+UNSERIALIZABLE_CARRIER_PREFIX = "urn:openrae:unserializable-carrier:"
+
+
+def jsonable_fallback(value: object) -> str:
+    """Render an unmodelled carrier as a stable, type-qualified marker.
+
+    ``pydantic_core.to_jsonable_python`` raises on any carrier it has no schema
+    for. Realization projections are comparison-only and must not crash on input
+    that has drifted outside the modelled value space, so an unknown carrier is
+    rendered as a marker instead. The marker is derived from the carrier's type
+    alone, which keeps it identical across processes and runs — ``repr`` would
+    embed object addresses and break digest stability — and the ``urn:`` prefix
+    keeps it distinguishable from any modelled string value.
+    """
+
+    carrier = type(value)
+    return f"{UNSERIALIZABLE_CARRIER_PREFIX}{carrier.__module__}.{carrier.__qualname__}"

@@ -33,6 +33,7 @@ class OperationKind(str, Enum):
     PARTICIPANT_ACTION = "participant-action"
     PARTICIPANT_CONTROL = "participant-control"
     PARTICIPANT_CROSSING = "participant-crossing"
+    INDETERMINATE_RESOLUTION = "indeterminate-resolution"
 
 
 _ContextString = Annotated[str, Field(min_length=1, max_length=256)]
@@ -63,6 +64,7 @@ LEGAL_OPERATION_TRANSITIONS = frozenset(
     {
         (OperationState.ACCEPTED, OperationState.RUNNING),
         (OperationState.ACCEPTED, OperationState.CANCELLED),
+        (OperationState.ACCEPTED, OperationState.INDETERMINATE),
         (OperationState.RUNNING, OperationState.SUCCEEDED),
         (OperationState.RUNNING, OperationState.FAILED),
         (OperationState.RUNNING, OperationState.CANCELLED),

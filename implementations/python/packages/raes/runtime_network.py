@@ -11,6 +11,8 @@ from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import (
     SDLModel,
     is_variable_ref,
@@ -66,7 +68,7 @@ class RuntimeNetworkBackendDetail(SDLModel):
     backend-native key/value facts; raw backend inspect payloads are not stored.
     """
 
-    driver: RuntimeNetworkDriver | str = RuntimeNetworkDriver.OTHER
+    driver: GovernedVocabulary[RuntimeNetworkDriver] = RuntimeNetworkDriver.OTHER
     ipam_driver: str = ""
     driver_options: dict[str, str] = Field(default_factory=dict)
     ipam_options: dict[str, str] = Field(default_factory=dict)

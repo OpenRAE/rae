@@ -1,10 +1,10 @@
 {
+  "content_hash": "c944a50797f486e94cbe210cfdaaab3d254ee33c7fabeb8557063f00c43c774a",
   "contract_id": "experiment-evidence-record-v1",
-  "schema_path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json",
-  "stability": "draft",
-  "content_hash": "2b52c1c7fa28fa939aa3b1baeee830522ffc0467eda945e0857b504c5a7df43c",
   "last_change": {
-    "summary": "Bound emitted evidence records to their required output contract and exact redaction policy for issue #1112.",
-    "content_hash": "2b52c1c7fa28fa939aa3b1baeee830522ffc0467eda945e0857b504c5a7df43c"
-  }
+    "content_hash": "c944a50797f486e94cbe210cfdaaab3d254ee33c7fabeb8557063f00c43c774a",
+    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+  },
+  "schema_path": "contracts/schemas/experiment-core/experiment-evidence-record-v1.json",
+  "stability": "draft"
 }
