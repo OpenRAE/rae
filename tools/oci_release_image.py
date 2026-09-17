@@ -35,20 +35,19 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools.oci_image_layout import LayoutRejected, LockedPlatformGraph, OciDescriptor, verify_layout  # noqa: E402
-from tools.tooling_oci_selection import LockedOciDescriptor  # noqa: E402
-from tools.tooling_policy_gate import LockedArtifactSelection  # noqa: E402
-
-# The reviewed lock selection this module admits.
-RELEASE_TEST_IMAGE_ARTIFACT_ID = "release-test-alpine"
-RELEASE_TEST_IMAGE_VERSION = "3.20.10"
-# Every platform a mirror or offline export must carry.
-REQUIRED_PLATFORM_IDS = ("linux-x86_64", "linux-arm64")
-# The one platform the release lane executes on. arm64 is retained and exported,
-# but claiming arm64 execution would need daemon evidence this repository does
-# not have (see `docs/decisions/package-artifacts/architecture.md`).
-EXECUTION_PLATFORM_ID = "linux-x86_64"
-EXECUTION_PROFILE_ID = "public-linux-x86_64"
+from tools.oci_image_layout import LayoutRejected, LockedPlatformGraph, verify_layout  # noqa: E402
+from tools.oci_release_selection import (  # noqa: E402
+    EXECUTION_PLATFORM_ID,
+    EXECUTION_PROFILE_ID,
+    RELEASE_TEST_IMAGE_ARTIFACT_ID,
+    RELEASE_TEST_IMAGE_VERSION,
+    REQUIRED_PLATFORM_IDS,
+    ImageAdmissionError,
+    SelectionLoader,
+    execution_graph,
+    locked_platform_graphs,
+    locked_repository,
+)
 
 SOURCE_CLASS_ENV = "RAES_OCI_SOURCE_CLASS"
 MIRROR_REPOSITORY_ENV = "RAES_OCI_MIRROR_REPOSITORY"
@@ -83,18 +82,6 @@ _INSPECT_FORMAT = "{{.Architecture}}\n{{.Os}}\n{{json .RootFS.Layers}}"
 Runner = Callable[..., subprocess.CompletedProcess]
 
 
-class ImageAdmissionError(Exception):
-    """The release-test image could not be admitted.
-
-    Carries a stable reason code only. A mirror endpoint, credential, image
-    reference or native client output never reaches the message.
-    """
-
-    def __init__(self, reason: str) -> None:
-        super().__init__(f"release-test image admission failed: {reason}")
-        self.reason = reason
-
-
 class SourceClass(Enum):
     """Where the reviewed image may be obtained in this context."""
 
@@ -109,105 +96,7 @@ class ImageSource:
     repository: str | None = None
 
 
-SelectionLoader = Callable[..., "object"]
-
-# The lock admits arm64 for retention and export; only the execution platform
-# has a profile that also claims a daemon can run it.
-_PLATFORM_PROFILES = {
-    "linux-x86_64": "public-linux-x86_64",
-    "linux-arm64": "public-linux-arm64",
-}
-
-
-def _default_selection_loader(*, version: str, platform_id: str, profile_id: str) -> LockedArtifactSelection:
-    """Load one reviewed lock selection through the canonical policy gate.
-
-    The artifact id is a literal here on purpose: the selector policy reads it
-    statically, so a computed id would make this consumer invisible to the
-    coverage gate that proves every locked artifact has exactly one consumer.
-    """
-
-    from tools.tooling_policy_gate import load_tooling_artifact_selection
-
-    return load_tooling_artifact_selection(
-        artifact_id="release-test-alpine",
-        version=version,
-        platform_id=platform_id,
-        profile_id=profile_id,
-    )
-
-
-def _descriptor(value: LockedOciDescriptor) -> OciDescriptor:
-    return OciDescriptor(digest=value.digest, size=value.size)
-
-
-def locked_repository(*, loader: SelectionLoader = _default_selection_loader) -> str:
-    """Return the reviewed image repository, without its registry-neutral scheme."""
-
-    selection = _select(EXECUTION_PLATFORM_ID, loader)
-    return _asset(selection)
-
-
-def _asset(selection: LockedArtifactSelection) -> str:
-    """Return the reviewed OCI repository the locked index digest lives in."""
-
-    asset = getattr(selection, "asset", "")
-    if not isinstance(asset, str) or _REPOSITORY_RE.fullmatch(asset) is None:
-        raise ImageAdmissionError("image-identity")
-    return asset
-
-
-def _select(platform_id: str, loader: SelectionLoader) -> LockedArtifactSelection:
-    return loader(
-        version=RELEASE_TEST_IMAGE_VERSION,
-        platform_id=platform_id,
-        profile_id=_PLATFORM_PROFILES[platform_id],
-    )
-
-
-def locked_platform_graphs(*, loader: SelectionLoader = _default_selection_loader) -> tuple[LockedPlatformGraph, ...]:
-    """Project the reviewed graph of every platform a mirror or export must carry.
-
-    A selection without a graph is refused rather than degraded to an index-only
-    check, and every platform must sit under one reviewed index -- two indexes
-    would mean two images wearing one artifact id.
-    """
-
-    graphs: list[LockedPlatformGraph] = []
-    for platform_id in REQUIRED_PLATFORM_IDS:
-        selection = _select(platform_id, loader)
-        graph = getattr(selection, "oci_graph", None)
-        if graph is None:
-            raise ImageAdmissionError("graph-unavailable")
-        graphs.append(
-            LockedPlatformGraph(
-                platform_id=platform_id,
-                index=_descriptor(graph.index),
-                manifest=_descriptor(graph.manifest),
-                config=_descriptor(graph.config),
-                layers=tuple(_descriptor(layer) for layer in graph.layers),
-                diff_ids=tuple(graph.diff_ids),
-                architecture=graph.architecture,
-                os=graph.os,
-                variant=graph.variant,
-            )
-        )
-    if len({graph.index for graph in graphs}) != 1:
-        raise ImageAdmissionError("index-identity")
-    return tuple(graphs)
-
-
-def execution_graph(graphs: Sequence[LockedPlatformGraph]) -> LockedPlatformGraph:
-    """Return the one platform graph the release lane executes."""
-
-    for graph in graphs:
-        if graph.platform_id == EXECUTION_PLATFORM_ID:
-            return graph
-    raise ImageAdmissionError("graph-unavailable")
-
-
-# pragma: no cover - the real subprocess call is the impure IO leaf.
-def _default_runner(argv: list[str], **kwargs) -> subprocess.CompletedProcess:  # pragma: no cover
+def _default_runner(argv: list[str], **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(argv, **kwargs)
 
 
@@ -402,11 +291,19 @@ def import_layout_into_daemon(layout_root: Path, local_reference: str, *, runner
     )
 
 
+def _graphs(loader: SelectionLoader | None) -> tuple[LockedPlatformGraph, ...]:
+    return locked_platform_graphs() if loader is None else locked_platform_graphs(loader=loader)
+
+
+def _repository(loader: SelectionLoader | None) -> str:
+    return locked_repository() if loader is None else locked_repository(loader=loader)
+
+
 def export_command(
     *,
     layout_root: Path | str,
     environ: Mapping[str, str],
-    loader: SelectionLoader = _default_selection_loader,
+    loader: SelectionLoader | None = None,
     runner: Runner = _default_runner,
 ) -> Path:
     """Export every reviewed platform, then admit the result offline.
@@ -419,8 +316,8 @@ def export_command(
     source = resolve_source(environ)
     if source.source_class is SourceClass.PRESEEDED:
         raise ImageAdmissionError("source-class")
-    graphs = locked_platform_graphs(loader=loader)
-    reference = image_reference(locked_repository(loader=loader), graphs[0].index.digest, source)
+    graphs = _graphs(loader)
+    reference = image_reference(_repository(loader), graphs[0].index.digest, source)
     destination = Path(layout_root)
     export_layout(reference, destination, runner=runner)
     verify_layout(destination, graphs)
@@ -432,7 +329,7 @@ def import_command(
     layout_root: Path | str,
     runtime: str,
     environ: Mapping[str, str],
-    loader: SelectionLoader = _default_selection_loader,
+    loader: SelectionLoader | None = None,
     runner: Runner = _default_runner,
 ) -> str:
     """Admit a layout offline, load it, then prove what the runtime now holds.
@@ -446,7 +343,7 @@ def import_command(
     # source, and admitting it must not depend on how it was obtained. The
     # parameter is kept so both commands share one call shape.
     del environ
-    graphs = locked_platform_graphs(loader=loader)
+    graphs = _graphs(loader)
     source = Path(layout_root)
     verify_layout(source, graphs)
     graph = execution_graph(graphs)
@@ -515,6 +412,5 @@ __all__ = [
 ]
 
 
-# pragma: no cover - CLI entry point
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     raise SystemExit(main())

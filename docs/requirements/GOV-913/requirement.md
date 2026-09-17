@@ -181,3 +181,5 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Current coverage capture binds live reference-implementation source)
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Current retest release binds live reference-implementation source)
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Versioned capture history, source-profile binding, and stale-digest rejection)
+- IMPLEMENTS → CODE_FILE `tools/tooling_oci_selection.py` (Closed projection of a locked OCI image's platform graph)
+- IMPLEMENTS → CODE_FILE `tools/oci_release_selection.py` (Reviewed release-test image projection and required-platform set)

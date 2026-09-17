@@ -331,7 +331,7 @@
     {
       "artifact_id": "release-test-alpine",
       "consumers": [
-        "tools/oci_release_image.py"
+        "tools/oci_release_selection.py"
       ]
     },
     {

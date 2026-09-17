@@ -71,7 +71,7 @@ def _locked_layers(value: object) -> tuple[LockedOciDescriptor, ...]:
     return tuple(locked_oci_descriptor(layer) for layer in value)
 
 
-def _locked_platform_identity(graph: dict) -> tuple[str, str, str | None]:
+def _locked_platform_identity(graph: dict[str, object]) -> tuple[str, str, str | None]:
     architecture, operating_system, variant = graph.get("architecture"), graph.get("os"), graph.get("variant")
     named = isinstance(architecture, str) and architecture and isinstance(operating_system, str) and operating_system
     if not named or not (variant is None or (isinstance(variant, str) and variant)):
