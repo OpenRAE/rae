@@ -392,6 +392,7 @@ def test_import_admits_then_loads_then_reverifies(tmp_path, monkeypatch) -> None
     assert reference == f"{module.PRESEED_LOCAL_REPOSITORY}:{_INDEX_DIGEST.removeprefix('sha256:')}"
 
 
+@pytest.mark.integration
 def test_module_is_runnable_as_a_script_from_the_repository_root() -> None:
     """The release lane invokes this file as a script, not as a package import.
 

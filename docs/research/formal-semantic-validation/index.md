@@ -177,11 +177,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   augmentation admission. Fresh production and participant replay retains
   release-23 outcomes and compiled digests, with no new deviations or claims.
   All previously published captures remain unchanged.
-- [`bundles/retest-v24.json`](bundles/retest-v24.json) is current release 25.0.0.
+- [`bundles/retest-v24.json`](bundles/retest-v24.json) preserves release 25.0.0.
   It binds [`execution-snapshot-v24.json`](execution-snapshot-v24.json) and
   [`analysis-v24.json`](analysis-v24.json) to the tightened composition type
   annotations. Fresh production and participant replay retains release-24
   outcomes, digests, and claim limits. Earlier captures remain byte-exact.
+- [`bundles/retest-v25.json`](bundles/retest-v25.json) is current release 26.0.0.
+  It binds [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
+  [`analysis-v25.json`](analysis-v25.json) to the issue #1223 reviewed OCI
+  mirror and pre-seed admission boundary. That work does not participate in this
+  corpus, so fresh replay retains release-25 outcomes and digests with no new
+  claim class; every earlier release remains byte-exact.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.

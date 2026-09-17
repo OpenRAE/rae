@@ -2978,3 +2978,25 @@ def test_oci_graph_digests_are_screened_against_denied_digests(tmp_path: Path) -
     _write_json(root, "implementations/tooling/admission-policy.json", admission)
 
     assert "tooling-digest-denied" in _failures(root)
+
+
+def test_two_platforms_of_one_image_cannot_select_the_same_manifest(tmp_path: Path) -> None:
+    """A platform selection must name that platform's own manifest.
+
+    Two platforms claiming one manifest digest is the substitution this rule
+    exists to reject: the second platform would be admitted against an object
+    that was reviewed for a different architecture.
+    """
+
+    root = _seed_oci_graph_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    platform = lock["artifacts"][0]["platforms"][0]
+    duplicate = json.loads(json.dumps(platform))
+    duplicate["platform_id"] = "linux-arm64"
+    duplicate["installed_identity"]["target"] = "linux-arm64"
+    duplicate["oci_graph"]["architecture"] = "arm64"
+    # Everything else differs; only the selected manifest is shared.
+    lock["artifacts"][0]["platforms"].append(duplicate)
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-oci-manifest-duplicate" in _failures(root)
