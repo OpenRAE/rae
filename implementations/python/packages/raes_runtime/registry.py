@@ -44,6 +44,19 @@ class _ParticipantRuntimeMethodRequirements:
     bounded_concurrency: bool
 
 
+@dataclass(frozen=True)
+class RuntimeTargetComponents:
+    """Instantiated runtime target components without a manifest."""
+
+    provisioner: Provisioner
+    orchestrator: Orchestrator | None = None
+    evaluator: Evaluator | None = None
+    participant_runtime: ParticipantRuntime | None = None
+    time_runtime: TimeRuntime | None = None
+    observation_runtime: ObservationRuntime | None = None
+    recovery_observer: RecoveryObserver | None = None
+
+
 def _participant_runtime_method_requirements(manifest: BackendManifest) -> _ParticipantRuntimeMethodRequirements:
     capability = manifest.participant_runtime
     return _ParticipantRuntimeMethodRequirements(
@@ -86,34 +99,28 @@ def _require_invokable_method(
 def _validate_runtime_target_shape(
     *,
     manifest: BackendManifest | None,
-    provisioner: Provisioner | None,
-    orchestrator: Orchestrator | None,
-    evaluator: Evaluator | None,
-    participant_runtime: ParticipantRuntime | None,
-    time_runtime: TimeRuntime | None,
-    observation_runtime: ObservationRuntime | None,
-    recovery_observer: RecoveryObserver | None,
+    components: RuntimeTargetComponents,
 ) -> None:
     if manifest is None:
         raise ValueError("RuntimeTarget requires an explicit manifest.")
-    if provisioner is None:
+    if components.provisioner is None:
         raise ValueError("RuntimeTarget requires a provisioner.")
-    validate_profile_target(manifest, provisioner)
+    validate_profile_target(manifest, components.provisioner)
     validate_optional_component_presence(
         manifest,
-        orchestrator=orchestrator,
-        evaluator=evaluator,
-        participant_runtime=participant_runtime,
-        time_runtime=time_runtime,
-        recovery_observer=recovery_observer,
+        orchestrator=components.orchestrator,
+        evaluator=components.evaluator,
+        participant_runtime=components.participant_runtime,
+        time_runtime=components.time_runtime,
+        recovery_observer=components.recovery_observer,
     )
     if (
-        observation_runtime is not None
+        components.observation_runtime is not None
         and manifest.observation is None
         and any(
             capability.bases != frozenset({ObservationBasis.BACKEND_SELECTED})
             or not capability.stages.issubset({ObservationLifecycleStage.RETENTION})
-            for capability in observation_runtime.capabilities
+            for capability in components.observation_runtime.capabilities
         )
     ):
         raise ValueError("registry.target-shape-mismatch: observation runtime requires manifest capabilities.")
@@ -122,22 +129,22 @@ def _validate_runtime_target_shape(
     sample_request = object()
     sample_admission_request = sample_participant_action_admission_request()
     _validate_provisioner_methods(
-        provisioner,
+        components.provisioner,
         sample_plan,
         sample_snapshot,
         preparation=BACKEND_PREPARATION_CONTRACT in manifest.supported_contract_versions,
     )
-    _validate_orchestrator_methods(orchestrator, sample_plan, sample_snapshot)
-    _validate_evaluator_methods(evaluator, sample_plan, sample_snapshot)
+    _validate_orchestrator_methods(components.orchestrator, sample_plan, sample_snapshot)
+    _validate_evaluator_methods(components.evaluator, sample_plan, sample_snapshot)
     _validate_participant_runtime_methods(
-        participant_runtime,
+        components.participant_runtime,
         sample_request,
         sample_admission_request,
         sample_snapshot,
         requirements=_participant_runtime_method_requirements(manifest),
     )
     _validate_time_runtime_methods(
-        time_runtime,
+        components.time_runtime,
         sample_plan,
         sample_snapshot,
         require_coordinated_participant_reset=bool(
@@ -146,7 +153,7 @@ def _validate_runtime_target_shape(
     )
     validate_recovery_observer_contract(
         manifest,
-        recovery_observer,
+        components.recovery_observer,
         require_invokable_method=_require_invokable_method,
     )
 
@@ -394,27 +401,16 @@ class RuntimeTarget:
     def __post_init__(self) -> None:
         _validate_runtime_target_shape(
             manifest=self.manifest,
-            provisioner=self.provisioner,
-            orchestrator=self.orchestrator,
-            evaluator=self.evaluator,
-            participant_runtime=self.participant_runtime,
-            time_runtime=self.time_runtime,
-            observation_runtime=self.observation_runtime,
-            recovery_observer=self.recovery_observer,
+            components=RuntimeTargetComponents(
+                provisioner=self.provisioner,
+                orchestrator=self.orchestrator,
+                evaluator=self.evaluator,
+                participant_runtime=self.participant_runtime,
+                time_runtime=self.time_runtime,
+                observation_runtime=self.observation_runtime,
+                recovery_observer=self.recovery_observer,
+            ),
         )
-
-
-@dataclass(frozen=True)
-class RuntimeTargetComponents:
-    """Instantiated runtime target components without a manifest."""
-
-    provisioner: Provisioner
-    orchestrator: Orchestrator | None = None
-    evaluator: Evaluator | None = None
-    participant_runtime: ParticipantRuntime | None = None
-    time_runtime: TimeRuntime | None = None
-    observation_runtime: ObservationRuntime | None = None
-    recovery_observer: RecoveryObserver | None = None
 
 
 @dataclass(frozen=True)
@@ -465,13 +461,7 @@ class BackendRegistry:
 
         _validate_runtime_target_shape(
             manifest=manifest,
-            provisioner=components.provisioner,
-            orchestrator=components.orchestrator,
-            evaluator=components.evaluator,
-            participant_runtime=components.participant_runtime,
-            time_runtime=components.time_runtime,
-            observation_runtime=components.observation_runtime,
-            recovery_observer=components.recovery_observer,
+            components=components,
         )
 
         return RuntimeTarget(

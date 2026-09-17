@@ -32,6 +32,7 @@ from .participant_activity import resolve_participant_activity_controls
 from .participant_execution_control import RuntimeParticipantExecutionMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .registry import RuntimeTarget as _RuntimeTarget
+from .registry import RuntimeTargetComponents as _RuntimeTargetComponents
 from .registry import _validate_runtime_target_shape
 from .time_control import RuntimeTimeControlMixin
 
@@ -68,13 +69,15 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
     ) -> None:
         _validate_runtime_target_shape(
             manifest=target.manifest,
-            provisioner=target.provisioner,
-            orchestrator=target.orchestrator,
-            evaluator=target.evaluator,
-            participant_runtime=target.participant_runtime,
-            time_runtime=target.time_runtime,
-            observation_runtime=target.observation_runtime,
-            recovery_observer=target.recovery_observer,
+            components=_RuntimeTargetComponents(
+                provisioner=target.provisioner,
+                orchestrator=target.orchestrator,
+                evaluator=target.evaluator,
+                participant_runtime=target.participant_runtime,
+                time_runtime=target.time_runtime,
+                observation_runtime=target.observation_runtime,
+                recovery_observer=target.recovery_observer,
+            ),
         )
         self._target = target
         self._snapshot = initial_snapshot if initial_snapshot is not None else RuntimeSnapshot()

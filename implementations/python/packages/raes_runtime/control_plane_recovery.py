@@ -11,6 +11,7 @@ from raes_backend_protocols.recovery_observation import (
     RecoveryEffectClassification,
     RecoveryObservationRequest,
     RecoveryObservationResult,
+    RecoveryObserver,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
@@ -61,23 +62,24 @@ class RuntimeRecoveryMixin:
         )
 
 
+_RECOVERY_ADDRESS = "runtime.control-plane.recovery"
 _RECOVERY_ABSENT = Diagnostic(
     code="runtime.control-plane.recovery-effect-absent",
     domain="runtime",
-    address="runtime.control-plane.recovery",
+    address=_RECOVERY_ADDRESS,
     message="Recovery observation established that the interrupted effect was absent.",
 )
 _RECOVERY_APPLIED = Diagnostic(
     code="runtime.control-plane.recovery-effect-applied",
     domain="runtime",
-    address="runtime.control-plane.recovery",
+    address=_RECOVERY_ADDRESS,
     message="Recovery observation established and validated the interrupted effect.",
     severity=Severity.INFO,
 )
 _RECOVERY_UNOBSERVABLE = Diagnostic(
     code="runtime.control-plane.recovery-effect-unobservable",
     domain="runtime",
-    address="runtime.control-plane.recovery",
+    address=_RECOVERY_ADDRESS,
     message="The interrupted effect could not be established by recovery observation.",
 )
 
@@ -102,50 +104,54 @@ def reconcile_startup_operations(control_plane: object) -> None:
 
 def _reconcile_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
     if record.status.state is OperationState.ACCEPTED:
-        if not _accepted_claim_has_write_ahead_provenance(record):
-            _commit_recovery_terminal(
-                control_plane,
-                record,
-                state=OperationState.INDETERMINATE,
-                diagnostics=[_RECOVERY_UNOBSERVABLE],
-                mode=TerminalCommitMode.OPERATION_ONLY,
-            )
-            return
-        _commit_recovery_terminal(
-            control_plane,
-            record,
-            state=OperationState.CANCELLED,
-            diagnostics=[_RECOVERY_ABSENT],
-            mode=TerminalCommitMode.OPERATION_ONLY,
-        )
-        return
-    classification, applied = _observe_running_record(control_plane, record)
-    if classification is RecoveryEffectClassification.EFFECT_ABSENT:
-        _commit_recovery_terminal(
-            control_plane,
-            record,
-            state=OperationState.FAILED,
-            diagnostics=[_RECOVERY_ABSENT],
-            mode=TerminalCommitMode.OPERATION_ONLY,
-        )
-        return
-    if classification is RecoveryEffectClassification.EFFECT_APPLIED and applied is not None:
-        _commit_recovery_terminal(
-            control_plane,
-            record,
-            state=OperationState.SUCCEEDED,
-            diagnostics=[_RECOVERY_APPLIED, *applied.diagnostics],
-            mode=TerminalCommitMode.SNAPSHOT_BEARING,
-            snapshot=applied.snapshot,
-            changed_addresses=list(applied.changed_addresses),
-        )
-        return
+        _reconcile_accepted_record(control_plane, record)
+    else:
+        _reconcile_running_record(control_plane, record)
+
+
+def _reconcile_accepted_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
+    state = OperationState.CANCELLED
+    diagnostic = _RECOVERY_ABSENT
+    if not _accepted_claim_has_write_ahead_provenance(record):
+        state = OperationState.INDETERMINATE
+        diagnostic = _RECOVERY_UNOBSERVABLE
     _commit_recovery_terminal(
         control_plane,
         record,
-        state=OperationState.INDETERMINATE,
-        diagnostics=[_RECOVERY_UNOBSERVABLE],
+        state=state,
+        diagnostics=[diagnostic],
         mode=TerminalCommitMode.OPERATION_ONLY,
+    )
+
+
+def _reconcile_running_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
+    classification, applied = _observe_running_record(control_plane, record)
+    if classification is RecoveryEffectClassification.EFFECT_ABSENT:
+        state = OperationState.FAILED
+        diagnostics = [_RECOVERY_ABSENT]
+        mode = TerminalCommitMode.OPERATION_ONLY
+        snapshot = None
+        changed_addresses = None
+    elif classification is RecoveryEffectClassification.EFFECT_APPLIED and applied is not None:
+        state = OperationState.SUCCEEDED
+        diagnostics = [_RECOVERY_APPLIED, *applied.diagnostics]
+        mode = TerminalCommitMode.SNAPSHOT_BEARING
+        snapshot = applied.snapshot
+        changed_addresses = list(applied.changed_addresses)
+    else:
+        state = OperationState.INDETERMINATE
+        diagnostics = [_RECOVERY_UNOBSERVABLE]
+        mode = TerminalCommitMode.OPERATION_ONLY
+        snapshot = None
+        changed_addresses = None
+    _commit_recovery_terminal(
+        control_plane,
+        record,
+        state=state,
+        diagnostics=diagnostics,
+        mode=mode,
+        snapshot=snapshot,
+        changed_addresses=changed_addresses,
     )
 
 
@@ -173,17 +179,41 @@ def _observe_running_record(
         request_commitment=record.status.context.request_commitment,
         baseline_snapshot=deepcopy(baseline),
     )
+    result = _bound_observation_result(control_plane, observer, request)
+    classification = RecoveryEffectClassification.INDETERMINATE
+    applied = None
+    if result is not None:
+        classification = result.classification
+        if classification is RecoveryEffectClassification.EFFECT_APPLIED:
+            applied = _validated_applied_observation(control_plane, record, baseline, result)
+            if applied is None:
+                classification = RecoveryEffectClassification.INDETERMINATE
+    return classification, applied
+
+
+def _bound_observation_result(
+    control_plane: object,
+    observer: RecoveryObserver,
+    request: RecoveryObservationRequest,
+) -> RecoveryObservationResult | None:
     try:
         with external_control_plane_call(control_plane):
             result = observer.observe_effect(request)
     except Exception:
-        return RecoveryEffectClassification.INDETERMINATE, None
+        return None
     if not isinstance(result, RecoveryObservationResult) or (
         result.operation_id != request.operation_id or result.request_commitment != request.request_commitment
     ):
-        return RecoveryEffectClassification.INDETERMINATE, None
-    if result.classification is not RecoveryEffectClassification.EFFECT_APPLIED:
-        return result.classification, None
+        return None
+    return result
+
+
+def _validated_applied_observation(
+    control_plane: object,
+    record: ControlPlaneOperationRecord,
+    baseline: RuntimeSnapshot,
+    result: RecoveryObservationResult,
+) -> ApplyResult | None:
     assert result.snapshot is not None
     candidate = ApplyResult(
         success=True,
@@ -192,7 +222,7 @@ def _observe_running_record(
     )
     validated = _validated_backend_result(
         candidate,
-        address="runtime.control-plane.recovery",
+        address=_RECOVERY_ADDRESS,
         baseline_snapshot=baseline,
         realization=_RealizationApplyContext(),
         call=_BackendCallContext(
@@ -204,9 +234,7 @@ def _observe_running_record(
             ),
         ),
     )
-    if not validated.success:
-        return RecoveryEffectClassification.INDETERMINATE, None
-    return RecoveryEffectClassification.EFFECT_APPLIED, validated
+    return validated if validated.success else None
 
 
 def _commit_recovery_terminal(

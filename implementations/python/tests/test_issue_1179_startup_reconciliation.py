@@ -284,7 +284,8 @@ def test_observed_applied_claim_validates_and_atomically_publishes_snapshot_stat
     control_plane = RuntimeControlPlane(_target(observer), store=store)
 
     status = control_plane.get_operation(record.receipt.operation_id)
-    assert status is not None and status.state is OperationState.SUCCEEDED
+    assert status is not None
+    assert status.state is OperationState.SUCCEEDED
     assert status.diagnostics[0].code == "runtime.control-plane.recovery-effect-applied"
     assert status.diagnostics[0].severity is Severity.INFO
     assert control_plane.snapshot == store.load_snapshot()
@@ -401,11 +402,12 @@ def test_runtime_target_requires_exact_recovery_manifest_component_agreement() -
         target.manifest,
         capabilities=replace(target.manifest.capabilities, recovery_observation=capability),
     )
+    undeclared_observer = _RecoveryObserver(RuntimeError("not-called"))
 
     with pytest.raises(ValueError, match="recovery_observer presence"):
         replace(target, manifest=declared)
     with pytest.raises(ValueError, match="recovery_observer presence"):
-        replace(target, recovery_observer=_RecoveryObserver(RuntimeError("not-called")))
+        replace(target, recovery_observer=undeclared_observer)
 
 
 def test_resolution_creates_fresh_linked_operation_and_unblocks_mutation_without_rewriting_parent() -> None:
@@ -413,9 +415,10 @@ def test_resolution_creates_fresh_linked_operation_and_unblocks_mutation_without
     store = _store_with(parent)
     control_plane = RuntimeControlPlane(_target(), store=store)
     indeterminate = store.load_records()[parent.receipt.operation_id]
+    blocked_plan = ProvisioningPlan()
 
     with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
-        control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="blocked-effect")
+        control_plane.submit_provisioning(blocked_plan, idempotency_key="blocked-effect")
     child_receipt = control_plane.resolve_indeterminate_operation(
         parent.receipt.operation_id,
         disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
@@ -461,13 +464,14 @@ def test_resolution_retry_is_idempotent_and_already_resolved_parent_rejects_a_ne
     retry = control_plane.resolve_indeterminate_operation(parent.receipt.operation_id, **kwargs)
     assert retry.operation_id == first.operation_id
     assert sum(event.operation_id == first.operation_id for event in store.read_audit()) == 1
+    operator = _operator()
 
     with pytest.raises(ValueError, match="already resolved"):
         control_plane.resolve_indeterminate_operation(
             parent.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
             idempotency_key="next",
-            identity=_operator(),
+            identity=operator,
         )
     assert store.find_by_idempotency("next") is None
 
@@ -477,13 +481,14 @@ def test_participant_subject_scope_is_reauthorized_before_resolution_claim() -> 
     parent = _record("subject-parent-1179", subject_scope=scope)
     store = _store_with(parent)
     control_plane = RuntimeControlPlane(_target(), store=store)
+    operator = _operator()
 
     with pytest.raises(PermissionError):
         control_plane.resolve_indeterminate_operation(
             parent.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
             idempotency_key="deny",
-            identity=_operator(),
+            identity=operator,
         )
     assert store.find_by_idempotency("deny") is None
 
