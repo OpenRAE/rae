@@ -189,10 +189,10 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   bounded outcomes and claim limits; earlier captures remain byte-exact.
 - [`bundles/retest-v26.json`](bundles/retest-v26.json) is current release 27.0.0.
   It binds [`execution-snapshot-v26.json`](execution-snapshot-v26.json) and
-  [`analysis-v26.json`](analysis-v26.json) to the issue #1223 reviewed OCI
-  mirror and pre-seed admission boundary. That work does not participate in this
-  corpus, so fresh replay retains release-26 outcomes and digests with no new
-  claim class; every earlier release remains byte-exact.
+  [`analysis-v26.json`](analysis-v26.json) to authoring-adapter conformance on
+  the merged participant-relationship and augmentation source tree. Fresh
+  replay retains bounded outcomes and claim limits without qualifying an
+  adapter transport.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -237,7 +237,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 26.0.0, rejects unsupported future
+Current validation requires explicit release 27.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

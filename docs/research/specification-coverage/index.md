@@ -157,13 +157,11 @@ this run does not repair them.
   byte-exact.
 
 - [`execution-snapshot-v26.json`](execution-snapshot-v26.json) and
-  [`analysis-v26.json`](analysis-v26.json) are current release 26.0.0. They
-  bind the issue #1223 reviewed OCI mirror and pre-seed admission boundary to
-  exact source and package digests. That work lives in the development artifact
-  policy, the OCI layout and release-image modules, and the reference-backend
-  driver's resource naming; none of those are recorded implementation surfaces
-  or preregistered carriers, so every classification, the denominator and the
-  claim limits are unchanged and earlier captures retain their exact bytes.
+  [`analysis-v26.json`](analysis-v26.json) are current release 26.0.0. Fresh
+  replay binds authoring-adapter conformance on the merged participant-
+  relationship and augmentation source tree to exact source and package
+  digests. Classifications and claim limits remain unchanged; adapter transport
+  behavior is not evaluated by this corpus.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and

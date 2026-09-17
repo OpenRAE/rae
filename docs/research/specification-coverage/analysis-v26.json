@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1223-v26",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1005-v26",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,13 +39,12 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-17T01:09:59.471422+00:00",
+  "generated_at": "2026-09-16",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
     "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation.",
-    "The retained protocol does not test evidence-requirement refinement lineage; the dedicated EXP-731 regression suite covers that production boundary.",
-    "Reviewed OCI mirror and pre-seed admission is covered by its own regression suites and the development artifact policy gate, not a new claim in this preregistered matrix."
+    "The retained protocol does not test evidence-requirement refinement lineage; the dedicated EXP-731 regression suite covers that production boundary."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -85,6 +84,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1223-v26",
-  "snapshot_sha256": "dda654e85effe41efa9e300f4e6813855d7c4aa249a700835bc2a8e357a5dc66"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1005-v26",
+  "snapshot_sha256": "cf25d7e7449f9b94ecaa5431e1f0cd65f166a36ac8f2ad021f43b302d5c1a5ad"
 }
