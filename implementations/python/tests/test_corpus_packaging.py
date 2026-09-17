@@ -251,6 +251,20 @@ def test_corpus_discoverable_via_importlib_resources_from_installed_wheel(instal
 
 
 @requires_uv
+def test_authoring_vectors_execute_from_installed_wheel(installed_python: Path, tmp_path: Path):
+    script = (
+        "from raes_conformance.authoring_adapters import load_authoring_vectors, reference_authoring_output, compare_authoring_paths\n"
+        "vectors = load_authoring_vectors()\n"
+        "assert len(vectors) == 7\n"
+        "for vector in vectors:\n"
+        "    output = reference_authoring_output(vector)\n"
+        "    assert compare_authoring_paths(vector, output, output).report.conformant\n"
+    )
+    result = _run([str(installed_python), "-c", script], cwd=tmp_path, env=_sanitized_runtime_env(tmp_path))
+    assert result.returncode == 0, f"installed authoring conformance failed:\n{result.stdout}\n{result.stderr}"
+
+
+@requires_uv
 def test_conformance_backend_passes_from_installed_wheel(installed_python: Path, tmp_path: Path):
     """Acceptance: ``raes conformance backend --profile provisioning-only`` exits
     0 from a fresh wheel install with no source tree present."""

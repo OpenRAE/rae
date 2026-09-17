@@ -87,6 +87,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
 )
 
 _PREFIX_SCHEMA_DIRECTORIES = (
+    ("authoring-adapter-", "authoring-adapters"),
     ("scenario-satisfiability-evidence-v", "satisfiability"),
     ("artifact-requirement-v", "artifact-requirements"),
     ("artifact-transformation-report-v", "artifact-transformations"),

@@ -189,6 +189,7 @@ module_boundaries:
         - raes
       public_import_prefixes:
         raes_processor:
+          - raes_processor.semantic_comparison
           - raes_processor.compiler
           - raes_processor.models
           - raes_processor.planner
