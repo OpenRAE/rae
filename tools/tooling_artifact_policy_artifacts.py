@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -670,15 +671,22 @@ def _has_dependency_cycle(known_artifacts: set[str], dependency_graph: Mapping[s
     return any(visit(artifact_id) for artifact_id in sorted(known_artifacts))
 
 
+@dataclass
+class _LockScan:
+    """Authority documents and the cross-artifact state a lock walk accumulates."""
+
+    profiles: Mapping[str, Mapping[str, Any]]
+    policies: Mapping[str, Mapping[str, Any]]
+    denied_digests: set[str]
+    identities: set[tuple[str, str, str]]
+    dependency_graph: dict[str, set[str]]
+
+
 def _artifact_platform_failures(
     repo_root: Path,
     artifact_id: str,
     artifact: Mapping[str, Any],
-    profiles: Mapping[str, Mapping[str, Any]],
-    policies: Mapping[str, Mapping[str, Any]],
-    denied_digests: set[str],
-    identities: set[tuple[str, str, str]],
-    dependency_graph: dict[str, set[str]],
+    scan: _LockScan,
 ) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = artifact_graph_failures(artifact_id, as_list(artifact.get("platforms")))
     for platform_value in as_list(artifact.get("platforms")):
@@ -692,7 +700,7 @@ def _artifact_platform_failures(
             normalize_platform_id(platform_id),
             distribution_id if isinstance(distribution_id, str) else "",
         )
-        if identity in identities:
+        if identity in scan.identities:
             failures.append(
                 failure(
                     "tooling-artifact-identity-duplicate",
@@ -700,10 +708,12 @@ def _artifact_platform_failures(
                     ARTIFACT_LOCK_PATH,
                 )
             )
-        identities.add(identity)
-        dependency_graph[artifact_id].update(string_set(platform.get("dependencies")))
+        scan.identities.add(identity)
+        scan.dependency_graph[artifact_id].update(string_set(platform.get("dependencies")))
         failures.extend(
-            _platform_failures(repo_root, artifact_id, artifact, platform, profiles, policies, denied_digests)
+            _platform_failures(
+                repo_root, artifact_id, artifact, platform, scan.profiles, scan.policies, scan.denied_digests
+            )
         )
     return failures
 
@@ -750,11 +760,7 @@ def artifact_failures(repo_root: Path, documents: Mapping[str, dict[str, Any]]) 
                 repo_root,
                 artifact_id,
                 artifact,
-                profiles,
-                policies,
-                denied_digests,
-                identities,
-                dependency_graph,
+                _LockScan(profiles, policies, denied_digests, identities, dependency_graph),
             )
         )
     known_artifacts = set(artifact_ids)

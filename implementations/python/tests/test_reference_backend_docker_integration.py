@@ -127,29 +127,29 @@ def _require_container_runtime() -> ContainerRuntime:
     # resolve; a misspelled admission setting must never silently become an
     # optional run.
     _required_mode()
-    try:
-        source = oci_release_image.resolve_source(os.environ)
-    except oci_release_image.ImageAdmissionError as exc:
-        pytest.fail(f"reviewed OCI input is misconfigured: {exc.reason}")
+    source, reason = oci_release_image.attempt(lambda: oci_release_image.resolve_source(os.environ))
+    if reason is not None:
+        pytest.fail(f"reviewed OCI input is misconfigured: {reason}")
     runtime = _available_runtime()
     if runtime is None:
         _unavailable("no container runtime (docker/podman) available")
-    try:
-        image = _locked_image(source)
-    except oci_release_image.ImageAdmissionError as exc:
-        pytest.fail(f"reviewed OCI input is misconfigured: {exc.reason}")
+    image, reason = oci_release_image.attempt(lambda: _locked_image(source))
+    if reason is not None or image is None:
+        pytest.fail(f"reviewed OCI input is misconfigured: {reason}")
     # Obtain the reviewed bytes for this source class. A pre-seeded context
     # performs no acquisition, and a mirror-only one never falls back publicly.
-    try:
-        oci_release_image.acquire_image(source, image.reference, runtime=runtime)
-    except oci_release_image.ImageAdmissionError:
+    _, reason = oci_release_image.attempt(
+        lambda: oci_release_image.acquire_image(source, image.reference, runtime=runtime)
+    )
+    if reason is not None:
         _unavailable("integration image is not available (offline registry?)")
     # Whatever the source class, the runtime must now hold exactly the reviewed
     # platform graph. This is an integrity check, so it fails in either mode.
-    try:
-        oci_release_image.verify_daemon_image(image.reference, image.graph, runtime=runtime)
-    except oci_release_image.ImageAdmissionError as exc:
-        pytest.fail(f"container runtime image does not match the reviewed OCI graph: {exc.reason}")
+    _, reason = oci_release_image.attempt(
+        lambda: oci_release_image.verify_daemon_image(image.reference, image.graph, runtime=runtime)
+    )
+    if reason is not None:
+        pytest.fail(f"container runtime image does not match the reviewed OCI graph: {reason}")
     return ContainerRuntime(runtime=runtime, image=image)
 
 

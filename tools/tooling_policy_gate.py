@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 from tools.tooling_installed_tree import SHA256_PATTERN, LockedInstalledTree, locked_installed_tree
+from tools.tooling_oci_selection import LockedOciGraph, locked_oci_graph
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-OCI_DIGEST_PATTERN = re.compile(r"sha256:[0-9a-f]{64}")
 _VALIDATOR_TIMEOUT_SECONDS = 180
 _INVALID_SELECTION_RESPONSE = "development artifact policy failed before acquisition: invalid selection response"
 _INVALID_HOST_RESPONSE = "development artifact policy failed before acquisition: invalid host selection response"
@@ -27,31 +27,6 @@ class LockedManifestEntry:
     sha256: str
     size: int
     executable: bool = False
-
-
-@dataclass(frozen=True)
-class LockedOciDescriptor:
-    digest: str
-    size: int
-
-
-@dataclass(frozen=True)
-class LockedOciGraph:
-    """One platform's reviewed index-to-layer object graph.
-
-    An index-only image has no graph; an export-bearing one is refused by the
-    policy gate before selection unless it carries a complete graph, so a
-    present value here is already coherent.
-    """
-
-    index: LockedOciDescriptor
-    manifest: LockedOciDescriptor
-    config: LockedOciDescriptor
-    layers: tuple[LockedOciDescriptor, ...]
-    diff_ids: tuple[str, ...]
-    architecture: str
-    os: str
-    variant: str | None = None
 
 
 @dataclass(frozen=True)
@@ -74,57 +49,6 @@ class LockedArtifactSelection:
     # The logical asset the reviewed release digest lives in. For an OCI image
     # that is the registry repository; `repository` stays the project's own URL.
     asset: str = ""
-
-
-def _locked_oci_descriptor(value: object) -> LockedOciDescriptor:
-    if not isinstance(value, dict):
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE)
-    digest, size = value.get("digest"), value.get("size")
-    if (
-        not isinstance(digest, str)
-        or OCI_DIGEST_PATTERN.fullmatch(digest) is None
-        or not isinstance(size, int)
-        or isinstance(size, bool)
-        or size < 1
-    ):
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE)
-    return LockedOciDescriptor(digest=digest, size=size)
-
-
-def locked_oci_graph(value: object) -> LockedOciGraph | None:
-    """Project a validated platform graph, or None for an index-only image."""
-
-    if value is None:
-        return None
-    if not isinstance(value, dict):
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE)
-    diff_ids = value.get("diff_ids")
-    variant = value.get("variant")
-    architecture, operating_system = value.get("architecture"), value.get("os")
-    layers = value.get("layers")
-    if (
-        not isinstance(diff_ids, list)
-        or not diff_ids
-        or any(not isinstance(item, str) or OCI_DIGEST_PATTERN.fullmatch(item) is None for item in diff_ids)
-        or not isinstance(layers, list)
-        or not layers
-        or not isinstance(architecture, str)
-        or not architecture
-        or not isinstance(operating_system, str)
-        or not operating_system
-        or not (variant is None or isinstance(variant, str) and variant)
-    ):
-        raise RuntimeError(_INVALID_SELECTION_RESPONSE)
-    return LockedOciGraph(
-        index=_locked_oci_descriptor(value.get("index")),
-        manifest=_locked_oci_descriptor(value.get("manifest")),
-        config=_locked_oci_descriptor(value.get("config")),
-        layers=tuple(_locked_oci_descriptor(layer) for layer in layers),
-        diff_ids=tuple(diff_ids),
-        architecture=architecture,
-        os=operating_system,
-        variant=variant,
-    )
 
 
 def _is_portable_manifest_path(path: str) -> bool:

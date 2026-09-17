@@ -140,6 +140,32 @@ def _denied_failures(artifact_id: str, graph: Mapping[str, Any], denied_digests:
     return [_lock_failure(RULE_DIGEST_DENIED, f"{artifact_id} platform graph uses a denied digest")]
 
 
+def _declaration_failures(
+    artifact_id: str,
+    platform_id: str,
+    *,
+    declared: bool,
+    admitted: bool,
+) -> list[PolicyFailure]:
+    """Reject a graph and its admission policy disagreeing in either direction."""
+
+    if admitted and not declared:
+        return [
+            _lock_failure(
+                RULE_MISSING,
+                f"{artifact_id} admits a platform graph but {platform_id} declares none",
+            )
+        ]
+    if declared and not admitted:
+        return [
+            _lock_failure(
+                RULE_UNPOLICED,
+                f"{artifact_id} declares a platform graph its admission policy does not admit",
+            )
+        ]
+    return []
+
+
 def platform_graph_failures(
     artifact_id: str,
     artifact: Mapping[str, Any],
@@ -150,24 +176,15 @@ def platform_graph_failures(
     """Validate one platform's OCI graph against its artifact and admission policy."""
 
     graph = platform.get("oci_graph")
-    graph_bearing = is_graph_bearing(artifact, policies)
     platform_id = platform.get("platform_id")
-    if graph is None:
-        if not graph_bearing:
-            return []
-        return [
-            _lock_failure(
-                RULE_MISSING,
-                f"{artifact_id} admits a platform graph but {platform_id} declares none",
-            )
-        ]
-    if not graph_bearing:
-        return [
-            _lock_failure(
-                RULE_UNPOLICED,
-                f"{artifact_id} declares a platform graph its admission policy does not admit",
-            )
-        ]
+    declaration = _declaration_failures(
+        artifact_id,
+        str(platform_id),
+        declared=graph is not None,
+        admitted=is_graph_bearing(artifact, policies),
+    )
+    if declaration or graph is None:
+        return declaration
     graph = as_mapping(graph)
     return [
         *_identity_failures(artifact_id, artifact, graph),

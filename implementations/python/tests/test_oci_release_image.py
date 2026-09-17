@@ -188,7 +188,8 @@ def test_layout_export_and_import_use_fixed_bounded_client_argv(tmp_path) -> Non
 
     export_argv, import_argv = runner.calls
     assert export_argv[:2] == ["skopeo", "copy"]
-    assert "--all" in export_argv and "--preserve-digests" in export_argv
+    assert "--all" in export_argv
+    assert "--preserve-digests" in export_argv
     assert export_argv[-2] == f"docker://{_PUBLIC_REPOSITORY}@{_INDEX_DIGEST}"
     assert export_argv[-1] == f"oci:{layout}:release-test"
     assert import_argv[:2] == ["skopeo", "copy"]
@@ -205,7 +206,8 @@ def test_client_invocations_never_inherit_ambient_registry_state() -> None:
     acquire_image(resolve_source({}), f"{_PUBLIC_REPOSITORY}@{_INDEX_DIGEST}", runtime="docker", runner=_runner)
 
     assert set(captured["env"]) == {"LC_ALL", "LANG", "PATH"}
-    assert isinstance(captured["timeout"], int) and 0 < captured["timeout"] <= 900
+    assert isinstance(captured["timeout"], int)
+    assert 0 < captured["timeout"] <= 900
     assert captured["check"] is False
     assert "shell" not in captured
 
@@ -325,8 +327,10 @@ def test_only_the_reviewed_container_runtimes_may_be_driven() -> None:
     source = resolve_source({})
     reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
 
+    runner = _Runner()
+
     with pytest.raises(ImageAdmissionError) as excinfo:
-        acquire_image(source, reference, runtime="rm -rf /", runner=_Runner())
+        acquire_image(source, reference, runtime="rm -rf /", runner=runner)
 
     assert excinfo.value.reason == "runtime-not-allowed"
 
@@ -415,4 +419,5 @@ def test_module_is_runnable_as_a_script_from_the_repository_root() -> None:
     )
 
     assert completed.returncode == 0, completed.stderr
-    assert "export" in completed.stdout and "import" in completed.stdout
+    assert "export" in completed.stdout
+    assert "import" in completed.stdout

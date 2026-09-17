@@ -26,6 +26,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import TypeVar
 
 # The release lane runs this file as a script, so `sys.path[0]` is `tools/`
 # rather than the repository root and the package imports below would not
@@ -35,6 +36,8 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.oci_image_layout import LayoutRejected, LockedPlatformGraph, OciDescriptor, verify_layout  # noqa: E402
+from tools.tooling_oci_selection import LockedOciDescriptor  # noqa: E402
+from tools.tooling_policy_gate import LockedArtifactSelection  # noqa: E402
 
 # The reviewed lock selection this module admits.
 RELEASE_TEST_IMAGE_ARTIFACT_ID = "release-test-alpine"
@@ -116,7 +119,7 @@ _PLATFORM_PROFILES = {
 }
 
 
-def _default_selection_loader(*, version: str, platform_id: str, profile_id: str):
+def _default_selection_loader(*, version: str, platform_id: str, profile_id: str) -> LockedArtifactSelection:
     """Load one reviewed lock selection through the canonical policy gate.
 
     The artifact id is a literal here on purpose: the selector policy reads it
@@ -134,7 +137,7 @@ def _default_selection_loader(*, version: str, platform_id: str, profile_id: str
     )
 
 
-def _descriptor(value) -> OciDescriptor:
+def _descriptor(value: LockedOciDescriptor) -> OciDescriptor:
     return OciDescriptor(digest=value.digest, size=value.size)
 
 
@@ -145,7 +148,7 @@ def locked_repository(*, loader: SelectionLoader = _default_selection_loader) ->
     return _asset(selection)
 
 
-def _asset(selection) -> str:
+def _asset(selection: LockedArtifactSelection) -> str:
     """Return the reviewed OCI repository the locked index digest lives in."""
 
     asset = getattr(selection, "asset", "")
@@ -154,7 +157,7 @@ def _asset(selection) -> str:
     return asset
 
 
-def _select(platform_id: str, loader: SelectionLoader):
+def _select(platform_id: str, loader: SelectionLoader) -> LockedArtifactSelection:
     return loader(
         version=RELEASE_TEST_IMAGE_VERSION,
         platform_id=platform_id,
@@ -203,7 +206,8 @@ def execution_graph(graphs: Sequence[LockedPlatformGraph]) -> LockedPlatformGrap
     raise ImageAdmissionError("graph-unavailable")
 
 
-def _default_runner(argv: list[str], **kwargs) -> subprocess.CompletedProcess:  # pragma: no cover - IO leaf
+# pragma: no cover - the real subprocess call is the impure IO leaf.
+def _default_runner(argv: list[str], **kwargs) -> subprocess.CompletedProcess:  # pragma: no cover
     return subprocess.run(argv, **kwargs)
 
 
@@ -232,6 +236,24 @@ def _require_runtime(runtime: str) -> str:
     if runtime not in _ALLOWED_RUNTIMES:
         raise ImageAdmissionError("runtime-not-allowed")
     return runtime
+
+
+_T = TypeVar("_T")
+
+
+def attempt(operation: Callable[[], _T]) -> tuple[_T | None, str | None]:
+    """Run one admission step, returning its stable reason code on refusal.
+
+    Admission refusals are classified by the caller -- an availability failure
+    may skip an optional run while an integrity failure never may -- so the
+    reason code has to reach that decision as a value. Catching the module's own
+    exception here keeps that handling in the module that defines it.
+    """
+
+    try:
+        return operation(), None
+    except ImageAdmissionError as exc:
+        return None, exc.reason
 
 
 def resolve_source(environ: Mapping[str, str]) -> ImageSource:
@@ -464,6 +486,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 __all__ = [
     "EXECUTION_PLATFORM_ID",
+    "attempt",
     "EXECUTION_PROFILE_ID",
     "ImageAdmissionError",
     "ImageSource",
@@ -492,5 +515,6 @@ __all__ = [
 ]
 
 
-if __name__ == "__main__":  # pragma: no cover - CLI entry point
+# pragma: no cover - CLI entry point
+if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())
