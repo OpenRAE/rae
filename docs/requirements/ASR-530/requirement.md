@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-05-18T02:22:07.827366Z
-updated_at: 2026-09-12T00:00:00Z
+updated_at: 2026-09-16T00:00:00Z
 ---
 
 # ASR-530 — Claim Falsification And Evidence Gate
@@ -21,6 +21,8 @@ Agent-assisted development can produce internally coherent code and documentatio
 
 ## Traceability
 
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v25.json` (Fresh source-bound replay after participant relationships and merged augmentation scope, retaining outcomes and claim limits)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-214-v25.json` (Fresh source-bound replay retaining coverage classifications and denominator)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v20.json` (Fresh source-bound release 21.0.0 with unchanged bounded replay outcomes)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v19.json` (Fresh release 19.0.0 preserves the original coverage classifications and denominator)
 - IMPLEMENTS → GITHUB_ISSUE `1205` (Current-source replay after generic software refinements)

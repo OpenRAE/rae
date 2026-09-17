@@ -270,6 +270,19 @@ def _rewrite_behavior_sections(
     payload: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
+    for action in payload.get("action_contracts", {}).values():
+        if not isinstance(action, dict):
+            continue
+        for interaction in action.get("interactions", []):
+            if not isinstance(interaction, dict):
+                continue
+            interaction["target"] = _maybe_rename(interaction["target"], symbols["named"])
+            interaction["related_actions"] = [
+                _maybe_rename(ref, symbols["action_contracts"]) for ref in interaction.get("related_actions", [])
+            ]
+            interaction["shared_state_refs"] = [
+                _maybe_rename(ref, symbols["named"]) for ref in interaction.get("shared_state_refs", [])
+            ]
     for behavior_spec in payload.get("behavior_specifications", {}).values():
         if isinstance(behavior_spec, dict):
             _rewrite_behavior_specification(behavior_spec, symbols)

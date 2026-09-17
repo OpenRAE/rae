@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-16T23:09:11.934863+00:00",
+  "captured_at": "2026-09-17T03:04:59.821826+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -652,12 +652,12 @@
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "9ab6f584a3595be771d3f6a425e2d27dffc2c9e278006c785709c1feda61790b",
+      "content_sha256": "98bc546c171514abdb6a0e40339ef0d989a840dbc7c096fd2a57ac99c9489114",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "365a9abb48aff3bc11a595fb42dfcbaa506d7bac15558d5853a6c9ca5aa19443",
+      "content_sha256": "c0d977972b615f0bff9b0d4fb6d7df88fe3fdc6f3c24acb00d08eb053b6ac4c6",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -671,17 +671,18 @@
     "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix.",
     "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged.",
     "This capture replays open-by-default augmentation scope integrated with the EXP-731 evidence refinements after composition type refinement; it does not evaluate native backend scope enforcement or broaden the preregistered coverage claims.",
-    "This capture replays the retained protocol after merging ACT-612 participant relationships with open-by-default augmentation scope; it adds no claim of realized participant relationships or native backend scope enforcement."
+    "This capture replays the retained protocol after merging ACT-612 participant relationships with open-by-default augmentation scope; it adds no claim of realized participant relationships or native backend scope enforcement.",
+    "This capture replays issue #1299 partial listener descriptions on the integrated source state; endpoint completeness and backend admission remain outside this protocol's claims."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "4c41d579818948cb673c8b81d3761b364da335e9",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-214-v25",
-  "snapshot_revision": "25.0.0",
+  "raes_revision": "fb75e5764a6395c3a0e6f1860b52fc800c999ea9",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1299-v26",
+  "snapshot_revision": "26.0.0",
   "source_state": {
-    "base_revision": "4c41d579818948cb673c8b81d3761b364da335e9",
+    "base_revision": "fb75e5764a6395c3a0e6f1860b52fc800c999ea9",
     "checkout_state": "modified",
-    "implementation_digest": "f6ee2cf894d554d69bbf784efdccd1158605ade452ad3379072077ad47c7b73c",
+    "implementation_digest": "20edaeb745db78c65c3cd5d5f450b46cf5edd4a64e43444ffa688d7179636a9f",
     "profile": "python-reference-source/v2"
   }
 }

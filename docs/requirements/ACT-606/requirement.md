@@ -21,6 +21,8 @@ Requirement inventory expansion. Participant behavior must be expressible as a f
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/semantics/participant_behavior/_behavior_spec.py` (Behavior reference validation, including deferred parameterized role binding)
+- TESTS → TEST `implementations/python/tests/test_act_612_relationship_integration.py` (Role-based refinement revalidation after instantiation)
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-067-participant-behavior-model.md` (ADR-067 Participant Behavior Model)
 - IMPLEMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (Formal participant behavior model specification)
 - IMPLEMENTS → GITHUB_ISSUE `77` (Issue #77 - Participant behavior model)
