@@ -430,7 +430,7 @@ class ServiceManagerUnit(SDLModel):
         return _bounded_text(v, max_len=_STATUS_TEXT_MAX_LEN, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_exit_code_consistency(self) -> "ServiceManagerUnit":
+    def validate_manager_profile(self) -> "ServiceManagerUnit":
         manager_is_explicit = "manager_kind" in self.model_fields_set
         manager_is_variable = isinstance(self.manager_kind, str) and is_variable_ref(self.manager_kind)
         if manager_is_explicit and not manager_is_variable:
@@ -445,7 +445,10 @@ class ServiceManagerUnit(SDLModel):
                 ]
                 if non_default:
                     raise ValueError("non-systemd managers cannot carry explicit systemd profile state")
+        return self
 
+    @model_validator(mode="after")
+    def validate_exit_code_consistency(self) -> "ServiceManagerUnit":
         # exit_code is meaningful only when result=exit_code (or when result is
         # a deferred variable). Recording an exit code under e.g. result=success
         # is a category error: success has no exit code attached as a fact.
