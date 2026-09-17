@@ -5,10 +5,12 @@ to archival experiment provenance. It applies ADR-084 to the package and
 artifact boundaries already established by ADR-036, ADR-053, ADR-055, ADR-065,
 ADR-068, ADR-074, and ADR-078.
 
-Issue #652 is design-only. Names in the contract sketches are conceptual unless
-ADR-084 says otherwise; follow-on issues publish the actual models and schemas.
-The semantic boundaries, identities, phase order, and failure behavior are
-binding and are not left for each implementation issue to rediscover.
+Issue #652 supplied this normative design. Follow-on work has since published
+the SCE-002 family/selection, admitted-plan, trial-compilation, realization,
+and runtime-fact contract surfaces, together with focused tests. Names in this
+reference remain conceptual unless a published contract or implementation binds
+them. The semantic boundaries, identities, phase order, and failure behavior
+remain binding and are not left for each implementation issue to rediscover.
 
 ## Scope And Claims
 
@@ -25,10 +27,11 @@ The design covers:
 - linkage to the existing experiment run, study, apparatus, evidence, and
   lineage records.
 
-The reference does not add a generator, sampler, trial compiler, scheduler,
-persistence service, API, scenario pack, or adaptive policy. Follow-on issue
-#791 implements the typed run-local fact contract and in-process binding plane
-described below; the remaining conceptual sketches retain their issue-owned
+The reference itself does not add a generator, sampler, trial compiler,
+scheduler, persistence service, API, scenario pack, or adaptive policy. The
+delivered follow-on slices include the typed run-local fact contract and
+in-process binding plane, deterministic trial compilation, and sealed-entry
+realization; remaining conceptual sketches retain their explicit
 implementation boundaries.
 It does not guarantee identical backend behavior, artifact availability,
 reconstruction of hidden state, or exact replay from a seed alone.
