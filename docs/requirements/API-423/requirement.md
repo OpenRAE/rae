@@ -21,6 +21,9 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 
 ## Traceability
 
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing API-423 authority in SEM-234 without changing its runtime contract)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent API-423 authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_validation.py` (API-423 final-sink flow-control validation)
 - TESTS → TEST `implementations/python/tests/test_sem_233_flow_control_contracts.py` (API-423 final-sink flow-control tests)
 - IMPLEMENTS → GITHUB_ISSUE `1002` (Issue #1002 portable flow-control contracts)

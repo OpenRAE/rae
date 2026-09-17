@@ -21,6 +21,9 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 
 ## Traceability
 
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing SEM-230 authority in SEM-234 without changing its runtime contract)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent SEM-230 authority)
 - TESTS → TEST `implementations/python/tests/test_sem_233_flow_control_contracts.py` (SEM-230 portable information-flow contract tests)
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-flow-control-relation-v1.json` (SEM-230 portable participant flow-control relation schema)
 - IMPLEMENTS → GITHUB_ISSUE `1002` (Issue #1002 portable flow-control contracts)
