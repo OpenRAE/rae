@@ -263,6 +263,9 @@ class _ContentObjectivesMixin:
 
     def _verify_relationships(self) -> None:
         for name, rel in self._s.relationships.items():
+            if rel.participant is not None:
+                self._verify_participant_relationship(name, rel)
+                continue
             if not self._is_unresolved_var(rel.source):
                 self._validate_named_ref(
                     rel.source,
@@ -395,10 +398,11 @@ class _ContentObjectivesMixin:
         roles: dict[str, str] = {}
         for agent_name, agent in self._s.agents.items():
             if self._is_unresolved_var(agent.entity):
+                roles[agent_name] = agent.entity
                 continue
             entity = entities.get(agent.entity)
             role = getattr(entity, "role", None)
-            if role is None or self._is_unresolved_var(role):
+            if role is None:
                 continue
             roles[agent_name] = str(getattr(role, "value", role))
         return roles

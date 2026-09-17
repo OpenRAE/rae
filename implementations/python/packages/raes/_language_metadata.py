@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
+from .participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
+
 REFERENCE_COMPLETION_TARGETS = {
+    **{
+        ("relationships", field): section
+        for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items()
+        if section != "named"
+    },
+    ("relationships", "authority_basis_refs"): "any",
+    ("relationships", "scope_refs"): "targetable",
+    ("relationships", "control_specification_ref"): "behavior_specifications",
     ("nodes", "features"): "features",
     ("nodes", "conditions"): "conditions",
     ("nodes", "injects"): "injects",
@@ -147,6 +157,7 @@ SECTION_FIELD_COMPLETIONS = {
     "deployment_cells": ("tenant_ref", "node_refs", "cross_tenant_isolation"),
     "relationships": (
         "type",
+        "participant",
         "source",
         "target",
         "properties",
