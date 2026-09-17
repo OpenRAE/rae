@@ -29,7 +29,7 @@ from raes_runtime.control_plane import RuntimeControlPlane
 
 _INSTANTIATION_PROVENANCE = {
     "authored_digest": {
-        "profile": "raes-sdl-semantic/v1",
+        "profile": "raes-sdl-semantic/v2",
         "algorithm": "sha256",
         "value": "sha256:" + "a" * 64,
     }
@@ -193,9 +193,9 @@ def test_domain_profile_schemas_are_closed_at_each_phase_boundary() -> None:
     assert not instantiated.is_valid(instantiated_unknown)
 
     snapshot = Draft202012Validator(bundle["instantiated-scenario-snapshot-v1"])
-    assert snapshot.is_valid({"profile": "raes-sdl-instantiated-snapshot/v1", "scenario": instantiated_payload})
-    assert not snapshot.is_valid({"profile": "raes-sdl-instantiated-snapshot/v1", "scenario": instantiated_variable})
-    assert not snapshot.is_valid({"profile": "raes-sdl-instantiated-snapshot/v1", "scenario": instantiated_unknown})
+    assert snapshot.is_valid({"profile": "raes-sdl-instantiated-snapshot/v2", "scenario": instantiated_payload})
+    assert not snapshot.is_valid({"profile": "raes-sdl-instantiated-snapshot/v2", "scenario": instantiated_variable})
+    assert not snapshot.is_valid({"profile": "raes-sdl-instantiated-snapshot/v2", "scenario": instantiated_unknown})
 
 
 @pytest.mark.parametrize(

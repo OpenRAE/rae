@@ -28,6 +28,7 @@ from raes_contracts.contracts import (
     validate_experiment_study_against_tasks_and_runs,
 )
 from raes_contracts.evidence_satisfaction import validate_experiment_run_evidence
+from raes_contracts.planning import PlanScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_reference_backend.manifest import create_reference_backend_manifest
@@ -613,7 +614,7 @@ def test_control_plane_cannot_register_an_invalid_composite_capture_plan() -> No
     execution_plan = plan(
         compile_runtime_model(_capture_scenario()),
         target.manifest,
-        target_name=target.name,
+        scope=PlanScope(target_name=target.name),
     )
     assert not execution_plan.is_valid
     control_plane = RuntimeControlPlane(target)
@@ -642,7 +643,7 @@ def test_control_plane_rejects_unregistered_effectful_plans(domain: str) -> None
     execution_plan = plan(
         compile_runtime_model(_capture_scenario()),
         target.manifest,
-        target_name=target.name,
+        scope=PlanScope(target_name=target.name),
     )
     submitted = getattr(execution_plan, domain)
     first_operation = submitted.operations[0]

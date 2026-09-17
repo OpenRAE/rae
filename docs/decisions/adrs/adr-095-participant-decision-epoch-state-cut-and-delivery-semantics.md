@@ -387,4 +387,10 @@ bisimulation is a stronger optional claim.
 - [V2 migration guidance](../../explain/reference/participant-decision-surface-v2-migration.md)
 
 Primary intellectual lineage is revision-pinned in
-`contracts/provenance/sdl-lineage-ledger-v1.json`.
+`contracts/provenance/sdl-lineage-ledger-v2.json`.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-09-14 | #1210 | Advanced current lineage authority to ledger v2 for the progressive semantic cutover; v1 remains a dated historical record. |

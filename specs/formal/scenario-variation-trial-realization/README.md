@@ -1,6 +1,7 @@
 # Scenario Variation And Trial Realization Invariants
 
-Status: normative design invariant set
+Status: normative design invariant set with delivered SCE-002 contract,
+compiler, realization, and focused-test coverage
 
 Classification: FM2 (semantic graph / constraint)
 
@@ -15,13 +16,16 @@ This specification constrains the path from a composed SDL scenario family to
 an admitted trial plan, an instantiated scenario, and existing archival
 experiment provenance. It fixes identity, phase ordering, selection,
 random-stream, secrecy, admission, backend, scheduling, and late-binding
-properties for follow-on implementations.
+properties.
 
-It is not an executable model. The SCE-002 family declarations are published in
-the SDL authoring schema, and experiment selection policies are published in
-the experiment authoring schema. The remaining executable contracts, compiler,
-properties, and differential witnesses are tracked by #274 and #788 through
-#791.
+The formal model in this file is not itself executable. Its SCE-002 delivered
+slices include the bounded SDL family and experiment-selection contracts,
+admitted-trial-plan and trial-compilation contracts, deterministic compilation
+and sealed-entry realization, and focused compiler/realization tests. The work
+previously tracked by #274 and #788 through #791 is therefore implementation
+evidence, not pending coverage. It remains distinct from backend behavioral
+equivalence, availability, hidden-state reconstruction, and exact replay
+claims, which this specification does not make.
 
 ## Model
 
@@ -632,13 +636,8 @@ schema, positive/negative fixtures, and unit tests. It deliberately does not
 compile logical trial coordinates or instantiate selected scenarios. Issue
 #789 supplies the exact v1 profiles above, SDL-owned selected-scenario
 construction/admission, deterministic plan compilation, and unit/property/
-thread/process determinism evidence. Remaining evidence is allocated as
-follows:
-
-- unit-test evidence is waived to #790 and #791;
-- typed IR/contract evidence is waived to #274, #788, and #791; and
-- property/differential evidence is waived to #274, #790, and #791.
-
-The dated waivers and paths are registered in
-`specs/formal/assurance-fulfillment.yaml`. SCE-002 remains DRAFT until those
-follow-on artifacts land.
+thread/process determinism evidence. #274, #788, #790, and #791 complete the
+associated typed contract, trial-realization, provenance, and focused-test
+surfaces. The current authoritative SCE-002 requirement is ACTIVE; the dated
+allocation record in `specs/formal/assurance-fulfillment.yaml` is historical
+planning context rather than a statement that these artifacts remain pending.

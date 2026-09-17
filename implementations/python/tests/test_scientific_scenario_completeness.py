@@ -109,9 +109,8 @@ def test_published_completeness_fixtures_exercise_semantic_validation(
     assert (not diagnostics) is valid
 
 
-@pytest.mark.parametrize(
-    "concern_id",
-    [
+def test_issue_required_concerns_are_atomic_and_present() -> None:
+    required_concerns = {
         "authored-observed-state-separation",
         "scoped-specificity-open-world-intent",
         "parameter-typing",
@@ -144,11 +143,9 @@ def test_published_completeness_fixtures_exercise_semantic_validation(
         "flexible-step-tooling",
         "portable-behavior-contracts",
         "behavioral-relation-taxonomy",
-    ],
-)
-def test_issue_required_concerns_are_atomic_and_present(concern_id: str) -> None:
+    }
     taxonomy = load_scientific_completeness_taxonomy()
-    assert concern_id in {concern.concern_id for concern in taxonomy.concerns}
+    assert required_concerns <= {concern.concern_id for concern in taxonomy.concerns}
 
 
 def test_completeness_is_computed_and_does_not_overclaim_stronger_profiles() -> None:

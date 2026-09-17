@@ -11,19 +11,17 @@ from pathlib import Path
 import nox
 
 from tools.nox_support.config import (
+    DEFAULT_SUITE_EXPRESSION,
     DOCS_BUILD_ROOT,
-    EXPECT_FREE_THREADED_ENV,
-    EXPECTED_PYTHON_ENV,
+    INSTALLATION_QUALIFICATION_HARNESSES,
     OSV_LOCKFILE_PATH,
     OSV_REPORT_PATH,
     PROJECT_ROOT,
     PUBLIC_DOCS_ENTRYPOINTS,
     PUBLIC_DOCS_EXAMPLE_TESTS,
     PUBLIC_DOCS_ROOT,
-    PYTHON_CLOSURE_PROFILE_ENV,
-    PYTHON_CLOSURE_WHEELHOUSE_ENV,
-    PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV,
     REPO_ROOT,
+    SHARD_PLUGIN,
 )
 from tools.nox_support.runner import (
     SessionReporter,
@@ -39,6 +37,7 @@ from tools.osv_scanner_tool import (
     ensure_osv_scanner,
     run_osv_scanner,
 )
+from tools.pytest_shard import read_manifest, verify_shard_partition
 from tools.vale_tool import ensure_vale
 
 
@@ -64,278 +63,6 @@ def _run_tests(
         ),
         detail=f"{' '.join(args)} :: {execution}",
     )
-
-
-_RUNTIME_ASSERTION = """
-import sys
-
-expected = tuple(int(part) for part in sys.argv[1].split("."))
-assert sys.implementation.name == "cpython", sys.implementation.name
-assert sys.version_info[:2] == expected, (sys.version, expected)
-is_gil_enabled = getattr(sys, "_is_gil_enabled", None)
-if sys.argv[2] == "1":
-    assert callable(is_gil_enabled), "interpreter does not disclose GIL state"
-    assert is_gil_enabled() is False, "interpreter is not free-threaded"
-elif callable(is_gil_enabled):
-    assert is_gil_enabled() is True, "standard lane selected a free-threaded interpreter"
-print(sys.version)
-"""
-
-_INSTALLED_ASSERTION = """
-import importlib
-import sys
-from importlib.metadata import metadata
-
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
-
-expected = tuple(int(part) for part in sys.argv[1].split("."))
-assert sys.version_info[:2] == expected, (sys.version, expected)
-for module in (
-    "raes",
-    "raes_backend_libvirt",
-    "raes_backend_protocols",
-    "raes_backend_stubs",
-    "raes_cli",
-    "raes_conformance",
-    "raes_contracts",
-    "raes_mcp",
-    "raes_operations",
-    "raes_processor",
-    "raes_reference_backend",
-    "raes_runtime",
-):
-    importlib.import_module(module)
-requires_python = metadata("raes")["Requires-Python"]
-support = SpecifierSet(requires_python)
-assert Version("3.11") in support
-assert Version("3.14") in support
-assert Version("3.15") not in support
-"""
-
-
-def _compatibility_runtime_stages(
-    session: nox.Session,
-    reporter: SessionReporter,
-    *,
-    selector: str,
-    expected: str,
-    expect_free_threaded: bool,
-    smoke_only: bool,
-) -> None:
-    restored_wheelhouse = os.environ.get(PYTHON_CLOSURE_WHEELHOUSE_ENV, "")
-    if restored_wheelhouse:
-        if not smoke_only:
-            raise RuntimeError("a restored offline closure is valid only for compatibility smoke execution")
-        reporter.skip(
-            "python compatibility / frozen sync",
-            "the verified restored wheelhouse is exercised by both installed-distribution smokes",
-        )
-        reporter.run(
-            "python compatibility / exact runtime",
-            lambda: _run(
-                session,
-                selector,
-                "-c",
-                _RUNTIME_ASSERTION,
-                expected,
-                "1" if expect_free_threaded else "0",
-            ),
-        )
-        return
-    reporter.run(
-        "python compatibility / frozen sync",
-        lambda: _sync_project(session),
-        detail=f"selector={selector}",
-    )
-    reporter.run(
-        "python compatibility / exact runtime",
-        lambda: _run(
-            session,
-            "uv",
-            "run",
-            "--project",
-            str(PROJECT_ROOT),
-            "--all-extras",
-            "--frozen",
-            "python",
-            "-c",
-            _RUNTIME_ASSERTION,
-            expected,
-            "1" if expect_free_threaded else "0",
-        ),
-    )
-    if not smoke_only:
-        reporter.run(
-            "python compatibility / hermetic tests",
-            lambda: _run_pytest(session, "-q", parallel=True),
-            detail="xdist auto, max 8, worksteal",
-        )
-
-
-def _compatibility_distribution_stages(
-    session: nox.Session,
-    reporter: SessionReporter,
-    *,
-    selector: str,
-    expected: str,
-) -> None:
-    with tempfile.TemporaryDirectory(prefix="raes-python-compatibility-") as temporary_dir:
-        root = Path(temporary_dir)
-        dist_dir = root / "dist"
-        configured_wheelhouse = os.environ.get(PYTHON_CLOSURE_WHEELHOUSE_ENV, "")
-        wheelhouse = Path(configured_wheelhouse) if configured_wheelhouse else root / "wheelhouse"
-        direct_environment = root / "installed-direct"
-        sdist_environment = root / "installed-from-sdist"
-        profile_id = os.environ.get(PYTHON_CLOSURE_PROFILE_ENV, "")
-        if not profile_id:
-            raise RuntimeError(f"{PYTHON_CLOSURE_PROFILE_ENV} must select a reviewed closure profile")
-
-        reporter.run(
-            "python compatibility / build distributions",
-            lambda: (
-                _run(
-                    session,
-                    "uv",
-                    "build",
-                    "--wheel",
-                    "--python",
-                    selector,
-                    "--build-constraints",
-                    str(REPO_ROOT / "implementations/tooling/python/build-constraints.txt"),
-                    "--require-hashes",
-                    "--out-dir",
-                    str(dist_dir),
-                    str(PROJECT_ROOT),
-                ),
-                _run(
-                    session,
-                    "uv",
-                    "build",
-                    "--sdist",
-                    "--python",
-                    selector,
-                    "--build-constraints",
-                    str(REPO_ROOT / "implementations/tooling/python/build-constraints.txt"),
-                    "--require-hashes",
-                    "--out-dir",
-                    str(dist_dir),
-                    str(PROJECT_ROOT),
-                ),
-            ),
-        )
-        wheels = sorted(dist_dir.glob("raes-*.whl"))
-        source_distributions = sorted(dist_dir.glob("raes-*.tar.gz"))
-        if len(wheels) != 1 or len(source_distributions) != 1:
-            raise RuntimeError("compatibility build must produce exactly one wheel and one source distribution")
-        reporter.run(
-            "python compatibility / build wheel from sdist",
-            lambda: _run(
-                session,
-                "uv",
-                "build",
-                "--wheel",
-                "--python",
-                selector,
-                "--build-constraints",
-                str(REPO_ROOT / "implementations/tooling/python/build-constraints.txt"),
-                "--require-hashes",
-                "--out-dir",
-                str(dist_dir / "from-sdist"),
-                str(source_distributions[0]),
-            ),
-        )
-        sdist_wheels = sorted((dist_dir / "from-sdist").glob("raes-*.whl"))
-        if len(sdist_wheels) != 1:
-            raise RuntimeError("compatibility sdist build must produce exactly one wheel")
-        wheelhouse_operation = "wheelhouse-verify" if configured_wheelhouse else "materialize"
-        reporter.run(
-            f"python compatibility / {wheelhouse_operation} dependency wheelhouse",
-            lambda: _run(
-                session,
-                sys.executable,
-                "-m",
-                "tools.python_closure",
-                wheelhouse_operation,
-                "--profile",
-                profile_id,
-                "--wheelhouse",
-                str(wheelhouse),
-            ),
-        )
-        for label, candidate, environment_dir in (
-            ("direct wheel", wheels[0], direct_environment),
-            ("sdist-built wheel", sdist_wheels[0], sdist_environment),
-        ):
-            reporter.run(
-                f"python compatibility / install {label}",
-                lambda candidate=candidate, environment_dir=environment_dir: _run(
-                    session,
-                    sys.executable,
-                    "-m",
-                    "tools.python_closure",
-                    "smoke",
-                    "--profile",
-                    profile_id,
-                    "--candidate",
-                    str(candidate),
-                    "--environment",
-                    str(environment_dir),
-                    "--wheelhouse",
-                    str(wheelhouse),
-                    "--offline",
-                ),
-            )
-            scripts_dir = environment_dir / ("Scripts" if os.name == "nt" else "bin")
-            python = scripts_dir / ("python.exe" if os.name == "nt" else "python")
-            raes = scripts_dir / ("raes.exe" if os.name == "nt" else "raes")
-            reporter.run(
-                f"python compatibility / {label} metadata and imports",
-                lambda python=python: _run(session, str(python), "-c", _INSTALLED_ASSERTION, expected),
-            )
-            reporter.run(
-                f"python compatibility / {label} CLI version",
-                lambda raes=raes: _run(session, str(raes), "--version"),
-            )
-            reporter.run(
-                f"python compatibility / {label} CLI help",
-                lambda raes=raes: _run(session, str(raes), "--help"),
-            )
-
-
-def _run_python_compatibility(session: nox.Session, reporter: SessionReporter) -> None:
-    expected = os.environ.get(EXPECTED_PYTHON_ENV, "")
-    selector = os.environ.get("UV_PYTHON", "")
-    if expected not in {"3.11", "3.12", "3.13", "3.14"}:
-        raise RuntimeError(f"{EXPECTED_PYTHON_ENV} must select a supported feature release")
-    if not selector:
-        raise RuntimeError("UV_PYTHON must select the interpreter under test")
-    expect_free_threaded = os.environ.get(EXPECT_FREE_THREADED_ENV) == "1"
-    profile_id = os.environ.get(PYTHON_CLOSURE_PROFILE_ENV, "")
-    if not expect_free_threaded and f"cp{expected.replace('.', '')}" not in profile_id:
-        raise RuntimeError(f"{PYTHON_CLOSURE_PROFILE_ENV} must match the selected interpreter")
-    smoke_only_value = os.environ.get(PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV, "0")
-    if smoke_only_value not in {"0", "1"}:
-        raise RuntimeError(f"{PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV} must be 0 or 1")
-    # Nox removes UV_PYTHON inherited from the parent process. Put the
-    # matrix selector back into the per-session command environment so every
-    # nested uv invocation uses the interpreter that the lane names.
-    session.env["UV_PYTHON"] = selector
-    _compatibility_runtime_stages(
-        session,
-        reporter,
-        selector=selector,
-        expected=expected,
-        expect_free_threaded=expect_free_threaded,
-        smoke_only=smoke_only_value == "1",
-    )
-    if expect_free_threaded:
-        reporter.skip(
-            "python compatibility / distribution closure",
-            "the free-threaded interpreter is an advisory preview, not a release closure target",
-        )
-        return
-    _compatibility_distribution_stages(session, reporter, selector=selector, expected=expected)
 
 
 def _run_fuzz(session: nox.Session, reporter: SessionReporter) -> None:
@@ -364,6 +91,121 @@ def _run_integration_tests(
             append_coverage=append_coverage,
             finalize_coverage=finalize_coverage,
         ),
+    )
+
+
+def _run_shard_tests(
+    session: nox.Session,
+    reporter: SessionReporter,
+    coverage_file: Path,
+    *,
+    shard_count: int,
+    shard_index: int,
+    manifest_path: Path,
+    source_sha: str,
+) -> None:
+    """Run one deterministic shard of the default-marker suite, emitting a manifest.
+
+    The partition plugin lives in the repo-root ``tools`` package; export the repo
+    root so ``-p`` resolves before the ini ``pythonpath`` is applied. xdist still
+    parallelizes within the shard but never partitions across jobs.
+    """
+
+    args = [
+        "-q",
+        "-p",
+        SHARD_PLUGIN,
+        "--shard-count",
+        str(shard_count),
+        "--shard-index",
+        str(shard_index),
+        "--shard-manifest",
+        str(manifest_path),
+        "--shard-source-sha",
+        source_sha,
+        "--shard-suite-expression",
+        DEFAULT_SUITE_EXPRESSION,
+    ]
+    reporter.run(
+        f"tests / shard {shard_index} of {shard_count}",
+        lambda: _run_pytest(
+            session,
+            *args,
+            coverage_file=coverage_file,
+            finalize_coverage=False,
+            parallel=True,
+            extra_env={"PYTHONPATH": str(REPO_ROOT)},
+        ),
+        detail="deterministic sha256 node-id partition :: xdist within shard",
+    )
+
+
+def _collect_canonical_nodeids(session: nox.Session) -> list[str]:
+    """Freshly collect the canonical default-marker suite node ids."""
+
+    with session.chdir(PROJECT_ROOT):
+        output = session.run(
+            "uv",
+            "run",
+            "--frozen",
+            "python",
+            "-m",
+            "pytest",
+            "--collect-only",
+            "-q",
+            "--no-header",
+            external=True,
+            silent=True,
+        )
+    nodeids = [line.strip() for line in (output or "").splitlines() if "::" in line]
+    if not nodeids:
+        raise RuntimeError("canonical collection returned no node ids")
+    return nodeids
+
+
+def _run_coverage_reduce(
+    session: nox.Session,
+    reporter: SessionReporter,
+    reduce_dir: Path,
+    *,
+    shard_count: int,
+    source_sha: str,
+) -> None:
+    """Prove shard completeness, then combine shard + integration coverage once.
+
+    ``reduce_dir`` holds every producer's ``.coverage.*`` data file and the
+    ``shard-*.json`` manifests. The completeness proof runs before any combine so
+    a missing, failed, or stale shard fails closed instead of yielding a partial
+    report.
+    """
+
+    _sync_project(session)
+    manifests = [read_manifest(path) for path in sorted(reduce_dir.glob("shard-*.json"))]
+    if not manifests:
+        raise RuntimeError(f"no shard manifests found under {reduce_dir}")
+    canonical = _collect_canonical_nodeids(session)
+    reporter.run(
+        "coverage / shard completeness proof",
+        lambda: verify_shard_partition(
+            manifests,
+            canonical,
+            shard_count=shard_count,
+            source_sha=source_sha or None,
+        ),
+        detail=f"{len(manifests)} shards :: {len(canonical)} canonical node ids",
+    )
+
+    coverage_env = {"COVERAGE_FILE": str(reduce_dir / ".coverage")}
+
+    def _combine_and_report() -> None:
+        with session.chdir(PROJECT_ROOT):
+            _run(session, "uv", "run", "--frozen", "coverage", "combine", "--keep", str(reduce_dir), env=coverage_env)
+            _write_and_check_coverage(session, coverage_env)
+
+    reporter.run(
+        "coverage / combined shard and integration report",
+        _combine_and_report,
+        detail="coverage combine :: xml + json :: 90% line floor",
     )
 
 
@@ -520,3 +362,34 @@ def _run_docs_linkcheck(session: nox.Session, reporter: SessionReporter) -> None
         ),
         detail=str(PUBLIC_DOCS_ROOT.relative_to(REPO_ROOT)),
     )
+
+
+def _restore_owner_write(root: Path) -> None:
+    for current, directories, _files in os.walk(root, followlinks=False):
+        for name in directories:
+            directory = Path(current) / name
+            if not directory.is_symlink():
+                directory.chmod(0o700)
+
+
+def _run_installation_qualification(
+    session: nox.Session,
+    reporter: SessionReporter,
+    name: str,
+    posargs: list[str],
+) -> None:
+    """Run one qualification harness from the frozen tooling closure in a private root."""
+
+    harness, detail = INSTALLATION_QUALIFICATION_HARNESSES[name]
+    with tempfile.TemporaryDirectory(prefix=f"raes-{name}-") as temporary:
+        # Resolve platform temp aliases such as macOS /var so the private-root
+        # anchor chain contains no symbolic link.
+        root = Path(temporary).resolve() / "root"
+        try:
+            reporter.run(
+                f"qualification / {name}",
+                lambda: _run(session, sys.executable, str(REPO_ROOT / harness), str(root), *posargs),
+                detail=detail,
+            )
+        finally:
+            _restore_owner_write(Path(temporary))

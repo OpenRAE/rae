@@ -14,6 +14,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 import tools.vale_tool as vale_tool  # noqa: E402
+from tools import verified_tool_installation as installation  # noqa: E402
 
 
 def test_vale_binary_uses_versioned_repository_cache(tmp_path: Path) -> None:
@@ -41,6 +42,23 @@ def test_vale_extraction_rejects_archive_without_root_binary(tmp_path: Path) -> 
         archive.addfile(info, io.BytesIO(body))
 
     archive_bytes = payload.getvalue()
-    binary_path = tmp_path / "vale"
-    with pytest.raises(RuntimeError, match="root vale binary"):
-        vale_tool._extract_binary(archive_bytes, binary_path)
+    selection = type(
+        "Selection",
+        (),
+        {
+            "installed_manifest": (
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "path": "vale",
+                        "sha256": "0" * 64,
+                        "size": 1,
+                        "executable": True,
+                    },
+                )(),
+            )
+        },
+    )()
+    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
+        installation.materialize_tar_gz(archive_bytes, selection)

@@ -3,10 +3,6 @@
 Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
-from .._base import is_variable_ref
-from ..runtime_mounts import RuntimeControlInterfaceAccess, RuntimeControlInterfaceKind
-from ..runtime_orchestration import RuntimeOrchestrationPrivilegeClass
-
 
 class _RuntimeOrchestrationMixin:
     def _verify_runtime_orchestration_authorities(self) -> None:
@@ -15,13 +11,8 @@ class _RuntimeOrchestrationMixin:
         Each authority's ``control_interface_ref``, when present and concrete,
         must resolve to a :class:`RuntimeControlInterface` declared in the same
         node's ``runtime.local_control_interfaces`` (by ``control_interface_id``).
-        For a ``host_root_equivalent`` privilege class, the referenced control
-        interface must additionally be a read-write docker socket (a read-write
-        unix socket whose path is a ``docker.sock``), making the host-root
-        privilege-escalation fact resolvable at scenario scope. The
-        model-local ``require_profile_for_privilege_class`` guard has already
-        rejected a host-root-equivalent authority that carries no concrete
-        ``control_interface_ref``.
+        Description validity does not establish effective privilege. Selected
+        execution admission owns mechanism, access and completeness checks.
         """
         for node_name, node in self._s.nodes.items():
             runtime = getattr(node, "runtime", None)
@@ -55,43 +46,4 @@ class _RuntimeOrchestrationMixin:
             self._err(
                 f"{owner_label} control_interface_ref '{ref}' does not resolve to a "
                 f"control interface in the same node's runtime.local_control_interfaces"
-            )
-            return
-        privilege = getattr(authority, "privilege_class", None)
-        if (
-            isinstance(privilege, RuntimeOrchestrationPrivilegeClass)
-            and privilege is RuntimeOrchestrationPrivilegeClass.HOST_ROOT_EQUIVALENT
-        ):
-            self._verify_host_root_control_interface(owner_label=owner_label, ref=ref, interface=interface)
-
-    @staticmethod
-    def _control_interface_is_docker_socket(interface: object) -> bool:
-        """Return whether a control interface is a read-write docker unix socket."""
-        access = getattr(interface, "access", None)
-        kind = getattr(interface, "kind", None)
-        path = getattr(interface, "path", "") or ""
-        is_read_write = access is RuntimeControlInterfaceAccess.READ_WRITE
-        is_unix_socket = kind is RuntimeControlInterfaceKind.UNIX_SOCKET
-        is_docker_sock = isinstance(path, str) and path.endswith("docker.sock")
-        return is_read_write and is_unix_socket and is_docker_sock
-
-    def _verify_host_root_control_interface(
-        self,
-        *,
-        owner_label: str,
-        ref: str,
-        interface: object,
-    ) -> None:
-        # ``${var}`` placeholders on the interface's access/kind/path are
-        # permissive: a deferred discriminator cannot be proven non-conformant.
-        access = getattr(interface, "access", None)
-        kind = getattr(interface, "kind", None)
-        path = getattr(interface, "path", "") or ""
-        if is_variable_ref(access) or is_variable_ref(kind) or is_variable_ref(path):
-            return
-        if not self._control_interface_is_docker_socket(interface):
-            self._err(
-                f"{owner_label} privilege_class 'host_root_equivalent' control_interface_ref '{ref}' "
-                f"must resolve to a read-write docker socket "
-                f"(access 'read_write', kind 'unix_socket', path ending in 'docker.sock')"
             )

@@ -1,5 +1,49 @@
 {
   "$defs": {
+    "DomainProfileCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact immutable definition coordinate.",
+      "properties": {
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "definition_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Definition Digest",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 253,
+          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "profile_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "title": "DomainProfileCoordinateModel",
+      "type": "object"
+    },
     "OutcomeInterpretationSourceLayer": {
       "description": "Semantic layers that may feed a SEM-215 interpretation rule.",
       "enum": [
@@ -1348,16 +1392,23 @@
           "type": "string"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "unit": {
           "minLength": 1,

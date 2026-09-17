@@ -16,7 +16,7 @@ from raes_contracts.runtime_state import (
     RealizationProvenanceEntry,
     RuntimeSnapshot,
 )
-from raes_contracts.vocabulary import observation_strength_satisfies
+from raes_contracts.vocabulary import observation_requirement_satisfied
 
 from .realization_runtime_common import (
     BACKEND_CONTRACT_INVALID,
@@ -123,9 +123,11 @@ def _observation_admitted(
     returned_snapshot: RuntimeSnapshot,
     manifest: BackendManifest,
 ) -> bool:
-    strength_admitted = requirement.required_observation_strength is None or observation_strength_satisfies(
-        observation.observation_strength,
-        requirement.required_observation_strength,
+    strength_admitted = observation_requirement_satisfied(
+        actual_scope=observation.verification_scope,
+        actual_source=observation.observation_strength,
+        required_scope=requirement.verification_scope,
+        required_source=requirement.required_observation_strength,
     )
     return (
         strength_admitted

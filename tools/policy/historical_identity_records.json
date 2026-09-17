@@ -24,7 +24,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "511e83faa6621de1b70fdb7967ae64bf4f8ef113fea09f49cedb0aef62295ea3"
+      "content_sha256": "e89fe507a6b8ccef0b262b74b1f6ca7752a10bd4e41e66c778696fe6632fdf83"
     }
   ],
   "records": [
@@ -164,9 +164,9 @@
     {
       "path": "docs/decisions/adrs/adr-029-database-logical-state-runtime-surface.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
       "occurrences": 4,
-      "content_sha256": "ad5d54d1f05f94f6a46357b9077a2ca8c06c642d8ee5bf09a68c614c2f558f93"
+      "content_sha256": "d74b730739d5a28bb39943257599183a535cfda3f5167d5918d11a7514e89e9e"
     },
     {
       "path": "docs/decisions/adrs/adr-030-process-scoped-linux-capability-policy.md",
@@ -201,14 +201,14 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 3,
-      "content_sha256": "f8e0b10c7ac583a40f1db2420fa6bc7553c4aa10a73ba7baf9c59ad74fe14b8e"
+      "content_sha256": "9e0b0e452f1cb8661c0aa09b3c4a9d3ab3d3c61a0bf1d67af8ec74b421715343"
     },
     {
       "path": "docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1297 native service-manager contract amendment.",
       "occurrences": 3,
-      "content_sha256": "a8eb4df39f8b88781fee62ce83a2d2abee3951ebbeed5dc0c544a2a929ffad06"
+      "content_sha256": "79ef7d91b9efc4e31e217a5916d1fe64f1b688b10c0bd758028b20e7f92ae66b"
     },
     {
       "path": "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md",
@@ -257,7 +257,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 4,
-      "content_sha256": "10e261d7027b769097ae70fc139d8d2c452b48b48146ed67d6af171f970163c6"
+      "content_sha256": "7c213f1ed7450bb5b4b1c918a5897b2ba07f940cd9c84b0d43832620dd6b0748"
     },
     {
       "path": "docs/decisions/adrs/adr-044-network-detection-engine-runtime-inventory.md",
@@ -276,16 +276,16 @@
     {
       "path": "docs/decisions/adrs/adr-046-app-authorization-runtime-inventory.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
       "occurrences": 1,
-      "content_sha256": "e98452dba70a26fadf21bd8f6cf0d2b5a24829a256a3af80325f114b4cf157a7"
+      "content_sha256": "161877426d4ae9a5911339e8870da2ff9123edff4951012270120eb2edbe917c"
     },
     {
       "path": "docs/decisions/adrs/adr-048-datastore-service-runtime-inventory.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
       "occurrences": 4,
-      "content_sha256": "db8a9edd3dbb9903e5dcc971b8f34a412d4ae4ea243af25371c4fb8c8fed3f8b"
+      "content_sha256": "4837aa0306ad1bed716532e9929bcd20ad4e8597e4fc68feb13d9b78b5091063"
     },
     {
       "path": "docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md",
@@ -346,9 +346,9 @@
     {
       "path": "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1242 open-by-default augmentation-scope amendment.",
       "occurrences": 1,
-      "content_sha256": "a3f6e034b696f0254f5d1321b747d5a3cefe6df65784a5d88e1615b1eeec4749"
+      "content_sha256": "938ce2443ce7bd9e5cfa151d9740610ac23fa4338efa48c3cb022c7543bab24a"
     },
     {
       "path": "docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md",
@@ -409,9 +409,9 @@
     {
       "path": "docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1241 materialization-attestation amendment.",
       "occurrences": 9,
-      "content_sha256": "0266694288598416667f79ac4089fcdcd17c65e0fe2cee942b35cd468bdf9480"
+      "content_sha256": "79863d36552359aa5a238a549ba9eac9b7d058cbe0ad054db639cffdc597036a"
     },
     {
       "path": "docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md",
@@ -424,8 +424,8 @@
       "path": "docs/decisions/adrs/adr-080-revision-pinned-sdl-lineage-and-provenance-ledger.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "e5b44525b5c2bfcef5516e3661c6d3d3a6cb816c10d4c4bb05d720554cea6663"
+      "occurrences": 4,
+      "content_sha256": "447de0aaaaa3cdcf2db5f0ca621ecdbb540b7d725fd605c9d5d5b5d37d939f58"
     },
     {
       "path": "docs/decisions/adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "498dff1afbc5f2a8b3dcf150367e0fa8d2c225900923eedcd8443c03b8dec14f"
+      "content_sha256": "1f19a8c448412f29b74c9b9a06cbd38565169cd66bf939b3be48ef4b4f0c9246"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

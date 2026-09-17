@@ -10,7 +10,7 @@ from pydantic_core import to_jsonable_python
 from raes.runtime_capabilities import RuntimeProcessIdentity
 from raes.runtime_generated_value import GeneratedArtifactValueSource
 from raes.runtime_resource_limits import project_process_resource_limit
-from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.canonical import canonical_json_digest, jsonable_fallback
 
 from .realization_concern_observations import validate_value_commitment
 from .realization_runtime_concern_profiles import RUNTIME_NON_REALIZATION_FIELDS
@@ -86,7 +86,9 @@ def _committed_value(
     }
 
 
-def project_environment(value: object, observed: bool = False) -> object:
+def project_environment(value: object, observed: bool = False) -> list[dict[str, object]]:
+    """Project authored runtime environment entries into their sorted records."""
+
     _require_observation_mode(observed)
     projected: list[dict[str, object]] = []
     for item in _sequence(value, label="runtime environment"):
@@ -133,7 +135,7 @@ def project_recursive_environment(value: object, observed: bool = False) -> obje
 
     return [
         project_environment([item], observed)[0]
-        for item in _sequence(to_jsonable_python(value), label="runtime environment")
+        for item in _sequence(to_jsonable_python(value, fallback=jsonable_fallback), label="runtime environment")
     ]
 
 
@@ -374,7 +376,7 @@ def project_service_listeners(value: object, observed: bool = False) -> object:
         listener_id = record.get("service_listener_id")
         if not isinstance(listener_id, str) or not listener_id:
             raise ValueError("service listeners require a service_listener_id")
-        normalized = RuntimeServiceListener.model_validate(record).model_dump(mode="json")
+        normalized = RuntimeServiceListener.model_validate(record).model_dump(mode="json", exclude_unset=True)
         listener = {
             key: normalized[key]
             for key in (
@@ -390,6 +392,7 @@ def project_service_listeners(value: object, observed: bool = False) -> object:
                 "process_ref",
                 "process_name",
             )
+            if key in normalized
         }
         projected.append(listener)
     return sorted(projected, key=lambda item: str(item["service_listener_id"]))

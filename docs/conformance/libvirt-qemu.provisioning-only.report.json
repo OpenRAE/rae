@@ -1,323 +1,337 @@
 {
-  "profile": "provisioning-only",
-  "passed": false,
   "cases": [
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [],
       "name": "feature-support-bounded",
-      "contract_name": "backend-manifest-v2",
-      "valid": true,
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [],
       "name": "stub",
-      "contract_name": "backend-manifest-v2",
-      "valid": true,
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "duplicate-binding-scope",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "empty-compatibility",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "feature-support-duplicate-feature",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "feature-support-missing-disclosure",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "feature-support-unguarded-feature-term",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "feature-support-unsupported-declared-feature",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "hollow-provisioner",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "hollow-realization-support",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "invalid-binding-family",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "malformed-compatibility",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "malformed-realization-support",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "missing-concept-bindings",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "missing-version",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "non-backend-contract-version",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "non-processor-compatibility-surface",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "unknown-workflow-feature",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "backend-manifest-v2",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "unknown-workflow-state-predicate",
-      "contract_name": "backend-manifest-v2",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "operation-receipt-v1",
+      "diagnostic_codes": [],
       "name": "accepted",
-      "contract_name": "operation-receipt-v1",
-      "valid": true,
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
+      "contract_name": "operation-receipt-v1",
+      "diagnostic_codes": [],
+      "name": "indeterminate-resolution",
+      "passed": true,
+      "valid": true
+    },
+    {
+      "contract_name": "operation-receipt-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "missing-context",
-      "contract_name": "operation-receipt-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "operation-receipt-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "missing-id",
-      "contract_name": "operation-receipt-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "operation-status-v1",
+      "diagnostic_codes": [],
+      "name": "indeterminate-resolution",
+      "passed": true,
+      "valid": true
+    },
+    {
+      "contract_name": "operation-status-v1",
+      "diagnostic_codes": [],
       "name": "indeterminate",
-      "contract_name": "operation-status-v1",
-      "valid": true,
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
+      "contract_name": "operation-status-v1",
+      "diagnostic_codes": [],
       "name": "succeeded",
-      "contract_name": "operation-status-v1",
-      "valid": true,
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
+      "contract_name": "operation-status-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "duplicate-terminal-diagnostic",
-      "contract_name": "operation-status-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "operation-status-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "missing-terminal-diagnostic",
-      "contract_name": "operation-status-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "operation-status-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "unknown-extra",
-      "contract_name": "operation-status-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "operation-status-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "unknown-state",
-      "contract_name": "operation-status-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "runtime-snapshot-v1",
+      "diagnostic_codes": [],
       "name": "realization-provenance",
-      "contract_name": "runtime-snapshot-v1",
-      "valid": true,
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
+      "contract_name": "runtime-snapshot-v1",
+      "diagnostic_codes": [],
       "name": "reference",
-      "contract_name": "runtime-snapshot-v1",
-      "valid": true,
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
+      "contract_name": "runtime-snapshot-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "realization-observation-missing-strength",
-      "contract_name": "runtime-snapshot-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
+      "contract_name": "runtime-snapshot-v1",
+      "diagnostic_codes": [
+        "conformance.schema-invalid"
+      ],
       "name": "realization-provenance-missing-provenance",
-      "contract_name": "runtime-snapshot-v1",
-      "valid": false,
       "passed": true,
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ]
+      "valid": false
     },
     {
-      "name": "workflow-extra-step",
       "contract_name": "runtime-snapshot-v1",
-      "valid": false,
-      "passed": true,
       "diagnostic_codes": [
         "runtime.backend-contract-invalid"
-      ]
+      ],
+      "name": "workflow-extra-step",
+      "passed": true,
+      "valid": false
     },
     {
-      "name": "target-manifest",
       "contract_name": "backend-manifest-v2",
-      "valid": true,
+      "diagnostic_codes": [],
+      "name": "target-manifest",
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
-      "name": "target-provisioning",
       "contract_name": "operation-status-v1",
-      "valid": true,
+      "diagnostic_codes": [],
+      "name": "target-provisioning",
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
-      "name": "target-snapshot",
       "contract_name": "runtime-snapshot-v1",
-      "valid": true,
+      "diagnostic_codes": [],
+      "name": "target-snapshot",
       "passed": true,
-      "diagnostic_codes": []
+      "valid": true
     },
     {
-      "name": "realization-envelope-constructive",
       "contract_name": "realization-envelope-v1",
-      "valid": true,
-      "passed": false,
       "diagnostic_codes": [
         "realization-envelope.negative-probe.no-witness",
         "realization-envelope.positive-probe.no-witness"
-      ]
+      ],
+      "name": "realization-envelope-constructive",
+      "passed": false,
+      "valid": true
     }
   ],
-  "unsupported_contract_gaps": [],
+  "diagnostic_codes": [],
+  "passed": false,
+  "profile": "provisioning-only",
   "unsupported_capability_gaps": [],
-  "diagnostic_codes": []
+  "unsupported_contract_gaps": []
 }

@@ -134,9 +134,10 @@ def _runtime_scalar_constraints(
 
     if isinstance(value, BaseModel):
         fields = type(value).model_fields
-        if any(name.endswith(("classification", "sensitivity")) for name in fields):
-            return []
-        if getattr(value, "command_redacted", False):
+        classified = any(name.endswith(("classification", "sensitivity")) for name in fields) or getattr(
+            value, "command_redacted", False
+        )
+        if classified:
             return []
         children = (
             (name, getattr(value, name))

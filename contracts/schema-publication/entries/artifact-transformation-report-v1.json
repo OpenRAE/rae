@@ -1,10 +1,10 @@
 {
+  "content_hash": "840bb5d8b4e49609af7505bf83d2ceba452152bfeb65b66148095f50488c3f0a",
   "contract_id": "artifact-transformation-report-v1",
-  "schema_path": "contracts/schemas/artifact-transformations/artifact-transformation-report-v1.json",
-  "stability": "draft",
-  "content_hash": "c954c397970b85f1650a26deb9385710d6f2a324633d5936179be79892f8a07b",
   "last_change": {
-    "summary": "Added the generic semantic-omission loss kind emitted by candidate synthesis in issue #988.",
-    "content_hash": "c954c397970b85f1650a26deb9385710d6f2a324633d5936179be79892f8a07b"
-  }
+    "content_hash": "840bb5d8b4e49609af7505bf83d2ceba452152bfeb65b66148095f50488c3f0a",
+    "summary": "Distinguish descriptive SDL materialization canonical comparisons from authored or instantiated artifacts (#1241)."
+  },
+  "schema_path": "contracts/schemas/artifact-transformations/artifact-transformation-report-v1.json",
+  "stability": "draft"
 }

@@ -229,24 +229,20 @@ def test_declared_vocabulary_with_matching_grant_is_valid() -> None:
     assert authorization.resource_vocabulary == RuntimeAppAuthorizationResourceVocabulary.REDIS_ACL
 
 
-def test_declared_vocabulary_without_matching_grant_is_rejected() -> None:
-    with pytest.raises(
-        ValidationError,
-        match="declares resource_vocabulary 'cql_resource' but no permission_grant has a matching resource_kind",
-    ):
-        RuntimeAppAuthorization(
-            app_authorization_id="cassandra-rbac",
-            resource_vocabulary="cql_resource",
-            permission_grants=[{"grant_id": "g1", "resource_kind": "app_resource"}],
-        )
+def test_partial_grant_inventory_need_not_cover_declared_vocabulary() -> None:
+    authorization = RuntimeAppAuthorization(
+        app_authorization_id="cassandra-rbac",
+        resource_vocabulary="cql_resource",
+        permission_grants=[{"grant_id": "g1", "resource_kind": "app_resource"}],
+    )
+    assert authorization.resource_vocabulary == "cql_resource"
+    assert authorization.permission_grants[0].resource_kind == "app_resource"
 
 
-def test_declared_vocabulary_with_no_grants_at_all_is_rejected() -> None:
-    with pytest.raises(ValidationError, match="but no permission_grant has a matching resource_kind"):
-        RuntimeAppAuthorization(
-            app_authorization_id="empty-rbac",
-            resource_vocabulary="index_pattern",
-        )
+def test_declared_vocabulary_does_not_invent_grants() -> None:
+    authorization = RuntimeAppAuthorization(app_authorization_id="empty-rbac", resource_vocabulary="index_pattern")
+    assert authorization.permission_grants == []
+    assert "permission_grants" not in authorization.model_fields_set
 
 
 def test_unknown_vocabulary_is_exempt_from_grant_requirement() -> None:

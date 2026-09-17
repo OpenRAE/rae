@@ -96,6 +96,9 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
     """Project a provisioning plan into its published contract model."""
 
     return ProvisioningPlanModel(
+        materialization_source=plan.materialization_source,
+        augmentation_scope_required=plan.augmentation_scope_required,
+        purpose=plan.purpose,
         preparation=plan.preparation,
         profile_authority=plan.profile_authority,
         operations=[_plan_operation_model(operation) for operation in plan.operations],
@@ -115,6 +118,8 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
             for item in plan.realization_constraints
         ],
         operation_id=plan.operation_id,
+        run_id=plan.run_id,
+        instantiation_id=plan.instantiation_id,
         observation_demands=list(plan.observation_demands),
     )
 
@@ -146,6 +151,10 @@ def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
     """Project an orchestration plan into its published contract model."""
 
     return OrchestrationPlanModel(
+        operation_id=plan.operation_id,
+        materialization_source=plan.materialization_source,
+        augmentation_scope_required=plan.augmentation_scope_required,
+        purpose=plan.purpose,
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
@@ -157,8 +166,14 @@ def evaluation_plan_model(plan: EvaluationPlan) -> EvaluationPlanModel:
     """Project an evaluation plan into its published contract model."""
 
     return EvaluationPlanModel(
+        operation_id=plan.operation_id,
+        materialization_source=plan.materialization_source,
+        augmentation_scope_required=plan.augmentation_scope_required,
+        purpose=plan.purpose,
         operations=[_plan_operation_model(operation) for operation in plan.operations],
         startup_order=list(plan.startup_order),
         diagnostics=_diagnostic_payloads(plan.diagnostics),
+        run_id=plan.run_id,
+        instantiation_id=plan.instantiation_id,
         observation_demands=list(plan.observation_demands),
     )

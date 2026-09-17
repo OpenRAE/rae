@@ -1,22 +1,52 @@
-## Plain-language summary
+## Summary
 
-- **Context:** <!-- What a reviewer needs to know before evaluating this change. -->
-- **Problem:** <!-- The concrete defect, gap, or unmet need. -->
-- **Fix:** <!-- What this pull request changes and why it solves the problem. -->
+<!-- What this pull request changes and why, in plain language a reviewer can evaluate. -->
 
-## Issue tracking
+## Requirement UIDs
 
-<!-- Use one route. Keep the former heading "Issues closed" only on existing PRs.
-For tracked work, add one standalone line per open same-repository issue:
+<!-- One bullet per requirement UID in scope, or "- (none)" for requirement-free work. -->
+
+## Related Issues
+
+<!-- Use one route. Add one standalone line per open same-repository issue.
+If its Requirements section declares requirement UIDs, use a non-closing link:
+Refs #N
+Otherwise use:
 Closes #N
+Requirement-backed issues stay open until post-merge requirement verification.
 For a small docs fix, typo, or narrow test improvement without an issue, add:
 No issue: Briefly explain why separate issue tracking is unnecessary.
+Do not use a closing keyword directly before an issue reference anywhere else
+in this body (for example "fixes" followed by an issue number); GitHub reads it
+as a closing route.
 -->
 
-## Verification
+## ADR Impact
 
-<!-- Record commands and outcomes, or a substantive reason a check was not run. -->
-- `command`: passed
+<!-- One bullet per affected ADR, or "- No ADR required". -->
+
+## Changes
+
+<!-- One bullet per substantive change. -->
+
+## Test Plan
+
+- [ ] Unit tests pass
+- [ ] Integration tests pass if applicable
+- [ ] Completion command passes
+- [ ] No coverage regression
+
+<!-- Checkboxes are not evidence. Below them, record the commands run and their
+outcomes, or a substantive reason a check was not run. -->
+
+## Ground Control Checks
+
+- [ ] Repository policy command passes
+- [ ] Pre-push code review and test-quality review completed, or not run for this lane
+
+## Traceability
+
+<!-- "- IMPLEMENTS: <paths or (none)>" and "- TESTS: <paths or (none)>". -->
 
 ## Checklist
 
@@ -26,6 +56,6 @@ No issue: Briefly explain why separate issue tracking is unnecessary.
 - [ ] PR title is a Conventional Commit (release-please derives the version and `CHANGELOG.md` from it)
 - [ ] Architectural docs updated if applicable
 
-## Notes for review
+## Documentation
 
-<!-- List any skipped checks, known limitations, or follow-up work. -->
+<!-- Optional: "Updated: ..." or "Verified unchanged: ...". Remove this section if unused. -->

@@ -1,11 +1,18 @@
 name: OpenSSF Scorecard
 
+# A release commit changes only Release Please-managed files and cannot change
+# the repository's security posture, so its push to main does not re-score
+# (#1266). Promotions, protection changes, and the weekly schedule still do.
 on:
   branch_protection_rule:
   schedule:
     - cron: "17 3 * * 1"
   push:
     branches: [main]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
 
 permissions: {}
 

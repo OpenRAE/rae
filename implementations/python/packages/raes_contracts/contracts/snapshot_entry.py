@@ -23,7 +23,7 @@ class SnapshotEntryModel(ContractModel):
     )
 
     @model_validator(mode="after")
-    def _validate_profile_owners(self):
+    def _validate_profile_owners(self) -> "SnapshotEntryModel":
         if self.profile_bindings and (
             self.domain != "provisioning"
             or any(

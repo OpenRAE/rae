@@ -55,17 +55,17 @@ validation passes. See the [migration guide](../../migration/external-classifica
 | `verify_relationship_forwarding_edges` | A relationship `forwarding_edge` resolves `forwarder_ref` to a unique node-hosted or scenario-level runtime forwarding agent; the edge `target_listener_role`/`protocol` must agree with at least one of that agent's ship targets. |
 | `verify_relationship_service_integrations` | A relationship `service_integration` resolves `consumer_ref`/`engine_ref` to platform applications and `auth_principal_ref` to a principal in the engine application's referenced authorization store when `authorization_ref` is set. |
 | `verify_relationship_proxy_upstreams` | A relationship `proxy_upstream` resolves `route_ref` to an application route and the upstream node/service refs; route-level `upstream_target` refs resolve the same way, and when both scopes carry shared target node, target service, and TLS-termination facts they must agree. |
-| `verify_runtime_service_listeners` | Runtime service listeners resolve optional same-node service refs, process refs, and host-published port correlations. Concrete service/listener port+protocol values must match. |
+| `verify_runtime_service_listeners` | Runtime service listeners resolve optional same-node service refs, process refs, and host-published port correlations. Supplied concrete service/listener port or protocol values must match; missing and open values defer agreement. |
 | `verify_runtime_identity_authorities` | Runtime identity-authority services resolve to same-node service bindings. Local relationship and policy refs resolve within the owning authority across authority, service, subject, policy, and relationship stable ids. |
 | `verify_runtime_dns_services` | Runtime DNS services resolve to same-node service bindings. Configuration, log, and zone-file refs resolve to observed runtime filesystem entries when the node has file inventory. |
 | `verify_runtime_network_sensors` | Runtime network sensors name monitored networks that resolve to switch-backed infrastructure entries and, when runtime endpoint inventory exists on the node, to same-node network endpoint attachments. Configuration, log, and evidence refs resolve to observed runtime filesystem entries when the node has file inventory. |
 | `verify_runtime_network_detection_engines` | Runtime network detection engines resolve optional same-node sensor refs, network-set refs, control-channel service refs, and filesystem-backed configuration/log/evidence/rule/output/control paths. |
 | `verify_runtime_security_monitoring_managers` | Runtime security-monitoring managers and listeners resolve to same-node service bindings. Manager/group/content/detection/setting file refs resolve to observed runtime filesystem entries when the node has file inventory. Agent group member refs, agent group refs, setting component refs, detection content-set refs, and detection correlation refs resolve inside the owning manager. Detection source artifact refs and target refs resolve through the generic named-ref index. |
 | `verify_runtime_app_authorizations` | Runtime application-internal RBAC stores resolve `permission_grants` and `role_mappings` `role_ref` values to roles declared within the same authorization (authorization-local role-permission and user-role assignment integrity). |
-| `verify_runtime_datastore_services` | Runtime datastore services resolve their owning transport `service` to a same-node service binding, and a non-empty, non-variable `authorization_ref` to an `app_authorization` declared on the same node. The model-local `require_profile_for_data_model` guard fails an under-populated `search_index`/`wide_column`/`key_value` instance. |
+| `verify_runtime_datastore_services` | Runtime datastore services resolve a supplied owning transport `service` to a same-node service binding, and a non-empty, non-variable `authorization_ref` to an `app_authorization` declared on the same node. Partial descriptions are valid; supplied partition contradictions, identities and manifest references remain checked. |
 | `verify_runtime_platform_applications` | Runtime platform applications resolve their owning transport `service` to a same-node service binding, a non-empty, non-variable `authorization_ref` to a same-node `app_authorization`, legacy content-object `references` to sibling `content_object_id` values, and `marking_refs` to sibling `marking_id` values. Provider-neutral capabilities are independently declared, carry stable application-local ids, and may be targeted by qualified refs; neither the deprecated `platform_kind` nor legacy content presence implies a capability or configuration completeness. |
-| `verify_runtime_forwarding_agents` | Runtime forwarding agents resolve each `ship_target`'s `target_node_ref`, when concrete, to a defined node, and a concrete `target_service_ref` to a service on the referenced node (or, for node-hosted agents only, on the owning node). Scenario-level forwarding agents require `target_node_ref` when `target_service_ref` is concrete, and `forwarding_agent_id` values are unique across node-hosted and scenario-level registries. The model-local `require_profile_for_agent_kind` guard fails an under-populated `log_forwarder` (requires a `buffer_policy` plus an ingestion `ship_target`, rejects `ioc_to_rule` transforms) or `content_sync` (requires an `api_pull` source, an `ioc_to_rule` transform, and a `reload_channel`, rejects a `buffer_policy` and `ship_target` enrollment endpoints) instance. |
-| `verify_runtime_orchestration_authorities` | Runtime orchestration authorities resolve a non-empty, non-variable `control_interface_ref` to a `RuntimeControlInterface` declared in the same node's `runtime.local_control_interfaces` (by `control_interface_id`); for a `host_root_equivalent` privilege class the referenced interface must additionally be a read-write docker socket (access `read_write`, kind `unix_socket`, path ending in `docker.sock`), with `${var}` interface access/kind/path permissive. The model-local `require_profile_for_privilege_class` guard fails a `host_root_equivalent` authority that carries no concrete `control_interface_ref`. |
+| `verify_runtime_forwarding_agents` | Runtime forwarding agents resolve each `ship_target`'s `target_node_ref`, when concrete, to a defined node, and a concrete `target_service_ref` to a service on the referenced node (or, for node-hosted agents only, on the owning node). Scenario-level forwarding agents require `target_node_ref` when `target_service_ref` is concrete, and `forwarding_agent_id` values are unique across node-hosted and scenario-level registries. Kind does not require an IOC/reload or buffering recipe; partial and composed pipelines remain valid. |
+| `verify_runtime_orchestration_authorities` | Runtime orchestration authorities resolve a non-empty, non-variable `control_interface_ref` to a `RuntimeControlInterface` declared in the same node's `runtime.local_control_interfaces` (by `control_interface_id`). Omitted interface knowledge is valid. A privilege class or Docker-socket filename does not establish effective authority; selected operations require independent support, prerequisites and authorization. |
 | `verify_runtime_mail_services` | Runtime mail services and listeners resolve optional same-node `Node.services` refs. Listener component refs, mailbox domain/store refs, alias target refs, routing source/target refs, and setting component refs resolve inside the owning mail service. Mailbox account refs resolve to top-level accounts, local-user refs resolve to `runtime.local_identity` when present, and setting source paths resolve to observed runtime filesystem entries when the node has file inventory. |
 | `verify_relationship_mail_access` | A relationship with `mail_access` must target a runtime mail service. Concrete `listener_ref`, `mailbox_ref`, and `domain_ref` values resolve within that target service, while protocol, auth-mechanism, and TLS-mode fields are structurally normalized by the `RelationshipMailAccess` model. |
 | `verify_agents` | Entity references resolve. Starting accounts and initial-knowledge accounts exist in accounts section. Allowed subnets and initial-knowledge subnets must resolve to switch-backed infrastructure entries. Initial-knowledge hosts must resolve to compute nodes. Initial-knowledge services exist in `nodes.*.services[].name`. Interactive-access targets resolve to compute nodes; optional accounts resolve to the same compute node and participant starting accounts; concrete target/channel pairs are unique per participant. |
@@ -157,18 +157,35 @@ when that inventory is non-empty.
 
 The optional `runtime.service_listeners` inventory has model-local and
 semantic rules. Listener ids are stable concrete symbols and are unique within
-a node runtime block. Network listeners require a port and a bind address or
-interface; Unix socket listeners require `socket_path` and must not set a port
-or address. Concrete address-family and scope fields must not contradict the
-bind endpoint: wildcard addresses use `scope: wildcard`, loopback addresses
-cannot be `network_facing`, non-loopback IP addresses cannot be
-`loopback_only`, and Unix socket listeners use `local_socket` or `unknown`.
-Optional same-node `service` refs must resolve to `Node.services[].name`, and
-concrete listener port/protocol values must match the service. Optional
-`process_ref` values resolve to `runtime.process` or `runtime.processes` by
-process name or PID. Optional `published_port_refs` entries resolve to
+a node runtime block. A listener is a partial description: only
+`service_listener_id` is universally required, and omitted address, interface,
+port, protocol, or socket path remains omitted. The legacy authored-model
+protocol default is still `tcp`, but source rendering omits it when the author
+did not supply it and instantiation provenance does not promote that default to
+an exact claim. Known network transports must not set `socket_path`; a known
+Unix transport must not set port, address, or bind interface. An undetermined
+transport may carry either kind of endpoint fact but not both. Concrete
+address-family and scope fields must not contradict supplied facts: wildcard
+addresses use `scope: wildcard`, loopback addresses cannot be
+`network_facing`, non-loopback IP addresses cannot be `loopback_only`, and
+Unix socket listeners use `local_socket` or `unknown`.
+
+Optional same-node `service` refs must resolve to `Node.services[].name`.
+Supplied concrete listener port and protocol values must independently match
+the service; missing, variable, `unknown`, and `other` values defer only their
+own comparison. Optional `process_ref` values resolve to `runtime.process` or
+`runtime.processes` by process name or PID. Every optional
+`published_port_refs` entry still resolves to
 `runtime.network.published_ports` by host IP, host port, container port, and
-protocol and must match the listener's container-side port/protocol.
+protocol, and each supplied concrete listener field must agree with the
+reference.
+
+Partial model admission is not endpoint admission. A backend operation or
+complete-report assessment that claims a usable listener must reject a
+selection without the endpoint facts that operation requires. Merely recording
+a partial listener does not create a `Node.services` entry, host publication,
+ACL authorization, observation, evidence requirement, retention obligation, or
+export permission.
 
 The optional `runtime.mail_services` inventory has model-local and semantic
 rules. Mail-service ids are stable concrete symbols and unique within a node
@@ -277,14 +294,11 @@ bounds normalize human sizes to bytes and a concrete `heap_init_bytes` must not
 exceed a concrete `heap_max_bytes`; node-endpoint ports are validated to the
 1-65535 range with address and port kept split.
 Explicit redacted/operator-secret setting classifications omit raw values; names
-alone do not force omission. The `require_profile_for_data_model` guard makes the
-discriminator executable: a `${var}` placeholder is exempt and the open
-`unknown`/`other`/`relational` tail is permissive, but a concrete `search_index`
-requires at least one `index` partition carrying shard/replica geometry and at
-least one structured mapping manifest, a `wide_column` store requires at least
-one `keyspace` partition with a replication strategy and factor, and a
-`key_value` store requires a `persistence` profile and rejects
-relational/wide-column partitions. Mapping `partition_ref` values resolve to
+alone do not force omission. A `search_index`, `wide_column` or `key_value`
+description may omit geometry, mappings, replication or persistence. These are
+optional known facts, not a family-level completeness threshold. A supplied
+`key_value` declaration still rejects incompatible keyspace/column-family
+partitions. Mapping `partition_ref` values resolve to
 sibling datastore partitions, and template `mapping_ref` values resolve to
 sibling mapping manifests. Raw mapping/template response bodies are not model
 data; bounded manifests carry counts, summaries, digests, and evidence refs.
@@ -319,15 +333,11 @@ buffer crypto, reload-channel kinds, enrollment classifications, and setting
 provenance/classification are normalized from bounded enums while allowing
 full-value variables. A ship-target enrollment identity is never recorded — only
 the closed `none`/`redacted`/`operator_secret` lattice — and explicit
-redacted/operator-secret setting classifications omit raw values. The
-`require_profile_for_agent_kind`
-guard makes the `agent_kind` discriminator executable: a `${var}` placeholder is
-exempt and the open `unknown`/`other` tail is permissive, but a concrete
-`log_forwarder` requires a `buffer_policy` and at least one `ship_target` carrying
-an ingestion endpoint and rejects any `ioc_to_rule` transform, while a concrete
-`content_sync` requires at least one `api_pull` source, one `ioc_to_rule`
-transform, and one `reload_channel`, and rejects a `buffer_policy` and any
-`ship_target` enrollment endpoint. At scenario scope, a ship-target
+redacted/operator-secret setting classifications omit raw values. A concrete
+`log_forwarder` or `content_sync` kind does not require a particular set of
+sources, transforms, buffers, enrollment endpoints or reload channels. Partial
+descriptions and composed pipelines remain valid; selected operations enforce
+their actual prerequisites at admission. At scenario scope, a ship-target
 `target_node_ref` resolves to a defined node and a `target_service_ref` resolves
 to a service on the referenced node (or, for node-hosted agents only, on the
 owning node). Scenario-level agents have no owning node, so a concrete service
@@ -342,20 +352,18 @@ a relationship forwarding edge, not a re-typed ship target.
 The optional `runtime.orchestration_authorities` inventory has model-local and
 semantic rules. Orchestration-authority ids are stable concrete symbols and unique
 within a node runtime block; spawn-template and realized-child ids are unique
-across the authority. Engines and privilege classes are normalized from open
-taxonomies (both carry `unknown` and `other`) while allowing full-value variables,
+across the authority. Engine identities use the governed extension vocabulary;
+privilege classes retain their defined finite meanings and knowledge sentinels,
+while both allow full-value variables,
 and realized-child `count` accepts a non-negative integer, a `${var}`, or none.
-The `require_profile_for_privilege_class` guard makes the `privilege_class`
-discriminator executable: a `${var}` placeholder is exempt and `namespaced`/
-`unknown`/`other` are permissive, but a concrete `host_root_equivalent` authority
-requires a non-empty, non-variable `control_interface_ref`. At scenario scope a
+An authority may describe `host_root_equivalent` posture while its concrete
+interface remains unknown. That description grants no privilege. At scenario scope a
 non-empty, non-variable `control_interface_ref` resolves to a
 `RuntimeControlInterface` declared in the same node's
-`runtime.local_control_interfaces` (by `control_interface_id`); for a
-`host_root_equivalent` privilege class the referenced interface must additionally
-be a read-write docker socket (access `read_write`, kind `unix_socket`, path
-ending in `docker.sock`), with `${var}` interface access/kind/path treated as
-deferred and therefore permissive. The `RuntimeControlInterface` shell is
+`runtime.local_control_interfaces` (by `control_interface_id`). Neither a
+read-write mount nor a path ending in `docker.sock` proves effective access.
+Selected privileged operations independently require supported, authorized
+access and any genuinely required evidence. The `RuntimeControlInterface` shell is
 referenced, never duplicated: this surface carries the spawn contract (engine,
 scope, spawn templates, lifecycle policy, realized children) that the control
 interface model has no field for.
@@ -406,71 +414,92 @@ surface or external contracts exist.
 
 ## Enum normalization convention
 
-All SDL enum-or-var parsers share one author-facing normalization rule:
-concrete strings are lowercased and hyphen aliases are mapped to underscore
-enum values before matching, while full-value `${var}` placeholders and `None`
-remain deferred. Runtime fields continue to call
-`parse_runtime_enum_or_var`, but that helper delegates to the canonical
-`parse_enum_or_var` implementation in `_base.py`, so runtime and non-runtime
-enum fields cannot drift on accepted spellings. The shared behavior is covered by
-`test_enum_or_var_helpers_share_hyphen_alias_normalization` in
-`tests/test_runtime_family_invariants.py`.
+Core enum aliases use the existing case-insensitive, hyphen-to-underscore
+normalizer. Whole-field `${var}` references remain subject to instantiation
+validation. `runtime_values.parse_runtime_enum_or_var` retains that behavior and
+consults the shared controlled-vocabulary catalog only for a declared external
+identity scope. Valid private `x-<owner>:<term>` tokens remain exact; malformed or
+unqualified names fail without embedding the rejected value in the diagnostic.
+
+`GovernedVocabulary` applies the same parser to field adapters and publishes the
+matching JSON Schema grammar. It admits extensions only for scopes explicitly
+owned by the catalog. Finite operators, grant effects, profile discriminators
+and sensitivity classes keep their existing closed semantics. Their schemas
+admit core aliases and variables, not arbitrary strings or private operations.
+A private sensitivity token therefore cannot bypass protected-value validation.
+
+Native provider identifiers whose own contract permits case or punctuation use
+their native string fields; this token grammar is not a lossy native-ID encoder.
+Identity acceptance does not establish operation support. Richer meaning uses
+existing typed domain-profile admission, without an executable token registry.
 
 ## Runtime enum sentinel convention
 
-Runtime service-family enums (every `Enum` defined in an `raes` module whose
-name starts with `runtime_`, including the `*_vocab` and `*_definitions`
-modules) follow a single, executable sentinel convention:
+The existing paired `unknown`/`other` convention remains a legacy serialization
+and drift rule for runtime enums. It does **not** determine whether a vocabulary
+accepts extensions: the catalog's explicit scope policy determines that. Some
+finite state/profile enums retain both sentinels to describe knowledge while
+still rejecting new operations. The existing
+`test_runtime_enums_open_or_closed_not_single_sentinel` guard preserves the
+paired legacy spelling convention; the issue-1206 schema/consumer suites verify
+actual extension and operation boundaries.
 
-- An **open** observed-value taxonomy carries **both** `unknown` and `other`.
-  `unknown` is the "not yet classified / not captured" value (and is typically
-  the field default), and `other` is the escape hatch for an observed value that
-  does not match a named member. Most runtime inventory enums are open, because
-  capture is best-effort and the named member list is never closed against the
-  real world.
-- A **closed** structural, protocol, or redaction-lattice vocabulary carries
-  **neither** `unknown` nor `other`. A value outside the fixed set is not a
-  member of the concept at all (for example
-  `RuntimeApplicationRouteUpstreamScheme`, which is exactly `http`/`https`: a
-  proxy-to-origin hop that is neither is not an application route upstream).
+An authored `unknown`, or `other` without recoverable identity, is knowledge.
+The legacy authoring-specificity label `open` is not realization permission:
+recursive compilation emits the existing knowledge node, which cannot establish
+conformance. An inherited open realization scope instead delegates **omitted**
+fields and keeps exact descendants binding. DNS `other` with an integer
+`type_code` remains an exact numeric identity, including through projection and
+comparison. No conversion may invent an identity for a legacy sentinel or
+collapse a known private identity into one.
 
-The single-sentinel state — exactly one of `{unknown, other}` — is forbidden.
-It is ambiguous: it neither commits to a closed set nor offers the full
-open-taxonomy pair, so consumers cannot tell whether an unmatched observed value
-should round-trip as `other` or be treated as `unknown`.
+See the [runtime inventory](../../../specs/sdl/runtime-inventory.md) and
+[dispositions](../../research/language-extensibility/scope-inventory.md).
+Neither an omitted implementation choice nor a complete abstract model needs a
+compulsory product/profile declaration. Identity and provenance fields do not
+create observation, retention or export demand.
 
-This convention is enforced as an executable drift guard by
-`test_runtime_enums_open_or_closed_not_single_sentinel` in
-`tests/test_runtime_family_invariants.py`. The test introspects every enum
-defined in a runtime-family module and asserts
-`("unknown" in values) == ("other" in values)` for each, so any future runtime
-enum introduced in a single-sentinel state fails the suite immediately. When a
-new enum is genuinely closed, it must carry neither sentinel; otherwise it must
-carry both.
+## Runtime semantic review checklist
 
-## Runtime required-profile guard convention
+The [issue 959 audit](../../research/language-extensibility/product-semantics-audit.md)
+records the motivating failure: backend recipes and captured specimens became
+compulsory author detail. A private extension catalog can reproduce that error.
+For a new or changed vocabulary, discriminator, profile or validation guard:
 
-Some runtime-family spines use an open enum-or-string discriminator to select a
-required profile from sibling structured fields. Those discriminators are not
-documentation-only claims: each documented required-profile discriminator must
-have a matching `require_profile_for_<field>` guard invoked by a registered
-Pydantic `mode="after"` model validator. This is the executable "cannot
-silently shallow-encode" guarantee for spines that actually make a
-discriminated completeness claim, currently `data_model`, `agent_kind`, and
-`privilege_class`. Platform applications deliberately do not use this
-convention: their deprecated `platform_kind` is classification, composable
-`capabilities` carry functional roles, and completeness is a separate
-requirement concern.
+1. Name the semantic owner and distinguish domain identity, configured state,
+   capability, binding, policy, native data, realization, evidence and delivery.
+   Explain why an existing owner cannot carry the fact before adding one.
+2. State why a finite set is closed. A defined grammar operation, grant effect,
+   protection decision or exact schema version differs from a product catalog.
+   Use the owning native grammar for wire tokens and identifiers; do not force
+   every external name into the governed-vocabulary token syntax.
+3. Show a distinct implementation or private case and a partial description.
+   Check the whole record, including defaults and validators, not just whether
+   its identity field accepts an extension token.
+4. Check an inherited open parent with binding exact children. Optional detail
+   stays optional until its selected contract needs it. Preserve omitted,
+   empty, absent and unknown distinctions without per-field waivers or a
+   compulsory replacement catalog for backend-owned choices.
+5. Check a complete abstract model without fabricated OS, package, filesystem
+   or deployment prerequisites. A backend may resolve a needed concrete value
+   within its allowed scope; that does not make it mandatory author input.
+6. Separate representation/capture capability from requested reporting,
+   collection, retention and export. Exact scenario detail does not itself
+   request experimental telemetry. Retain genuinely selected evidence duties.
+7. Keep supplied integrity/security constraints and selected-operation
+   admission. A product identity, socket spelling, profile-shaped record or
+   schema-valid document is not authorization, support or conformance.
+8. Record schema/version, compatibility, migration, comparison and round-trip
+   impact. Reuse the existing identity/profile mechanisms. Retain bounded
+   product-specific data honestly; an attribute bag is not new semantics.
 
-The convention is enforced by
-`test_discriminated_runtime_spines_register_required_profile_guards` in
-`tests/test_runtime_family_invariants.py`. The lint discovers runtime-family
-models from `RuntimeConfiguration.model_fields`, identifies discriminator
-fields whose docs say they select a required profile and whose models carry
-sibling structured profile fields, and checks Pydantic's registered
-model-validator metadata for the corresponding guard call. A future runtime
-spine that declares the same required-profile discriminator shape but omits the
-guard fails the test suite.
+#956 separated platform capabilities from optional content. #1207 removed the
+datastore, forwarding and orchestration required-profile guards. Do not restore
+them from historical examples. The existing family-invariant lint checks guard
+wiring only when model documentation explicitly declares that contract; it does
+not decide whether the contract is portable. The audit field-coverage test
+likewise detects missing review coverage, not semantic correctness. #1211 owns
+the integrated positive/negative lifecycle acceptance of this prevention rule.
 
 ## Static Semantic Invariants
 

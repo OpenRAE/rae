@@ -677,7 +677,11 @@ def test_restart_classifies_interrupted_operation_and_retry_does_not_repeat_back
     _authorize_provisioning_plan(restarted, target, provisioning_plan)
     recovered = restarted.get_operation(operation_id)
     assert recovered is not None
-    assert recovered.state is OperationState.RUNNING
+    assert recovered.state is OperationState.INDETERMINATE
+    assert [diagnostic.code for diagnostic in recovered.diagnostics] == [
+        "runtime.control-plane.recovery-effect-unobservable",
+        "runtime.control-plane.operation-indeterminate",
+    ]
     assert not any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in recovered.diagnostics)
 
     retry = restarted.submit_provisioning(
@@ -889,7 +893,7 @@ def test_runtime_poisoned_when_store_error_cannot_be_reconciled(monkeypatch: pyt
     control_plane.close()
 
 
-def test_startup_preserves_interrupted_records_without_record_only_terminalization(
+def test_startup_recovery_commit_failure_aborts_readiness_and_resumes_without_record_only_writes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -911,20 +915,20 @@ def test_startup_preserves_interrupted_records_without_record_only_terminalizati
 
     monkeypatch.setattr(store, "_upsert_record", fail_second_recovery_write)
     target = create_stub_target()
-    control_plane = RuntimeControlPlane(target, store=store)
+    with pytest.raises(OSError, match="injected recovery crash"):
+        RuntimeControlPlane(target, store=store)
 
-    assert writes == 0
+    assert writes == 2
     assert {record.status.state for record in store.load_records().values()} == {
-        OperationState.ACCEPTED,
+        OperationState.CANCELLED,
         OperationState.RUNNING,
     }
-    control_plane.close()
 
     restarted = RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
     recovered = restarted._operations.values()
     assert {record.status.state for record in recovered} == {
-        OperationState.ACCEPTED,
-        OperationState.RUNNING,
+        OperationState.CANCELLED,
+        OperationState.INDETERMINATE,
     }
     assert all(
         not any(diagnostic.code == INTERRUPTED_OPERATION_DIAGNOSTIC_CODE for diagnostic in record.status.diagnostics)
@@ -1631,6 +1635,7 @@ def test_sqlite_sidecar_validation_rejects_unsafe_metadata(
                 store_paths_module._validate_sqlite_sidecar(sidecar)
 
 
+@pytest.mark.integration
 def test_local_store_repeated_multiprocess_wal_lifecycle(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     LocalControlPlaneStore(store_path)
@@ -2410,6 +2415,7 @@ def test_runtime_owner_lease_rejects_and_closes_in_a_different_process_identity(
     reacquired.close()
 
 
+@pytest.mark.integration
 def test_local_store_runtime_lease_blocks_another_process(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     owner = RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
@@ -2449,6 +2455,7 @@ def test_runtime_owner_directory_guard_survives_lock_path_replacement(tmp_path: 
 
 
 @pytest.mark.skipif("fork" not in get_all_start_methods(), reason="fork is unavailable")
+@pytest.mark.integration
 def test_inherited_runtime_owner_fails_closed_after_fork(tmp_path: Path) -> None:
     owner = RuntimeControlPlane(
         create_stub_target(),

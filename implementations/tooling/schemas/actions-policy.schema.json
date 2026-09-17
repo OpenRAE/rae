@@ -205,7 +205,7 @@
         "trust_classes": {
           "type": "array", "minItems": 1, "uniqueItems": true,
           "items": {
-            "enum": ["untrusted-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
+            "enum": ["untrusted-pr", "same-repository-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
           }
         },
         "permissions": {"$ref": "#/$defs/permissions"},
@@ -237,7 +237,7 @@
         "trust_classes": {
           "type": "array", "minItems": 1, "uniqueItems": true,
           "items": {
-            "enum": ["untrusted-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
+            "enum": ["untrusted-pr", "same-repository-pr", "untrusted-ref", "protected-branch", "manual", "scheduled", "reusable"]
           }
         },
         "credential_classes": {"$ref": "#/$defs/strings"},
@@ -255,7 +255,14 @@
         "caller_workflow": {"$ref": "#/$defs/workflowPath"},
         "caller_job": {"$ref": "#/$defs/identifier"},
         "inputs": {"$ref": "#/$defs/inputs"},
-        "permissions": {"$ref": "#/$defs/permissions"}
+        "permissions": {"$ref": "#/$defs/permissions"},
+        "secrets": {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 1,
+          "propertyNames": {"pattern": "^[A-Za-z0-9_-]+$"},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
       }
     },
     "dependabot": {

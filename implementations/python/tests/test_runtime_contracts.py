@@ -54,6 +54,8 @@ EXPERIMENT_CORE_FIXTURE_MODELS = {
 
 SEMANTIC_INVALID_EXPERIMENT_CORE_FIXTURES = {
     ("experiment-run-v1", "augmentation-without-affected-refs.json"),
+    ("experiment-run-v1", "augmentation-without-portable-carrier.json"),
+    ("experiment-run-v1", "augmentation-purpose-without-evidence.json"),
 }
 
 

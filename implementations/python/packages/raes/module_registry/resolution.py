@@ -231,9 +231,7 @@ def _resolve_local_import(
     imported_raw = _load_normalized_data(
         imported_source.text,
         path=import_path,
-        source_format=context.source_options.source_format,
-        migration_policy=context.source_options.migration_policy,
-        limits=context.source_options.limits,
+        source_options=context.source_options,
         source_diagnostics=context.source_diagnostics,
     )
     imported_scenario = Scenario.model_validate(imported_raw)

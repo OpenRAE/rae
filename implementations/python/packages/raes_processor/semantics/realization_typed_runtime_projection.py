@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
-from pydantic import TypeAdapter
+from pydantic import BaseModel, TypeAdapter
 from raes_contracts.canonical import canonical_json_digest
 
 from .realization_concern_observations import (
@@ -21,6 +22,20 @@ _SENSITIVE_FIELD_CLASSIFICATIONS = {
     "values": ("value_classification",),
     "bind_source": ("bind_source_sensitivity",),
 }
+_SERVICE_MANAGER_SYSTEMD_FIELDS = frozenset(
+    {
+        "unit_type",
+        "load_state",
+        "active_state",
+        "sub_state",
+        "enabled_state",
+        "result",
+        "exit_code",
+        "status_text",
+        "main_pid",
+        "exec_start",
+    }
+)
 
 
 def _sensitive_classification(record: Mapping[str, Any], raw_field: str) -> tuple[str, object] | None:
@@ -130,6 +145,33 @@ def _record_sort_key(record: Mapping[str, Any]) -> tuple[str, str]:
     return _runtime_local_identity(record) or "", canonical_json_digest(dict(record))
 
 
+def _service_manager_source_fields(value: object) -> frozenset[str]:
+    if isinstance(value, BaseModel):
+        return frozenset(value.model_fields_set)
+    if isinstance(value, Mapping):
+        return frozenset(value)
+    return frozenset()
+
+
+def _preserve_service_manager_presence(normalized: object, source: object) -> object:
+    """Drop model defaults that were not supplied to a service-manager row."""
+
+    if not isinstance(normalized, list) or not isinstance(source, Sequence):
+        return normalized
+    projected: list[object] = []
+    for record, original in zip(normalized, source, strict=True):
+        if not isinstance(record, Mapping):
+            projected.append(record)
+            continue
+        supplied = _service_manager_source_fields(original)
+        item = {key: item_value for key, item_value in record.items() if key in supplied}
+        manager = item.get("manager_kind")
+        if manager not in (None, "systemd") and not (isinstance(manager, str) and manager.startswith("${")):
+            item = {key: item_value for key, item_value in item.items() if key not in _SERVICE_MANAGER_SYSTEMD_FIELDS}
+        projected.append(item)
+    return projected
+
+
 def _project_runtime_mapping(
     value: Mapping[str, Any],
     *,
@@ -233,6 +275,53 @@ def _project_typed_runtime_value(
     return projected
 
 
+@dataclass(frozen=True)
+class _ProjectionOptions:
+    excluded_fields: frozenset[str] = frozenset()
+    sort_scalar_sequence: bool = False
+    preserve_sequence_order: bool = False
+    scalar_identity_fields: tuple[str, ...] = ()
+
+
+_DEFAULT_PROJECTION_OPTIONS = _ProjectionOptions()
+
+
+def _project_with_options(
+    value: object,
+    observed: bool = False,
+    *,
+    adapter: TypeAdapter[object],
+    concern_kind: str,
+    options: _ProjectionOptions = _DEFAULT_PROJECTION_OPTIONS,
+) -> object:
+    """Project one typed runtime surface into a closed, value-safe form."""
+
+    _require_observation_mode(observed)
+    normalized = validate_typed_runtime_observation(value, adapter=adapter)
+    if concern_kind == "runtime-service-manager-units":
+        normalized = _preserve_service_manager_presence(normalized, value)
+    projected = _project_typed_runtime_value(
+        normalized,
+        concern_kind=concern_kind,
+        excluded_fields=options.excluded_fields,
+        observed=observed,
+        preserve_sequence_order=options.preserve_sequence_order,
+    )
+    if options.sort_scalar_sequence and not options.preserve_sequence_order and isinstance(projected, list):
+        projected = sorted(projected, key=lambda item: (type(item).__name__, repr(item)))
+    # Installed concern metadata selects comparison-only scalar sets. These
+    # aliases must never enter the native snapshot sanitizer's projection.
+    if options.scalar_identity_fields:
+        for record in projected:
+            for field in options.scalar_identity_fields:
+                record[field] = [{"_identity": value, "value": value} for value in record[field]]
+    elif concern_kind == "runtime-software-components":
+        # Native values stay strings, with stable order for reconciliation.
+        for record in projected:
+            record["repository_refs"] = sorted(record["repository_refs"])
+    return projected
+
+
 def project_typed_runtime_concern(
     value: object,
     observed: bool = False,
@@ -243,20 +332,19 @@ def project_typed_runtime_concern(
     sort_scalar_sequence: bool = False,
     preserve_sequence_order: bool = False,
 ) -> object:
-    """Project one typed runtime surface into a closed, value-safe form."""
+    """Project a typed runtime surface while retaining the public call contract."""
 
-    _require_observation_mode(observed)
-    normalized = validate_typed_runtime_observation(value, adapter=adapter)
-    projected = _project_typed_runtime_value(
-        normalized,
+    return _project_with_options(
+        value,
+        observed,
+        adapter=adapter,
         concern_kind=concern_kind,
-        excluded_fields=excluded_fields,
-        observed=observed,
-        preserve_sequence_order=preserve_sequence_order,
+        options=_ProjectionOptions(
+            excluded_fields=excluded_fields,
+            sort_scalar_sequence=sort_scalar_sequence,
+            preserve_sequence_order=preserve_sequence_order,
+        ),
     )
-    if sort_scalar_sequence and not preserve_sequence_order and isinstance(projected, list):
-        projected = sorted(projected, key=lambda item: (type(item).__name__, repr(item)))
-    return projected
 
 
 def typed_runtime_projector(
@@ -266,16 +354,20 @@ def typed_runtime_projector(
     excluded_fields: frozenset[str] = frozenset(),
     sort_scalar_sequence: bool = False,
     preserve_sequence_order: bool = False,
+    scalar_identity_fields: tuple[str, ...] = (),
 ) -> Callable[..., object]:
     """Bind a closed Pydantic annotation to a reusable concern projector."""
 
     return partial(
-        project_typed_runtime_concern,
+        _project_with_options,
         adapter=TypeAdapter(annotation),
         concern_kind=concern_kind,
-        excluded_fields=excluded_fields,
-        sort_scalar_sequence=sort_scalar_sequence,
-        preserve_sequence_order=preserve_sequence_order,
+        options=_ProjectionOptions(
+            excluded_fields=excluded_fields,
+            sort_scalar_sequence=sort_scalar_sequence,
+            preserve_sequence_order=preserve_sequence_order,
+            scalar_identity_fields=scalar_identity_fields,
+        ),
     )
 
 

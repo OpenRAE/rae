@@ -25,21 +25,39 @@ from tools.check_sdl_lineage import (  # noqa: E402
     evaluate,
 )
 
-LEDGER_PATH = REPO_ROOT / "contracts/provenance/sdl-lineage-ledger-v1.json"
+LEDGER_PATH = REPO_ROOT / "contracts/provenance/sdl-lineage-ledger-v2.json"
 
 
 def _payload() -> dict[str, object]:
     payload = json.loads(LEDGER_PATH.read_text(encoding="utf-8"))
-    projected = lineage_checker.project_historical_ledger_to_current_contract(payload)
-    assert isinstance(projected, dict)
-    return projected
+    assert isinstance(payload, dict)
+    return payload
+
+
+def test_canonical_lineage_loader_selects_the_current_ledger():
+    from raes_contracts.provenance import load_sdl_lineage_ledger, sdl_lineage_ledger_path
+
+    assert sdl_lineage_ledger_path().name == LEDGER_PATH.name
+    ledger = load_sdl_lineage_ledger()
+    assert "sdl-field:semantic_revision" in {subject.subject_id for subject in ledger.subjects}
+
+
+def test_claim_json_pointer_must_resolve_against_its_artifact():
+    payload = _payload()
+    claim = payload["subjects"][0]["claims"][0]
+    claim["raes_boundaries"][0] = {
+        "artifact": "contracts/concept-authority/reference-models-v1.json",
+        "symbol_or_pointer": "#/models/scenario-content/key_fields/service_materialization",
+    }
+    failures = _validate_internal_paths(REPO_ROOT, SDLLineageLedgerModel.model_validate(payload))
+    assert any(failure.rule_id == "lineage-claim-pointer-missing" for failure in failures)
 
 
 def test_real_lineage_ledger_is_valid_and_covers_exact_current_subject_set() -> None:
     ledger = SDLLineageLedgerModel.model_validate(_payload())
     current = {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "current"}
     assert current == _canonical_subjects(REPO_ROOT)
-    assert len(current) == 89
+    assert len(current) == 91
     assert {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "removed"} == {
         "sdl-field:evaluations",
         "sdl-field:goals",
@@ -58,6 +76,45 @@ def test_git_source_requires_full_revision_pin() -> None:
     payload["sources"][0]["commit"] = "fe83e828"
     with pytest.raises(ValidationError, match="string_pattern_mismatch"):
         SDLLineageLedgerModel.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "url", ["https://example.org/documentation/", "https://github.com/owner/repo/blob/main/spec.md"]
+)
+def test_living_source_cannot_use_a_review_date_as_its_revision(url):
+    from raes_contracts.provenance import PublicationLineageSourceModel
+
+    with pytest.raises(ValidationError, match="immutable revision"):
+        PublicationLineageSourceModel.model_validate(
+            {
+                "source_id": "living",
+                "kind": "publication",
+                "title": "Living documentation",
+                "version_or_edition": "documentation reviewed 2026-09-14",
+                "canonical_url": url,
+                "citation_ref": "living",
+            }
+        )
+
+
+def test_archived_living_source_requires_the_exact_capture_bytes():
+    payload = _payload()
+    source = next(source for source in payload["sources"] if source["source_id"] == "nsa-cross-domain-2026")
+    source["archival_capture"]["sha256"] = "0" * 64
+    failures = _validate_internal_paths(REPO_ROOT, SDLLineageLedgerModel.model_validate(payload))
+    assert any(failure.rule_id == "lineage-source-capture-digest" for failure in failures)
+
+
+def test_current_living_source_citations_select_the_pinned_audit():
+    payload = _payload()
+    citations = {item["citation_id"]: item for item in payload["citations"]}
+    sources = [source for source in payload["sources"] if source["source_id"].endswith("-2026")]
+    assert len(sources) == 8
+    for source in sources:
+        citation = citations[source["citation_ref"]]
+        assert citation["verification_evidence"].startswith("docs/research/lineage/source-audit-2026-09-14.md#")
+        assert citation["canonical_url"] == source["canonical_url"]
+        assert source.get("commit") or source.get("archival_capture")
 
 
 def test_artifact_code_claim_requires_notice_disposition() -> None:

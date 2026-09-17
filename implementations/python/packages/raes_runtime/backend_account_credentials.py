@@ -58,11 +58,12 @@ def sanitize_account_credential_result(
     if result.details:
         raise ValueError("credential-bearing backend results must not publish arbitrary details")
     diagnostics = value_free_backend_diagnostics(result.diagnostics)
-    if not result.success:
-        if result.snapshot != baseline:
-            raise ValueError("a failed credential-bearing apply must preserve the baseline snapshot")
+    if not result.success and result.snapshot == baseline:
         return ApplyResult(success=False, snapshot=deepcopy(baseline), diagnostics=diagnostics)
 
+    # A failed native readback can follow completed resource changes. Admit that
+    # cleanup inventory only through the same closed, value-free projection as
+    # successful results; arbitrary partial entries remain unsupported.
     _require_only_approved_snapshot_changes(result.snapshot, baseline)
     safe_entries = _closed_plan_entries(result.snapshot, baseline, plan)
     safe_snapshot = baseline.with_entries(
@@ -72,7 +73,7 @@ def sanitize_account_credential_result(
         realization_envelope=result.snapshot.realization_envelope,
     )
     return ApplyResult(
-        success=True,
+        success=result.success,
         snapshot=safe_snapshot,
         diagnostics=diagnostics,
         changed_addresses=list(result.changed_addresses),

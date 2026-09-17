@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from ..domain_profiles import DomainProfileCoordinateModel, DomainProfileResolutionContextModel
+from ..resource_measure_profiles import require_resource_pool_profiles
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .participant_resource_types import (
     EVENT_DISPOSITION as _EVENT_DISPOSITION,
@@ -162,10 +164,12 @@ class ParticipantResourceBudgetCapabilitiesModel(ContractModel):
     configured_pools: list[ParticipantResourcePoolCapacityModel] = Field(min_length=1)
     realization_contract_ids: list[NonEmptyString] = Field(min_length=1)
     cross_range_pool_refs: list[NonEmptyString] = Field(default_factory=list)
+    domain_profile_context: DomainProfileResolutionContextModel | None = None
 
     @model_validator(mode="after")
     def _validate_capabilities(self) -> ParticipantResourceBudgetCapabilitiesModel:
         validate_budget_capabilities(self)
+        require_resource_pool_profiles(self)
         return self
 
 
@@ -220,6 +224,8 @@ class ParticipantResourceMeasurementRequirementModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_requirement(self) -> ParticipantResourceMeasurementRequirementModel:
+        if isinstance(self.resource_kind, DomainProfileCoordinateModel):
+            return self
         expected_modes = _RESOURCE_ACCOUNTING[self.resource_kind]
         if not expected_modes:
             raise ValueError("resource measurement requires supported quantity semantics")
@@ -240,7 +246,10 @@ class ParticipantResourceMeasurementModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_measurement(self) -> ParticipantResourceMeasurementModel:
-        if self.unit != _RESOURCE_UNIT[self.resource_kind]:
+        if (
+            not isinstance(self.resource_kind, DomainProfileCoordinateModel)
+            and self.unit != _RESOURCE_UNIT[self.resource_kind]
+        ):
             raise ValueError("resource measurement unit must match its resource kind")
         if len(self.evidence_refs) != len(set(self.evidence_refs)):
             raise ValueError("resource measurement evidence refs must be unique")

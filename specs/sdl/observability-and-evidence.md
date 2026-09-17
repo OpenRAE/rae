@@ -7,6 +7,13 @@ runtime families. A future field still has to update `sections.md`,
 `references.md`, the published SDL schemas, the reference implementation,
 fixtures, and tests.
 
+[`augmentation_scope`](augmentation-scope.md) separately controls permission
+for in-world additions needed by capture or other apparatus. **Omission means
+open.** Authors must explicitly forbid additions: a closed default would impose
+a large, unexpected burden by requiring them to anticipate every backend's
+implementation details. Closed scope cannot be bypassed by silently installing
+instrumentation or omitting required evidence while claiming success.
+
 ## Plane Rule
 
 An SDL authoring construct that makes an observability or evidence claim MUST
@@ -259,6 +266,14 @@ NOT be hidden in metadata, diagnostics, audit blobs, backend-native DTOs, or
 raw logs.
 
 Run-level processor/backend augmentation disclosures are carried by
+`experiment-run-v1`. Negotiated backend materializations also carry full
+[materialized SDL](materialization-attestation.md) in a protected archive,
+referenced through `materialization_attestations`. The typed
+`materialization-attestation` reference is a portable augmentation carrier,
+not captured evidence or the original scenario snapshot. Existing visibility,
+marking, evidence-reference and comparability obligations still apply.
+
+The classification record itself remains
 `experiment-run-v1` `augmentation_disclosures`. That carrier records the
 augmentation purpose, realization layer, additive classifications, portable
 carrier refs, disclosure policy, markings, observer/comparability effects, and

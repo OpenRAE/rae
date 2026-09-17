@@ -12,6 +12,7 @@ from enum import Enum
 from typing import Annotated, Literal
 
 from pydantic import Field, WithJsonSchema, field_validator, model_validator
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.secret_references import SecretReferenceId
 
 from ._base import (
@@ -156,6 +157,9 @@ class Account(SDLModel):
     password_strength: PasswordStrength | str = PasswordStrength.MEDIUM
     auth_method: AccountAuthenticationMethod | AccountAuthenticationMethodString = AccountAuthenticationMethod.PASSWORD
     credential_bindings: list[AccountCredentialBinding] = Field(default_factory=list)
+    materialization_profile: DomainProfileBindingModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     description: str = ""
     mail: str = ""
     spn: str = ""

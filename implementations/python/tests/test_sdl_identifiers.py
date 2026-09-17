@@ -73,7 +73,7 @@ _portable_identifier_strategy = st.builds(
 def _minimal_instantiation_provenance() -> dict[str, object]:
     return {
         "authored_digest": {
-            "profile": "raes-sdl-semantic/v1",
+            "profile": "raes-sdl-semantic/v2",
             "algorithm": "sha256",
             "value": f"sha256:{'0' * 64}",
         }
@@ -893,3 +893,26 @@ def test_provider_name_is_bounded_and_collision_resistant_for_full_address() -> 
     )
     assert len(first) <= 63
     assert first.startswith("raes-")
+
+
+def test_provider_name_namespace_isolates_concurrent_runs_without_losing_the_address() -> None:
+    address = "provision.node.web"
+    plain = provider_resource_name(address, prefix="raes")
+    first_run = provider_resource_name(address, prefix="raes", namespace="raes-ref-it-0a1b2c3d4e5f")
+    second_run = provider_resource_name(address, prefix="raes", namespace="raes-ref-it-5f4e3d2c1b0a")
+
+    # Two concurrent runs realizing the same address must not contend for one
+    # native resource name, and neither may collide with the un-namespaced name.
+    assert len({plain, first_run, second_run}) == 3
+    assert all(name.startswith("raes-provision.node.web-") for name in (plain, first_run, second_run))
+    assert all(len(name) <= 63 for name in (first_run, second_run))
+    # The namespace commits through the digest, so a run's names stay stable.
+    assert first_run == provider_resource_name(address, prefix="raes", namespace="raes-ref-it-0a1b2c3d4e5f")
+
+
+def test_provider_name_default_namespace_preserves_existing_names() -> None:
+    address = "provision.network.lan"
+
+    assert provider_resource_name(address, prefix="raes", namespace="") == provider_resource_name(
+        address, prefix="raes"
+    )

@@ -6,9 +6,41 @@ import math
 from enum import Enum
 from typing import Annotated, Literal
 
-from pydantic import Field, StrictBool, StrictFloat, StrictInt, StrictStr, field_validator, model_validator
+from pydantic import (
+    Field,
+    GetJsonSchemaHandler,
+    StrictBool,
+    StrictFloat,
+    StrictInt,
+    StrictStr,
+    field_validator,
+    model_validator,
+)
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema
 
 from ._base import SDLModel
+from .runtime_generated_value import GeneratedArtifactValueSource
+
+
+def _string_predicate_operand_exclusions() -> list[dict[str, object]]:
+    """Published-schema ``allOf`` encoding the exactly-one operand rule (issue #1276).
+
+    Mirrors the Python model's requirement that a string predicate declare exactly
+    one of ``expected`` or ``expected_from``, so schema-only consumers reject a
+    predicate with neither operand or both.
+    """
+
+    present_expected = {"required": ["expected"], "properties": {"expected": {"not": {"type": "null"}}}}
+    present_expected_from = {
+        "required": ["expected_from"],
+        "properties": {"expected_from": {"not": {"type": "null"}}},
+    }
+    return [
+        {"anyOf": [present_expected, present_expected_from]},
+        {"not": {"allOf": [present_expected, present_expected_from]}},
+    ]
+
 
 ObservableProperty = Annotated[
     str,
@@ -92,10 +124,27 @@ class StringPredicate(SDLModel):
     property: ObservableProperty
     semantic_ref: SemanticReference
     operator: Literal["equals", "not_equals", "in", "not_in"] = "equals"
-    expected: StrictStr | list[StrictStr]
+    expected: StrictStr | list[StrictStr] | None = None
+    # Deferred expected value resolved from a generated-artifact output at the
+    # backend comparison boundary (issue #1276), so a submission can be checked
+    # against a generated secret without the value appearing in the SDL or plan.
+    expected_from: GeneratedArtifactValueSource | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def validate_operand_shape(self) -> StringPredicate:
+        if (self.expected is None) == (self.expected_from is None):
+            raise ValueError("string predicate requires exactly one of 'expected' or 'expected_from'")
+        if self.expected_from is not None:
+            return self._validated_deferred_operand()
+        return self._validated_literal_operand()
+
+    def _validated_deferred_operand(self) -> StringPredicate:
+        # A deferred single generated value only supports scalar comparison.
+        if self.operator in {"in", "not_in"}:
+            raise ValueError(f"string operator {self.operator!r} cannot use expected_from")
+        return self
+
+    def _validated_literal_operand(self) -> StringPredicate:
         membership = self.operator in {"in", "not_in"}
         if membership and not isinstance(self.expected, list):
             raise ValueError(f"string operator {self.operator!r} requires a list operand")
@@ -104,6 +153,13 @@ class StringPredicate(SDLModel):
         if isinstance(self.expected, list) and (not self.expected or len(set(self.expected)) != len(self.expected)):
             raise ValueError("string membership operands must be non-empty and unique")
         return self
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        json_schema = handler(core_schema)
+        json_schema = handler.resolve_ref_schema(json_schema)
+        json_schema.setdefault("allOf", []).extend(_string_predicate_operand_exclusions())
+        return json_schema
 
 
 class NumericPredicate(SDLModel):

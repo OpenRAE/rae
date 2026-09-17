@@ -16,6 +16,7 @@ from raes_backend_stubs.stubs import (
 from raes_backend_stubs.stubs import (
     create_stub_manifest as _create_stub_manifest,
 )
+from raes_contracts.planning import PlanScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import (
     EVALUATION_STATE_SCHEMA_VERSION,
@@ -1377,7 +1378,7 @@ class TestRuntimeManager:
         execution_plan = plan(
             compile_runtime_model(_provisioning_only_scenario()),
             target.manifest,
-            target_name=target.name,
+            scope=PlanScope(target_name=target.name),
         )
 
         result = RuntimeManager(target).apply(execution_plan)

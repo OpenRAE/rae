@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-05-18T02:22:07.827366Z
-updated_at: 2026-07-15T05:47:36.193973Z
+updated_at: 2026-09-16T00:00:00Z
 ---
 
 # ASR-530 — Claim Falsification And Evidence Gate
@@ -21,13 +21,20 @@ Agent-assisted development can produce internally coherent code and documentatio
 
 ## Traceability
 
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v25.json` (Fresh source-bound replay after participant relationships and merged augmentation scope, retaining outcomes and claim limits)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-214-v25.json` (Fresh source-bound replay retaining coverage classifications and denominator)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v20.json` (Fresh source-bound release 21.0.0 with unchanged bounded replay outcomes)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1237-v19.json` (Fresh release 19.0.0 preserves the original coverage classifications and denominator)
+- IMPLEMENTS → GITHUB_ISSUE `1205` (Current-source replay after generic software refinements)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v9.json` (Atomic release 10.0.0 retaining exact baseline deviations)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1205-v8.json` (Atomic release 8.0.0 retaining the original coverage protocol)
 - IMPLEMENTS → GITHUB_ISSUE `1204` (Current-source replay after recursive realization changes)
 - IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_loading.py`
 - IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_baseline.py`
 - IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_retest.py`
 - IMPLEMENTS → CODE_FILE `tools/specification_coverage/_keys.py`
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v6.json` (Atomic release 7.0.0 with the immutable 6.0.0 baseline)
-- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1204-v5.json` (Atomic coverage release 5.0.0 retaining the original protocol)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1137-v5.json` (Atomic coverage release 5.0.0 retaining the original protocol)
 - IMPLEMENTS → GITHUB_ISSUE `989` (Versioned current replay and immutable historical evidence)
 - IMPLEMENTS → CODE_FILE `tools/research_evidence.py` (Exact source-state provenance and coherent release selection)
 - IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_releases.py` (Version-specific historical and current validation)
@@ -77,3 +84,7 @@ Agent-assisted development can produce internally coherent code and documentatio
 - TESTS → TEST `implementations/python/tests/test_scenario_satisfiability.py` (Differential, timeout, and construction-count regressions)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v2.json` (Formal semantic validation atomic retest evidence release v2)
 - IMPLEMENTS → GITHUB_ISSUE `828` (Re-test formal semantic validation, satisfiability, and exploit-path claims)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v10.json` (Atomic formal replay release 11.0.0 for typed selections)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1208-v9.json` (Atomic coverage release 9.0.0 for typed selections)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v15.json` (Current formal replay with historical revisions retained)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1210-v14.json` (Current source-bound coverage replay)

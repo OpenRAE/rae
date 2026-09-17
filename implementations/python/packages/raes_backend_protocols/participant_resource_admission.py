@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Protocol
 
+from raes_contracts.resource_measure_profiles import resource_measure_supported
+
 if TYPE_CHECKING:
     from .backend_manifest import BackendManifest
     from .capabilities import ParticipantRuntimeCapabilities
@@ -199,6 +201,16 @@ def _assess_demand(
     policy_pool_keys: set[tuple[str, ...]],
     state: _AdmissionState,
 ) -> None:
+    if not resource_measure_supported(
+        demand.resource_kind,
+        unit=demand.unit,
+        accounting_mode=demand.accounting_mode,
+        meter_profile_ref=demand.meter_profile_ref,
+        reset=demand.reset,
+        context=getattr(budgets, "domain_profile_context", None),
+    ):
+        state.gaps.append(f"participant resource budget {demand.budget_id} lacks supported profile semantics")
+        return
     unsupported = _unsupported_attributes(demand, budgets)
     if unsupported:
         state.gaps.append(f"participant resource budget {demand.budget_id} unsupported: " + ", ".join(unsupported))
@@ -213,13 +225,13 @@ def _assess_demand(
     key = _pool_key(pool)
     if key in policy_pool_keys:
         state.gaps.append(f"participant policy {policy.address} aliases canonical resource pool {pool.pool_ref}")
-        return
-    policy_pool_keys.add(key)
-    state.pools_by_key[key] = pool
-    state.aggregate_limits[key] = state.aggregate_limits.get(key, 0) + demand.limit
-    if policy.resource_fairness.protected:
-        state.aggregate_protected_limits[key] = state.aggregate_protected_limits.get(key, 0) + demand.limit
-    state.gaps.extend(_pool_policy_gaps(demand, policy.resource_fairness, pool))
+    else:
+        policy_pool_keys.add(key)
+        state.pools_by_key[key] = pool
+        state.aggregate_limits[key] = state.aggregate_limits.get(key, 0) + demand.limit
+        if policy.resource_fairness.protected:
+            state.aggregate_protected_limits[key] = state.aggregate_protected_limits.get(key, 0) + demand.limit
+        state.gaps.extend(_pool_policy_gaps(demand, policy.resource_fairness, pool))
 
 
 def _assess_policy(

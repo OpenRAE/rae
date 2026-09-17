@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-11T05:07:15.000000Z
+updated_at: 2026-09-17T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -29,7 +29,26 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - TESTS → TEST `implementations/python/tests/test_issue_1151_runtime_control_plane_design.py` (Structural acceptance gate for the design set)
 - IMPLEMENTS → GITHUB_ISSUE `1182` (CP-1: Operation lifecycle contract)
 - IMPLEMENTS → GITHUB_ISSUE `1181` (CP-2: Unified control-plane mutation commits)
-- DOCUMENTS → GITHUB_ISSUE `1179` (CP-3: Startup reconciliation)
+- IMPLEMENTS → GITHUB_ISSUE `1179` (CP-3: Startup reconciliation)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1179-startup-reconciliation-preflight.md` (CP-3 startup reconciliation classification, observation, authorization, and recovery boundaries)
+- IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json` (Optional backend-neutral recovery-observation capability and supported operation kinds)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/recovery_observation.py` (Closed value-free recovery classification request/result protocol)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/backend_manifest.py` (Recovery-observation capability access on composed backend manifests)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/capabilities.py` (Strict recovery-observation capability declaration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/manifest.py` (Recovery-observation manifest serialization and parsing)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py` (Public recovery capability contract export)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Governed recovery capability export inventory)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/manifests.py` (Strict recovery-observation manifest contract model)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (Public changed-address validation reused by recovery observations)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry.py` (Exact recovery manifest/component presence and signature validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry_target_validation.py` (Focused optional-component and recovery-observer target validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager.py` (Recovery-observer composition through registered runtime targets)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_recovery.py` (Runtime-owned startup classification, atomic terminalization, quarantine, and linked resolution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_auth.py` (Operator-only HTTP resolution authorization)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_operation_routes.py` (Redacted linked-resolution HTTP endpoint)
+- TESTS → TEST `implementations/python/tests/test_issue_1179_startup_reconciliation.py` (Classification, no-replay, observer validation, manifest separation, quarantine, linkage, idempotency, authorization, and redaction tests)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Current versioned evidence selection after recovery contract changes)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Current specification-coverage bundle integrity after contract changes)
 - IMPLEMENTS → GITHUB_ISSUE `1180` (CP-4: Snapshot revision compare-and-swap)
 - DOCUMENTS → GITHUB_ISSUE `1183` (CP-5: Store lease admission)
 - DOCUMENTS → GITHUB_ISSUE `1092` (CP-6: Transactional local store)

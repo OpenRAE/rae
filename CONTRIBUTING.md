@@ -7,16 +7,58 @@ documentation more precise and easier to validate.
 ## Choose the right route
 
 - For a small docs fix, typo fix, or narrow test improvement, a pull request
-  is enough. Use `No issue: <brief reason>` in its Issue tracking section.
+  is enough. Use `No issue: <brief reason>` in its Related Issues section.
 - For SDL language changes, contract changes, processor behavior changes, or
   backend conformance changes, open an issue first and reference it with a
-  standalone `Closes #N` line. Those changes can affect authored scenario
+  standalone `Refs #N` line when the issue's Requirements section declares
+  requirement UIDs, or `Closes #N` otherwise. Those changes can affect authored scenario
   meaning and generated artifacts.
 - Keep unrelated work in separate pull requests.
 - Base pull requests on `dev`, not `main`. `main` is the stable release line;
   `dev` is the integration branch.
 
+Requirement-backed issues stay open at merge. The delivery workflow verifies
+the merged requirement status and traceability, records its final report, and
+then closes the issue. The body guard checks scope from the linked issue, not
+from a self-declaration in the PR.
+
+Pull request bodies use the section structure that the Ground Control delivery
+workflow renders, so a rendered body passes the body guard unmodified. The
+[pull request template](.github/PULL_REQUEST_TEMPLATE.md) lists the sections:
+Summary, Requirement UIDs, Related Issues, ADR Impact, Changes, Test Plan,
+Ground Control Checks, Traceability, and Checklist, plus an optional
+Documentation section. Each required section appears exactly once and has
+content. The guard also enforces the following rules:
+
+- The Summary describes the change in non-placeholder prose.
+- Related Issues declares exactly one tracking route: standalone `Refs #N` or
+  `Closes #N` lines, or one substantive `No issue:` declaration.
+- The Test Plan records the commands run and their outcomes, or a reason a
+  check was not run. Checklist items alone are not evidence.
+- No other part of the body uses a GitHub closing reference: a closing keyword
+  such as `fixes` or `closes`, directly followed by a reference to an issue in
+  this repository. GitHub reads that as a closing route, so reword the mention,
+  for example as "the issue 1219 migration". Other issue mentions are accepted.
+
+The body guard normally executes the validator from the PR's base revision.
+A policy migration admits exactly one prior validator digest and a pinned
+two-file validator bundle, with an independent SHA-256 check of each Git blob
+before execution. This lets the introducing PR be validated without executing
+PR-head code or bypassing policy. Once the replacement lands on `dev`, the
+prior digest no longer matches and the normal base-validator path applies.
+Changing these migration pins is an explicit, reviewable workflow trust change.
+
 ## Set up the repository
+
+The fastest start is the
+[development container](docs/explain/development-container.md): open the
+repository in VS Code with the Dev Containers extension, or create a GitHub
+Codespace, and setup runs by itself. It is an x86_64 image; on Apple silicon,
+Docker Desktop runs it under emulation. The container cannot run the Isabelle
+proof lane, so continuous integration runs the full `verify` gate for container
+users.
+
+To set up natively instead:
 
 Prerequisites:
 
@@ -62,7 +104,12 @@ hosted reader guide.
 
 ## Run the checks
 
-The full repository gate is:
+Commit hooks run file-scoped hygiene and secrets checks: whitespace, final
+newlines, YAML/JSON syntax, file size, conflict markers, private keys, and
+Gitleaks. No pre-push check is configured. Full tests, policy, contracts,
+lint, proof, and documentation validation remain required in CI/CD.
+
+The full repository gate is available locally when needed:
 
 ```shell
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
@@ -77,8 +124,24 @@ one installed font, because Isabelle starts a JVM that will not run without one:
 sudo apt-get install bubblewrap fontconfig fonts-dejavu-core
 ```
 
-The proof tool checks this fontconfig runtime before entering the sandbox and
-reports a missing prerequisite separately from a kernel rejection. Run the
+Acquire the pinned Isabelle distribution once before running the lane. The
+tool admits the exact reviewed archive with a qualified `curl` (8.4.0 or newer)
+and verifies the complete installed tree on every use:
+
+```shell
+uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.isabelle_tool acquire
+```
+
+On a host whose `curl` is older, such as Ubuntu 22.04, pass an archive you
+already have with `--local-input PATH`. The tool admits it only when its size
+and SHA-256 match the lock. An approved mirror is selected explicitly with
+`--locator-ref official-isabelle-cambridge-mirror`. To list every missing proof
+prerequisite without network access or execution, run
+`python -m tools.isabelle_tool preflight`.
+
+The proof tool checks the fontconfig runtime and the C.UTF-8 locale before
+entering the sandbox, and it reports a missing prerequisite separately from a
+kernel rejection. Run the
 gate on Linux, or rely on continuous integration, when your workstation is
 another platform.
 
@@ -96,8 +159,8 @@ uv run --project implementations/tooling/python --frozen --no-default-groups nox
 
 It selects from status-aware changes against the branch's upstream ref and
 fails closed to the full local gate when classification is uncertain. The
-pre-push hook uses this lane. It does not weaken `verify`, which remains the
-unconditional pull-request gate.
+lane is opt-in, not a commit or push hook. It does not weaken `verify`, which
+remains the unconditional pull-request gate.
 
 Useful narrower sessions:
 
@@ -107,8 +170,8 @@ uv run --project implementations/tooling/python --frozen --no-default-groups nox
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -l
 ```
 
-Run the full gate before requesting review for language, contract, generated
-artifact, or shared runtime changes.
+Run targeted checks for the changes you make. CI/CD runs the full gate before
+merge, including language, contract, generated-artifact, and shared-runtime checks.
 
 ## Let Release Please write the changelog
 

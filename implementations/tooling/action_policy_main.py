@@ -65,10 +65,20 @@ def _target_contract_invalid(target: Mapping[str, Any], job: Mapping[str, Any]) 
         for name, definition in contract_inputs.items()
         if isinstance(name, str) and as_mapping(definition).get("required") is True
     }
+    # A reusable target may declare optional secrets, mirroring the input contract:
+    # the caller may pass only declared secrets and must pass every required one.
+    contract_secrets = as_mapping(call.get("secrets"))
+    supplied_secrets = as_mapping(job.get("secrets"))
+    required_secrets = {
+        name
+        for name, definition in contract_secrets.items()
+        if isinstance(name, str) and as_mapping(definition).get("required") is True
+    }
     return bool(
         set(supplied_inputs) - set(contract_inputs)
         or required_inputs - set(supplied_inputs)
-        or as_mapping(call.get("secrets"))
+        or set(supplied_secrets) - set(contract_secrets)
+        or required_secrets - set(supplied_secrets)
     )
 
 
@@ -99,6 +109,14 @@ def _local_call_differs(
     caller_permissions, broad = permissions(workflow, job)
     if target is None:
         return True
+    # The caller may pass only the exact secret mapping recorded in the policy's
+    # `local_workflows` entry. A non-mapping form such as `secrets: inherit`, an
+    # unlisted secret, or a drifted mapping fails closed here.
+    job_secrets = job.get("secrets")
+    if "secrets" in job and not isinstance(job_secrets, Mapping):
+        secrets_differ = True
+    else:
+        secrets_differ = as_mapping(job_secrets) != as_mapping(expected.get("secrets"))
     return bool(
         not expected
         or expected.get("path") != uses
@@ -106,7 +124,7 @@ def _local_call_differs(
         or as_mapping(expected.get("permissions")) != caller_permissions
         or broad
         or "workflow_call" not in trigger_names(target)
-        or "secrets" in job
+        or secrets_differ
         or _target_permissions_exceed(target, caller_permissions)
         or _target_contract_invalid(target, job)
     )

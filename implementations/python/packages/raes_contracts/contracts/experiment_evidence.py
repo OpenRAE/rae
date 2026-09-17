@@ -12,6 +12,7 @@ from ..versions import (
     EXPERIMENT_DERIVED_MEASURE_SCHEMA_VERSION,
     EXPERIMENT_EVIDENCE_RECORD_SCHEMA_VERSION,
 )
+from . import experiment_evidence_refinement as _evidence_refinement
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
 from .experiment_artifacts import (
     ExperimentDerivedMeasureReferenceModel,
@@ -27,12 +28,16 @@ from .experiment_references import (
     ExperimentReferenceModel,
     ExperimentTaskReferenceModel,
 )
+from .realization_descriptions import TypedRealizationDescriptionModel, validate_description_host
 from .schema_invariants import (
     _add_raes_invariant,
     _add_raes_plane,
     _extend_reported_value_status_schema,
     _validate_reported_value_status,
 )
+
+ExperimentEvidenceRequirementRelationModel = _evidence_refinement.ExperimentEvidenceRequirementRelationModel
+validate_evidence_requirement_relations = _evidence_refinement.validate_evidence_requirement_relations
 
 
 class ExperimentEvidenceRecordModel(ContractModel):
@@ -56,10 +61,18 @@ class ExperimentEvidenceRecordModel(ContractModel):
     redaction_state: Literal["none", "redacted", "withheld"]
     redaction_policy: NonEmptyString | None = None
     provenance_refs: list[ExperimentReferenceModel] = Field(default_factory=list)
+    typed_description: TypedRealizationDescriptionModel | None = None
 
     @model_validator(mode="after")
     def _validate_evidence_record(self) -> ExperimentEvidenceRecordModel:
+        validate_description_host(self.typed_description, "experiment-evidence-record-v1")
         _parse_rfc3339_datetime("captured_at", self.captured_at)
+        if (
+            self.redaction_state == "withheld"
+            and self.typed_description is not None
+            and any(fact.state == "known" for fact in self.typed_description.facts)
+        ):
+            raise ValueError("withheld evidence cannot carry known descriptive values")
         if self.redaction_state != "none" and self.raw_content.loss_disclosure is None:
             raise ValueError("redacted or withheld evidence records must include raw_content.loss_disclosure")
         if (self.redaction_state == "none") != (self.redaction_policy is None):
@@ -74,6 +87,17 @@ class ExperimentEvidenceRecordModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
+        _add_raes_invariant(
+            json_schema,
+            "evidence-description-nonauthoritative",
+            "Typed descriptions preserve bounded supplied values, explicit knowledge, coverage and source identities; "
+            "they do not carry author closure or establish capture satisfaction. Withheld evidence "
+            "carries no known values. "
+            "Profile owners bind to the fact scope and capture carrier; nested profile basis and evidence "
+            "join fact provenance.",
+            validator="raes_contracts.contracts.ExperimentEvidenceRecordModel.model_validate",
+            inputs=[{"contract_id": "experiment-evidence-record-v1", "instance_path": "#"}],
+        )
         _add_raes_invariant(
             json_schema,
             "evidence-record-raw-content-present",
@@ -257,9 +281,11 @@ class ExperimentRealizedFormDisclosureModel(ContractModel):
     realized_value_summary: NonEmptyString | None = None
     disclosure: NonEmptyString
     evidence_refs: list[ExperimentEvidenceRecordReferenceModel] = Field(default_factory=list)
+    typed_description: TypedRealizationDescriptionModel | None = None
 
     @model_validator(mode="after")
     def _validate_realized_form_disclosure(self) -> ExperimentRealizedFormDisclosureModel:
+        validate_description_host(self.typed_description, "experiment-run-v1")
         if self.realized_ref is None and self.realized_value_summary is None:
             raise ValueError("realized form disclosures must include realized_ref or realized_value_summary")
         if self.basis == "processor-realized" and self.realized_by_ref.ref_kind != "processor":
@@ -320,6 +346,16 @@ class ExperimentRealizedFormDisclosureModel(ContractModel):
             validator=(
                 "raes_contracts.contracts.ExperimentRealizedFormDisclosureModel._validate_realized_form_disclosure"
             ),
+            inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_form_disclosures"}],
+        )
+        _add_raes_invariant(
+            json_schema,
+            "realized-description-nonauthoritative",
+            "Typed descriptions preserve explicit knowledge, bounded recursive values and coverage separately from "
+            "author authority, with versioned sources and exact extension coordinates. Profile owners "
+            "bind to the fact scope "
+            "and realization-description carrier; nested profile basis and evidence join fact provenance.",
+            validator="raes_contracts.contracts.ExperimentRealizedFormDisclosureModel.model_validate",
             inputs=[{"contract_id": "experiment-run-v1", "instance_path": "#/realized_form_disclosures"}],
         )
         return json_schema

@@ -188,3 +188,5 @@ requirement.
 - TESTS → TEST `implementations/python/tests/test_issue_985_runtime_observation_contract.py`
 - TESTS → TEST `implementations/python/tests/test_run_308_concurrent_participant_execution.py`
 - TESTS → TEST `implementations/python/tests/test_runtime_manager.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/profile_selections.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1208_profile_boundaries.py`

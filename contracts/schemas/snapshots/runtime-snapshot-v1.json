@@ -1010,6 +1010,263 @@
       "title": "EventClassificationModel",
       "type": "object"
     },
+    "ExperimentArtifactRefModel": {
+      "additionalProperties": false,
+      "description": "Reference to an artifact that supports a task, run, apparatus, or study.",
+      "properties": {
+        "artifact_id": {
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "checksum": {
+          "$ref": "#/$defs/ExperimentChecksumModel"
+        },
+        "created_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "media_type": {
+          "minLength": 1,
+          "title": "Media Type",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "protocol",
+            "metric-definition",
+            "scenario-snapshot",
+            "materialization-attestation",
+            "manifest",
+            "apparatus-evidence",
+            "observation",
+            "result",
+            "analysis",
+            "report",
+            "export",
+            "starter-file",
+            "evaluator",
+            "subtask",
+            "gold-step",
+            "milestone",
+            "human-assistance",
+            "scaffold",
+            "baseline",
+            "cost-resource-trace",
+            "documentation",
+            "operator-guide",
+            "configuration",
+            "profile",
+            "dataset",
+            "other"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "satisfies_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentEvidenceSatisfactionReferenceModel"
+          },
+          "title": "Satisfies Refs",
+          "type": "array"
+        },
+        "sensitivity": {
+          "enum": [
+            "public",
+            "internal",
+            "restricted",
+            "redacted"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "uri": {
+          "minLength": 1,
+          "title": "Uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "role",
+        "media_type",
+        "uri",
+        "checksum",
+        "size_bytes",
+        "created_at",
+        "source",
+        "sensitivity"
+      ],
+      "title": "ExperimentArtifactRefModel",
+      "type": "object"
+    },
+    "ExperimentChecksumModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha256"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha384"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{96}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha512"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{128}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "blake3"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Checksum metadata for an experiment-core artifact reference.",
+      "properties": {
+        "algorithm": {
+          "enum": [
+            "sha256",
+            "sha384",
+            "sha512",
+            "blake3"
+          ],
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "pattern": "^[A-Fa-f0-9]+$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "title": "ExperimentChecksumModel",
+      "type": "object"
+    },
+    "ExperimentEvidenceSatisfactionReferenceModel": {
+      "additionalProperties": false,
+      "description": "Evidence concept reference that an artifact claims to satisfy.",
+      "properties": {
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "evidence",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Version"
+        }
+      },
+      "required": [
+        "ref_kind",
+        "ref_id"
+      ],
+      "title": "ExperimentEvidenceSatisfactionReferenceModel",
+      "type": "object"
+    },
     "ExplicitnessClass": {
       "description": "SEM-218 author-intent class for a declaration.",
       "enum": [
@@ -1031,6 +1288,77 @@
       "type": "string"
     },
     "JsonValue": {},
+    "MaterializationArchiveRecord": {
+      "additionalProperties": false,
+      "description": "Published protected bytes and their distinct semantic identity.",
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/ExperimentArtifactRefModel"
+        },
+        "operation_id": {
+          "minLength": 1,
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "reference": {
+          "$ref": "#/$defs/MaterializationAttestationReferenceModel"
+        },
+        "run_id": {
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "artifact",
+        "run_id",
+        "operation_id"
+      ],
+      "title": "MaterializationArchiveRecord",
+      "type": "object"
+    },
+    "MaterializationAttestationReferenceModel": {
+      "additionalProperties": false,
+      "description": "A descriptive artifact identity, never the original scenario snapshot.",
+      "properties": {
+        "ref_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Ref Digest",
+          "type": "string"
+        },
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "materialization-attestation",
+          "default": "materialization-attestation",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_path": {
+          "minLength": 1,
+          "title": "Ref Path",
+          "type": "string"
+        },
+        "ref_version": {
+          "const": "raes-sdl-materialized/v1",
+          "default": "raes-sdl-materialized/v1",
+          "title": "Ref Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref_id",
+        "ref_digest",
+        "ref_path"
+      ],
+      "title": "MaterializationAttestationReferenceModel",
+      "type": "object"
+    },
     "ObservationStrength": {
       "description": "Strongest evidence a backend configuration emits for one concern.",
       "enum": [
@@ -8330,16 +8658,23 @@
           "type": "integer"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "schema_version": {
           "const": "participant-resource-budget-event/v1",
@@ -8507,16 +8842,23 @@
           "type": "string"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "schema_version": {
           "const": "participant-resource-budget-state/v1",
@@ -8605,16 +8947,23 @@
           "type": "string"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "unit": {
           "minLength": 1,
@@ -8831,16 +9180,23 @@
           "type": "string"
         },
         "resource_kind": {
-          "enum": [
-            "action_rate",
-            "concurrent_actions",
-            "storage_growth",
-            "inference_tokens",
-            "image_generations",
-            "accelerator"
+          "anyOf": [
+            {
+              "enum": [
+                "action_rate",
+                "concurrent_actions",
+                "storage_growth",
+                "inference_tokens",
+                "image_generations",
+                "accelerator"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/DomainProfileCoordinateModel"
+            }
           ],
-          "title": "Resource Kind",
-          "type": "string"
+          "title": "Resource Kind"
         },
         "starvation_bound_ticks": {
           "maximum": 1000000000,
@@ -11738,6 +12094,14 @@
       },
       "title": "Joint Action Records",
       "type": "object"
+    },
+    "materialization_attestations": {
+      "items": {
+        "$ref": "#/$defs/MaterializationArchiveRecord"
+      },
+      "maxItems": 4096,
+      "title": "Materialization Attestations",
+      "type": "array"
     },
     "metadata": {
       "additionalProperties": true,

@@ -27,6 +27,7 @@ from raes import (
     parse_sdl,
 )
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.planning import PlanScope
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import (
     ChangeAction,
@@ -206,7 +207,7 @@ class TestRun300Lifecycle:
             model,
             target.manifest,
             empty_snapshot,
-            target_name=target.name,
+            scope=PlanScope(target_name=target.name),
         )
 
         assert isinstance(execution_plan, ExecutionPlan)
@@ -360,7 +361,7 @@ class TestRun300Lifecycle:
             model,
             target.manifest,
             empty_snapshot,
-            target_name=target.name,
+            scope=PlanScope(target_name=target.name),
         )
 
         manager = RuntimeManager(target)

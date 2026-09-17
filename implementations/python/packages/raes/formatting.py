@@ -9,7 +9,8 @@ import yaml
 from pydantic import ValidationError
 
 from ._errors import SDLParseDiagnostic, SDLParseError
-from ._source_profile import DEFAULT_PARSER_LIMITS, SDLMigrationPolicy, SDLParserLimits
+from ._source_profile import DEFAULT_PARSER_LIMITS, SDLMigrationPolicy, SDLParserLimits, SDLSourceParseOptions
+from .materialization import MaterializedScenario
 from .parser import _load_normalized_data, parse_sdl
 from .scenario import Scenario
 
@@ -27,18 +28,18 @@ class SDLRenderResult:
     """Deterministic strict source plus the scenario reparsed from those bytes."""
 
     content: str
-    scenario: Scenario
+    scenario: Scenario | MaterializedScenario
 
 
 def render_sdl_source(
-    scenario: Scenario,
+    scenario: Scenario | MaterializedScenario,
     *,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
 ) -> SDLRenderResult:
     """Render an SDL model deterministically and re-admit the emitted bytes."""
 
-    if not isinstance(scenario, Scenario):
-        raise TypeError("SDL rendering requires a Scenario")
+    if not isinstance(scenario, (Scenario, MaterializedScenario)):
+        raise TypeError("SDL rendering requires an authored or materialized scenario")
     normalized = scenario.model_dump(mode="json", by_alias=True, exclude_unset=True)
     content = yaml.safe_dump(
         normalized,
@@ -60,14 +61,14 @@ def format_sdl_source(
     data = _load_normalized_data(
         content,
         path=path,
-        migration_policy=SDLMigrationPolicy.ACCEPT,
-        limits=limits,
+        source_options=SDLSourceParseOptions(migration_policy=SDLMigrationPolicy.ACCEPT, limits=limits),
         source_diagnostics=diagnostics,
     )
     try:
-        scenario = Scenario(**data)
+        scenario_cls = MaterializedScenario if "materialization_provenance" in data else Scenario
+        scenario = scenario_cls(**data)
     except ValidationError as exc:
-        raise SDLParseError(str(exc), path=path) from exc
+        raise SDLParseError("SDL input does not satisfy the current authoring contract.", path=path) from exc
     normalized = scenario.model_dump(mode="json", by_alias=True, exclude_unset=True)
     formatted = yaml.safe_dump(
         normalized,

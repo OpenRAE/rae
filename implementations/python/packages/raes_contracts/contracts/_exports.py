@@ -3,6 +3,12 @@
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 
 PUBLIC_EXPORTS = [
+    "MaterializationArchiveRecord",
+    "MaterializationAttestationReferenceModel",
+    "DescriptionCoverageModel",
+    "DescriptionFactModel",
+    "DescriptionProvenanceModel",
+    "TypedRealizationDescriptionModel",
     "ACTIVITYSTREAMS_ACTIVITY_TYPES_SOURCE_SCHEMA_VERSION",
     "ActivityStreamsActivityTypeSourceTermModel",
     "ActivityStreamsActivityTypesSourceModel",
@@ -47,6 +53,7 @@ PUBLIC_EXPORTS = [
     "BackendCompatibilityModel",
     "BackendManifestV2Model",
     "BackendCapabilitiesV2Model",
+    "RecoveryObservationCapabilitiesModel",
     "BehavioralClaimBindingModel",
     "BEHAVIORAL_RELATION_PROFILE_SCHEMA_VERSION",
     "BehavioralRelationId",
@@ -148,6 +155,7 @@ PUBLIC_EXPORTS = [
     "ExperimentEvidenceRecordModel",
     "ExperimentEvidenceRecordReferenceModel",
     "ExperimentEvidenceReferenceModel",
+    "ExperimentEvidenceRequirementRelationModel",
     "ExperimentEvaluationProtocolModel",
     "ExperimentInvalidationModel",
     "ExperimentManifestReferenceModel",
@@ -475,6 +483,7 @@ PUBLIC_EXPORTS = [
     "validate_experiment_study_structure_against_tasks_and_runs",
     "validate_experiment_study_archival_datetimes",
     "validate_experiment_task_archival_datetimes",
+    "validate_evidence_requirement_relations",
     "ValidationBasisDisclosureDocumentModel",
     "validate_experiment_run_time_model",
     "TimeCapabilitiesModel",

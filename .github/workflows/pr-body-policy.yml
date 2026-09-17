@@ -1,9 +1,15 @@
 name: PR Body Policy
 
+# The bot-authored main->dev back-merge PR changes only Release Please-managed
+# files and is not subject to the human PR body policy (#1266).
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
     branches: [dev]
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - implementations/python/packages/raes/_version.py
 
 permissions:
   contents: read
@@ -32,8 +38,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ ! -f tools/check_pr_body.py ]; then
-            echo "::notice::body guard is not on the base ref yet; bootstrap PR only"
-            exit 0
+          validator=tools/check_pr_body.py
+          base_digest=$(sha256sum "$validator" | cut -d ' ' -f 1)
+          # Explicit plain-language-to-Ground-Control-structure migration (#1284).
+          # Fetch only this immutable bundle, never a branch path or PR-head
+          # executable. The pins are review-protected workflow policy,
+          # independent of event input.
+          if [ "$base_digest" = 715222ca14ffa6636f62ab06bfb1b30cd5a0e76e9a303fb602e309fe987a4e41 ]; then
+            bundle=$(mktemp -d "$RUNNER_TEMP/pr-body-policy.XXXXXX")
+            mkdir "$bundle/tools"
+            validator="$bundle/tools/check_pr_body.py"
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/063f086c5cd151a45ff2659a5af87c3e454ef0ec" \
+              --jq .content | base64 --decode > "$validator"
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/2060ea8ea5bc8e3f9ee42d3707c1882f9990c052" \
+              --jq .content | base64 --decode > "$bundle/tools/pr_body_issue_scope.py"
+            echo "b65c484270ebcdcb9ddce580caf8ab073b68ddba7cfa3e839940d629353d39ef  $validator" | sha256sum --check --strict
+            echo "271afe45e06d3d99a245f586ca0f797eae36de9ede7a6a6ee547d34e939af9a3  $bundle/tools/pr_body_issue_scope.py" | sha256sum --check --strict
           fi
-          python tools/check_pr_body.py
+          python -I -S "$validator"

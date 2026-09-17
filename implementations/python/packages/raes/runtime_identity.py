@@ -9,7 +9,10 @@ surface; nothing here is implicitly compiled into an account placement.
 
 from enum import Enum
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+
+from raes.runtime_filesystem import flagged_raw_value_schema
+from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import (
     SDLModel,
@@ -68,8 +71,8 @@ class RuntimeLocalUser(SDLModel):
     disabled: bool | str = False
     locked: bool | str = False
     no_login: bool | str = False
-    provenance: RuntimeIdentityProvenance | str = RuntimeIdentityProvenance.UNKNOWN
-    stability: RuntimeFilesystemStability | str = RuntimeFilesystemStability.UNKNOWN
+    provenance: GovernedVocabulary[RuntimeIdentityProvenance] = RuntimeIdentityProvenance.UNKNOWN
+    stability: GovernedVocabulary[RuntimeFilesystemStability] = RuntimeFilesystemStability.UNKNOWN
     description: str = ""
 
     @field_validator("username")
@@ -116,7 +119,7 @@ class RuntimeLocalGroup(SDLModel):
     name: str
     gid: int | str | None = None
     members: list[str] = Field(default_factory=list)
-    provenance: RuntimeIdentityProvenance | str = RuntimeIdentityProvenance.UNKNOWN
+    provenance: GovernedVocabulary[RuntimeIdentityProvenance] = RuntimeIdentityProvenance.UNKNOWN
     description: str = ""
 
     @field_validator("name")
@@ -151,8 +154,12 @@ class RuntimeSudoRule(SDLModel):
     scope was withheld because it carried sensitive arguments.
     """
 
+    model_config = ConfigDict(
+        json_schema_extra=flagged_raw_value_schema(flag_field="command_redacted", raw_field="commands", array=True)
+    )
+
     principal: str
-    principal_kind: RuntimeSudoPrincipalKind | str = RuntimeSudoPrincipalKind.USER
+    principal_kind: GovernedVocabulary[RuntimeSudoPrincipalKind] = RuntimeSudoPrincipalKind.USER
     run_as_users: list[str] = Field(default_factory=list)
     run_as_groups: list[str] = Field(default_factory=list)
     commands: list[str] = Field(default_factory=list)

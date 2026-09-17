@@ -1,10 +1,10 @@
 {
+  "content_hash": "c76987541ad49e28319b3b3820ade3e1c9f772808238100d695e684aabd8d4e6",
   "contract_id": "instantiated-scenario-v1",
-  "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
-  "stability": "draft",
-  "content_hash": "fa3becccc995ac9bb0476fd9a17744de85e5ceee76cd15ba49d03c731a729712",
   "last_change": {
-    "summary": "Embedded scoped observation demand while externalizing classifications and retaining capture terms for issues #1212, #989, and #1112.",
-    "content_hash": "fa3becccc995ac9bb0476fd9a17744de85e5ceee76cd15ba49d03c731a729712"
-  }
+    "content_hash": "c76987541ad49e28319b3b3820ade3e1c9f772808238100d695e684aabd8d4e6",
+    "summary": "Carry bounded augmentation permission, partial runtime listener descriptions, and portable service-manager contracts (#1242, #1299, #1297)."
+  },
+  "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
+  "stability": "draft"
 }

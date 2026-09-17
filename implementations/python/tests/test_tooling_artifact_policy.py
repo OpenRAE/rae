@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -24,6 +25,8 @@ from tools import (
     tooling_artifact_policy_actions,
     tooling_policy_gate,
     vale_tool,
+    verified_tool_installation,
+    verified_tree_installation,
 )
 from tools.check_tooling_artifact_policy import (
     ACTIONS_POLICY_PATH,
@@ -39,7 +42,7 @@ from tools.check_tooling_artifact_policy import (
     tooling_policy_sha256,
 )
 from tools.policy import conftest_tool
-from tools.tooling_policy_gate import LockedArtifactSelection, LockedManifestEntry
+from tools.tooling_policy_gate import LockedArtifactSelection, LockedInstalledTree, LockedManifestEntry
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 TOOLING_ROOT = REPO_ROOT / "implementations" / "tooling"
@@ -209,6 +212,16 @@ def _seed_policy(root: Path) -> Path:
                 },
             ],
             "denied_digests": [],
+            "release_producers": [
+                {
+                    "producer_id": "fixture-producer",
+                    "issuer": "https://token.actions.githubusercontent.com",
+                    "repository": "example/repo",
+                    "workflow_ref": "example/repo/.github/workflows/release.yml@refs/heads/main",
+                    "signer_workflow": "example/repo/.github/workflows/release.yml",
+                    "reviewer_roles": ["Release", "Security"],
+                }
+            ],
         },
     )
     _write_json(
@@ -354,7 +367,6 @@ def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
     expected_tools = {
         "public-linux-x86_64-cp314-tools",
         "public-linux-arm64-cp314-tools",
-        "public-macos-x86_64-cp314-tools",
         "public-macos-arm64-cp314-tools",
     }
     document = _load(REPO_ROOT, PROFILES_PATH)
@@ -371,12 +383,15 @@ def test_checked_in_python_closure_profiles_are_closed_and_complete() -> None:
     assert all(profiles[profile_id]["purposes"] == ["tool", "build"] for profile_id in expected_tools)
     assert all(profiles[profile_id]["project_extras"] == [] for profile_id in expected_tools)
     assert all(profiles[profile_id]["tool_groups"] == ["default", "build"] for profile_id in expected_tools)
-    macos_x86_tools = json.loads(
-        (REPO_ROOT / profiles["public-macos-x86_64-cp314-tools"]["wheelhouse_manifest"]).read_text(encoding="utf-8")
-    )
-    artifacts = {item["name"]: item for item in macos_x86_tools["artifacts"]}
-    assert {"cryptography", "hatchling", "pathspec", "trove-classifiers"} <= artifacts.keys()
-    assert "macosx_10_9_universal2" in artifacts["cryptography"]["filename"]
+    # cryptography 50 ships no macOS x86_64 wheel, so no tool closure may target
+    # that platform; every closure carries the patched releases (#1268).
+    assert all(profile["python"]["platform"] != "x86_64-apple-darwin" for profile in profiles.values())
+    for profile_id in expected_tools:
+        manifest = json.loads((REPO_ROOT / profiles[profile_id]["wheelhouse_manifest"]).read_text(encoding="utf-8"))
+        artifacts = {item["name"]: item for item in manifest["artifacts"]}
+        assert {"cryptography", "hatchling", "pathspec", "trove-classifiers"} <= artifacts.keys()
+        assert artifacts["cryptography"]["version"] == "50.0.1"
+        assert artifacts["pip"]["version"] == "26.2.1"
     loaded = load_python_closure_profile(REPO_ROOT, "public-linux-x86_64-cp312-all-extras")
     assert loaded.build_constraints.name == "build-constraints.txt"
     assert loaded.test_case_ids == ("T03", "T10", "T11", "T13", "T23")
@@ -546,7 +561,7 @@ def test_bootstrap_wheelhouse_verification_runs_without_site_packages(tmp_path: 
         ("lock", "lock identity is stale"),
         ("requirements", "requirements identity is stale"),
         ("profile", "profile identity is wrong"),
-        ("symlink", "must be a regular file"),
+        ("symlink", "must not be a symbolic link"),
     ],
 )
 def test_bootstrap_wheelhouse_verification_rejects_stale_or_untrusted_identity(
@@ -579,6 +594,34 @@ def test_bootstrap_wheelhouse_verification_rejects_stale_or_untrusted_identity(
 
     with pytest.raises(ValueError, match=message):
         verify_bootstrap_wheelhouse(root, profile_id, wheelhouse, snapshot_path)
+
+
+def test_bootstrap_verification_refuses_a_kit_split_across_roots(tmp_path: Path) -> None:
+    from tools.python_closure import verify_bootstrap_wheelhouse
+
+    root, profile_id, wheelhouse, snapshot_path, _manifest_path, _lock_path, _requirements_path = (
+        _seed_bootstrap_wheelhouse_fixture(tmp_path)
+    )
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    relocated = elsewhere / snapshot_path.name
+    relocated.write_bytes(snapshot_path.read_bytes())
+
+    with pytest.raises(ValueError, match="must share one kit root"):
+        verify_bootstrap_wheelhouse(root, profile_id, wheelhouse, relocated)
+
+
+def test_bootstrap_verification_refuses_a_symlinked_operator_path(tmp_path: Path) -> None:
+    from tools.python_closure import verify_bootstrap_wheelhouse
+
+    root, profile_id, wheelhouse, snapshot_path, _manifest_path, _lock_path, _requirements_path = (
+        _seed_bootstrap_wheelhouse_fixture(tmp_path)
+    )
+    linked = root / "linked-wheelhouse"
+    linked.symlink_to(wheelhouse, target_is_directory=True)
+
+    with pytest.raises(ValueError, match="must not be a symbolic link"):
+        verify_bootstrap_wheelhouse(root, profile_id, linked, snapshot_path)
 
 
 def test_python_closure_anchors_relative_paths_before_temporary_cwd(
@@ -788,6 +831,7 @@ def test_host_selection_launcher_rejects_an_unbound_validator_response(monkeypat
                 "artifact_id": "uv",
                 "artifact_class": "bootstrap",
                 "version": "1.0.0",
+                "policy_refs": ["artifact-integrity-v1"],
                 "source": {"repository": "https://example.invalid", "release": "v1.0.0"},
                 "platform": {
                     "platform_id": "linux-x86_64",
@@ -820,6 +864,7 @@ def test_host_selection_launcher_can_reuse_the_active_tool_environment(monkeypat
                 "artifact_id": "uv",
                 "artifact_class": "bootstrap",
                 "version": "1.0.0",
+                "policy_refs": ["artifact-integrity-v1"],
                 "source": {"repository": "https://example.invalid", "release": "v1.0.0"},
                 "platform": {
                     "platform_id": "linux-x86_64",
@@ -1009,6 +1054,7 @@ def test_host_profiles_fail_closed_on_unknown_payload_evidence_and_proof_platfor
         "tooling-host-evidence-reference",
         "tooling-host-proof-platform",
         "tooling-host-proof-capability",
+        "tooling-host-proof-closure",
     } <= failures
 
 
@@ -1207,6 +1253,50 @@ jobs:
 def test_complete_action_admission_context_is_accepted(tmp_path: Path) -> None:
     root = _seed_policy(tmp_path)
     _seed_valid_checkout_admission(root)
+
+    assert not _failures(root, tracked_paths=[".github/workflows/test.yml"])
+
+
+def test_same_repository_pr_condition_refines_secret_boundary(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    _seed_valid_checkout_admission(root)
+    workflow = root / ".github" / "workflows" / "test.yml"
+    workflow.write_text(
+        """on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-24.04
+    env:
+      ANALYSIS_TOKEN: ${{ secrets.ANALYSIS_TOKEN }}
+    steps:
+      - uses: actions/checkout@cccccccccccccccccccccccccccccccccccccccc
+        with:
+          persist-credentials: false
+""",
+        encoding="utf-8",
+    )
+    policy = _load(root, ACTIONS_POLICY_PATH)
+    trust_classes = ["protected-branch", "same-repository-pr"]
+    credential_classes = ["github-token", "secret:analysis-token"]
+    policy["workflow_jobs"][0]["trust_classes"] = trust_classes
+    policy["workflow_jobs"][0]["credential_classes"] = credential_classes
+    policy["use_sites"][0]["trust_classes"] = trust_classes
+    policy["use_sites"][0]["credential_classes"] = credential_classes
+    _write_json(root, ACTIONS_POLICY_PATH, policy)
+    profiles = _load(root, PROFILES_PATH)
+    profiles["qualification_records"][0]["policy_sha256"] = tooling_policy_sha256(root)
+    _write_json(root, PROFILES_PATH, profiles)
 
     assert not _failures(root, tracked_paths=[".github/workflows/test.yml"])
 
@@ -2344,7 +2434,7 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
                 ),
             ),
             installed_manifest=(
-                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes)),
+                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes), True),
             ),
         )
 
@@ -2355,6 +2445,7 @@ def test_archive_tool_acquisition_uses_the_exact_lock_selection(
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
     monkeypatch.setattr(module, "acquire_locked_bytes", acquire_locked_bytes)
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
     binary = acquire(tmp_path, version=version)
 
@@ -2420,14 +2511,15 @@ def test_archive_tool_rejects_a_symlink_selected_by_the_installed_manifest(
                     len(archive_bytes),
                 ),
             ),
-            installed_manifest=(LockedManifestEntry(binary_name, _SHA_A, 1),),
+            installed_manifest=(LockedManifestEntry(binary_name, _SHA_A, 1, True),),
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
     monkeypatch.setattr(module, "acquire_locked_bytes", lambda **_kwargs: archive_bytes)
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
-    with pytest.raises(RuntimeError, match="regular"):
+    with pytest.raises(RuntimeError, match="unsafe-archive-member"):
         acquire(tmp_path, version=version)
 
 
@@ -2481,18 +2573,19 @@ def test_archive_tool_never_accepts_a_symlink_cache_entry(
             source_urls=(f"https://example.invalid/{artifact_id}.tar.gz",),
             raw_manifest=(LockedManifestEntry(f"{artifact_id}.tar.gz", _SHA_A, 1),),
             installed_manifest=(
-                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes)),
+                LockedManifestEntry(binary_name, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes), True),
             ),
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
 
     def reject_acquisition(**_kwargs: object) -> bytes:
         raise RuntimeError("acquisition-sentinel")
 
     monkeypatch.setattr(module, "acquire_locked_bytes", reject_acquisition)
-    with pytest.raises(RuntimeError, match="acquisition-sentinel"):
+    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
         acquire(tmp_path, version=version)
     assert not cached.is_symlink()
     assert outside.read_bytes() == binary_bytes
@@ -2518,12 +2611,12 @@ def test_archive_tool_rejects_a_symlink_in_its_fixed_cache_parent(
             release="v0.68.0",
             source_urls=("https://example.invalid/conftest.tar.gz",),
             raw_manifest=(LockedManifestEntry("conftest.tar.gz", _SHA_A, 1),),
-            installed_manifest=(LockedManifestEntry("conftest", _SHA_B, 1),),
+            installed_manifest=(LockedManifestEntry("conftest", _SHA_B, 1, True),),
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.host_platform_id", lambda: "linux-x86_64")
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
-    with pytest.raises(RuntimeError, match="unsafe conftest cache directory"):
+    with pytest.raises(RuntimeError, match="unsafe-private-root"):
         conftest_tool.ensure_conftest(repo_root)
 
 
@@ -2540,10 +2633,20 @@ def test_isabelle_acquisition_and_cache_validation_use_the_exact_lock_selection(
         member.size = len(binary_bytes)
         archive.addfile(member, io.BytesIO(binary_bytes))
     archive_bytes = archive_buffer.getvalue()
-    digest = hashlib.sha256(archive_bytes).hexdigest()
-    source_url = "https://example.invalid/Isabelle.tar.gz"
+    local_input = tmp_path / "Isabelle.tar.gz"
+    local_input.write_bytes(archive_bytes)
+    raw = LockedManifestEntry("Isabelle.tar.gz", hashlib.sha256(archive_bytes).hexdigest(), len(archive_bytes))
+    installed_tree = LockedInstalledTree(**verified_tree_installation.describe_archive_tree(local_input, raw))
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir(mode=0o700)
 
-    def selection(**_kwargs: object) -> LockedArtifactSelection:
+    def selection(**kwargs: object) -> LockedArtifactSelection:
+        assert kwargs == {
+            "artifact_id": "isabelle",
+            "version": isabelle_tool.ISABELLE_VERSION,
+            "platform_id": "linux-x86_64",
+            "profile_id": "proof-linux-x86_64",
+        }
         return LockedArtifactSelection(
             artifact_id="isabelle",
             version=isabelle_tool.ISABELLE_VERSION,
@@ -2551,31 +2654,38 @@ def test_isabelle_acquisition_and_cache_validation_use_the_exact_lock_selection(
             profile_id="proof-linux-x86_64",
             repository="https://example.invalid/isabelle",
             release=f"Isabelle{isabelle_tool.ISABELLE_VERSION}",
-            source_urls=(source_url,),
-            raw_manifest=(LockedManifestEntry("Isabelle.tar.gz", digest, len(archive_bytes)),),
+            source_urls=("https://example.invalid/Isabelle.tar.gz",),
+            locator_refs=("example-release",),
+            raw_manifest=(raw,),
             installed_manifest=(
-                LockedManifestEntry(installed_path, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes)),
+                LockedManifestEntry(installed_path, hashlib.sha256(binary_bytes).hexdigest(), len(binary_bytes), True),
             ),
+            installed_tree=installed_tree,
         )
 
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", selection)
     monkeypatch.setattr(isabelle_tool.platform, "system", lambda: "Linux")
     monkeypatch.setattr(isabelle_tool.platform, "machine", lambda: "x86_64")
-    monkeypatch.setattr(isabelle_tool, "urlopen", lambda url, **_kwargs: io.BytesIO(archive_bytes))
+    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path, timeout=None: nullcontext())
 
-    acquired = isabelle_tool.acquire_isabelle(tmp_path)
+    acquired = isabelle_tool.acquire_isabelle(repo_root, local_input=local_input)
 
-    assert acquired == isabelle_tool.require_isabelle(tmp_path)
+    assert acquired == isabelle_tool.require_isabelle(repo_root)
     binary = acquired / "bin" / "isabelle"
     assert binary.read_bytes() == binary_bytes
 
     outside = tmp_path / "outside-isabelle"
     outside.write_bytes(binary_bytes)
     outside.chmod(0o755)
+    binary.parent.chmod(0o700)
     binary.unlink()
     binary.symlink_to(outside)
-    with pytest.raises(isabelle_tool.IsabelleToolError, match="marker or executable is invalid"):
-        isabelle_tool.require_isabelle(tmp_path)
+    with pytest.raises(isabelle_tool.IsabelleToolError, match="cache-integrity-failure"):
+        isabelle_tool.require_isabelle(repo_root)
+    binary.parent.chmod(0o700)
+    for path in (repo_root / ".cache").rglob("*"):
+        if path.is_dir() and not path.is_symlink():
+            path.chmod(0o700)
 
 
 @pytest.mark.parametrize(
@@ -2616,21 +2726,11 @@ def test_remote_vocabulary_checks_enforce_policy_before_network(
         ),
     ],
 )
-def test_remote_vocabulary_helpers_accept_reviewed_urls_and_bytes(checker, selected_url: str) -> None:
-    payload = b"reviewed source snapshot"
+def test_remote_vocabulary_helpers_pin_reviewed_source_urls(checker, selected_url: str) -> None:
     source = SimpleNamespace(source_url=selected_url)
 
     assert checker._remote_url_failure(source, selected_url) is None
-    assert (
-        checker._remote_bytes_failure(
-            payload,
-            size=len(payload),
-            sha256=hashlib.sha256(payload).hexdigest(),
-        )
-        is None
-    )
     assert checker._remote_url_failure(source, "https://example.invalid/source") is not None
-    assert checker._remote_bytes_failure(payload, size=len(payload) + 1, sha256=_SHA_A) is not None
 
 
 def test_autonomous_remote_helpers_verify_reviewed_snapshots(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2638,11 +2738,8 @@ def test_autonomous_remote_helpers_verify_reviewed_snapshots(monkeypatch: pytest
     digest = f"sha256:{hashlib.sha256(payload).hexdigest()}"
     activity_url = "https://www.w3.org/TR/2017/REC-activitystreams-vocabulary-20170523/"
     fipa_url = "https://www.fipa.org/specs/fipa00037/SC00037J.pdf"
-    monkeypatch.setattr(
-        check_autonomous_behavior_vocabularies,
-        "_fetch_official_bytes",
-        lambda *_args, **_kwargs: payload,
-    )
+    raw = SimpleNamespace(path="raw", sha256=hashlib.sha256(payload).hexdigest(), size=len(payload))
+    monkeypatch.setattr("tools.maintained_client_acquisition.acquire_locked_bytes", lambda **_kwargs: payload)
     monkeypatch.setattr(
         check_autonomous_behavior_vocabularies,
         "_extract_activitystreams_type_names",
@@ -2652,18 +2749,14 @@ def test_autonomous_remote_helpers_verify_reviewed_snapshots(monkeypatch: pytest
     assert (
         check_autonomous_behavior_vocabularies._check_activitystreams_remote(
             SimpleNamespace(source_url=activity_url, source_digest=digest),
-            activity_url,
-            expected_size=len(payload),
-            expected_sha256=hashlib.sha256(payload).hexdigest(),
+            SimpleNamespace(source_urls=[activity_url], raw_manifest=[raw]),
         )
         == []
     )
     assert (
         check_autonomous_behavior_vocabularies._check_fipa_remote(
             SimpleNamespace(source_artifact_url=fipa_url, source_digest=digest),
-            fipa_url,
-            expected_size=len(payload),
-            expected_sha256=hashlib.sha256(payload).hexdigest(),
+            SimpleNamespace(source_urls=[fipa_url], raw_manifest=[raw]),
         )
         == []
     )
@@ -2698,3 +2791,212 @@ def test_tooling_policy_cli_emits_a_validated_selection(
 
     assert result == 0
     assert json.loads(capsys.readouterr().out) == selected
+
+
+def test_python_closure_main_reports_success_after_showing_a_manifest(capsysbinary: pytest.CaptureFixture) -> None:
+    from tools.python_closure import main
+
+    profile_id = "public-linux-x86_64-cp314-tools"
+    # Read the expected bytes independently; main still performs the full policy
+    # validation, which must not be duplicated merely to construct the oracle.
+    profiles = _load(REPO_ROOT, PROFILES_PATH)["python_closure_profiles"]
+    (profile,) = [item for item in profiles if item["python_closure_profile_id"] == profile_id]
+    expected_manifest = (REPO_ROOT / profile["wheelhouse_manifest"]).read_bytes()
+
+    assert main(["manifest-show", "--profile", profile_id]) == 0
+    assert capsysbinary.readouterr().out == expected_manifest
+
+
+def test_tracked_python_scans_reuse_is_invalidated_by_any_edit(tmp_path: Path) -> None:
+    """The scan cache is keyed by file identity, so an edit is never served stale.
+
+    Re-parsing every tracked Python file on each policy evaluation dominated the
+    evaluation cost, so unchanged files are memoized. That is only sound while
+    any edit invalidates the entry — including one that preserves the file size.
+    """
+
+    from tools.tooling_artifact_policy_discovery import tracked_python_scans
+
+    relative = "sample.py"
+    target = tmp_path / relative
+    target.write_text("x = 1\n", encoding="utf-8")
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is True
+
+    # Same byte length, different content: only the modification time differs.
+    unparsable = "x = (\n"
+    assert len(unparsable) == len("x = 1\n")
+    target.write_text(unparsable, encoding="utf-8")
+    os.utime(target, ns=(1_000_000_000, 2_000_000_000))
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is False
+
+    # And a length change is likewise observed rather than reused.
+    target.write_text("y = 2\ny = 3\n", encoding="utf-8")
+    assert tracked_python_scans(tmp_path, [relative])[relative].parsed is True
+
+
+_OCI_INDEX = "1" * 64
+_OCI_MANIFEST = "2" * 64
+_OCI_CONFIG = "3" * 64
+_OCI_LAYER = "4" * 64
+_OCI_DIFF_ID = "5" * 64
+
+
+def _seed_oci_graph_policy(root_path: Path) -> Path:
+    """Seed a lock whose one artifact is an export-bearing OCI image."""
+
+    root = _seed_policy(root_path)
+    admission = _load(root, "implementations/tooling/admission-policy.json")
+    admission["policies"].append(
+        {
+            "policy_id": "oci-graph-v1",
+            "subject": "oci-image",
+            "status": "active",
+            "accepted_evidence": [
+                "oci-index-digest",
+                "oci-platform-graph-digests",
+                "absent-signature-review",
+                "reviewed-consumer-reference",
+            ],
+            "reviewer_roles": ["Backend", "Security"],
+        }
+    )
+    _write_json(root, "implementations/tooling/admission-policy.json", admission)
+
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    artifact = lock["artifacts"][0]
+    artifact["artifact_class"] = "oci-image"
+    artifact["policy_refs"] = ["oci-graph-v1"]
+    artifact["source"]["release"] = f"sha256:{_OCI_INDEX}"
+    platform = artifact["platforms"][0]
+    platform.pop("installed_manifest", None)
+    platform["installed_identity"] = {
+        "implementation": "OCI image",
+        "version": artifact["version"],
+        "abi": "oci-manifest-v1",
+        "target": "linux-x86_64",
+    }
+    platform["oci_graph"] = {
+        "index": {"digest": f"sha256:{_OCI_INDEX}", "size": 9226},
+        "manifest": {"digest": f"sha256:{_OCI_MANIFEST}", "size": 1023},
+        "config": {"digest": f"sha256:{_OCI_CONFIG}", "size": 612},
+        "layers": [{"digest": f"sha256:{_OCI_LAYER}", "size": 3630321}],
+        "diff_ids": [f"sha256:{_OCI_DIFF_ID}"],
+        "architecture": "amd64",
+        "os": "linux",
+    }
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+    # The seeded evidence is bound to the complete policy, so rebind it after
+    # the admission and lock edits above.
+    profiles = _load(root, PROFILES_PATH)
+    profiles["qualification_records"][0]["policy_sha256"] = tooling_policy_sha256(root)
+    _write_json(root, PROFILES_PATH, profiles)
+    return root
+
+
+def test_export_bearing_oci_image_graph_is_admitted(tmp_path: Path) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+
+    assert _failures(root) == set()
+
+
+@pytest.mark.parametrize(
+    ("mutation", "rule_id"),
+    [
+        # The selected platform manifest is evidence *inside* the reviewed
+        # index, never a substitute for the index identity.
+        (
+            lambda graph, artifact: graph["index"].update(digest="sha256:" + "6" * 64),
+            "tooling-oci-index-identity",
+        ),
+        # A layer without its uncompressed identity cannot be verified after an
+        # export/import round trip, and vice versa.
+        (
+            lambda graph, artifact: graph["diff_ids"].append("sha256:" + "7" * 64),
+            "tooling-oci-layer-arity",
+        ),
+        (
+            lambda graph, artifact: graph["layers"].append({"digest": "sha256:" + "4" * 64, "size": 11}),
+            "tooling-oci-layer-duplicate",
+        ),
+        # A wrong-platform object must not be admitted under a platform id.
+        (
+            lambda graph, artifact: graph.update(architecture="arm64"),
+            "tooling-oci-platform-mismatch",
+        ),
+        (
+            lambda graph, artifact: graph.update(os="windows"),
+            "tooling-oci-platform-mismatch",
+        ),
+        # The graph and its admission policy are one record: neither half may
+        # be declared without the other.
+        (
+            lambda graph, artifact: artifact.update(policy_refs=["oci-input-v1"]),
+            "tooling-oci-graph-unpoliced",
+        ),
+    ],
+)
+def test_oci_graph_admission_rejects_an_incoherent_record(tmp_path: Path, mutation, rule_id: str) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    artifact = lock["artifacts"][0]
+    mutation(artifact["platforms"][0]["oci_graph"], artifact)
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert rule_id in _failures(root)
+
+
+def test_oci_graph_policy_requires_every_platform_to_carry_the_graph(tmp_path: Path) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    lock["artifacts"][0]["platforms"][0].pop("oci_graph")
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-oci-graph-missing" in _failures(root)
+
+
+def test_index_only_oci_images_must_not_declare_a_graph(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    lock["artifacts"][0]["platforms"][0]["oci_graph"] = {
+        "index": {"digest": f"sha256:{_OCI_INDEX}", "size": 9226},
+        "manifest": {"digest": f"sha256:{_OCI_MANIFEST}", "size": 1023},
+        "config": {"digest": f"sha256:{_OCI_CONFIG}", "size": 612},
+        "layers": [{"digest": f"sha256:{_OCI_LAYER}", "size": 1}],
+        "diff_ids": [f"sha256:{_OCI_DIFF_ID}"],
+        "architecture": "amd64",
+        "os": "linux",
+    }
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-oci-graph-unpoliced" in _failures(root)
+
+
+def test_oci_graph_digests_are_screened_against_denied_digests(tmp_path: Path) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+    admission = _load(root, "implementations/tooling/admission-policy.json")
+    admission["denied_digests"] = [_OCI_LAYER]
+    _write_json(root, "implementations/tooling/admission-policy.json", admission)
+
+    assert "tooling-digest-denied" in _failures(root)
+
+
+def test_two_platforms_of_one_image_cannot_select_the_same_manifest(tmp_path: Path) -> None:
+    """A platform selection must name that platform's own manifest.
+
+    Two platforms claiming one manifest digest is the substitution this rule
+    exists to reject: the second platform would be admitted against an object
+    that was reviewed for a different architecture.
+    """
+
+    root = _seed_oci_graph_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    platform = lock["artifacts"][0]["platforms"][0]
+    duplicate = json.loads(json.dumps(platform))
+    duplicate["platform_id"] = "linux-arm64"
+    duplicate["installed_identity"]["target"] = "linux-arm64"
+    duplicate["oci_graph"]["architecture"] = "arm64"
+    # Everything else differs; only the selected manifest is shared.
+    lock["artifacts"][0]["platforms"].append(duplicate)
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-oci-manifest-duplicate" in _failures(root)

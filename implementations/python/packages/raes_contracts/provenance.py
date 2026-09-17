@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from enum import Enum
 from pathlib import Path
 from typing import Annotated, Literal
@@ -75,12 +76,27 @@ class BibliographicIdentityModel(ContractModel):
     verification_evidence: NonEmptyString
 
 
+class LineageSourceCaptureModel(ContractModel):
+    artifact: NonEmptyString
+    sha256: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    scope: NonEmptyString
+
+
 class LineageSourceBaseModel(ContractModel):
     source_id: NonEmptyString
     title: NonEmptyString
     version_or_edition: NonEmptyString
     canonical_url: PublicUrl
     citation_ref: NonEmptyString
+    archival_capture: LineageSourceCaptureModel | None = None
+
+    @model_validator(mode="after")
+    def require_immutable_document_identity(self) -> LineageSourceBaseModel:
+        mutable_identity = re.search(r"\b(?:reviewed|capture)\b", self.version_or_edition, re.IGNORECASE)
+        floating_url = re.search(r"/(?:blob|tree)/(?:main|master|latest)(?:/|$)", self.canonical_url)
+        if (mutable_identity or floating_url) and self.archival_capture is None:
+            raise ValueError("a living source needs an immutable revision or digest-bound archival capture")
+        return self
 
 
 class GitLineageSourceModel(LineageSourceBaseModel):
@@ -337,8 +353,11 @@ class SDLLineageLedgerModel(ContractModel):
             raise ValueError(f"planned subject {subject.subject_id!r} cannot claim current compatibility")
 
 
+SDL_LINEAGE_LEDGER_FILENAME = "sdl-lineage-ledger-v2.json"
+
+
 def sdl_lineage_ledger_path() -> Path:
-    return corpus_family_root(PROVENANCE) / "sdl-lineage-ledger-v1.json"
+    return corpus_family_root(PROVENANCE) / SDL_LINEAGE_LEDGER_FILENAME
 
 
 def load_sdl_lineage_ledger() -> SDLLineageLedgerModel:

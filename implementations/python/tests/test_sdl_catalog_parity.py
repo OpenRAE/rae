@@ -56,6 +56,11 @@ def _rule_ids(tmp_path: Path) -> set[str]:
         ("| `behavior_specifications` |", "| `behavior_profiles` |", "sdl-catalog-field-set"),
         ("| `nodes` | section | map |", "| `nodes` | section | list |", "sdl-catalog-field-shape"),
         ("| `version` | metadata | scalar |", "| `version` | metadata | map |", "sdl-catalog-field-shape"),
+        (
+            "| `semantic_revision` | metadata | scalar |",
+            "| `semantic_revision` | metadata | mapping |",
+            "sdl-catalog-field-shape",
+        ),
         ("optional; default `*`", "required", "sdl-catalog-field-default"),
     ],
 )
@@ -67,7 +72,7 @@ def test_top_level_catalog_drift_is_flagged(tmp_path: Path, old: str, new: str, 
 
 def test_checked_summary_drift_is_flagged(tmp_path: Path) -> None:
     repo = _seed_repo(tmp_path)
-    _replace(repo, "specs/sdl/sections.md", "sections=37", "sections=36")
+    _replace(repo, "specs/sdl/sections.md", "sections=38", "sections=37")
     assert "sdl-catalog-summary" in _rule_ids(repo)
 
 
@@ -283,7 +288,7 @@ def test_catalog_parser_rejects_oversized_input() -> None:
 
 def test_cli_reports_json_failure(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     repo = _seed_repo(tmp_path)
-    _replace(repo, "specs/sdl/sections.md", "sections=37", "sections=36")
+    _replace(repo, "specs/sdl/sections.md", "sections=38", "sections=37")
     assert main(["--repo-root", str(repo), "--json"]) == 1
     assert '"rule_id": "sdl-catalog-summary"' in capsys.readouterr().out
 

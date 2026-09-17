@@ -27,6 +27,8 @@ class _SectionsMixin:
                 nodes=self._s.nodes,
                 generated_artifacts=self._s.generated_artifacts,
                 persistent_volumes=self._s.persistent_volumes,
+                content=self._s.content,
+                propositions=self._s.propositions,
             )
         )
 

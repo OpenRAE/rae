@@ -1,10 +1,10 @@
 {
+  "content_hash": "4c3d2dcd4e4f534b9981295d4b6a5ed2ef373b320cbf7366226c7a40c6af372f",
   "contract_id": "orchestration-plan-v1",
-  "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
-  "stability": "draft",
-  "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892",
   "last_change": {
-    "summary": "Explicitly forbade profile execution bindings outside provisioning in the shared operation shape for issue #1204.",
-    "content_hash": "750e80e0c81527349f5c4ac86c4ab7da741b8568dd530e3c5ead4c2448f55892"
-  }
+    "content_hash": "4c3d2dcd4e4f534b9981295d4b6a5ed2ef373b320cbf7366226c7a40c6af372f",
+    "summary": "Bind explicit augmentation-scope negotiation to the canonical phase plan independently of diagnostics (#1242)."
+  },
+  "schema_path": "contracts/schemas/plans/orchestration-plan-v1.json",
+  "stability": "draft"
 }

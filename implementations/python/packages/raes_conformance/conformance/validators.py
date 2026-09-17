@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+from raes.materialization import MaterializedScenario
+from raes_contracts.augmentation_preparation import AugmentationPreparation
+from raes_contracts.authoring_adapters import (
+    AuthoringAdapterComparisonModel,
+    AuthoringAdapterProfileModel,
+    AuthoringAdapterVectorModel,
+)
 from raes_contracts.behavioral_relation_profiles import BehavioralRelationProfileModel
 from raes_contracts.behavioral_relations import BehavioralRelationCatalogModel
 from raes_contracts.contracts import (
@@ -55,6 +62,7 @@ from raes_contracts.contracts import (
     validate_participant_flow_control_resolved_context,
     validate_participant_information_state_resolved_context,
 )
+from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionBindingModel,
     ParticipantExecutionControlRequestModel,
@@ -68,6 +76,7 @@ from raes_contracts.domain_profiles import (
     DomainProfileResolutionContextModel,
     DomainProfileSupportDeclarationModel,
 )
+from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.observation_demand import ObservationDemandDocument
 from raes_contracts.participant_opacity import (
     ParticipantOpacityAnalysisEvidenceModel,
@@ -86,6 +95,9 @@ from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_fail
 
 _SCHEMA_INVALID_DIAGNOSTIC_CODE = "conformance.schema-invalid"
 _MODEL_VALIDATORS = {
+    "authoring-adapter-profile-v1": AuthoringAdapterProfileModel.model_validate,
+    "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_validate,
+    "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_validate,
     "backend-manifest-v2": BackendManifestV2Model.model_validate,
     "participant-implementation-manifest-v1": ParticipantImplementationManifestModel.model_validate,
     "participant-implementation-provenance-v1": ParticipantImplementationProvenanceModel.model_validate,
@@ -123,6 +135,10 @@ _MODEL_VALIDATORS = {
 
 
 _STRUCTURAL_ONLY_VALIDATORS = {
+    "backend-augmentation-scope-v1": AugmentationPreparation.model_validate,
+    "materialized-scenario-v1": MaterializedScenario.model_validate,
+    "backend-materialization-attestation-v1": MaterializationSubmission.model_validate,
+    "materialization-archive-record-v1": MaterializationArchiveRecord.model_validate,
     "associated-artifact-manifest-v1": AssociatedArtifactManifestModel.model_validate,
     "artifact-transformation-report-v1": ArtifactTransformationReportModel.model_validate,
     "sdl-candidate-synthesis-input-v1": CandidateSynthesisInputModel.model_validate,

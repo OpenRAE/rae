@@ -9,6 +9,7 @@ from raes._language_metadata import REFERENCE_COMPLETION_TARGETS
 from raes._mapping_scopes import HASHMAP_SECTIONS
 from raes._module_symbols import HASHMAP_SECTIONS as MODULE_HASHMAP_SECTIONS
 from raes._runtime_service_families import RUNTIME_SERVICE_FAMILIES
+from raes.materialization import MaterializedScenario
 from raes.phase_contracts import ExpansionProvenance, InstantiationProvenance
 from raes.scenario import (
     ExpandedScenario,
@@ -215,7 +216,9 @@ def _check_top_level(text: str, schema: dict[str, Any]) -> tuple[list[PolicyFail
     return failures, rows
 
 
-def _reference_contract_failures(by_source: dict[str, tuple[str, str, str, str]]) -> list[PolicyFailure]:
+def _reference_contract_failures(
+    by_source: dict[str, tuple[str, str, str, str]],
+) -> list[PolicyFailure]:
     if by_source == REFERENCE_EDGE_EXPECTATIONS:
         return []
     differing = sorted(
@@ -270,7 +273,9 @@ def _row_validity_failures(rows: list[ReferenceRow], repo_root: Path) -> list[Po
     return failures
 
 
-def _behavior_edge_failures(by_source: dict[str, tuple[str, str, str, str]]) -> list[PolicyFailure]:
+def _behavior_edge_failures(
+    by_source: dict[str, tuple[str, str, str, str]],
+) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
     behavior_expectations = {
         source: expected
@@ -366,6 +371,7 @@ _PHASE_MODELS: tuple[tuple[str, type[ScenarioContent]], ...] = (
     ("normalized", Scenario),
     ("expanded", ExpandedScenario),
     ("instantiated", InstantiatedScenario),
+    ("materialized", MaterializedScenario),
 )
 
 
@@ -376,7 +382,7 @@ def _phase_membership_failures(
     failures: list[PolicyFailure] = []
     for member in sorted(set(by_member) & expected_members):
         row = by_member[member]
-        actual = (row.normalized, row.expanded, row.instantiated)
+        actual = tuple(getattr(row, phase) for phase, _model in _PHASE_MODELS)
         expected = tuple(_phase_status(model, member) for _phase, model in _PHASE_MODELS)
         if actual != expected:
             failures.append(
@@ -397,7 +403,9 @@ def _phase_membership_failures(
     return failures
 
 
-def _realization_transfer_failures(by_member: dict[str, PhaseMemberRow]) -> list[PolicyFailure]:
+def _realization_transfer_failures(
+    by_member: dict[str, PhaseMemberRow],
+) -> list[PolicyFailure]:
     realization = by_member.get("realization")
     if realization is None:
         return []

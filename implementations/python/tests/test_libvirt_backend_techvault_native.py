@@ -375,7 +375,8 @@ def test_operational_techvault_rejects_unrealized_concerns_before_libvirt_io(tmp
 
     assert receipt.accepted is True
     assert receipt.diagnostics == []
-    assert status is not None and status.state is OperationState.FAILED
+    assert status is not None
+    assert status.state is OperationState.FAILED
     codes = {diagnostic.code for diagnostic in status.diagnostics}
     assert "runtime.control-plane.operation-failed" in codes
     assert "libvirt-backend.techvault.resource-out-of-envelope" in codes
@@ -401,7 +402,8 @@ def test_curated_variants_do_not_turn_planned_surfaces_into_native_claims(filena
     assert receipt.accepted is accepted
     if accepted:
         assert receipt.diagnostics == []
-        assert status is not None and status.state is OperationState.FAILED
+        assert status is not None
+        assert status.state is OperationState.FAILED
         codes = {diagnostic.code for diagnostic in status.diagnostics}
         assert "runtime.control-plane.operation-failed" in codes
     else:

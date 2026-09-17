@@ -20,6 +20,8 @@ from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
 
+from raes.runtime_vocabulary import GovernedVocabulary
+
 from ._base import (
     SDLModel,
     is_variable_ref,
@@ -90,7 +92,7 @@ class RuntimeProcessIdentity(SDLModel):
     parent_pid: int | str | None = None
     command: list[str] = Field(default_factory=list)
     command_redacted: bool | str = False
-    role: RuntimeProcessRole | str = RuntimeProcessRole.OTHER
+    role: GovernedVocabulary[RuntimeProcessRole] = RuntimeProcessRole.OTHER
     user: str = ""
     group: str = ""
     working_directory: str = ""
@@ -143,7 +145,7 @@ class RuntimeProcessCapabilityOverride(SDLModel):
     """
 
     subject: RuntimeProcessIdentity
-    scope: RuntimeCapabilityOverrideScope | str = RuntimeCapabilityOverrideScope.PROCESS
+    scope: GovernedVocabulary[RuntimeCapabilityOverrideScope] = RuntimeCapabilityOverrideScope.PROCESS
     effective: list[str] = Field(default_factory=list)
     add: list[str] = Field(default_factory=list)
     drop: list[str] = Field(default_factory=list)

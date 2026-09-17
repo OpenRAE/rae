@@ -1,10 +1,10 @@
 {
+  "content_hash": "8aaa6c66e5f9268b75c69e4c6281ed1f76e89d98c0179626d8104e2c59c192ba",
   "contract_id": "backend-profile-v1",
-  "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
-  "stability": "draft",
-  "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36",
   "last_change": {
-    "summary": "Negotiated read-only backend preparation and optional plan-level profile support for issue #1204.",
-    "content_hash": "28ba85defc5b36001e92781783a386ff1533b74329b6308fa5fce59e574fdc36"
-  }
+    "content_hash": "8aaa6c66e5f9268b75c69e4c6281ed1f76e89d98c0179626d8104e2c59c192ba",
+    "summary": "Permit explicit backend-augmentation-scope-v1 negotiation; unsupported implementations do not advertise it (#1242)."
+  },
+  "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
+  "stability": "draft"
 }

@@ -27,7 +27,6 @@ from tools.policy.requirement_governance import (
     GroundControlHttpClient,
     evaluate_requirement_governance,
     load_policy,
-    requirement_uid_from_context,
     resolve_base_url,
     resolve_timeout_seconds,
     resolve_token,
@@ -36,6 +35,8 @@ from tools.policy.repository_requirements import (
     RepositoryRequirementClient,
     RepositoryRequirementError,
 )
+from tools.policy.requirement_scope import RequirementScope, RequirementScopeError, evaluate_requirement_scope
+from tools.requirement_context import current_requirement_branch, resolve_requirement_context
 
 GOVERNED_ROOTS = ("implementations/", "contracts/", "specs/", "docs/")
 REQUIREMENT_CONTEXT_EXEMPT_PATHS = {
@@ -118,17 +119,7 @@ def current_branch(repo_root: Path) -> str | None:
     # In CI PR checkouts the repo is in detached HEAD, so
     # git branch --show-current returns empty.  Fall back to
     # GITHUB_HEAD_REF (set by GitHub Actions for pull_request events).
-    branch = os.environ.get("GITHUB_HEAD_REF", "").strip()
-    if not branch:
-        proc = subprocess.run(
-            ["git", "branch", "--show-current"],
-            cwd=repo_root,
-            text=True,
-            capture_output=True,
-            check=True,
-        )
-        branch = proc.stdout.strip()
-    return branch or None
+    return current_requirement_branch(repo_root) or None
 
 
 def requires_requirement_context(paths: list[str]) -> bool:
@@ -201,7 +192,12 @@ def emit_failures(failures: list[PolicyFailure], *, as_json: bool) -> int:
 
 
 def evaluate_against_ground_control(
-    effective_paths: list[str], uid: str, *, require_governance: bool, as_json: bool
+    effective_paths: list[str],
+    uid: str,
+    *,
+    require_governance: bool,
+    as_json: bool,
+    scope: RequirementScope | None = None,
 ) -> int:
     """Evaluate requirement governance for a resolved UID against Ground Control."""
     base_url = resolve_base_url(REPO_ROOT)
@@ -221,7 +217,11 @@ def evaluate_against_ground_control(
         timeout_seconds=resolve_timeout_seconds(),
     )
     try:
-        failures = evaluate_requirement_governance(REPO_ROOT, effective_paths, client=client, requirement_uid=uid)
+        if scope is not None:
+            failures = evaluate_requirement_scope(REPO_ROOT, effective_paths, client=client, scope=scope)
+        else:
+            failures = evaluate_requirement_governance(REPO_ROOT, effective_paths, client=client, requirement_uid=uid)
+            failures = apply_exceptions(failures, load_exceptions(REPO_ROOT), requirement_uid=uid)
     except GroundControlError as exc:
         rule_id, message = classify_ground_control_error(exc)
         return report_unevaluated(
@@ -230,19 +230,27 @@ def evaluate_against_ground_control(
             require_governance=require_governance,
             as_json=as_json,
         )
-    failures = apply_exceptions(failures, load_exceptions(REPO_ROOT), requirement_uid=uid)
     return emit_failures(failures, as_json=as_json)
 
 
 def evaluate_configured_governance(
-    effective_paths: list[str], uid: str, *, require_governance: bool, as_json: bool
+    effective_paths: list[str],
+    uid: str,
+    *,
+    require_governance: bool,
+    as_json: bool,
+    scope: RequirementScope | None = None,
 ) -> int:
     """Use the explicitly selected authority; unavailable local data never falls back."""
 
     source = load_policy(REPO_ROOT).get("requirement_source", "ground-control-http")
     if source == "ground-control-http":
         return evaluate_against_ground_control(
-            effective_paths, uid, require_governance=require_governance, as_json=as_json
+            effective_paths,
+            uid,
+            require_governance=require_governance or scope is not None,
+            as_json=as_json,
+            scope=scope,
         )
     if source != "repository":
         return report_unevaluated(
@@ -251,7 +259,29 @@ def evaluate_configured_governance(
             require_governance=True,
             as_json=as_json,
         )
+    return _evaluate_repository_governance(effective_paths, uid, as_json=as_json, scope=scope)
+
+
+def _evaluate_repository_governance(
+    effective_paths: list[str],
+    uid: str,
+    *,
+    as_json: bool,
+    scope: RequirementScope | None = None,
+) -> int:
+    """Evaluate governance from the pinned repository records, never over HTTP."""
+
     try:
+        if scope is not None:
+            return emit_failures(
+                evaluate_requirement_scope(
+                    REPO_ROOT,
+                    effective_paths,
+                    client=RepositoryRequirementClient(REPO_ROOT),
+                    scope=scope,
+                ),
+                as_json=as_json,
+            )
         failures = evaluate_requirement_governance(
             REPO_ROOT,
             effective_paths,
@@ -299,8 +329,23 @@ def main() -> int:
         if args.paths
         else requirement_changed_paths(staged=args.staged, base_rev=args.base_rev)
     )
+    try:
+        uid, scope = resolve_requirement_context(REPO_ROOT, current_branch(REPO_ROOT), args.requirement_uid)
+    except RequirementScopeError as exc:
+        return emit_failures([PolicyFailure("requirement-scope-invalid", str(exc))], as_json=args.json)
+    if scope is not None:
+        return evaluate_configured_governance(
+            paths,
+            scope.primary_requirement_uid,
+            require_governance=True,
+            as_json=args.json,
+            scope=scope,
+        )
+    return _evaluate_legacy_context(args, paths, uid)
+
+
+def _evaluate_legacy_context(args: argparse.Namespace, paths: list[str], uid: str | None) -> int:
     effective_paths = governed_requirement_paths(paths)
-    uid = requirement_uid_from_context(current_branch(REPO_ROOT), args.requirement_uid)
     if not requires_requirement_context(effective_paths) or is_dev_to_main_promotion():
         return 0
     if not uid:

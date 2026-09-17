@@ -2,9 +2,9 @@
   "contract_id": "participant-behavior-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/participant-behavior-history-event-stream-v1.json",
   "stability": "draft",
-  "content_hash": "2ba740009f9b38803ca62cdb7df1eafe4a18eedcc96d2853713f90a890721456",
+  "content_hash": "31023f0a93a796df740630188c8547b656225cadc0e88ac2de4fc1a001718338",
   "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "2ba740009f9b38803ca62cdb7df1eafe4a18eedcc96d2853713f90a890721456"
+    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
+    "content_hash": "31023f0a93a796df740630188c8547b656225cadc0e88ac2de4fc1a001718338"
   }
 }

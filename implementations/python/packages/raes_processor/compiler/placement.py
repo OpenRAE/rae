@@ -8,6 +8,7 @@ from raes.semantics.domain_topology import (
     DomainTopologyAnalysis,
 )
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 from ..models import (
     AccountPlacement,
@@ -23,6 +24,7 @@ from .addresses import (
     _compiled_domain_binding,
     _content_address,
     _domain_controller_address,
+    _generated_artifact_address,
     _node_address,
     _observation_boundary_address,
     _resolve_node_service_ref,
@@ -57,6 +59,12 @@ def _compile_content_placements(
             continue
         service_materialization, content_dependencies = compiled
         ordering_dependencies = [target_address, *content_dependencies]
+        if content.text_from is not None:
+            # A content value rendered from a generated artifact must wait for
+            # that artifact to be generated (issue #1276).
+            artifact_ref = content.text_from.generated_artifact.removeprefix("generated_artifacts.")
+            if artifact_ref in scenario.generated_artifacts:
+                ordering_dependencies.append(_generated_artifact_address(artifact_ref))
         dependencies = _dedupe(ordering_dependencies)
         content_placements[address] = ContentPlacement(
             address=address,
@@ -85,7 +93,9 @@ def _compile_service_materialization(
     | None
 ):
     binding = content.service_materialization
-    if binding is None:
+    if binding is None or isinstance(binding, DomainProfileBindingModel):
+        # Preserve the authored binding in spec for exact profile admission;
+        # only the two built-in contracts use the legacy compiled carrier.
         return None, []
     split = _resolve_node_service_ref(scenario, binding.target_service_ref)
     if split is None or split[0] != content.target:

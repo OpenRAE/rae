@@ -11,6 +11,7 @@ from raes_contracts.apparatus import RUNTIME_REALIZATION_DOMAIN, RealizationSupp
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
+from raes_contracts.profile_selections import profile_selection_binding
 from raes_contracts.realization_envelope import (
     BackendRealizationEnvelopeModel,
     ConcernDisposition,
@@ -100,46 +101,80 @@ def service_materialization_plan_diagnostics(
     for operation in plan.operations:
         if operation.resource_type != "content-placement" or operation.action is ChangeAction.DELETE:
             continue
-        binding = operation.payload.get("service_materialization")
-        if binding is None:
-            continue
-        message = _binding_violation(operation.payload, binding)
-        if message is not None:
-            diagnostics.append(
-                _diagnostic("provisioner.service-materialization-contract-invalid", operation.address, message)
-            )
-            continue
-        contract = _profile_contract(binding)
-        assert contract is not None
-        if contract.capability_term not in capabilities.supported_service_materialization_profiles:
-            diagnostics.append(
-                _diagnostic(
-                    "provisioner.unsupported-service-materialization-profile",
-                    operation.address,
-                    f"Provisioner does not support service materialization profile '{contract.capability_term}'.",
-                )
-            )
-            continue
-        if not _exact_requirement_supported(realization_support, contract.requirement_kind):
-            diagnostics.append(
-                _diagnostic(
-                    "realization.unsupported-exact-requirement",
-                    operation.address,
-                    "Backend does not declare exact realization support for service "
-                    f"materialization requirement '{contract.requirement_kind}'.",
-                )
-            )
-            continue
-        if not _independent_readback_supported(envelope):
-            diagnostics.append(
-                _diagnostic(
-                    "provisioner.service-materialization-readback-unsupported",
-                    operation.address,
-                    "Backend realization envelope does not provide independent native readback "
-                    "for service materialization.",
-                )
-            )
+        handled, diagnostic = _private_service_selection(operation, capabilities)
+        if not handled:
+            diagnostic = _legacy_service_diagnostic(operation, capabilities, envelope, realization_support)
+        if diagnostic is not None:
+            diagnostics.append(diagnostic)
     return diagnostics
+
+
+def _private_service_selection(
+    operation: object, capabilities: ProvisionerCapabilities
+) -> tuple[bool, Diagnostic | None]:
+    spec = operation.payload.get("spec")
+    selected = spec.get("service_materialization") if isinstance(spec, Mapping) else None
+    try:
+        private = profile_selection_binding(selected)
+        if private is not None and (
+            operation.payload.get("service_materialization") is not None
+            or private.coordinate not in capabilities.supported_service_materialization_profiles
+        ):
+            raise ValueError("Unadvertised private service profile")
+    except (TypeError, ValueError):
+        return True, _diagnostic(
+            "provisioner.unsupported-service-materialization-profile",
+            operation.address,
+            "Provisioner does not support the selected service materialization profile.",
+        )
+    return private is not None, None
+
+
+def _legacy_service_diagnostic(
+    operation: object,
+    capabilities: ProvisionerCapabilities,
+    envelope: BackendRealizationEnvelopeModel | None,
+    realization_support: Sequence[RealizationSupportDeclaration],
+) -> Diagnostic | None:
+    binding = operation.payload.get("service_materialization")
+    if binding is None:
+        return None
+    message = _binding_violation(operation.payload, binding)
+    if message is not None:
+        return _diagnostic("provisioner.service-materialization-contract-invalid", operation.address, message)
+    contract = _profile_contract(binding)
+    assert contract is not None
+    return _service_support_diagnostic(operation.address, contract, capabilities, envelope, realization_support)
+
+
+def _service_support_diagnostic(
+    address: str,
+    contract: _ProfileContract,
+    capabilities: ProvisionerCapabilities,
+    envelope: BackendRealizationEnvelopeModel | None,
+    realization_support: Sequence[RealizationSupportDeclaration],
+) -> Diagnostic | None:
+    diagnostic = None
+    if contract.capability_term not in capabilities.supported_service_materialization_profiles:
+        diagnostic = _diagnostic(
+            "provisioner.unsupported-service-materialization-profile",
+            address,
+            f"Provisioner does not support service materialization profile '{contract.capability_term}'.",
+        )
+    elif not _exact_requirement_supported(realization_support, contract.requirement_kind):
+        diagnostic = _diagnostic(
+            "realization.unsupported-exact-requirement",
+            address,
+            "Backend does not declare exact realization support for service "
+            f"materialization requirement '{contract.requirement_kind}'.",
+        )
+    elif not _independent_readback_supported(envelope):
+        diagnostic = _diagnostic(
+            "provisioner.service-materialization-readback-unsupported",
+            address,
+            "Backend realization envelope does not provide independent native readback for service materialization.",
+        )
+    return diagnostic
 
 
 def _binding_violation(payload: Mapping[str, object], binding: object) -> str | None:

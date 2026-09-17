@@ -22,7 +22,17 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
     assert "pull_request_target" not in triggers
     assert "workflow_dispatch" not in triggers
     assert triggers["schedule"] == [{"cron": "17 3 * * 1"}]
-    assert triggers["push"] == {"branches": ["main"]}
+    # A release commit only touches Release Please-managed files (#1266); the set
+    # is kept identical across workflows by test_release_workflows.py.
+    assert triggers["push"] == {
+        "branches": ["main"],
+        "paths-ignore": [
+            "CHANGELOG.md",
+            ".release-please-manifest.json",
+            "implementations/python/packages/raes/_version.py",
+        ],
+    }
+    assert triggers["branch_protection_rule"] is None
     analysis = workflow["jobs"]["analysis"]
     assert analysis["runs-on"] == "ubuntu-24.04"
     assert analysis["permissions"] == {
@@ -165,6 +175,6 @@ def test_python_support_metadata_and_blocking_matrix_are_aligned() -> None:
         "RAES_EXPECT_FREE_THREADED": "1",
     }
 
-    compatibility_lane = (REPO_ROOT / "tools" / "nox_support" / "test_lanes.py").read_text(encoding="utf-8")
+    compatibility_lane = (REPO_ROOT / "tools" / "nox_support" / "compatibility_lanes.py").read_text(encoding="utf-8")
     assert 'assert is_gil_enabled() is False, "interpreter is not free-threaded"' in compatibility_lane
     assert 'assert is_gil_enabled() is True, "standard lane selected a free-threaded interpreter"' in compatibility_lane

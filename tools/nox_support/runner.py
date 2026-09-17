@@ -22,11 +22,12 @@ from tools.nox_support.config import (
     MINIMUM_LINE_COVERAGE_PERCENT,
     PROJECT_ROOT,
     REPO_ROOT,
-    REQUIREMENT_UID_RE,
     RUFF_CONFIG,
     VERIFY_PROJECT_SYNCED_ENV,
 )
-from tools.python_closure import frozen_tool_command
+from tools.policy.requirement_scope import RequirementScopeError
+from tools.python_closure_profiles import frozen_tool_command
+from tools.requirement_context import current_requirement_branch, resolve_requirement_context
 
 
 @dataclass(frozen=True)
@@ -175,6 +176,7 @@ def _run_pytest(
     append_coverage: bool = False,
     finalize_coverage: bool = False,
     parallel: bool = False,
+    extra_env: dict[str, str] | None = None,
 ) -> None:
     _sync_project(session)
     normalized_args = [
@@ -184,9 +186,9 @@ def _run_pytest(
     command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
     if parallel:
         command.extend(["-n", "auto", "--maxprocesses=8", "--dist=worksteal"])
-    coverage_env: dict[str, str] | None = None
+    coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
     if coverage_file is not None:
-        coverage_env = {"COVERAGE_FILE": str(coverage_file)}
+        coverage_env = {**(coverage_env or {}), "COVERAGE_FILE": str(coverage_file)}
         command.extend(["--cov", "--cov-config=pyproject.toml", "--cov-report="])
         if append_coverage:
             command.append("--cov-append")
@@ -232,10 +234,15 @@ def _split_policy_session_args(posargs: list[str]) -> tuple[list[str], list[str]
 
 
 def _requirement_aware_policy_args(*args: str) -> list[str]:
-    if os.environ.get("RAES_REQUIREMENT_UID", "").strip():
-        return list(args)
-    branch = next(iter(_git_lines("branch", "--show-current")), "")
-    if REQUIREMENT_UID_RE.search(branch):
+    branch = current_requirement_branch(REPO_ROOT)
+    explicit = next(
+        (_required_option_value(args, index, arg) for index, arg in enumerate(args) if arg == "--requirement-uid"),
+        None,
+    )
+    uid, scope = resolve_requirement_context(REPO_ROOT, branch, explicit)
+    if scope is not None and "--skip-requirement" in args:
+        raise RequirementScopeError("An issue-bound requirement scope cannot skip governance.")
+    if uid or "--skip-requirement" in args:
         return list(args)
     return [*args, "--skip-requirement"]
 

@@ -3876,11 +3876,9 @@ class TestRuntimeDatabaseService:
         with pytest.raises(ValidationError, match=f"requires protocol to be one of: {expected_protocol}"):
             RuntimeDatabaseService(database_service_id="svc", engine=engine, protocol=bad_protocol)
 
-    def test_postgresql_engine_default_protocol_other_is_rejected(self):
-        # Without a cross-field check, defaulting protocol leaves PostgreSQL
-        # at protocol=other — the exact ADR-027 §3 anti-pattern.
-        with pytest.raises(ValidationError, match="requires protocol to be one of: postgresql"):
-            RuntimeDatabaseService(database_service_id="svc", engine="postgresql")
+    def test_postgresql_engine_can_omit_unknown_protocol(self):
+        service = RuntimeDatabaseService(database_service_id="svc", engine="postgresql")
+        assert "protocol" not in service.model_dump(exclude_unset=True)
 
     def test_engine_with_variable_protocol_is_skipped(self):
         svc = RuntimeDatabaseService(database_service_id="svc", engine="postgresql", protocol="${proto}")
@@ -3892,7 +3890,7 @@ class TestRuntimeDatabaseService:
         assert svc.protocol == DatabaseProtocol.MYSQL
 
     def test_sqlite_engine_unconstrained_protocol(self):
-        # SQLite has no wire protocol; default ``other`` is acceptable.
+        # SQLite does not require a wire protocol; unspecified stays unknown.
         svc = RuntimeDatabaseService(database_service_id="svc", engine="sqlite")
         assert svc.engine == DatabaseEngine.SQLITE
 

@@ -73,22 +73,22 @@ _SCENARIO_SEMANTIC_FIELDS = {
 }
 
 
-def _owner_semantic_payload(artifact: ArtifactForProjection) -> object:
+def _owner_semantic_payload(artifact: ArtifactForProjection, *, projection_version: str = "1") -> object:
     """Return the governed semantic projection selected by the artifact owner."""
 
     payload: object | None = None
     if isinstance(artifact, Scenario):
-        payload = _scenario_semantic_payload(artifact)
+        payload = _scenario_semantic_payload(artifact, projection_version)
     elif isinstance(artifact, ResolvedImportProvenance):
         payload = _module_semantic_payload(artifact)
     elif isinstance(artifact, ExperimentTaskModel):
-        payload = _task_semantic_payload(artifact)
+        payload = _task_semantic_payload(artifact, projection_version)
     elif isinstance(artifact, ExperimentRunModel):
-        payload = _run_semantic_payload(artifact)
+        payload = _run_semantic_payload(artifact, projection_version)
     elif isinstance(artifact, ExperimentCaptureSpecModel):
         payload = _capture_spec_semantic_payload(artifact)
     elif isinstance(artifact, ExperimentStudyModel):
-        payload = _study_semantic_payload(artifact)
+        payload = _study_semantic_payload(artifact, projection_version)
     elif isinstance(artifact, ExternalConceptBindingDocumentModel):
         payload = {"bindings": artifact.model_dump(mode="json", include={"bindings"})["bindings"]}
     if payload is None:
@@ -96,8 +96,36 @@ def _owner_semantic_payload(artifact: ArtifactForProjection) -> object:
     return payload
 
 
-def _scenario_semantic_payload(artifact: Scenario) -> object:
+def _scenario_semantic_payload(artifact: Scenario, version: str = "1") -> object:
+    if version == "2":
+        return _presence_preserving_semantics(artifact, include=_SCENARIO_SEMANTIC_FIELDS | {"semantic_revision"})
     return _without_editorial_description(artifact.model_dump(mode="json", include=_SCENARIO_SEMANTIC_FIELDS))
+
+
+def _presence_preserving_semantics(model: BaseModel, *, include: set[str] | None = None) -> dict[str, object]:
+    """Remove native editorial fields using model ownership, never raw JSON keys."""
+    payload = model.model_dump(mode="json", by_alias=True, exclude_unset=True, include=include)
+    native = type(model).__module__.startswith("raes.")
+    for name, field in type(model).model_fields.items():
+        key = field.serialization_alias or field.alias or name
+        if key not in payload:
+            continue
+        if native and name == "description":
+            del payload[key]
+        else:
+            payload[key] = _project_model_children(getattr(model, name), payload[key])
+    return payload
+
+
+def _project_model_children(value: object, serialized: object) -> object:
+    result = serialized
+    if isinstance(value, BaseModel):
+        result = _presence_preserving_semantics(value)
+    elif isinstance(value, dict) and isinstance(serialized, dict):
+        result = {key: _project_model_children(value[key], item) for key, item in serialized.items()}
+    elif isinstance(value, (list, tuple)) and isinstance(serialized, list):
+        result = [_project_model_children(child, item) for child, item in zip(value, serialized, strict=True)]
+    return result
 
 
 def _module_semantic_payload(artifact: ResolvedImportProvenance) -> object:
@@ -109,8 +137,8 @@ def _module_semantic_payload(artifact: ResolvedImportProvenance) -> object:
     }
 
 
-def _task_semantic_payload(artifact: ExperimentTaskModel) -> object:
-    return artifact.model_dump(
+def _task_semantic_payload(artifact: ExperimentTaskModel, version: str = "1") -> object:
+    payload = artifact.model_dump(
         mode="json",
         include={
             "schema_version",
@@ -126,12 +154,16 @@ def _task_semantic_payload(artifact: ExperimentTaskModel) -> object:
             "validity_notes",
             "artifact_refs",
             "validation_basis_disclosures",
-        },
+        }
+        | ({"observation_demands"} if version == "2" else set()),
     )
+    if version == "2":
+        payload["evidence_requirement_relations"] = _relation_semantics(artifact)
+    return payload
 
 
-def _run_semantic_payload(artifact: ExperimentRunModel) -> object:
-    return artifact.model_dump(
+def _run_semantic_payload(artifact: ExperimentRunModel, version: str = "1") -> object:
+    payload = artifact.model_dump(
         mode="json",
         include={
             "schema_version",
@@ -166,6 +198,9 @@ def _run_semantic_payload(artifact: ExperimentRunModel) -> object:
             "validation_basis_disclosures",
         },
     )
+    if version == "2":
+        payload["evidence_requirement_relations"] = _relation_semantics(artifact)
+    return payload
 
 
 def _capture_spec_semantic_payload(artifact: ExperimentCaptureSpecModel) -> object:
@@ -184,7 +219,7 @@ def _capture_spec_semantic_payload(artifact: ExperimentCaptureSpecModel) -> obje
     )
 
 
-def _study_semantic_payload(artifact: ExperimentStudyModel) -> object:
+def _study_semantic_payload(artifact: ExperimentStudyModel, version: str = "1") -> object:
     payload = artifact.model_dump(
         mode="json",
         include={
@@ -205,13 +240,15 @@ def _study_semantic_payload(artifact: ExperimentStudyModel) -> object:
             "validation_basis_disclosures",
         },
     )
+    if version == "2":
+        payload["evidence_requirement_relations"] = _relation_semantics(artifact)
     payload["membership"] = {
         key: _study_member_semantics(member) for key, member in sorted(artifact.membership.items())
     }
     return payload
 
 
-def _owner_structural_payload(artifact: ArtifactForProjection) -> object:
+def _owner_structural_payload(artifact: ArtifactForProjection, *, projection_version: str = "1") -> object:
     """Return a closed owner-specific shape projection, not a recursive JSON shape."""
 
     payload: object | None = None
@@ -220,13 +257,13 @@ def _owner_structural_payload(artifact: ArtifactForProjection) -> object:
     elif isinstance(artifact, ResolvedImportProvenance):
         payload = _module_structural_payload(artifact)
     elif isinstance(artifact, ExperimentTaskModel):
-        payload = _task_structural_payload(artifact)
+        payload = _task_structural_payload(artifact, projection_version)
     elif isinstance(artifact, ExperimentRunModel):
-        payload = _run_structural_payload(artifact)
+        payload = _run_structural_payload(artifact, projection_version)
     elif isinstance(artifact, ExperimentCaptureSpecModel):
         payload = _capture_spec_structural_payload(artifact)
     elif isinstance(artifact, ExperimentStudyModel):
-        payload = _study_structural_payload(artifact)
+        payload = _study_structural_payload(artifact, projection_version)
     elif isinstance(artifact, ExternalConceptBindingDocumentModel):
         payload = _external_bindings_structural_payload(artifact)
     if payload is None:
@@ -254,18 +291,38 @@ def _module_structural_payload(artifact: ResolvedImportProvenance) -> object:
     }
 
 
-def _task_structural_payload(artifact: ExperimentTaskModel) -> object:
-    return {
+def _relation_structure(artifact: ExperimentTaskModel | ExperimentRunModel | ExperimentStudyModel) -> list[object]:
+    return [
+        relation.model_dump(
+            mode="json",
+            include={"relation_id", "relation_kind", "scope", "refinement_dimensions"},
+        )
+        for relation in sorted(artifact.evidence_requirement_relations, key=lambda item: item.relation_id)
+    ]
+
+
+def _relation_semantics(artifact: ExperimentTaskModel | ExperimentRunModel | ExperimentStudyModel) -> list[object]:
+    return [
+        relation.model_dump(mode="json")
+        for relation in sorted(artifact.evidence_requirement_relations, key=lambda item: item.relation_id)
+    ]
+
+
+def _task_structural_payload(artifact: ExperimentTaskModel, version: str = "1") -> object:
+    payload = {
         "scenario_reference_kind": artifact.scenario_ref.ref_kind,
         "evaluation_protocol_fields": sorted(artifact.evaluation_protocol.model_fields_set),
         "non_use_count": len(artifact.non_use),
         "artifact_ref_count": len(artifact.artifact_refs),
         "validation_basis_count": len(artifact.validation_basis_disclosures),
     }
+    if version == "2":
+        payload["evidence_requirement_relations"] = _relation_structure(artifact)
+    return payload
 
 
-def _run_structural_payload(artifact: ExperimentRunModel) -> object:
-    return {
+def _run_structural_payload(artifact: ExperimentRunModel, version: str = "1") -> object:
+    payload = {
         "task_reference_kind": artifact.task_ref.ref_kind,
         "scenario_reference_kind": artifact.scenario_snapshot_ref.ref_kind,
         "result_summary_ids": sorted(artifact.result_summaries),
@@ -274,6 +331,9 @@ def _run_structural_payload(artifact: ExperimentRunModel) -> object:
         "generated_ref_kinds": sorted(item.ref_kind for item in artifact.generated_refs),
         "derived_ref_kinds": sorted(item.ref_kind for item in artifact.derived_from_refs),
     }
+    if version == "2":
+        payload["evidence_requirement_relations"] = _relation_structure(artifact)
+    return payload
 
 
 def _capture_spec_structural_payload(artifact: ExperimentCaptureSpecModel) -> object:
@@ -285,8 +345,8 @@ def _capture_spec_structural_payload(artifact: ExperimentCaptureSpecModel) -> ob
     }
 
 
-def _study_structural_payload(artifact: ExperimentStudyModel) -> object:
-    return {
+def _study_structural_payload(artifact: ExperimentStudyModel, version: str = "1") -> object:
+    payload = {
         "membership": {
             key: {"role": member.role, "target_kind": member.target_ref.ref_kind}
             for key, member in sorted(artifact.membership.items())
@@ -295,6 +355,9 @@ def _study_structural_payload(artifact: ExperimentStudyModel) -> object:
         "has_run_allocation": artifact.run_allocation is not None,
         "has_analysis_plan": artifact.analysis_plan is not None,
     }
+    if version == "2":
+        payload["evidence_requirement_relations"] = _relation_structure(artifact)
+    return payload
 
 
 def _external_bindings_structural_payload(artifact: ExternalConceptBindingDocumentModel) -> object:

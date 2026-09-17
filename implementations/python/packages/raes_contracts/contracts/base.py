@@ -9,8 +9,8 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
-from raes_contracts._base import ContractModel, NonEmptyString
-from raes_contracts._base import PrefixedDigestString as PrefixedDigestString
+from raes_contracts._base import ContractModel, NonEmptyString, PrefixedDigestString
+from raes_contracts.runtime_vocabulary_scopes import SDL_IDENTITY_VOCABULARY_SCOPES
 
 BehavioralRelationId = Annotated[str, Field(pattern=r"^[a-z][a-z0-9-]*$")]
 
@@ -247,6 +247,7 @@ _PARTICIPANT_IMPLEMENTATION_CONCEPT_BINDING_SCOPES = frozenset(
 
 _CONTROLLED_VOCABULARY_GOVERNED_SCOPES = frozenset(
     {
+        *SDL_IDENTITY_VOCABULARY_SCOPES,
         "behavior_specifications.behavior_mode",
         "agents.interactive_access.channel",
         "sdl.accounts.auth_method",
@@ -390,3 +391,27 @@ def _validate_artifact_collection_created_at(field_name: str, artifacts: object)
         created_at = _payload_get(artifact, "created_at")
         if created_at is not None:
             _parse_rfc3339_datetime(f"{field_name}/{index}/created_at", created_at)
+
+
+__all__ = [
+    "BehavioralClaimBindingModel",
+    "BehavioralRelationId",
+    "BehavioralTaxonomyRevision",
+    "CalendarDateString",
+    "ClosedUnitIntervalFloat",
+    "ContractModel",
+    "ControlledVocabularyTermId",
+    "HexDigestString",
+    "InstancePath",
+    "JsonInstancePathString",
+    "JsonPointerString",
+    "NonEmptyString",
+    "NonNegativeInteger",
+    "PositiveInteger",
+    "PrefixedDigestString",
+    "ReferenceModelId",
+    "Rfc3339DateTimeString",
+    "SemanticAssumptionId",
+    "SemanticProfileId",
+    "UnitIntervalFloat",
+]

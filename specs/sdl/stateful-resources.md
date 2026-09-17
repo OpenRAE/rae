@@ -15,11 +15,13 @@ provisioning address:
 
 ## Generated artifacts
 
-A generated artifact declares a `certificate_bundle`, `rendered_config`, or
-`ssh_key_bundle` generator, its regeneration lifecycle, non-secret provenance,
-the complete output set, and every consumer. `ssh_key_bundle` is generated SSH
-key/access material; it is separate from X.509 certificate bundles and runtime
-SSH server configuration.
+A generated artifact declares a `certificate_bundle`, `rendered_config`,
+`ssh_key_bundle`, or `random_value` generator, its regeneration lifecycle,
+non-secret provenance, the complete output set, and every consumer.
+`ssh_key_bundle` is generated SSH key/access material; it is separate from X.509
+certificate bundles and runtime SSH server configuration. `random_value` is a
+freshly generated random value described by a typed recipe (see
+[Random values](#random-values)).
 
 Each output carries a contained relative path, a sensitivity class (`public`,
 `restricted`, or `secret`), and a distribution disposition:
@@ -77,9 +79,64 @@ inputs to consumers; every consumer therefore declares `read_only` access.
 Output selection changes only a consumer projection: generation, lifecycle,
 provenance, dependencies, reconciliation, and deletion remain artifact-wide.
 
+## Random values
+
+A `random_value` generated artifact declares a portable, value-free **recipe**
+for a freshly and unpredictably generated value (for example a CTF flag). The
+backend owns cryptographically secure generation; the SDL carries only the shape.
+
+A `random_value` artifact declares exactly one output and both a `random_value`
+recipe and a `regeneration_scope`; neither field is valid for any other
+generator. The recipe declares:
+
+- **Alphabet:** exactly one of a named `alphabet` (`hex_lower`, `hex_upper`,
+  `digits`, `alpha`, `alphanumeric`, `base32`, `base58`) or a `custom_alphabet`
+  string of unique, non-whitespace, non-control characters.
+- **Size:** exactly one of `length` (random character count) or `entropy_bits`
+  (target entropy budget). A `secret`-sensitivity output requires at least 128
+  bits of effective entropy; the literal wrapper contributes none.
+- **Format (optional):** a bounded `prefix`/`suffix` literal wrapper, e.g.
+  `TECHVAULT{<32 hex>}`. The fully rendered value is bounded.
+- **min_entropy_bits (optional):** an explicit author-declared entropy floor.
+
+`regeneration_scope` governs freshness, distinct from the `lifecycle` reuse
+policy:
+
+- `per_run` — a fresh value for each authoritative run; resume/retry within a run
+  retains it. Requires a run identity, or admission fails before mutation.
+- `per_instantiation` — a fresh value per realized scenario instance; runs
+  reusing that instance retain it. Requires an instantiation identity.
+- `once` — one generation for the artifact instance's lifetime.
+
+A recipe change within an active scope is a real change and reconciles as an
+update; an ordinary refresh never silently rotates a live value.
+
+```yaml
+generated_artifacts:
+  techvault-flag:
+    generator: random_value
+    lifecycle: reuse_valid
+    regeneration_scope: per_run
+    random_value:
+      alphabet: hex_lower
+      length: 32
+      format: {prefix: "TECHVAULT{", suffix: "}"}
+    provenance: techvault/ctf-flag
+    outputs:
+      - {name: flag, path: flag.txt, sensitivity: secret}
+    consumers:
+      - node: web
+        mount_destination: /srv/flag
+        access_mode: read_only
+        selected_outputs: [flag]
+```
+
+The realized value never enters the SDL, plans, snapshots, diagnostics, audit, or
+provenance.
+
 ## Generated-artifact delivery modes
 
-A generated-artifact output reaches a consumer through one of three portable
+A generated-artifact output reaches a consumer through one of four portable
 **delivery modes**:
 
 - `mount` — the read-only file projection declared directly on
@@ -92,6 +149,12 @@ A generated-artifact output reaches a consumer through one of three portable
   `nodes.<node>.runtime.environment_files[]` with a `value_from` reference. RAES
   treats the file as one runtime environment input and does not parse or compare
   its individual key/value entries.
+- `content_text` — a generated value rendered into a content placement's text at
+  backend materialization time, declared on `content.<name>.text_from` (a
+  value-free reference) *instead of* a literal `text`. Only file content may use
+  `text_from`; a `secret` output requires the content to be marked `sensitive`.
+  The compiler derives the matching consumer projection and an ordering edge onto
+  the producing artifact.
 
 `environment` and `env_file` bindings are authored **once**, on the node's
 runtime environment; the compiler derives the matching generated-artifact
@@ -133,6 +196,19 @@ Both resource kinds may carry addressable `ordering_dependencies` and
 `refresh_dependencies`. References must resolve across the combined stateful
 resource set. Ordering dependencies must be acyclic. Reference and graph
 validation completes before provisioning operations are dispatched.
+
+## Deferred verification of generated values
+
+An `observed_state` string proposition may compare a submission against a
+generated value without the value appearing in the SDL. Its `string` predicate
+declares a value-free `expected_from` reference to a `generated_artifacts.<id>`
+output (a scalar `equals`/`not_equals` operator, mutually exclusive with a literal
+`expected`). The evaluator resolves the value at the same run scope and compares
+inside the protected backend; the expected value never enters the SDL, plan,
+evidence, or error envelopes, and a `producer_private` output cannot be selected.
+A backend declares this in its evaluator capability
+`supports_deferred_expected_comparison`, and admission rejects an `expected_from`
+predicate a backend does not support.
 
 The compiler preserves each declaration as an exact SEM-218 realization
 requirement and emits its typed payload into the provisioning plan. Backends

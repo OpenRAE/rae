@@ -44,3 +44,6 @@ work.
 
 The working order for reconciling the current implementation to that layout is
 captured in [ADR-010](../decisions/adrs/adr-010-repository-realignment-order-and-compatibility-policy.md).
+
+[Progressive SDL semantics migration](progressive-semantics.md) covers the breaking
+cutover, source-bound adoption and classification binding coordination.

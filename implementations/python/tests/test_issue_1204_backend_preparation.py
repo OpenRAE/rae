@@ -14,7 +14,10 @@ def _request(*, offered_engine=None, closed_offer=False):
     from raes_contracts.canonical import canonical_json_digest
     from raes_contracts.realization_preparation import RealizationPreparationAuthority
 
-    _, plan, manifest = _fixture({"database_services": [{"database_service_id": "db", "engine": "other"}]})
+    _, plan, manifest = _fixture(
+        {"database_services": [{"database_service_id": "db"}]},
+        scope="/nodes/host/runtime/database_services/0/engine",
+    )
     if offered_engine is not None:
         from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, realization_envelope_digest
 
@@ -132,7 +135,9 @@ def test_equal_detached_authority_still_applies_the_prepared_completion():
     )
 
 
-@pytest.mark.parametrize("options", [{"engine": "unknown"}, {"identity": "renamed"}, {"corrupt_binding": True}])
+@pytest.mark.parametrize(
+    "options", [{"engine": "unqualified-private-engine"}, {"identity": "renamed"}, {"corrupt_binding": True}]
+)
 def test_invalid_preparation_never_reaches_apply(options):
     backend = _PreparingBackend(**options)
     previous, result = _apply(backend)

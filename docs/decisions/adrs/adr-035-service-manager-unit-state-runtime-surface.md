@@ -165,15 +165,37 @@ The security and validation gates are:
 ### 5. Keep the extensibility seam service-manager scoped
 
 The extension seam is the node-scoped service-manager unit inventory,
-parameterized by manager kind and native unit identity. The next likely changes
-are socket/timer/path units, unit dependency edges, restart policy details,
-drop-in files, Windows service state, OpenRC, launchd, supervisord, and richer
-links to filesystem/process/service evidence.
+parameterized by manager kind and native unit identity. A manager identity is
+not proof that core SDL understands that manager's lifecycle state. Rich state
+for a non-systemd manager uses an exact, admitted domain-profile definition;
+it does not add an OpenRC, launchd, supervisord, or Windows-service catalog to
+the core model.
 
-Those should extend typed service-manager submodels and validators. Do not add
-a protocol-agnostic `service_config` dictionary or make `ServicePort` carry
-unit lifecycle state unless a separate decision introduces a broader service
-configuration abstraction across multiple concrete protocols/managers.
+Do not add a protocol-agnostic `service_config` dictionary or make
+`ServicePort` carry unit lifecycle state unless a separate decision introduces
+a broader service configuration abstraction across multiple concrete
+protocols/managers.
+
+### 6. Separate portable identity from the selected systemd state profile
+
+`unit_id` is the stable portable row identity and the keyed comparison field.
+`unit_name` is optional native data: preserve an exact supplied name without
+normalizing it, adding a suffix, or using it as the row key. A native name must
+be concrete and whitespace-free. Only an explicitly selected `systemd`
+manager applies the systemd suffix and lifecycle-state contract.
+
+The historical omitted-manager default remains readable as systemd
+compatibility data, but omission is not an authored systemd choice. Presence
+and inherited realization closure determine whether omitted manager, name, or
+state leaves are delegated. Explicit `unknown`, omission, delegation, and an
+exact private identity remain distinct. A private manager record may carry the
+portable identity, native name, same-node service reference, unit-file path,
+and description; it cannot use the flat systemd lifecycle or `ExecStart`
+fields for non-default state.
+
+This distinction is descriptive only. A valid row does not prove unit-file
+presence, process existence, listener exposure, successful execution, or live
+service-manager access.
 
 ## Guardrails
 
@@ -236,3 +258,9 @@ configuration abstraction across multiple concrete protocols/managers.
 - Capturing raw command lines, environment files, or journal output could leak
   secrets into examples, generated schemas, diagnostics, logs, snapshots, or
   audit records.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-17 | #1297 | Separated portable unit identity/native names from the explicitly selected systemd state profile and preserved omission semantics. |

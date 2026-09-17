@@ -310,3 +310,91 @@ def test_nonprovisioning_calls_cannot_forge_realization_carriers(carrier):
     assert not result.success
     assert result.snapshot == previous
     assert result.diagnostics[0].message == "Backend changed realization state outside provisioning authority."
+
+
+def _shape_entry(**changes: object) -> SnapshotEntry:
+    """Build a resource entry the way an out-of-contract backend would return one.
+
+    ``SnapshotEntry`` admits its own addresses on construction, so a
+    structurally invalid entry cannot be built through the constructor. These
+    cases write past the frozen dataclass to reproduce exactly what the shape
+    gate exists to refuse.
+    """
+
+    entry = SnapshotEntry("provision.node.host", RuntimeDomain.PROVISIONING, "node", {"name": "host"})
+    for name, value in changes.items():
+        object.__setattr__(entry, name, value)
+    return entry
+
+
+def _entry_snapshot(entry: SnapshotEntry) -> RuntimeSnapshot:
+    """Carry one entry under its own address without re-admitting the map."""
+
+    snapshot = RuntimeSnapshot()
+    snapshot.entries[entry.address] = entry
+    return snapshot
+
+
+@pytest.mark.parametrize("identities", ["non-string", "excessive"])
+def test_snapshot_shape_rejects_invalid_or_excessive_carrier_identities(identities):
+    snapshot = RuntimeSnapshot()
+    snapshot.orchestration_results = (
+        {1: {}} if identities == "non-string" else {f"orchestration.script.n{index}": {} for index in range(16385)}
+    )
+    assert snapshot_shape_violation(snapshot) == "Backend snapshot contains invalid or excessive carrier identities."
+
+
+def test_snapshot_shape_rejects_a_carrier_value_outside_the_portable_bounds():
+    snapshot = RuntimeSnapshot()
+    snapshot.orchestration_results = {"orchestration.script.lab": {"handle": object()}}
+    assert snapshot_shape_violation(snapshot) == "Backend snapshot contains an invalid or excessive carrier value."
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ("untyped-collection", "Backend snapshot contains invalid profile bindings."),
+        ("non-portable", "Backend snapshot contains invalid profile bindings."),
+        ("untyped-member", "Backend snapshot contains untyped profile bindings."),
+        ("unrevalidatable", "Backend snapshot contains invalid profile bindings."),
+    ],
+)
+def test_snapshot_shape_rejects_profile_bindings_that_are_not_typed_records(mutation, message):
+    from test_issue_1204_profile_carrier import _profiles
+
+    authority, _ = _profiles()
+    binding = authority.bindings[0]
+    if mutation == "unrevalidatable":
+        binding = binding.model_copy()
+        object.__setattr__(binding, "binding_id", "")
+    bindings = {
+        "untyped-collection": [binding],
+        "non-portable": (object(),),
+        "untyped-member": ("not-a-binding",),
+        "unrevalidatable": (binding,),
+    }[mutation]
+    assert snapshot_shape_violation(_entry_snapshot(_shape_entry(profile_bindings=bindings))) == message
+
+
+@pytest.mark.parametrize("payload", ["untyped", "non-portable"])
+def test_snapshot_shape_rejects_an_invalid_resource_payload(payload):
+    entry = _shape_entry(payload=[] if payload == "untyped" else {"handle": object()})
+    assert snapshot_shape_violation(_entry_snapshot(entry)) == "Backend snapshot contains an invalid resource payload."
+
+
+@pytest.mark.parametrize("status", [b"ready", "", "x" * 129])
+def test_snapshot_shape_rejects_an_invalid_resource_status(status):
+    entry = _shape_entry(status=status)
+    assert snapshot_shape_violation(_entry_snapshot(entry)) == "Backend snapshot contains an invalid resource status."
+
+
+@pytest.mark.parametrize("dependencies", ["untyped", "excessive", "uncompiled"])
+def test_snapshot_shape_rejects_invalid_resource_dependencies(dependencies):
+    value = {
+        "untyped": ["provision.node.peer"],
+        "excessive": tuple(f"provision.node.n{index}" for index in range(16385)),
+        "uncompiled": ("not an address",),
+    }[dependencies]
+    entry = _shape_entry(ordering_dependencies=value)
+    message = "Backend snapshot contains invalid resource dependencies."
+    assert snapshot_shape_violation(_entry_snapshot(entry)) == message

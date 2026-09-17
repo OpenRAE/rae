@@ -13,6 +13,7 @@ from raes_backend_protocols.protocols import (
     Provisioner,
     TimeRuntime,
 )
+from raes_backend_protocols.recovery_observation import RecoveryObserver
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT
@@ -22,6 +23,10 @@ from .backend_profiles import validate_profile_target
 from .observation_execution import ObservationRuntime
 from .observation_native import backend_selection_observation_runtime as _backend_selection_observation_runtime
 from .registry_probes import sample_participant_action_admission_request
+from .registry_target_validation import (
+    validate_optional_component_presence,
+    validate_recovery_observer_contract,
+)
 
 ReferenceTimeRuntime = _time_coordinator.ReferenceTimeRuntime
 _TIME_CLOCK_PROBE = "time.clock.probe"
@@ -37,6 +42,19 @@ class _ParticipantRuntimeMethodRequirements:
     coordinated_reset: bool
     execution_control: bool
     bounded_concurrency: bool
+
+
+@dataclass(frozen=True)
+class RuntimeTargetComponents:
+    """Instantiated runtime target components without a manifest."""
+
+    provisioner: Provisioner
+    orchestrator: Orchestrator | None = None
+    evaluator: Evaluator | None = None
+    participant_runtime: ParticipantRuntime | None = None
+    time_runtime: TimeRuntime | None = None
+    observation_runtime: ObservationRuntime | None = None
+    recovery_observer: RecoveryObserver | None = None
 
 
 def _participant_runtime_method_requirements(manifest: BackendManifest) -> _ParticipantRuntimeMethodRequirements:
@@ -81,32 +99,28 @@ def _require_invokable_method(
 def _validate_runtime_target_shape(
     *,
     manifest: BackendManifest | None,
-    provisioner: Provisioner | None,
-    orchestrator: Orchestrator | None,
-    evaluator: Evaluator | None,
-    participant_runtime: ParticipantRuntime | None,
-    time_runtime: TimeRuntime | None,
-    observation_runtime: ObservationRuntime | None,
+    components: RuntimeTargetComponents,
 ) -> None:
     if manifest is None:
         raise ValueError("RuntimeTarget requires an explicit manifest.")
-    if provisioner is None:
+    if components.provisioner is None:
         raise ValueError("RuntimeTarget requires a provisioner.")
-    validate_profile_target(manifest, provisioner)
-    _validate_optional_component_presence(
+    validate_profile_target(manifest, components.provisioner)
+    validate_optional_component_presence(
         manifest,
-        orchestrator=orchestrator,
-        evaluator=evaluator,
-        participant_runtime=participant_runtime,
-        time_runtime=time_runtime,
+        orchestrator=components.orchestrator,
+        evaluator=components.evaluator,
+        participant_runtime=components.participant_runtime,
+        time_runtime=components.time_runtime,
+        recovery_observer=components.recovery_observer,
     )
     if (
-        observation_runtime is not None
+        components.observation_runtime is not None
         and manifest.observation is None
         and any(
             capability.bases != frozenset({ObservationBasis.BACKEND_SELECTED})
             or not capability.stages.issubset({ObservationLifecycleStage.RETENTION})
-            for capability in observation_runtime.capabilities
+            for capability in components.observation_runtime.capabilities
         )
     ):
         raise ValueError("registry.target-shape-mismatch: observation runtime requires manifest capabilities.")
@@ -115,50 +129,33 @@ def _validate_runtime_target_shape(
     sample_request = object()
     sample_admission_request = sample_participant_action_admission_request()
     _validate_provisioner_methods(
-        provisioner,
+        components.provisioner,
         sample_plan,
         sample_snapshot,
         preparation=BACKEND_PREPARATION_CONTRACT in manifest.supported_contract_versions,
     )
-    _validate_orchestrator_methods(orchestrator, sample_plan, sample_snapshot)
-    _validate_evaluator_methods(evaluator, sample_plan, sample_snapshot)
+    _validate_orchestrator_methods(components.orchestrator, sample_plan, sample_snapshot)
+    _validate_evaluator_methods(components.evaluator, sample_plan, sample_snapshot)
     _validate_participant_runtime_methods(
-        participant_runtime,
+        components.participant_runtime,
         sample_request,
         sample_admission_request,
         sample_snapshot,
         requirements=_participant_runtime_method_requirements(manifest),
     )
     _validate_time_runtime_methods(
-        time_runtime,
+        components.time_runtime,
         sample_plan,
         sample_snapshot,
         require_coordinated_participant_reset=bool(
             manifest.time and manifest.time.supports_coordinated_participant_reset
         ),
     )
-
-
-def _validate_optional_component_presence(
-    manifest: BackendManifest,
-    *,
-    orchestrator: Orchestrator | None,
-    evaluator: Evaluator | None,
-    participant_runtime: ParticipantRuntime | None,
-    time_runtime: TimeRuntime | None,
-) -> None:
-    if manifest.has_orchestrator != (orchestrator is not None):
-        raise ValueError("registry.target-shape-mismatch: orchestrator presence does not match the manifest.")
-    if manifest.has_evaluator != (evaluator is not None):
-        raise ValueError("registry.target-shape-mismatch: evaluator presence does not match the manifest.")
-    if manifest.has_participant_runtime != (participant_runtime is not None):
-        raise ValueError("registry.target-shape-mismatch: participant_runtime presence does not match the manifest.")
-    if manifest.has_time != (time_runtime is not None):
-        raise ValueError("registry.target-shape-mismatch: time_runtime presence does not match the manifest.")
-    if manifest.time and manifest.time.supports_coordinated_participant_reset and participant_runtime is None:
-        raise ValueError(
-            "registry.target-shape-mismatch: coordinated participant reset requires a participant_runtime."
-        )
+    validate_recovery_observer_contract(
+        manifest,
+        components.recovery_observer,
+        require_invokable_method=_require_invokable_method,
+    )
 
 
 def _validate_provisioner_methods(
@@ -399,29 +396,21 @@ class RuntimeTarget:
     participant_runtime: ParticipantRuntime | None = None
     time_runtime: TimeRuntime | None = None
     observation_runtime: ObservationRuntime | None = None
+    recovery_observer: RecoveryObserver | None = None
 
     def __post_init__(self) -> None:
         _validate_runtime_target_shape(
             manifest=self.manifest,
-            provisioner=self.provisioner,
-            orchestrator=self.orchestrator,
-            evaluator=self.evaluator,
-            participant_runtime=self.participant_runtime,
-            time_runtime=self.time_runtime,
-            observation_runtime=self.observation_runtime,
+            components=RuntimeTargetComponents(
+                provisioner=self.provisioner,
+                orchestrator=self.orchestrator,
+                evaluator=self.evaluator,
+                participant_runtime=self.participant_runtime,
+                time_runtime=self.time_runtime,
+                observation_runtime=self.observation_runtime,
+                recovery_observer=self.recovery_observer,
+            ),
         )
-
-
-@dataclass(frozen=True)
-class RuntimeTargetComponents:
-    """Instantiated runtime target components without a manifest."""
-
-    provisioner: Provisioner
-    orchestrator: Orchestrator | None = None
-    evaluator: Evaluator | None = None
-    participant_runtime: ParticipantRuntime | None = None
-    time_runtime: TimeRuntime | None = None
-    observation_runtime: ObservationRuntime | None = None
 
 
 @dataclass(frozen=True)
@@ -472,12 +461,7 @@ class BackendRegistry:
 
         _validate_runtime_target_shape(
             manifest=manifest,
-            provisioner=components.provisioner,
-            orchestrator=components.orchestrator,
-            evaluator=components.evaluator,
-            participant_runtime=components.participant_runtime,
-            time_runtime=components.time_runtime,
-            observation_runtime=components.observation_runtime,
+            components=components,
         )
 
         return RuntimeTarget(
@@ -489,6 +473,7 @@ class BackendRegistry:
             participant_runtime=components.participant_runtime,
             time_runtime=components.time_runtime,
             observation_runtime=components.observation_runtime,
+            recovery_observer=components.recovery_observer,
         )
 
     def list_backends(self) -> list[str]:

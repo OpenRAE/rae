@@ -8,6 +8,7 @@ from raes_contracts.contracts.participant_resource_budgets import (
     ParticipantResourceBudgetCapabilitiesModel,
     ParticipantResourcePoolCapacityModel,
 )
+from raes_contracts.domain_profiles import DomainProfileCoordinateModel, DomainProfileResolutionContextModel
 
 
 @dataclass(frozen=True)
@@ -15,7 +16,7 @@ class ParticipantResourcePoolCapacity:
     pool_ref: str
     owner_kind: str
     owner_ref: str
-    resource_kind: str
+    resource_kind: str | DomainProfileCoordinateModel
     unit: str
     accounting_mode: str
     meter_profile_ref: str
@@ -39,7 +40,7 @@ class ParticipantResourcePoolCapacity:
 class ParticipantResourceBudgetCapabilities:
     support_strength: str
     supported_owner_kinds: frozenset[str]
-    supported_resource_kinds: frozenset[str]
+    supported_resource_kinds: frozenset[str | DomainProfileCoordinateModel]
     supported_accounting_modes: frozenset[str]
     supported_reset_modes: frozenset[str]
     supported_fairness_policies: frozenset[str]
@@ -47,13 +48,14 @@ class ParticipantResourceBudgetCapabilities:
     configured_pools: tuple[ParticipantResourcePoolCapacity, ...]
     realization_contract_ids: frozenset[str]
     cross_range_pool_refs: frozenset[str] = frozenset()
+    domain_profile_context: DomainProfileResolutionContextModel | None = None
 
     def __post_init__(self) -> None:
         ParticipantResourceBudgetCapabilitiesModel.model_validate(
             {
                 "support_strength": self.support_strength,
                 "supported_owner_kinds": sorted(self.supported_owner_kinds),
-                "supported_resource_kinds": sorted(self.supported_resource_kinds),
+                "supported_resource_kinds": sorted(self.supported_resource_kinds, key=str),
                 "supported_accounting_modes": sorted(self.supported_accounting_modes),
                 "supported_reset_modes": sorted(self.supported_reset_modes),
                 "supported_fairness_policies": sorted(self.supported_fairness_policies),
@@ -61,6 +63,7 @@ class ParticipantResourceBudgetCapabilities:
                 "configured_pools": [pool.__dict__ for pool in self.configured_pools],
                 "realization_contract_ids": sorted(self.realization_contract_ids),
                 "cross_range_pool_refs": sorted(self.cross_range_pool_refs),
+                "domain_profile_context": self.domain_profile_context,
             }
         )
 
@@ -72,7 +75,7 @@ def participant_resource_budget_capability_payload(
         {
             "support_strength": capability.support_strength,
             "supported_owner_kinds": sorted(capability.supported_owner_kinds),
-            "supported_resource_kinds": sorted(capability.supported_resource_kinds),
+            "supported_resource_kinds": sorted(capability.supported_resource_kinds, key=str),
             "supported_accounting_modes": sorted(capability.supported_accounting_modes),
             "supported_reset_modes": sorted(capability.supported_reset_modes),
             "supported_fairness_policies": sorted(capability.supported_fairness_policies),
@@ -80,6 +83,7 @@ def participant_resource_budget_capability_payload(
             "configured_pools": [pool.__dict__ for pool in capability.configured_pools],
             "realization_contract_ids": sorted(capability.realization_contract_ids),
             "cross_range_pool_refs": sorted(capability.cross_range_pool_refs),
+            "domain_profile_context": capability.domain_profile_context,
         }
     )
 
@@ -120,6 +124,7 @@ def participant_resource_budget_capability_from_model(
         ),
         realization_contract_ids=frozenset(model.realization_contract_ids),
         cross_range_pool_refs=frozenset(model.cross_range_pool_refs),
+        domain_profile_context=model.domain_profile_context,
     )
 
 

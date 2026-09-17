@@ -1,0 +1,20 @@
+# Live-runner opt-in native Python closure (issue #1222).
+#
+# libvirt-python is an opt-in binding for the real-daemon smoke and
+# guest-certification runs only. It is deliberately NOT a project dependency or
+# extra: the default contributor tool/project environments must never start
+# requiring a compiler, the libvirt daemon, AWS credentials or KVM.
+#
+# libvirt-python is sdist-only (no wheels published), so its build closure is
+# admitted here too: the setuptools/wheel build backend is pinned by exact
+# version and wheel hash. tools/real-daemon/live_runner_inputs.py stages every
+# file below (sdist + build wheels) through the maintained client, verifies each
+# against these hashes, and the runners install with
+# `--offline --no-index --find-links <wheelhouse> --require-hashes` so nothing
+# is resolved or built from a live index during certification. The native
+# compiler/headers/pkg-config prerequisites are declared on the
+# live-runner-ubuntu-24.04-x86_64 host profile in
+# implementations/tooling/profiles/development-profiles.json.
+libvirt-python==12.7.0 --hash=sha256:03a6800a3cc7657267e2516f579ce95c93d6351182caf03f92a49556685bf8bf
+setuptools==84.0.0 --hash=sha256:51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670
+wheel==0.48.0 --hash=sha256:3217dcc807155e45db462d7ef2431f5ddda0d7273b700d05a67b271ceb1287ab

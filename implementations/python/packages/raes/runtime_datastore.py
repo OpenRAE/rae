@@ -9,11 +9,10 @@ OpenSearch/Elasticsearch search clusters, the Cassandra wide-column store, and
 the Redis key-value store that ``runtime.database_services`` (irreducibly
 relational) cannot shape.
 
-The spine is guarded by a ``require_profile_for_data_model`` after-validator so
-an under-populated instance FAILS validation — the abstraction provably cannot
-silently shallow-encode a defining datastore fact (a search cluster with no
-shard/replica geometry, a wide-column store with no replication factor, a
-key-value store with no persistence posture).
+Base descriptions may be partial or carry empty configured inventories. Data
+model identity does not select a completeness or execution profile. Supplied
+partition kinds, bounds, identifiers and references remain validated; selected
+execution obligations belong to backend admission.
 
 This is observed runtime state attached to ``Node.runtime``. ``service``
 references the owning same-node transport listener; it never mutates that
@@ -23,6 +22,8 @@ semantic validator) — this surface carries no embedded principal/role/grant.
 """
 
 from pydantic import Field, field_validator, model_validator
+
+from raes.runtime_vocabulary import GovernedVocabulary
 
 from ._base import SDLModel, is_variable_ref
 from .runtime_datastore_partitions import (
@@ -86,14 +87,13 @@ class RuntimeDatastoreService(SDLModel):
     The single non-relational datastore spine. ``service`` references the owning
     same-node ``Node.services[].name`` (bare name or the qualified
     ``nodes.<node>.services.<name>`` form). The ``data_model`` discriminator
-    selects the required profile the ``require_profile_for_data_model`` guard
-    enforces.
+    describes the logical model without imposing a complete deployment recipe.
     """
 
     datastore_service_id: str
     service: str = ""
-    engine: RuntimeDatastoreEngine | str = RuntimeDatastoreEngine.UNKNOWN
-    data_model: RuntimeDatastoreDataModel | str = RuntimeDatastoreDataModel.UNKNOWN
+    engine: GovernedVocabulary[RuntimeDatastoreEngine] = RuntimeDatastoreEngine.UNKNOWN
+    data_model: GovernedVocabulary[RuntimeDatastoreDataModel] = RuntimeDatastoreDataModel.UNKNOWN
     protocol: str = ""
     version: str = ""
     name: str = ""
@@ -156,7 +156,7 @@ class RuntimeDatastoreService(SDLModel):
     def validate_datastore_service(self) -> "RuntimeDatastoreService":
         self._reject_duplicate_string_lists()
         _reject_duplicate_local_ref_ids(self)
-        self.require_profile_for_data_model()
+        self._reject_incompatible_partition_kinds()
         self._validate_local_manifest_refs()
         return self
 
@@ -171,59 +171,10 @@ class RuntimeDatastoreService(SDLModel):
         ):
             _reject_duplicate_values(getattr(self, field_name), field_name=field_name, owner=self.datastore_service_id)
 
-    def require_profile_for_data_model(self) -> None:
-        """Fail validation when the declared ``data_model`` lacks its profile.
-
-        A ``${var}`` placeholder discriminator is exempt (nothing concrete is
-        asserted); the OPEN ``unknown`` / ``other`` sentinels impose no profile
-        (permissive tail). Each concrete structural data model REQUIRES (and in
-        some cases REJECTS) specific child state per SCN-010 §5.1.
-        """
-        model = self.data_model
-        if is_variable_ref(model) or not isinstance(model, RuntimeDatastoreDataModel):
+    def _reject_incompatible_partition_kinds(self) -> None:
+        """Keep explicit key-value versus wide-column structure consistent."""
+        if self.data_model is not RuntimeDatastoreDataModel.KEY_VALUE:
             return
-        if model is RuntimeDatastoreDataModel.SEARCH_INDEX:
-            self._require_search_index_profile()
-        elif model is RuntimeDatastoreDataModel.KEY_VALUE:
-            self._require_key_value_profile()
-        elif model is RuntimeDatastoreDataModel.WIDE_COLUMN:
-            self._require_wide_column_profile()
-        # RELATIONAL / UNKNOWN / OTHER impose no profile here: a relational store
-        # belongs to ``runtime.database_services`` (the named confirmation-fold),
-        # and the open tail is permissive by the enum-sentinel discipline.
-
-    def _index_partitions(self) -> list[RuntimeDatastorePartition]:
-        return [p for p in self.partitions if p.kind is RuntimeDatastorePartitionKind.INDEX]
-
-    def _keyspace_partitions(self) -> list[RuntimeDatastorePartition]:
-        return [p for p in self.partitions if p.kind is RuntimeDatastorePartitionKind.KEYSPACE]
-
-    def _require_search_index_profile(self) -> None:
-        index_partitions = self._index_partitions()
-        if not index_partitions:
-            raise ValueError(
-                f"datastore service '{self.datastore_service_id}' data_model 'search_index' "
-                f"requires at least one partition with kind 'index'"
-            )
-        for partition in index_partitions:
-            if partition.shard_count is None or partition.replica_count is None:
-                raise ValueError(
-                    f"datastore service '{self.datastore_service_id}' search_index partition "
-                    f"'{partition.partition_id}' must carry shard_count and replica_count geometry"
-                )
-        if not self.mappings:
-            raise ValueError(
-                f"datastore service '{self.datastore_service_id}' data_model 'search_index' "
-                f"requires at least one structured mapping manifest"
-            )
-
-    def _require_key_value_profile(self) -> None:
-        if self.persistence is None:
-            raise ValueError(
-                f"datastore service '{self.datastore_service_id}' data_model 'key_value' requires a persistence profile"
-            )
-        # A key-value store must not carry the relational object tree — that is
-        # the shallow encoding the guard exists to forbid (Redis-as-relational).
         relational_partitions = [
             p
             for p in self.partitions
@@ -235,35 +186,6 @@ class RuntimeDatastoreService(SDLModel):
                 f"datastore service '{self.datastore_service_id}' data_model 'key_value' must not carry "
                 f"relational/wide-column partitions (partition '{offending.partition_id}')"
             )
-
-    def _require_wide_column_profile(self) -> None:
-        keyspaces = self._keyspace_partitions()
-        if not keyspaces:
-            raise ValueError(
-                f"datastore service '{self.datastore_service_id}' data_model 'wide_column' "
-                f"requires at least one partition with kind 'keyspace'"
-            )
-        for partition in keyspaces:
-            if not self._has_concrete_replication(partition) or partition.replication_factor is None:
-                raise ValueError(
-                    f"datastore service '{self.datastore_service_id}' wide_column keyspace "
-                    f"'{partition.partition_id}' must carry replication_strategy and replication_factor"
-                )
-
-    @staticmethod
-    def _has_concrete_replication(partition: RuntimeDatastorePartition) -> bool:
-        """Return whether a keyspace declares a non-``unknown`` replication strategy.
-
-        A ``${var}`` placeholder strategy is treated as concrete-deferred (the
-        author asserted a strategy, resolved at instantiation); only the OPEN
-        ``unknown`` sentinel counts as an absent profile.
-        """
-        strategy = partition.replication_strategy
-        if is_variable_ref(strategy):
-            return True
-        if isinstance(strategy, RuntimeDatastoreReplicationStrategy):
-            return strategy is not RuntimeDatastoreReplicationStrategy.UNKNOWN
-        return False
 
     def _validate_local_manifest_refs(self) -> None:
         partition_ids = {partition.partition_id for partition in self.partitions}

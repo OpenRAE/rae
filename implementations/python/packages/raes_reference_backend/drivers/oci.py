@@ -110,6 +110,17 @@ class OciDeploymentDriver:
         # transaction, rather than trusting a stale RAES address/name mapping.
         self._native_ids: dict[str, str] = {}
 
+    def _resource_name(self, address: str) -> str:
+        """Derive this run's native name for *address*.
+
+        The workspace is the run namespace, so two concurrent runs realizing the
+        same address never contend for one native container or network name. The
+        readable head still names the address, and ownership is still proven by
+        the labels, never by the name.
+        """
+
+        return provider_resource_name(address, prefix="raes", namespace=self._workspace)
+
     def _label_args(self, address: str) -> list[str]:
         return [
             "--label",
@@ -211,7 +222,7 @@ class OciDeploymentDriver:
     ) -> list[NetworkHandle]:
         handles: list[NetworkHandle] = []
         for spec in networks:
-            runtime_name = provider_resource_name(spec.address, prefix="raes")
+            runtime_name = self._resource_name(spec.address)
             argv = [self._runtime, "network", "create", *self._label_args(spec.address), runtime_name]
             ok, kind = self._run(argv)
             if ok:
@@ -237,7 +248,7 @@ class OciDeploymentDriver:
             if not self._image_policy.permits(image):
                 diagnostics.append(self._image_rejected(spec.address))
                 continue
-            runtime_name = provider_resource_name(spec.address, prefix="raes")
+            runtime_name = self._resource_name(spec.address)
             argv = self._container_run_argv(spec, runtime_name=runtime_name, image=image)
             ok, kind, native_stdout = self._invoke(argv)
             if ok:
@@ -399,7 +410,7 @@ class OciDeploymentDriver:
             self.destroy(networks=realized_networks, containers=realized_containers)
 
     def _name_for(self, address: str) -> str:
-        return self._names.get(address, provider_resource_name(address, prefix="raes"))
+        return self._names.get(address, self._resource_name(address))
 
     def destroy(
         self,

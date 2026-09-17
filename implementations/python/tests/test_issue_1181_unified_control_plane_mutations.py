@@ -42,6 +42,7 @@ from raes_runtime.control_plane_mutation import (
     mutation_entry,
     mutation_probe,
 )
+from raes_runtime.control_plane_recovery import IndeterminateResolutionDisposition
 from raes_runtime.control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
@@ -578,16 +579,18 @@ def test_runtime_rejects_store_without_complete_atomic_mutation_capability() -> 
         RuntimeControlPlane(target, store=legacy_store)  # type: ignore[arg-type]
 
 
-def test_restart_preserves_running_claim_for_governed_recovery() -> None:
+def test_restart_terminalizes_running_claim_through_governed_recovery() -> None:
     store = InMemoryControlPlaneStore()
     running = _running_record("interrupted-operation")
     store.claim_record(running)
 
     control_plane = RuntimeControlPlane(create_stub_target(), store=store)
 
-    assert store.load_records()[running.receipt.operation_id] == running
-    assert control_plane.get_operation(running.receipt.operation_id) == running.status
-    assert store.read_audit() == []
+    recovered = store.load_records()[running.receipt.operation_id]
+    assert recovered.status.state is OperationState.INDETERMINATE
+    assert control_plane.get_operation(running.receipt.operation_id) == recovered.status
+    assert store.find_by_idempotency(running.idempotency_key) == recovered
+    assert [event.reason for event in store.read_audit()] == ["operation-indeterminate"]
     assert not hasattr(store, "reconcile_interrupted_records")
 
 
@@ -601,6 +604,7 @@ def test_mutating_control_plane_entries_declare_their_operation_kind() -> None:
         "initialize_participant_episode",
         "reconcile_workflow_timeouts",
         "record_participant_control",
+        "resolve_indeterminate_operation",
         "reset_participant_episode",
         "restart_participant_episode",
         "submit_evaluation",
@@ -675,6 +679,25 @@ def test_accepted_workflow_cancellation_reaches_the_shared_authority() -> None:
         control_plane,
         lambda: control_plane.cancel_workflow(workflow_address),
         OperationKind.WORKFLOW_CANCELLATION,
+    )
+
+
+def test_accepted_indeterminate_resolution_reaches_the_shared_authority() -> None:
+    store = InMemoryControlPlaneStore()
+    parent = _running_record("indeterminate-parent-1181")
+    store.claim_record(parent)
+    control_plane = RuntimeControlPlane(create_stub_target(), store=store)
+    assert store.load_records()[parent.receipt.operation_id].status.state is OperationState.INDETERMINATE
+
+    _assert_requests_mutation_reservation(
+        control_plane,
+        lambda: control_plane.resolve_indeterminate_operation(
+            parent.receipt.operation_id,
+            disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
+            idempotency_key="resolution-1181",
+            identity=identity(),
+        ),
+        OperationKind.INDETERMINATE_RESOLUTION,
     )
 
 
@@ -795,3 +818,66 @@ def test_runtime_manager_remains_outside_control_plane_store_authority() -> None
     assert not hasattr(manager, "_store")
     assert not hasattr(manager, "_store_commits")
     assert not hasattr(manager, "_mutation_authority")
+
+
+def test_settling_a_worker_absorbs_cancellation_until_the_mutation_commits() -> None:
+    from raes_runtime.control_plane_api._offload import _settle_worker
+
+    async def exercise() -> None:
+        release = asyncio.Event()
+
+        async def commit() -> str:
+            await release.wait()
+            return "committed"
+
+        worker = asyncio.create_task(commit())
+        settler = asyncio.create_task(_settle_worker(worker))
+        await asyncio.sleep(0.05)
+        for _ in range(2):
+            settler.cancel()
+            await asyncio.sleep(0.05)
+            assert not settler.done(), "a committing mutation must not be abandoned"
+        release.set()
+        await asyncio.wait_for(settler, timeout=2)
+        assert worker.result() == "committed"
+
+    asyncio.run(exercise())
+
+
+def test_settling_stops_waiting_once_the_worker_fails() -> None:
+    from raes_runtime.control_plane_api._offload import _settle_worker
+
+    async def exercise() -> None:
+        release = asyncio.Event()
+
+        async def commit() -> str:
+            await release.wait()
+            raise RuntimeError("backend refused the commit")
+
+        worker = asyncio.create_task(commit())
+        settler = asyncio.create_task(_settle_worker(worker))
+        await asyncio.sleep(0.05)
+        release.set()
+        await asyncio.wait_for(settler, timeout=2)
+        assert isinstance(worker.exception(), RuntimeError)
+
+    asyncio.run(exercise())
+
+
+def test_settling_propagates_cancellation_that_arrives_after_the_commit_lands() -> None:
+    from raes_runtime.control_plane_api._offload import _settle_worker
+
+    async def exercise() -> None:
+        # A bare future stands in for the worker so the commit can be settled at
+        # an exact instant: ``set_result`` marks it done synchronously while the
+        # shield it is wrapped in is still pending, which is the window where a
+        # cancellation must stop being absorbed and propagate instead.
+        worker = asyncio.get_running_loop().create_future()
+        settler = asyncio.create_task(_settle_worker(worker))
+        await asyncio.sleep(0.05)
+        worker.set_result("committed")
+        settler.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await settler
+
+    asyncio.run(exercise())

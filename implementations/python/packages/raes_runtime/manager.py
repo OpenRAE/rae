@@ -1,30 +1,38 @@
 """Runtime manager for compiled SDL runtime plans."""
 
+from __future__ import annotations
+
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.contracts import (
     ExperimentStochasticControlModel,
     ParticipantInformationStateContextResolver,
 )
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
+from raes_contracts.materialization import MaterializationArchive, MaterializationSubmission
+from raes_contracts.planning import PlanScope, RuntimeDomain
+from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_scenario_runtime_model
 from raes_processor.models import ExecutionPlan
-from raes_processor.planner import plan, snapshot_delete_order
+from raes_processor.planner import plan
 
 from .apply_failure import maybe_synthesize_failure, rollback_services
-from .backend_calls import _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
+from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _apply_runtime_plan_with_observation, _RuntimePlanApplyRequest
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
+from .manager_augmentation import prepare_execution_augmentation
+from .manager_destroy import _DestroyPhaseMixin
 from .manager_plan_admission import runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
 from .participant_execution_control import RuntimeParticipantExecutionMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .registry import RuntimeTarget as _RuntimeTarget
+from .registry import RuntimeTargetComponents as _RuntimeTargetComponents
 from .registry import _validate_runtime_target_shape
 from .time_control import RuntimeTimeControlMixin
 
@@ -43,9 +51,11 @@ class _RuntimeApplyState:
     details: dict[str, object]
     started_evaluator: bool = False
     failure: ApplyResult | None = None
+    materialization_attestation: MaterializationSubmission | None = None
+    augmentation_previews: dict[RuntimeDomain, AugmentationPreparation] = field(default_factory=dict)
 
 
-class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
+class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
     """Plans and executes SDL runtime work against a target."""
 
     def __init__(
@@ -55,19 +65,24 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         initial_snapshot: RuntimeSnapshot | None = None,
         stochastic_controls: Iterable[ExperimentStochasticControlModel] = (),
         information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
+        materialization_archive: MaterializationArchive | None = None,
     ) -> None:
         _validate_runtime_target_shape(
             manifest=target.manifest,
-            provisioner=target.provisioner,
-            orchestrator=target.orchestrator,
-            evaluator=target.evaluator,
-            participant_runtime=target.participant_runtime,
-            time_runtime=target.time_runtime,
-            observation_runtime=target.observation_runtime,
+            components=_RuntimeTargetComponents(
+                provisioner=target.provisioner,
+                orchestrator=target.orchestrator,
+                evaluator=target.evaluator,
+                participant_runtime=target.participant_runtime,
+                time_runtime=target.time_runtime,
+                observation_runtime=target.observation_runtime,
+                recovery_observer=target.recovery_observer,
+            ),
         )
         self._target = target
         self._snapshot = initial_snapshot if initial_snapshot is not None else RuntimeSnapshot()
         self._information_state_context_resolver = information_state_context_resolver
+        self._materialization_archive = materialization_archive
         require_participant_information_state_snapshot(self._snapshot, information_state_context_resolver)
         self._participant_activity_controls = resolve_participant_activity_controls(stochastic_controls)
         self._time_declaration: TimeModelDeclarationModel | None = None
@@ -85,17 +100,25 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         parameters: dict[str, object] | None = None,
         profile: str | None = None,
         artifact_availability: ArtifactAvailabilityContext | None = None,
-        profile_authority=None,
+        profile_authority: PlanProfileAuthority | None = None,
+        run_scope: PlanScope | None = None,
     ) -> ExecutionPlan:
         model = compile_scenario_runtime_model(
             scenario, parameters=parameters, profile=profile, profile_authority=profile_authority
         )
         effective_snapshot = snapshot if snapshot is not None else self._snapshot
+        # The manager owns target selection; fold it into the run/instantiation
+        # identity supplied by the caller so the planner receives a single scope.
+        scope = PlanScope(
+            target_name=self._target.name,
+            run_id=run_scope.run_id if run_scope is not None else None,
+            instantiation_id=run_scope.instantiation_id if run_scope is not None else None,
+        )
         return plan(
             model,
             self._target.manifest,
             effective_snapshot,
-            target_name=self._target.name,
+            scope=scope,
             artifact_availability=artifact_availability,
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
         )
@@ -111,11 +134,22 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         if precondition_failure is not None:
             return precondition_failure
 
+        return self._apply_prepared_execution(execution_plan, diagnostics)
+
+    def _apply_prepared_execution(self, execution_plan: ExecutionPlan, diagnostics: list[Diagnostic]) -> ApplyResult:
+        execution_plan, previews, scope_diagnostics = prepare_execution_augmentation(
+            execution_plan, self._target, self._snapshot, self._materialization_archive
+        )
+        diagnostics.extend(scope_diagnostics)
+        if _has_error_diagnostic(scope_diagnostics):
+            return ApplyResult(success=False, snapshot=self._snapshot, diagnostics=diagnostics)
+
         state = _RuntimeApplyState(
             working_snapshot=execution_plan.base_snapshot,
             diagnostics=diagnostics,
             changed_addresses=[],
             details={},
+            augmentation_previews=previews,
         )
         self._run_apply_phases(execution_plan, state)
         if state.failure is None:
@@ -172,6 +206,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
             execution_plan.provisioning,
             state.working_snapshot,
             request=_RuntimePlanApplyRequest(
+                materialization_archive=self._materialization_archive,
                 address="runtime.apply.provisioning",
                 execute_observation=execution_plan.observation_owner is RuntimeDomain.PROVISIONING,
                 realization=_RealizationApplyContext(
@@ -179,6 +214,7 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                     plan=execution_plan.provisioning,
                     manifest=execution_plan.manifest,
                     artifact_availability=execution_plan.artifact_availability,
+                    expected_augmentation=state.augmentation_previews.get(RuntimeDomain.PROVISIONING),
                 ),
                 information_state_context_resolver=self._information_state_context_resolver,
             ),
@@ -206,8 +242,13 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 execution_plan.evaluation,
                 state.working_snapshot,
                 request=_RuntimePlanApplyRequest(
+                    materialization_archive=self._materialization_archive,
                     address=_APPLY_EVALUATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.EVALUATION,
+                    realization=_RealizationApplyContext(
+                        manifest=execution_plan.manifest,
+                        expected_augmentation=state.augmentation_previews.get(RuntimeDomain.EVALUATION),
+                    ),
                     information_state_context_resolver=self._information_state_context_resolver,
                 ),
             )
@@ -242,8 +283,13 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 execution_plan.orchestration,
                 state.working_snapshot,
                 request=_RuntimePlanApplyRequest(
+                    materialization_archive=self._materialization_archive,
                     address=_APPLY_ORCHESTRATOR_ADDRESS,
                     execute_observation=execution_plan.observation_owner is RuntimeDomain.ORCHESTRATION,
+                    realization=_RealizationApplyContext(
+                        manifest=execution_plan.manifest,
+                        expected_augmentation=state.augmentation_previews.get(RuntimeDomain.ORCHESTRATION),
+                    ),
                     information_state_context_resolver=self._information_state_context_resolver,
                 ),
             )
@@ -273,6 +319,8 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
 
     @staticmethod
     def _record_phase_result(state: _RuntimeApplyState, result: ApplyResult) -> None:
+        if result.materialization_attestation is not None:
+            state.materialization_attestation = result.materialization_attestation
         state.diagnostics.extend(result.diagnostics)
         state.changed_addresses.extend(result.changed_addresses)
         state.working_snapshot = result.snapshot
@@ -373,91 +421,52 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
         return info
 
     def destroy(self) -> ApplyResult:
-        if not self._stop_participant_clock_driver():
-            return ApplyResult(
-                success=False,
-                snapshot=self._snapshot,
-                diagnostics=[
-                    Diagnostic(
-                        code="runtime.participant-clock-driver-stop-timeout",
-                        domain="participant",
-                        address="runtime.destroy",
-                        message="Destroy did not start because the participant clock driver is still active.",
-                    )
-                ],
-            )
+        refusal = self._clock_driver_stop_refusal()
+        if refusal is not None:
+            return refusal
         diagnostics: list[Diagnostic] = []
         changed_addresses: list[str] = []
         working_snapshot = self._snapshot
         phases_succeeded = True
-
-        if self._target.orchestrator is not None:
-            stop_result = _call_backend_apply(
-                self._target.orchestrator.stop,
-                working_snapshot,
-                address="runtime.destroy.orchestrator",
-                snapshot=working_snapshot,
-                realization=_RealizationApplyContext(stop_domain=RuntimeDomain.ORCHESTRATION),
-                information_state_context_resolver=self._information_state_context_resolver,
-            )
-            diagnostics.extend(stop_result.diagnostics)
-            changed_addresses.extend(stop_result.changed_addresses)
-            working_snapshot = stop_result.snapshot
-            if not stop_result.success:
-                phases_succeeded = False
-                maybe_synthesize_failure(
-                    diagnostics,
-                    result=stop_result,
-                    code=_DESTROY_PHASE_FAILED,
-                    address="runtime.destroy.orchestrator",
-                    message="Orchestrator stop failed.",
-                )
-
-        if self._target.evaluator is not None:
-            stop_result = _call_backend_apply(
-                self._target.evaluator.stop,
-                working_snapshot,
-                address="runtime.destroy.evaluator",
-                snapshot=working_snapshot,
-                realization=_RealizationApplyContext(stop_domain=RuntimeDomain.EVALUATION),
-                information_state_context_resolver=self._information_state_context_resolver,
-            )
-            diagnostics.extend(stop_result.diagnostics)
-            changed_addresses.extend(stop_result.changed_addresses)
-            working_snapshot = stop_result.snapshot
-            if not stop_result.success:
-                phases_succeeded = False
-                maybe_synthesize_failure(
-                    diagnostics,
-                    result=stop_result,
-                    code=_DESTROY_PHASE_FAILED,
-                    address="runtime.destroy.evaluator",
-                    message="Evaluator stop failed.",
-                )
-
-        provisioning_entries = working_snapshot.for_domain(RuntimeDomain.PROVISIONING)
-        delete_plan = ProvisioningPlan(
-            resources={},
-            operations=[
-                ProvisionOp(
-                    action=ChangeAction.DELETE,
-                    address=address,
-                    resource_type=provisioning_entries[address].resource_type,
-                    payload=provisioning_entries[address].payload,
-                    ordering_dependencies=(provisioning_entries[address].ordering_dependencies),
-                    refresh_dependencies=(provisioning_entries[address].refresh_dependencies),
-                )
-                for address in snapshot_delete_order(provisioning_entries)
-            ],
-            realization_envelope=working_snapshot.realization_envelope,
+        service_phases = (
+            (
+                self._target.orchestrator,
+                "runtime.destroy.orchestrator",
+                RuntimeDomain.ORCHESTRATION,
+                "Orchestrator stop failed.",
+            ),
+            (
+                self._target.evaluator,
+                "runtime.destroy.evaluator",
+                RuntimeDomain.EVALUATION,
+                "Evaluator stop failed.",
+            ),
         )
+        for service, address, domain, message in service_phases:
+            stop_result = self._stop_service_phase(service, working_snapshot, address=address, domain=domain)
+            if stop_result is None:
+                continue
+            diagnostics.extend(stop_result.diagnostics)
+            changed_addresses.extend(stop_result.changed_addresses)
+            working_snapshot = stop_result.snapshot
+            if not stop_result.success:
+                phases_succeeded = False
+                maybe_synthesize_failure(
+                    diagnostics,
+                    result=stop_result,
+                    code=_DESTROY_PHASE_FAILED,
+                    address=address,
+                    message=message,
+                )
         provision_result = _call_backend_apply(
             self._target.provisioner.apply,
-            delete_plan,
+            self._destroy_delete_plan(working_snapshot),
             working_snapshot,
             address="runtime.destroy.provisioning",
             snapshot=working_snapshot,
-            information_state_context_resolver=self._information_state_context_resolver,
+            call=_BackendCallContext(
+                information_state_context_resolver=self._information_state_context_resolver,
+            ),
         )
         diagnostics.extend(provision_result.diagnostics)
         changed_addresses.extend(provision_result.changed_addresses)
@@ -471,7 +480,6 @@ class RuntimeManager(RuntimeParticipantExecutionMixin, RuntimeTimeControlMixin):
                 address="runtime.destroy.provisioning",
                 message="Provisioning destroy failed.",
             )
-
         self._snapshot = working_snapshot
         return ApplyResult(
             success=phases_succeeded and not _has_error_diagnostic(diagnostics),

@@ -11,7 +11,7 @@ def test_canonical_workflow_installs_the_offline_proof_runtime() -> None:
     workflow = yaml.safe_load(
         (REPO_ROOT / ".github" / "workflows" / "canonical-verification.yml").read_text(encoding="utf-8")
     )
-    steps = workflow["jobs"]["verify"]["steps"]
+    steps = workflow["jobs"]["proof"]["steps"]
     proof_runtime = next(step["run"] for step in steps if step.get("name") == "Install proof sandbox")
 
     assert "command -v bwrap" in proof_runtime

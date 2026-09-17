@@ -92,6 +92,10 @@ silently waive current gates or reclassify an echoed plan as evidence. See
 [design intent](design-intent.md).
 Historical decisions in the original ADR remain until explicit contract migration.
 
+The [#1207 runtime-profile preflight](../../decisions/issue-1207-runtime-profile-completeness-preflight.md)
+records the shared admission owners, adjacent-family findings and security
+boundaries for that correction; it does not change runtime validation.
+
 ## ADR-051
 
 Original: [ADR-051](../../decisions/adrs/adr-051-orchestration-authority-runtime-inventory.md).
@@ -106,6 +110,9 @@ The backend must resolve real execution prerequisites within its authority.
 See [#1201](https://github.com/OpenRAE/rae/issues/1201) and
 [design intent](design-intent.md).
 This follow-up does not change shipped validation or the historical decision.
+The [#1207 architecture preflight](../../decisions/issue-1207-partial-profile-descriptions-preflight.md)
+records the current admission owners, adjacent-family dispositions and
+cross-cutting guardrails for this correction.
 
 ## ADR-064
 

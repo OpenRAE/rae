@@ -237,6 +237,31 @@ defaults point at the canonical `contracts/` tree. The runner exits
 non-zero when the report has any failing case or top-level diagnostic so
 the command can be wired directly into CI gates.
 
+## Observability and evidence fixture profile
+
+`raes conformance backend --profile observability-evidence` selects the
+ASR-525 corpus for backend manifests, capture specifications, evidence records,
+derived measures, and run augmentation disclosures. It uses the same published
+profile loader and fixture runner as the other profiles. Selecting this profile
+is optional; it does not add contracts to other backend profiles or request
+data collection from an executing backend.
+
+The corpus accepts operational apparatus-only disclosure without augmentation
+evidence, and checks the conditional environment, participant, and comparability
+disclosures, including additive classifications. Negative cases distinguish
+missing effects or markings from missing portable carriers, affected refs, and
+purpose-required evidence. SDL fixtures separately demonstrate that an in-world
+listener creates no experimental demand, while explicitly requesting its events
+can require collection with retention and export disabled.
+
+These are finite fixture checks. A passing report does not establish that a
+live backend disclosed every actual augmentation, performed participant
+visibility projection, captured evidence, or satisfied a task. Those claims
+require their respective execution and evidence owners. In particular, the
+evidence-bearing `experiment-run/v1` archive is not a universal requirement for
+every execution: its reference artifacts do not impose experimental collection
+on an SDL scenario with no such demand.
+
 ## Target Conformance Reference Scenario
 
 Target conformance drives a provisioning/snapshot probe (issue #606) that proves

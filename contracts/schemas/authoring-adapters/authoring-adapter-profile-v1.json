@@ -1,0 +1,67 @@
+{
+  "$id": "https://openrae.github.io/rae/schemas/authoring-adapter-profile-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Fixed meaning and resource ceilings of the first, source-only profile.",
+  "properties": {
+    "canonicalization_profile": {
+      "const": "raes-sdl-semantic/v2",
+      "default": "raes-sdl-semantic/v2",
+      "title": "Canonicalization Profile",
+      "type": "string"
+    },
+    "diagnostic_profile": {
+      "const": "authoring-diagnostic-semantics/v1",
+      "default": "authoring-diagnostic-semantics/v1",
+      "title": "Diagnostic Profile",
+      "type": "string"
+    },
+    "max_cases": {
+      "const": 32,
+      "default": 32,
+      "title": "Max Cases",
+      "type": "integer"
+    },
+    "max_diagnostics": {
+      "const": 64,
+      "default": 64,
+      "title": "Max Diagnostics",
+      "type": "integer"
+    },
+    "max_source_bytes": {
+      "const": 65536,
+      "default": 65536,
+      "title": "Max Source Bytes",
+      "type": "integer"
+    },
+    "migration_policy": {
+      "const": "reject",
+      "default": "reject",
+      "title": "Migration Policy",
+      "type": "string"
+    },
+    "profile_id": {
+      "const": "raes-authoring-adapter-conformance/v1",
+      "default": "raes-authoring-adapter-conformance/v1",
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "semantic_profile_digest": {
+      "minLength": 1,
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Semantic Profile Digest",
+      "type": "string"
+    },
+    "source_profile": {
+      "const": "sdl-yaml/v1",
+      "default": "sdl-yaml/v1",
+      "title": "Source Profile",
+      "type": "string"
+    }
+  },
+  "required": [
+    "semantic_profile_digest"
+  ],
+  "title": "AuthoringAdapterProfileModel",
+  "type": "object"
+}

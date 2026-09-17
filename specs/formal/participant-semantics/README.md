@@ -21,10 +21,11 @@ This document is the issue #71 formal design artifact for:
 - `ASR-537` - Cross-Backend Participant-Control Realization And Transfer Evidence
 - `DSL-437` - Benign Participant Autonomous Execution
 
-It is a design artifact, not an implementation artifact. It establishes the
-semantic model that later child implementation issues must realize in SDL
-models, semantic helpers, compiler/runtime contracts, evidence/provenance
-contracts, and tests.
+It is the normative design artifact for the participant-semantics family. Its
+original design status does not mean the family is wholly unimplemented:
+delivered slices now bind parts of the model into SDL models, semantic helpers,
+compiler/runtime contracts, evidence/provenance contracts, and focused tests.
+The remaining boundaries below state what those slices do not establish.
 
 Issue #119 and ADR-083 extend the original issue #71 design with the joint
 `SEM-219`, `SEM-220`, and `SEM-226` decision-surface model. Their executable
@@ -66,7 +67,10 @@ runtime enforcement, backend realization, monitor-honesty, covert-channel, or
 adversarial-robustness result.
 
 Issue #813 and ADR-102 add the SEM-234 mixed-composition and ASR-537
-realization/transfer-evidence design. Their normative profiles are in
+realization/transfer-evidence design. Issue #1013 publishes `sem-234/rev1`
+with bounded executable admission and transition witnesses, aligned with
+ADR-105's delegated choices and independent observation demand.
+Their normative profiles are in
 [`cross-backend-participant-control.md`](cross-backend-participant-control.md).
 The design supports both alternative simulation/emulation realization and
 simultaneous mixed realization, plus linked inter-trial and finite
@@ -84,7 +88,8 @@ readback. It adds no parallel actor or private time semantics.
 
 ## Current Sufficiency Finding
 
-The existing implementation is not sufficient for `SEM-208` through `SEM-215`.
+The existing implementation provides bounded `SEM-208` through `SEM-215`
+slices, but is not sufficient for the complete participant-semantics family.
 
 What exists:
 
@@ -98,25 +103,28 @@ What exists:
 - Objective, workflow, assessment, planner, runtime-result, and semantic-profile
   surfaces already provide patterns for shared semantic helpers and contract
   boundaries.
+- Focused SEM-208 and SEM-211 action/observation semantics are exercised by
+  `test_sem_208_participant_behavior.py` and
+  `test_sem_211_participant_action_semantics.py`; the abstract invariant model
+  has bounded oracle coverage in
+  `test_participant_semantics_invariant_oracle.py`.
+- #1013 publishes bounded `sem-234/rev1` admission and transition witnesses;
+  `test_sem_234_mixed_composition.py` is bounded semantic evidence, not a
+  deployed mixed-runtime conformance result.
 
 What is missing:
 
-- no normative participant action contract beyond action names
-- no observation model that distinguishes world truth from participant-visible
-  projection
-- no visibility, discovery, concealment, disclosure, or inference semantics
-- no precondition/effect/side-effect/failure taxonomy for participant actions
-- no joint-action model for coordination, contention, interference, or
-  shared-state change among participants
-- no temporal participant behavior model for cadence, dwell, deadlines,
-  latency, schedule, or time-windowed action interpretation
-- no evidence-labeled causality and attribution model connecting participant
-  actions to state changes, detections, alerts, or downstream outcomes
-- no participant-local outcome interpretation layer relating action/episode
-  outcomes to objectives, workflows, evaluations, rewards, and evidence
+- no complete cross-backend runtime realization or conformance proof for the
+  semantic family
+- no deployed-backend proof that extends the bounded oracle or mixed-composition
+  witnesses to interoperability, transfer, noninterference, or equivalence
+- no claim that inherited delegation, complete abstract models, one-choice
+  admission, independent observation demand, or the #1212 policy correction
+  has shipped merely because related design or research material exists
 
-The repository therefore remains at `partial` participant-semantics coverage
-where runtime implementation slices are incomplete. Issue #487 adds
+The repository therefore remains at `partial` participant-semantics coverage:
+delivered runtime and semantic slices remain incomplete for the full family.
+Issue #487 adds
 `implementations/python/tests/test_participant_semantics_invariant_oracle.py`
 as the executable FM-2 assurance artifact for the abstract model invariants
 `I1` through `I18`: it is implementation evidence for the published invariant

@@ -1,10 +1,10 @@
 {
+  "content_hash": "206e3e4927722e07d5588d19430b75b437098cc8467fe37f2611ac53e1bab555",
   "contract_id": "runtime-snapshot-v1",
-  "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
-  "stability": "draft",
-  "content_hash": "d4bd1739165c6d7765b002f2a4f31fc858bd7f49a9c8b3e952dec589bda25e66",
   "last_change": {
-    "summary": "Carried typed public profile selections on their owning provisioning resource entries for issue #1204.",
-    "content_hash": "d4bd1739165c6d7765b002f2a4f31fc858bd7f49a9c8b3e952dec589bda25e66"
-  }
+    "content_hash": "206e3e4927722e07d5588d19430b75b437098cc8467fe37f2611ac53e1bab555",
+    "summary": "Preserve typed protected materialization archive records and distinct provenance references through run and runtime snapshots; original input and evidence semantics remain unchanged (#1241)."
+  },
+  "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
+  "stability": "draft"
 }

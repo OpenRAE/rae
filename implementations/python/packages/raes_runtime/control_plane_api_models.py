@@ -78,6 +78,9 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
     from raes_contracts.planning import PlannedRealizationConstraint
 
     return ProvisioningPlan(
+        materialization_source=model.materialization_source,
+        augmentation_scope_required=model.augmentation_scope_required,
+        purpose=model.purpose,
         preparation=model.preparation,
         profile_authority=model.profile_authority,
         operations=[
@@ -134,12 +137,18 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
             for item in model.realization_constraints
         ),
         operation_id=model.operation_id,
+        run_id=model.run_id,
+        instantiation_id=model.instantiation_id,
         observation_demands=tuple(model.observation_demands),
     )
 
 
 def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
     return OrchestrationPlan(
+        operation_id=model.operation_id,
+        materialization_source=model.materialization_source,
+        augmentation_scope_required=model.augmentation_scope_required,
+        purpose=model.purpose,
         operations=[
             OrchestrationOp(
                 action=ChangeAction(str(op.action)),
@@ -159,6 +168,10 @@ def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
 
 def _evaluation_plan(model: EvaluationPlanModel) -> EvaluationPlan:
     return EvaluationPlan(
+        operation_id=model.operation_id,
+        materialization_source=model.materialization_source,
+        augmentation_scope_required=model.augmentation_scope_required,
+        purpose=model.purpose,
         operations=[
             EvaluationOp(
                 action=ChangeAction(str(op.action)),
@@ -172,6 +185,8 @@ def _evaluation_plan(model: EvaluationPlanModel) -> EvaluationPlan:
         ],
         startup_order=list(model.startup_order),
         diagnostics=[_diagnostic_from_mapping(payload) for payload in model.diagnostics],
+        run_id=model.run_id,
+        instantiation_id=model.instantiation_id,
         observation_demands=tuple(model.observation_demands),
     )
 
@@ -195,6 +210,9 @@ def _operation_status_model(status: OperationStatus) -> OperationStatusModel:
 def _snapshot_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelopeModel:
     snapshot = envelope.snapshot
     payload = {
+        "materialization_attestations": [
+            record.model_dump(mode="json") for record in snapshot.materialization_attestations
+        ],
         "schema_version": envelope.schema_version,
         "entries": {
             address: {
