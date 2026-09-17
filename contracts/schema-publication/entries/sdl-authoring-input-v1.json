@@ -1,9 +1,9 @@
 {
-  "content_hash": "11f78795eeb7a3fbf95122f03a164abe9b275b7ace8981ab762ba44aa91fa3a9",
+  "content_hash": "3d1f28649c1a58d2e608fdb913e51386ff656db0f180749ee3c75afaf80821c4",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "11f78795eeb7a3fbf95122f03a164abe9b275b7ace8981ab762ba44aa91fa3a9",
-    "summary": "Separate portable service-manager identity and native names from explicitly selected systemd state (#1297)."
+    "content_hash": "3d1f28649c1a58d2e608fdb913e51386ff656db0f180749ee3c75afaf80821c4",
+    "summary": "Carry bounded augmentation permission, partial runtime listener descriptions, and portable service-manager contracts (#1242, #1299, #1297)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

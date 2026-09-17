@@ -193,9 +193,21 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   the merged participant-relationship and augmentation source tree. Fresh
   replay retains bounded outcomes and claim limits without qualifying an
   adapter transport.
-- [`bundles/retest-v27.json`](bundles/retest-v27.json) is current release 28.0.0.
+- [`bundles/retest-v27.json`](bundles/retest-v27.json) preserves release 28.0.0.
   It binds [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
-  [`analysis-v27.json`](analysis-v27.json) to issue #1297's portable
+  [`analysis-v27.json`](analysis-v27.json) to issue #1299 partial runtime
+  listener admission on the integrated authoring-adapter source tree. Fresh
+  replay retains release-27 outcomes, digests, and claim limits; endpoint
+  completeness, backend admission, and adapter transport behavior remain
+  outside this corpus's claims.
+- [`bundles/retest-v28.json`](bundles/retest-v28.json) preserves release 29.0.0.
+  It binds [`execution-snapshot-v28.json`](execution-snapshot-v28.json) and
+  [`analysis-v28.json`](analysis-v28.json) to the issue #1223 reviewed OCI
+  mirror and pre-seed admission boundary; that work does not participate in this
+  corpus, so replay retains release-28 outcomes with no new claim class.
+- [`bundles/retest-v29.json`](bundles/retest-v29.json) is current release 30.0.0.
+  It binds [`execution-snapshot-v29.json`](execution-snapshot-v29.json) and
+  [`analysis-v29.json`](analysis-v29.json) to issue #1297's portable
   service-manager contract. Fresh production and participant replay retains
   bounded outcomes and claim limits without claiming live manager execution.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
@@ -242,7 +254,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 28.0.0, rejects unsupported future
+Current validation requires explicit release 30.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

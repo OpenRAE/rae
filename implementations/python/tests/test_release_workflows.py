@@ -570,11 +570,35 @@ def test_release_requires_skip_free_real_docker_tests_at_the_exact_sha() -> None
     fixture = DOCKER_INTEGRATION_PATH.read_text(encoding="utf-8")
     assert "RAES_DOCKER_INTEGRATION_REQUIRED" in fixture
     assert "pytest.fail" in fixture
-    assert "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc" in fixture
+    # The reviewed image identity is lock data, not a literal in the harness.
+    assert "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc" not in fixture
+    assert "oci_release_image.locked_platform_graphs()" in fixture
 
     optional = _load(CI_PATH)["jobs"]["integration-docker"]
     assert optional["continue-on-error"] is True
     assert "RAES_DOCKER_INTEGRATION_REQUIRED" not in str(optional)
+
+
+def test_release_container_input_is_pre_seeded_rather_than_pulled_at_test_time() -> None:
+    """The required lane proves export/import instead of trusting a live pull."""
+
+    docker = _load(RELEASE_PATH)["jobs"]["integration-docker-release"]
+
+    export = _named_step(docker, "Export the reviewed multi-platform OCI graph")
+    load = _named_step(docker, "Admit and pre-seed the reviewed OCI graph")
+    required = _named_step(docker, "Require real-container release integration")
+
+    # Export, offline admission and daemon load all happen before the lane runs.
+    names = [step.get("name") for step in docker["steps"]]
+    assert names.index(export["name"]) < names.index(load["name"]) < names.index(required["name"])
+    assert "tools/oci_release_image.py export" in export["run"]
+    assert "tools/oci_release_image.py import" in load["run"]
+    # The lane itself performs no acquisition.
+    assert required["env"]["RAES_OCI_SOURCE_CLASS"] == "preseeded"
+    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
+    # A pre-seed failure must stop the release, not degrade to a public pull.
+    assert "continue-on-error" not in export
+    assert "continue-on-error" not in load
 
 
 def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> None:

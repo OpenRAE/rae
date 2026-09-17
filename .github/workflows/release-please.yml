@@ -216,9 +216,30 @@ jobs:
           enable-cache: false
           version: "0.12.4"
 
+      # The required lane must not depend on a live public pull succeeding at
+      # test time. Export the reviewed multi-platform graph, admit it offline
+      # against the lock, then load it; the lane then runs pre-seeded. This is
+      # also the release-lane execution of the export/import evidence.
+      - name: Export the reviewed multi-platform OCI graph
+        env:
+          OCI_LAYOUT: ${{ runner.temp }}/raes-release-oci-layout
+        run: |
+          set -euo pipefail
+          uv run --project implementations/tooling/python --frozen --no-default-groups \
+            python tools/oci_release_image.py export --layout "${OCI_LAYOUT}"
+
+      - name: Admit and pre-seed the reviewed OCI graph
+        env:
+          OCI_LAYOUT: ${{ runner.temp }}/raes-release-oci-layout
+        run: |
+          set -euo pipefail
+          uv run --project implementations/tooling/python --frozen --no-default-groups \
+            python tools/oci_release_image.py import --layout "${OCI_LAYOUT}" --runtime docker
+
       - name: Require real-container release integration
         env:
           RAES_DOCKER_INTEGRATION_REQUIRED: "1"
+          RAES_OCI_SOURCE_CLASS: "preseeded"
           DOCKER_JUNIT: ${{ runner.temp }}/raes-release-docker-junit.xml
         run: |
           set -euo pipefail

@@ -352,6 +352,67 @@ evidence artifact under the exact delivery SHA.
   setup planning. It never invokes `sudo`, shell evaluation, repository/key installation,
   pipe-to-shell acquisition or host-security reconfiguration.
 
+### Issue #1223 OCI mirror and pre-seed evidence
+
+The release-test container input is reviewed lock data rather than a literal in
+a test file. `release-test-alpine` records the reviewed multi-platform index
+`sha256:d9e853e8…` once, and each required platform records the selected
+manifest, config, layer and uncompressed layer identities beneath it. The
+graph-bearing admission policy `oci-graph-v1` is the explicit opt-in: an image
+that references it must carry a complete graph on every platform, and an image
+that does not reference it may not declare one at all. Index-only inputs such
+as the Scorecard action image and the development base image keep `oci-input-v1`
+unchanged.
+
+Linux x86_64 and Linux arm64 are the required platforms for retention, mirroring
+and export. The release lane still executes on Linux x86_64 only; arm64 daemon
+execution would need evidence this repository does not have.
+
+- T10: acquisition location is a closed source class. `preseeded` performs no
+  acquisition at all, `mirror` pulls only from the explicitly configured
+  reviewed mirror, and neither falls back to the public origin on failure. A
+  mirror value carrying a scheme, credentials, query, tag or digest is refused
+  before any client runs, and a mirror endpoint never reaches argv beyond the
+  one pull, a diagnostic, or retained evidence.
+- T11/T17: `tools/oci_release_image.py export` copies every reviewed platform
+  with `skopeo copy --all --preserve-digests`, and `import` admits the exported
+  layout offline before the runtime is touched. The release job runs both before
+  the required lane, which then runs `RAES_OCI_SOURCE_CLASS=preseeded` and
+  performs no pull. Required-mode failure for a missing runtime or input, zero
+  collected tests and any skip is unchanged from #1110.
+- T13: `tools/oci_image_layout.py` re-hashes every object named by the lock from
+  the opened file. A missing platform manifest, a mutated layer byte at the
+  locked size, a layout whose entry point is not the reviewed index, a required
+  platform claiming another platform's manifest, a symlinked blob and any blob
+  outside the reviewed index's closure are each rejected with a stable reason
+  code that never echoes layout content. No network call and no execution of
+  imported content precedes that admission.
+- T07: concurrent real-container runs no longer contend for one native name.
+  Each run generates an opaque bounded namespace, the driver commits every
+  container and network name to it, and ownership is still proven by the
+  `raes.workspace`/`raes.address` labels and daemon readback rather than by a
+  name prefix. Teardown runs on the success and every failure path, removes
+  exactly the addresses the driver reports as realized, and then asks the
+  runtime whether anything still carries this run's workspace label. That last
+  check exists because forced removal is idempotent: tearing down an address
+  that was never realized reports success while the real resource leaks, which
+  is how the previous harness silently left a container behind on every
+  conformance run. A failed teardown and a surviving resource are both reported
+  failures, and the survivor query names this run's exact workspace so a
+  concurrent run's resources are never visible to it.
+- Runtime identity: the daemon readback compares the reviewed architecture, OS
+  and uncompressed layer identities. The daemon's image id is deliberately not
+  used, because it means the config digest under one storage driver and the
+  pulled manifest digest under another, while the layer identities are intrinsic
+  to the content and survive a registry pull, an offline import and either
+  driver. An integrity mismatch fails in optional and required mode alike; only
+  an availability failure may skip an optional local run.
+
+This evidence covers the OCI slices of T07, T10, T11, T13 and T17 only. It makes
+no claim about generic tool, Python, proof-runtime, promotion, signing or
+publisher controls, and no claim about registries, runtimes or architectures
+outside the qualified profile above.
+
 ### Issue #1220 proof input evidence
 
 Isabelle no longer contains repository HTTP transport, mirror loops, a shared

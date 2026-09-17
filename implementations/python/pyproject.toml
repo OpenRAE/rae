@@ -151,6 +151,8 @@ exclude_also = [
     # IO, exercised only by the opt-in docker integration tests, never in the
     # hermetic suite.
     "def _default_runner",
+    # A module's CLI entry guard is never taken under import-based testing.
+    "if __name__ == .__main__.:",
 ]
 
 [tool.coverage.xml]

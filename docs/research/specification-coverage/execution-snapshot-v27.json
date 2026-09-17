@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-17T05:25:15+00:00",
+  "captured_at": "2026-09-17T04:04:20.260824+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -652,12 +652,12 @@
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "6066f0abf80c0fc6b6a49d218d00b3d627007670e81c3200f33cffd8d1096644",
+      "content_sha256": "98bc546c171514abdb6a0e40339ef0d989a840dbc7c096fd2a57ac99c9489114",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "52440933c006091268c44942fd4eecae1b59515f438300f91c2d034a8646cc20",
+      "content_sha256": "d65c11de60803f4e5c8d526bec99e9151994fe1b1ed8f78288733ea1da4c02a9",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -672,18 +672,18 @@
     "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged.",
     "This capture replays open-by-default augmentation scope integrated with the EXP-731 evidence refinements after composition type refinement; it does not evaluate native backend scope enforcement or broaden the preregistered coverage claims.",
     "This capture replays the retained protocol after merging ACT-612 participant relationships with open-by-default augmentation scope; it adds no claim of realized participant relationships or native backend scope enforcement.",
-    "This capture binds authoring-adapter semantic conformance alongside the retained augmentation scope work to fresh source and package digests; outcomes, classifications, denominator, and claim limits are unchanged. It does not qualify an adapter transport or native backend scope enforcement.",
-    "This capture binds issue #1297 service-manager identity, native-name, and explicitly selected systemd-state contract changes to fresh source digests. It exercises no live service manager and adds no backend-execution claim."
+    "This capture replays issue #1299 partial listener descriptions on the integrated source state; endpoint completeness and backend admission remain outside this protocol's claims.",
+    "This capture also binds authoring-adapter semantic conformance to the integrated source; adapter transport behavior remains outside this protocol's claims."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
   "raes_revision": "08c363f699a81e1755d1afc258620f5bd00975b5",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1297-v27",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1299-v27",
   "snapshot_revision": "27.0.0",
   "source_state": {
     "base_revision": "08c363f699a81e1755d1afc258620f5bd00975b5",
     "checkout_state": "modified",
-    "implementation_digest": "cad9f75b3da885f92081b8554bcd0424de9b707177bfef994c187d1c4fc6d083",
+    "implementation_digest": "d0c553c2d77a2dabd965c6939b9ebf610fac7dd776e662fb1384668d2c3630d6",
     "profile": "python-reference-source/v2"
   }
 }

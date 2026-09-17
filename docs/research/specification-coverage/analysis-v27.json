@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1297-v27",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1299-v27",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,12 +39,13 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-17",
+  "generated_at": "2026-09-17T04:04:20.260824+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
     "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation.",
-    "The retained protocol does not test evidence-requirement refinement lineage; the dedicated EXP-731 regression suite covers that production boundary."
+    "The retained protocol does not test evidence-requirement refinement lineage; the dedicated EXP-731 regression suite covers that production boundary.",
+    "Authoring-adapter transport behavior is outside this retained protocol."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -52,7 +53,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay of the integrated augmentation-scope implementation retains those classifications and claim limits; native backend scope enforcement is not evaluated. Replay of the integrated augmentation-scope implementation retains those classifications and claim limits; native backend scope enforcement is not evaluated. Replay of the integrated augmentation-scope implementation retains those classifications and claim limits; native backend scope enforcement is not evaluated.",
+  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay on the integrated source state retains those classifications and claim limits; listener endpoint completeness, backend admission, realized participant relationships, authoring-adapter transport behavior, and native backend scope enforcement are not evaluated by this protocol.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -84,6 +85,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1297-v27",
-  "snapshot_sha256": "d2bbda601d15f1532266864e11ad2113da9b58b4bad12ec67b517c535f34bd7c"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1299-v27",
+  "snapshot_sha256": "45ba22406fb10b55a8fe12393f9c87f6216acfc9bd5e8913674f1d9cc1b73108"
 }
