@@ -32,7 +32,7 @@ decision, change, release, delivery attempt, delivery, observation, and audit.
 Each stage refers to an existing carrier. It does not copy the carrier payload
 into a generic participant message.
 
-## Mixed simulation and emulation are DRAFT
+## Mixed simulation and emulation semantics
 
 Issue #813 and ADR-102 define the design boundary for using the same
 participant-control intent in:
@@ -40,8 +40,9 @@ participant-control intent in:
 - simulation or emulation/operation as alternative realizations; and
 - simulation and emulation/operation together in one admitted trial.
 
-SEM-234 and ASR-537 are DRAFT. The design does not mean current RAES runtimes
-can execute a mixed trial.
+Issue #1013 publishes SEM-234's revisioned semantic definition and finite
+admission/phase examples. ASR-537's realization demonstration remains DRAFT.
+This does not mean current RAES runtimes can execute a mixed trial.
 
 Portable SDL stays backend-neutral. Future admitted trial intent will allocate
 stable participant-runtime, controlled-scope, action-family,
@@ -49,6 +50,12 @@ observation-source, and crossing refs to exact apparatus components. Every
 component edge must state its adapter, authority, action/observation mapping,
 participant/audience policy, clock/order mapping, support strength, loss,
 failure behavior, and evidence.
+
+These are admitted apparatus obligations. They do not require authors to
+specify internal installation recipes. Open materialization scopes retain
+their delegated choices, exact constraints stay binding, and abstract models
+can be complete. Reporting, experimental collection, retention and export are
+independently requested; precise scenario detail does not imply telemetry.
 
 Keep these separate:
 
@@ -80,8 +87,8 @@ mappings, policy, clocks, and failure behavior were admitted before execution.
 Neither kind erases prior delivery or participant knowledge.
 
 Do not treat a shared adapter, passing conformance probe, paired backend run,
-or successful transfer trial as backend equivalence. The implementation and
-evidence work is tracked by issues #1013 through #1019. See the
+or successful transfer trial as backend equivalence. The contract, runtime and
+evidence work is tracked by issues #1014 through #1019. See the
 [issue #813 design record](https://github.com/OpenRAE/rae/issues/813).
 
 ## Choose the route for your role

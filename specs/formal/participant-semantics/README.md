@@ -66,7 +66,10 @@ runtime enforcement, backend realization, monitor-honesty, covert-channel, or
 adversarial-robustness result.
 
 Issue #813 and ADR-102 add the SEM-234 mixed-composition and ASR-537
-realization/transfer-evidence design. Their normative profiles are in
+realization/transfer-evidence design. Issue #1013 publishes `sem-234/rev1`
+with bounded executable admission and transition witnesses, aligned with
+ADR-105's delegated choices and independent observation demand.
+Their normative profiles are in
 [`cross-backend-participant-control.md`](cross-backend-participant-control.md).
 The design supports both alternative simulation/emulation realization and
 simultaneous mixed realization, plus linked inter-trial and finite

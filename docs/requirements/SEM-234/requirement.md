@@ -1,7 +1,7 @@
 ---
 id: SEM-234
 title: "Mixed Cross-Backend Participant-Control Composition"
-status: DRAFT
+status: ACTIVE
 type: FUNCTIONAL
 priority: MUST
 wave: 4
@@ -21,7 +21,13 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 
 ## Traceability
 
-- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Define mixed cross-backend participant-control semantics)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Publish sem-234/rev1 semantic definition; no runtime realization claim)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned composition, admission and phase semantics)
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/mixed-participant-composition.md` (Worked cases, clause matrix and bounded assurance)
+- TESTS → TEST `implementations/python/tests/sem234_mixed_composition_model.py` (Finite trusted-context composition oracle, not production enforcement)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Admission, projection, phase and progressive-specification witnesses)
+- TESTS → TEST `implementations/python/tests/test_sem_234_governance.py` (Exact semantic publication ownership)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1013-sem-234-mixed-participant-control-preflight.md` (Composition authority and current-carrier compatibility)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Publish portable mixed-composition contracts)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1015` (Admit mixed and staged participant trial realizations)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Coordinate mixed participant runtimes fail-closed)
@@ -29,7 +35,6 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1018` (Demonstrate mixed cross-backend participant control)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1019` (Reconcile mixed participant-control claims)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-102-mixed-cross-backend-participant-control.md` (ADR-102: Mixed Cross-Backend Participant Control)
-- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (SEM-234 mixed cross-backend participant-control formal design)
 - DOCUMENTS → DOCUMENTATION `docs/research/cross-backend-participant-control/composition-architecture.md` (Mixed cross-backend participant-control composition architecture)
 - TESTS → TEST `implementations/python/tests/test_issue_813_cross_backend_participant_control_design.py` (Issue 813 structural acceptance gate)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#813` (Design cross-backend participant control against simulation and cyber-range precedents)

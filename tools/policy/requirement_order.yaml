@@ -79,6 +79,11 @@ phases:
       - SEM-225
     blocked_until:
       - reference-implementations
+  - id: mixed-participant-composition
+    requirements:
+      - SEM-234
+    blocked_until:
+      - reference-implementations
   - id: semantics-expansion
     patterns:
       - ^SEM-
@@ -529,6 +534,23 @@ ownership:
     - specs/sdl/document-model.md
     - specs/sdl/materialization-attestation.md
     - specs/sdl/observability-and-evidence.md
+  mixed-participant-composition:
+    # SEM-234 publishes semantics, not mixed-runtime implementation (#1013).
+    - specs/formal/participant-semantics/cross-backend-participant-control.md
+    - specs/formal/participant-semantics/README.md
+    - specs/formal/assurance-fulfillment.yaml
+    - docs/decisions/issue-1013-sem-234-mixed-participant-control-preflight.md
+    - docs/explain/reference/mixed-participant-composition.md
+    - docs/explain/sdl/lineage.md
+    - docs/public/participant-control.md
+    - docs/requirements/SEM-234/requirement.md
+    - docs/requirements/SEM-230/requirement.md
+    - docs/requirements/SCE-002/requirement.md
+    - docs/requirements/API-423/requirement.md
+    - docs/requirements/RUN-310/requirement.md
+    - implementations/python/tests/sem234_mixed_composition_model.py
+    - implementations/python/tests/test_sem_234_mixed_composition.py
+    - implementations/python/tests/test_sem_234_governance.py
   semantics-expansion:
     - contracts/schemas/sdl
     # Shared description semantics and existing evidence lifecycle owners (SEM-218).
