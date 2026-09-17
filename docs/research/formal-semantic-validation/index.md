@@ -160,16 +160,34 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   capture-dimension, and EXP-731 refinement implementation. Fresh replay
   retains release-21 outcomes and digests without expanding the formal claim
   set; every earlier release remains byte-exact.
-- [`bundles/retest-v22.json`](bundles/retest-v22.json) is current release 23.0.0.
+- [`bundles/retest-v22.json`](bundles/retest-v22.json) preserves release 23.0.0.
   It binds [`execution-snapshot-v22.json`](execution-snapshot-v22.json) and
-  [`analysis-v22.json`](analysis-v22.json) to authoring conformance integrated
-  with EXP-731. Fresh replay retains release-22 outcomes, digests, and claim
-  limits; no transport or new claim class is qualified. The earlier feature
-  releases 22 and 23 remain byte-exact in commit
-  `b58c6a0bc3df3034a8cbee66542ed12cd3849232`. Their manifests are retained at
-  `historical-artifacts/issue-1005-pre-refinement-release-v22.json` and
-  `historical-artifacts/issue-1005-pre-refinement-release-v23.json`; their paths
-  and hashes describe that commit, not the current checkout.
+  [`analysis-v22.json`](analysis-v22.json) to open-by-default augmentation scope
+  integrated with EXP-731 evidence refinements. Production and participant
+  replay retain the registered outcomes and claim limits; two compiled
+  representation digests change. This corpus does not establish native backend
+  scope enforcement. The earlier issue-1242 capture remains byte-exact in commit
+  `1ab0580525136667bbc713d3c2f4a7820bab08da`, with its manifest outside the
+  active index at `historical-artifacts/issue-1242-pre-refinement-sync-release-v21.json`.
+  That manifest's paths and hashes describe files at the named commit, not the
+  current checkout; incoming published captures retain their exact bytes.
+- [`bundles/retest-v23.json`](bundles/retest-v23.json) preserves release 24.0.0.
+  It binds [`execution-snapshot-v23.json`](execution-snapshot-v23.json) and
+  [`analysis-v23.json`](analysis-v23.json) to the maintainability refactor of
+  augmentation admission. Fresh production and participant replay retains
+  release-23 outcomes and compiled digests, with no new deviations or claims.
+  All previously published captures remain unchanged.
+- [`bundles/retest-v24.json`](bundles/retest-v24.json) preserves release 25.0.0.
+  It binds [`execution-snapshot-v24.json`](execution-snapshot-v24.json) and
+  [`analysis-v24.json`](analysis-v24.json) to the tightened composition type
+  annotations. Fresh production and participant replay retains release-24
+  outcomes, digests, and claim limits. Earlier captures remain byte-exact.
+- [`bundles/retest-v25.json`](bundles/retest-v25.json) is current release 26.0.0.
+  It binds [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
+  [`analysis-v25.json`](analysis-v25.json) to authoring-adapter semantic
+  conformance alongside retained augmentation work. Production and participant
+  replay retain outcomes and claim limits; it does not establish adapter
+  transport behavior or native backend scope enforcement.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -214,7 +232,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 23.0.0, rejects unsupported future
+Current validation requires explicit release 18.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

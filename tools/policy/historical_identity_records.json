@@ -346,9 +346,9 @@
     {
       "path": "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
+      "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1242 open-by-default augmentation-scope amendment.",
       "occurrences": 1,
-      "content_sha256": "a3f6e034b696f0254f5d1321b747d5a3cefe6df65784a5d88e1615b1eeec4749"
+      "content_sha256": "938ce2443ce7bd9e5cfa151d9740610ac23fa4338efa48c3cb022c7543bab24a"
     },
     {
       "path": "docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "e54907e06960f97ebbfee72e7b70444fb367b68f60fe56dab7fe5791478537e7"
+      "content_sha256": "1130a09458f2d889610b9c01b75c1716e90f4575d559305e570051a33c541144"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

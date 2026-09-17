@@ -15,6 +15,7 @@ from .backend_account_credentials import (
     value_free_backend_diagnostics,
 )
 from .backend_apply_results import _finalize_backend_apply
+from .backend_augmentation import compose_augmentation_invocation, prepare_augmentation_invocation
 from .backend_call_contracts import (
     _materialize_diagnostics,
 )
@@ -78,15 +79,25 @@ def _prepared_backend_result(
     args, realization, diagnostics = prepare_backend_invocation(method, args, baseline_snapshot, realization)
     if args is None:
         return ApplyResult(False, baseline_snapshot, diagnostics=diagnostics)
-    result = _invoke_backend_apply(
-        method,
-        args,
-        address=address,
-        snapshot=snapshot,
-        baseline_snapshot=baseline_snapshot,
-        realization=deepcopy(realization),
-        call=call,
+    realization, scope_diagnostics = prepare_augmentation_invocation(method, baseline_snapshot, realization)
+    diagnostics = [*diagnostics, *scope_diagnostics]
+    if scope_diagnostics:
+        return ApplyResult(False, baseline_snapshot, diagnostics=diagnostics)
+    realization, composition_diagnostics = compose_augmentation_invocation(
+        realization, baseline_snapshot, call.materialization_archive
     )
+    if composition_diagnostics:
+        result = ApplyResult(False, baseline_snapshot, diagnostics=composition_diagnostics)
+    else:
+        result = _invoke_backend_apply(
+            method,
+            args,
+            address=address,
+            snapshot=snapshot,
+            baseline_snapshot=baseline_snapshot,
+            realization=deepcopy(realization),
+            call=call,
+        )
     result.diagnostics = [*diagnostics, *result.diagnostics]
     return result
 

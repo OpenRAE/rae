@@ -79,6 +79,7 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
 
     return ProvisioningPlan(
         materialization_source=model.materialization_source,
+        augmentation_scope_required=model.augmentation_scope_required,
         purpose=model.purpose,
         preparation=model.preparation,
         profile_authority=model.profile_authority,
@@ -146,6 +147,7 @@ def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
     return OrchestrationPlan(
         operation_id=model.operation_id,
         materialization_source=model.materialization_source,
+        augmentation_scope_required=model.augmentation_scope_required,
         purpose=model.purpose,
         operations=[
             OrchestrationOp(
@@ -168,6 +170,7 @@ def _evaluation_plan(model: EvaluationPlanModel) -> EvaluationPlan:
     return EvaluationPlan(
         operation_id=model.operation_id,
         materialization_source=model.materialization_source,
+        augmentation_scope_required=model.augmentation_scope_required,
         purpose=model.purpose,
         operations=[
             EvaluationOp(

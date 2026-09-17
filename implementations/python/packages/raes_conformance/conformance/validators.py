@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from raes.materialization import MaterializedScenario
+from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.authoring_adapters import (
     AuthoringAdapterComparisonModel,
     AuthoringAdapterProfileModel,
@@ -134,6 +135,7 @@ _MODEL_VALIDATORS = {
 
 
 _STRUCTURAL_ONLY_VALIDATORS = {
+    "backend-augmentation-scope-v1": AugmentationPreparation.model_validate,
     "materialized-scenario-v1": MaterializedScenario.model_validate,
     "backend-materialization-attestation-v1": MaterializationSubmission.model_validate,
     "materialization-archive-record-v1": MaterializationArchiveRecord.model_validate,

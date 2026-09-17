@@ -2,11 +2,37 @@
 
 from __future__ import annotations
 
-from raes.observation_scope import resolve_observation_scope
+from raes_contracts.augmentation_scope import AugmentationScopeRule
+
+from raes.observation_scope import resolve_observation_scope, semantic_scope_namespace
 from raes.runtime_forwarding_agent import RuntimeForwardingAgentOwnershipRole
+from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 
 
 class _EvidenceRequirementsMixin:
+    def _verify_augmentation_scope(self) -> None:
+        # Descriptions retain original-source policy addresses even when a
+        # prospective/actual removal no longer contains the addressed member.
+        # Execution admission resolves these against the bound original source.
+        if not isinstance(self._s, (Scenario, ExpandedScenario, InstantiatedScenario)):
+            return
+        policy = self._s.augmentation_scope
+        if policy is not None:
+            provenance = getattr(self._s, "instantiation_provenance", getattr(self._s, "expansion_provenance", None))
+            namespaces = {record.namespace for record in getattr(provenance, "imports", ())}
+            for rule in policy.scopes:
+                if rule.namespace and rule.namespace not in namespaces:
+                    self._err("Augmentation permission namespace does not resolve to an admitted import")
+                self._verify_observation_scope(rule.scope, "Augmentation permission", "scope")
+                self._verify_augmentation_namespace_owner(rule)
+
+    def _verify_augmentation_namespace_owner(self, rule: AugmentationScopeRule) -> None:
+        found, canonical = resolve_observation_scope(self._s, rule.scope)
+        if rule.namespace and found and len(canonical.split("/")) >= 3:
+            owner = semantic_scope_namespace(self._s.model_dump(mode="json"), canonical)
+            if owner[: len(rule.namespace)] != rule.namespace:
+                self._err("Augmentation permission namespace does not own the addressed declaration")
+
     def _verify_evidence_requirements(self) -> None:
         for name, requirement in self._s.evidence_requirements.items():
             owner_label = f"Evidence requirement '{name}'"

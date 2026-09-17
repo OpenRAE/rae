@@ -1,9 +1,9 @@
 {
-  "content_hash": "1154713c5e77f7150108f418770911c0fab54962dd5e219be2ade15768f0874c",
+  "content_hash": "924e2f828a3e8bade4a59edb18dd24aa1801d4fa6f17856e894e330b2b72bb68",
   "contract_id": "provisioning-plan-v1",
   "last_change": {
-    "content_hash": "1154713c5e77f7150108f418770911c0fab54962dd5e219be2ade15768f0874c",
-    "summary": "Carry authenticated full materialization source, inspection-only purpose and operation identity through runtime plans (#1241)."
+    "content_hash": "924e2f828a3e8bade4a59edb18dd24aa1801d4fa6f17856e894e330b2b72bb68",
+    "summary": "Bind explicit augmentation-scope negotiation to the canonical phase plan independently of diagnostics (#1242)."
   },
   "schema_path": "contracts/schemas/plans/provisioning-plan-v1.json",
   "stability": "draft"

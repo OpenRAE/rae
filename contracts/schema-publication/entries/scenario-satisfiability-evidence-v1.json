@@ -1,9 +1,9 @@
 {
-  "content_hash": "629e4a85aba6c4c20ba998158cce5b1149e27c4a886de5434bf370a1cf447632",
+  "content_hash": "fb370118160da6f1ffe37594f1d17f6c14ae258859cf6d88df9fada4a966e805",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "629e4a85aba6c4c20ba998158cce5b1149e27c4a886de5434bf370a1cf447632",
-    "summary": "Publish model-enforced omission rules for redacted runtime/image values and commands, and expected-absent filesystem facts (#1241 review)."
+    "content_hash": "fb370118160da6f1ffe37594f1d17f6c14ae258859cf6d88df9fada4a966e805",
+    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

@@ -1,9 +1,9 @@
 {
-  "content_hash": "141b01062beea40bf5a762645fc1a8c1044476a413c391bc037fd57851412c08",
+  "content_hash": "9bcbdc9a622a8f0871637de7678d07a3c8af5cef93c4c085c8b66c9834dafe6d",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "141b01062beea40bf5a762645fc1a8c1044476a413c391bc037fd57851412c08",
-    "summary": "Publish model-enforced omission rules for redacted runtime/image values and commands, and expected-absent filesystem facts (#1241 review)."
+    "content_hash": "9bcbdc9a622a8f0871637de7678d07a3c8af5cef93c4c085c8b66c9834dafe6d",
+    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

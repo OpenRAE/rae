@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-16T05:09:19+00:00",
+  "captured_at": "2026-09-16T06:27:14.410933+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,17 +647,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "592fe282e7b131794e0cb936424ca30397bfc40c3684f6225eeea6a2c68436f1",
+      "content_sha256": "73c987612a8566c0530722fbb822233806f08c78620584318a50055ca6f5fbe7",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "ed351205979c8a80e10962146cc95f8a4019c593459d9e32b4f65aa0aca91f7f",
+      "content_sha256": "28c845f5cadba1e5b8f2aafbdf02b18487e2d1d2022a2a69e14644f078f2832c",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "ddf2cd2a7b46f895ea1a845bad7e90db1f05b2ef6abce3789b20ebb1698c7c7f",
+      "content_sha256": "3884db290b1210ecd62061b5f225ca6cf35a4f19c2841b962a326a6a9dd6ff63",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -670,18 +670,17 @@
     "This capture replays the retained protocol after EXP-732 run, apparatus, measurement-channel, and augmentation-producer provenance validation; it adds no independent backend or universal provenance assurance claim.",
     "Materialization attestation is covered by its dedicated regression suite, not a new claim in this preregistered matrix.",
     "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged.",
-    "This capture replays the retained protocol after ASR-516 authoring-adapter conformance support; it adds no new claim about actual CLI, agent, graphical, or documentation transport implementations.",
-    "This capture binds the authoring-conformance helper refactor to fresh source and package digests; outcomes, classifications, denominator and claim limits are unchanged."
+    "This capture replays open-by-default augmentation scope integrated with the EXP-731 evidence refinements; it does not evaluate native backend scope enforcement or broaden the preregistered coverage claims."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "2af78aefc62d7dc94ad0cbfa081379fd801a7065",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1005-v22",
+  "raes_revision": "1ab0580525136667bbc713d3c2f4a7820bab08da",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1242-v22",
   "snapshot_revision": "22.0.0",
   "source_state": {
-    "base_revision": "2af78aefc62d7dc94ad0cbfa081379fd801a7065",
+    "base_revision": "1ab0580525136667bbc713d3c2f4a7820bab08da",
     "checkout_state": "modified",
-    "implementation_digest": "02527c7991c3a1921958cfd624b7602b0317ce109dad68285c2ec54b47bbecaf",
+    "implementation_digest": "8d88bc09c7df0c12fc49d175c52ee372ae7b452a9355f42851a755e0c3d83982",
     "profile": "python-reference-source/v2"
   }
 }

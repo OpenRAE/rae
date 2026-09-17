@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1005-v23",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1242-v23",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-16T04:13:34.240813+00:00",
+  "generated_at": "2026-09-16T07:35:28.299884+00:00",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -52,7 +52,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem.",
+  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay of the integrated augmentation-scope implementation retains those classifications and claim limits; native backend scope enforcement is not evaluated. Replay of the integrated augmentation-scope implementation retains those classifications and claim limits; native backend scope enforcement is not evaluated.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -84,6 +84,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1005-v23",
-  "snapshot_sha256": "74296f7adc10cc899238036ffb086c9d08960accf4cb1e885a94818265f1f2f3"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1242-v23",
+  "snapshot_sha256": "5ca08ae28598b41ba89cd5e8b25dd080683e8053e6cfc69cc0bb3330c60c4fa1"
 }

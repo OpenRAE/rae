@@ -1,9 +1,9 @@
 {
-  "content_hash": "f727eb41bc2faf63e05488c4c7d0d7ac5542f4e4c96b7637d41b0423488253ef",
+  "content_hash": "177a80e02c493218940e77468bee894a9d52722a24cf6f4aaa3c695d53cdaf80",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "f727eb41bc2faf63e05488c4c7d0d7ac5542f4e4c96b7637d41b0423488253ef",
-    "summary": "Publish model-enforced omission rules for redacted runtime/image values and commands, and expected-absent filesystem facts (#1241 review)."
+    "content_hash": "177a80e02c493218940e77468bee894a9d52722a24cf6f4aaa3c695d53cdaf80",
+    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

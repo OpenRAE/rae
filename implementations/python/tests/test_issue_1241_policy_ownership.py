@@ -18,6 +18,17 @@ def test_materialization_provenance_delivery_has_bounded_ownership():
         "contracts/schemas/sdl/materialized-scenario-v1.json",
         "contracts/schema-publication/entries/materialized-scenario-v1.json",
         "docs/research/formal-semantic-validation/bundles/retest-v16.json",
+        "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md",
+        "docs/decisions/issue-1242-scenario-scope-preflight.md",
+        "specs/sdl/sections.md",
+        "specs/sdl/augmentation-scope.md",
+        "contracts/schemas/plans/backend-augmentation-scope-v1.json",
+        "contracts/schema-publication/entries/backend-augmentation-scope-v1.json",
+        "contracts/fixtures/plans/backend-augmentation-scope-v1/valid/reference.json",
+        "contracts/fixtures/plans/backend-augmentation-scope-v1/invalid/partial-coverage.json",
+        "implementations/python/packages/raes_backend_protocols/augmentation.py",
+        "implementations/python/packages/raes_runtime/backend_augmentation.py",
+        "implementations/python/packages/raes_runtime/manager_augmentation.py",
     ]
     assert not _check_path_ownership(policy, phase, allowed)
     forbidden = [

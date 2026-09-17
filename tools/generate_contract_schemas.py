@@ -17,6 +17,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
         "recursive-realization-constraint-v1": "realization-constraints",
         "backend-realization-preparation-v1": "plans",
         "backend-materialization-attestation-v1": "plans",
+        "backend-augmentation-scope-v1": "plans",
         "materialization-archive-record-v1": "experiment-core",
         "plan-realization-profiles-v1": "plans",
     }
