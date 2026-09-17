@@ -187,12 +187,18 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v25.json`](analysis-v25.json) to the merged ACT-612 participant
   relationships and augmentation scope implementation. Fresh replay retains
   bounded outcomes and claim limits; earlier captures remain byte-exact.
-- [`bundles/retest-v26.json`](bundles/retest-v26.json) is current release 27.0.0.
+- [`bundles/retest-v26.json`](bundles/retest-v26.json) preserves release 27.0.0.
   It binds [`execution-snapshot-v26.json`](execution-snapshot-v26.json) and
   [`analysis-v26.json`](analysis-v26.json) to authoring-adapter conformance on
   the merged participant-relationship and augmentation source tree. Fresh
   replay retains bounded outcomes and claim limits without qualifying an
   adapter transport.
+- [`bundles/retest-v27.json`](bundles/retest-v27.json) is current release 28.0.0.
+  It binds [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
+  [`analysis-v27.json`](analysis-v27.json) to the issue #1223 reviewed OCI
+  mirror and pre-seed admission boundary. That work does not participate in this
+  corpus, so fresh replay retains release-27 outcomes and digests with no new
+  claim class; every earlier release remains byte-exact.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
