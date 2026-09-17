@@ -9,6 +9,7 @@ covered without a real nox run.
 from __future__ import annotations
 
 import importlib
+import subprocess
 import sys
 from collections.abc import Callable
 from types import ModuleType, SimpleNamespace
@@ -69,7 +70,7 @@ def noxfile_module(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
 
 
 def test_installed_hooks_only_run_file_scoped_hygiene():
-    config = yaml.safe_load((REPO_ROOT / ".pre-commit-config.yaml").read_text())
+    config = yaml.safe_load((REPO_ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8"))
     assert config["default_install_hook_types"] == ["pre-commit"]
     hooks = [hook for repo in config["repos"] for hook in repo["hooks"]]
     assert len(hooks) == 1
@@ -77,6 +78,27 @@ def test_installed_hooks_only_run_file_scoped_hygiene():
     assert hook["stages"] == ["pre-commit"]
     assert hook["pass_filenames"] is True
     assert '-s hygiene -- "$@"' in hook["entry"]
+
+
+def test_container_smoke_accepts_only_the_configured_hook(tmp_path):
+    workflow = yaml.safe_load((REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8"))
+    script = "\n".join(
+        line.strip()
+        for step in workflow["jobs"]["development-image"]["steps"]
+        for line in step.get("run", "").splitlines()
+        if line.strip().startswith("test ") and ".git/hooks/" in line
+    )
+    assert script
+    hooks = tmp_path / ".git" / "hooks"
+    hooks.mkdir(parents=True)
+    commit_hook = hooks / "pre-commit"
+    commit_hook.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    commit_hook.chmod(0o755)
+    assert subprocess.run(["bash", "-e", "-c", script], cwd=tmp_path, check=False).returncode == 0
+    stale_push_hook = hooks / "pre-push"
+    stale_push_hook.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    stale_push_hook.chmod(0o755)
+    assert subprocess.run(["bash", "-e", "-c", script], cwd=tmp_path, check=False).returncode != 0
 
 
 def test_hygiene_session_only_delegates_selected_files(monkeypatch, noxfile_module):

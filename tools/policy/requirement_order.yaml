@@ -603,6 +603,8 @@ ownership:
     - implementations/python/tests/test_sem_234_governance.py
     # Supporting delivery-hook regression requested during #1013 review.
     - implementations/python/tests/test_nox_shard_wiring.py
+    - implementations/python/tests/test_issue_1238_development_container.py
+    - docs/explain/development-container.md
   semantics-expansion:
     - contracts/schemas/sdl
     # Shared description semantics and existing evidence lifecycle owners (SEM-218).

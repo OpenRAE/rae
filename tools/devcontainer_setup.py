@@ -199,7 +199,7 @@ def install_generic_tools(repo_root: Path, kit_root: Path) -> None:
 
 
 def install_git_hooks(repo_root: Path, kit_root: Path) -> str:
-    """Install the repository's pre-commit and pre-push hooks unless the checkout cannot hold them."""
+    """Install configured hooks unless the checkout cannot hold them."""
 
     git_dir = subprocess.run(  # noqa: S603 - fixed argv
         ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
@@ -255,7 +255,7 @@ def setup(repo_root: Path = REPO_ROOT, *, kit_root: Path | None = None) -> None:
     )
     hooks = _step("Installing git hooks", lambda: install_git_hooks(repo_root, kit_root))
     print(
-        f"Ready. Git hooks: {hooks}. Run `nox -l` to list checks; `nox -s verify-changed` before pushing.",
+        f"Ready. Git hooks: {hooks}. Run `nox -l` for optional checks; full verification runs in CI/CD.",
         flush=True,
     )
 

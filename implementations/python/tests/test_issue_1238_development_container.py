@@ -842,7 +842,7 @@ def test_setup_runs_each_step_in_order_and_announces_readiness(
     assert order == ["linux-x86_64", "kit:profile:raes-bootstrap", "sync", "tools", "hooks"]
     output = capsys.readouterr().out
     assert output.startswith("RAES development container setup (linux-x86_64)\n")
-    assert output.rstrip().endswith("`nox -s verify-changed` before pushing.")
+    assert output.rstrip().endswith("full verification runs in CI/CD.")
 
 
 def test_setup_verifies_generic_tools_through_the_locked_tool_environment(

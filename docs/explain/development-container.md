@@ -29,7 +29,7 @@ step and finishes with `Ready.`:
 3. syncs `implementations/python` and `implementations/tooling/python` from
    their `uv.lock` files;
 4. downloads, verifies, and runs Conftest, Gitleaks, OSV-Scanner, and Vale;
-5. installs the repository's pre-commit and pre-push hooks.
+5. installs the repository's file-hygiene and secrets pre-commit hook.
 
 Reopening the container runs nothing again. Rebuilding it reruns setup against
 the cache volume in about a minute. If setup fails, the message names the step
@@ -42,13 +42,14 @@ its path, alongside `git`, `gh`, `ssh`, `gpg`, `make`, `jq`, `less`, and `nano`.
 
 ```shell
 nox -l                      # list every check
-nox -s verify-changed       # the change-aware gate; the pre-push hook runs it
+nox -s verify-changed       # optional change-aware local gate
 nox -s tests                # unit tests
 make policy                 # repository policy
 ```
 
-Committing runs the pre-commit hook and pushing runs `verify-changed`, exactly
-as on a native setup.
+Committing runs file-scoped hygiene and secrets checks, as on a native setup.
+There is no configured pre-push hook. CI/CD runs the full validation and test
+suites before merge.
 
 ## Git, signing, and GitHub
 

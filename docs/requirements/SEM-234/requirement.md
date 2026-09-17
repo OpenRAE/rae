@@ -28,6 +28,7 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 - TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Admission, projection, phase and progressive-specification witnesses)
 - TESTS → TEST `implementations/python/tests/test_sem_234_governance.py` (Exact semantic publication ownership)
 - TESTS → TEST `implementations/python/tests/test_nox_shard_wiring.py` (Supporting delivery hygiene and CI verification wiring; not composition semantics evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1238_development_container.py` (Supporting development-container delivery setup; not composition semantics evidence)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1013-sem-234-mixed-participant-control-preflight.md` (Composition authority and current-carrier compatibility)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Publish portable mixed-composition contracts)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1015` (Admit mixed and staged participant trial realizations)
