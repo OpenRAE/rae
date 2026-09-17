@@ -577,18 +577,24 @@ adrs:
         summary: "Proposed acceptance with bounded compiler/runtime adoption, opt-in joint preparation, prepared portable membership, and the authenticated plan-level profile host. Ratification takes effect on merge."
   - id: ADR-106
     path: docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md
-    pin: bc78a9a4b25f90572532084f1a4f5a254e969b21089b3c04a6876f84ee86536a
+    pin: 4c4dc68ef5e28a3740e22050b831e8cdc087f3c31e3215c4d4f33bdac055e5df
     amendments:
       - date: 2026-09-06
         ref: "#1229"
         summary: "Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest."
+      - date: 2026-09-17
+        ref: "#1313"
+        summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-107
     path: docs/decisions/adrs/adr-107-artifact-promotion-and-release-admission.md
-    pin: 49c94a185d5bc012a246f3bffee067a9a043fa8ab662332f1d1354acdc97fb47
+    pin: a3cdbf6fd69bcc9f96ffd1ca7e7e95340d0a597ee42c4a5c21a96f79d3063d96
     amendments:
       - date: 2026-09-06
         ref: "#1229"
         summary: "Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest."
+      - date: 2026-09-17
+        ref: "#1313"
+        summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
     pin: d734bb660e153dc6d97c1cbdc5d1079cc837d77d5874da84bd8e8d788c7edf80

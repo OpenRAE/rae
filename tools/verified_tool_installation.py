@@ -30,21 +30,6 @@ MAX_ARCHIVE_PATH_DEPTH = 16
 MAX_ARCHIVE_MEMBER_BYTES = 256 * 1024 * 1024
 MAX_ARCHIVE_EXPANDED_BYTES = 512 * 1024 * 1024
 LOCK_TIMEOUT_SECONDS = 120
-_QUALIFIED_FILESYSTEMS = frozenset(
-    {
-        "apfs",
-        "btrfs",
-        "ext2",
-        "ext3",
-        "ext4",
-        "hfs",
-        "hfsplus",
-        "overlay",
-        "tmpfs",
-        "xfs",
-        "zfs",
-    }
-)
 
 
 class ManifestEntry(Protocol):
@@ -163,7 +148,9 @@ def _executable_entry(selection: ArtifactSelection) -> ManifestEntry:
     return next(entry for entry in selection.installed_manifest if entry.executable)
 
 
-def _validate_archive_shape(members: list[tarfile.TarInfo]) -> None:  # NOSONAR -- explicit archive limits fail closed.
+def _validate_archive_shape(
+    members: list[tarfile.TarInfo],
+) -> None:  # NOSONAR -- explicit archive limits fail closed.
     if len(members) > MAX_ARCHIVE_MEMBERS:
         raise RuntimeError("tool-installation: archive-member-limit")
     seen: set[PurePosixPath] = set()
@@ -243,80 +230,6 @@ def _validate_raw_bytes(raw_bytes: object, selection: ArtifactSelection) -> byte
     if len(raw_bytes) != entry.size or hashlib.sha256(raw_bytes).hexdigest() != entry.sha256:
         raise RuntimeError("tool-installation: raw-manifest-mismatch")
     return raw_bytes
-
-
-def _decode_mount_path(value: str) -> str:
-    return value.replace("\\040", " ").replace("\\011", "\t").replace("\\012", "\n").replace("\\134", "\\")
-
-
-def _filesystem_type(path: Path) -> str:  # NOSONAR -- Linux and Darwin parsers deliberately fail closed.
-    """Return a stable local filesystem type without consulting ambient config."""
-
-    existing = path
-    while not existing.exists():
-        if existing == existing.parent:
-            raise RuntimeError("tool-installation: unsupported-filesystem")  # NOSONAR -- stable reason code.
-        existing = existing.parent
-    canonical = existing.resolve()
-    if platform.system() == "Linux":
-        try:
-            lines = Path("/proc/self/mountinfo").read_text(encoding="utf-8").splitlines()
-        except (OSError, UnicodeError) as exc:
-            raise RuntimeError("tool-installation: unsupported-filesystem") from exc
-        candidates: list[tuple[int, str]] = []
-        for line in lines:
-            before, separator, after = line.partition(" - ")
-            fields = before.split()
-            trailing = after.split()
-            if not separator or len(fields) < 5 or not trailing:
-                continue
-            mount = Path(_decode_mount_path(fields[4]))
-            try:
-                canonical.relative_to(mount)
-            except ValueError:
-                continue
-            candidates.append((len(mount.parts), trailing[0]))
-        if candidates:
-            return max(candidates)[1].lower()
-        raise RuntimeError("tool-installation: unsupported-filesystem")
-    if platform.system() == "Darwin":
-        try:
-            completed = subprocess.run(
-                ["/sbin/mount"],
-                check=True,
-                capture_output=True,
-                env={"LC_ALL": "C", "PATH": "/usr/bin:/bin:/usr/sbin:/sbin"},
-                text=True,
-                timeout=10,
-            )
-            if not isinstance(completed.stdout, str) or len(completed.stdout.encode("utf-8")) > 1024 * 1024:
-                raise ValueError("mount response exceeds the admission bound")
-            candidates = []
-            for line in completed.stdout.splitlines():
-                _device, on_separator, mounted = line.partition(" on ")
-                mount_value, options_separator, options = mounted.rpartition(" (")
-                if not on_separator or not options_separator or not options.endswith(")"):
-                    continue
-                filesystem_type = options[:-1].partition(",")[0].strip()
-                if not filesystem_type:
-                    continue
-                mount = Path(_decode_mount_path(mount_value))
-                try:
-                    canonical.relative_to(mount)
-                except ValueError:
-                    continue
-                candidates.append((len(mount.parts), filesystem_type))
-            if not candidates:
-                raise ValueError("mount response has no matching filesystem")
-        except (OSError, ValueError, subprocess.SubprocessError) as exc:
-            raise RuntimeError("tool-installation: unsupported-filesystem") from exc
-        return max(candidates)[1].lower()
-    raise RuntimeError("tool-installation: unsupported-filesystem")
-
-
-def _require_qualified_filesystem(path: Path) -> None:
-    if _filesystem_type(path) not in _QUALIFIED_FILESYSTEMS:
-        raise RuntimeError("tool-installation: unsupported-filesystem")
 
 
 def _lstat(path: Path) -> os.stat_result | None:
@@ -472,10 +385,7 @@ def _read_verified_file(  # NOSONAR -- paired before/open/after checks resist su
     permissions = before.st_mode & 0o777
     expected_mode = 0o500 if entry.executable else 0o400
     owner_ok = before.st_uid == os.geteuid()
-    if mode == "seed":
-        owner_ok = before.st_uid in {0, os.geteuid()}
-        mode_ok = not permissions & 0o222 and (not entry.executable or bool(permissions & 0o111))
-    elif mode == "legacy":
+    if mode == "legacy":
         # Version-keyed caches were created under the user's umask; a group
         # write bit is a risk only when that group admits another principal.
         mode_ok = not _cross_principal_writable(before) and (not entry.executable or bool(permissions & 0o100))
@@ -534,8 +444,8 @@ def _validate_tree(  # NOSONAR -- the full tree shape and every leaf are checked
     if not stat.S_ISDIR(state.st_mode) or tree.is_symlink():
         raise RuntimeError("tool-installation: tree-integrity-failure")  # NOSONAR -- stable reason code.
     permissions = state.st_mode & 0o777
-    valid_owners = {0, os.geteuid()} if mode == "seed" else {os.geteuid()}
-    if state.st_uid not in valid_owners or (mode == "seed" and permissions & 0o222):
+    valid_owners = {os.geteuid()}
+    if state.st_uid not in valid_owners:
         raise RuntimeError("tool-installation: tree-integrity-failure")
     if mode == "installed" and permissions != 0o500:
         raise RuntimeError("tool-installation: tree-integrity-failure")
@@ -557,8 +467,6 @@ def _validate_tree(  # NOSONAR -- the full tree shape and every leaf are checked
                 raise RuntimeError("tool-installation: tree-integrity-failure")
             if mode == "staged" and child_permissions != 0o700:
                 raise RuntimeError("tool-installation: tree-integrity-failure")
-            if mode == "seed" and child_permissions & 0o222:
-                raise RuntimeError("tool-installation: tree-integrity-failure")
             actual_directories.add(child.relative_to(tree).as_posix())
         actual_files.update((current_path / name).relative_to(tree).as_posix() for name in files)
     expected_files = {entry.path for entry in entries}
@@ -567,7 +475,9 @@ def _validate_tree(  # NOSONAR -- the full tree shape and every leaf are checked
     return {entry.path: _read_verified_file(tree / entry.path, entry, mode=mode) for entry in entries}
 
 
-def _make_quarantine_non_executable(path: Path) -> None:  # NOSONAR -- every file type fails non-executable.
+def _make_quarantine_non_executable(
+    path: Path,
+) -> None:  # NOSONAR -- every file type fails non-executable.
     state = _lstat(path)
     if state is None or path.is_symlink():
         return
@@ -616,7 +526,13 @@ def _portable_lock(path: Path, timeout: float | None = None) -> Iterator[None]:
     if existing is not None and not _private_lock_state(existing, exact_mode=False):
         raise RuntimeError("tool-installation: unsafe-lock-file")
     wait_seconds = LOCK_TIMEOUT_SECONDS if timeout is None else timeout
-    lock = FileLock(path, timeout=wait_seconds, mode=0o600, fallback_to_soft=False, preserve_lock_file=True)
+    lock = FileLock(
+        path,
+        timeout=wait_seconds,
+        mode=0o600,
+        fallback_to_soft=False,
+        preserve_lock_file=True,
+    )
     try:
         with lock:
             if not _private_lock_state(path.lstat(), exact_mode=True):
@@ -777,25 +693,6 @@ def _legacy_carrier(
     return {selection.installed_manifest[0].path: payload}
 
 
-def _assert_immutable_seed_chain(seed_root: Path, seed_tree: Path) -> None:
-    try:
-        relative = seed_tree.relative_to(seed_root)
-    except ValueError as exc:
-        raise RuntimeError("tool-installation: seed-integrity-failure") from exc  # NOSONAR -- stable reason code.
-    current = seed_root
-    for part in ("", *relative.parts):
-        if part:
-            current /= part
-        state = current.lstat()
-        if (
-            current.is_symlink()
-            or not stat.S_ISDIR(state.st_mode)
-            or state.st_uid not in {0, os.geteuid()}
-            or state.st_mode & 0o222
-        ):
-            raise RuntimeError("tool-installation: seed-integrity-failure")
-
-
 def _validated_existing_or_quarantine(
     target: Path,
     selection: ArtifactSelection,
@@ -817,12 +714,10 @@ def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are expl
     materialize: Callable[[bytes, ArtifactSelection], Mapping[str, bytes]],
     legacy_path: Path | None = None,
     installation_root: Path | None = None,
-    immutable_seed_root: Path | None = None,
 ) -> Path:
     """Return one fully admitted executable from a private installed tree."""
 
     install_root = installation_root or default_installation_root(repo_root)
-    _require_qualified_filesystem(install_root)
     target = installation_tree_path(install_root, selection)
     artifact_root = install_root / selection.artifact_id
     lock_root = artifact_root / ".locks"
@@ -855,14 +750,6 @@ def _ensure_verified_installation(  # NOSONAR -- lock/recovery branches are expl
 
         if legacy_materialized is not None:
             materialized = legacy_materialized
-        elif immutable_seed_root is not None:
-            _require_qualified_filesystem(immutable_seed_root)
-            seed_tree = installation_tree_path(immutable_seed_root, selection)
-            try:
-                _assert_immutable_seed_chain(immutable_seed_root, seed_tree)
-                materialized = _validate_tree(seed_tree, selection.installed_manifest, mode="seed")
-            except (OSError, RuntimeError):
-                raise RuntimeError("tool-installation: seed-integrity-failure") from None
         else:
             raw_bytes = _validate_raw_bytes(acquire(), selection)
             materialized = materialize(raw_bytes, selection)
@@ -879,7 +766,6 @@ def ensure_verified_installation(
     materialize: Callable[[bytes, ArtifactSelection], Mapping[str, bytes]],
     legacy_path: Path | None = None,
     installation_root: Path | None = None,
-    immutable_seed_root: Path | None = None,
 ) -> Path:
     """Return one fully admitted executable without leaking filesystem details."""
 
@@ -893,7 +779,6 @@ def ensure_verified_installation(
                 materialize=materialize,
                 legacy_path=legacy_path,
                 installation_root=install_root,
-                immutable_seed_root=immutable_seed_root,
             )
     except RuntimeError:
         raise

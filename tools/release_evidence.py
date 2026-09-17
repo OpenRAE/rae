@@ -277,12 +277,37 @@ def _tool_inputs(repo_root: Path) -> list[dict[str, str]]:
 
 
 def _workflow_actions(repo_root: Path) -> list[dict[str, str]]:
-    policy = json.loads((repo_root / "implementations" / "tooling" / "actions-policy.json").read_text(encoding="utf-8"))
-    return [
-        {"action": str(item["action"]), "commit": str(item["commit"])}
-        for item in policy.get("actions", [])
-        if isinstance(item, Mapping)
-    ]
+    """Record pinned actions from the release workflow and its reusable calls."""
+    from implementations.tooling.action_policy_yaml import parse_yaml_mapping
+    from tools.tooling_artifact_policy_common import as_list, as_mapping
+
+    pending = [".github/workflows/release-please.yml"]
+    visited: set[str] = set()
+    actions: set[tuple[str, str]] = set()
+    while pending:
+        path = pending.pop()
+        if path in visited:
+            continue
+        visited.add(path)
+        workflow, failures = parse_yaml_mapping(repo_root, path)
+        if failures or workflow is None:
+            raise ReleaseEvidenceError("workflow-input-invalid", "release workflow cannot be read safely")
+        for job in as_mapping(workflow.get("jobs")).values():
+            for entry in [as_mapping(job), *as_list(as_mapping(job).get("steps"))]:
+                uses = as_mapping(entry).get("uses")
+                if not isinstance(uses, str):
+                    continue
+                if uses.startswith("./.github/workflows/"):
+                    pending.append(uses[2:])
+                else:
+                    action, separator, commit = uses.partition("@")
+                    if not separator or len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
+                        raise ReleaseEvidenceError(
+                            "workflow-input-invalid",
+                            "release action must use a commit pin",
+                        )
+                    actions.add((action, commit))
+    return [{"action": action, "commit": commit} for action, commit in sorted(actions)]
 
 
 def _run_verifier(command: Sequence[str]) -> str:

@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import stat
 import sys
@@ -11,13 +10,21 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+
+from tools.tooling_artifact_policy_common import (
+    is_regular_repo_file,
+    read_tooling_document,
+    validate_tooling_record,
+)
+from tools.tooling_artifact_policy_python_profiles import (
+    _closure_binding_failures,
+    _closure_projection_failures,
+    _context_failures,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PROFILES_PATH = "implementations/tooling/profiles/development-profiles.json"
 TOOL_PROJECT = REPO_ROOT / "implementations" / "tooling" / "python"
-_MAX_MANIFEST_BYTES = 2 * 1024 * 1024
-_CLOSURE_MODULE_PATHS = ("tools/python_closure.py", "tools/python_closure_profiles.py")
 _ALLOWED_TOOLS = frozenset(
     {
         "check-added-large-files",
@@ -59,6 +66,8 @@ class PythonClosureProfile:
 def _repo_file(repo_root: Path, relative_path: object) -> Path:
     if not isinstance(relative_path, str):
         raise ValueError("Python closure authority path must be a string")
+    if not is_regular_repo_file(repo_root, relative_path):
+        raise ValueError("Python closure authority must be a regular repository file")
     root = repo_root.resolve()
     path = root / relative_path
     try:
@@ -78,35 +87,11 @@ def _repo_file(repo_root: Path, relative_path: object) -> Path:
 
 def _load_bounded_json_object(repo_root: Path, relative_path: object) -> dict[str, Any]:
     path = _repo_file(repo_root, relative_path)
-    try:
-        if path.stat().st_size > _MAX_MANIFEST_BYTES:
-            raise ValueError("Python closure authority exceeds the size limit")
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise ValueError("Python closure authority is not valid JSON") from exc
-    if not isinstance(value, dict):
-        raise ValueError("Python closure authority must be a JSON object")
-    return value
+    return read_tooling_document(repo_root, str(path.relative_to(repo_root.resolve())))
 
 
 def load_python_closure_profile(repo_root: Path, profile_id: str) -> PythonClosureProfile:
-    """Load one exact closed profile after the canonical static policy passes."""
-
-    from tools.check_tooling_artifact_policy import (
-        _tracked_paths,
-        evaluate_tooling_artifact_policy,
-    )
-
-    tracked_paths = _tracked_paths(repo_root)
-    tracked_paths.extend(
-        module_path
-        for module_path in _CLOSURE_MODULE_PATHS
-        if module_path not in tracked_paths and (repo_root / module_path).is_file()
-    )
-    failures = evaluate_tooling_artifact_policy(repo_root, tracked_paths=tracked_paths)
-    if failures:
-        rendered = "\n".join(item.render() for item in failures[:20])
-        raise ValueError(f"development artifact policy is invalid:\n{rendered}")
+    """Validate one Python environment without inspecting unrelated repository policy."""
     document = _load_bounded_json_object(repo_root, PROFILES_PATH)
     matches = [
         value
@@ -116,12 +101,43 @@ def load_python_closure_profile(repo_root: Path, profile_id: str) -> PythonClosu
     if len(matches) != 1:
         raise ValueError("Python closure profile must resolve to exactly one reviewed entry")
     value = matches[0]
+    validate_tooling_record(repo_root, value, PROFILES_PATH, definition="pythonClosureProfile")
     python = value["python"]
-    contexts = {
-        str(context["context_id"]): context
-        for context in document.get("python_package_contexts", [])
-        if isinstance(context, Mapping) and isinstance(context.get("context_id"), str)
-    }
+    contexts = {}
+    for context_id in value["acquisition_context_ids"]:
+        matches = [
+            context
+            for context in document.get("python_package_contexts", [])
+            if isinstance(context, Mapping) and context.get("context_id") == context_id
+        ]
+        if len(matches) != 1:
+            raise ValueError("Python acquisition context must resolve to exactly one entry")
+        validate_tooling_record(repo_root, matches[0], PROFILES_PATH, definition="pythonPackageContext")
+        contexts[context_id] = matches[0]
+    project_scoped = bool(set(value["purposes"]) & {"wheel-smoke", "sdist-smoke", "compatibility", "docs"})
+    failures = _closure_binding_failures(
+        value,
+        host_ids={
+            str(host.get("host_profile_id")) for host in document.get("host_profiles", []) if isinstance(host, Mapping)
+        },
+        context_ids=list(contexts),
+        project_scoped=project_scoped,
+    )
+    failures.extend(_context_failures(list(contexts.values())))
+    # Resolve all authority paths before reading a projection or lock.
+    for key in (
+        "project_lock",
+        "tool_lock",
+        "build_constraints",
+        "smoke_requirements",
+        "wheelhouse_manifest",
+    ):
+        _repo_file(repo_root, value[key])
+    failures.extend(
+        _closure_projection_failures(repo_root, value, profile_id=profile_id, project_scoped=project_scoped)
+    )
+    if failures:
+        raise ValueError("Python closure binding or projection is invalid")
     return PythonClosureProfile(
         profile_id=profile_id,
         host_profile_id=str(value["host_profile_id"]),
@@ -149,34 +165,6 @@ def load_wheelhouse_manifest(profile: PythonClosureProfile) -> dict[str, Any]:
     )
 
 
-def _reviewed_mirror_url(source: Mapping[str, str]) -> str:
-    """Require a credential-free HTTPS locator before a mirror-only acquisition."""
-
-    mirror_url = source.get("RAES_PYTHON_MIRROR_URL", "")
-    parsed = urlsplit(mirror_url)
-    if (
-        parsed.scheme != "https"
-        or not parsed.netloc
-        or parsed.username
-        or parsed.password
-        or parsed.query
-        or parsed.fragment
-    ):
-        raise ValueError("mirror-only context requires a credential-free HTTPS mirror locator")
-    return mirror_url
-
-
-def _acquisition_mode_environment(mode: object, source: Mapping[str, str]) -> dict[str, str]:
-    """Derive index and offline policy from one reviewed acquisition mode."""
-
-    if mode == "offline":
-        return {"UV_OFFLINE": "1"}
-    if mode not in {"public", "mirror-only"}:
-        raise ValueError("unsupported Python acquisition context")
-    index = "https://pypi.org/simple" if mode == "public" else _reviewed_mirror_url(source)
-    return {"UV_DEFAULT_INDEX": index, "UV_INDEX_STRATEGY": "first-index"}
-
-
 def closure_environment(
     profile: PythonClosureProfile,
     *,
@@ -198,7 +186,9 @@ def closure_environment(
         "UV_KEYRING_PROVIDER": "disabled",
         "UV_PYTHON_DOWNLOADS": "never",
     }
-    environment.update(_acquisition_mode_environment(context.get("mode"), source))
+    if context.get("mode") != "public":
+        raise ValueError("unsupported Python acquisition context")
+    environment.update(UV_DEFAULT_INDEX="https://pypi.org/simple", UV_INDEX_STRATEGY="first-index")
     return environment
 
 

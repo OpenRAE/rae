@@ -1,5 +1,49 @@
 # Operations, failure behavior and acceptance
 
+## Current maintenance and acceptance — #1313
+
+The accountable owner is the single maintainer in
+[MAINTAINERS.md](../../../MAINTAINERS.md). No deputy or independent human review
+is required. Repository review and protected publication permissions remain
+distinct from job execution privileges.
+
+Connected tools fail visibly on unavailable or corrupt input; a cache hit never
+changes expected hashes. Native curl/uv/container clients own networking.
+Private installers retain extraction limits, ownership/no-follow checks,
+per-identity locks, atomic publication and crash recovery. Shared immutable
+seed import and filesystem-name allowlisting are retired. Filesystems must
+actually support the required locking, rename and synchronization primitives;
+an I/O failure is not converted to successful qualification.
+
+The proof installation still hashes the complete admitted tree on each use.
+The same user can change read-only modes or replace cached bytes, so a marker,
+mtime or mode check is not an integrity proof. The existing sandbox and
+resource limits remain. No speed improvement or stronger tamper boundary is
+claimed.
+
+Run focused installer concurrency/crash/corruption tests, selected-input
+regressions, maintained-client integration tests, frozen builds and installed
+smokes, and the affected proof/container lanes. Component CI is path-filtered
+and manually dispatchable; the canonical CI graph and coverage remain intact.
+Reports describe actual passed, failed and unavailable cases rather than
+renewing a global policy hash. Platform support needs actual tests, not a
+native-package snapshot service.
+
+Release byte identity, standard SBOM/provenance and trusted producer checks
+remain useful. The same tested bytes must reach each publisher; #1227 owns
+partial-publication recovery and retained original release outputs. #684 owns
+real publication acceptance. No new distribution service, multi-copy backup
+guarantee, status freshness service, 100-client load target, quarterly drill,
+retention/GC service, or blanket release gate is introduced.
+
+The following original operations program is history, not an active checklist.
+
+## Historical design — superseded where inconsistent
+
+The remainder records the earlier design. It is not current acceptance policy;
+the #1313 ADR amendments and current scope above take precedence.
+
+
 ## Ownership and activation
 
 This is an implementation acceptance contract. Targets below are proposed

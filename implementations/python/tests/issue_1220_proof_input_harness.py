@@ -720,7 +720,7 @@ def main(argv: list[str]) -> int:
         "platform": platform.platform(),
         "machine": platform.machine(),
         "python": platform.python_version(),
-        "filesystem": installation._filesystem_type(root),
+        "filesystem": "not-classified",
         "filelock": version("filelock"),
         "bubblewrap": _native_version([str(BWRAP), "--version"]),
         "large_object_budget": asdict(client.LARGE_OBJECT_TRANSFER_BUDGET),
@@ -746,7 +746,7 @@ def main(argv: list[str]) -> int:
         "limitations": [
             "Required CI mechanism cases use a synthetic tree with the real distribution's member classes;"
             " the real 1.2 GB archive cases run only with --real-archive.",
-            "Complete air-gapped export/import (T11) and whole-closure preflight (T13) remain owned by #1225.",
+            "Air-gapped environment export/import is not a supported workflow (#1313).",
         ],
     }
     if real_installation:

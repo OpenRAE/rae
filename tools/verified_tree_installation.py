@@ -295,7 +295,6 @@ def _ensure_tree(
     acquire_raw: Callable[[Path], None],
     legacy: LegacyTreeInputs | None,
 ) -> Path:
-    installation._require_qualified_filesystem(install_root)
     target = tree_installation_path(install_root, selection)
     raw_parent = _raw_parent(install_root, selection)
     artifact_root = install_root / selection.artifact_id
@@ -360,7 +359,6 @@ def require_verified_tree_installation(
     try:
         install_root = installation_root or installation.default_installation_root(repo_root)
         with installation._private_root_guard(repo_root, install_root):
-            installation._require_qualified_filesystem(install_root)
             target = tree_installation_path(install_root, selection)
             if not installation._tree_present(target):
                 raise _failure("installation-missing")

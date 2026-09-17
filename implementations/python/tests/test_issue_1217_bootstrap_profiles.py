@@ -8,21 +8,14 @@ import socket
 import ssl
 import subprocess
 import tarfile
-import tempfile
 import threading
 import time
-from contextlib import nullcontext
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from types import SimpleNamespace
 
-import jsonschema
 import pytest
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
-from tools import bootstrap_profile, maintained_client_acquisition, verified_tool_installation
+from tools import bootstrap_profile, maintained_client_acquisition
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -50,8 +43,9 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
         linux["optional_capability_ids"]
     )
     for profile in profiles.values():
-        assert profile["offline_kit"]["credential_free"] is True
-        assert profile["offline_kit"]["network_fallback"] == "prohibited"
+        assert "offline_kit" not in profile
+        assert "qualification_record_ids" not in profile
+        assert profile["host_prerequisite_package_ids"]
         assert all("secret" not in ref.lower() and "token" not in ref.lower() for ref in profile["credential_refs"])
 
 
@@ -139,24 +133,18 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
             "profile": "public-ubuntu-24.04-x86_64",
             "runner": "ubuntu-24.04",
             "target": "x86_64-unknown-linux-gnu",
-            "tool_closure": "public-linux-x86_64-cp314-tools",
-            "tool_requirements": "implementations/tooling/python/smoke/tools-linux-x86_64-cp314.txt",
             "project_closure": "public-linux-x86_64-cp314-all-extras",
         },
         {
             "profile": "public-linux-arm64",
             "runner": "ubuntu-24.04-arm",
             "target": "aarch64-unknown-linux-gnu",
-            "tool_closure": "public-linux-arm64-cp314-tools",
-            "tool_requirements": "implementations/tooling/python/smoke/tools-linux-arm64-cp314.txt",
             "project_closure": "public-linux-arm64-cp314-all-extras",
         },
         {
             "profile": "public-macos-arm64",
             "runner": "macos-15",
             "target": "aarch64-apple-darwin",
-            "tool_closure": "public-macos-arm64-cp314-tools",
-            "tool_requirements": "implementations/tooling/python/smoke/tools-macos-arm64-cp314.txt",
             "project_closure": "public-macos-arm64-cp314-all-extras",
         },
     ]
@@ -166,9 +154,7 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
             (REPO_ROOT / "implementations/tooling/profiles/development-profiles.json").read_text(encoding="utf-8")
         )["python_closure_profiles"]
     }
-    assert all(
-        closure_profiles[item["tool_closure"]]["smoke_requirements"] == item["tool_requirements"] for item in matrix
-    )
+    assert all(item["project_closure"] in closure_profiles for item in matrix)
     assert "UV_NO_BINARY_PACKAGE" not in workflow["jobs"]["generic-tool-platforms"].get("env", {})
     assert workflow["jobs"]["generic-tool-platforms"]["env"]["RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"] == "1"
     setup_uv = next(
@@ -178,33 +164,8 @@ def test_qualification_and_python_consumers_select_reviewed_host_labels() -> Non
     )
     assert setup_uv["with"]["enable-cache"] is False
     workflow_text = (REPO_ROOT / ".github/workflows/bootstrap-qualification.yml").read_text(encoding="utf-8")
-    assert "offline-kit-fetch" in workflow_text
-    assert "offline-kit-install-python" in workflow_text
-    assert "offline-kit-manifest" in workflow_text
-    assert "offline-kit-verify" in workflow_text
-    assert "tools.bootstrap_profile offline-kit-verify" in workflow_text
-    assert '"${restored_python}" -m tools.bootstrap_profile offline-kit-verify' not in workflow_text
-    assert "UV_PYTHON_DOWNLOADS=never" in workflow_text
-    assert "UV_OFFLINE=1" in workflow_text
-    assert 'RAES_PYTHON_CLOSURE_WHEELHOUSE="${restored_root}/project-wheelhouse"' in workflow_text
-    assert 'UV_FIND_LINKS="${restored_root}/tool-wheelhouse,${restored_root}/project-wheelhouse"' in workflow_text
-    assert 'runtime_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-bootstrap-runtime.XXXXXX")"' in workflow_text
+    assert "offline-kit" not in workflow_text
     assert "-s local-installation-qualification -- --output local-installation-qualification.json" in workflow_text
-    assert 'export UV_CACHE_DIR="${runtime_root}/uv-cache"' in workflow_text
-    assert 'restored_tool_environment="${runtime_root}/tool-environment"' in workflow_text
-    assert 'from importlib.metadata import version; print(version("nox"))' in workflow_text
-    assert "nox.__version__" not in workflow_text
-    assert "tools.python_closure" in workflow_text
-    assert "wheelhouse-manifest.json" in workflow_text
-    assert "bootstrap-wheelhouse-verify" in workflow_text
-    assert 'PYTHONDONTWRITEBYTECODE: "1"' in workflow_text
-    assert 'export UV_PYTHON="${restored_python}"' in workflow_text
-    assert 'cp -R "${restored_root}/uv-cache"' not in workflow_text
-    assert ".qualification-runtime-cache" not in workflow_text
-    assert "mkdir .qualification-evidence-root" in workflow_text
-    assert "--offline-kit-root .qualification-evidence-root" in workflow_text
-    assert "record-case T12" in workflow_text
-    assert "bootstrap-offline-kit.tar" in workflow_text
     canonical = yaml.safe_load((REPO_ROOT / ".github/workflows/canonical-verification.yml").read_text(encoding="utf-8"))
     assert canonical["jobs"]["proof"]["runs-on"] == "ubuntu-22.04"
     for path in sorted((REPO_ROOT / ".github/workflows").glob("*.yml")):
@@ -561,10 +522,7 @@ def test_native_setup_refuses_mutable_repository_execution() -> None:
             "native_family": "ubuntu-apt",
             "native_repository_identity": "ubuntu:noble:reviewed-snapshot",
             "trust_root_refs": ["ubuntu-archive-keyring"],
-            "offline_kit": {
-                "host_prerequisite_package_ids": ["git", "curl"],
-                "host_trust_root_refs": ["ubuntu-archive-keyring"],
-            },
+            "host_prerequisite_package_ids": ["git", "curl"],
         }
     )
     assert result == {
@@ -575,7 +533,7 @@ def test_native_setup_refuses_mutable_repository_execution() -> None:
         "host_prerequisite_package_ids": ["git", "curl"],
         "host_trust_root_refs": ["ubuntu-archive-keyring"],
         "outcome": "not-run",
-        "reason_code": "immutable-native-closure-required",
+        "reason_code": "operator-installs-native-prerequisites",
     }
     assert not hasattr(bootstrap_profile, "run_native_setup")
 
@@ -679,692 +637,7 @@ def test_generic_tool_qualification_executes_each_selected_binary(monkeypatch: p
         )
 
 
-def test_qualification_evidence_binds_profile_payloads_versions_and_policy(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    from tools.check_tooling_artifact_policy import select_tooling_host_profile
-
-    host_selection = select_tooling_host_profile(REPO_ROOT, host_profile_id="public-ubuntu-24.04-x86_64")
-
-    def fake_run(argv: list[str], **_kwargs: object) -> SimpleNamespace:
-        versions = {
-            "/usr/bin/curl": "curl 8.5.0",
-            "/usr/bin/git": "git version 2.55.0",
-            "/usr/bin/sha256sum": "sha256sum 9.4",
-            "/usr/bin/gh": "gh version 2.98.0",
-        }
-        return SimpleNamespace(returncode=0, stdout=versions.get(argv[0], "uv 0.12.4"), stderr="")
-
-    monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
-    monkeypatch.setattr(bootstrap_profile, "load_tooling_host_profile_selection", lambda _host_id: host_selection)
-    monkeypatch.setattr(bootstrap_profile.shutil, "which", lambda _name: "/qualified/uv")
-    expected_python_identity = {
-        "implementation": "CPython",
-        "version": "3.14.7",
-        "abi": "cp314",
-        "target": "x86_64-unknown-linux-gnu",
-    }
-    monkeypatch.setattr(bootstrap_profile, "observe_current_python_identity", lambda: expected_python_identity)
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "_observed_uv_identity",
-        lambda _version: {
-            "implementation": "uv",
-            "version": "0.12.4",
-            "abi": "native",
-            "target": "x86_64-unknown-linux-gnu",
-        },
-    )
-    monkeypatch.setenv("ImageOS", "ubuntu24")
-    monkeypatch.setenv("ImageVersion", "20261005.999.1")
-    monkeypatch.setenv("RUNNER_ARCH", "X64")
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "_native_client_results",
-        lambda _host: [
-            {"capability_id": capability_id, "outcome": "passed", "version": version}
-            for capability_id, version in (
-                ("git", "2.55.0"),
-                ("ca-roots", "reviewed"),
-                ("sha256", "9.4"),
-                ("curl-unknown-length-max-filesize", "8.5.0"),
-                ("gh-cli", "2.98.0"),
-            )
-        ],
-    )
-    selections = tuple(
-        (name, Path(f"/qualified/{name}"), ("--version",), "1.0.0")
-        for name in ("conftest", "gitleaks", "osv-scanner", "vale")
-    )
-    case_result = bootstrap_profile.record_case_result(
-        REPO_ROOT,
-        "T02",
-        "a" * 40,
-        "noxfile.py",
-        ("cpython-3.14", "uv", "conftest", "gitleaks", "osv-scanner", "vale"),
-    )
-    case_path = tmp_path / "t02.json"
-    case_path.write_text(json.dumps(case_result), encoding="utf-8")
-    slice_path = tmp_path / "local-installation-qualification.json"
-    slice_path.write_text(
-        json.dumps(
-            {
-                "schema": "issue-1219-local-installation-qualification/v1",
-                "passed_cases": ["cold-convergence", "unsafe-lock-rejection"],
-                "elapsed_seconds": {"cold-convergence": 1.25, "unsafe-lock-rejection": 0.5},
-                "coverage": {"canonical_outcome_recorded": False},
-            }
-        ),
-        encoding="utf-8",
-    )
-    result = bootstrap_profile.build_qualification_evidence(
-        REPO_ROOT,
-        "public-ubuntu-24.04-x86_64",
-        "a" * 40,
-        "github-actions:OpenRAE/rae:1:1",
-        python_artifact_id="cpython-3.14",
-        case_result_paths=(case_path,),
-        options=bootstrap_profile.QualificationEvidenceOptions(
-            generic_selections=selections,
-            limitations=("local-slice-only",),
-            slice_evidence_paths=(slice_path,),
-        ),
-    )
-    assert result["outcome"] == "passed"
-    assert result["base_image_identity"] == "github-runner:ubuntu24:20261005.999.1:X64"
-    assert result["observed_runner_image"] == "ubuntu24:20261005.999.1:X64"
-    assert result["native_repository_identity"] == ("github-runner-package-set:ubuntu24:20261005.999.1:X64")
-    assert len(result["policy_sha256"]) == 64
-    assert len(result["harness_sha256"]) == 64
-    assert len(result["evidence_sha256"]) == 64
-    assert result["limitations"] == ["local-slice-only"]
-    assert result["test_case_ids"] == ["T02"]
-    assert [(item["slice_id"], item["canonical_case_id"]) for item in result["slice_results"]] == [
-        ("T05-cold-convergence", "T05"),
-        ("T06-unsafe-lock-rejection", "T06"),
-    ]
-    payloads = {item["artifact_id"]: item for item in result["payload_results"]}
-    assert payloads["cpython-3.14"]["distribution_id"] == "ubuntu-24.04"
-    assert payloads["cpython-3.14"]["expected_installed_identity"] == expected_python_identity
-    assert payloads["cpython-3.14"]["observed_installed_identity"] == expected_python_identity
-    assert {item["artifact_id"] for item in result["payload_results"]} == {
-        "conftest",
-        "cpython-3.14",
-        "gitleaks",
-        "osv-scanner",
-        "uv",
-        "vale",
-    }
-    capabilities = {item["capability_id"]: item for item in result["capability_results"]}
-    assert capabilities["curl-unknown-length-max-filesize"]["version"] == "8.5.0"
-    assert capabilities["ca-roots"]["outcome"] == "passed"
-    assert capabilities["base-image"]["outcome"] == "passed"
-    assert capabilities["native-repository"]["outcome"] == "passed"
-    schema = json.loads(
-        (REPO_ROOT / "implementations/tooling/schemas/profiles.schema.json").read_text(encoding="utf-8")
-    )
-    evidence_schema = {
-        "$schema": schema["$schema"],
-        "$defs": schema["$defs"],
-        "$ref": "#/$defs/qualificationRecord",
-    }
-    jsonschema.validate(result, evidence_schema)
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "observe_current_python_identity",
-        lambda: {**expected_python_identity, "abi": "cp314t", "target": "aarch64-unknown-linux-gnu"},
-    )
-    mismatched = bootstrap_profile.build_qualification_evidence(
-        REPO_ROOT,
-        "public-ubuntu-24.04-x86_64",
-        "a" * 40,
-        "github-actions:OpenRAE/rae:1:1",
-        python_artifact_id="cpython-3.14",
-        case_result_paths=(case_path,),
-        options=bootstrap_profile.QualificationEvidenceOptions(generic_selections=selections),
-    )
-    assert mismatched["outcome"] == "failed"
-    mismatched_capabilities = {item["capability_id"]: item for item in mismatched["capability_results"]}
-    assert mismatched_capabilities["cpython"]["reason_code"] == "payload-identity-mismatch"
-
-
-def test_case_results_are_bound_to_the_exact_harness_and_revision(tmp_path: Path) -> None:
-    result = bootstrap_profile.record_case_result(
-        REPO_ROOT,
-        "T08",
-        "b" * 40,
-        "implementations/python/tests/test_issue_1217_bootstrap_profiles.py",
-        (),
-    )
-    path = tmp_path / "t08.json"
-    path.write_text(json.dumps(result), encoding="utf-8")
-    assert bootstrap_profile._load_case_results(REPO_ROOT, (path,), "b" * 40) == [result]
-    result["harness_sha256"] = "0" * 64
-    path.write_text(json.dumps(result), encoding="utf-8")
-    with pytest.raises(ValueError, match="does not match"):
-        bootstrap_profile._load_case_results(REPO_ROOT, (path,), "b" * 40)
-
-
-def test_bootstrap_cli_parser_accepts_each_operation_argument_shape(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        bootstrap_profile.sys,
-        "argv",
-        [
-            "bootstrap_profile.py",
-            "qualification-evidence",
-            "host",
-            "a" * 40,
-            "evidence",
-            "--python-artifact-id",
-            "cpython-3.12",
-            "--case-result",
-            "t01.json",
-            "--slice-evidence",
-            "slices.json",
-        ],
-    )
-    parsed = bootstrap_profile._parse_args()
-    assert parsed.operation == "qualification-evidence"
-    assert parsed.case_result == [Path("t01.json")]
-    assert parsed.slice_evidence == [Path("slices.json")]
-    assert parsed.limitation == []
-    monkeypatch.setattr(bootstrap_profile.sys, "argv", ["bootstrap_profile.py", "proof-support", "linux-x86_64"])
-    assert bootstrap_profile._parse_args().platform_id == "linux-x86_64"
-
-
-_KIT = Path("/kit")
-_SOURCE = Path("/source")
-_DESTINATION = Path("/destination")
-_CLI_OPERATIONS = {
-    "setup-plan": (
-        {"host_profile_id": "host"},
-        "native_setup_plan",
-        {"outcome": "not-run"},
-        None,
-    ),
-    "inspect-profile": (
-        {"host_profile_id": "host"},
-        "_native_client_results",
-        [{"outcome": "passed"}],
-        [{"outcome": "failed"}],
-    ),
-    "generic-tools": (
-        {"local_input_root": _KIT},
-        "qualify_generic_tools",
-        {"outcome": "passed"},
-        {"outcome": "failed"},
-    ),
-    "qualification-evidence": (
-        {
-            "host_profile_id": "host",
-            "implementation_revision": "a" * 40,
-            "evidence_location": "evidence",
-            "python_artifact_id": "cpython-3.14",
-            "case_result": [Path("case.json")],
-            "offline_kit_root": _KIT,
-            "offline_kit": Path("kit.tar"),
-            "offline_kit_manifest_sha256": "b" * 64,
-            "limitation": ["bounded"],
-            "slice_evidence": [Path("slices.json")],
-        },
-        "build_qualification_evidence",
-        {"outcome": "passed"},
-        {"outcome": "failed"},
-    ),
-    "record-case": (
-        {
-            "test_case_id": "T02",
-            "implementation_revision": "a" * 40,
-            "harness_path": "noxfile.py",
-            "artifact_id": ["uv"],
-        },
-        "record_case_result",
-        {"test_case_id": "T02"},
-        None,
-    ),
-    "offline-kit-manifest": (
-        {"host_profile_id": "host", "kit_root": _KIT, "python_artifact_id": "cpython-3.14"},
-        "build_offline_kit_manifest",
-        {"entries": []},
-        None,
-    ),
-    "offline-kit-fetch": (
-        {"host_profile_id": "host", "kit_root": _KIT, "artifact_id": ["uv"]},
-        "fetch_offline_kit_payloads",
-        [{"artifact_id": "uv"}],
-        None,
-    ),
-    "offline-kit-manifest-digest": (
-        {"manifest_path": Path("manifest.json")},
-        "_sha256",
-        "0" * 64,
-        None,
-    ),
-    "offline-kit-copy-tree": (
-        {"source_root": _SOURCE, "destination_root": _DESTINATION},
-        "copy_relocatable_tree",
-        None,
-        None,
-    ),
-    "offline-kit-export-tool-seeds": (
-        {"host_profile_id": "host", "source_root": _SOURCE, "destination_root": _DESTINATION},
-        "export_immutable_tool_seeds",
-        None,
-        None,
-    ),
-    "offline-kit-install-python": (
-        {"host_profile_id": "host", "kit_root": _KIT, "python_artifact_id": "cpython-3.14"},
-        "install_offline_python_payload",
-        {"artifact_id": "cpython-3.14"},
-        None,
-    ),
-    "offline-kit-install-uv": (
-        {"host_profile_id": "host", "kit_root": _KIT, "uv_artifact_id": "uv"},
-        "install_offline_uv_payload",
-        {"artifact_id": "uv"},
-        None,
-    ),
-    "offline-kit-verify": (
-        {
-            "host_profile_id": "host",
-            "kit_root": _KIT,
-            "python_artifact_id": "cpython-3.14",
-            "trusted_manifest_sha256": "b" * 64,
-        },
-        "verify_offline_kit",
-        {"outcome": "passed"},
-        {"outcome": "failed"},
-    ),
-    "proof-support": (
-        {"platform_id": "linux-x86_64"},
-        "proof_support_outcome",
-        "required",
-        None,
-    ),
-}
-
-
-def _expected_collaborator_call(
-    operation: str, arguments: dict[str, object]
-) -> tuple[tuple[object, ...], dict[str, object]]:
-    host = {"host_profile_id": "host"}
-    expected: dict[str, tuple[tuple[object, ...], dict[str, object]]] = {
-        "setup-plan": ((host,), {}),
-        "inspect-profile": ((host,), {}),
-        "generic-tools": ((), {"local_input_root": _KIT}),
-        "record-case": ((Path.cwd(), "T02", "a" * 40, "noxfile.py", ["uv"]), {}),
-        "offline-kit-manifest": (("host", _KIT), {"python_artifact_id": "cpython-3.14"}),
-        "offline-kit-fetch": (("host", _KIT, ["uv"]), {}),
-        "offline-kit-manifest-digest": ((Path("manifest.json"),), {}),
-        "offline-kit-copy-tree": ((_SOURCE, _DESTINATION), {}),
-        "offline-kit-export-tool-seeds": (("host", _SOURCE, _DESTINATION), {}),
-        "offline-kit-install-python": (("host", _KIT, "cpython-3.14"), {}),
-        "offline-kit-install-uv": (("host", _KIT, "uv"), {}),
-        "offline-kit-verify": (
-            ("host", _KIT),
-            {"python_artifact_id": "cpython-3.14", "trusted_manifest_sha256": "b" * 64},
-        ),
-        "proof-support": (("linux-x86_64",), {}),
-    }
-    if operation != "qualification-evidence":
-        return expected[operation]
-    options = bootstrap_profile.QualificationEvidenceOptions(
-        offline_kit_root=_KIT,
-        offline_kit_archive_path=Path("kit.tar"),
-        offline_kit_manifest_sha256="b" * 64,
-        limitations=["bounded"],
-        slice_evidence_paths=[Path("slices.json")],
-    )
-    return (
-        (Path.cwd(), "host", "a" * 40, "evidence"),
-        {"python_artifact_id": "cpython-3.14", "case_result_paths": [Path("case.json")], "options": options},
-    )
-
-
-@pytest.mark.parametrize(
-    ("operation", "failed"),
-    [
-        *((operation, False) for operation in _CLI_OPERATIONS),
-        *((operation, True) for operation, value in _CLI_OPERATIONS.items() if value[3] is not None),
-    ],
-)
-def test_bootstrap_cli_dispatch_forwards_arguments_and_tracks_outcomes(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-    operation: str,
-    failed: bool,
-) -> None:
-    arguments, collaborator, passed_result, failed_result = _CLI_OPERATIONS[operation]
-    calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
-
-    def record(*args: object, **kwargs: object) -> object:
-        calls.append((args, kwargs))
-        return failed_result if failed else passed_result
-
-    monkeypatch.setattr(bootstrap_profile, "_parse_args", lambda: SimpleNamespace(operation=operation, **arguments))
-    monkeypatch.setattr(
-        bootstrap_profile, "_load_host_selection", lambda host_id: ({"host_profile_id": host_id}, {}, "digest")
-    )
-    monkeypatch.setattr(bootstrap_profile, "_load_offline_kit_manifest", lambda _path: {})
-    monkeypatch.setattr(bootstrap_profile, collaborator, record)
-
-    exit_code = bootstrap_profile.main()
-
-    assert calls == [_expected_collaborator_call(operation, arguments)]
-    assert exit_code == (1 if failed else 0)
-    output = capsys.readouterr().out
-    if passed_result is not None:
-        assert output.strip()
-
-
-def test_offline_tool_seed_export_and_private_restore_use_canonical_installation_identity(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
-    artifacts: dict[str, dict[str, object]] = {}
-    source_root = tmp_path / "source-installations"
-    for artifact_id in ("conftest", "gitleaks", "osv-scanner", "vale"):
-        payload = artifact_id.encode()
-        artifacts[artifact_id] = {
-            "artifact_id": artifact_id,
-            "artifact_class": "generic-cli",
-            "version": "1.0.0",
-            "policy_refs": ["artifact-integrity-v1"],
-            "source": {"repository": "https://example.invalid/tools", "release": "v1.0.0"},
-            "platform": {
-                "platform_id": "linux-arm64",
-                "source_urls": [f"https://example.invalid/{artifact_id}"],
-                "raw_manifest": [
-                    {
-                        "path": f"{artifact_id}.archive",
-                        "sha256": hashlib.sha256(payload).hexdigest(),
-                        "size": len(payload),
-                    }
-                ],
-                "installed_manifest": [
-                    {
-                        "path": artifact_id,
-                        "sha256": hashlib.sha256(payload).hexdigest(),
-                        "size": len(payload),
-                        "executable": True,
-                    }
-                ],
-            },
-        }
-        selection = bootstrap_profile._generic_locked_selection(artifacts[artifact_id], profile_id="offline-kit")
-        source_tree = verified_tool_installation.installation_tree_path(source_root, selection)
-        source_tree.mkdir(parents=True)
-        binary = source_tree / artifact_id
-        binary.write_bytes(payload)
-        binary.chmod(0o500)
-        source_tree.chmod(0o500)
-
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "_load_host_selection",
-        lambda _profile: ({"platform_id": "linux-arm64"}, artifacts, "a" * 64),
-    )
-    kit_root = tmp_path / "kit"
-    seed_root = kit_root / ".cache/raes-sdl/tooling/installations"
-    bootstrap_profile.export_immutable_tool_seeds("host-a", source_root, seed_root)
-    runtime_root = tmp_path / "runtime"
-    runtime_root.mkdir(mode=0o700)
-    selected = bootstrap_profile._offline_generic_tool_selections(kit_root, runtime_root, "linux-arm64", artifacts)
-    assert [item[0] for item in selected] == ["conftest", "gitleaks", "osv-scanner", "vale"]
-    assert all(path.is_relative_to(runtime_root) for _artifact, path, _args, _version in selected)
-    compromised = (
-        verified_tool_installation.installation_tree_path(
-            seed_root,
-            bootstrap_profile._generic_locked_selection(artifacts["conftest"], profile_id="offline-kit"),
-        )
-        / "conftest"
-    )
-    compromised.chmod(0o700)
-    second_runtime = tmp_path / "runtime-2"
-    second_runtime.mkdir(mode=0o700)
-    with pytest.raises(ValueError, match="seed differs from the lock"):
-        bootstrap_profile._offline_generic_tool_selections(kit_root, second_runtime, "linux-arm64", artifacts)
-
-
-@pytest.mark.parametrize(
-    "tampered_relative",
-    ("bin/uv", "python/cpython/bin/python3.14"),
-)
-def test_offline_kit_requires_external_trust_before_executing_installed_payloads(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    tampered_relative: str,
-) -> None:
-    monkeypatch.setattr(verified_tool_installation, "_portable_lock", lambda _path: nullcontext())
-    artifact_ids = {"conftest", "cpython-3.14", "gitleaks", "osv-scanner", "uv", "vale"}
-    kit_root = tmp_path / "kit"
-    artifacts: list[dict[str, object]] = []
-    for artifact_id in sorted(artifact_ids):
-        version = "3.14.7" if artifact_id == "cpython-3.14" else "0.12.4" if artifact_id == "uv" else "1.0.0"
-        platform: dict[str, object] = {
-            "platform_id": "linux-arm64",
-            "raw_manifest": [],
-            "source_urls": [f"https://example.invalid/{artifact_id}"],
-        }
-        raw = f"raw-{artifact_id}".encode()
-        raw_path = kit_root / "archives" / artifact_id / f"{artifact_id}.archive"
-        raw_path.parent.mkdir(parents=True)
-        raw_path.write_bytes(raw)
-        platform["raw_manifest"] = [
-            {"path": f"{artifact_id}.archive", "sha256": hashlib.sha256(raw).hexdigest(), "size": len(raw)}
-        ]
-        if artifact_id in {"cpython-3.14", "uv"}:
-            platform["installed_identity"] = {
-                "implementation": "CPython" if artifact_id == "cpython-3.14" else "uv",
-                "version": version,
-                "abi": "cp314" if artifact_id == "cpython-3.14" else "native",
-                "target": "aarch64-unknown-linux-gnu",
-            }
-        else:
-            platform["installed_manifest"] = [
-                {
-                    "path": artifact_id,
-                    "sha256": hashlib.sha256(artifact_id.encode()).hexdigest(),
-                    "size": len(artifact_id),
-                    "executable": True,
-                }
-            ]
-        artifacts.append(
-            {
-                "artifact_id": artifact_id,
-                "artifact_class": "generic-cli" if artifact_id not in {"cpython-3.14", "uv"} else "bootstrap",
-                "version": version,
-                "policy_refs": ["artifact-integrity-v1"],
-                "source": {"repository": "https://example.invalid/tools", "release": f"v{version}"},
-                "platform": platform,
-            }
-        )
-    artifacts_by_id = {artifact["artifact_id"]: artifact for artifact in artifacts}
-    seed_root = kit_root / ".cache/raes-sdl/tooling/installations"
-    for artifact_id in ("conftest", "gitleaks", "osv-scanner", "vale"):
-        locked = bootstrap_profile._generic_locked_selection(artifacts_by_id[artifact_id], profile_id="offline-kit")
-        seed_tree = verified_tool_installation.installation_tree_path(seed_root, locked)
-        seed_tree.mkdir(parents=True)
-        binary = seed_tree / artifact_id
-        binary.write_bytes(artifact_id.encode())
-        binary.chmod(0o500)
-        seed_tree.chmod(0o500)
-    for directory in sorted(
-        [seed_root, *(path for path in seed_root.rglob("*") if path.is_dir())],
-        key=lambda path: len(path.parts),
-        reverse=True,
-    ):
-        directory.chmod(0o500)
-    uv_path = kit_root / "bin/uv"
-    uv_path.parent.mkdir(parents=True)
-    uv_path.write_bytes(b"uv")
-    python_path = kit_root / "python/cpython/bin/python3.14"
-    python_path.parent.mkdir(parents=True)
-    python_path.write_bytes(b"python")
-    selection = {
-        "host_profile": {
-            "host_profile_id": "host-a",
-            "platform_id": "linux-arm64",
-            "offline_kit": {
-                "kit_id": "host-a-kit",
-                "artifact_ids": sorted(artifact_ids),
-                "host_prerequisite_package_ids": ["git", "curl"],
-            },
-        },
-        "artifacts": artifacts,
-        "policy_sha256": "a" * 64,
-    }
-    monkeypatch.setattr(bootstrap_profile, "load_tooling_host_profile_selection", lambda _host_id: selection)
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "_observed_uv_identity",
-        lambda version: {
-            "implementation": "uv",
-            "version": version,
-            "abi": "native",
-            "target": "aarch64-unknown-linux-gnu",
-        },
-    )
-
-    calls: list[list[str]] = []
-
-    def fake_run(argv: list[str], **_kwargs: object) -> SimpleNamespace:
-        calls.append(argv)
-        stdout = (
-            json.dumps(
-                [
-                    "CPython",
-                    "3.14.7",
-                    False,
-                    "Linux",
-                    "aarch64",
-                    str(python_path),
-                    str(python_path.parents[2]),
-                ]
-            )
-            if argv[0].endswith("python3.14")
-            else "uv 0.12.4\n"
-        )
-        return SimpleNamespace(returncode=0, stdout=stdout, stderr="")
-
-    monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
-    manifest = bootstrap_profile.build_offline_kit_manifest("host-a", kit_root, python_artifact_id="cpython-3.14")
-    manifest_path = kit_root / "offline-kit-manifest.json"
-    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-    trusted_digest = bootstrap_profile._sha256(manifest_path)
-    unsafe_ambient_temp = tmp_path / "unsafe-ambient-temp"
-    unsafe_ambient_temp.mkdir()
-    unsafe_ambient_temp.chmod(0o777)
-    monkeypatch.setattr(tempfile, "tempdir", str(unsafe_ambient_temp))
-    result = bootstrap_profile.verify_offline_kit(
-        "host-a",
-        kit_root,
-        python_artifact_id="cpython-3.14",
-        trusted_manifest_sha256=trusted_digest,
-    )
-    assert result["outcome"] == "passed"
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "_observed_uv_identity",
-        lambda version: {
-            "implementation": "uv",
-            "version": version,
-            "abi": "native",
-            "target": "x86_64-unknown-linux-gnu",
-        },
-    )
-    wrong_uv = bootstrap_profile.verify_offline_kit(
-        "host-a",
-        kit_root,
-        python_artifact_id="cpython-3.14",
-        trusted_manifest_sha256=trusted_digest,
-    )
-    assert wrong_uv["outcome"] == "failed"
-    assert wrong_uv["uv"]["reason_code"] == "payload-identity-mismatch"
-    monkeypatch.setattr(
-        bootstrap_profile,
-        "_observed_uv_identity",
-        lambda version: {
-            "implementation": "uv",
-            "version": version,
-            "abi": "native",
-            "target": "aarch64-unknown-linux-gnu",
-        },
-    )
-
-    def wrong_python_run(argv: list[str], **_kwargs: object) -> SimpleNamespace:
-        stdout = (
-            json.dumps(
-                [
-                    "CPython",
-                    "3.14.7",
-                    True,
-                    "Linux",
-                    "x86_64",
-                    str(python_path),
-                    str(python_path.parents[2]),
-                ]
-            )
-            if argv[0].endswith("python3.14")
-            else "uv 0.12.4\n"
-        )
-        return SimpleNamespace(returncode=0, stdout=stdout, stderr="")
-
-    monkeypatch.setattr(bootstrap_profile.subprocess, "run", wrong_python_run)
-    wrong_python = bootstrap_profile.verify_offline_kit(
-        "host-a",
-        kit_root,
-        python_artifact_id="cpython-3.14",
-        trusted_manifest_sha256=trusted_digest,
-    )
-    assert wrong_python["outcome"] == "failed"
-    assert wrong_python["python"]["outcome"] == "failed"
-    monkeypatch.setattr(bootstrap_profile.subprocess, "run", fake_run)
-    (kit_root / tampered_relative).write_bytes(b"substituted")
-    rewritten = bootstrap_profile.build_offline_kit_manifest("host-a", kit_root, python_artifact_id="cpython-3.14")
-    manifest_path.write_text(json.dumps(rewritten), encoding="utf-8")
-    calls.clear()
-    with pytest.raises(ValueError, match="externally trusted digest"):
-        bootstrap_profile.verify_offline_kit(
-            "host-a",
-            kit_root,
-            python_artifact_id="cpython-3.14",
-            trusted_manifest_sha256=trusted_digest,
-        )
-    assert calls == []
-
-
-def test_offline_kit_manifest_rejects_an_escaping_symlink(tmp_path: Path) -> None:
-    kit_root = tmp_path / "kit"
-    kit_root.mkdir()
-    (kit_root / "escape").symlink_to(tmp_path / "outside")
-    with pytest.raises(ValueError, match="escaping symbolic link"):
-        bootstrap_profile._offline_kit_entries(kit_root)
-
-
-def test_relocatable_tree_copy_materializes_links_and_omits_dangling_links(tmp_path: Path) -> None:
-    source_root = tmp_path / "source"
-    source_bin = source_root / "bin"
-    source_bin.mkdir(parents=True)
-    (source_bin / "python3.14").write_bytes(b"python")
-    (source_bin / "python").symlink_to(source_bin / "python3.14")
-
-    destination_root = tmp_path / "destination"
-    bootstrap_profile.copy_relocatable_tree(source_root, destination_root)
-    relocated = destination_root / "bin/python"
-    assert relocated.is_file()
-    assert not relocated.is_symlink()
-    assert relocated.read_bytes() == b"python"
-
-    (source_root / "dangling").symlink_to(tmp_path / "missing")
-    copied_root = tmp_path / "copied"
-    bootstrap_profile.copy_relocatable_tree(source_root, copied_root)
-    assert not (copied_root / "dangling").exists()
-
-
-def test_offline_python_install_extracts_only_the_locked_relocatable_archive(
+def test_bootstrap_python_install_extracts_only_the_locked_relocatable_archive(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -1395,70 +668,15 @@ def test_offline_python_install_extracts_only_the_locked_relocatable_archive(
         lambda _host_id: ({}, {"cpython-3.14": artifact}, "a" * 64),
     )
 
-    result = bootstrap_profile.install_offline_python_payload("host-a", kit_root, "cpython-3.14")
+    result = bootstrap_profile.install_python_payload("host-a", kit_root, "cpython-3.14")
     installed = kit_root / result["path"] / "bin/python3.14"
     assert installed.read_bytes() == b"relocatable-python"
     archive.write_bytes(archive.read_bytes() + b"tampered")
     with pytest.raises(ValueError, match="differs from the validated lock"):
-        bootstrap_profile.install_offline_python_payload("host-a", kit_root, "cpython-3.14")
+        bootstrap_profile.install_python_payload("host-a", kit_root, "cpython-3.14")
 
 
-def test_offline_kit_manifest_uses_the_profile_specific_proof_closure(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    kit_root = tmp_path / "proof-kit"
-    (kit_root / "bin").mkdir(parents=True)
-    (kit_root / "bin/uv").write_bytes(b"uv")
-    (kit_root / "python/cpython/bin").mkdir(parents=True)
-    (kit_root / "python/cpython/bin/python3.12").write_bytes(b"python")
-    artifacts = []
-    for artifact_id, version in (("cpython-3.12", "3.12.14"), ("isabelle", "2025-2"), ("uv", "0.12.4")):
-        raw = f"raw-{artifact_id}".encode()
-        raw_path = kit_root / "archives" / artifact_id / f"{artifact_id}.archive"
-        raw_path.parent.mkdir(parents=True)
-        raw_path.write_bytes(raw)
-        platform = {
-            "raw_manifest": [
-                {
-                    "path": raw_path.name,
-                    "sha256": hashlib.sha256(raw).hexdigest(),
-                    "size": len(raw),
-                }
-            ]
-        }
-        if artifact_id in {"cpython-3.12", "uv"}:
-            platform["installed_identity"] = {
-                "implementation": "CPython" if artifact_id == "cpython-3.12" else "uv",
-                "version": version,
-                "abi": "cp312" if artifact_id == "cpython-3.12" else "native",
-                "target": "x86_64-unknown-linux-gnu",
-            }
-        artifacts.append({"artifact_id": artifact_id, "version": version, "platform": platform})
-    selection = {
-        "host_profile": {
-            "host_profile_id": "proof-host",
-            "platform_id": "linux-x86_64",
-            "offline_kit": {
-                "kit_id": "proof-kit",
-                "artifact_ids": ["cpython-3.12", "isabelle", "uv"],
-                "host_prerequisite_package_ids": ["libc-bin", "bubblewrap", "fontconfig", "fonts-dejavu-core"],
-            },
-        },
-        "artifacts": artifacts,
-        "policy_sha256": "a" * 64,
-    }
-    monkeypatch.setattr(bootstrap_profile, "load_tooling_host_profile_selection", lambda _host_id: selection)
-    manifest = bootstrap_profile.build_offline_kit_manifest(
-        "proof-host",
-        kit_root,
-        python_artifact_id="cpython-3.12",
-    )
-    assert manifest["artifact_ids"] == ["cpython-3.12", "isabelle", "uv"]
-    assert manifest["host_prerequisite_package_ids"] == ["bubblewrap", "fontconfig", "fonts-dejavu-core", "libc-bin"]
-
-
-def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
+def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -1468,7 +686,7 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
     selection = {
         "host_profile": {
             "host_profile_id": "host-a",
-            "offline_kit": {"artifact_ids": ["uv"]},
+            "bootstrap_payload_ids": ["uv"],
         },
         "artifacts": [
             {
@@ -1509,7 +727,7 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_transfer)
-    result = bootstrap_profile.fetch_offline_kit_payloads("host-a", kit_root, ("uv",))
+    result = bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",))
     assert result == [
         {
             "artifact_id": "uv",
@@ -1519,7 +737,7 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
         }
     ]
     with pytest.raises(ValueError, match="already exists"):
-        bootstrap_profile.fetch_offline_kit_payloads("host-a", kit_root, ("uv",))
+        bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",))
 
     tampered_root = tmp_path / "tampered-kit"
     tampered_root.mkdir()
@@ -1544,7 +762,7 @@ def test_offline_kit_fetch_uses_the_validated_exact_raw_object(
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_tampered_transfer)
     tampered_target = tampered_root / "archives/uv/uv.tar.gz"
     with pytest.raises(ValueError, match="failed exact verification"):
-        bootstrap_profile.fetch_offline_kit_payloads("host-a", tampered_root, ("uv",))
+        bootstrap_profile.fetch_bootstrap_payloads("host-a", tampered_root, ("uv",))
     assert not tampered_target.exists()
 
 
@@ -1595,6 +813,12 @@ class _CurlFixture(BaseHTTPRequestHandler):
 
 
 def _https_fixture(tmp_path: Path) -> tuple[ThreadingHTTPServer, Path]:
+    # Only the opt-in real-curl TLS fixtures need certificate generation.
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from cryptography.x509.oid import NameOID
+
     curl_version = bootstrap_profile.observe_executable(
         "curl-unknown-length-max-filesize",
         Path("/usr/bin/curl"),

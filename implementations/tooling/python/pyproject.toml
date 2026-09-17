@@ -5,7 +5,6 @@ description = "Reviewed Python verification and isolated-build dependency closur
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "check-jsonschema==0.37.1",
-    "cryptography==50.0.1",
     "filelock==3.32.6",
     "nox[uv]==2026.4.10",
     "pip==26.2.1",
@@ -18,6 +17,9 @@ dependencies = [
 ]
 
 [dependency-groups]
+acquisition-tests = [
+    "cryptography==50.0.1",
+]
 build = [
     "hatchling==1.27.0",
 ]

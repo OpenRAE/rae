@@ -1,10 +1,10 @@
 # Development container
 
-The repository ships a ready-to-use development container. Open the repository
-in it and, after a few minutes of automatic setup, you have everything a RAES
-maintainer needs: the locked Python and uv, both project environments, the
-repository's CLI tools, git hooks, and an editor already pointed at the right
-interpreter and formatter. There are no setup commands to run.
+The repository ships an optional connected development container with locked
+Python/uv, frozen project and tooling environments, CLI tools and git hooks.
+The bootstrap workflow exercises an x86_64 Docker build and repeated lifecycle
+setup. Client-specific entry-point verification belongs to #1277; the routes
+below are configuration guidance, not a claim that each client has been tested.
 
 The container is optional. Native setup, described in
 [Contribute to RAES](../../CONTRIBUTING.md), stays fully supported.
@@ -32,7 +32,7 @@ step and finishes with `Ready.`:
 5. installs the repository's file-hygiene and secrets pre-commit hook.
 
 Reopening the container runs nothing again. Rebuilding it reruns setup against
-the cache volume in about a minute. If setup fails, the message names the step
+the cache volume; duration depends on the host and available inputs. If setup fails, the message names the step
 and the reason, and the container stays usable for investigation.
 
 ## Start working
@@ -67,19 +67,16 @@ The container is a **Linux x86_64 (`linux/amd64`)** image, qualified by a clean
 native build in continuous integration. Every build stage pins the reviewed
 `linux/amd64` base manifest, so any client builds the same image.
 
-On **Apple silicon** and other arm64 hosts, Docker Desktop runs that same image
-under emulation (Rosetta or QEMU), with no extra configuration. Expect builds and test
-runs to be slower than native. A native arm64 image isn't offered because Ubuntu
-publishes immutable package snapshots only for x86_64; building arm64 from the
-moving ports archive would give up reproducible images. An arm64 variant can be
-added as its own reviewed host profile once an immutable package source
-exists.
+Native arm64 support and client/emulation behavior are not newly qualified by
+this change. A native arm64 variant needs a reviewed image/interpreter tuple
+and actual build/setup tests, **not** an immutable-package-snapshot service.
+The current image remains linux/amd64; #1277 owns accurate entry-point claims.
 
 ## What is in the image
 
 - Ubuntu 24.04, pinned by its `linux/amd64` manifest digest.
-- Native packages from one immutable Ubuntu snapshot, authenticated by the
-  Ubuntu archive keyring: the bootstrap prerequisites (`git`, `curl`, `gh`,
+- Native packages from the base image's signed Ubuntu repositories, authenticated
+  by the Ubuntu archive keyring: the bootstrap prerequisites (`git`, `curl`, `gh`,
   `python3` with `jsonschema`, `packaging`, and `yaml`, CA certificates) and
   maintainer tools (`openssh-client`, `gnupg`, `less`, `nano`, `make`, `jq`,
   `procps`, `bash-completion`).
@@ -90,14 +87,12 @@ environment, or payload cache. uv, CPython, and the CLI tools are downloaded
 into the cache volume by the repository's verified installers, and uv is
 forbidden from downloading any interpreter the lock did not admit.
 
-Every version, digest, package, and architecture comes from
-[`development-profiles.json`](../../implementations/tooling/profiles/development-profiles.json)
-and [`artifacts.lock.json`](../../implementations/tooling/artifacts.lock.json)
-through the `container-ubuntu-24.04-x86_64` host profile.
-`tools/tooling_artifact_policy_container.py` and
-`tools/tooling_artifact_policy_devcontainer.py` refuse any Dockerfile or
-`devcontainer.json` value that disagrees with them, and refuse host-side
-commands, extra environment, host mounts, and added container capabilities.
+The artifact lock owns the base digest and verified bootstrap payloads.
+`.devcontainer/Dockerfile` owns native packages, account setup and environment;
+`devcontainer.json` owns the client configuration. Focused checks keep the
+locked platform/digest, non-root user and restricted runtime boundary. They do
+not duplicate the whole Dockerfile as a policy language. Signed moving native
+repositories mean image rebuilds are not byte-reproducible.
 
 ## Caches and rebuilds
 
@@ -159,19 +154,10 @@ repository.
 
 ## Update the image
 
-The image follows its authorities, so an update is a reviewed change to them:
-
-1. Change the base index digest and `linux/amd64` manifest in
-   `artifacts.lock.json`, or the `native_repository_snapshot`, prerequisite
-   packages, or `development_package_ids` in the container host profile. Pick a
-   snapshot no older than the base image, or apt can't install packages that
-   depend on its newer libraries.
-2. Render the expected values with
-   `python3 -m tools.devcontainer_image --host-profile-id container-ubuntu-24.04-x86_64`
-   and apply them to `.devcontainer/Dockerfile`.
-3. Regenerate the qualification records' `policy_sha256`.
-4. Let the `development-image` job of the bootstrap qualification workflow
-   build from an empty cache and exercise the lifecycle.
-
-`make policy` refuses the change whenever the image and its authorities
-disagree.
+Update the reviewed base index/platform digest in `artifacts.lock.json` and its
+Dockerfile projection together. Update packages and account setup directly in
+the Dockerfile, and client settings in `devcontainer.json`. No qualification
+record hash needs renewal. Let the path-filtered/manual `development-image`
+job build from an empty cache and exercise setup twice, ordinary checks and
+the expected proof-capability refusal. Changes to supported entry points or
+architectures need their own actual verification evidence.

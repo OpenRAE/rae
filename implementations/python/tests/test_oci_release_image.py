@@ -1,10 +1,4 @@
-"""GOV-913 (#1223): source-class admission for the release-test OCI image.
-
-Mirror-only and pre-seeded operation exist so a site with no route to the public
-registry can still run the required lane. That guarantee is worth nothing if any
-path can quietly fall back to a public pull, resolve a mutable tag, or accept an
-image override, so those are the properties under test here.
-"""
+"""Release-test image pins, native pulls, bounded clients, and daemon identity."""
 
 from __future__ import annotations
 
@@ -13,11 +7,8 @@ import subprocess
 import pytest
 from tools.oci_release_image import (
     ImageAdmissionError,
-    SourceClass,
     acquire_image,
-    export_layout,
     image_reference,
-    import_layout_into_daemon,
     resolve_source,
     verify_daemon_image,
 )
@@ -39,7 +30,7 @@ class _Runner:
 
 
 def _graph(architecture: str = "amd64", diff_ids: tuple[str, ...] = ("sha256:" + "08" * 32,)):
-    from tools.oci_image_layout import LockedPlatformGraph, OciDescriptor
+    from tools.oci_release_selection import LockedPlatformGraph, OciDescriptor
 
     descriptor = OciDescriptor(digest=_INDEX_DIGEST, size=9226)
     return LockedPlatformGraph(
@@ -54,82 +45,6 @@ def _graph(architecture: str = "amd64", diff_ids: tuple[str, ...] = ("sha256:" +
     )
 
 
-def test_default_source_class_is_the_public_origin() -> None:
-    source = resolve_source({})
-
-    assert source.source_class is SourceClass.PUBLIC
-    assert source.repository is None
-
-
-def test_preseeded_operation_performs_no_acquisition() -> None:
-    runner = _Runner()
-    source = resolve_source({"RAES_OCI_SOURCE_CLASS": "preseeded"})
-
-    acquire_image(source, "ignored", runtime="docker", runner=runner)
-
-    assert runner.calls == []
-
-
-def test_mirror_operation_pulls_only_from_the_configured_mirror() -> None:
-    runner = _Runner()
-    source = resolve_source({"RAES_OCI_SOURCE_CLASS": "mirror", "RAES_OCI_MIRROR_REPOSITORY": _MIRROR_REPOSITORY})
-    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
-
-    acquire_image(source, reference, runtime="docker", runner=runner)
-
-    assert reference == f"{_MIRROR_REPOSITORY}@{_INDEX_DIGEST}"
-    assert runner.calls == [["docker", "pull", reference]]
-    assert not any(_PUBLIC_REPOSITORY in " ".join(call) for call in runner.calls)
-
-
-def test_failed_mirror_acquisition_never_retries_against_the_public_origin() -> None:
-    runner = _Runner(returncode=1)
-    source = resolve_source({"RAES_OCI_SOURCE_CLASS": "mirror", "RAES_OCI_MIRROR_REPOSITORY": _MIRROR_REPOSITORY})
-    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
-
-    with pytest.raises(ImageAdmissionError) as excinfo:
-        acquire_image(source, reference, runtime="docker", runner=runner)
-
-    assert excinfo.value.reason == "acquisition-failed"
-    assert len(runner.calls) == 1
-
-
-def test_mirror_configuration_is_never_echoed_into_a_diagnostic() -> None:
-    runner = _Runner(returncode=1)
-    source = resolve_source({"RAES_OCI_SOURCE_CLASS": "mirror", "RAES_OCI_MIRROR_REPOSITORY": _MIRROR_REPOSITORY})
-    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
-
-    with pytest.raises(ImageAdmissionError) as excinfo:
-        acquire_image(source, reference, runtime="docker", runner=runner)
-
-    assert _MIRROR_REPOSITORY not in str(excinfo.value)
-
-
-@pytest.mark.parametrize(
-    "repository",
-    [
-        "https://registry.internal.invalid/mirror/alpine",
-        "user:token@registry.internal.invalid/mirror/alpine",
-        "registry.internal.invalid/mirror/alpine:latest",
-        "registry.internal.invalid/mirror/alpine@sha256:" + "ab" * 32,
-        "registry.internal.invalid/mirror/alpine?token=secret",
-        "",
-    ],
-)
-def test_mirror_repository_must_be_a_bare_reviewed_reference(repository: str) -> None:
-    with pytest.raises(ImageAdmissionError) as excinfo:
-        resolve_source({"RAES_OCI_SOURCE_CLASS": "mirror", "RAES_OCI_MIRROR_REPOSITORY": repository})
-
-    assert excinfo.value.reason == "mirror-configuration"
-
-
-def test_mirror_class_without_a_configured_mirror_fails_closed() -> None:
-    with pytest.raises(ImageAdmissionError) as excinfo:
-        resolve_source({"RAES_OCI_SOURCE_CLASS": "mirror"})
-
-    assert excinfo.value.reason == "mirror-configuration"
-
-
 def test_unknown_source_class_fails_closed() -> None:
     with pytest.raises(ImageAdmissionError) as excinfo:
         resolve_source({"RAES_OCI_SOURCE_CLASS": "whatever-the-operator-typed"})
@@ -138,13 +53,13 @@ def test_unknown_source_class_fails_closed() -> None:
 
 
 def test_image_reference_is_always_digest_pinned() -> None:
-    source = resolve_source({})
+    resolve_source({})
 
-    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
+    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST)
 
     assert reference == f"{_PUBLIC_REPOSITORY}@{_INDEX_DIGEST}"
     with pytest.raises(ImageAdmissionError) as excinfo:
-        image_reference(_PUBLIC_REPOSITORY, "3.20.10", source)
+        image_reference(_PUBLIC_REPOSITORY, "3.20.10")
     assert excinfo.value.reason == "image-identity"
 
 
@@ -179,23 +94,6 @@ def test_daemon_readback_rejects_a_substituted_image(stdout: str) -> None:
     assert excinfo.value.reason == "image-identity"
 
 
-def test_layout_export_and_import_use_fixed_bounded_client_argv(tmp_path) -> None:
-    runner = _Runner()
-    layout = tmp_path / "layout"
-
-    export_layout(f"{_PUBLIC_REPOSITORY}@{_INDEX_DIGEST}", layout, runner=runner)
-    import_layout_into_daemon(layout, "raes-release-test:preseeded", runner=runner)
-
-    export_argv, import_argv = runner.calls
-    assert export_argv[:2] == ["skopeo", "copy"]
-    assert "--all" in export_argv
-    assert "--preserve-digests" in export_argv
-    assert export_argv[-2] == f"docker://{_PUBLIC_REPOSITORY}@{_INDEX_DIGEST}"
-    assert export_argv[-1] == f"oci:{layout}:release-test"
-    assert import_argv[:2] == ["skopeo", "copy"]
-    assert import_argv[-1] == "docker-daemon:raes-release-test:preseeded"
-
-
 def test_client_invocations_never_inherit_ambient_registry_state() -> None:
     captured: dict[str, object] = {}
 
@@ -203,7 +101,7 @@ def test_client_invocations_never_inherit_ambient_registry_state() -> None:
         captured.update(kwargs)
         return subprocess.CompletedProcess(args=argv, returncode=0, stdout="", stderr="")
 
-    acquire_image(resolve_source({}), f"{_PUBLIC_REPOSITORY}@{_INDEX_DIGEST}", runtime="docker", runner=_runner)
+    acquire_image(f"{_PUBLIC_REPOSITORY}@{_INDEX_DIGEST}", runtime="docker", runner=_runner)
 
     assert set(captured["env"]) == {"LC_ALL", "LANG", "PATH"}
     assert isinstance(captured["timeout"], int)
@@ -259,10 +157,10 @@ def test_locked_platform_graphs_project_every_required_platform() -> None:
 
     graphs = locked_platform_graphs(loader=_loader)
 
-    assert [graph.platform_id for graph in graphs] == ["linux-x86_64", "linux-arm64"]
+    assert [graph.platform_id for graph in graphs] == ["linux-x86_64"]
     # One reviewed index binds every platform selection together.
     assert len({graph.index for graph in graphs}) == 1
-    assert seen == [("3.20.10", "linux-x86_64"), ("3.20.10", "linux-arm64")]
+    assert seen == [("3.20.10", "linux-x86_64")]
 
 
 def test_locked_platform_graphs_refuse_an_index_only_selection() -> None:
@@ -274,21 +172,6 @@ def test_locked_platform_graphs_refuse_an_index_only_selection() -> None:
     assert excinfo.value.reason == "graph-unavailable"
 
 
-def test_locked_platform_graphs_refuse_platforms_under_different_indexes() -> None:
-    from tools.oci_release_image import locked_platform_graphs
-
-    def _loader(*, platform_id: str, **_kwargs):
-        document = dict(_GRAPH_DOCUMENT)
-        if platform_id == "linux-arm64":
-            document |= {"index": {"digest": "sha256:" + "ee" * 32, "size": 9226}}
-        return _locked_selection(document)
-
-    with pytest.raises(ImageAdmissionError) as excinfo:
-        locked_platform_graphs(loader=_loader)
-
-    assert excinfo.value.reason == "index-identity"
-
-
 @pytest.mark.integration
 def test_checked_in_lock_admits_the_release_test_image_for_every_required_platform() -> None:
     from tools.oci_release_image import REQUIRED_PLATFORM_IDS, locked_platform_graphs, locked_repository
@@ -297,7 +180,7 @@ def test_checked_in_lock_admits_the_release_test_image_for_every_required_platfo
 
     assert [graph.platform_id for graph in graphs] == list(REQUIRED_PLATFORM_IDS)
     assert len({graph.index for graph in graphs}) == 1
-    assert {(graph.architecture, graph.os) for graph in graphs} == {("amd64", "linux"), ("arm64", "linux")}
+    assert {(graph.architecture, graph.os) for graph in graphs} == {("amd64", "linux")}
     assert all(len(graph.layers) == len(graph.diff_ids) >= 1 for graph in graphs)
     assert locked_repository() == _PUBLIC_REPOSITORY
 
@@ -313,111 +196,23 @@ def test_client_failures_are_classified_without_leaking_native_detail(failure, r
     def _runner(*_args, **_kwargs):
         raise failure
 
-    source = resolve_source({})
-    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
+    resolve_source({})
+    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST)
 
     with pytest.raises(ImageAdmissionError) as excinfo:
-        acquire_image(source, reference, runtime="docker", runner=_runner)
+        acquire_image(reference, runtime="docker", runner=_runner)
 
     assert excinfo.value.reason == reason
     assert "no such client" not in str(excinfo.value)
 
 
 def test_only_the_reviewed_container_runtimes_may_be_driven() -> None:
-    source = resolve_source({})
-    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
+    resolve_source({})
+    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST)
 
     runner = _Runner()
 
     with pytest.raises(ImageAdmissionError) as excinfo:
-        acquire_image(source, reference, runtime="rm -rf /", runner=runner)
+        acquire_image(reference, runtime="rm -rf /", runner=runner)
 
     assert excinfo.value.reason == "runtime-not-allowed"
-
-
-def test_preseeded_reference_is_the_reviewed_index_under_a_local_name() -> None:
-    from tools.oci_release_image import PRESEED_LOCAL_REPOSITORY
-
-    source = resolve_source({"RAES_OCI_SOURCE_CLASS": "preseeded"})
-
-    reference = image_reference(_PUBLIC_REPOSITORY, _INDEX_DIGEST, source)
-
-    # An imported image has no registry repo digest, so the local name carries
-    # the reviewed index digest itself. It cannot float to other content, and
-    # it is not an operator-supplied override.
-    assert reference == f"{PRESEED_LOCAL_REPOSITORY}:{_INDEX_DIGEST.removeprefix('sha256:')}"
-
-
-def test_export_refuses_to_run_in_a_preseeded_context() -> None:
-    from tools.oci_release_image import export_command
-
-    with pytest.raises(ImageAdmissionError) as excinfo:
-        export_command(
-            layout_root="/nonexistent",
-            environ={"RAES_OCI_SOURCE_CLASS": "preseeded"},
-            loader=lambda **_kwargs: None,
-        )
-
-    assert excinfo.value.reason == "source-class"
-
-
-def test_import_verifies_the_layout_before_touching_the_daemon(tmp_path, monkeypatch) -> None:
-    from tools import oci_release_image as module
-
-    order: list[str] = []
-
-    def _verify_layout(_root, _graphs):
-        order.append("verify-layout")
-        raise module.LayoutRejected("blob-corrupt")
-
-    monkeypatch.setattr(module, "verify_layout", _verify_layout)
-    monkeypatch.setattr(module, "import_layout_into_daemon", lambda *a, **k: order.append("import"))
-    monkeypatch.setattr(module, "verify_daemon_image", lambda *a, **k: order.append("verify-daemon"))
-    monkeypatch.setattr(module, "locked_platform_graphs", lambda **_k: (_graph(),))
-
-    with pytest.raises(module.LayoutRejected):
-        module.import_command(layout_root=tmp_path, runtime="docker", environ={})
-
-    assert order == ["verify-layout"]
-
-
-def test_import_admits_then_loads_then_reverifies(tmp_path, monkeypatch) -> None:
-    from tools import oci_release_image as module
-
-    order: list[str] = []
-    monkeypatch.setattr(module, "verify_layout", lambda *a, **k: order.append("verify-layout"))
-    monkeypatch.setattr(module, "import_layout_into_daemon", lambda *a, **k: order.append("import"))
-    monkeypatch.setattr(module, "verify_daemon_image", lambda *a, **k: order.append("verify-daemon"))
-    monkeypatch.setattr(module, "locked_platform_graphs", lambda **_k: (_graph(),))
-
-    reference = module.import_command(layout_root=tmp_path, runtime="docker", environ={})
-
-    assert order == ["verify-layout", "import", "verify-daemon"]
-    assert reference == f"{module.PRESEED_LOCAL_REPOSITORY}:{_INDEX_DIGEST.removeprefix('sha256:')}"
-
-
-@pytest.mark.integration
-def test_module_is_runnable_as_a_script_from_the_repository_root() -> None:
-    """The release lane invokes this file as a script, not as a package import.
-
-    Run that way, `sys.path[0]` is `tools/` rather than the repository root, so
-    the module's own package imports have to be made resolvable by the entry
-    point itself.
-    """
-
-    import sys
-    from pathlib import Path
-
-    repo_root = Path(__file__).resolve().parents[3]
-    completed = subprocess.run(
-        [sys.executable, "tools/oci_release_image.py", "--help"],
-        cwd=repo_root,
-        capture_output=True,
-        text=True,
-        timeout=60,
-        check=False,
-    )
-
-    assert completed.returncode == 0, completed.stderr
-    assert "export" in completed.stdout
-    assert "import" in completed.stdout

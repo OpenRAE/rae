@@ -39,28 +39,23 @@ SSH_INGRESS_CIDR=203.0.113.4/32 AWS_PROFILE=aws-dev AWS_REGION=us-east-1 \
 
 `SSH_INGRESS_CIDR` is required: declare the reviewed CIDR allowed to reach the
 instance on tcp/22 (there is no external checkip auto-detect). The reviewed base
-image and native-package snapshot are pinned in `tools/tool_versions.py`
-(`LIVE_RUNNER_UBUNTU_IMAGE_NAME`, `LIVE_RUNNER_NATIVE_SNAPSHOT`); the script
-resolves them for your region rather than floating a "newest" AMI. It first
-stages the admitted input closure locally through the tooling policy gate
-(`tools/real-daemon/live_runner_inputs.py`): the pinned CirrOS guest disk
-(`cirros-guest-disk` in `implementations/tooling/artifacts.lock.json`), the
-locked `uv` client, the declared `cpython-3.14` interpreter, and the
-`libvirt-python` build wheelhouse (sdist + pinned setuptools/wheel) are
-downloaded once and verified against their reviewed digests. It then resolves the
-reviewed Canonical image by exact name + owner, provisions a `c5.2xlarge`
-instance whose APT is pinned to the immutable `snapshot.ubuntu.com` archive, pins
-the instance host key from the authenticated AWS console output
-(`StrictHostKeyChecking=yes`), transfers only Git-tracked source, **pre-seeds and
-re-verifies** the inputs, installs `uv` and the validated `cpython-3.14`
-interpreter from the pre-seeded payloads (no pipe-to-shell), runs
-`uv sync --frozen` on that interpreter, installs `libvirt-python` **offline** from
-the wheelhouse (`--offline --no-index --find-links --require-hashes`), runs the
-smoke test against a scoped per-run directory under the libvirt images tree,
-prints the `SUMMARY: N/N passed` line, and tears down the instance + security
-group + key pair on exit. The host keeps its default security driver — no
-`security_driver = "none"` and no root QEMU user/group. Pass `--keep` to leave
-the instance up for manual inspection (remember to terminate it later).
+image owner/name are pinned in `tools/tool_versions.py`; the scripts resolve
+the exact Canonical name for the region, never the newest AMI. The small local
+handoff verifies uv, CPython and (for the smoke) the CirrOS guest disk against
+reviewed hashes. It is not a complete disconnected environment.
+
+The instance uses its signed Ubuntu repositories for native prerequisites.
+Its SSH host key is pinned from authenticated AWS console output with
+`StrictHostKeyChecking=yes`; only Git-tracked source is transferred.
+Transferred bootstrap and guest bytes are reverified, the project sync is
+frozen, and libvirt-python installs online with exact hash-pinned requirements
+and build constraints. Native packages are not claimed byte-reproducible.
+
+Default AppArmor/QEMU security, scoped per-run directories, visible failures
+and instance/security-group/key-pair cleanup remain. Pass `--keep` only when
+you intend to retain the instance for inspection and terminate it afterward.
+These scripts are opt-in and incur cloud resources; repository verification
+does not run them automatically.
 
 Exit code is non-zero if any check fails; a setup timeout is a failure, not a
 silently ignored step.

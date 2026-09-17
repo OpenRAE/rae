@@ -322,7 +322,7 @@ def test_canonical_proof_job_consumes_same_run_locked_generic_tool_inputs() -> N
     assert prepare["runs-on"] == "ubuntu-24.04"
     assert verify["runs-on"] == "ubuntu-22.04"
     assert verify["needs"] == "generic-tool-local-inputs"
-    assert "offline-kit-fetch" in workflow_text
+    assert "fetch-inputs" in workflow_text
     assert "--artifact-id conftest" in workflow_text
     assert "--artifact-id gitleaks" in workflow_text
     assert "--artifact-id osv-scanner" in workflow_text

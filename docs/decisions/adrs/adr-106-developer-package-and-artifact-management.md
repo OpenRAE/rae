@@ -10,6 +10,47 @@ Accepted by the maintainer through merged PR #1229 for issue #1168.
 
 2026-09-05
 
+## Current scope — issue #1313 amendment
+
+This amendment takes effect with the #1313 delivery merge and supersedes every
+conflicting requirement in the original decision below and its linked design
+set. The earlier acceptance remains historical, not authority to restore
+cancelled work.
+
+OpenRAE supports connected local development and GitHub-hosted CI under the
+single maintainer recorded in [MAINTAINERS.md](../../../MAINTAINERS.md).
+Tooling, Security, Release, Platform and domain labels describe responsibilities
+of that maintainer; they do not establish independent human review or require
+a deputy. Build/test and publishing **machine permissions** remain separated.
+
+There is no required enterprise artifact repository, promotion or revocation
+service, disconnected-development bundle, independent-copy backup, service-load
+qualification, retention/GC service or disaster-recovery drill program.
+#1224, #1225 and #1228 are cancelled as not planned. The local denied-digest
+policy remains reviewed Git data, not a freshness/status service.
+
+Retain reviewed input hashes, maintained acquisition clients, frozen Python
+project/tool/build dependencies, installed wheel/sdist smokes, private verified
+installations, proof isolation, vocabulary identity and concurrent CI.
+Native workflows and updater configuration own their execution settings;
+focused checks replace parallel workflow models and inventory-site accounting.
+Component qualification runs for relevant changes or explicit maintenance,
+without aggregate qualification-hash renewal.
+
+Keep exact release SHA, real-container requirements, standard provenance/SBOM,
+tested output digests and separate publishers. #1227 owns ordinary same-byte
+handoff and partial-publication recovery; #684 owns actual publication
+acceptance; #1277 owns supported dev-container entry-point verification.
+#1313 is not a blanket prerequisite for any of them. The
+[current migration table](../package-artifacts/migration.md) is the active
+scope/dependency record.
+
+## Historical decision
+
+The sections below preserve the accepted 2026-09-05 design for audit history.
+Their enterprise, disconnected and service-operations prescriptions are not
+current acceptance criteria where superseded above.
+
 ## Classification
 
 Classification: FM3
@@ -162,3 +203,4 @@ acceptance; closing #1168 does not claim that the migration issues are shipped.
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-09-06 | #1229 | Recorded the maintainer acceptance already established by merged PR #1229 and added the ADR to the accepted-content pin manifest. |
+| 2026-09-17 | #1313 | Narrowed the operating scope to connected single-maintainer OSS development and ordinary release recovery; preserved the original accepted design as history. |
