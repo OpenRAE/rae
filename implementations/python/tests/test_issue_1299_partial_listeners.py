@@ -287,8 +287,9 @@ def test_concrete_private_listener_protocol_remains_binding() -> None:
         skip_semantic_validation=True,
     )
 
+    validator = SemanticValidator(scenario)
     with pytest.raises(SDLValidationError, match="port/protocol must match service 'private'"):
-        SemanticValidator(scenario).validate()
+        validator.validate()
 
 
 def test_partial_listener_does_not_create_access_publication_or_capture_demand() -> None:

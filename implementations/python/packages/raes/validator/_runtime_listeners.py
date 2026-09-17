@@ -108,20 +108,37 @@ class _RuntimeListenersMixin:
             values = (ref.host_ip, ref.host_port, ref.container_port, ref.protocol)
             if any(self._is_unresolved_var(value) for value in values):
                 continue
-            port_mismatch = (
-                port_supplied
-                and listener_port is not None
-                and not self._is_unresolved_var(listener_port)
-                and ref.container_port != listener_port
-            )
-            protocol_mismatch = (
-                protocol_supplied and listener_protocol is not None and ref.protocol != listener_protocol
-            )
-            if port_mismatch or protocol_mismatch:
+            if self._listener_published_port_mismatch(
+                ref_container_port=ref.container_port,
+                ref_protocol=ref.protocol,
+                listener_port=listener_port,
+                listener_protocol=listener_protocol,
+                port_supplied=port_supplied,
+                protocol_supplied=protocol_supplied,
+            ):
                 self._err(f"{label} published_port_refs entry must match listener port/protocol")
                 continue
             if values not in published_ports:
                 self._err(f"{label} published_port_refs entry does not resolve to runtime.network.published_ports")
+
+    def _listener_published_port_mismatch(
+        self,
+        *,
+        ref_container_port: object,
+        ref_protocol: str,
+        listener_port: object,
+        listener_protocol: str | None,
+        port_supplied: bool,
+        protocol_supplied: bool,
+    ) -> bool:
+        port_mismatch = (
+            port_supplied
+            and listener_port is not None
+            and not self._is_unresolved_var(listener_port)
+            and ref_container_port != listener_port
+        )
+        protocol_mismatch = protocol_supplied and listener_protocol is not None and ref_protocol != listener_protocol
+        return port_mismatch or protocol_mismatch
 
     def _node_runtime_process_refs(self, node: object) -> set[str]:
         runtime = getattr(node, "runtime", None)

@@ -260,6 +260,17 @@ def _merge_expanded_provenance(
     )
 
 
+def _listener_payloads_for_node(nodes_payload: dict[str, Any], node_name: str) -> list[Any] | None:
+    node_payload = nodes_payload.get(node_name)
+    if not isinstance(node_payload, dict):
+        return None
+    runtime_payload = node_payload.get("runtime")
+    if not isinstance(runtime_payload, dict):
+        return None
+    listeners_payload = runtime_payload.get("service_listeners")
+    return listeners_payload if isinstance(listeners_payload, list) else None
+
+
 def _preserve_listener_protocol_presence(payload: dict[str, Any], source: ScenarioContent) -> None:
     """Keep an omitted listener protocol omitted across phase-model rebuilds."""
     nodes_payload = payload.get("nodes")
@@ -269,10 +280,8 @@ def _preserve_listener_protocol_presence(payload: dict[str, Any], source: Scenar
         runtime = getattr(node, "runtime", None)
         if runtime is None:
             continue
-        node_payload = nodes_payload.get(node_name)
-        runtime_payload = node_payload.get("runtime") if isinstance(node_payload, dict) else None
-        listeners_payload = runtime_payload.get("service_listeners") if isinstance(runtime_payload, dict) else None
-        if not isinstance(listeners_payload, list):
+        listeners_payload = _listener_payloads_for_node(nodes_payload, node_name)
+        if listeners_payload is None:
             continue
         for listener, listener_payload in zip(runtime.service_listeners, listeners_payload, strict=True):
             if "protocol" not in listener.model_fields_set and isinstance(listener_payload, dict):

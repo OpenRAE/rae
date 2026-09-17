@@ -331,19 +331,29 @@ class RuntimeServiceListener(SDLModel):
             raise ValueError("Network listeners must not set socket_path")
 
     def _validate_address_family(self, protocol: str | None) -> None:
+        family = self._concrete_address_family()
+        if family is None:
+            return
+        self._validate_address_family_shape(family, protocol)
+        self._validate_address_family_value(family)
+
+    def _concrete_address_family(self) -> str | None:
         family = _value(self.address_family)
-        if is_variable_ref(family) or family in {
+        non_concrete = {
             RuntimeListenerAddressFamily.UNSPECIFIED.value,
             RuntimeListenerAddressFamily.UNKNOWN.value,
             RuntimeListenerAddressFamily.OTHER.value,
-        }:
-            return
-        if family not in _KNOWN_ADDRESS_FAMILIES:
-            return
+        }
+        return (
+            None
+            if is_variable_ref(family) or family in non_concrete or family not in _KNOWN_ADDRESS_FAMILIES
+            else family
+        )
+
+    def _validate_address_family_shape(self, family: str, protocol: str | None) -> None:
         if protocol == RuntimeListenerProtocol.UNIX.value:
             if family != RuntimeListenerAddressFamily.UNIX.value:
                 raise ValueError(f"address_family '{family}' contradicts Unix socket listener")
-            return
         if protocol in _NETWORK_PROTOCOLS and family == RuntimeListenerAddressFamily.UNIX.value:
             raise ValueError(f"address_family '{family}' contradicts network listener")
         if self.socket_path and family != RuntimeListenerAddressFamily.UNIX.value:
@@ -352,21 +362,29 @@ class RuntimeServiceListener(SDLModel):
             self.port is not None or self.address or self.bind_interface
         ) and family == RuntimeListenerAddressFamily.UNIX.value:
             raise ValueError(f"address_family '{family}' contradicts network listener")
+
+    def _validate_address_family_value(self, family: str) -> None:
         ip = _parse_ip(self.address)
-        if ip is None:
-            return
-        expected = (
-            RuntimeListenerAddressFamily.IPV4.value if ip.version == 4 else RuntimeListenerAddressFamily.IPV6.value
-        )
-        if family != expected:
-            raise ValueError(f"address_family '{family}' contradicts address '{self.address}'")
+        if ip is not None:
+            expected = (
+                RuntimeListenerAddressFamily.IPV4.value if ip.version == 4 else RuntimeListenerAddressFamily.IPV6.value
+            )
+            if family != expected:
+                raise ValueError(f"address_family '{family}' contradicts address '{self.address}'")
 
     def _validate_scope(self, protocol: str | None) -> None:
+        scope = self._concrete_scope()
+        if scope is None:
+            return
+        self._validate_scope_shape(scope, protocol)
+        self._validate_scope_address(scope)
+
+    def _concrete_scope(self) -> str | None:
         scope = _value(self.scope)
-        if is_variable_ref(scope) or scope in {RuntimeListenerScope.UNKNOWN.value, RuntimeListenerScope.OTHER.value}:
-            return
-        if scope not in _KNOWN_SCOPES:
-            return
+        non_concrete = {RuntimeListenerScope.UNKNOWN.value, RuntimeListenerScope.OTHER.value}
+        return None if is_variable_ref(scope) or scope in non_concrete or scope not in _KNOWN_SCOPES else scope
+
+    def _validate_scope_shape(self, scope: str, protocol: str | None) -> None:
         has_network_endpoint = self.port is not None or bool(self.address) or bool(self.bind_interface)
         if (
             protocol in _NETWORK_PROTOCOLS or has_network_endpoint
@@ -376,6 +394,8 @@ class RuntimeServiceListener(SDLModel):
             raise ValueError(f"scope '{scope}' contradicts Unix socket listener")
         if protocol == RuntimeListenerProtocol.UNIX.value and scope != RuntimeListenerScope.LOCAL_SOCKET.value:
             raise ValueError(f"scope '{scope}' contradicts Unix socket listener")
+
+    def _validate_scope_address(self, scope: str) -> None:
         ip = _parse_ip(self.address)
         is_wildcard = self.address == "*" or (ip is not None and ip.is_unspecified)
         is_loopback = self.address == "localhost" or (ip is not None and ip.is_loopback)
