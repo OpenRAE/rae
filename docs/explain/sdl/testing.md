@@ -103,8 +103,8 @@ cd implementations/python && uv run --extra dev pytest tests/ -m '' -v
 The `examples/scenarios/` directory contains curated large SDL files that are
 meant to be reusable starting points rather than inline test-only
 fixtures. They are loaded directly from disk by
-`implementations/python/tests/test_scenarios.py`
-so they stay valid as real SDL artifacts:
+`implementations/python/tests/test_example_schema_conformance.py`
+so they stay valid, advisory-free SDL artifacts:
 
 - `hospital-ransomware-surgery-day.sdl.yaml`
 - `satcom-release-poisoning.sdl.yaml`
@@ -114,7 +114,9 @@ so they stay valid as real SDL artifacts:
 two independent legs: strict `sdl-yaml/v1` decoding followed by direct
 validation of the decoded longhand object against the checked-in normalized
 authoring schema, and reference-parser model serialization against that same
-schema. The valid/invalid/migration source-profile corpus lives under
+schema. `test_scenarios.py` retains loader failure cases and focused assertions
+about the curated complex examples. The valid/invalid/migration source-profile
+corpus lives under
 `contracts/fixtures/sdl/sdl-yaml-v1/`.
 
 The up-front design briefs for the complex examples live in
@@ -139,7 +141,7 @@ Use the corpus leg that matches the artifact's purpose:
 
 - **Reusable example scenarios** live in `examples/scenarios/*.sdl.yaml`.
   They are real SDL artifacts and are loaded from disk by
-  `implementations/python/tests/test_scenarios.py`.
+  `implementations/python/tests/test_example_schema_conformance.py`.
 - **Synthetic stress and real-world topology fixtures** may stay inline in
   `test_sdl_stress.py` or `test_sdl_realworld.py` when they are test-only
   specimens rather than reusable examples. Add them to the relevant `SCENARIOS`
