@@ -1,9 +1,10 @@
-"""Observed generic service-listener runtime inventory models for SDL nodes.
+"""Generic service-listener runtime description models for SDL nodes.
 
-These models record in-node listener facts: transport, bind endpoint, scope,
-owning service/process, evidence, and optional correlation to host-published
-ports. They deliberately do not redefine ``Node.services`` or
-``runtime.network.published_ports``.
+These models record the listener facts that are known: transport, bind
+endpoint, scope, owning service/process, evidence, and optional correlation to
+host-published ports. A description can be partial; completeness is assessed
+only by an operation that needs an admitted endpoint. The models deliberately
+do not redefine ``Node.services`` or ``runtime.network.published_ports``.
 """
 
 from __future__ import annotations
@@ -52,6 +53,15 @@ class RuntimeListenerProtocol(str, Enum):
     UNKNOWN = "unknown"
 
 
+_NETWORK_PROTOCOLS = frozenset(
+    {
+        RuntimeListenerProtocol.TCP.value,
+        RuntimeListenerProtocol.UDP.value,
+        RuntimeListenerProtocol.SCTP.value,
+    }
+)
+
+
 class RuntimeListenerAddressFamily(str, Enum):
     """Address family observed for a runtime listener."""
 
@@ -73,6 +83,10 @@ class RuntimeListenerScope(str, Enum):
     LOCAL_SOCKET = "local_socket"
     UNKNOWN = "unknown"
     OTHER = "other"
+
+
+_KNOWN_ADDRESS_FAMILIES = frozenset(member.value for member in RuntimeListenerAddressFamily)
+_KNOWN_SCOPES = frozenset(member.value for member in RuntimeListenerScope)
 
 
 class RuntimeListenerProvenance(str, Enum):
@@ -200,7 +214,12 @@ class RuntimeListenerReadiness(SDLModel):
 
 
 class RuntimeServiceListener(SDLModel):
-    """Observed generic runtime listener attached to a node."""
+    """Possibly partial runtime listener description attached to a node.
+
+    Only ``service_listener_id`` is universally required. Supplied facts are
+    validated for bounds and contradictions, but missing endpoint facts are
+    not fabricated or rejected at this descriptive boundary.
+    """
 
     service_listener_id: str
     service: str = ""
@@ -279,45 +298,59 @@ class RuntimeServiceListener(SDLModel):
 
     @model_validator(mode="after")
     def validate_listener_shape(self) -> RuntimeServiceListener:
-        protocol = _value(self.protocol)
-        if protocol == RuntimeListenerProtocol.UNIX.value:
+        protocol = _value(self.protocol) if "protocol" in self.model_fields_set else None
+        # TCP is also the legacy serialized default, so a nested listener alone
+        # cannot distinguish authored TCP from a default materialized by an
+        # instantiated artifact. Scenario-aware semantic validation owns TCP
+        # contradictions using source/instantiation provenance.
+        shape_protocol = None if protocol == RuntimeListenerProtocol.TCP.value else protocol
+        has_unix_endpoint = bool(self.socket_path)
+        has_network_endpoint = self.port is not None or bool(self.address) or bool(self.bind_interface)
+        if shape_protocol == RuntimeListenerProtocol.UNIX.value:
             self._validate_unix_listener()
-        else:
+        elif shape_protocol in _NETWORK_PROTOCOLS:
             self._validate_network_listener()
-        self._validate_address_family()
-        self._validate_scope()
+        elif has_unix_endpoint and has_network_endpoint:
+            raise ValueError("Listener must not combine Unix socket and network endpoint fields")
+        self._validate_address_family(shape_protocol)
+        self._validate_scope(shape_protocol)
+        self._validate_family_scope_agreement()
         self._validate_published_refs()
         return self
 
     def _validate_unix_listener(self) -> None:
-        if not self.socket_path:
-            raise ValueError("Unix listeners require socket_path")
         if self.port is not None:
             raise ValueError("Unix listeners must not set port")
         if self.address:
             raise ValueError("Unix listeners must not set address")
-        scope = _value(self.scope)
-        if scope not in {RuntimeListenerScope.LOCAL_SOCKET.value, RuntimeListenerScope.UNKNOWN.value}:
-            raise ValueError(f"scope '{scope}' contradicts Unix socket listener")
+        if self.bind_interface:
+            raise ValueError("Unix listeners must not set bind_interface")
 
     def _validate_network_listener(self) -> None:
         if self.socket_path:
             raise ValueError("Network listeners must not set socket_path")
-        if self.port is None:
-            raise ValueError("Network listeners require port")
-        if not self.address and not self.bind_interface:
-            raise ValueError("Network listeners require address or bind_interface")
 
-    def _validate_address_family(self) -> None:
+    def _validate_address_family(self, protocol: str | None) -> None:
         family = _value(self.address_family)
-        protocol = _value(self.protocol)
-        if is_variable_ref(family) or family in {RuntimeListenerAddressFamily.UNSPECIFIED.value, "other"}:
+        if is_variable_ref(family) or family in {
+            RuntimeListenerAddressFamily.UNSPECIFIED.value,
+            RuntimeListenerAddressFamily.UNKNOWN.value,
+            RuntimeListenerAddressFamily.OTHER.value,
+        }:
+            return
+        if family not in _KNOWN_ADDRESS_FAMILIES:
             return
         if protocol == RuntimeListenerProtocol.UNIX.value:
             if family != RuntimeListenerAddressFamily.UNIX.value:
                 raise ValueError(f"address_family '{family}' contradicts Unix socket listener")
             return
-        if family == RuntimeListenerAddressFamily.UNIX.value:
+        if protocol in _NETWORK_PROTOCOLS and family == RuntimeListenerAddressFamily.UNIX.value:
+            raise ValueError(f"address_family '{family}' contradicts network listener")
+        if self.socket_path and family != RuntimeListenerAddressFamily.UNIX.value:
+            raise ValueError(f"address_family '{family}' contradicts Unix socket listener")
+        if (
+            self.port is not None or self.address or self.bind_interface
+        ) and family == RuntimeListenerAddressFamily.UNIX.value:
             raise ValueError(f"address_family '{family}' contradicts network listener")
         ip = _parse_ip(self.address)
         if ip is None:
@@ -328,13 +361,21 @@ class RuntimeServiceListener(SDLModel):
         if family != expected:
             raise ValueError(f"address_family '{family}' contradicts address '{self.address}'")
 
-    def _validate_scope(self) -> None:
+    def _validate_scope(self, protocol: str | None) -> None:
         scope = _value(self.scope)
         if is_variable_ref(scope) or scope in {RuntimeListenerScope.UNKNOWN.value, RuntimeListenerScope.OTHER.value}:
             return
-        protocol = _value(self.protocol)
-        if protocol != RuntimeListenerProtocol.UNIX.value and scope == RuntimeListenerScope.LOCAL_SOCKET.value:
+        if scope not in _KNOWN_SCOPES:
+            return
+        has_network_endpoint = self.port is not None or bool(self.address) or bool(self.bind_interface)
+        if (
+            protocol in _NETWORK_PROTOCOLS or has_network_endpoint
+        ) and scope == RuntimeListenerScope.LOCAL_SOCKET.value:
             raise ValueError("scope 'local_socket' requires Unix socket listener")
+        if self.socket_path and scope != RuntimeListenerScope.LOCAL_SOCKET.value:
+            raise ValueError(f"scope '{scope}' contradicts Unix socket listener")
+        if protocol == RuntimeListenerProtocol.UNIX.value and scope != RuntimeListenerScope.LOCAL_SOCKET.value:
+            raise ValueError(f"scope '{scope}' contradicts Unix socket listener")
         ip = _parse_ip(self.address)
         is_wildcard = self.address == "*" or (ip is not None and ip.is_unspecified)
         is_loopback = self.address == "localhost" or (ip is not None and ip.is_loopback)
@@ -344,6 +385,28 @@ class RuntimeServiceListener(SDLModel):
             raise ValueError(f"scope '{scope}' contradicts loopback address '{self.address}'")
         if ip is not None and not ip.is_loopback and scope == RuntimeListenerScope.LOOPBACK_ONLY.value:
             raise ValueError(f"scope '{scope}' contradicts non-loopback address '{self.address}'")
+
+    def _validate_family_scope_agreement(self) -> None:
+        family = _value(self.address_family)
+        scope = _value(self.scope)
+        if is_variable_ref(family) or is_variable_ref(scope):
+            return
+        if family == RuntimeListenerAddressFamily.UNIX.value and scope in {
+            RuntimeListenerScope.WILDCARD.value,
+            RuntimeListenerScope.LOOPBACK_ONLY.value,
+            RuntimeListenerScope.NETWORK_FACING.value,
+            RuntimeListenerScope.NODE_LOCAL.value,
+        }:
+            raise ValueError(f"scope '{scope}' contradicts Unix address_family")
+        if (
+            family
+            in {
+                RuntimeListenerAddressFamily.IPV4.value,
+                RuntimeListenerAddressFamily.IPV6.value,
+            }
+            and scope == RuntimeListenerScope.LOCAL_SOCKET.value
+        ):
+            raise ValueError(f"scope '{scope}' contradicts address_family '{family}'")
 
     def _validate_published_refs(self) -> None:
         seen: set[tuple[str, int | str | None, int | str, str]] = set()

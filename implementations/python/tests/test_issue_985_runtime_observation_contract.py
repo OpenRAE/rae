@@ -196,7 +196,7 @@ def test_open_observation_must_satisfy_the_registered_closed_contract() -> None:
         ),
         (
             "service-listeners",
-            [{"service_listener_id": "http", "protocol": "tcp"}],
+            [{"service_listener_id": "http", "protocol": "tcp", "unknown": "rejected"}],
         ),
     ],
 )

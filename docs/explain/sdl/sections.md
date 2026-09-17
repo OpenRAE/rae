@@ -995,16 +995,20 @@ participate in relationships, generic reference validation, and module import
 rewriting (see
 [ADR-042](../../decisions/adrs/adr-042-network-sensor-runtime-monitoring.md)).
 
-`runtime.service_listeners` records observed in-node listener bind state:
-stable listener id, transport protocol, port or Unix socket path, bind address
-or interface, address family, listener scope, optional same-node service ref,
-optional process owner ref/name, readiness evidence, provenance, evidence refs,
-and optional typed correlations to `runtime.network.published_ports`. It is
+`runtime.service_listeners` records known in-node listener facts. A stable
+listener id is required; transport protocol, port or Unix socket path, bind
+address or interface, address family, listener scope, optional same-node
+service ref, optional process owner ref/name, readiness evidence, provenance,
+evidence refs, and typed correlations to `runtime.network.published_ports` may
+be supplied independently. Missing endpoint facts remain missing and must be
+completed or rejected by a backend operation that requires an admitted
+endpoint. The surface is
 distinct from `Node.services` (authored service identity), from
 `runtime.network.published_ports` (host publication), and from
 protocol-specific runtime inventories such as HTTP applications, DNS, mail, and
 database services. A wildcard address such as `0.0.0.0` or `::` is a wildcard
-inside the node namespace; host exposure remains a published-port fact. Fully
+inside the node namespace; a partial or wildcard description grants no access,
+and host exposure remains a published-port fact. Fully
 qualified refs such as
 `nodes.web.runtime.service_listeners.gunicorn-http-ipv4` participate in
 relationships, generic reference validation, and module import rewriting (see

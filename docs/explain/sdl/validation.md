@@ -55,7 +55,7 @@ validation passes. See the [migration guide](../../migration/external-classifica
 | `verify_relationship_forwarding_edges` | A relationship `forwarding_edge` resolves `forwarder_ref` to a unique node-hosted or scenario-level runtime forwarding agent; the edge `target_listener_role`/`protocol` must agree with at least one of that agent's ship targets. |
 | `verify_relationship_service_integrations` | A relationship `service_integration` resolves `consumer_ref`/`engine_ref` to platform applications and `auth_principal_ref` to a principal in the engine application's referenced authorization store when `authorization_ref` is set. |
 | `verify_relationship_proxy_upstreams` | A relationship `proxy_upstream` resolves `route_ref` to an application route and the upstream node/service refs; route-level `upstream_target` refs resolve the same way, and when both scopes carry shared target node, target service, and TLS-termination facts they must agree. |
-| `verify_runtime_service_listeners` | Runtime service listeners resolve optional same-node service refs, process refs, and host-published port correlations. Concrete service/listener port+protocol values must match. |
+| `verify_runtime_service_listeners` | Runtime service listeners resolve optional same-node service refs, process refs, and host-published port correlations. Supplied concrete service/listener port or protocol values must match; missing and open values defer agreement. |
 | `verify_runtime_identity_authorities` | Runtime identity-authority services resolve to same-node service bindings. Local relationship and policy refs resolve within the owning authority across authority, service, subject, policy, and relationship stable ids. |
 | `verify_runtime_dns_services` | Runtime DNS services resolve to same-node service bindings. Configuration, log, and zone-file refs resolve to observed runtime filesystem entries when the node has file inventory. |
 | `verify_runtime_network_sensors` | Runtime network sensors name monitored networks that resolve to switch-backed infrastructure entries and, when runtime endpoint inventory exists on the node, to same-node network endpoint attachments. Configuration, log, and evidence refs resolve to observed runtime filesystem entries when the node has file inventory. |
@@ -157,18 +157,35 @@ when that inventory is non-empty.
 
 The optional `runtime.service_listeners` inventory has model-local and
 semantic rules. Listener ids are stable concrete symbols and are unique within
-a node runtime block. Network listeners require a port and a bind address or
-interface; Unix socket listeners require `socket_path` and must not set a port
-or address. Concrete address-family and scope fields must not contradict the
-bind endpoint: wildcard addresses use `scope: wildcard`, loopback addresses
-cannot be `network_facing`, non-loopback IP addresses cannot be
-`loopback_only`, and Unix socket listeners use `local_socket` or `unknown`.
-Optional same-node `service` refs must resolve to `Node.services[].name`, and
-concrete listener port/protocol values must match the service. Optional
-`process_ref` values resolve to `runtime.process` or `runtime.processes` by
-process name or PID. Optional `published_port_refs` entries resolve to
+a node runtime block. A listener is a partial description: only
+`service_listener_id` is universally required, and omitted address, interface,
+port, protocol, or socket path remains omitted. The legacy authored-model
+protocol default is still `tcp`, but source rendering omits it when the author
+did not supply it and instantiation provenance does not promote that default to
+an exact claim. Known network transports must not set `socket_path`; a known
+Unix transport must not set port, address, or bind interface. An undetermined
+transport may carry either kind of endpoint fact but not both. Concrete
+address-family and scope fields must not contradict supplied facts: wildcard
+addresses use `scope: wildcard`, loopback addresses cannot be
+`network_facing`, non-loopback IP addresses cannot be `loopback_only`, and
+Unix socket listeners use `local_socket` or `unknown`.
+
+Optional same-node `service` refs must resolve to `Node.services[].name`.
+Supplied concrete listener port and protocol values must independently match
+the service; missing, variable, `unknown`, and `other` values defer only their
+own comparison. Optional `process_ref` values resolve to `runtime.process` or
+`runtime.processes` by process name or PID. Every optional
+`published_port_refs` entry still resolves to
 `runtime.network.published_ports` by host IP, host port, container port, and
-protocol and must match the listener's container-side port/protocol.
+protocol, and each supplied concrete listener field must agree with the
+reference.
+
+Partial model admission is not endpoint admission. A backend operation or
+complete-report assessment that claims a usable listener must reject a
+selection without the endpoint facts that operation requires. Merely recording
+a partial listener does not create a `Node.services` entry, host publication,
+ACL authorization, observation, evidence requirement, retention obligation, or
+export permission.
 
 The optional `runtime.mail_services` inventory has model-local and semantic
 rules. Mail-service ids are stable concrete symbols and unique within a node

@@ -260,6 +260,25 @@ def _merge_expanded_provenance(
     )
 
 
+def _preserve_listener_protocol_presence(payload: dict[str, Any], source: ScenarioContent) -> None:
+    """Keep an omitted listener protocol omitted across phase-model rebuilds."""
+    nodes_payload = payload.get("nodes")
+    if not isinstance(nodes_payload, dict):
+        return
+    for node_name, node in source.nodes.items():
+        runtime = getattr(node, "runtime", None)
+        if runtime is None:
+            continue
+        node_payload = nodes_payload.get(node_name)
+        runtime_payload = node_payload.get("runtime") if isinstance(node_payload, dict) else None
+        listeners_payload = runtime_payload.get("service_listeners") if isinstance(runtime_payload, dict) else None
+        if not isinstance(listeners_payload, list):
+            continue
+        for listener, listener_payload in zip(runtime.service_listeners, listeners_payload, strict=True):
+            if "protocol" not in listener.model_fields_set and isinstance(listener_payload, dict):
+                listener_payload.pop("protocol", None)
+
+
 def _bind_scenario_content(
     raw_scenario: Scenario | ExpandedScenario,
     parameters: Mapping[str, JSONLike] | None = None,
@@ -291,6 +310,7 @@ def _bind_scenario_content(
         if not constraint.parameter or constraint.parameter[0] not in preserved
     )
     raw_payload = raw_scenario.model_dump(mode="python", by_alias=True)
+    _preserve_listener_protocol_presence(raw_payload, raw_scenario)
     unresolved_refs: set[str] = set()
     substituted_payload = _substitute_value(
         raw_payload,
@@ -428,6 +448,7 @@ def instantiate_scenario(
         trial=trial_provenance,
     )
     payload = bound.content.model_dump(mode="python", by_alias=True)
+    _preserve_listener_protocol_presence(payload, bound.content)
     payload.pop("variables", None)
     payload.pop("variation_points", None)
     payload["instantiation_provenance"] = provenance.model_dump(mode="python")

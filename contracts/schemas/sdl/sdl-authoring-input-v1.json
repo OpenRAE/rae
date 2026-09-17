@@ -22584,7 +22584,7 @@
     },
     "RuntimeServiceListener": {
       "additionalProperties": false,
-      "description": "Observed generic runtime listener attached to a node.",
+      "description": "Possibly partial runtime listener description attached to a node.\n\nOnly ``service_listener_id`` is universally required. Supplied facts are\nvalidated for bounds and contradictions, but missing endpoint facts are\nnot fabricated or rejected at this descriptive boundary.",
       "properties": {
         "address": {
           "default": "",

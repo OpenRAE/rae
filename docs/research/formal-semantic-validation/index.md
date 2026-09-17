@@ -177,11 +177,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   augmentation admission. Fresh production and participant replay retains
   release-23 outcomes and compiled digests, with no new deviations or claims.
   All previously published captures remain unchanged.
-- [`bundles/retest-v24.json`](bundles/retest-v24.json) is current release 25.0.0.
+- [`bundles/retest-v24.json`](bundles/retest-v24.json) preserves release 25.0.0.
   It binds [`execution-snapshot-v24.json`](execution-snapshot-v24.json) and
   [`analysis-v24.json`](analysis-v24.json) to the tightened composition type
   annotations. Fresh production and participant replay retains release-24
   outcomes, digests, and claim limits. Earlier captures remain byte-exact.
+- [`bundles/retest-v25.json`](bundles/retest-v25.json) is current release 26.0.0.
+  It binds [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
+  [`analysis-v25.json`](analysis-v25.json) to issue #1299 partial runtime
+  listener admission. Fresh production and participant replay retains
+  release-25 outcomes, digests, and claim limits; endpoint completeness and
+  backend admission remain outside this corpus's claims.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -226,7 +232,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 18.0.0, rejects unsupported future
+Current validation requires explicit release 26.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

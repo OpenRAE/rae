@@ -144,10 +144,16 @@ this run does not repair them.
   claim limits remain unchanged; all earlier captures retain their exact bytes.
 
 - [`execution-snapshot-v24.json`](execution-snapshot-v24.json) and
-  [`analysis-v24.json`](analysis-v24.json) are current release 24.0.0. Fresh
+  [`analysis-v24.json`](analysis-v24.json) preserve release 24.0.0. Fresh
   replay binds the tightened composition type annotations to exact source and
   package digests. Outcomes, classifications, and claim limits are unchanged;
   all previously published captures remain byte-exact.
+
+- [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
+  [`analysis-v25.json`](analysis-v25.json) are current release 25.0.0. Fresh
+  replay binds issue #1299 partial runtime listener descriptions to exact
+  source and package digests. Outcomes, classifications, and claim limits are
+  unchanged; endpoint completeness and backend admission are not new claims.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
@@ -177,7 +183,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 24.0.0 and rejects duplicate or unsupported
+Current validation requires release 25.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
