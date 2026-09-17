@@ -1,9 +1,9 @@
 {
-  "content_hash": "9b29c4c41c17acd2e3ea6b7c67d7c808abb429181a4d69968c5a60e63b8da6b9",
+  "content_hash": "211ec6bc6ef153c30972e475a3422e39a1645a9faad3667eb03c0d1a332488bd",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "9b29c4c41c17acd2e3ea6b7c67d7c808abb429181a4d69968c5a60e63b8da6b9",
-    "summary": "Carry optional open-by-default augmentation permission with bounded node/concern rules and preserved import restrictions (#1242)."
+    "content_hash": "211ec6bc6ef153c30972e475a3422e39a1645a9faad3667eb03c0d1a332488bd",
+    "summary": "Carry bounded augmentation permission, partial runtime listener descriptions, and portable service-manager contracts (#1242, #1299, #1297)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

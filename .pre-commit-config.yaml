@@ -4,8 +4,9 @@ default_install_hook_types: [pre-commit]
 repos:
   - repo: local
     hooks:
+      # Full validation and tests run in CI, not in commit or push hooks.
       - id: nox-hygiene
-        name: staged-file hygiene and secrets
+        name: file hygiene and secrets
         entry: bash -c 'unset $(git rev-parse --local-env-vars); uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hygiene -- "$@"' --
         language: system
         pass_filenames: true

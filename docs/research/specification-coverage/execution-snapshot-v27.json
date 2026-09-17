@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-17T06:54:28+00:00",
+  "captured_at": "2026-09-17T04:04:20.260824+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,17 +647,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "e91019889bff7e3d0787c3561d96d2d6f95ffdb1b3c157955dedc2ec52d9f001",
+      "content_sha256": "982ffaed259c4efd8d6c7c789e863cdc763cd06e132aebe2e749260eeabe6aaf",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "9ab6f584a3595be771d3f6a425e2d27dffc2c9e278006c785709c1feda61790b",
+      "content_sha256": "98bc546c171514abdb6a0e40339ef0d989a840dbc7c096fd2a57ac99c9489114",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "365a9abb48aff3bc11a595fb42dfcbaa506d7bac15558d5853a6c9ca5aa19443",
+      "content_sha256": "d65c11de60803f4e5c8d526bec99e9151994fe1b1ed8f78288733ea1da4c02a9",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -672,18 +672,18 @@
     "This capture refreshes the corrected runtime limitations prose for issue #959; the protocol, coverage classifications and implementation source are unchanged.",
     "This capture replays open-by-default augmentation scope integrated with the EXP-731 evidence refinements after composition type refinement; it does not evaluate native backend scope enforcement or broaden the preregistered coverage claims.",
     "This capture replays the retained protocol after merging ACT-612 participant relationships with open-by-default augmentation scope; it adds no claim of realized participant relationships or native backend scope enforcement.",
-    "This capture binds authoring-adapter semantic conformance alongside the retained augmentation scope work to fresh source and package digests; outcomes, classifications, denominator, and claim limits are unchanged. It does not qualify an adapter transport or native backend scope enforcement.",
-    "This capture replays the retained specification-coverage protocol after API-404 startup reconciliation added an operational recovery-observation contract. It does not evaluate crash recovery, classify provider effects, or broaden EXP-715 experiment-observation claims."
+    "This capture replays issue #1299 partial listener descriptions on the integrated source state; endpoint completeness and backend admission remain outside this protocol's claims.",
+    "This capture also binds authoring-adapter semantic conformance to the integrated source; adapter transport behavior remains outside this protocol's claims."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
   "raes_revision": "08c363f699a81e1755d1afc258620f5bd00975b5",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1179-v27",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1299-v27",
   "snapshot_revision": "27.0.0",
   "source_state": {
     "base_revision": "08c363f699a81e1755d1afc258620f5bd00975b5",
     "checkout_state": "modified",
-    "implementation_digest": "995b4b9656a7a967474479a6cc35e8a0d309e514fe11427a637aa51d428478b1",
+    "implementation_digest": "d0c553c2d77a2dabd965c6939b9ebf610fac7dd776e662fb1384668d2c3630d6",
     "profile": "python-reference-source/v2"
   }
 }

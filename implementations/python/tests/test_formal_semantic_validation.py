@@ -106,6 +106,10 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "25.0.0",
         "26.0.0",
         "27.0.0",
+        "28.0.0",
+        "29.0.0",
+        "30.0.0",
+        "31.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -114,10 +118,10 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "27.0.0"
+    assert release.manifest["revision"] == "31.0.0"
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "3.0.0"
-    assert snapshot["baseline"]["release_revision"] == "26.0.0"
+    assert snapshot["baseline"]["release_revision"] == "30.0.0"
     assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
@@ -827,3 +831,21 @@ def test_satisfiability_gate_rejects_mutated_execution_snapshot() -> None:
     failures = validate_satisfiability_analysis(REPO_ROOT, manifest, snapshot, analysis)
 
     assert "formal-satisfiability-snapshot-drift" in _rule_ids(failures)
+
+
+@pytest.mark.integration
+def test_current_retest_analysis_pins_its_own_execution_snapshot() -> None:
+    """The published analysis must name the snapshot its bundle selects.
+
+    An analysis that still points at the preceding replay publishes that older
+    execution as its pinned evidence, so the release's provenance chain no
+    longer reaches the snapshot it actually shipped.
+    """
+
+    release, _protocol, _corpus, _snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
+
+    selected_snapshot = release.manifest["snapshot_path"]
+    evidence = analysis["claim"]["evidence_artifacts"]
+    snapshots = [item for item in evidence if "execution-snapshot-" in item]
+
+    assert snapshots == [selected_snapshot]

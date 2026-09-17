@@ -265,7 +265,7 @@ jobs:
                 command -v "${tool}"
               done
               test -x .git/hooks/pre-commit
-              test -x .git/hooks/pre-push
+              test ! -e .git/hooks/pre-push
               nox -s policy -- --skip-requirement
               nox -s lint
               nox -s tests

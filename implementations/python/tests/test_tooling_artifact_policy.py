@@ -2832,3 +2832,171 @@ def test_tracked_python_scans_reuse_is_invalidated_by_any_edit(tmp_path: Path) -
     # And a length change is likewise observed rather than reused.
     target.write_text("y = 2\ny = 3\n", encoding="utf-8")
     assert tracked_python_scans(tmp_path, [relative])[relative].parsed is True
+
+
+_OCI_INDEX = "1" * 64
+_OCI_MANIFEST = "2" * 64
+_OCI_CONFIG = "3" * 64
+_OCI_LAYER = "4" * 64
+_OCI_DIFF_ID = "5" * 64
+
+
+def _seed_oci_graph_policy(root_path: Path) -> Path:
+    """Seed a lock whose one artifact is an export-bearing OCI image."""
+
+    root = _seed_policy(root_path)
+    admission = _load(root, "implementations/tooling/admission-policy.json")
+    admission["policies"].append(
+        {
+            "policy_id": "oci-graph-v1",
+            "subject": "oci-image",
+            "status": "active",
+            "accepted_evidence": [
+                "oci-index-digest",
+                "oci-platform-graph-digests",
+                "absent-signature-review",
+                "reviewed-consumer-reference",
+            ],
+            "reviewer_roles": ["Backend", "Security"],
+        }
+    )
+    _write_json(root, "implementations/tooling/admission-policy.json", admission)
+
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    artifact = lock["artifacts"][0]
+    artifact["artifact_class"] = "oci-image"
+    artifact["policy_refs"] = ["oci-graph-v1"]
+    artifact["source"]["release"] = f"sha256:{_OCI_INDEX}"
+    platform = artifact["platforms"][0]
+    platform.pop("installed_manifest", None)
+    platform["installed_identity"] = {
+        "implementation": "OCI image",
+        "version": artifact["version"],
+        "abi": "oci-manifest-v1",
+        "target": "linux-x86_64",
+    }
+    platform["oci_graph"] = {
+        "index": {"digest": f"sha256:{_OCI_INDEX}", "size": 9226},
+        "manifest": {"digest": f"sha256:{_OCI_MANIFEST}", "size": 1023},
+        "config": {"digest": f"sha256:{_OCI_CONFIG}", "size": 612},
+        "layers": [{"digest": f"sha256:{_OCI_LAYER}", "size": 3630321}],
+        "diff_ids": [f"sha256:{_OCI_DIFF_ID}"],
+        "architecture": "amd64",
+        "os": "linux",
+    }
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+    # The seeded evidence is bound to the complete policy, so rebind it after
+    # the admission and lock edits above.
+    profiles = _load(root, PROFILES_PATH)
+    profiles["qualification_records"][0]["policy_sha256"] = tooling_policy_sha256(root)
+    _write_json(root, PROFILES_PATH, profiles)
+    return root
+
+
+def test_export_bearing_oci_image_graph_is_admitted(tmp_path: Path) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+
+    assert _failures(root) == set()
+
+
+@pytest.mark.parametrize(
+    ("mutation", "rule_id"),
+    [
+        # The selected platform manifest is evidence *inside* the reviewed
+        # index, never a substitute for the index identity.
+        (
+            lambda graph, artifact: graph["index"].update(digest="sha256:" + "6" * 64),
+            "tooling-oci-index-identity",
+        ),
+        # A layer without its uncompressed identity cannot be verified after an
+        # export/import round trip, and vice versa.
+        (
+            lambda graph, artifact: graph["diff_ids"].append("sha256:" + "7" * 64),
+            "tooling-oci-layer-arity",
+        ),
+        (
+            lambda graph, artifact: graph["layers"].append({"digest": "sha256:" + "4" * 64, "size": 11}),
+            "tooling-oci-layer-duplicate",
+        ),
+        # A wrong-platform object must not be admitted under a platform id.
+        (
+            lambda graph, artifact: graph.update(architecture="arm64"),
+            "tooling-oci-platform-mismatch",
+        ),
+        (
+            lambda graph, artifact: graph.update(os="windows"),
+            "tooling-oci-platform-mismatch",
+        ),
+        # The graph and its admission policy are one record: neither half may
+        # be declared without the other.
+        (
+            lambda graph, artifact: artifact.update(policy_refs=["oci-input-v1"]),
+            "tooling-oci-graph-unpoliced",
+        ),
+    ],
+)
+def test_oci_graph_admission_rejects_an_incoherent_record(tmp_path: Path, mutation, rule_id: str) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    artifact = lock["artifacts"][0]
+    mutation(artifact["platforms"][0]["oci_graph"], artifact)
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert rule_id in _failures(root)
+
+
+def test_oci_graph_policy_requires_every_platform_to_carry_the_graph(tmp_path: Path) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    lock["artifacts"][0]["platforms"][0].pop("oci_graph")
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-oci-graph-missing" in _failures(root)
+
+
+def test_index_only_oci_images_must_not_declare_a_graph(tmp_path: Path) -> None:
+    root = _seed_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    lock["artifacts"][0]["platforms"][0]["oci_graph"] = {
+        "index": {"digest": f"sha256:{_OCI_INDEX}", "size": 9226},
+        "manifest": {"digest": f"sha256:{_OCI_MANIFEST}", "size": 1023},
+        "config": {"digest": f"sha256:{_OCI_CONFIG}", "size": 612},
+        "layers": [{"digest": f"sha256:{_OCI_LAYER}", "size": 1}],
+        "diff_ids": [f"sha256:{_OCI_DIFF_ID}"],
+        "architecture": "amd64",
+        "os": "linux",
+    }
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-oci-graph-unpoliced" in _failures(root)
+
+
+def test_oci_graph_digests_are_screened_against_denied_digests(tmp_path: Path) -> None:
+    root = _seed_oci_graph_policy(tmp_path)
+    admission = _load(root, "implementations/tooling/admission-policy.json")
+    admission["denied_digests"] = [_OCI_LAYER]
+    _write_json(root, "implementations/tooling/admission-policy.json", admission)
+
+    assert "tooling-digest-denied" in _failures(root)
+
+
+def test_two_platforms_of_one_image_cannot_select_the_same_manifest(tmp_path: Path) -> None:
+    """A platform selection must name that platform's own manifest.
+
+    Two platforms claiming one manifest digest is the substitution this rule
+    exists to reject: the second platform would be admitted against an object
+    that was reviewed for a different architecture.
+    """
+
+    root = _seed_oci_graph_policy(tmp_path)
+    lock = _load(root, ARTIFACT_LOCK_PATH)
+    platform = lock["artifacts"][0]["platforms"][0]
+    duplicate = json.loads(json.dumps(platform))
+    duplicate["platform_id"] = "linux-arm64"
+    duplicate["installed_identity"]["target"] = "linux-arm64"
+    duplicate["oci_graph"]["architecture"] = "arm64"
+    # Everything else differs; only the selected manifest is shared.
+    lock["artifacts"][0]["platforms"].append(duplicate)
+    _write_json(root, ARTIFACT_LOCK_PATH, lock)
+
+    assert "tooling-oci-manifest-duplicate" in _failures(root)

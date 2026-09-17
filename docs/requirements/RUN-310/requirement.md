@@ -21,6 +21,9 @@ Issue #794 clarifies that behavior mode is not controller state and that supervi
 
 ## Traceability
 
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing RUN-310 authority in SEM-234 without changing its runtime contract)
+- DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
+- TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent RUN-310 authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_boundary.py` (RUN-310 control-ingress lifecycle enforced at the final sink)
 - TESTS → TEST `implementations/python/tests/test_issue_1003_final_sink_flow_enforcement.py` (RUN-310 control-ingress final-sink enforcement tests)
 - IMPLEMENTS → GITHUB_ISSUE `1003` (Issue #1003 enforce participant flow policy at final runtime sinks)

@@ -919,11 +919,16 @@ and advisory snapshot state likewise belong in evidence. Derived severity
 counts belong in `ExperimentDerivedMeasureModel`; they do not automatically
 become native weakness facts. Authored classifications use standalone external concept bindings.
 
-`runtime.service_manager_units` records observed service-manager unit
-lifecycle state — what `systemctl` exposes from inside a realized range node.
-Each entry carries a stable RAES `unit_id`, a `manager_kind` (initially
-`systemd`, with `other` reserved), the native `unit_name` such as
-`sshd.service`, a `unit_type` (`service`/`socket`/`target`/`timer`/`path`/
+`runtime.service_manager_units` records portable unit identity plus selected
+service-manager state. Each entry carries a stable RAES `unit_id`, used as the
+key for comparison, and may carry a governed `manager_kind` and an exact native
+`unit_name`. Native names are preserved without normalization or a fabricated
+suffix, so OpenRC or private names such as `nginx` remain valid. Omitted
+manager/name leaves preserve partial knowledge and inherited open-scope
+delegation; explicit `unknown` is a knowledge state, not delegation.
+
+An explicitly selected `systemd` manager enables the existing lifecycle
+profile: a suffixed native name, `unit_type` (`service`/`socket`/`target`/`timer`/`path`/
 `mount`/`automount`/`swap`/`device`/`slice`/`scope`/`other`), and the
 participant-observable state quadruple `load_state` (loaded/not_found/masked/
 error/merged/stub/bad_setting/unknown), `active_state` (active/reloading/
@@ -940,7 +945,10 @@ a redactable `exec_start` (`command_kind` `absolute_path` / `redacted`, with
 `command_redacted` forcing an empty `command`). An optional `service` ref
 pointing at the same-node `Node.services[].name` (bare or
 `nodes.<node>.services.<name>`) ties a unit to the transport service it
-launches. This surface is observed WHAT-IS lifecycle state: it is not
+launches. Private manager identity does not authorize use of the systemd state
+fields; richer non-systemd state requires an exact admitted domain profile.
+The historical omitted-manager default remains readable, but does not become
+authored systemd intent. This surface is observed WHAT-IS state: it is not
 `Node.services` (transport bindings), not `conditions` (authored
 monitoring/readiness intent), not `runtime.processes` (live processes — a
 failed, disabled, static, or active/exited unit may have no live process),
@@ -995,16 +1003,20 @@ participate in relationships, generic reference validation, and module import
 rewriting (see
 [ADR-042](../../decisions/adrs/adr-042-network-sensor-runtime-monitoring.md)).
 
-`runtime.service_listeners` records observed in-node listener bind state:
-stable listener id, transport protocol, port or Unix socket path, bind address
-or interface, address family, listener scope, optional same-node service ref,
-optional process owner ref/name, readiness evidence, provenance, evidence refs,
-and optional typed correlations to `runtime.network.published_ports`. It is
+`runtime.service_listeners` records known in-node listener facts. A stable
+listener id is required; transport protocol, port or Unix socket path, bind
+address or interface, address family, listener scope, optional same-node
+service ref, optional process owner ref/name, readiness evidence, provenance,
+evidence refs, and typed correlations to `runtime.network.published_ports` may
+be supplied independently. Missing endpoint facts remain missing and must be
+completed or rejected by a backend operation that requires an admitted
+endpoint. The surface is
 distinct from `Node.services` (authored service identity), from
 `runtime.network.published_ports` (host publication), and from
 protocol-specific runtime inventories such as HTTP applications, DNS, mail, and
 database services. A wildcard address such as `0.0.0.0` or `::` is a wildcard
-inside the node namespace; host exposure remains a published-port fact. Fully
+inside the node namespace; a partial or wildcard description grants no access,
+and host exposure remains a published-port fact. Fully
 qualified refs such as
 `nodes.web.runtime.service_listeners.gunicorn-http-ipv4` participate in
 relationships, generic reference validation, and module import rewriting (see

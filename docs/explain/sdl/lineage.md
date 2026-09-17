@@ -302,8 +302,12 @@ The `runtime.service_listeners` surface is issue #431's response to an
 observed gap in APTL's MISP container inventory. It is not a replacement for
 authored services, host-published port bindings, protocol-specific runtime
 inventories, or scanner output. It is the bounded node-scoped place for generic
-observed listener facts: bind endpoint, port, transport, address family,
-listener scope, owner, readiness evidence, and provenance.
+known listener facts: bind endpoint, port, transport, address family, listener
+scope, owner, readiness evidence, and provenance. These facts need not arrive
+as a complete endpoint tuple. RAES preserves omission, explicit empty values,
+open vocabulary values, and private exact values rather than converting them
+into wildcard binds or inferred observations; an operation that needs a usable
+endpoint owns the later completeness check.
 
 RAES relies on prior work in four ways:
 
@@ -1000,9 +1004,10 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   threat-model extensions. Issue #813 and ADR-102 now define the mixed
   cross-backend composition extension. It supports both alternative
   simulation/emulation realization and simultaneous mixed realization, plus
-  linked inter-trial and finite pre-admitted within-run changes. SEM-234 and
-  ASR-537 remain DRAFT; #1013 through #1019 own semantic, contract, trial,
-  runtime, backend, demonstration, and claims work. Revision 1 keeps one
+  linked inter-trial and finite pre-admitted within-run changes. #1013 publishes
+  SEM-234's `sem-234/rev1` definition and bounded finite witnesses; ASR-537
+  remains DRAFT. #1014 through #1019 own contract, trial, runtime, backend,
+  demonstration, and claims work. Revision 1 keeps one
   acting controller and rejects lease, simultaneous scoped-owner, and
   joint/fused-control claims. Issue #810 defines opacity and
   supervisor-visibility architecture only; #961 delivers its bounded checker,
@@ -1534,6 +1539,13 @@ controlled-scope, action-family, observation-source, and crossing refs to
 apparatus components. Every composition edge binds authority, mapping,
 participant/audience policy, clock/order, support strength, loss, failure, and
 evidence.
+
+Issue #1013 publishes the SEM-234 semantic definition and finite admission/phase
+witnesses. Its [worked cases](../reference/mixed-participant-composition.md)
+retain these source dispositions and compose ADR-105: backend-owned choices
+are not mandatory authored detail, a supported witness is not universal
+coverage, and requested observations are independent of scenario precision.
+This adds no source API or wire compatibility and no runtime realization claim.
 
 CybORG's published simulation-to-emulation experiment reports 139 successful
 evaluations out of 210 and includes simulation-only observation failures.
