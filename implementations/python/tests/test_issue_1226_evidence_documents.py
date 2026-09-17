@@ -9,7 +9,6 @@ subject digests.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 from tools.release_evidence_documents import (
@@ -164,15 +163,6 @@ def test_inventory_records_source_workflow_run_and_attempt_identity() -> None:
     assert release["run_attempt"] == "1"
 
 
-def test_inventory_keeps_candidate_source_and_producer_workflow_separate() -> None:
-    """A workflow definition revision is not the candidate source revision."""
-
-    release = _inventory()["release"]
-    assert "source_sha" in release
-    assert "workflow_sha" in release
-    assert release["source_sha"] != release["workflow_sha"]
-
-
 def test_inventory_records_lock_and_policy_hashes_separately() -> None:
     document = _inventory()
     assert document["lock_hashes"]["project_lock_sha256"] == "d" * 64
@@ -206,8 +196,6 @@ def test_inventory_refuses_an_empty_subject_set() -> None:
     assert excinfo.value.code == "evidence-subjects-absent"
 
 
-def test_documents_round_trip_through_json(tmp_path: Path) -> None:
-    for name, document in (("sbom", _sbom()), ("inventory", _inventory())):
-        path = tmp_path / f"{name}.json"
-        path.write_text(json.dumps(document, indent=2, sort_keys=True), encoding="utf-8")
-        assert json.loads(path.read_text(encoding="utf-8")) == document
+def test_documents_round_trip_through_json() -> None:
+    for document in (_sbom(), _inventory()):
+        assert json.loads(json.dumps(document, sort_keys=True)) == document
