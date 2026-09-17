@@ -184,10 +184,9 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   outcomes, digests, and claim limits. Earlier captures remain byte-exact.
 - [`bundles/retest-v25.json`](bundles/retest-v25.json) is current release 26.0.0.
   It binds [`execution-snapshot-v25.json`](execution-snapshot-v25.json) and
-  [`analysis-v25.json`](analysis-v25.json) to the issue #1223 reviewed OCI
-  mirror and pre-seed admission boundary. That work does not participate in this
-  corpus, so fresh replay retains release-25 outcomes and digests with no new
-  claim class; every earlier release remains byte-exact.
+  [`analysis-v25.json`](analysis-v25.json) to the merged ACT-612 participant
+  relationships and augmentation scope implementation. Fresh replay retains
+  bounded outcomes and claim limits; earlier captures remain byte-exact.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -232,7 +231,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 18.0.0, rejects unsupported future
+Current validation requires explicit release 26.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -309,3 +308,13 @@ records. It freezes their progressive-profile shapes for historical admission,
 replays the same controls against current code, and records only the two
 compiler representation digest changes caused by the realization-evidence
 source correction. No outcome or preregistered claim strength changes.
+
+## Participant relationship replay
+
+Release 26.0.0 records a fresh replay after ACT-612 participant relationship
+authoring and the merged augmentation scope implementation.
+[`execution-snapshot-v25.json`](execution-snapshot-v25.json) binds the current
+source digest; [`analysis-v25.json`](analysis-v25.json) retains the protocol’s
+bounded classifications and claim limits. Prior captures retain their exact
+bytes. These retained controls do not establish realized coordination,
+delegation, cooperation, competition, or supervision.

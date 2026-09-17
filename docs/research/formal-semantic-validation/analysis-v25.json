@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1223-analysis-v25",
+  "analysis_id": "issue-214-analysis-v25",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "3.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1223-execution-v25",
-  "generated_at": "2026-09-16T23:07:58.934380+00:00",
+  "execution_id": "issue-214-execution-v25",
+  "generated_at": "2026-09-16",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
