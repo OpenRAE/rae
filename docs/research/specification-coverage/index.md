@@ -182,6 +182,13 @@ this run does not repair them.
   corpus exercises no live service manager, and classifications and claim
   limits remain unchanged.
 
+- [`execution-snapshot-v30.json`](execution-snapshot-v30.json) and
+  [`analysis-v30.json`](analysis-v30.json) are current release 30.0.0. Fresh
+  replay binds the API-404 operational recovery-observation contract to exact
+  source and package digests. Classifications and claim limits remain
+  unchanged; crash recovery and EXP-715 experiment observation are not
+  evaluated by this corpus.
+
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
 `1ab0580525136667bbc713d3c2f4a7820bab08da` (release 21). Their manifests
@@ -210,7 +217,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 29.0.0 and rejects duplicate or unsupported
+Current validation requires release 30.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

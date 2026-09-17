@@ -188,7 +188,7 @@ class ApplyResult:
     materialization_attestation: MaterializationSubmission | None = None
 
     def __post_init__(self) -> None:
-        _validate_changed_addresses(self.changed_addresses)
+        validate_changed_addresses(self.changed_addresses)
         if self.materialization_attestation is not None and not isinstance(
             self.materialization_attestation, MaterializationSubmission
         ):
@@ -241,7 +241,7 @@ class OperationStatus:
         else:
             diagnostics = require_operation_terminal_diagnostics(self.state, diagnostics)
         object.__setattr__(self, "diagnostics", diagnostics)
-        _validate_changed_addresses(self.changed_addresses)
+        validate_changed_addresses(self.changed_addresses)
 
 
 def _portable_operation_diagnostics(diagnostics: list[Diagnostic]) -> list[Diagnostic]:
@@ -257,7 +257,7 @@ def _portable_operation_diagnostics(diagnostics: list[Diagnostic]) -> list[Diagn
     ]
 
 
-def _validate_changed_addresses(addresses: list[str]) -> None:
+def validate_changed_addresses(addresses: list[str]) -> None:
     for address in addresses:
         require_compiled_address(address, field_name="changed address")
     if len(addresses) != len(set(addresses)):
@@ -285,6 +285,7 @@ __all__ = (
     "RealizationProvenanceEntry",
     "RuntimeSnapshot",
     "RuntimeSnapshotEnvelope",
+    "validate_changed_addresses",
     "SnapshotEntry",
     "is_operation_transition_allowed",
     "operation_terminal_diagnostic",

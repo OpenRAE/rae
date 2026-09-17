@@ -232,6 +232,7 @@ from .manifests import (
     ParticipantRuntimeCapabilitiesModel,
     ProcessorCapabilitiesV2Model,
     ProcessorManifestV2Model,
+    RecoveryObservationCapabilitiesModel,
     TimeCapabilitiesModel,
 )
 from .manifests import CleanupCapabilitiesModel as CleanupCapabilitiesModel

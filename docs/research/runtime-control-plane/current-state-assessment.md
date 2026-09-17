@@ -13,6 +13,14 @@ tree (`cba73a81`). The original findings still hold. The refresh additionally
 found the codec, workflow, and identity-scope gaps recorded below; these are
 current-repository evidence, not claims imported from the deferred store work.
 
+Post-assessment status: CP-1 and CP-2 subsequently established the closed
+operation lifecycle and atomic mutation boundary. CP-3 issue #1179 closes the
+startup-reconciliation gap identified here through the runtime-owned,
+backend-neutral classification design recorded in the
+[CP-3 preflight](../../decisions/issue-1179-startup-reconciliation-preflight.md).
+This document remains the dated evidence snapshot; it is not an assertion that
+the original gaps remain in the current tree.
+
 ## 1. The contract surface today
 
 `raes_runtime/control_plane.py` defines `RuntimeControlPlane`. Its

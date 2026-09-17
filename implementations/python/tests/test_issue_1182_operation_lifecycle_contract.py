@@ -43,6 +43,7 @@ from raes_runtime.control_plane_store_records import _record_from_payload, _reco
 _LEGAL_TRANSITIONS = {
     (OperationState.ACCEPTED, OperationState.RUNNING),
     (OperationState.ACCEPTED, OperationState.CANCELLED),
+    (OperationState.ACCEPTED, OperationState.INDETERMINATE),
     (OperationState.RUNNING, OperationState.SUCCEEDED),
     (OperationState.RUNNING, OperationState.FAILED),
     (OperationState.RUNNING, OperationState.CANCELLED),

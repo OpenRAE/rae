@@ -219,6 +219,17 @@
         "provisioner": {
           "$ref": "#/$defs/ProvisionerCapabilitiesModel"
         },
+        "recovery_observation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecoveryObservationCapabilitiesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "time": {
           "anyOf": [
             {
@@ -1531,6 +1542,22 @@
       ],
       "title": "OperatingSystemCompatibilityModel",
       "type": "object"
+    },
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing",
+        "indeterminate-resolution"
+      ],
+      "title": "OperationKind",
+      "type": "string"
     },
     "OrchestratorCapabilitiesModel": {
       "additionalProperties": false,
@@ -3147,6 +3174,32 @@
       ],
       "title": "RealizationVerificationScope",
       "type": "string"
+    },
+    "RecoveryObservationCapabilitiesModel": {
+      "additionalProperties": false,
+      "description": "Operational crash-recovery observation support declaration.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "supported_operation_kinds": {
+          "items": {
+            "$ref": "#/$defs/OperationKind"
+          },
+          "minItems": 1,
+          "title": "Supported Operation Kinds",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "name",
+        "supported_operation_kinds"
+      ],
+      "title": "RecoveryObservationCapabilitiesModel",
+      "type": "object"
     },
     "TimeCapabilitiesModel": {
       "additionalProperties": false,

@@ -42,6 +42,7 @@ from raes_runtime.control_plane_mutation import (
     mutation_entry,
     mutation_probe,
 )
+from raes_runtime.control_plane_recovery import IndeterminateResolutionDisposition
 from raes_runtime.control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
@@ -578,16 +579,18 @@ def test_runtime_rejects_store_without_complete_atomic_mutation_capability() -> 
         RuntimeControlPlane(target, store=legacy_store)  # type: ignore[arg-type]
 
 
-def test_restart_preserves_running_claim_for_governed_recovery() -> None:
+def test_restart_terminalizes_running_claim_through_governed_recovery() -> None:
     store = InMemoryControlPlaneStore()
     running = _running_record("interrupted-operation")
     store.claim_record(running)
 
     control_plane = RuntimeControlPlane(create_stub_target(), store=store)
 
-    assert store.load_records()[running.receipt.operation_id] == running
-    assert control_plane.get_operation(running.receipt.operation_id) == running.status
-    assert store.read_audit() == []
+    recovered = store.load_records()[running.receipt.operation_id]
+    assert recovered.status.state is OperationState.INDETERMINATE
+    assert control_plane.get_operation(running.receipt.operation_id) == recovered.status
+    assert store.find_by_idempotency(running.idempotency_key) == recovered
+    assert [event.reason for event in store.read_audit()] == ["operation-indeterminate"]
     assert not hasattr(store, "reconcile_interrupted_records")
 
 
@@ -601,6 +604,7 @@ def test_mutating_control_plane_entries_declare_their_operation_kind() -> None:
         "initialize_participant_episode",
         "reconcile_workflow_timeouts",
         "record_participant_control",
+        "resolve_indeterminate_operation",
         "reset_participant_episode",
         "restart_participant_episode",
         "submit_evaluation",
@@ -675,6 +679,25 @@ def test_accepted_workflow_cancellation_reaches_the_shared_authority() -> None:
         control_plane,
         lambda: control_plane.cancel_workflow(workflow_address),
         OperationKind.WORKFLOW_CANCELLATION,
+    )
+
+
+def test_accepted_indeterminate_resolution_reaches_the_shared_authority() -> None:
+    store = InMemoryControlPlaneStore()
+    parent = _running_record("indeterminate-parent-1181")
+    store.claim_record(parent)
+    control_plane = RuntimeControlPlane(create_stub_target(), store=store)
+    assert store.load_records()[parent.receipt.operation_id].status.state is OperationState.INDETERMINATE
+
+    _assert_requests_mutation_reservation(
+        control_plane,
+        lambda: control_plane.resolve_indeterminate_operation(
+            parent.receipt.operation_id,
+            disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
+            idempotency_key="resolution-1181",
+            identity=identity(),
+        ),
+        OperationKind.INDETERMINATE_RESOLUTION,
     )
 
 
