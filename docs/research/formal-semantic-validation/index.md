@@ -193,13 +193,18 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   the merged participant-relationship and augmentation source tree. Fresh
   replay retains bounded outcomes and claim limits without qualifying an
   adapter transport.
-- [`bundles/retest-v27.json`](bundles/retest-v27.json) is current release 28.0.0.
+- [`bundles/retest-v27.json`](bundles/retest-v27.json) preserves release 28.0.0.
   It binds [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
   [`analysis-v27.json`](analysis-v27.json) to issue #1299 partial runtime
   listener admission on the integrated authoring-adapter source tree. Fresh
   replay retains release-27 outcomes, digests, and claim limits; endpoint
   completeness, backend admission, and adapter transport behavior remain
   outside this corpus's claims.
+- [`bundles/retest-v28.json`](bundles/retest-v28.json) is current release 29.0.0.
+  It binds [`execution-snapshot-v28.json`](execution-snapshot-v28.json) and
+  [`analysis-v28.json`](analysis-v28.json) to the issue #1223 reviewed OCI
+  mirror and pre-seed admission boundary; that work does not participate in this
+  corpus, so replay retains release-28 outcomes with no new claim class.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.

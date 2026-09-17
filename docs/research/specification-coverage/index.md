@@ -162,12 +162,18 @@ this run does not repair them.
   digests. Classifications and claim limits remain unchanged; adapter transport
   behavior is not evaluated by this corpus.
 - [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
-  [`analysis-v27.json`](analysis-v27.json) are current release 27.0.0. Fresh
+  [`analysis-v27.json`](analysis-v27.json) preserve release 27.0.0. Fresh
   replay binds issue #1299 partial runtime listener descriptions on the
   integrated authoring-adapter source state to exact source and package
   digests. Outcomes, classifications, and claim limits are unchanged; endpoint
   completeness, backend admission, and adapter transport behavior are not new
   claims.
+
+- [`execution-snapshot-v28.json`](execution-snapshot-v28.json) and
+  [`analysis-v28.json`](analysis-v28.json) are current release 28.0.0. They
+  bind the issue #1223 reviewed OCI mirror and pre-seed admission boundary to
+  exact source and package digests; classifications, denominator and claim
+  limits are unchanged and earlier captures retain their exact bytes.
 
 - [`execution-snapshot-v27.json`](execution-snapshot-v27.json) and
   [`analysis-v27.json`](analysis-v27.json) are current release 27.0.0. They
@@ -206,7 +212,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 27.0.0 and rejects duplicate or unsupported
+Current validation requires release 28.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
