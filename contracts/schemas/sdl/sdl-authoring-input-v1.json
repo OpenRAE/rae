@@ -12190,10 +12190,24 @@
         },
         "methods": {
           "items": {
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[!#$%&'*+\\-.^_`|~0-9A-Za-z]{1,128}$(?![\\s\\S])",
+                "type": "string"
+              },
+              {
+                "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$(?![\\s\\S])",
+                "type": "string",
+                "x-raes-variable-reference": true
+              }
+            ]
           },
+          "minItems": 1,
           "title": "Methods",
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "name": {
           "default": "",

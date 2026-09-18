@@ -12,6 +12,13 @@ Issue: #1092. Requirement: API-404.
 > current recovery must preserve non-terminal claims until the runtime-owned
 > CP-3 classifier can observe and atomically commit `FAILED`/`CANCELLED`,
 > `SUCCEEDED`, or `INDETERMINATE` with its actor-bound audit.
+>
+> **Superseded ownership guidance:** ADR-104 CP-5 and the issue #1183 store
+> ownership lease preflight supersede this note's constructor-time provider
+> access and allowance for independent unleased maintenance/read instances.
+> Durable provider schema, migration, metadata, and state access now requires
+> the exclusive lease and immutable target/run scope admission. Shutdown closes
+> the provider before releasing that lease.
 
 ## Decision
 

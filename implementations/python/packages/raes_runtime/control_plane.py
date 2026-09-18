@@ -1,6 +1,4 @@
-"""Reference async-style control plane over runtime targets.
-Expose schema-oriented runtime execution as eagerly completed operations over an async-compatible API.
-"""
+"""Reference async-style control plane over runtime targets."""
 
 from __future__ import annotations
 
@@ -8,7 +6,6 @@ from collections.abc import Callable
 from threading import RLock
 from typing import TypeVar, Unpack
 
-from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -22,9 +19,12 @@ from raes_contracts.runtime_state import (
     RuntimeSnapshot,
     RuntimeSnapshotEnvelope,
 )
-from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 
 from .control_plane_admission import RuntimeAdmissionMixin
+from .control_plane_composition import (
+    require_crossing_policy_configuration,
+    require_final_sink_flow_control_configuration,
+)
 from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
@@ -42,6 +42,7 @@ from .control_plane_operation_context import (
     operation_admission_context,
     operation_idempotency_fingerprint,
     operation_requires_ephemeral_retry_proof,
+    runtime_target_scope,
 )
 from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
 from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_operations
@@ -49,7 +50,9 @@ from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
     InMemoryControlPlaneStore,
+    RuntimeAdmittedControlPlaneStore,
     SnapshotState,
+    require_operation_record_scopes,
 )
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
@@ -59,7 +62,6 @@ from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
 from .participant_crossing_mediation import (
-    ParticipantCrossingPolicyResolver,
     validate_persisted_crossing_history,
 )
 from .participant_information_state_validation import require_participant_information_state_snapshot
@@ -67,48 +69,6 @@ from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
 
 _ProjectionT = TypeVar("_ProjectionT")
-
-
-def _require_crossing_policy_configuration(
-    target: _RuntimeTarget,
-    resolver: ParticipantCrossingPolicyResolver | None,
-) -> None:
-    capabilities = target.manifest.participant_runtime
-    if capabilities is None:
-        return
-    enabled_policy_features = {
-        declaration.feature
-        for declaration in capabilities.feature_support
-        if declaration.feature in PARTICIPANT_RUNTIME_POLICY_FEATURES
-        and declaration.support_level != ParticipantFeatureSupportLevel.UNSUPPORTED
-    }
-    if enabled_policy_features and resolver is None:
-        features = ", ".join(sorted(enabled_policy_features))
-        raise ValueError(f"participant policy capabilities require a crossing policy resolver: {features}")
-
-
-def _require_final_sink_flow_control_configuration(
-    resolver: ParticipantCrossingPolicyResolver | None,
-    enforce_final_sink_flow_control: bool,
-) -> None:
-    """Reject a policy resolver that cannot resolve the SEM-233 final-sink permit.
-
-    Final-sink enforcement is fail-closed by default: a control plane that
-    governs participant crossings must resolve a fresh exact-cut SEM-233 permit
-    immediately before every effect. A resolver without ``resolve_flow_sink_decision``
-    cannot, so the control plane refuses to construct rather than silently
-    admitting effects with no final-sink decision. A deployment that intentionally
-    runs the legacy API-423-only path passes ``enforce_final_sink_flow_control=False``.
-    """
-
-    if not enforce_final_sink_flow_control or resolver is None:
-        return
-    if not callable(getattr(resolver, "resolve_flow_sink_decision", None)):
-        raise ValueError(
-            "participant final-sink flow-control enforcement requires the crossing policy "
-            "resolver to implement resolve_flow_sink_decision; pass "
-            "enforce_final_sink_flow_control=False to run the legacy API-423-only path"
-        )
 
 
 class RuntimeControlPlane(
@@ -129,15 +89,17 @@ class RuntimeControlPlane(
         **options: Unpack[ControlPlaneOptions],
     ) -> None:
         config = ControlPlaneConfiguration(**options)
+        target_scope = runtime_target_scope(target.name)
         initial_snapshot, store = config.initial_snapshot, config.store
         crossing_policy_resolver = config.crossing_policy_resolver
         information_state_context_resolver = config.information_state_context_resolver
         self._initialize_runtime_lifecycle()
         if store is not None and initial_snapshot is not None:
             raise ValueError("initial_snapshot cannot be combined with an explicit store")
-        _require_crossing_policy_configuration(target, crossing_policy_resolver)
-        _require_final_sink_flow_control_configuration(crossing_policy_resolver, config.enforce_final_sink_flow_control)
+        require_crossing_policy_configuration(target, crossing_policy_resolver)
+        require_final_sink_flow_control_configuration(crossing_policy_resolver, config.enforce_final_sink_flow_control)
         self._target = target
+        self._target_scope, self._run_scope = target_scope, config.run_scope
         self._materialization_archive = config.materialization_archive
         self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
         self._store = store or InMemoryControlPlaneStore(initial_snapshot)
@@ -146,11 +108,16 @@ class RuntimeControlPlane(
             self._operation_lock = RLock()
             self._snapshot_projection_depth = 0
             self._store_commits = adapt_control_plane_store(self._store)
-            acquire_runtime_lease = getattr(self._store, "acquire_runtime_lease", None)
-            if callable(acquire_runtime_lease):
-                self._runtime_lease = acquire_runtime_lease()
+            if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
+                self._runtime_lease = self._store.admit_runtime(
+                    target_scope=self._target_scope,
+                    run_scope=self._run_scope,
+                )
             self._snapshot_state = self._store.load_snapshot_state()
             self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
+            require_operation_record_scopes(
+                self._operations, target_scope=self._target_scope, run_scope=self._run_scope
+            )
             self._behavior_specifications = dict(config.behavior_specifications or {})
             self._crossing_policy_resolver = crossing_policy_resolver
             self._information_state_context_resolver = information_state_context_resolver
@@ -490,7 +457,3 @@ class RuntimeControlPlane(
         with self._operation_lock:
             self._reload_derived_state_if_unpinned()
             return RuntimeSnapshotEnvelope(snapshot=self._snapshot)
-
-    def _require_observed_base_snapshot(self, base_snapshot: RuntimeSnapshot | None) -> None:
-        if base_snapshot is not None and base_snapshot != self._snapshot:
-            raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")

@@ -1,9 +1,9 @@
 {
-  "content_hash": "b06b86f8cc2c92059fdd9be04df91c74fb4a24f788626c4a82ae2bba364425fd",
+  "content_hash": "e8c74a28838f7f3a9fc40ec37f2c476fc6e035873ee21e628b78850c51889763",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "b06b86f8cc2c92059fdd9be04df91c74fb4a24f788626c4a82ae2bba364425fd",
-    "summary": "Carry bounded augmentation permission, partial runtime listener descriptions, and portable service-manager contracts (#1242, #1299, #1297)."
+    "content_hash": "e8c74a28838f7f3a9fc40ec37f2c476fc6e035873ee21e628b78850c51889763",
+    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

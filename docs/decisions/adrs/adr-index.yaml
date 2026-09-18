@@ -152,6 +152,10 @@ adrs:
   - id: ADR-026
     path: docs/decisions/adrs/adr-026-application-http-surface-inventory.md
     pin: 8818f870d79498f3322fd5edb9d2269948d04079ef5fbc7238811911ab7f5373
+    amendments:
+      - date: 2026-09-18
+        ref: "#1298"
+        summary: "Separated extensible case-sensitive HTTP wire-method identity from controlled vocabularies while retaining legacy built-in aliases and execution boundaries."
   - id: ADR-027
     path: docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md
     pin: d568a5a77d55b995d23c057ed3ccc56d221509a6068374d3884b2608c926cdea

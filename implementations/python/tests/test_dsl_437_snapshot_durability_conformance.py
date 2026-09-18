@@ -176,6 +176,7 @@ def test_runtime_snapshot_validates_policy_identity_and_time_segment(
 
 def test_control_plane_store_round_trips_valid_autonomous_state(tmp_path: Path) -> None:
     store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     snapshot = _snapshot()
 
     store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
@@ -191,6 +192,7 @@ def test_control_plane_stores_revalidate_mutated_autonomous_state(tmp_path: Path
     snapshot.participant_autonomous_execution_states[STATE_ADDRESS] = _state(attempted_actions=2)
     memory_store = InMemoryControlPlaneStore()
     local_store = LocalControlPlaneStore(tmp_path / "control-plane")
+    local_store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     memory_revision = memory_store.load_snapshot_state().revision
     local_revision = local_store.load_snapshot_state().revision
 
@@ -203,6 +205,7 @@ def test_control_plane_stores_revalidate_mutated_autonomous_state(tmp_path: Path
 def test_local_control_plane_store_rejects_invalid_durable_state(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
+    store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     store.save_snapshot(_snapshot(), expected_revision=store.load_snapshot_state().revision)
 
     def mutate(payload: dict[str, object]) -> None:
@@ -221,6 +224,7 @@ def test_local_control_plane_store_rejects_invalid_durable_state(tmp_path: Path)
 def test_local_control_plane_store_rejects_durable_clock_segment_mismatch(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
+    store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     store.save_snapshot(_snapshot(), expected_revision=store.load_snapshot_state().revision)
 
     def mutate(payload: dict[str, object]) -> None:
@@ -248,6 +252,7 @@ def test_local_control_plane_store_rejects_durable_clock_segment_mismatch(tmp_pa
 def test_local_control_plane_store_rejects_corrupted_payload(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
+    store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     store.save_snapshot(_snapshot(), expected_revision=store.load_snapshot_state().revision)
 
     _rewrite_durable_snapshot(store_path, lambda payload: payload.clear(), update_digest=False)

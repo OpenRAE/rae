@@ -23,7 +23,10 @@ def test_durable_retry_never_replays_a_denied_or_completed_augmentation(tmp_path
     target = RuntimeTarget(name="scoped", manifest=execution.manifest, provisioner=backend)
     archive = RunMaterializationArchive(tmp_path / "archive")
     control = RuntimeControlPlane(
-        target, store=LocalControlPlaneStore(tmp_path / "state"), materialization_archive=archive
+        target,
+        store=LocalControlPlaneStore(tmp_path / "state"),
+        materialization_archive=archive,
+        run_scope=f"run:{execution.provisioning.run_id}",
     )
     try:
         control.register_planner_produced_plan(execution)
@@ -38,7 +41,10 @@ def test_durable_retry_never_replays_a_denied_or_completed_augmentation(tmp_path
     finally:
         control.close()
     recovered = RuntimeControlPlane(
-        target, store=LocalControlPlaneStore(tmp_path / "state"), materialization_archive=archive
+        target,
+        store=LocalControlPlaneStore(tmp_path / "state"),
+        materialization_archive=archive,
+        run_scope=f"run:{execution.provisioning.run_id}",
     )
     try:
         assert recovered.submit_provisioning(execution.provisioning, idempotency_key="scope-once") == receipt

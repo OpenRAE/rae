@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1179-v30",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1183-v31",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-17",
+  "generated_at": "2026-09-18",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -47,7 +47,8 @@
     "The retained protocol does not test evidence-requirement refinement lineage; the dedicated EXP-731 regression suite covers that production boundary.",
     "Authoring-adapter transport behavior is outside this retained protocol.",
     "Reviewed OCI mirror and pre-seed admission is covered by its own regression suites and the development artifact policy gate, not a new claim in this preregistered matrix.",
-    "Operational recovery observation and startup reconciliation are covered by their API-404 regression suite, not a new claim in this preregistered matrix."
+    "Operational recovery observation and startup reconciliation are covered by their API-404 regression suite, not a new claim in this preregistered matrix.",
+    "Store ownership, immutable runtime scope, and provider shutdown ordering are covered by the API-404 CP-5 regression suite, not by this retained specification-coverage protocol."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -55,7 +56,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay on the integrated source state retains those classifications and claim limits; listener endpoint completeness, backend admission, realized participant relationships, authoring-adapter transport behavior, and native backend scope enforcement are not evaluated by this protocol. This replay also binds the operational recovery-observation implementation without treating it as EXP-715 experiment observation or a crash-recovery result.",
+  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay on the integrated source state retains those classifications and claim limits; listener endpoint completeness, backend admission, realized participant relationships, authoring-adapter transport behavior, and native backend scope enforcement are not evaluated by this protocol. This replay also binds the operational recovery-observation implementation without treating it as EXP-715 experiment observation or a crash-recovery result. This replay binds the CP-5 source changes without treating the retained language artifacts as evidence of process leasing, SQLite ownership, or lifecycle drain ordering.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -87,6 +88,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1179-v30",
-  "snapshot_sha256": "14a0f644c58c1b120bb87a60301d5b0c18154219e50de5bd7ddbb71730abc06f"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1183-v31",
+  "snapshot_sha256": "c17c8f3f799d399da93dea481d141eee645a7247afb014dbc00044e31a281881"
 }

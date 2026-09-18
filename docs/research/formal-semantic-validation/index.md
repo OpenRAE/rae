@@ -210,12 +210,19 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v29.json`](analysis-v29.json) to issue #1297's portable
   service-manager contract. Fresh production and participant replay retains
   bounded outcomes and claim limits without claiming live manager execution.
-- [`bundles/retest-v30.json`](bundles/retest-v30.json) is current release 31.0.0.
+- [`bundles/retest-v30.json`](bundles/retest-v30.json) preserves release 31.0.0.
   It binds [`execution-snapshot-v30.json`](execution-snapshot-v30.json) and
   [`analysis-v30.json`](analysis-v30.json) to API-404 startup reconciliation
   and its operational recovery-observation contract. Fresh replay retains
   bounded outcomes and claim limits without claiming live crash recovery,
   provider-effect classification, or EXP-715 experiment observation.
+- [`bundles/retest-v31.json`](bundles/retest-v31.json) is current release 32.0.0.
+  It binds [`execution-snapshot-v31.json`](execution-snapshot-v31.json) and
+  [`analysis-v31.json`](analysis-v31.json) to API-404 CP-5 single-owner store
+  admission, immutable target/run scope, and provider shutdown ordering. Fresh
+  replay retains bounded outcomes and claim limits without claiming that this
+  corpus executes process contention, SQLite lifecycle ordering, or crash
+  recovery.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -260,7 +267,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 31.0.0, rejects unsupported future
+Current validation requires explicit release 32.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

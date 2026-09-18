@@ -402,7 +402,6 @@ def _prepare_policy_unresolved(
         kind=OperationKind.PARTICIPANT_CROSSING,
         request=intent,
         identity=identity,
-        run_scope=f"run:{intent.episode_id}",
     )
     receipt = OperationReceipt(
         operation_id=operation_id,
