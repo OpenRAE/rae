@@ -676,9 +676,11 @@ def test_bootstrap_python_install_extracts_only_the_locked_relocatable_archive(
         bootstrap_profile.install_python_payload("host-a", kit_root, "cpython-3.14")
 
 
+@pytest.mark.parametrize("locator_ref", [None, "primary", "mirror"])
 def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    locator_ref: str | None,
 ) -> None:
     kit_root = tmp_path / "kit"
     kit_root.mkdir()
@@ -692,8 +694,9 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
             {
                 "artifact_id": "uv",
                 "version": "1.0.0",
+                "source": {"locator_refs": ["primary", "mirror"]},
                 "platform": {
-                    "source_urls": ["https://example.invalid/uv.tar.gz"],
+                    "source_urls": ["https://example.invalid/uv.tar.gz", "https://mirror.invalid/uv.tar.gz"],
                     "raw_manifest": [
                         {
                             "path": "uv.tar.gz",
@@ -718,7 +721,8 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
         max_time_seconds: int | None = None,
         budget: maintained_client_acquisition.TransferBudget,
     ) -> dict[str, str]:
-        assert url == "https://example.invalid/uv.tar.gz"
+        expected_host = "mirror" if locator_ref == "mirror" else "example"
+        assert url == f"https://{expected_host}.invalid/uv.tar.gz"
         assert ca_cert is None
         assert max_bytes == len(payload)
         assert max_time_seconds is None
@@ -727,7 +731,10 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_transfer)
-    result = bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",))
+    with pytest.raises(ValueError, match="locator is not approved"):
+        bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref="unapproved")
+    assert not (kit_root / "archives").exists()
+    result = bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref=locator_ref)
     assert result == [
         {
             "artifact_id": "uv",
@@ -737,7 +744,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
         }
     ]
     with pytest.raises(ValueError, match="already exists"):
-        bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",))
+        bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref=locator_ref)
 
     tampered_root = tmp_path / "tampered-kit"
     tampered_root.mkdir()
@@ -762,7 +769,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_tampered_transfer)
     tampered_target = tampered_root / "archives/uv/uv.tar.gz"
     with pytest.raises(ValueError, match="failed exact verification"):
-        bootstrap_profile.fetch_bootstrap_payloads("host-a", tampered_root, ("uv",))
+        bootstrap_profile.fetch_bootstrap_payloads("host-a", tampered_root, ("uv",), locator_ref=locator_ref)
     assert not tampered_target.exists()
 
 

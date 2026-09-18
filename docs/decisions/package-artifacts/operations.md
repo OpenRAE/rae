@@ -468,6 +468,10 @@ client with the separately qualified `large-object` budget: exact size, a
 retries, and a wall deadline that covers the retry window. The second is an
 explicit `--local-input` copied from its opened inode. An alternate approved
 same-byte mirror is an operator choice (`--locator-ref`) in a new invocation.
+The bootstrap `fetch-inputs` command accepts the same explicit locator choice
+when one artifact is selected. Canonical CI selects
+`official-isabelle-cambridge-mirror`; it still verifies the archive against the
+unchanged lock size and SHA-256 before carrying it to the proof job.
 
 `tools/verified_tree_installation.py` extends #1219's transaction to a
 multi-gigabyte tree. The lock's `installed_tree` binds the SHA-256 of the

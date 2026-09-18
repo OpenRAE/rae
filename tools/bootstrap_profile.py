@@ -446,6 +446,8 @@ def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep ac
     host_profile_id: str,
     kit_root: Path,
     artifact_ids: Sequence[str],
+    *,
+    locator_ref: str | None = None,
 ) -> list[dict[str, object]]:
     """Fetch exact raw payloads with the qualified native curl client."""
 
@@ -455,16 +457,23 @@ def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep ac
     requested = sorted(set(artifact_ids))
     if not requested or not set(requested) <= set(host["bootstrap_payload_ids"]):
         raise ValueError("bootstrap fetch must select reviewed payload ids")
+    if locator_ref is not None and len(requested) != 1:
+        raise ValueError("bootstrap locator selection requires exactly one artifact")
     results: list[dict[str, object]] = []
     for artifact_id in requested:
         artifact = artifacts[artifact_id]
         platform = artifact["platform"]
         raw_manifest = platform["raw_manifest"]
-        # Approved same-byte locators are ordered; the kit uses the primary one.
-        # A different locator is an explicit operator choice, never a failover loop.
+        # A different approved locator is explicit, never an automatic failover.
         source_urls = platform["source_urls"]
         if len(raw_manifest) != 1 or not source_urls:
             raise ValueError("bootstrap fetch requires one exact source object per payload")
+        source_url = source_urls[0]
+        if locator_ref is not None:
+            locator_refs = artifact["source"]["locator_refs"]
+            if locator_ref not in locator_refs or len(locator_refs) != len(source_urls):
+                raise ValueError("bootstrap locator is not approved by the reviewed lock")
+            source_url = source_urls[locator_refs.index(locator_ref)]
         expected = raw_manifest[0]
         target = kit_root / "archives" / artifact_id / expected["path"]
         safe_tooling_cache_parent(kit_root, target, artifact_id=artifact_id)
@@ -472,7 +481,7 @@ def fetch_bootstrap_payloads(  # NOSONAR -- explicit validation branches keep ac
             raise ValueError(f"bootstrap {artifact_id} raw target already exists")
         transfer = run_curl_qualification(
             _SYSTEM_CURL,
-            source_urls[0],
+            source_url,
             target,
             ca_cert=None,
             max_bytes=expected["size"],
@@ -731,6 +740,7 @@ def _parse_args() -> argparse.Namespace:
     kit_fetch.add_argument("host_profile_id")
     kit_fetch.add_argument("kit_root", type=Path)
     kit_fetch.add_argument("--artifact-id", action="append", required=True)
+    kit_fetch.add_argument("--locator-ref", help="approved same-byte locator for one selected artifact")
     kit_python = subparsers.add_parser("install-python", help="verify and extract locked CPython")
     kit_python.add_argument("host_profile_id")
     kit_python.add_argument("kit_root", type=Path)
@@ -770,6 +780,7 @@ def main() -> int:  # NOSONAR -- CLI dispatch keeps operation exit semantics exp
                     args.host_profile_id,
                     args.kit_root,
                     args.artifact_id,
+                    locator_ref=args.locator_ref,
                 ),
                 sort_keys=True,
             )

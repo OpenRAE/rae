@@ -83,7 +83,8 @@ jobs:
         # proof host receives the exact reviewed archive as a verified local input.
         run: |
           uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
-            proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle
+            proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
+            --locator-ref official-isabelle-cambridge-mirror
       - name: Carry locked generic-tool inputs to the dependent jobs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
