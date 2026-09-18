@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Protocol
@@ -250,8 +248,7 @@ def prepare_participant_crossing(
         _CrossingDecisionPreparation,
         _expected_history_heads,
         _prepare_crossing_decision,
-        _scoped_idempotency_key,
-        _semantic_fingerprint,
+        _semantic_request,
     )
 
     authenticated = _require_crossing_identity(control_plane, intent, identity)
@@ -259,17 +256,6 @@ def prepare_participant_crossing(
     if resolver is None:
         raise ValueError("participant crossing policy resolver is required")
     expected_heads = _expected_history_heads(control_plane._snapshot, intent.participant_address)
-    scoped_key = _scoped_idempotency_key(
-        control_plane,
-        intent,
-        authenticated,
-        idempotency_key,
-    )
-    existing = control_plane._store.find_by_idempotency(scoped_key) if scoped_key else None
-    fingerprint_heads = expected_heads
-    if existing is not None:
-        _require_replay_state_cut(existing, expected_heads)
-        fingerprint_heads = existing.decision_history_heads
     try:
         resolution = _resolve_crossing_policy(
             control_plane,
@@ -284,31 +270,16 @@ def prepare_participant_crossing(
             authenticated,
             idempotency_key,
             expected_heads=expected_heads,
-            scoped_key=scoped_key,
-            existing=existing,
         )
     support = _resolve_backend_support(control_plane, intent, resolution)
     gates = _decision_gates(_applicable_semantic_gates(intent, resolution), support.gate)
     disposition = _decision_disposition(gates, resolution)
-    semantic_fingerprint = _semantic_fingerprint(
+    context = operation_admission_context(
         control_plane,
-        intent,
-        authenticated,
-        resolution,
-        support,
-        fingerprint_heads,
+        kind=OperationKind.PARTICIPANT_CROSSING,
+        request=_semantic_request(intent, resolution, support),
+        identity=authenticated,
     )
-    if existing is not None:
-        if existing.request_fingerprint != semantic_fingerprint:
-            raise ValueError("Idempotency-Key was reused with different semantics.")
-        control_plane._operations[existing.receipt.operation_id] = existing
-        return _existing_preparation(
-            control_plane,
-            intent,
-            authenticated,
-            expected_heads,
-            existing,
-        )
     return _prepare_crossing_decision(
         control_plane,
         intent,
@@ -319,38 +290,9 @@ def prepare_participant_crossing(
             gates=gates,
             disposition=disposition,
             expected_heads=expected_heads,
-            semantic_fingerprint=semantic_fingerprint,
-            scoped_key=scoped_key,
+            context=context,
+            idempotency_key=idempotency_key,
         ),
-    )
-
-
-def _existing_preparation(
-    control_plane: object,
-    intent: ParticipantCrossingIntent,
-    identity: ControlPlaneIdentity,
-    expected_heads: dict[str, str | None],
-    existing: ControlPlaneOperationRecord,
-) -> PreparedParticipantCrossing:
-    return PreparedParticipantCrossing(
-        intent=intent,
-        identity=identity,
-        next_snapshot=control_plane._snapshot,
-        expected_history_heads=expected_heads,
-        record=existing,
-        audit_event=AuditEvent(
-            timestamp=existing.status.updated_at,
-            action="participant_crossing_replay",
-            identity=identity.identity,
-            allowed=existing.status.state is OperationState.SUCCEEDED,
-            target=intent.participant_address,
-            operation_id=existing.receipt.operation_id,
-            reason="idempotent-replay",
-        ),
-        decision=None,
-        disposition=None,
-        governed_subject=intent.subject,
-        existing_receipt=existing.receipt,
     )
 
 
@@ -361,34 +303,19 @@ def _prepare_policy_unresolved(
     idempotency_key: str,
     *,
     expected_heads: dict[str, str | None],
-    scoped_key: str,
-    existing: ControlPlaneOperationRecord | None,
 ) -> PreparedParticipantCrossing:
-    del idempotency_key
-    fingerprint_heads = existing.decision_history_heads if existing is not None else expected_heads
     stable_intent = intent.model_dump(mode="json")
     stable_intent.pop("effective_order", None)
-    fingerprint_payload = {
-        "target": control_plane.target_name,
-        "identity": identity.identity,
-        "decision_history_heads": fingerprint_heads,
-        "intent": stable_intent,
-        "outcome": "policy-unresolved",
-    }
-    semantic_fingerprint = hashlib.sha256(
-        json.dumps(fingerprint_payload, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
-    if existing is not None:
-        if existing.request_fingerprint != semantic_fingerprint:
-            raise ValueError("Idempotency-Key was reused with different semantics.")
-        control_plane._operations[existing.receipt.operation_id] = existing
-        return _existing_preparation(
-            control_plane,
-            intent,
-            identity,
-            expected_heads,
-            existing,
-        )
+    operation_context = operation_admission_context(
+        control_plane,
+        kind=OperationKind.PARTICIPANT_CROSSING,
+        request={
+            "domain": "participant-crossing-policy-unresolved/v1",
+            "intent": stable_intent,
+            "outcome": "policy-unresolved",
+        },
+        identity=identity,
+    )
     operation_id = str(uuid4())
     submitted_at = _utc_now()
     diagnostic = Diagnostic(
@@ -396,12 +323,6 @@ def _prepare_policy_unresolved(
         domain="participant",
         address=intent.participant_address,
         message="Participant crossing policy could not be resolved.",
-    )
-    operation_context = operation_admission_context(
-        control_plane,
-        kind=OperationKind.PARTICIPANT_CROSSING,
-        request=intent,
-        identity=identity,
     )
     receipt = OperationReceipt(
         operation_id=operation_id,
@@ -423,8 +344,8 @@ def _prepare_policy_unresolved(
             diagnostics=operation_terminal_diagnostics(OperationState.FAILED, [diagnostic]),
             changed_addresses=[intent.participant_address],
         ),
-        request_fingerprint=semantic_fingerprint,
-        idempotency_key=scoped_key,
+        request_fingerprint=operation_context.request_commitment,
+        idempotency_key=idempotency_key,
         decision_history_heads=expected_heads,
         result_history_heads=expected_heads,
     )
@@ -452,16 +373,6 @@ def _prepare_policy_unresolved(
         disposition=None,
         governed_subject=intent.subject,
     )
-
-
-def _require_replay_state_cut(
-    existing: ControlPlaneOperationRecord,
-    current_heads: dict[str, str | None],
-) -> None:
-    if not existing.decision_history_heads or not existing.result_history_heads:
-        raise ValueError("idempotent participant crossing is missing its state-cut binding")
-    if current_heads != existing.result_history_heads:
-        raise ValueError("Idempotency-Key cannot replay after the participant state cut advanced.")
 
 
 def validate_persisted_crossing_history(

@@ -278,6 +278,18 @@ def _execute_action_ingress_crossing_authorized(
             crossing.record,
             status=replace(crossing.record.status, state=OperationState.RUNNING),
         )
+        accepted_claim = replace(
+            authorization_record,
+            status=replace(
+                authorization_record.status,
+                state=OperationState.ACCEPTED,
+                diagnostics=[],
+                changed_addresses=[],
+            ),
+        )
+        claimed = control_plane._claim_record(accepted_claim)
+        if claimed.receipt.operation_id != accepted_claim.receipt.operation_id:
+            return claimed.receipt
         authorization_audit = combined_crossing_audit(
             crossing.audit_event,
             crossing,

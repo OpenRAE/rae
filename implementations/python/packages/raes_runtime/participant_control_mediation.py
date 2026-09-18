@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import asdict, dataclass, replace
 
 from raes_contracts.contracts import (
@@ -53,8 +51,7 @@ class _BoundControlRequest:
     specification: ParticipantBehaviorSpecificationRuntime
     transition: MixedControlTransitionRuntime
     state: MixedControlControllerStateRuntime
-    semantic_fingerprint: str
-    scoped_key: str
+    idempotency_key: str
     context: OperationAdmissionContext
 
 
@@ -96,12 +93,6 @@ def record_participant_control(
             identity,
             idempotency_key,
         )
-        existing = control_plane._store.find_by_idempotency(bound.scoped_key) if bound.scoped_key else None
-        if existing is not None:
-            if existing.request_fingerprint != bound.semantic_fingerprint:
-                raise ValueError("Idempotency-Key was reused with different semantics.")
-            control_plane._operations[existing.receipt.operation_id] = existing
-            return existing.receipt
         prepared = prepare_participant_control_transition(
             control_plane,
             participant_address,
@@ -145,25 +136,16 @@ def bind_participant_control_request(
         specification=specification,
         transition=transition,
         state=state,
-        semantic_fingerprint=_semantic_fingerprint(
-            control_plane,
-            participant_address,
-            intent,
-            identity,
-            specification,
-            transition,
-        ),
-        scoped_key=_scoped_idempotency_key(
-            control_plane,
-            participant_address,
-            intent,
-            identity,
-            idempotency_key,
-        ),
+        idempotency_key=idempotency_key,
         context=operation_admission_context(
             control_plane,
             kind=OperationKind.PARTICIPANT_CONTROL,
-            request=intent,
+            request={
+                "intent": intent.model_dump(mode="json"),
+                "participant_address": participant_address,
+                "specification": specification.address,
+                "transition": asdict(transition),
+            },
             identity=identity,
         ),
     )
@@ -233,8 +215,7 @@ def prepare_participant_control_transition(
         authority=ParticipantControlOperationAuthority(
             identity=identity,
             context=bound.context,
-            semantic_fingerprint=bound.semantic_fingerprint,
-            scoped_key=bound.scoped_key,
+            idempotency_key=bound.idempotency_key,
         ),
     )
     return PreparedParticipantControlTransition(
@@ -395,46 +376,6 @@ def _validate_candidate_history(
         declarations=declarations,
         known_targets=known_targets,
     )
-
-
-def _semantic_fingerprint(
-    control_plane: object,
-    participant_address: str,
-    intent: ParticipantControlIntent,
-    identity: ControlPlaneIdentity,
-    specification: ParticipantBehaviorSpecificationRuntime,
-    transition: MixedControlTransitionRuntime,
-) -> str:
-    payload = {
-        "target": control_plane.target_name,
-        "identity": identity.identity,
-        "participant": participant_address,
-        "intent": intent.model_dump(mode="json"),
-        "specification": specification.address,
-        "transition": asdict(transition),
-    }
-    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-
-
-def _scoped_idempotency_key(
-    control_plane: object,
-    participant_address: str,
-    intent: ParticipantControlIntent,
-    identity: ControlPlaneIdentity,
-    idempotency_key: str,
-) -> str:
-    if not idempotency_key:
-        return ""
-    scope = (
-        control_plane.target_name,
-        identity.identity,
-        intent.kind,
-        participant_address,
-        intent.episode_id,
-        idempotency_key,
-    )
-    digest = hashlib.sha256("\x1f".join(scope).encode()).hexdigest()
-    return f"participant-control:{digest}"
 
 
 __all__ = (

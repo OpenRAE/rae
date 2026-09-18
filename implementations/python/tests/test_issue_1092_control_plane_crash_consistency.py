@@ -1086,7 +1086,7 @@ def test_local_store_migrates_v1_sqlite_operations_and_disposes_denials(tmp_path
     assert denial_audit.allowed is False
     assert denial_audit.reason == "legacy-denied-operation-disposed"
     with migrated._connection() as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("3",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("4",)
 
 
 def test_local_store_rejects_non_wal_before_schema_or_legacy_migration(
@@ -2586,7 +2586,10 @@ def test_execution_helpers_return_the_durable_winner_when_an_idempotency_claim_l
             return None
 
         @staticmethod
-        def _claim_record(record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
+        def _claim_record(
+            record: ControlPlaneOperationRecord,
+            **_claim_options: object,
+        ) -> ControlPlaneOperationRecord:
             winning_receipt = replace(record.receipt, operation_id="durable-winner")
             winning_status = replace(record.status, operation_id="durable-winner")
             return replace(record, receipt=winning_receipt, status=winning_status)
@@ -2697,7 +2700,7 @@ def test_runtime_rejects_losing_claim_with_different_request_fingerprint() -> No
         request_fingerprint="different-fingerprint",
     )
 
-    with pytest.raises(ValueError, match="reused with a different request body"):
+    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
         control_plane._claim_record(competing)
     control_plane.close()
 

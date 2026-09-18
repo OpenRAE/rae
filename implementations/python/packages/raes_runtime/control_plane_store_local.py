@@ -10,21 +10,25 @@ from dataclasses import asdict
 from pathlib import Path
 
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
-from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_state import OperationAdmissionContext, RuntimeSnapshot
 
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
+    NewClaimBlock,
     SnapshotState,
     TerminalCommitMode,
+    _raise_new_claim_block,
     _require_expected_control_head,
     _require_expected_history_heads,
     _require_operation_audit_binding,
     _require_operation_record_transition,
+    _require_same_idempotency_replay,
     _require_terminal_commit_mode,
     _require_terminal_operation_audit,
     _require_terminal_operation_transition,
     _require_terminal_retry_mode,
+    require_idempotency_key,
     terminal_operation_audit,
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
@@ -162,14 +166,32 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
             if _require_operation_record_transition(self._load_record(connection, record.receipt.operation_id), record):
                 self._upsert_record(connection, record)
 
-    def claim_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord:
+    def claim_record(
+        self,
+        record: ControlPlaneOperationRecord,
+        *,
+        legacy_request_fingerprint: str = "",
+        new_claim_blocked: NewClaimBlock = None,
+    ) -> ControlPlaneOperationRecord:
         """Atomically claim an idempotency key or return its existing record."""
 
+        require_idempotency_key(record.idempotency_key)
         with self._connection() as connection, _transaction(connection):
             if record.idempotency_key:
-                existing = self._find_by_idempotency(connection, record.idempotency_key)
+                existing = self._find_by_idempotency(
+                    connection,
+                    record.idempotency_key,
+                    context=record.receipt.context,
+                )
                 if existing is not None:
+                    _require_same_idempotency_replay(
+                        existing,
+                        record,
+                        legacy_request_fingerprint=legacy_request_fingerprint,
+                    )
                     return existing
+            if new_claim_blocked:
+                _raise_new_claim_block(new_claim_blocked)
             existing = self._load_record(connection, record.receipt.operation_id)
             if _require_operation_record_transition(existing, record):
                 self._upsert_record(connection, record)
@@ -225,11 +247,17 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
             self._insert_audit(connection, event)
             return committed
 
-    def find_by_idempotency(self, key: str) -> ControlPlaneOperationRecord | None:
+    def find_by_idempotency(
+        self,
+        key: str,
+        *,
+        context: OperationAdmissionContext | None = None,
+    ) -> ControlPlaneOperationRecord | None:
+        require_idempotency_key(key)
         if not key:
             return None
         with self._connection() as connection:
-            return self._find_by_idempotency(connection, key)
+            return self._find_by_idempotency(connection, key, context=context)
 
     def append_audit(self, event: AuditEvent) -> None:
         with self._connection() as connection, _transaction(connection):
@@ -387,12 +415,16 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
                 CREATE TABLE IF NOT EXISTS operations (
                     operation_id TEXT PRIMARY KEY,
                     idempotency_key TEXT NOT NULL,
+                    actor_id TEXT NOT NULL DEFAULT '',
+                    operation_kind TEXT NOT NULL DEFAULT '',
+                    target_scope TEXT NOT NULL DEFAULT '',
+                    run_scope TEXT NOT NULL DEFAULT '',
+                    request_commitment TEXT NOT NULL DEFAULT '',
+                    legacy_opaque_claim INTEGER NOT NULL DEFAULT 0,
                     request_fingerprint TEXT NOT NULL,
                     payload TEXT NOT NULL,
                     digest TEXT NOT NULL
                 );
-                CREATE UNIQUE INDEX IF NOT EXISTS operations_idempotency_key
-                    ON operations(idempotency_key) WHERE idempotency_key != '';
                 CREATE TABLE IF NOT EXISTS audit_events (
                     sequence INTEGER PRIMARY KEY AUTOINCREMENT,
                     payload TEXT NOT NULL,
@@ -409,6 +441,11 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
                 migrate_sqlite_schema(connection, _decode_payload, _encode_payload)
                 self._migrate_legacy_json(connection)
                 self._rebind_legacy_operation_scopes(
+                    connection,
+                    target_scope=target_scope,
+                    run_scope=run_scope,
+                )
+                self._require_bound_operation_scopes(
                     connection,
                     target_scope=target_scope,
                     run_scope=run_scope,
@@ -437,10 +474,23 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
 
     @staticmethod
     def _upsert_record(connection: sqlite3.Connection, record: ControlPlaneOperationRecord) -> None:
+        context = record.receipt.context
         if record.idempotency_key:
+            opaque_conflict = connection.execute(
+                """
+                SELECT operation_id FROM operations
+                WHERE actor_id=? AND operation_kind=? AND legacy_opaque_claim=1
+                """,
+                (context.actor_id, context.operation_kind.value),
+            ).fetchone()
+            if opaque_conflict is not None and opaque_conflict[0] != record.receipt.operation_id:
+                raise ValueError("idempotency claim conflicts with the original request")
             conflict = connection.execute(
-                "SELECT operation_id FROM operations WHERE idempotency_key=?",
-                (record.idempotency_key,),
+                """
+                SELECT operation_id FROM operations
+                WHERE actor_id=? AND operation_kind=? AND idempotency_key=?
+                """,
+                (context.actor_id, context.operation_kind.value, record.idempotency_key),
             ).fetchone()
             if conflict is not None and conflict[0] != record.receipt.operation_id:
                 raise ValueError("idempotency key already belongs to another operation")
@@ -448,10 +498,17 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
         connection.execute(
             """
             INSERT INTO operations(
-                operation_id, idempotency_key, request_fingerprint, payload, digest
-            ) VALUES (?, ?, ?, ?, ?)
+                operation_id, idempotency_key, actor_id, operation_kind,
+                target_scope, run_scope, request_commitment, legacy_opaque_claim,
+                request_fingerprint, payload, digest
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(operation_id) DO UPDATE SET
                 idempotency_key=excluded.idempotency_key,
+                actor_id=excluded.actor_id,
+                operation_kind=excluded.operation_kind,
+                target_scope=excluded.target_scope,
+                run_scope=excluded.run_scope,
+                request_commitment=excluded.request_commitment,
                 request_fingerprint=excluded.request_fingerprint,
                 payload=excluded.payload,
                 digest=excluded.digest
@@ -459,6 +516,12 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
             (
                 record.receipt.operation_id,
                 record.idempotency_key,
+                context.actor_id,
+                context.operation_kind.value,
+                context.target_scope,
+                context.run_scope,
+                context.request_commitment,
+                0,
                 record.request_fingerprint,
                 payload,
                 digest,
@@ -469,11 +532,25 @@ class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisio
     def _find_by_idempotency(
         connection: sqlite3.Connection,
         key: str,
+        *,
+        context: OperationAdmissionContext | None = None,
     ) -> ControlPlaneOperationRecord | None:
-        row = connection.execute(
-            "SELECT payload, digest FROM operations WHERE idempotency_key=?",
-            (key,),
-        ).fetchone()
+        if context is None:
+            rows = connection.execute(
+                "SELECT payload, digest FROM operations WHERE idempotency_key=?",
+                (key,),
+            ).fetchall()
+            if len(rows) > 1:
+                raise ValueError("idempotency lookup requires immutable operation context")
+            row = rows[0] if rows else None
+        else:
+            row = connection.execute(
+                """
+                SELECT payload, digest FROM operations
+                WHERE actor_id=? AND operation_kind=? AND idempotency_key=?
+                """,
+                (context.actor_id, context.operation_kind.value, key),
+            ).fetchone()
         if row is None:
             return None
         return _record_from_payload(_decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))

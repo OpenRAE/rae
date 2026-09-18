@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 from raes_contracts.canonical import canonical_json_digest
@@ -19,7 +19,7 @@ from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .control_plane_store_records import _record_from_payload, _record_payload
 
 _MIGRATION_ID = "local-operation-record/v1-to-v2"
-LOCAL_OPERATION_SCHEMA_VERSION = "3"
+LOCAL_OPERATION_SCHEMA_VERSION = "4"
 _OPERATION_KINDS = {
     RuntimeDomain.PROVISIONING: OperationKind.PROVISIONING,
     RuntimeDomain.ORCHESTRATION: OperationKind.ORCHESTRATION,
@@ -122,26 +122,110 @@ def migrate_sqlite_schema(
             encode_payload=encode_payload,
         )
         _add_snapshot_revision_column(connection)
-        connection.execute(
-            "UPDATE metadata SET value=? WHERE key='schema-version'",
-            (LOCAL_OPERATION_SCHEMA_VERSION,),
+        _add_idempotency_claim_columns(
+            connection,
+            decode_payload=decode_payload,
+            encode_payload=encode_payload,
         )
-        return
-    if row is not None and row[0] == "2":
+    elif row is not None and row[0] == "2":
         _add_snapshot_revision_column(connection)
+        _add_idempotency_claim_columns(
+            connection,
+            decode_payload=decode_payload,
+            encode_payload=encode_payload,
+        )
+    elif row is not None and row[0] == "3":
+        _add_idempotency_claim_columns(
+            connection,
+            decode_payload=decode_payload,
+            encode_payload=encode_payload,
+        )
+    elif row is None or row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
+        raise ValueError("unsupported local control-plane database schema")
+    _ensure_idempotency_claim_index(connection)
+    if row is not None and row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
         connection.execute(
             "UPDATE metadata SET value=? WHERE key='schema-version'",
             (LOCAL_OPERATION_SCHEMA_VERSION,),
         )
-        return
-    if row is None or row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
-        raise ValueError("unsupported local control-plane database schema")
 
 
 def _add_snapshot_revision_column(connection: sqlite3.Connection) -> None:
     columns = {row[1] for row in connection.execute("PRAGMA table_info(state)").fetchall()}
     if "revision" not in columns:
         connection.execute("ALTER TABLE state ADD COLUMN revision INTEGER NOT NULL DEFAULT 0")
+
+
+def _add_idempotency_claim_columns(
+    connection: sqlite3.Connection,
+    *,
+    decode_payload: Callable[..., dict[str, Any]],
+    encode_payload: Callable[[dict[str, Any]], tuple[str, str]],
+) -> None:
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(operations)").fetchall()}
+    text_columns = {
+        "actor_id": "ALTER TABLE operations ADD COLUMN actor_id TEXT NOT NULL DEFAULT ''",
+        "operation_kind": "ALTER TABLE operations ADD COLUMN operation_kind TEXT NOT NULL DEFAULT ''",
+        "target_scope": "ALTER TABLE operations ADD COLUMN target_scope TEXT NOT NULL DEFAULT ''",
+        "run_scope": "ALTER TABLE operations ADD COLUMN run_scope TEXT NOT NULL DEFAULT ''",
+        "request_commitment": ("ALTER TABLE operations ADD COLUMN request_commitment TEXT NOT NULL DEFAULT ''"),
+    }
+    for name, statement in text_columns.items():
+        if name not in columns:
+            connection.execute(statement)
+    if "legacy_opaque_claim" not in columns:
+        connection.execute("ALTER TABLE operations ADD COLUMN legacy_opaque_claim INTEGER NOT NULL DEFAULT 0")
+    rows = connection.execute(
+        """
+        SELECT operation_id, idempotency_key, payload, digest
+        FROM operations ORDER BY operation_id
+        """
+    ).fetchall()
+    for operation_id, persisted_key, content, digest in rows:
+        record = _record_from_payload(decode_payload(content, digest, kind="operation record"))
+        if record.receipt.operation_id != operation_id:
+            raise ValueError("operation record identity does not match its durable key")
+        if record.idempotency_key != persisted_key:
+            raise ValueError("operation idempotency key does not match its durable index")
+        context = record.receipt.context
+        record = replace(
+            record,
+            request_fingerprint=context.request_commitment,
+            legacy_request_commitment=bool(record.idempotency_key),
+        )
+        record_content, record_digest = encode_payload(_record_payload(record))
+        legacy_opaque = int(record.idempotency_key.startswith(("participant-control:", "participant-crossing:")))
+        connection.execute(
+            """
+            UPDATE operations SET
+                actor_id=?, operation_kind=?, target_scope=?, run_scope=?, request_commitment=?,
+                legacy_opaque_claim=?, request_fingerprint=?, payload=?, digest=?
+            WHERE operation_id=?
+            """,
+            (
+                context.actor_id,
+                context.operation_kind.value,
+                context.target_scope,
+                context.run_scope,
+                context.request_commitment,
+                legacy_opaque,
+                context.request_commitment,
+                record_content,
+                record_digest,
+                operation_id,
+            ),
+        )
+    connection.execute("DROP INDEX IF EXISTS operations_idempotency_key")
+
+
+def _ensure_idempotency_claim_index(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS operations_idempotency_claim
+        ON operations(actor_id, operation_kind, idempotency_key)
+        WHERE idempotency_key != ''
+        """
+    )
 
 
 def _required_mapping(payload: dict[str, Any], field: str) -> dict[str, Any]:

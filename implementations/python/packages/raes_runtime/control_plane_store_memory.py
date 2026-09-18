@@ -5,7 +5,7 @@ from __future__ import annotations
 from threading import RLock
 
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
-from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_state import OperationAdmissionContext, RuntimeSnapshot
 
 from . import control_plane_store as _store
 from .control_plane_store_history import require_expected_control_head, require_expected_history_heads
@@ -27,7 +27,7 @@ class InMemoryControlPlaneStore:
             revision=0,
         )
         self._records: dict[str, _store.ControlPlaneOperationRecord] = {}
-        self._idempotency: dict[str, str] = {}
+        self._idempotency: dict[_store.IdempotencyClaimIdentity, str] = {}
         self._audit: list[_store.AuditEvent] = []
 
     def load_snapshot(self) -> RuntimeSnapshot:
@@ -53,12 +53,28 @@ class InMemoryControlPlaneStore:
     def claim_record(
         self,
         record: _store.ControlPlaneOperationRecord,
+        *,
+        legacy_request_fingerprint: str = "",
+        new_claim_blocked: _store.NewClaimBlock = None,
     ) -> _store.ControlPlaneOperationRecord:
         with self._lock:
             if record.idempotency_key:
-                existing = self.find_by_idempotency(record.idempotency_key)
+                _store.require_idempotency_key(record.idempotency_key)
+                claim_identity = _store.idempotency_claim_identity(
+                    record.receipt.context,
+                    record.idempotency_key,
+                )
+                operation_id = self._idempotency.get(claim_identity)
+                existing = None if operation_id is None else self._records.get(operation_id)
                 if existing is not None:
+                    _store._require_same_idempotency_replay(
+                        existing,
+                        record,
+                        legacy_request_fingerprint=legacy_request_fingerprint,
+                    )
                     return existing
+            if new_claim_blocked:
+                _store._raise_new_claim_block(new_claim_blocked)
             self._save_record(record)
             return record
 
@@ -132,14 +148,21 @@ class InMemoryControlPlaneStore:
             return self._snapshot_state
         return SnapshotState(snapshot=snapshot, revision=next_snapshot_revision(expected_revision))
 
-    def _updated_idempotency(self, record: _store.ControlPlaneOperationRecord) -> dict[str, str]:
+    def _updated_idempotency(
+        self,
+        record: _store.ControlPlaneOperationRecord,
+    ) -> dict[_store.IdempotencyClaimIdentity, str]:
         idempotency = dict(self._idempotency)
         if not record.idempotency_key:
             return idempotency
-        existing_operation_id = idempotency.get(record.idempotency_key)
+        claim_identity = _store.idempotency_claim_identity(
+            record.receipt.context,
+            record.idempotency_key,
+        )
+        existing_operation_id = idempotency.get(claim_identity)
         if existing_operation_id is not None and existing_operation_id != record.receipt.operation_id:
             raise ValueError(_store._IDEMPOTENCY_KEY_CONFLICT)
-        idempotency[record.idempotency_key] = record.receipt.operation_id
+        idempotency[claim_identity] = record.receipt.operation_id
         return idempotency
 
     def _publish(
@@ -154,10 +177,27 @@ class InMemoryControlPlaneStore:
         self._idempotency = idempotency
         self._audit = [*self._audit, event]
 
-    def find_by_idempotency(self, key: str) -> _store.ControlPlaneOperationRecord | None:
+    def find_by_idempotency(
+        self,
+        key: str,
+        *,
+        context: OperationAdmissionContext | None = None,
+    ) -> _store.ControlPlaneOperationRecord | None:
         with self._lock:
-            operation_id = self._idempotency.get(key)
-            return None if operation_id is None else self._records.get(operation_id)
+            _store.require_idempotency_key(key)
+            if not key:
+                return None
+            if context is not None:
+                operation_id = self._idempotency.get(_store.idempotency_claim_identity(context, key))
+                return None if operation_id is None else self._records.get(operation_id)
+            matches = [
+                self._records[operation_id]
+                for (_actor_id, _operation_kind, claim_key), operation_id in self._idempotency.items()
+                if claim_key == key and operation_id in self._records
+            ]
+            if len(matches) > 1:
+                raise ValueError("idempotency lookup requires immutable operation context")
+            return matches[0] if matches else None
 
     def append_audit(self, event: _store.AuditEvent) -> None:
         with self._lock:

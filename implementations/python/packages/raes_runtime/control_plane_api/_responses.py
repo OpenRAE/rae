@@ -9,11 +9,14 @@ from raes_contracts.contracts import OperationReceiptModel
 from raes_contracts.diagnostics import portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt
 
+from ..control_plane_store import IDEMPOTENCY_CLAIM_CONFLICT
+
 if TYPE_CHECKING:
     from ..control_plane import RuntimeControlPlane
     from ._offload import _ControlPlaneCallExecutor
 
 _CONFLICT_RESPONSES = {409: {"description": "Conflict"}}
+_CONFLICT_DETAIL = "operation conflict"
 _NOT_FOUND_RESPONSES = {404: {"description": "Not found"}}
 _BAD_REQUEST_CONFLICT_RESPONSES = {
     400: {"description": "Bad request"},
@@ -24,6 +27,12 @@ _SNAPSHOT_REVISION_HEADER = "X-RAES-Snapshot-Revision"
 
 def _set_snapshot_revision_header(response: Response, revision: int) -> None:
     response.headers[_SNAPSHOT_REVISION_HEADER] = str(revision)
+
+
+def _conflict_detail(error: ValueError) -> str:
+    """Redact the authoritative claim conflict while retaining bounded validation errors."""
+
+    return _CONFLICT_DETAIL if str(error) == IDEMPOTENCY_CLAIM_CONFLICT else str(error)
 
 
 def _receipt_response(receipt: OperationReceipt) -> OperationReceiptModel:

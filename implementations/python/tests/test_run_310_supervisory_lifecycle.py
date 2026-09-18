@@ -552,7 +552,7 @@ def test_supervisory_control_is_subject_bound_idempotent_and_state_revision_boun
 
     changed = intent.model_copy(update={"proposal_id": "proposal-2"})
     changed_identity = _identity()
-    with pytest.raises(ValueError, match="different semantics"):
+    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
         control_plane.record_participant_control(
             _PARTICIPANT,
             changed,

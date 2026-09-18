@@ -24,8 +24,13 @@ from raes_contracts.runtime_state import (
 from .backend_calls import _BackendCallContext, _call_backend_apply, _call_backend_diagnostics, _RealizationApplyContext
 from .backend_observation_calls import _call_backend_apply_with_observation, _ObservationApplyRequest
 from .control_plane_mutation import control_plane_mutation
-from .control_plane_operation_context import operation_admission_context
-from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
+from .control_plane_operation_context import legacy_operation_request_commitment, operation_admission_context
+from .control_plane_store import (
+    ControlPlaneOperationRecord,
+    NewClaimRejected,
+    TerminalCommitMode,
+    require_idempotency_key,
+)
 from .diagnostics import _has_error_diagnostic
 from .observation_results import PreparedObservationExecution
 from .participant_effect_authority import participant_effect_authority
@@ -97,13 +102,6 @@ def _execute_participant_action_locked(
         request=request,
         identity=identity,
     )
-    existing = control_plane._idempotent_receipt(
-        idempotency_key=idempotency_key,
-        request_fingerprint=context.request_commitment,
-        context=context,
-    )
-    if existing is not None:
-        return existing
     operation_id = str(uuid4())
     submitted_at = _utc_now()
     target_address = getattr(request, "participant_address", "")
@@ -129,7 +127,11 @@ def _execute_participant_action_locked(
             status=status,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
-        )
+        ),
+        legacy_request_fingerprint=legacy_operation_request_commitment(
+            kind=OperationKind.PARTICIPANT_ACTION,
+            request=request,
+        ),
     )
     if claimed.receipt.operation_id != operation_id:
         return claimed.receipt
@@ -204,13 +206,17 @@ def persist_succeeded_operation(
         context=request.context,
         changed_addresses=list(request.changed_addresses or []),
     )
+    claim_options = (
+        {"legacy_request_fingerprint": request.legacy_request_fingerprint} if request.legacy_request_fingerprint else {}
+    )
     claimed = control_plane._claim_record(
         ControlPlaneOperationRecord(
             receipt=receipt,
             status=running_status,
             idempotency_key=request.idempotency_key,
             request_fingerprint=request.context.request_commitment,
-        )
+        ),
+        **claim_options,
     )
     if claimed.receipt.operation_id != request.operation_id:
         return claimed.receipt
@@ -235,6 +241,7 @@ class SucceededOperationRequest:
     idempotency_key: str
     context: OperationAdmissionContext
     changed_addresses: list[str] | None = None
+    legacy_request_fingerprint: str = ""
 
 
 @dataclass(frozen=True)
@@ -248,6 +255,7 @@ class OperationExecutionRequest:
     idempotency_key: str
     request_fingerprint: str
     context: OperationAdmissionContext
+    legacy_request_fingerprint: str = ""
     exact_retry_fingerprint: str | None = None
     validation_method: Callable[..., object] | None = None
     admission_diagnostics: Callable[[], list[Diagnostic]] | None = None
@@ -264,37 +272,12 @@ class _OperationOutcome:
     validation_failed: bool
 
 
-def _operation_admission_receipt(
-    control_plane: object,
-    request: OperationExecutionRequest,
-    exact_retry: dict[str, str],
-) -> OperationReceipt | None:
-    existing = control_plane._idempotent_receipt(
-        idempotency_key=request.idempotency_key,
-        request_fingerprint=request.request_fingerprint,
-        context=request.context,
-        **exact_retry,
-    )
-    if existing is not None:
-        return existing
-    if request.base_snapshot is not None and request.base_snapshot != control_plane._snapshot:
-        raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
-    diagnostics = None if request.admission_diagnostics is None else request.admission_diagnostics()
-    if diagnostics:
-        return control_plane._reject_diagnostics(
-            domain=request.domain,
-            diagnostics=diagnostics,
-            idempotency_key=request.idempotency_key,
-            request_fingerprint=request.request_fingerprint,
-            context=request.context,
-        )
-    return None
-
-
 def _claim_running_operation(
     control_plane: object,
     request: OperationExecutionRequest,
     exact_retry: dict[str, str],
+    *,
+    current_state_rejects_new_claim: bool,
 ) -> tuple[str, str, RuntimeSnapshot, OperationReceipt, OperationReceipt]:
     operation_id = str(uuid4())
     submitted_at = _utc_now()
@@ -316,6 +299,13 @@ def _claim_running_operation(
         context=request.context,
         diagnostics=list(request.diagnostics),
     )
+    claim_options: dict[str, str] = dict(exact_retry)
+    if request.legacy_request_fingerprint:
+        claim_options["legacy_request_fingerprint"] = request.legacy_request_fingerprint
+    if request.base_snapshot is not None and request.base_snapshot != control_plane._snapshot:
+        claim_options["new_claim_blocked"] = "stale-base-snapshot"
+    elif current_state_rejects_new_claim:
+        claim_options["new_claim_blocked"] = "current-state"
     claimed = control_plane._claim_record(
         ControlPlaneOperationRecord(
             receipt=receipt,
@@ -323,7 +313,7 @@ def _claim_running_operation(
             idempotency_key=request.idempotency_key,
             request_fingerprint=request.request_fingerprint,
         ),
-        **exact_retry,
+        **claim_options,
     )
     return operation_id, submitted_at, snapshot, receipt, claimed.receipt
 
@@ -423,6 +413,41 @@ def execute_operation(
         return _execute_operation_locked(control_plane, request)
 
 
+def reject_new_operation_if_admission_fails(
+    control_plane: object,
+    request: OperationExecutionRequest,
+) -> OperationReceipt | None:
+    """Atomically resolve a retry while keeping a new denial non-blocking."""
+
+    diagnostics = None if request.admission_diagnostics is None else request.admission_diagnostics()
+    if not diagnostics:
+        return None
+    require_idempotency_key(request.idempotency_key)
+    exact_retry = (
+        {"exact_retry_fingerprint": request.exact_retry_fingerprint}
+        if request.exact_retry_fingerprint is not None
+        else {}
+    )
+    try:
+        operation_id, _, _, _, claimed_receipt = _claim_running_operation(
+            control_plane,
+            request,
+            exact_retry,
+            current_state_rejects_new_claim=True,
+        )
+    except NewClaimRejected:
+        return control_plane._reject_diagnostics(
+            domain=request.domain,
+            diagnostics=diagnostics,
+            idempotency_key=request.idempotency_key,
+            request_fingerprint=request.request_fingerprint,
+            context=request.context,
+        )
+    if claimed_receipt.operation_id == operation_id:
+        raise AssertionError("a state-rejected operation cannot create a new claim")
+    return claimed_receipt
+
+
 def _execute_operation_locked(
     control_plane: object,
     request: OperationExecutionRequest,
@@ -432,14 +457,24 @@ def _execute_operation_locked(
         if request.exact_retry_fingerprint is not None
         else {}
     )
-    admission_receipt = _operation_admission_receipt(control_plane, request, exact_retry)
-    if admission_receipt is not None:
-        return admission_receipt
-    operation_id, submitted_at, snapshot, receipt, claimed_receipt = _claim_running_operation(
-        control_plane,
-        request,
-        exact_retry,
-    )
+    require_idempotency_key(request.idempotency_key)
+    admission_diagnostics = None if request.admission_diagnostics is None else request.admission_diagnostics()
+    try:
+        operation_id, submitted_at, snapshot, receipt, claimed_receipt = _claim_running_operation(
+            control_plane,
+            request,
+            exact_retry,
+            current_state_rejects_new_claim=bool(admission_diagnostics),
+        )
+    except NewClaimRejected:
+        assert admission_diagnostics
+        return control_plane._reject_diagnostics(
+            domain=request.domain,
+            diagnostics=admission_diagnostics,
+            idempotency_key=request.idempotency_key,
+            request_fingerprint=request.request_fingerprint,
+            context=request.context,
+        )
     if claimed_receipt.operation_id != operation_id:
         return claimed_receipt
     result, observation_execution, diagnostics, validation_failed = _apply_operation(

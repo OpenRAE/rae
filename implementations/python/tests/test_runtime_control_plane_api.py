@@ -58,6 +58,7 @@ from raes_runtime.control_plane_security import (
     ControlPlaneSecurityConfig,
 )
 from raes_runtime.control_plane_store import (
+    IDEMPOTENCY_CLAIM_CONFLICT,
     ControlPlaneOperationRecord,
     LocalControlPlaneStore,
     SnapshotRevisionConflict,
@@ -314,7 +315,7 @@ def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
 
     def conflict(*_args: object, **_kwargs: object) -> None:
-        raise ValueError("forced mutation conflict")
+        raise ValueError(IDEMPOTENCY_CLAIM_CONFLICT)
 
     monkeypatch.setattr(control_plane, method_name, conflict)
     headers = {
@@ -326,7 +327,7 @@ def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
         response = client.post(path, json=payload, headers=headers)
 
     assert response.status_code == 409
-    assert response.json() == {"detail": "forced mutation conflict"}
+    assert response.json() == {"detail": "operation conflict"}
 
 
 def test_control_plane_api_returns_not_found_for_unknown_operation() -> None:
@@ -343,7 +344,36 @@ def test_control_plane_api_returns_not_found_for_unknown_operation() -> None:
         )
 
     assert response.status_code == 404
-    assert response.json() == {"detail": "Unknown operation: unknown-operation"}
+    assert response.json() == {"detail": "operation not found"}
+
+
+def test_control_plane_api_does_not_disclose_cross_actor_operation_status() -> None:
+    target = create_stub_target()
+    app = create_control_plane_app(
+        RuntimeControlPlane(target),
+        security=_test_security(target.name),
+    )
+    owner_headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+    auditor_headers = {"authorization": "Bearer test-auditor-token"}
+
+    with TestClient(app) as client:
+        submitted = client.post(
+            "/operations/provisioning",
+            json=_provisioning_payload(ProvisioningPlan()),
+            headers=owner_headers,
+        )
+        operation_id = submitted.json()["operation_id"]
+        owner = client.get(f"/operations/{operation_id}", headers=owner_headers)
+        unauthorized = client.get(f"/operations/{operation_id}", headers=auditor_headers)
+        unknown = client.get("/operations/not-an-operation", headers=auditor_headers)
+
+    assert submitted.status_code == 200
+    assert owner.status_code == 200
+    assert unauthorized.status_code == unknown.status_code == 404
+    assert unauthorized.json() == unknown.json()
 
 
 def test_control_plane_call_lookup_fails_closed_without_configured_executor() -> None:

@@ -15,22 +15,15 @@ from raes_contracts.runtime_state import (
 from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_admission_context
-from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store import (
+    AuditEvent,
+    ControlPlaneOperationRecord,
+    NewClaimBlock,
+    idempotency_claim_identity,
+    require_idempotency_key,
+)
 
-_IDEMPOTENCY_REQUEST_CONFLICT = "Idempotency-Key was reused with a different request body."
 _SENSITIVE_RETRY_CONFLICT = "Idempotency-Key was reused without matching sensitive retry proof."
-
-
-def _require_matching_request(
-    persisted: ControlPlaneOperationRecord,
-    requested: ControlPlaneOperationRecord,
-) -> None:
-    if persisted.receipt.context != requested.receipt.context or (
-        persisted.request_fingerprint
-        and requested.request_fingerprint
-        and persisted.request_fingerprint != requested.request_fingerprint
-    ):
-        raise ValueError(_IDEMPOTENCY_REQUEST_CONFLICT)
 
 
 def _require_sensitive_retry_proof(
@@ -151,37 +144,16 @@ class RuntimeAdmissionMixin:
         )
         return receipt
 
-    def _idempotent_receipt(
-        self,
-        *,
-        idempotency_key: str,
-        request_fingerprint: str,
-        context: OperationAdmissionContext,
-        exact_retry_fingerprint: str | None = None,
-    ) -> OperationReceipt | None:
-        self._assert_runtime_owner()
-        if not idempotency_key:
-            return None
-        record = self._store.find_by_idempotency(idempotency_key)
-        if record is None:
-            return None
-        if record.receipt.context != context or (
-            record.request_fingerprint and request_fingerprint and record.request_fingerprint != request_fingerprint
-        ):
-            raise ValueError(_IDEMPOTENCY_REQUEST_CONFLICT)
-        known_exact = self._ephemeral_idempotency_fingerprints.get(idempotency_key)
-        _require_sensitive_retry_proof(known_exact, exact_retry_fingerprint, competing_claim=True)
-        with self._operation_lock:
-            self._operations[record.receipt.operation_id] = record
-        return record.receipt
-
     def _claim_record(
         self,
         record: ControlPlaneOperationRecord,
         *,
         exact_retry_fingerprint: str | None = None,
+        legacy_request_fingerprint: str = "",
+        new_claim_blocked: NewClaimBlock = None,
     ) -> ControlPlaneOperationRecord:
         self._assert_runtime_owner()
+        require_idempotency_key(record.idempotency_key)
         if record.status.context.operation_kind is not OperationKind.INDETERMINATE_RESOLUTION:
             from .control_plane_recovery import unresolved_indeterminate_operation_ids
 
@@ -190,15 +162,19 @@ class RuntimeAdmissionMixin:
                 target_scope=record.status.context.target_scope,
                 run_scope=record.status.context.run_scope,
             ):
-                raise RuntimeError("indeterminate operation requires resolution before effectful mutation")
-        persisted = self._store_commits.claim_record(record)
-        _require_matching_request(persisted, record)
+                new_claim_blocked = "indeterminate"
+        persisted = self._store_commits.claim_record(
+            record,
+            legacy_request_fingerprint=legacy_request_fingerprint,
+            new_claim_blocked=new_claim_blocked,
+        )
         with self._operation_lock:
             if exact_retry_fingerprint is not None and record.idempotency_key:
-                known_exact = self._ephemeral_idempotency_fingerprints.get(record.idempotency_key)
+                claim_identity = idempotency_claim_identity(record.receipt.context, record.idempotency_key)
+                known_exact = self._ephemeral_idempotency_fingerprints.get(claim_identity)
                 competing = persisted.receipt.operation_id != record.receipt.operation_id
                 _require_sensitive_retry_proof(known_exact, exact_retry_fingerprint, competing_claim=competing)
-                self._ephemeral_idempotency_fingerprints[record.idempotency_key] = exact_retry_fingerprint
+                self._ephemeral_idempotency_fingerprints[claim_identity] = exact_retry_fingerprint
             self._operations[persisted.receipt.operation_id] = persisted
         return persisted
 

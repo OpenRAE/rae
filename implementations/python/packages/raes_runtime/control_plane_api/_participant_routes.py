@@ -25,6 +25,7 @@ from ._responses import (
     _BAD_REQUEST_CONFLICT_RESPONSES,
     _CONFLICT_RESPONSES,
     _NOT_FOUND_RESPONSES,
+    _conflict_detail,
     _receipt_response,
     _record_operation_receipt_audit,
     _set_snapshot_revision_header,
@@ -60,7 +61,7 @@ def _register_participant_execution_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -174,7 +175,7 @@ def _register_participant_episode_start_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -207,7 +208,7 @@ def _register_participant_episode_start_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -245,7 +246,7 @@ def _register_participant_episode_end_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -282,7 +283,7 @@ def _register_participant_episode_end_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,

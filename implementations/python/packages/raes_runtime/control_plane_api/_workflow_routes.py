@@ -8,7 +8,7 @@ from raes_contracts.contracts import OperationReceiptModel, WorkflowCancellation
 from ..control_plane import RuntimeControlPlane
 from ._auth import _MutatingIdentity
 from ._offload import _control_plane_calls
-from ._responses import _CONFLICT_RESPONSES, _receipt_response, _record_operation_receipt_audit
+from ._responses import _CONFLICT_RESPONSES, _conflict_detail, _receipt_response, _record_operation_receipt_audit
 
 
 def _register_workflow_routes(
@@ -34,7 +34,7 @@ def _register_workflow_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -58,7 +58,7 @@ def _register_workflow_routes(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,

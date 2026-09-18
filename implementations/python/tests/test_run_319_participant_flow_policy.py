@@ -215,7 +215,7 @@ def test_operation_bound_idempotency_replays_neither_decision_nor_action() -> No
     behavior_count = len(plane.snapshot.participant_behavior_history[PARTICIPANT])
     assert behavior_count >= 2
     different_request = admission_request(action_instance_id="different")
-    with pytest.raises(ValueError, match="different semantics"):
+    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
         admit(
             plane,
             request=different_request,
@@ -234,7 +234,7 @@ def test_operation_bound_idempotency_rejects_replay_after_state_cut_advances() -
         idempotency_key="later-operation",
     )
 
-    with pytest.raises(ValueError, match="state cut advanced"):
+    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
         admit(plane, idempotency_key="state-cut-bound")
 
 

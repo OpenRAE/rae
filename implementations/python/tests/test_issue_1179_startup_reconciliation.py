@@ -464,6 +464,7 @@ def test_resolution_retry_is_idempotent_and_already_resolved_parent_rejects_a_ne
     first = control_plane.resolve_indeterminate_operation(parent.receipt.operation_id, **kwargs)
     retry = control_plane.resolve_indeterminate_operation(parent.receipt.operation_id, **kwargs)
     assert retry.operation_id == first.operation_id
+    assert set(store.load_records()) == {parent.receipt.operation_id, first.operation_id}
     assert sum(event.operation_id == first.operation_id for event in store.read_audit()) == 1
     operator = _operator()
 
