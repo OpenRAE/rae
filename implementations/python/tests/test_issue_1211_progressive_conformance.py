@@ -227,11 +227,13 @@ def test_complete_abstract_model_needs_no_concrete_machine_catalog() -> None:
 
 def test_negative_mutations_fail_at_source_or_identity_boundaries() -> None:
     source = FIXTURE.read_text()
+    invalid_method_source = source.replace("PROPFIND", "BAD METHOD", 1)
     with pytest.raises(SDLParseError, match="HTTP method"):
-        parse_sdl(source.replace("PROPFIND", "BAD METHOD", 1))
+        parse_sdl(invalid_method_source)
 
+    low_node_limit = SDLParserLimits(max_nodes=2)
     with pytest.raises(SDLParseError, match="unique nodes"):
-        parse_sdl(source, limits=SDLParserLimits(max_nodes=2))
+        parse_sdl(source, limits=low_node_limit)
 
 
 def test_same_scenario_plans_executes_persists_and_recovers_without_collection() -> None:
