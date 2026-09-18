@@ -21,6 +21,19 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Publish portable mixed-composition contracts)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Closed portable composition profile schema)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Sealed profile models and root-local validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py` (Decomposed root-local phase, activity, and transition validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Bounded trusted-context relationship resolution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/json_ingress.py` (Shared pre-decode nesting bound for safe composition ingress)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py` (Reference schema bundle registration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py` (Public contract facade registration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Public contract export manifest)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/versions.py` (Published composition schema-version constant)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/validators.py` (Structural-context-required conformance registration)
+- TESTS → TEST `implementations/python/tests/test_issue_1014_mixed_composition_contracts.py` (Profile modes, rejection, resolution, publication, and bounded-ingress tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1014_mixed_composition_governance.py` (Requirement-scope, order, and ownership governance tests)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Publish sem-234/rev1 semantic definition; no runtime realization claim)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned composition, admission and phase semantics)
 - IMPLEMENTS → DOCUMENTATION `docs/explain/reference/mixed-participant-composition.md` (Worked cases, clause matrix and bounded assurance)
@@ -30,7 +43,6 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 - TESTS → TEST `implementations/python/tests/test_nox_shard_wiring.py` (Supporting delivery hygiene and CI verification wiring; not composition semantics evidence)
 - TESTS → TEST `implementations/python/tests/test_issue_1238_development_container.py` (Supporting development-container delivery setup; not composition semantics evidence)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1013-sem-234-mixed-participant-control-preflight.md` (Composition authority and current-carrier compatibility)
-- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Publish portable mixed-composition contracts)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1015` (Admit mixed and staged participant trial realizations)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Coordinate mixed participant runtimes fail-closed)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1017` (Conform mixed-composition backend capabilities)

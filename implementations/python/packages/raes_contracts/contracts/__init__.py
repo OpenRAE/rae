@@ -237,6 +237,12 @@ from .manifests import (
 )
 from .manifests import CleanupCapabilitiesModel as CleanupCapabilitiesModel
 from .materialization_attestation import MaterializationArchiveRecord, MaterializationAttestationReferenceModel
+from .mixed_composition import (
+    MIXED_COMPOSITION_CONTRACT_ID,
+    MixedParticipantCompositionProfileModel,
+    parse_mixed_composition_profile,
+    seal_mixed_composition_profile,
+)
 from .observation_capture import ObservationCaptureOfferModel
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel

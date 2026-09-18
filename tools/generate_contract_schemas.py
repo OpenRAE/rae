@@ -20,6 +20,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
         "backend-augmentation-scope-v1": "plans",
         "materialization-archive-record-v1": "experiment-core",
         "plan-realization-profiles-v1": "plans",
+        "mixed-participant-composition-profile-v1": "plans",
     }
     | dict.fromkeys(
         {

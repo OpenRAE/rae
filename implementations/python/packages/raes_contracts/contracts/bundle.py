@@ -43,6 +43,7 @@ from .experiment_spec import ExperimentSpecModel, ExperimentStudyModel
 from .external_concept_bindings import ExternalConceptBindingDocumentModel
 from .manifests import ProcessorManifestV2Model
 from .materialization_attestation import MaterializationArchiveRecord, attach_materialization_invariants
+from .mixed_composition import MixedParticipantCompositionProfileModel
 from .participant_flow_control import (
     ParticipantBoundaryFlowPolicyProfileModel,
 )
@@ -135,6 +136,7 @@ def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
         "experiment-study-v1": ExperimentStudyModel.model_json_schema(),
         "experiment-task-v1": ExperimentTaskModel.model_json_schema(),
         "admitted-trial-plan-v1": AdmittedTrialPlanModel.model_json_schema(),
+        "mixed-participant-composition-profile-v1": MixedParticipantCompositionProfileModel.model_json_schema(),
         "trial-cleanup-plan-v1": TrialCleanupPlanModel.model_json_schema(),
         "trial-cleanup-receipt-v1": TrialCleanupReceiptModel.model_json_schema(),
         "scheduler-isolation-proof-v1": SchedulerIsolationProofModel.model_json_schema(),

@@ -21,6 +21,12 @@ Static scenarios become predictable after one run. CALDERA's fact-based variable
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Compose selected scenario authority into the portable mixed-composition profile)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Digest-pinned scenario snapshot and compiled allocation carrier)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Composition profile reusing incumbent selection and compiled-address authority)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py` (Closed per-phase allocation and canonical-provider validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Exact selected-scenario and compiled-target contextual joins)
+- TESTS → TEST `implementations/python/tests/test_issue_1014_mixed_composition_contracts.py` (Composition modes preserve selected scenario identity without reselection)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing SCE-002 authority in SEM-234 without changing its runtime contract)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
 - TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent SCE-002 authority)
