@@ -1,9 +1,9 @@
 {
-  "content_hash": "13ab1d97a91635a0cee4b74e640bfbd90e0b5796f39e3ec3376126f1afac2229",
+  "content_hash": "dd6f80611768928a248b44a7c65dcd9b0d9c52b20129c7e61d5667eec2dca803",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "13ab1d97a91635a0cee4b74e640bfbd90e0b5796f39e3ec3376126f1afac2229",
-    "summary": "Carry bounded augmentation permission, partial runtime listener descriptions, and portable service-manager contracts (#1242, #1299, #1297)."
+    "content_hash": "dd6f80611768928a248b44a7c65dcd9b0d9c52b20129c7e61d5667eec2dca803",
+    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

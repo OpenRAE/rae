@@ -14,14 +14,21 @@ weakness assertions use standalone generic bindings against the exact route
 subject, never intrinsic route classification fields.
 """
 
+import re
 from enum import Enum
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import Field, ValidationInfo, field_validator, model_validator
+from pydantic import AfterValidator, Field, ValidationInfo, WithJsonSchema, field_validator, model_validator
 
 from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import SDLModel, is_variable_ref, parse_int_or_var
+from ._base import (
+    VARIABLE_REFERENCE_SCHEMA_MARKER,
+    VARIABLE_TOKEN_PATTERN,
+    SDLModel,
+    is_variable_ref,
+    parse_int_or_var,
+)
 from ._classification_guard import LegacyClassificationGuard
 from .runtime_application_values import RuntimeApplicationExposedField
 from .runtime_filesystem import RuntimeSensitivityClassification
@@ -54,9 +61,48 @@ _MAX_STATUS_CODE = 599
 _MIN_REDIRECT_STATUS_CODE = 300
 _MAX_REDIRECT_STATUS_CODE = 399
 
-# Standard HTTP request methods (RFC 9110 + PATCH). Backend-observed surfaces
-# normalize to this portable spelling; ``${var}`` placeholders pass through.
+# Historically accepted built-ins retain case-insensitive authoring aliases.
+# Every other RFC HTTP token is an exact, case-sensitive wire identity.
 _HTTP_METHODS = frozenset({"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"})
+_HTTP_METHOD_MAX_LENGTH = 128
+_JSON_SCHEMA_HARD_END = r"$(?![\s\S])"
+_HTTP_METHOD_PATTERN = rf"^[!#$%&'*+\-.^_`|~0-9A-Za-z]{{1,{_HTTP_METHOD_MAX_LENGTH}}}{_JSON_SCHEMA_HARD_END}"
+
+
+def _normalize_http_method(value: str) -> str:
+    """Validate one bounded HTTP wire-method identity and apply legacy aliases."""
+
+    if is_variable_ref(value):
+        return value
+    if not isinstance(value, str) or re.fullmatch(_HTTP_METHOD_PATTERN, value, re.ASCII) is None:
+        raise ValueError(
+            f"HTTP method must be a non-empty ASCII token no longer than {_HTTP_METHOD_MAX_LENGTH} characters"
+        )
+    upper = value.upper()
+    return upper if upper in _HTTP_METHODS else value
+
+
+HttpMethod = Annotated[
+    str,
+    AfterValidator(_normalize_http_method),
+    WithJsonSchema(
+        {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": _HTTP_METHOD_MAX_LENGTH,
+                    "pattern": _HTTP_METHOD_PATTERN,
+                },
+                {
+                    "type": "string",
+                    "pattern": rf"^{VARIABLE_TOKEN_PATTERN}{_JSON_SCHEMA_HARD_END}",
+                    VARIABLE_REFERENCE_SCHEMA_MARKER: True,
+                },
+            ]
+        }
+    ),
+]
 
 
 class RuntimeApplicationProtocol(str, Enum):
@@ -279,7 +325,7 @@ class RuntimeApplicationRoute(LegacyClassificationGuard):
 
     route_id: str
     path: str
-    methods: list[str] = Field(default_factory=list)
+    methods: list[HttpMethod] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
     name: str = ""
     description: str = ""
     auth_required: bool | str | None = None
@@ -307,26 +353,17 @@ class RuntimeApplicationRoute(LegacyClassificationGuard):
     @field_validator("methods", mode="before")
     @classmethod
     def coerce_methods(cls, v: Any) -> list[str]:
-        return coerce_string_list(v)
+        values = coerce_string_list(v)
+        if not values:
+            raise ValueError("route methods must not be empty")
+        return values
 
     @field_validator("methods")
     @classmethod
-    def normalize_methods(cls, v: list[str]) -> list[str]:
-        if not v:
-            raise ValueError("route methods must not be empty")
-        normalized: list[str] = []
-        for method in v:
-            if is_variable_ref(method):
-                normalized.append(method)
-                continue
-            if not isinstance(method, str) or not method.strip():
-                raise ValueError("route method must be a non-empty string")
-            upper = method.strip().upper()
-            if upper not in _HTTP_METHODS:
-                allowed = ", ".join(sorted(_HTTP_METHODS))
-                raise ValueError(f"route method '{method}' must be one of: {allowed}")
-            normalized.append(upper)
-        return normalized
+    def validate_unique_methods(cls, v: list[str]) -> list[str]:
+        if len(v) != len(set(v)):
+            raise ValueError("route methods must be unique after compatibility normalization")
+        return v
 
     @field_validator("auth_required", "session_required", mode="before")
     @classmethod
