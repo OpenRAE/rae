@@ -1060,61 +1060,77 @@ jobs:
             exit 0
           fi
 
-          # Each distribution is reconciled against the Release before it is
-          # written (#1227). GitHub publishes no server-side asset digest, so
-          # an existing asset is compared byte-for-byte: identical bytes are
-          # already-published, differing bytes are an incident, and neither is
-          # resolved by overwriting.
-          for admitted_name in "${WHEEL_NAME}" "${SDIST_NAME}"; do
-            local_path="dist/${admitted_name}"
-            existing_dir="$(mktemp -d "${RUNNER_TEMP}/raes-asset-existing.XXXXXX")"
-            if gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
-              --dir "${existing_dir}" --pattern "${admitted_name}" 2>/dev/null \
-              && [ -f "${existing_dir}/${admitted_name}" ]; then
-              if cmp -s "${local_path}" "${existing_dir}/${admitted_name}"; then
-                echo "${admitted_name} is already attached with the admitted bytes"
-                continue
+          # Every Release asset this job writes is reconciled first (#1227).
+          # GitHub publishes no server-side asset digest, so presence comes
+          # from one authoritative asset listing and identity comes from a
+          # byte comparison. Exactly three outcomes are permitted: matching
+          # existing bytes, confirmed absence, or failure. An uncertain
+          # listing or download is never read as absence, because that would
+          # let a transient API error turn into an overwrite.
+          assets_json="$(
+            gh release view "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" --json assets
+          )"
+          attached_names="$(jq -er '[.assets[].name] | join("\n")' <<<"${assets_json}")"
+
+          # One snapshot is sufficient: every name reconciled below is
+          # distinct, so no write in this loop invalidates another's presence
+          # decision.
+          asset_is_attached() {
+            printf '%s\n' "${attached_names}" | grep -Fxq "$1"
+          }
+
+          reconcile_asset() {
+            local local_path="$1"
+            local asset_name
+            asset_name="$(basename "${local_path}")"
+
+            if asset_is_attached "${asset_name}"; then
+              local existing_dir
+              existing_dir="$(mktemp -d "${RUNNER_TEMP}/raes-asset-existing.XXXXXX")"
+              # Not guarded by `if`: a failed download here is an uncertain
+              # outcome and must stop the run, not imply absence.
+              gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
+                --dir "${existing_dir}" --pattern "${asset_name}"
+              if cmp -s "${local_path}" "${existing_dir}/${asset_name}"; then
+                echo "${asset_name} is already attached with the admitted bytes"
+                return 0
               fi
-              echo "Release already stores ${admitted_name} with different bytes" >&2
+              echo "Release already stores ${asset_name} with different bytes" >&2
               echo "A same-name digest mismatch is a release incident. Do not" >&2
               echo "overwrite, move the tag, or rebuild; cut a reviewed new release." >&2
-              exit 1
+              return 1
             fi
 
             gh release upload "${EXPECTED_TAG}" "${local_path}"
 
             # Read the stored bytes back, so the claim rests on observed
             # content rather than on a successful upload call.
+            local readback_dir
             readback_dir="$(mktemp -d "${RUNNER_TEMP}/raes-asset-readback.XXXXXX")"
             gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
-              --dir "${readback_dir}" --pattern "${admitted_name}"
-            if ! cmp -s "${local_path}" "${readback_dir}/${admitted_name}"; then
-              echo "Attached ${admitted_name} does not match the admitted bytes" >&2
-              exit 1
+              --dir "${readback_dir}" --pattern "${asset_name}"
+            if ! cmp -s "${local_path}" "${readback_dir}/${asset_name}"; then
+              echo "Attached ${asset_name} does not match the admitted bytes" >&2
+              return 1
             fi
-            echo "Attached ${admitted_name} with verified readback"
-          done
+            echo "Attached ${asset_name} with verified readback"
+          }
+
+          reconcile_asset "dist/${WHEEL_NAME}"
+          reconcile_asset "dist/${SDIST_NAME}"
 
           # Retain the evidence on the durable Release, not only as a 7-day
-          # Actions artifact (#1226). Retention owner: Release.
+          # Actions artifact (#1226). Retention owner: Release. It goes
+          # through the same reconciliation, so a retry after evidence was
+          # attached but before finalization accepts the matching bytes
+          # instead of failing on an existing asset.
           evidence_files=(evidence/*.json)
           if [ "${#evidence_files[@]}" -eq 0 ] || [ ! -f "${evidence_files[0]}" ]; then
             echo "Release evidence is absent; refusing to finalize" >&2
             exit 1
           fi
-          gh release upload "${EXPECTED_TAG}" "${evidence_files[@]}"
-
-          # Read the retained bytes back and compare them, so the retention
-          # claim rests on observed stored content rather than on a successful
-          # upload call.
-          readback_dir="$(mktemp -d "${RUNNER_TEMP}/raes-evidence-readback.XXXXXX")"
           for evidence_file in "${evidence_files[@]}"; do
-            gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
-              --dir "${readback_dir}" --pattern "$(basename "${evidence_file}")"
-            if ! cmp -s "${evidence_file}" "${readback_dir}/$(basename "${evidence_file}")"; then
-              echo "Retained evidence does not match the admitted bytes" >&2
-              exit 1
-            fi
+            reconcile_asset "${evidence_file}"
           done
           echo "Retained ${#evidence_files[@]} evidence documents with verified readback digests"
 

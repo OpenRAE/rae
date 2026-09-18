@@ -65,13 +65,16 @@ verification graph to pass for the exact commit named by the release (GOV-928).
      bytes fails the run. An unreachable or unexpected API response fails
      rather than being read as "not published".
    - **GitHub.** The job revalidates the Release object id, draft state, exact
-     tag ref, and fully dereferenced commit SHA, then handles each
-     distribution individually. GitHub publishes no server-side asset digest,
-     so an existing asset is downloaded and byte-compared: identical bytes are
-     already published, differing bytes fail visibly, and nothing is ever
-     overwritten. A newly uploaded asset is read back and compared before the
-     Release is finalized. The Release identity is re-read after attachment
-     before the numeric Release id is made public.
+     tag ref, and fully dereferenced commit SHA, then reconciles every asset
+     it writes — both distributions and the retained evidence — one at a time.
+     GitHub publishes no server-side asset digest, so presence comes from the
+     Release's asset listing and identity from a byte comparison. Exactly three
+     outcomes are allowed: matching existing bytes (already published),
+     confirmed absence (upload, then read the stored bytes back and compare),
+     or failure. An asset listing or download that does not succeed is never
+     read as absence, so a transient API error cannot become an overwrite, and
+     nothing is ever overwritten. The Release identity is re-read after
+     attachment before the numeric Release id is made public.
 
    Keeping these jobs separate means a failed attachment or finalization is
    retried without attempting a second PyPI upload. If the public-finalization
@@ -240,8 +243,9 @@ destination and complete only what is outstanding:
 | --- | --- |
 | PyPI published, GitHub not attached | Skips the PyPI upload (digests already match) and attaches/finalizes GitHub. |
 | PyPI partially uploaded | Uploads only the missing file; the present one is verified byte-identical first. |
-| GitHub asset already attached | Leaves it in place after a byte comparison. |
+| GitHub asset or evidence already attached | Leaves it in place after a byte comparison. |
 | Outcome uncertain (lost API response) | Queries each destination and compares bytes before doing anything. |
+| Destination query itself fails | Stops. An unavailable answer is never read as "not published". |
 | Same version, different bytes at a destination | Fails visibly. See below. |
 
 Actions artifacts are retained for **seven days**. Within that window the

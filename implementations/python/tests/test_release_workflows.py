@@ -29,14 +29,13 @@ LOCAL_CANONICAL_WORKFLOW = "./.github/workflows/canonical-verification.yml"
 # existing asset, uploaded only when absent, and read back (#1227); the
 # evidence set is then uploaded once and each document read back (#1226).
 _FRESH_ATTACHMENT_CALLS = [
-    "download",  # wheel: is it already attached?
-    "upload",
-    "download",  # wheel: readback
-    "download",  # sdist: is it already attached?
-    "upload",
-    "download",  # sdist: readback
-    "upload",  # evidence set
-    "download",  # evidence readback
+    "upload",  # wheel
+    "download",  # wheel readback
+    "upload",  # sdist
+    "download",  # sdist readback
+    "upload",  # build-inventory.json
+    "download",
+    "upload",  # release-evidence-index.json
     "download",
 ]
 FULL_SHA_USE = re.compile(r"^[^@]+@[0-9a-f]{40}$")
@@ -132,6 +131,9 @@ def _run_github_finalization(
     tampered_evidence_readback: bool = False,
     moved_tag: bool = False,
     published_assets: bool = False,
+    published_evidence: bool = False,
+    conflicting_evidence: bool = False,
+    asset_list_fails: bool = False,
     finalization_json: str = '{"id":1234,"tag_name":"v3.4.5","draft":false}',
 ) -> subprocess.CompletedProcess[str]:
     if shutil.which("bash") is None or shutil.which("jq") is None:
@@ -160,12 +162,20 @@ def _run_github_finalization(
     if published_assets:
         for already in dist.iterdir():
             shutil.copy(already, release_store / already.name)
+    if published_evidence or conflicting_evidence:
+        for already in evidence.iterdir():
+            if conflicting_evidence:
+                (release_store / already.name).write_bytes(b"divergent evidence")
+            else:
+                shutil.copy(already, release_store / already.name)
 
     state_file = tmp_path / "release-states.jsonl"
     state_file.write_text("\n".join(release_states) + "\n", encoding="utf-8")
     state_counter = tmp_path / "release-state-counter"
     state_counter.write_text("0\n", encoding="utf-8")
     call_log = tmp_path / "gh-calls.log"
+    # Created up front so a run that makes no asset call is still readable.
+    call_log.write_text("", encoding="utf-8")
 
     gh_stub = tmp_path / "gh"
     gh_stub.write_text(
@@ -173,10 +183,21 @@ def _run_github_finalization(
 set -eu
 case "${1-}:${2-}" in
   release:view)
-    index="$(cat "$STATE_COUNTER")"
-    index=$((index + 1))
-    printf '%s\n' "$index" > "$STATE_COUNTER"
-    sed -n "${index}p" "$STATE_FILE"
+    case "$*" in
+      *"--json assets"*)
+        if [ "$ASSET_LIST_FAILS" = "1" ]; then
+          echo "gh: could not list release assets" >&2
+          exit 1
+        fi
+        ls -1 "$RELEASE_STORE" 2>/dev/null | jq -R . | jq -s '{assets: [.[] | {name: .}]}'
+        ;;
+      *)
+        index="$(cat "$STATE_COUNTER")"
+        index=$((index + 1))
+        printf '%s\n' "$index" > "$STATE_COUNTER"
+        sed -n "${index}p" "$STATE_FILE"
+        ;;
+    esac
     ;;
   release:upload)
     printf '%s\n' upload >> "$CALL_LOG"
@@ -290,6 +311,7 @@ exit 64
         "TEST_DIST_SOURCE": str(dist),
         "TEST_EVIDENCE_SOURCE": str(evidence),
         "RELEASE_STORE": str(release_store),
+        "ASSET_LIST_FAILS": "1" if asset_list_fails else "0",
         "MISMATCH_DOWNLOAD": "1" if mismatched_download else "0",
         "TAMPER_EVIDENCE_READBACK": "1" if tampered_evidence_readback else "0",
         "FINALIZATION_JSON": finalization_json,
@@ -804,7 +826,7 @@ def test_github_finalization_rejects_moved_tag_before_attachment(tmp_path: Path)
 
     assert result.returncode != 0
     assert f"Release tag moved: expected {'a' * 40}, got {'c' * 40}" in result.stderr
-    assert not (tmp_path / "gh-calls.log").exists()
+    assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8") == ""
 
 
 @pytest.mark.integration
@@ -860,7 +882,7 @@ def test_github_finalization_rejects_tampered_retained_evidence(tmp_path: Path) 
     )
 
     assert result.returncode != 0
-    assert "Retained evidence does not match the admitted bytes" in result.stderr
+    assert "does not match the admitted bytes" in result.stderr
     # The Release is never finalized public when the retained bytes disagree.
     assert "patch" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
 
@@ -1462,12 +1484,14 @@ def test_github_attachment_accepts_an_already_attached_matching_asset(tmp_path: 
 
     assert result.returncode == 0, result.stderr
     assert "is already attached with the admitted bytes" in result.stdout
-    # Only the evidence set is uploaded; neither distribution is rewritten.
+    # Each distribution is compared and left in place; only the evidence that
+    # is genuinely absent is written.
     assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == [
-        "download",
-        "download",
+        "download",  # wheel compared
+        "download",  # sdist compared
         "upload",
         "download",
+        "upload",
         "download",
         "patch",
     ]
@@ -1513,3 +1537,73 @@ def test_publishers_consume_the_original_artifact_and_never_rebuild() -> None:
         for step in job["steps"]:
             assert "python_closure build" not in step.get("run", ""), name
             assert step.get("continue-on-error") is None, name
+
+
+@pytest.mark.integration
+def test_github_attachment_fails_closed_on_an_uncertain_asset_listing(tmp_path: Path) -> None:
+    """An unavailable asset listing is not "nothing is attached yet".
+
+    Reading a failed query as absence would let a transient API error turn
+    into an overwrite of an already-published asset.
+    """
+
+    result = _run_github_finalization(
+        tmp_path,
+        release_states=['{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}'],
+        asset_list_fails=True,
+    )
+
+    assert result.returncode != 0
+    assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
+
+
+@pytest.mark.integration
+def test_github_attachment_accepts_preexisting_matching_evidence(tmp_path: Path) -> None:
+    """A retry after evidence was attached but before finalization completes.
+
+    Retained evidence goes through the same reconciliation as a distribution,
+    so matching bytes are accepted rather than failing on an existing asset.
+    """
+
+    result = _run_github_finalization(
+        tmp_path,
+        release_states=[
+            '{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}',
+            '{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}',
+            '{"databaseId":1234,"isDraft":false,"tagName":"v3.4.5"}',
+        ],
+        published_assets=True,
+        published_evidence=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Retained 2 evidence documents with verified readback digests" in result.stdout
+    # Everything is already attached with the admitted bytes, so the run only
+    # compares and then finalizes.
+    assert (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines() == [
+        "download",
+        "download",
+        "download",
+        "download",
+        "patch",
+    ]
+
+
+@pytest.mark.integration
+def test_github_attachment_refuses_preexisting_conflicting_evidence(tmp_path: Path) -> None:
+    """Divergent retained evidence is an incident, not something to overwrite."""
+
+    result = _run_github_finalization(
+        tmp_path,
+        release_states=[
+            '{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}',
+            '{"databaseId":1234,"isDraft":true,"tagName":"v3.4.5"}',
+        ],
+        published_assets=True,
+        conflicting_evidence=True,
+    )
+
+    assert result.returncode != 0
+    assert "with different bytes" in result.stderr
+    assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
+    assert "patch" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
