@@ -98,6 +98,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_lease.py` (Secure single-process local runtime ownership)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py` (Compatibility-preserving portable snapshot serialization split)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local.py` (Required WAL admission, pinned database identity, durable legacy backup copies, and atomic transactions)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_records.py` (SQLite atomic idempotency claims and operation-record persistence)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_scope.py` (Immutable target/run binding and admitted legacy-store migration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_records.py` (Strict lossless decoding of persisted operation and audit provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_legacy.py` (Complexity-bounded legacy JSON import readers)
