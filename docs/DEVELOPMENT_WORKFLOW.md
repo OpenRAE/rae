@@ -11,6 +11,10 @@ From the repository root:
 uv sync --project implementations/python --all-extras --frozen
 ```
 
+An optional [development container](explain/development-container.md) performs
+this setup for you on Linux x86_64. That page labels each start route verified
+or unverified. It cannot run the proof lane; continuous integration does.
+
 ## Run verification
 
 The full pull-request gate is:

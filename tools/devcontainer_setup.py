@@ -38,6 +38,8 @@ _PROJECTS = (
     (_TOOLING_PROJECT, ("--frozen", "--no-default-groups")),
 )
 _SUBPROCESS_TIMEOUT_SECONDS = 1800
+_SHEBANG_READ_LIMIT = 512
+_VENV_INTERPRETER_SUFFIX = "/.venv/bin/python"
 
 
 class DevcontainerSetupError(RuntimeError):
@@ -158,6 +160,33 @@ def _run(argv: Sequence[str], repo_root: Path, environment: Mapping[str, str]) -
         raise DevcontainerSetupError(f"`{' '.join(argv)}` failed with exit code {completed.returncode}")
 
 
+def environment_is_relocated(venv: Path) -> bool:
+    """Report whether a virtual environment's console scripts name another path.
+
+    A checkout carries its environments, and their console scripts record the
+    absolute path of the environment that built them. Mounting one checkout at a
+    second path therefore leaves scripts that cannot start. `uv sync` reports such
+    an environment as already satisfying the lock, so setup finds and discards it.
+    """
+
+    expected = f"#!{venv / 'bin' / 'python'}"
+    try:
+        entries = sorted((venv / "bin").iterdir())
+    except OSError:
+        return False
+    for script in entries:
+        if script.is_symlink() or not script.is_file():
+            continue
+        try:
+            with script.open("rb") as handle:
+                shebang = handle.readline(_SHEBANG_READ_LIMIT).decode("utf-8", "replace").strip()
+        except OSError:
+            continue
+        if shebang.endswith(_VENV_INTERPRETER_SUFFIX) and shebang != expected:
+            return True
+    return False
+
+
 def sync_projects(repo_root: Path, kit_root: Path) -> None:
     uv = kit_root / "bin" / "uv"
     environment = {
@@ -166,6 +195,9 @@ def sync_projects(repo_root: Path, kit_root: Path) -> None:
         "UV_PYTHON_DOWNLOADS": "never",
     }
     for project, options in _PROJECTS:
+        venv = repo_root / project / ".venv"
+        if environment_is_relocated(venv):
+            shutil.rmtree(venv)
         _run([str(uv), "sync", "--project", project, *options], repo_root, environment)
 
 

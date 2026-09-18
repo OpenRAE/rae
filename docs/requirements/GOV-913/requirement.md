@@ -141,6 +141,8 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CONFIG `.github/workflows/bootstrap-qualification.yml` (Clean-image dev-container lifecycle smoke)
 - IMPLEMENTS → CONFIG `tools/policy/requirement_order.yaml` (reusable-asset-integrity phase mapping)
 - IMPLEMENTS → DOCUMENTATION `docs/explain/development-container.md` (Development container start, cache, update, and limitation guide)
+- IMPLEMENTS → GITHUB_ISSUE `1277` (Verified and documented development-container entry points)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1277-dev-container-entry-points-preflight.md` (Entry-point claim, evidence, and reuse guardrails)
 - TESTS → TEST `implementations/python/tests/test_issue_1238_development_container.py` (Container profile join, drift, safety, platform, proof, and launcher regressions)
 - IMPLEMENTS → GITHUB_ISSUE `1223` (Mirrored and pre-seeded digest-pinned release-test container input)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1223-oci-mirror-preseed-preflight.md` (OCI mirror, import, and concurrent-run guardrails)
