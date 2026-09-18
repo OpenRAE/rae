@@ -19,9 +19,9 @@ import pytest
 from tools.release_evidence_admission import (
     AdmissionError,
     ReleaseIdentity,
-    admitted_publication_subjects,
     build_evidence_index,
 )
+from tools.release_evidence_publication import admitted_publication_subjects
 
 _IDENTITY = ReleaseIdentity(
     repository="OpenRAE/rae",
@@ -160,7 +160,7 @@ def test_derived_test_wheel_is_not_a_publication_candidate(tmp_path: Path) -> No
 def test_emitted_scalars_are_shell_safe_key_values(tmp_path: Path) -> None:
     """The handoff is written as fixed `KEY=value` lines for a job output."""
 
-    from tools.release_evidence_admission import render_publication_outputs
+    from tools.release_evidence_publication import render_publication_outputs
 
     rendered = render_publication_outputs(admitted_publication_subjects(index=_index(tmp_path), expected_tag="v1.2.3"))
 
@@ -175,12 +175,15 @@ def test_emitted_scalars_are_shell_safe_key_values(tmp_path: Path) -> None:
     for line in rendered.splitlines():
         key, _, value = line.partition("=")
         assert key.isidentifier()
-        assert "\n" not in value and "\r" not in value
+        assert "\n" not in value
+        assert "\r" not in value
 
 
 def test_publication_subjects_reject_a_non_mapping_index() -> None:
+    not_an_object = json.loads("[]")
+
     with pytest.raises(AdmissionError) as excinfo:
-        admitted_publication_subjects(index=json.loads("[]"), expected_tag="v1.2.3")
+        admitted_publication_subjects(index=not_an_object, expected_tag="v1.2.3")
     assert excinfo.value.code == "admission-index-unsupported"
 
 
@@ -235,6 +238,40 @@ def test_cli_canonicalizes_the_emit_subjects_sink() -> None:
     }
 
     assert "emit_subjects" in canonicalized
+
+
+def test_cli_checks_subject_names_on_every_admission() -> None:
+    """The name check is not conditional on the handoff being written out.
+
+    It lives beside the handoff derivation rather than inside
+    `verify_admission`, so the `verify` command must run it unconditionally --
+    otherwise an admission that does not ask for the scalars would accept a
+    foreign-version artifact.
+    """
+
+    import ast
+    import inspect
+
+    from tools import release_evidence
+
+    main = next(
+        node
+        for node in ast.walk(ast.parse(inspect.getsource(release_evidence)))
+        if isinstance(node, ast.FunctionDef) and node.name == "main"
+    )
+    call = next(
+        node
+        for node in ast.walk(main)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "admitted_publication_subjects"
+    )
+
+    # Its enclosing statement must not sit under the `--emit-subjects` guard.
+    guarded = [
+        node for node in ast.walk(main) if isinstance(node, ast.If) and any(call is inner for inner in ast.walk(node))
+    ]
+    assert guarded == []
 
 
 def test_cli_emits_the_handoff_only_after_admission_succeeds() -> None:

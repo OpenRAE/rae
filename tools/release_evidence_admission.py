@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,22 +40,11 @@ REQUIRED_EVIDENCE = ("build-inventory.json", "sdist.cdx.json", "wheel.cdx.json")
 MAX_EVIDENCE_BYTES = 4 * 1024 * 1024
 _READ_CHUNK = 1024 * 1024
 
-_WHEEL_SUFFIX = ".whl"
-_SDIST_SUFFIX = ".tar.gz"
+# Shared with the publication boundary, which derives the expected release
+# filenames from these same suffixes.
+WHEEL_SUFFIX = ".whl"
+SDIST_SUFFIX = ".tar.gz"
 _DERIVED_DIRECTORY = "from-sdist"
-
-# The published distribution name. The release tag is the only accepted source
-# of the expected version, and only a stable SemVer release is publishable, so
-# the tag maps to exactly one PEP 440 release version with no normalization
-# ambiguity to resolve at the publication boundary.
-_PROJECT_NAME = "raes"
-_STABLE_RELEASE_TAG = re.compile(r"^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
-
-# The scalars a credentialed publisher needs, in a fixed order. A publisher
-# gets these validated values and nothing else: it must not read the evidence
-# index, because it holds publication credentials and the index travels with
-# the artifact it describes.
-_PUBLICATION_OUTPUTS = ("wheel_name", "wheel_sha256", "sdist_name", "sdist_sha256")
 
 
 class AdmissionError(Exception):
@@ -121,7 +109,7 @@ def _single(paths: Sequence[Path], role: str) -> Path:
 
 def _distribution_files(distribution_dir: Path) -> tuple[Path, Path, Path]:
     wheels = sorted(p for p in distribution_dir.glob("*.whl") if p.is_file())
-    sdists = sorted(p for p in distribution_dir.glob(f"*{_SDIST_SUFFIX}") if p.is_file())
+    sdists = sorted(p for p in distribution_dir.glob(f"*{SDIST_SUFFIX}") if p.is_file())
     derived = sorted(p for p in (distribution_dir / _DERIVED_DIRECTORY).glob("*.whl") if p.is_file())
     return (
         _single(wheels, "release wheel"),
@@ -381,101 +369,6 @@ def _verify_attestations(
             )
 
 
-def release_version(expected_tag: str) -> str:
-    """Return the release version the tag names, refusing anything unstable."""
-
-    if not _STABLE_RELEASE_TAG.match(expected_tag):
-        raise AdmissionError(
-            "admission-release-tag-malformed",
-            "expected a stable SemVer release tag such as v1.0.0",
-        )
-    return expected_tag[1:]
-
-
-def admitted_publication_subjects(index: Mapping[str, Any] | Any, *, expected_tag: str) -> dict[str, str]:
-    """Return the validated publisher handoff for one admitted release.
-
-    The expected version comes from the trusted tag rather than from the record
-    being read, so an index that correctly describes a different release cannot
-    name itself into this one. Size and digest equality is checked against the
-    files themselves by `_verify_subjects`; this decides that the admitted
-    *names* belong to the release being published, which no other check does.
-    """
-
-    if not isinstance(index, Mapping):
-        raise AdmissionError("admission-index-unsupported", "evidence index is not a JSON object")
-    version = release_version(expected_tag)
-
-    declared = index.get("subjects")
-    if not isinstance(declared, Sequence) or isinstance(declared, (str, bytes)):
-        raise AdmissionError("admission-index-unsupported", "evidence index has no subject set")
-    by_role: dict[str, Mapping[str, Any]] = {}
-    for item in declared:
-        if not isinstance(item, Mapping):
-            raise AdmissionError("admission-index-unsupported", "evidence index has a malformed subject")
-        role = item.get("role")
-        if role in by_role:
-            raise AdmissionError(
-                "admission-subject-cardinality",
-                f"evidence index declares more than one {role} subject",
-            )
-        if isinstance(role, str):
-            by_role[role] = item
-    missing = [role for role in ("wheel", "sdist") if role not in by_role]
-    if missing:
-        raise AdmissionError(
-            "admission-subject-cardinality",
-            f"evidence index does not declare a published {missing[0]}",
-        )
-
-    expected_sdist = f"{_PROJECT_NAME}-{version}{_SDIST_SUFFIX}"
-    # A wheel carries build tags after the version, so its version field is
-    # delimited rather than terminal. Matching the delimiter keeps `1.2.30`
-    # from satisfying a `1.2.3` release.
-    wheel_prefix = f"{_PROJECT_NAME}-{version}-"
-
-    subjects: dict[str, str] = {}
-    for role, item in (("wheel", by_role["wheel"]), ("sdist", by_role["sdist"])):
-        filename = item.get("filename")
-        digest = item.get("sha256")
-        if not isinstance(filename, str) or not isinstance(digest, str):
-            raise AdmissionError("admission-index-unsupported", f"admitted {role} has no name and digest")
-        correct_name = (
-            filename == expected_sdist
-            if role == "sdist"
-            else filename.startswith(wheel_prefix) and filename.endswith(_WHEEL_SUFFIX)
-        )
-        if not correct_name:
-            raise AdmissionError(
-                "admission-subject-version-mismatch",
-                f"admitted {role} {filename!r} is not a {_PROJECT_NAME} {version} distribution",
-            )
-        subjects[f"{role}_name"] = filename
-        subjects[f"{role}_sha256"] = digest
-    return {key: subjects[key] for key in _PUBLICATION_OUTPUTS}
-
-
-def render_publication_outputs(subjects: Mapping[str, str]) -> str:
-    """Render the handoff as fixed `KEY=value` lines for a workflow output.
-
-    Each value lands in a line-delimited Actions output file, so a newline in
-    one scalar would let it declare another. The values are already validated
-    names and hex digests; refusing a control character here keeps that
-    guarantee at the sink rather than relying on it holding upstream.
-    """
-
-    lines = []
-    for key in _PUBLICATION_OUTPUTS:
-        value = subjects[key]
-        if not value or any(character in value for character in "\r\n="):
-            raise AdmissionError(
-                "admission-publication-output-unsafe",
-                f"admitted {key} is not representable as a workflow output",
-            )
-        lines.append(f"{key}={value}")
-    return "\n".join(lines)
-
-
 def verify_admission(
     *,
     distribution_dir: Path,
@@ -521,11 +414,6 @@ def verify_admission(
             "evidence records policy hashes that differ from the verifying tree",
         )
 
-    # Names are checked against the trusted tag before the bytes are read, so a
-    # foreign-version artifact is refused even when its own record is internally
-    # consistent.
-    admitted_publication_subjects(index, expected_tag=expected.tag)
-
     subject_digests = _verify_subjects(distribution_dir, index)
     evidence_digests = _verify_evidence(evidence_dir, index, subject_digests)
     _verify_attestations(
@@ -542,12 +430,11 @@ __all__ = [
     "REQUIRED_EVIDENCE",
     "MAX_EVIDENCE_BYTES",
     "SCHEMA_VERSION",
+    "SDIST_SUFFIX",
+    "WHEEL_SUFFIX",
     "AdmissionError",
     "ProducerIdentity",
-    "admitted_publication_subjects",
     "build_evidence_index",
     "digest_file",
-    "release_version",
-    "render_publication_outputs",
     "verify_admission",
 ]

@@ -22,7 +22,7 @@ Imported from the superseded governance backlog before deleting the old governan
 ## Traceability
 
 - IMPLEMENTS → CODE_FILE `.github/workflows/release-please.yml` (Exact-SHA-gated PyPI trusted publishing workflow)
-- IMPLEMENTS → CODE_FILE `tools/release_evidence_admission.py` (Tag-derived subject-name correspondence and the validated publisher handoff)
+- IMPLEMENTS → CODE_FILE `tools/release_evidence_publication.py` (Tag-derived subject-name correspondence and the validated publisher handoff)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence.py` (Emits the admitted wheel/sdist identity only after admission succeeds)
 - IMPLEMENTS → CODE_FILE `.github/workflows/canonical-verification.yml` (Read-only reusable canonical commit verifier)
 - TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Release dependency, exact-SHA, action pin, artifact smoke, and OIDC boundary policy tests)

@@ -43,10 +43,8 @@ from tools.release_evidence_admission import (
     AdmissionError,
     ProducerIdentity,
     ReleaseIdentity,
-    admitted_publication_subjects,
     build_evidence_index,
     digest_file,
-    render_publication_outputs,
     verify_admission,
 )
 from tools.release_evidence_documents import (
@@ -54,6 +52,10 @@ from tools.release_evidence_documents import (
     EvidenceDocumentError,
     render_build_inventory,
     render_runtime_sbom,
+)
+from tools.release_evidence_publication import (
+    admitted_publication_subjects,
+    render_publication_outputs,
 )
 from tools.release_evidence_sbom import (
     RuntimeClosureError,
@@ -463,11 +465,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             expected=ReleaseIdentity(**identity, tag=args.release_tag),
             policy_hashes=policy_hashes,
         )
+        # Unconditional: the admitted subject names must correspond to the
+        # release being published on every admission, not only when a caller
+        # asks for the handoff to be written out.
+        subjects = admitted_publication_subjects(index, expected_tag=args.release_tag)
         if args.emit_subjects is not None:
             # Written only here, after admission accepted the release, so a
             # refused release leaves no scalars a publisher could act on.
             args.emit_subjects.write_text(
-                render_publication_outputs(admitted_publication_subjects(index, expected_tag=args.release_tag)) + "\n",
+                render_publication_outputs(subjects) + "\n",
                 encoding="utf-8",
             )
         print("release evidence admitted")

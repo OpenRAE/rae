@@ -1314,7 +1314,8 @@ def test_pypi_publication_reconciles_the_destination_before_upload() -> None:
     reconcile = publish_pypi["steps"][reconcile_index]
     assert reconcile.get("id")
     # A digest comparison, not an "already exists" response, decides the skip.
-    assert "digests" in reconcile["run"] and "sha256" in reconcile["run"]
+    assert "digests" in reconcile["run"]
+    assert "sha256" in reconcile["run"]
     publish_step = publish_pypi["steps"][publish_index]
     assert publish_step["if"] == f"steps.{reconcile['id']}.outputs.pending == 'true'"
 
