@@ -5,21 +5,12 @@
 # libvirt reconciliation/teardown backend actually works against real libvirtd
 # (the hermetic `nox verify` graph deliberately uses in-process fakes).
 #
-# Input governance (issue #1222, inventory row I13): the live-runner inputs are
-# execution-bound to their reviewed authorities. The base image is Canonical's
-# exact published image NAME (serial), resolved to the region's AMI id by owner +
-# exact name (never "newest"); the native packages install from a pinned
-# snapshot.ubuntu.com archive timestamp (reproducible versions); the declared
-# cpython-3.14 interpreter, the uv client, the CirrOS guest disk and the offline
-# libvirt-python build closure are selected/verified locally
-# (tools/real-daemon/live_runner_inputs.py), pre-seeded and re-verified on the
-# host. There is no pipe-to-shell bootstrap, no ignored download, and
-# libvirt-python installs fully offline from the pre-seeded wheelhouse. The
-# instance host key is pinned from the authenticated AWS console output
-# (StrictHostKeyChecking=yes). Only Git-tracked files are transferred. AWS
-# provisioning/API behaviour stays an external service boundary; the host runs
-# under its default security driver (no security_driver="none", no root QEMU
-# user/group).
+# Connected opt-in smoke: keep the exact Canonical image owner/name, verified
+# uv/CPython bootstrap and guest-disk bytes, and authenticated SSH host keys.
+# Native packages use the image's signed Ubuntu repositories; Python packages
+# are installed online from exact hash-pinned requirements/build constraints.
+# This is not an offline or byte-reproducible native environment. Default
+# AppArmor/QEMU security, tracked-source transfer, and teardown remain required.
 #
 # Usage:
 #   SSH_INGRESS_CIDR=203.0.113.4/32 AWS_PROFILE=aws-dev AWS_REGION=us-east-1 \
@@ -106,8 +97,7 @@ UV_ARCHIVE="$STAGE/$(read_nested uv staged_path)"
 CPYTHON_ARCHIVE="$STAGE/$(read_nested cpython staged_path)"
 IMAGE_OWNER="$(read_nested base_image owner)"
 IMAGE_NAME="$(read_nested base_image name)"
-NATIVE_SNAPSHOT="$(read_top native_repository_snapshot)"
-[[ -f "$STAGE/cirros.img" && -f "$UV_ARCHIVE" && -f "$CPYTHON_ARCHIVE" && -d "$STAGE/wheelhouse" ]] || { echo "error: staged inputs are incomplete" >&2; exit 1; }
+[[ -f "$STAGE/cirros.img" && -f "$UV_ARCHIVE" && -f "$CPYTHON_ARCHIVE" ]] || { echo "error: staged inputs are incomplete" >&2; exit 1; }
 
 echo "=== identity ==="; "${AWS[@]}" sts get-caller-identity --query Account --output text
 
@@ -129,23 +119,12 @@ created_sg=$("${AWS[@]}" ec2 create-security-group --group-name "$NAME-sg" \
   --description "raes libvirt real-daemon smoke ($RUN_ID)" --vpc-id "$VPC" --query GroupId --output text)
 "${AWS[@]}" ec2 authorize-security-group-ingress --group-id "$created_sg" --protocol tcp --port 22 --cidr "$SSH_INGRESS_CIDR" >/dev/null
 
-# userdata pins the APT archive to an immutable snapshot.ubuntu.com timestamp so
-# the reviewed native package set installs at reproducible versions, then
-# installs ONLY that reviewed set and prepares a scoped, libvirt-accessible run
-# root. No downloads of tools, no pipe-to-shell, no host-security downgrade
-# (default AppArmor/QEMU confinement stays enabled).
+# Use the pinned image's signed native repositories and keep its security
+# defaults. The instance is already an explicitly online, opt-in test host.
 cat > "$WORK/userdata.sh" <<UD
 #!/bin/bash
 set -euxo pipefail
 export DEBIAN_FRONTEND=noninteractive
-cat > /etc/apt/sources.list.d/ubuntu.sources <<SOURCES
-Types: deb
-URIs: https://snapshot.ubuntu.com/ubuntu/$NATIVE_SNAPSHOT
-Suites: noble noble-updates
-Components: main restricted universe multiverse
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-Check-Valid-Until: no
-SOURCES
 apt-get update -y
 apt-get install -y qemu-system-x86 qemu-utils libvirt-daemon-system libvirt-clients libvirt-dev genisoimage python3-dev pkg-config build-essential rsync
 systemctl enable --now libvirtd
@@ -192,9 +171,8 @@ echo "=== pre-seed verified inputs ==="
 scp "${SSHOPT[@]}" "$STAGE/cirros.img" ubuntu@"$IP":/home/ubuntu/stage/cirros.img
 scp "${SSHOPT[@]}" "$UV_ARCHIVE" ubuntu@"$IP":/home/ubuntu/stage/uv.tar.gz
 scp "${SSHOPT[@]}" "$CPYTHON_ARCHIVE" ubuntu@"$IP":/home/ubuntu/stage/cpython.tar.gz
-scp -r "${SSHOPT[@]}" "$STAGE/wheelhouse" ubuntu@"$IP":/home/ubuntu/stage/wheelhouse
 
-echo "=== install pinned uv + declared cpython interpreter + frozen sync + offline libvirt-python ==="
+echo "=== install pinned uv + declared cpython interpreter + frozen sync + hash-pinned online libvirt-python ==="
 ssh "${SSHOPT[@]}" ubuntu@"$IP" "set -euo pipefail
   tar -xzf ~/stage/uv.tar.gz -C ~/uvbin --strip-components=1
   UV=\$(find ~/uvbin -type f -name uv | head -n1)
@@ -205,7 +183,7 @@ ssh "${SSHOPT[@]}" ubuntu@"$IP" "set -euo pipefail
   \"\$PY\" --version | grep -q 'Python 3.14' || { echo 'error: pre-seeded interpreter is not the declared cpython-3.14' >&2; exit 1; }
   cd ~/raes/implementations/python
   \"\$UV\" sync --frozen --python \"\$PY\"
-  \"\$UV\" pip install --python .venv/bin/python --offline --no-index --find-links ~/stage/wheelhouse --require-hashes --requirement ~/raes/tools/real-daemon/live-runner-python.txt
+  \"\$UV\" pip install --python .venv/bin/python --default-index https://pypi.org/simple --build-constraints ~/raes/tools/real-daemon/live-runner-python.txt --require-hashes --requirement ~/raes/tools/real-daemon/live-runner-python.txt
   echo venv-ready"
 
 echo "=== place + re-verify the pre-seeded guest disk in the scoped run dir ==="

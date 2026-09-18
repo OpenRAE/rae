@@ -113,23 +113,6 @@ jobs:
           version: "0.12.4"
       - name: Test exact interpreter and clean distribution
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
-      - name: Record exact interpreter qualification
-        run: |
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile record-case T03 \
-            "${{ github.sha }}" noxfile.py --artifact-id "cpython-${{ matrix.python.feature }}" --artifact-id uv \
-            > t03-result.json
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile qualification-evidence \
-            public-ubuntu-24.04-x86_64 "${{ github.sha }}" \
-            "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
-            --python-artifact-id "cpython-${{ matrix.python.feature }}" --case-result t03-result.json \
-            > python-qualification.json
-      - name: Upload interpreter qualification evidence
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: python-${{ matrix.python.feature }}-${{ github.sha }}
-          path: python-qualification.json
-          if-no-files-found: error
 
   # Opt-in, non-blocking, runtime-gated container integration tests (RUN-314).
   # Kept out of the hermetic `verify` graph; the `docker` marker tests self-skip
@@ -248,7 +231,7 @@ jobs:
       - name: Fetch locked generic-tool inputs with the qualified client
         run: |
           mkdir .canonical-tool-inputs
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile offline-kit-fetch \
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             public-ubuntu-24.04-x86_64 .canonical-tool-inputs \
             --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
       - name: Install locked generic tools from local inputs

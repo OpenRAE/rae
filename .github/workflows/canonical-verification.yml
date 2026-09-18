@@ -75,15 +75,16 @@ jobs:
       - name: Fetch locked generic-tool inputs with the qualified client
         run: |
           mkdir .canonical-tool-inputs
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile offline-kit-fetch \
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
             public-ubuntu-24.04-x86_64 .canonical-tool-inputs \
             --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
       - name: Fetch the locked proof archive with the qualified client
         # Ubuntu 22.04's native curl predates the qualified client floor, so the
         # proof host receives the exact reviewed archive as a verified local input.
         run: |
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile offline-kit-fetch \
-            proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle
+          uv run --project implementations/python --frozen python -m tools.bootstrap_profile fetch-inputs \
+            proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle \
+            --locator-ref official-isabelle-cambridge-mirror
       - name: Carry locked generic-tool inputs to the dependent jobs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -321,23 +322,12 @@ jobs:
         run: >-
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py
           -s proof-input-qualification -- --real-installation --output proof-input-qualification.json
-      - name: Record qualified proof-host evidence
-        run: |
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile record-case T01 \
-            "${{ inputs.ref }}" noxfile.py --artifact-id cpython-3.12 --artifact-id isabelle --artifact-id uv \
-            > t01-result.json
-          uv run --project implementations/python --frozen python -m tools.bootstrap_profile qualification-evidence \
-            proof-ubuntu-22.04-x86_64 "${{ inputs.ref }}" \
-            "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
-            --python-artifact-id cpython-3.12 --case-result t01-result.json \
-            --slice-evidence proof-input-qualification.json > proof-host-qualification.json
-      - name: Upload proof-host qualification evidence
-        id: proof-host-evidence
+      - name: Retain proof-input installation results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: proof-host-${{ inputs.ref }}
-          path: proof-host-qualification.json
+          name: proof-input-${{ inputs.ref }}
+          path: proof-input-qualification.json
           if-no-files-found: error
 
   # Prove the shards form a complete, disjoint partition of a fresh collection,

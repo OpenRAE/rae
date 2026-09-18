@@ -1,15 +1,7 @@
-"""OCI image-graph admission for export-bearing locked images.
+"""Static coherence of locked OCI platform graphs.
 
-An index-only record proves that *an* index was reviewed. It cannot prove that
-the manifests, config and layers beneath that index survived a mirror copy, an
-offline export or a daemon import, because nothing binds them. An image that
-must move through those paths therefore opts into the graph-bearing admission
-policy -- the one that accepts ``oci-platform-graph-digests`` evidence -- and is
-then required to carry its complete platform graph here, before any client runs.
-
-This module owns only the static coherence of that record. Verifying real bytes
-against it is `tools.oci_image_layout` (offline) and `tools.oci_release_image`
-(daemon readback); neither is reached until these checks pass.
+The release client pulls a pinned platform manifest through the native runtime,
+then checks the daemon identity and uncompressed layer digests against this graph.
 """
 
 from __future__ import annotations

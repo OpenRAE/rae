@@ -156,6 +156,34 @@ def test_fast_feedback_runs_changed_test_modules(monkeypatch: pytest.MonkeyPatch
     assert pytest_args == [("implementations/python/tests/test_x.py", "-q")]
 
 
+def test_fast_feedback_uses_current_paths_for_lint_and_tests(
+    monkeypatch: pytest.MonkeyPatch, graph: ModuleType
+) -> None:
+    prefix = "implementations/python/tests/"
+    changed = [
+        ChangeRecord(status="D", path=f"{prefix}test_deleted.py"),
+        ChangeRecord(status="D", path="tools/deleted.py"),
+        ChangeRecord(status="R", old_path=f"{prefix}test_old.py", path=f"{prefix}test_renamed.py"),
+        ChangeRecord(status="C", old_path=f"{prefix}test_source.py", path=f"{prefix}test_copied.py"),
+        ChangeRecord(status="M", path=f"{prefix}test_modified.py"),
+        ChangeRecord(status="A", path=f"{prefix}test_added.py"),
+    ]
+    monkeypatch.setattr(graph, "collect_git_changes", lambda _root, _base: changed)
+    monkeypatch.setattr(graph, "_requirement_aware_policy_args", lambda *args: list(args))
+    monkeypatch.setattr(graph, "_run_hygiene", lambda *a, **k: None)
+    monkeypatch.setattr(graph, "_run_policy", lambda *a, **k: None)
+    lint_paths: list[str] = []
+    monkeypatch.setattr(graph, "_run_changed_lint", lambda _session, _reporter, paths: lint_paths.extend(paths))
+    pytest_args: list[tuple[str, ...]] = []
+    monkeypatch.setattr(graph, "_run_pytest", lambda _session, *args, **_k: pytest_args.append(args))
+
+    graph._run_fast_feedback(_Session(), _Reporter(), ["--base-rev", "BASE"])
+
+    expected = [f"{prefix}test_{name}.py" for name in ("renamed", "copied", "modified", "added")]
+    assert lint_paths == expected
+    assert pytest_args == [(*expected, "-q")]
+
+
 def test_fast_feedback_defers_when_no_test_module_changed(monkeypatch: pytest.MonkeyPatch, graph: ModuleType) -> None:
     changed = [ChangeRecord(status="M", path="implementations/python/packages/raes/x.py")]
     monkeypatch.setattr(graph, "collect_git_changes", lambda _root, _base: changed)

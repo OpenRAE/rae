@@ -1,5 +1,25 @@
 # Issue #1226: output-bound SBOM and provenance preflight
 
+## Current scope clarification — #1313
+
+The analysis below is the historical #1226 preflight. Retain useful standard
+SBOM/provenance, trusted producer identity, exact output digests and publisher
+permission separation. The input inventory now reads the native release and
+reusable workflow graph, not a duplicate Actions policy.
+
+#1227 owns ordinary release-byte verification and partial-publication recovery;
+#684 owns publication acceptance. Enterprise storage, promotion/revocation
+services, mandatory independent copies, disconnected bundles and operational
+qualification are cancelled, not dependencies of these release boundaries.
+MAINTAINERS.md names the single accountable maintainer. No new human role
+separation, deputy or blanket release gate follows from this preflight.
+
+## Historical design — superseded where inconsistent
+
+The remainder records the earlier design. It is not current acceptance policy;
+the #1313 ADR amendments and current scope above take precedence.
+
+
 ## Authority and readiness
 
 Architecture review against repository commit `00259d81`. The supplied #1226

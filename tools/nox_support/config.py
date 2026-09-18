@@ -88,9 +88,8 @@ PYTHON_COMPATIBILITY_SMOKE_ONLY_ENV = "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY"
 PYTHON_CLOSURE_PROFILE_ENV = "RAES_PYTHON_CLOSURE_PROFILE"
 PYTHON_CLOSURE_WHEELHOUSE_ENV = "RAES_PYTHON_CLOSURE_WHEELHOUSE"
 
-# Local qualification harnesses emit bounded slice evidence that
-# `bootstrap_profile qualification-evidence --slice-evidence` binds into the
-# canonical qualification record; they never record a canonical passed case.
+# Local harnesses emit bounded results for the installer mechanisms actually
+# exercised. CI retains those results directly, without aggregate qualification.
 INSTALLATION_QUALIFICATION_HARNESSES = {
     "local-installation-qualification": (
         "implementations/python/tests/issue_1219_installation_harness.py",

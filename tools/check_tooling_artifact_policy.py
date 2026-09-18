@@ -25,33 +25,29 @@ from tools.policy.common import (
 from tools.tooling_artifact_policy_actions import action_failures
 from tools.tooling_artifact_policy_artifacts import artifact_failures
 from tools.tooling_artifact_policy_common import (
-    ACTIONS_POLICY_PATH,
     ARTIFACT_LOCK_PATH,
-    INVENTORY_COVERAGE_PATH,
     MAX_JSON_BYTES,
     POLICY_SCHEMAS,
     PROFILES_PATH,
     SELECTOR_BINDINGS_PATH,
     as_list,
     failure,
-    is_regular_repo_file,
     load_documents,
     normalize_platform_id,
+    read_tooling_document,
     string_set,
+    validate_tooling_record,
 )
 from tools.tooling_artifact_policy_container import container_failures
-from tools.tooling_artifact_policy_discovery import tracked_python_scans
-from tools.tooling_artifact_policy_inventory import inventory_failures
 from tools.tooling_artifact_policy_python import (
     PYTHON_AUTHORITY_PATHS,
     python_closure_failures,
 )
 from tools.tooling_artifact_policy_selectors import selector_failures
+from tools.tooling_artifact_selection import selected_artifact_documents
 
 __all__ = [
-    "ACTIONS_POLICY_PATH",
     "ARTIFACT_LOCK_PATH",
-    "INVENTORY_COVERAGE_PATH",
     "PROFILES_PATH",
     "SELECTOR_BINDINGS_PATH",
     "evaluate_tooling_artifact_policy",
@@ -101,35 +97,11 @@ def evaluate_tooling_artifact_policy(
     documents, failures = load_documents(repo_root)
     paths, path_failures = _resolved_paths(repo_root, tracked_paths)
     failures.extend(path_failures)
-    if tracked_paths is None:
-        coverage = documents.get(INVENTORY_COVERAGE_PATH, {})
-        declared_candidates = {
-            str(item["path"])
-            for item in as_list(coverage.get("acquisition_paths"))
-            if isinstance(item, Mapping)
-            and isinstance(item.get("path"), str)
-            and is_regular_repo_file(repo_root, item["path"])
-        }
-        paths = sorted(set(paths) | declared_candidates)
-    python_scans = tracked_python_scans(repo_root, paths)
     failures.extend(artifact_failures(repo_root, documents))
     failures.extend(action_failures(repo_root, documents, paths))
-    failures.extend(selector_failures(repo_root, documents, paths, python_scans))
-    failures.extend(inventory_failures(repo_root, documents, paths, python_scans))
+    failures.extend(selector_failures(repo_root, documents, paths))
     failures.extend(python_closure_failures(repo_root, documents, paths))
     failures.extend(container_failures(repo_root, documents, paths))
-    if all(path in documents for path in POLICY_SCHEMAS):
-        expected_policy_sha256 = tooling_policy_sha256(repo_root)
-        profiles = documents[PROFILES_PATH]
-        failures.extend(
-            failure(
-                "tooling-host-evidence-policy",
-                "qualification evidence is not bound to the complete current tooling policy",
-                PROFILES_PATH,
-            )
-            for record in as_list(profiles.get("qualification_records"))
-            if not isinstance(record, Mapping) or record.get("policy_sha256") != expected_policy_sha256
-        )
     return sorted(set(failures), key=lambda item: (item.path or "", item.rule_id, item.message))
 
 
@@ -140,8 +112,6 @@ def tooling_policy_sha256(repo_root: Path) -> str:
     authority_paths = sorted({*POLICY_SCHEMAS, *POLICY_SCHEMAS.values()})
     for relative_path in authority_paths:
         value = load_bounded_json_object(repo_root, relative_path, max_bytes=MAX_JSON_BYTES)
-        if relative_path == PROFILES_PATH:
-            value = {key: child for key, child in value.items() if key != "qualification_records"}
         encoded = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
         path_bytes = relative_path.encode()
         digest.update(len(path_bytes).to_bytes(8, "big"))
@@ -197,11 +167,8 @@ def select_tooling_artifact(
 ) -> dict[str, Any]:
     """Return one fully validated artifact/platform selection from the lock."""
 
-    failures = evaluate_tooling_artifact_policy(repo_root)
-    if failures:
-        rendered = "\n".join(item.render() for item in failures)
-        raise ValueError(f"development artifact policy is invalid:\n{rendered}")
-    lock = load_bounded_json_object(repo_root, ARTIFACT_LOCK_PATH, max_bytes=MAX_JSON_BYTES)
+    documents = selected_artifact_documents(repo_root, {artifact_id}, platform_id)
+    lock = documents[ARTIFACT_LOCK_PATH]
     matches = _selection_matches(
         lock,
         artifact_id=artifact_id,
@@ -229,12 +196,7 @@ def select_tooling_host_profile(  # NOSONAR -- selection checks mirror the close
 ) -> dict[str, Any]:
     """Return one fully validated host profile and its exact bootstrap selections."""
 
-    failures = evaluate_tooling_artifact_policy(repo_root)
-    if failures:
-        rendered = "\n".join(item.render() for item in failures)
-        raise ValueError(f"development artifact policy is invalid:\n{rendered}")
-    profiles = load_bounded_json_object(repo_root, PROFILES_PATH, max_bytes=MAX_JSON_BYTES)
-    lock = load_bounded_json_object(repo_root, ARTIFACT_LOCK_PATH, max_bytes=MAX_JSON_BYTES)
+    profiles = read_tooling_document(repo_root, PROFILES_PATH)
     hosts = [
         item
         for item in as_list(profiles.get("host_profiles"))
@@ -243,6 +205,15 @@ def select_tooling_host_profile(  # NOSONAR -- selection checks mirror the close
     if len(hosts) != 1:
         raise ValueError("requested host profile must resolve to exactly one reviewed entry")
     host = hosts[0]
+    validate_tooling_record(repo_root, host, PROFILES_PATH, definition="hostProfile")
+    documents = selected_artifact_documents(
+        repo_root,
+        string_set(host.get("bootstrap_payload_ids")),
+        str(host["platform_id"]),
+        host_profile_id=host_profile_id,
+        profiles=profiles,
+    )
+    lock = documents[ARTIFACT_LOCK_PATH]
     artifacts: list[dict[str, Any]] = []
     for artifact_id in sorted(string_set(host.get("bootstrap_payload_ids"))):
         artifact_matches = [
@@ -279,7 +250,9 @@ def select_tooling_host_profile(  # NOSONAR -- selection checks mirror the close
     return {
         "host_profile": host,
         "artifacts": artifacts,
-        "policy_sha256": tooling_policy_sha256(repo_root),
+        "policy_sha256": hashlib.sha256(
+            json.dumps({"host": host, "inputs": documents}, sort_keys=True).encode()
+        ).hexdigest(),
     }
 
 

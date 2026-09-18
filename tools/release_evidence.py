@@ -64,6 +64,7 @@ from tools.release_evidence_verifier import (
     build_verify_command,
     parse_verifier_output,
 )
+from tools.release_evidence_workflows import WorkflowInputError, workflow_actions
 
 INVENTORY_FILENAME = "build-inventory.json"
 _VERIFIER_TIMEOUT_SECONDS = 120
@@ -277,12 +278,11 @@ def _tool_inputs(repo_root: Path) -> list[dict[str, str]]:
 
 
 def _workflow_actions(repo_root: Path) -> list[dict[str, str]]:
-    policy = json.loads((repo_root / "implementations" / "tooling" / "actions-policy.json").read_text(encoding="utf-8"))
-    return [
-        {"action": str(item["action"]), "commit": str(item["commit"])}
-        for item in policy.get("actions", [])
-        if isinstance(item, Mapping)
-    ]
+    """Record pinned actions from the release workflow and its reusable calls."""
+    try:
+        return workflow_actions(repo_root)
+    except WorkflowInputError as exc:
+        raise ReleaseEvidenceError("workflow-input-invalid", str(exc)) from exc
 
 
 def _run_verifier(command: Sequence[str]) -> str:

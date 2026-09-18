@@ -25,7 +25,6 @@ def ensure_conftest(
     version: str = CONTFEST_VERSION,
     local_input: Path | None = None,
     installation_root: Path | None = None,
-    immutable_seed_root: Path | None = None,
 ) -> Path:
     from tools.tooling_policy_gate import (
         host_platform_id,
@@ -54,7 +53,6 @@ def ensure_conftest(
         materialize=installation.materialize_tar_gz,
         legacy_path=conftest_binary_path(repo_root, version=version),
         installation_root=installation_root,
-        immutable_seed_root=immutable_seed_root,
     )
 
 

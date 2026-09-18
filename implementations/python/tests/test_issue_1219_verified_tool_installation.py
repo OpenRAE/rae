@@ -16,7 +16,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from tools import bootstrap_profile, gitleaks_tool, osv_scanner_tool, vale_tool
+from tools import gitleaks_tool, osv_scanner_tool, vale_tool
 from tools import verified_tool_installation as installation
 from tools.policy import conftest_tool
 
@@ -72,7 +72,6 @@ def _direct_install(
     payload: bytes,
     *,
     legacy_path: Path | None = None,
-    immutable_seed_root: Path | None = None,
     acquire=None,
 ) -> Path:
     monkeypatch.setattr(installation, "_portable_lock", _unlocked)
@@ -82,7 +81,6 @@ def _direct_install(
         acquire=acquire or (lambda: payload),
         materialize=installation.materialize_direct,
         legacy_path=legacy_path,
-        immutable_seed_root=immutable_seed_root,
     )
 
 
@@ -103,6 +101,26 @@ def test_installation_identity_is_raw_platform_policy_and_manifest_scoped(tmp_pa
     assert selection.raw_manifest[0].sha256 in path.parts
     assert installation.INSTALLATION_POLICY_ID in path.parts
     assert path.name == installation.installed_manifest_identity(selection.installed_manifest)
+
+
+def test_private_installer_uses_filesystem_primitives_not_a_type_allowlist(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def forbidden_probe(_path: Path) -> str:
+        pytest.fail("private installation must not require filesystem-type qualification")
+
+    monkeypatch.setattr(installation, "_filesystem_type", forbidden_probe, raising=False)
+    payload = b"reviewed tool"
+    selected = _selection(payload)
+    installed = _direct_install(monkeypatch, tmp_path, selected, payload)
+    assert installed.read_bytes() == payload
+    assert (
+        _direct_install(
+            monkeypatch, tmp_path, selected, payload, acquire=lambda: pytest.fail("warm reuse fetched again")
+        )
+        == installed
+    )
 
 
 @pytest.mark.parametrize(
@@ -608,124 +626,6 @@ def test_world_writable_legacy_cache_is_never_admitted(monkeypatch: pytest.Monke
         )
 
 
-def test_immutable_seed_is_reverified_and_copied_into_private_job_tree(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    payload = b"reviewed tool"
-    selection = _selection(payload)
-    seed_root = tmp_path / "seed"
-    seed_tree = installation.installation_tree_path(seed_root, selection)
-    seed_binary = seed_tree / "bin" / "tool"
-    seed_binary.parent.mkdir(parents=True)
-    seed_binary.write_bytes(payload)
-    seed_binary.chmod(0o555)
-    for directory in (seed_binary.parent, seed_tree, *seed_tree.parents):
-        if directory == tmp_path.parent:
-            break
-        if directory.exists() and directory != tmp_path:
-            directory.chmod(0o555)
-
-    job_root = tmp_path / "job"
-    job_root.mkdir()
-    job_root.chmod(0o700)
-    installed = _direct_install(
-        monkeypatch,
-        job_root,
-        selection,
-        payload,
-        immutable_seed_root=seed_root,
-        acquire=lambda: pytest.fail("valid immutable seed triggered acquisition"),
-    )
-
-    assert installed.read_bytes() == payload
-    assert installed != seed_binary
-    assert installed.stat().st_mode & 0o777 == 0o500
-    assert seed_binary.read_bytes() == payload
-
-
-def test_writable_seed_is_rejected_without_acquisition(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    payload = b"reviewed tool"
-    selection = _selection(payload)
-    seed_root = tmp_path / "seed"
-    seed_tree = installation.installation_tree_path(seed_root, selection)
-    seed_binary = seed_tree / "bin" / "tool"
-    seed_binary.parent.mkdir(parents=True)
-    seed_binary.write_bytes(payload)
-    seed_binary.chmod(0o755)
-
-    job_root = tmp_path / "job"
-    job_root.mkdir()
-    job_root.chmod(0o700)
-    with pytest.raises(RuntimeError, match="seed-integrity-failure"):
-        _direct_install(
-            monkeypatch,
-            job_root,
-            selection,
-            payload,
-            immutable_seed_root=seed_root,
-            acquire=lambda: pytest.fail("writable seed triggered acquisition"),
-        )
-
-
-def test_unqualified_shared_filesystem_is_rejected_before_cache_or_acquisition(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    selection = _selection()
-    monkeypatch.setattr(installation, "_filesystem_type", lambda _path: "nfs4")
-
-    with pytest.raises(RuntimeError, match="unsupported-filesystem"):
-        _direct_install(
-            monkeypatch,
-            tmp_path,
-            selection,
-            b"reviewed tool",
-            acquire=lambda: pytest.fail("unqualified filesystem triggered acquisition"),
-        )
-
-
-def test_darwin_filesystem_qualification_reads_the_mount_table(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    observed: list[list[str]] = []
-    monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
-
-    def run(command: list[str], **_kwargs: object) -> SimpleNamespace:
-        observed.append(command)
-        return SimpleNamespace(stdout="/dev/disk3s1s1 on / (apfs, local, journaled)\n")
-
-    monkeypatch.setattr(installation.subprocess, "run", run)
-
-    installation._require_qualified_filesystem(tmp_path)
-
-    assert observed == [["/sbin/mount"]]
-
-
-@pytest.mark.parametrize(
-    "payload",
-    ["not a mount table", "/dev/disk3s1s1 on /elsewhere (apfs, local)\n"],
-)
-def test_darwin_filesystem_qualification_fails_closed_on_invalid_mount_output(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    payload: str,
-) -> None:
-    monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
-    monkeypatch.setattr(
-        installation.subprocess,
-        "run",
-        lambda *_args, **_kwargs: SimpleNamespace(stdout=payload),
-    )
-
-    with pytest.raises(RuntimeError, match="unsupported-filesystem"):
-        installation._require_qualified_filesystem(tmp_path)
-
-
 def test_darwin_directory_sync_uses_the_supported_system_command(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -839,7 +739,6 @@ def test_all_four_wrappers_delegate_to_the_shared_installation_boundary(
             version=version,
             local_input=local_input,
             installation_root=tmp_path / "private",
-            immutable_seed_root=tmp_path / "seed",
         )
         == installed
     )
@@ -849,7 +748,6 @@ def test_all_four_wrappers_delegate_to_the_shared_installation_boundary(
         tmp_path / ".cache" / "raes-sdl" / "tooling" / artifact_id / version / legacy_name
     )
     assert observed["installation_root"] == tmp_path / "private"
-    assert observed["immutable_seed_root"] == tmp_path / "seed"
     assert observed["materialize"] is getattr(installation, materializer)
     assert observed["acquire"]() == b"raw"
     assert observed["acquisition"]["local_input"] == local_input
@@ -910,18 +808,6 @@ def test_real_portable_lock_and_crash_qualification(tmp_path: Path) -> None:
     }
 
 
-def test_partial_harness_cannot_be_recorded_as_complete_canonical_cases() -> None:
-    schema = json.loads(
-        (REPO_ROOT / "implementations" / "tooling" / "schemas" / "profiles.schema.json").read_text(encoding="utf-8")
-    )
-    qualification_ids = set(schema["$defs"]["qualificationRecord"]["properties"]["test_case_ids"]["items"]["enum"])
-    case_ids = set(schema["$defs"]["caseResult"]["properties"]["test_case_id"]["enum"])
-
-    assert not {"T05", "T06", "T07", "T16"} & bootstrap_profile._CASE_IDS
-    assert not {"T05", "T06", "T07", "T16"} & qualification_ids
-    assert qualification_ids == case_ids
-
-
 def test_bootstrap_qualification_retains_local_evidence_without_overclaiming() -> None:
     from tools.nox_support.config import INSTALLATION_QUALIFICATION_HARNESSES
 
@@ -931,9 +817,7 @@ def test_bootstrap_qualification_retains_local_evidence_without_overclaiming() -
         "implementations/python/tests/issue_1219_installation_harness.py"
     )
     assert "-s local-installation-qualification -- --output local-installation-qualification.json" in workflow
-    assert "--slice-evidence local-installation-qualification.json" in workflow
-    assert ".qualification-kit/.cache/raes-sdl/tooling/installations" in workflow
-    assert ".cache/raes-sdl/tooling/installations" in workflow
-    assert 'chmod -R u+w "${cleanup_root}"' in workflow
+    assert "path: local-installation-qualification.json" in workflow
+    assert "offline-kit" not in workflow
     for case_id in ("T05", "T06", "T07", "T16"):
         assert f"record-case {case_id}" not in workflow

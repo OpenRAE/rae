@@ -411,21 +411,6 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
 ) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
     hosts: dict[str, Mapping[str, Any]] = {}
-    evidence: dict[str, Mapping[str, Any]] = {}
-    for value in as_list(document.get("qualification_records")):
-        record = as_mapping(value)
-        evidence_id = record.get("evidence_id")
-        if not isinstance(evidence_id, str):
-            continue
-        if evidence_id in evidence:
-            failures.append(
-                failure(
-                    "tooling-host-evidence-duplicate",
-                    "duplicate host qualification record",
-                    PROFILES_PATH,
-                )
-            )
-        evidence[evidence_id] = record
     for value in as_list(document.get("host_profiles")):
         host = as_mapping(value)
         host_id = host.get("host_profile_id")
@@ -442,7 +427,7 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
         hosts[host_id] = host
         payload_ids = string_set(host.get("bootstrap_payload_ids"))
         missing_artifacts = payload_ids - artifacts.keys()
-        missing_artifacts.update(string_set(as_mapping(host.get("offline_kit")).get("artifact_ids")) - artifacts.keys())
+
         if missing_artifacts:
             failures.append(
                 failure(
@@ -517,50 +502,14 @@ def _host_profile_failures(  # NOSONAR -- explicit branches identify each policy
                 )
             )
         required_closure = PROOF_HOST_NATIVE_CLOSURE.get(str(host.get("native_family")))
-        closure_packages = string_set(as_mapping(host.get("offline_kit")).get("host_prerequisite_package_ids"))
+        closure_packages = string_set(host.get("host_prerequisite_package_ids"))
         if proof_support == "linux-x86_64-required" and (
             required_closure is None or required_closure - closure_packages
         ):
             failures.append(
                 failure(
                     "tooling-host-proof-closure",
-                    f"{host_id} offline kit omits the Bubblewrap, fontconfig, font, or locale providers",
-                    PROFILES_PATH,
-                )
-            )
-        for evidence_id in string_set(host.get("qualification_record_ids")):
-            record = evidence.get(evidence_id)
-            if record is None or record.get("host_profile_id") != host_id:
-                failures.append(
-                    failure(
-                        "tooling-host-evidence-reference",
-                        f"{host_id} references mismatched evidence",
-                        PROFILES_PATH,
-                    )
-                )
-    for evidence_id, record in evidence.items():
-        if record.get("host_profile_id") not in hosts:
-            failures.append(
-                failure(
-                    "tooling-host-evidence-host",
-                    f"{evidence_id} names an unknown host profile",
-                    PROFILES_PATH,
-                )
-            )
-            continue
-        host = hosts[str(record["host_profile_id"])]
-        if (
-            str(host.get("base_image_identity", "")).startswith("github-hosted-runner:")
-            and record.get("outcome") == "passed"
-            and (
-                not str(record.get("base_image_identity", "")).startswith("github-runner:")
-                or not str(record.get("native_repository_identity", "")).startswith("github-runner-package-set:")
-            )
-        ):
-            failures.append(
-                failure(
-                    "tooling-host-evidence-observation",
-                    f"{evidence_id} passed without exact observed hosted-runner identities",
+                    f"{host_id} native prerequisites omit the Bubblewrap, fontconfig, font, or locale providers",
                     PROFILES_PATH,
                 )
             )
@@ -712,7 +661,13 @@ def _artifact_platform_failures(
         scan.dependency_graph[artifact_id].update(string_set(platform.get("dependencies")))
         failures.extend(
             _platform_failures(
-                repo_root, artifact_id, artifact, platform, scan.profiles, scan.policies, scan.denied_digests
+                repo_root,
+                artifact_id,
+                artifact,
+                platform,
+                scan.profiles,
+                scan.policies,
+                scan.denied_digests,
             )
         )
     return failures
