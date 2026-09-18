@@ -52,7 +52,6 @@ from .control_plane_store_paths import (
 )
 from .control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION, migrate_sqlite_schema
 from .control_plane_store_records import _audit_event_from_payload
-from .control_plane_store_records import _record_payload as _record_payload
 from .control_plane_store_snapshots import _snapshot_from_payload, _snapshot_payload
 
 _DATABASE_NAME = "control-plane.sqlite3"

@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from raes_contracts.canonical import canonical_json_digest
@@ -188,12 +188,17 @@ def _add_idempotency_claim_columns(
         if record.idempotency_key != persisted_key:
             raise ValueError("operation idempotency key does not match its durable index")
         context = record.receipt.context
-        record = replace(
-            record,
+        migrated_record = ControlPlaneOperationRecord(
+            receipt=record.receipt,
+            status=record.status,
             request_fingerprint=context.request_commitment,
+            idempotency_key=record.idempotency_key,
+            result_payload=record.result_payload,
+            decision_history_heads=record.decision_history_heads,
+            result_history_heads=record.result_history_heads,
             legacy_request_commitment=bool(record.idempotency_key),
         )
-        record_content, record_digest = encode_payload(_record_payload(record))
+        record_content, record_digest = encode_payload(_record_payload(migrated_record))
         legacy_opaque = int(record.idempotency_key.startswith(("participant-control:", "participant-crossing:")))
         connection.execute(
             """

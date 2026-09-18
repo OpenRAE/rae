@@ -223,28 +223,22 @@ class WorkflowControlMixin:
                     context=operation_context,
                 )
             return claimed.receipt
+        operation = SucceededOperationRequest(
+            operation_id=operation_id,
+            domain=RuntimeDomain.ORCHESTRATION,
+            submitted_at=submitted_at,
+            idempotency_key=idempotency_key,
+            context=operation_context,
+            legacy_request_fingerprint=legacy_request_fingerprint,
+        )
         if context.workflow_status in _TERMINAL_WORKFLOW_STATUSES:
-            receipt = persist_succeeded_operation(
-                self,
-                SucceededOperationRequest(
-                    operation_id=operation_id,
-                    domain=RuntimeDomain.ORCHESTRATION,
-                    submitted_at=submitted_at,
-                    idempotency_key=idempotency_key,
-                    context=operation_context,
-                    legacy_request_fingerprint=legacy_request_fingerprint,
-                ),
-            )
+            receipt = persist_succeeded_operation(self, operation)
         else:
             receipt = self._cancel_active_workflow(
                 workflow_address,
                 normalized=context,
                 reason=reason,
-                operation_id=operation_id,
-                submitted_at=submitted_at,
-                idempotency_key=idempotency_key,
-                operation_context=operation_context,
-                legacy_request_fingerprint=legacy_request_fingerprint,
+                operation=operation,
             )
         return receipt
 
@@ -274,12 +268,12 @@ class WorkflowControlMixin:
         *,
         normalized: WorkflowExecutionState,
         reason: str,
-        operation_id: str,
-        submitted_at: str,
-        idempotency_key: str,
-        operation_context: OperationAdmissionContext,
-        legacy_request_fingerprint: str,
+        operation: SucceededOperationRequest,
     ) -> OperationReceipt:
+        operation_id = operation.operation_id
+        submitted_at = operation.submitted_at
+        idempotency_key = operation.idempotency_key
+        operation_context = operation.context
         cancelled_state = WorkflowExecutionState(
             state_schema_version=normalized.state_schema_version,
             workflow_status=WorkflowStatus.CANCELLED,
@@ -350,7 +344,7 @@ class WorkflowControlMixin:
                 idempotency_key=idempotency_key,
                 request_fingerprint=operation_context.request_commitment,
             ),
-            legacy_request_fingerprint=legacy_request_fingerprint,
+            legacy_request_fingerprint=operation.legacy_request_fingerprint,
         )
         if claimed.receipt.operation_id != operation_id:
             return claimed.receipt

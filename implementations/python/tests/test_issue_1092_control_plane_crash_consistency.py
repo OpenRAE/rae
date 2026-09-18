@@ -74,6 +74,7 @@ from raes_runtime.control_plane_store_compatibility import (
     adapt_control_plane_store,
 )
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
+from raes_runtime.control_plane_store_records import _record_payload
 from raes_runtime.control_plane_store_snapshots import (
     _require_complete_runtime_snapshot_fields,
     _snapshot_from_payload,
@@ -382,7 +383,7 @@ def _pre_lifecycle_record_payload(
     *,
     accepted: bool = True,
 ) -> dict[str, Any]:
-    payload = local_store_module._record_payload(record)
+    payload = _record_payload(record)
     payload["receipt"].pop("context")
     payload["receipt"]["accepted"] = accepted
     payload["status"].pop("context")
@@ -1175,14 +1176,14 @@ def test_local_store_migrates_complete_legacy_state_and_keeps_auditable_backup(
         json.dumps(
             {
                 "snapshot": _snapshot_payload(committed_snapshot),
-                "records": {control_record.receipt.operation_id: local_store_module._record_payload(control_record)},
+                "records": {control_record.receipt.operation_id: _record_payload(control_record)},
                 "audit": [asdict(first_audit)],
             }
         ),
         encoding="utf-8",
     )
     (store_path / "operations.json").write_text(
-        json.dumps({operations_record.receipt.operation_id: local_store_module._record_payload(operations_record)}),
+        json.dumps({operations_record.receipt.operation_id: _record_payload(operations_record)}),
         encoding="utf-8",
     )
     (store_path / "audit.jsonl").write_text(
@@ -1229,7 +1230,7 @@ def test_local_store_backup_file_fsync_failure_rolls_back_and_restarts_migration
     store_path.mkdir(mode=0o700)
     record = _running_record("legacy-fsync-restart")
     legacy_path = store_path / "operations.json"
-    legacy_payload = json.dumps({record.receipt.operation_id: local_store_module._record_payload(record)})
+    legacy_payload = json.dumps({record.receipt.operation_id: _record_payload(record)})
     legacy_path.write_text(legacy_payload, encoding="utf-8")
     real_fsync = store_paths_module.os.fsync
     regular_file_fsyncs = 0
@@ -1278,7 +1279,7 @@ def test_local_store_rolls_back_unverified_legacy_migration(
         encoding="utf-8",
     )
     (store_path / "operations.json").write_text(
-        json.dumps({record.receipt.operation_id: local_store_module._record_payload(record)}),
+        json.dumps({record.receipt.operation_id: _record_payload(record)}),
         encoding="utf-8",
     )
     monkeypatch.setattr(

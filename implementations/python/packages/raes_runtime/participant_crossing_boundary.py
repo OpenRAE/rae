@@ -259,17 +259,16 @@ def _execute_action_ingress_crossing_authorized(
             incumbent_carrier=request,
         )
         early = early_crossing_receipt(control_plane, crossing)
+        sink_decision = None
+        if early is None:
+            sink_decision, early = resolve_flow_sink_denial(
+                control_plane,
+                crossing,
+                sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
+                action="record_participant_crossing",
+            )
         if early is not None:
             return early
-
-        sink_decision, sink_receipt = resolve_flow_sink_denial(
-            control_plane,
-            crossing,
-            sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
-            action="record_participant_crossing",
-        )
-        if sink_receipt is not None:
-            return sink_receipt
 
         governed_request = _governed_action_request(control_plane, crossing, request)
         _require_action_binding(participant_behavior, governed_request)

@@ -218,16 +218,13 @@ def test_workflow_cancellation_retry_returns_incumbent_after_state_turns_termina
 def test_stale_explicit_base_does_not_persist_a_new_claim() -> None:
     control_plane = RuntimeControlPlane(create_stub_target())
     stale = replace(control_plane.snapshot, metadata={"revision": "stale"})
+    plan = ProvisioningPlan()
 
     with pytest.raises(
         ValueError,
         match="explicit base snapshot does not match the authoritative runtime snapshot",
     ):
-        control_plane.submit_provisioning(
-            ProvisioningPlan(),
-            base_snapshot=stale,
-            idempotency_key="stale-base",
-        )
+        control_plane.submit_provisioning(plan, base_snapshot=stale, idempotency_key="stale-base")
 
     assert control_plane._store.load_records() == {}
     control_plane.close()
@@ -246,9 +243,10 @@ def test_atomic_claim_rejects_changed_immutable_replay_conditions(
     changed_context: OperationAdmissionContext,
 ) -> None:
     admitted_store.claim_record(_record("operation-original"))
+    conflicting_record = _record("operation-conflict", context=changed_context)
 
     with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
-        admitted_store.claim_record(_record("operation-conflict", context=changed_context))
+        admitted_store.claim_record(conflicting_record)
 
     assert set(admitted_store.load_records()) == {"operation-original"}
 
@@ -283,9 +281,10 @@ def test_operation_commitment_has_a_versioned_operation_specific_domain() -> Non
 @pytest.mark.parametrize("key", ["contains whitespace", "control\ncharacter", "x" * 257])
 def test_idempotency_key_shape_is_bounded_at_the_core(key: str) -> None:
     control_plane = RuntimeControlPlane(create_stub_target())
+    plan = ProvisioningPlan()
 
     with pytest.raises(ValueError, match="Idempotency-Key must be 1-256 visible ASCII characters"):
-        control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key=key)
+        control_plane.submit_provisioning(plan, idempotency_key=key)
 
     assert control_plane.snapshot.entries == {}
     control_plane.close()
@@ -379,14 +378,13 @@ def test_v3_store_migration_builds_composite_claims_and_quarantines_opaque_parti
             row = connection.execute("SELECT actor_id, operation_kind, legacy_opaque_claim FROM operations").fetchone()
             assert row == ("operator-a", "participant-control", 1)
             assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("4",)
+        conflicting_record = _record(
+            "post-migration-retry",
+            context=_context(kind=OperationKind.PARTICIPANT_CONTROL),
+            key="original-client-key-is-not-recoverable",
+        )
         with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
-            migrated.claim_record(
-                _record(
-                    "post-migration-retry",
-                    context=_context(kind=OperationKind.PARTICIPANT_CONTROL),
-                    key="original-client-key-is-not-recoverable",
-                )
-            )
+            migrated.claim_record(conflicting_record)
         assert set(migrated.load_records()) == {legacy.receipt.operation_id}
     finally:
         migrated.close()
