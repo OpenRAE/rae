@@ -46,7 +46,7 @@
     {
       "source_id": "codeql-upload-sarif",
       "action": "github/codeql-action/upload-sarif",
-      "commit": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "commit": "b96794f015dfd88f77b49b1c93e0fa7110f94c63",
       "owner_roles": [
         "Security"
       ],
@@ -58,7 +58,7 @@
         "reviewed-workflow-reference"
       ],
       "runtime": "node24",
-      "closure_review_ref": "https://raw.githubusercontent.com/github/codeql-action/cdf488f595d80d6e07e03d4674febd5ab45fa938/upload-sarif/action.yml",
+      "closure_review_ref": "https://raw.githubusercontent.com/github/codeql-action/b96794f015dfd88f77b49b1c93e0fa7110f94c63/upload-sarif/action.yml",
       "transitive_inputs": [
         {
           "input_id": "code-scanning-service",
@@ -710,7 +710,7 @@
       "reviewer_roles": [
         "Tooling"
       ],
-      "evidence_ref": "https://raw.githubusercontent.com/github/codeql-action/cdf488f595d80d6e07e03d4674febd5ab45fa938/upload-sarif/action.yml",
+      "evidence_ref": "https://raw.githubusercontent.com/github/codeql-action/b96794f015dfd88f77b49b1c93e0fa7110f94c63/upload-sarif/action.yml",
       "scope": "Scheduled/protected Scorecard upload only.",
       "review_on": "2027-03-11"
     },
@@ -3116,7 +3116,7 @@
       "job": "analysis",
       "step": "Upload Scorecard results to code scanning",
       "action": "github/codeql-action/upload-sarif",
-      "commit": "cdf488f595d80d6e07e03d4674febd5ab45fa938",
+      "commit": "b96794f015dfd88f77b49b1c93e0fa7110f94c63",
       "inputs": {
         "sarif_file": "results.sarif"
       },
