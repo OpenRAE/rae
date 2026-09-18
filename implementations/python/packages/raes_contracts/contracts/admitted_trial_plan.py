@@ -44,11 +44,13 @@ from .admitted_trial_plan_components import (
     AdmittedBindingModel,
     AdmittedExecutionControlModel,
     AdmittedInstantiationProvenanceModel,
+    AdmittedMixedCompositionBindingModel,
     AdmittedParticipantManifestReferenceModel,
     AdmittedSelectionRecordModel,
     AdmittedTrialPlanAdmissionModel,
     AdmittedTrialPlanInputRefsModel,
     AdmittedTrialPlanProfilesModel,
+    AdmittedTrialSourceReferenceModel,
     BindingOrigin,
     ExperimentScenarioFamilyReferenceModel,
     SelectionPolicyKind,
@@ -142,7 +144,7 @@ class AdmittedTrialEntryModel(ContractModel):
     selections: list[AdmittedSelectionRecordModel] = Field(default_factory=list)
     bindings: list[AdmittedBindingModel] = Field(default_factory=list)
     stochastic_draws: list[RandomStreamDrawRecordModel] = Field(default_factory=list)
-    apparatus: AdmittedApparatusBindingModel
+    apparatus: AdmittedApparatusBindingModel | AdmittedMixedCompositionBindingModel
     execution_controls: AdmittedExecutionControlModel
     instantiation_provenance: AdmittedInstantiationProvenanceModel
     entry_digest: PrefixedDigestString
@@ -266,6 +268,50 @@ class AdmittedTrialPlanModel(ContractModel):
                 raise ValueError("entry instantiation_provenance scenario_family_id must equal the pinned family ref")
 
     def _validate_joins(self) -> None:
+        mixed_entries = self._validate_profile_joins()
+        if any(
+            entry.apparatus.source_trial is not None and entry.apparatus.source_trial.plan_id == self.plan_id
+            for entry in mixed_entries
+        ):
+            raise ValueError("mixed composition source trials must reference an external already-sealed plan")
+        self._validate_cleanup_joins()
+
+    def _validate_profile_joins(self) -> list[AdmittedTrialEntryModel]:
+        mixed_entries = [
+            entry
+            for entry in self.entries.values()
+            if isinstance(entry.apparatus, AdmittedMixedCompositionBindingModel)
+        ]
+        mixed_profile = self.profiles.compiler_profile == "trial-compiler-mixed-composition-v1"
+        if bool(mixed_entries) != mixed_profile:
+            raise ValueError("mixed composition entries require the matching compiler and identity profiles")
+        if mixed_profile and (
+            self.profiles.entry_identity_profile != "trial-entry-identity-mixed-composition-v1"
+            or self.profiles.run_identity_profile != "archival-run-identity-mixed-composition-v1"
+        ):
+            raise ValueError("mixed composition compiler and identity profiles must move together")
+        if not mixed_profile and (
+            self.profiles.entry_identity_profile != "trial-entry-identity-v1"
+            or self.profiles.run_identity_profile != "archival-run-identity-v1"
+        ):
+            raise ValueError("legacy compiler and identity profiles must move together")
+        declared_profiles = {
+            (reference.ref_id, reference.ref_version, reference.ref_digest)
+            for reference in self.input_refs.mixed_composition_profile_refs
+        }
+        used_profiles = {
+            (
+                entry.apparatus.profile_ref.ref_id,
+                entry.apparatus.profile_ref.ref_version,
+                entry.apparatus.profile_ref.ref_digest,
+            )
+            for entry in mixed_entries
+        }
+        if declared_profiles != used_profiles:
+            raise ValueError("mixed composition entry profile references must equal the plan's exact input set")
+        return mixed_entries
+
+    def _validate_cleanup_joins(self) -> None:
         referenced_cleanup: set[str] = set()
         for entry in self.entries.values():
             cleanup_ref = entry.execution_controls.cleanup_plan_ref
@@ -321,8 +367,9 @@ class AdmittedTrialPlanModel(ContractModel):
             "admitted-trial-plan-identity-joins-and-integrity",
             "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, "
             "gives every entry a unique logical coordinate and archival run_id, resolves cleanup and "
-            "stochastic-control joins (with each draw addressed to its entry coordinate) and isolation-proof entries "
-            "within the sealed plan, requires values duplicated from incumbent authorities (random-stream profile, "
+            "stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition "
+            "profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from "
+            "incumbent authorities (random-stream profile, "
             "binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches "
             "admission cardinality, and binds the complete plan with a recomputed plan_digest over the entry set.",
             validator="raes_contracts.contracts.admitted_trial_plan.AdmittedTrialPlanModel._validate_plan",
@@ -360,6 +407,7 @@ __all__ = [
     "AdmittedBindingModel",
     "AdmittedExecutionControlModel",
     "AdmittedInstantiationProvenanceModel",
+    "AdmittedMixedCompositionBindingModel",
     "AdmittedParticipantManifestReferenceModel",
     "AdmittedSelectionRecordModel",
     "AdmittedTrialEntryModel",
@@ -367,6 +415,7 @@ __all__ = [
     "AdmittedTrialPlanInputRefsModel",
     "AdmittedTrialPlanModel",
     "AdmittedTrialPlanProfilesModel",
+    "AdmittedTrialSourceReferenceModel",
     "BindingOrigin",
     "ExperimentScenarioFamilyReferenceModel",
     "SelectionPolicyKind",

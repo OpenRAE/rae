@@ -23,6 +23,7 @@ from raes_contracts.admitted_trial_plan_ingress import (
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
+    AdmittedMixedCompositionBindingModel,
     AdmittedTrialPlanModel,
     BackendManifestV2Model,
     EvaluationPlanModel,
@@ -259,6 +260,8 @@ def realize_admitted_trial_entry(
     entry = admitted_plan.entries.get(plan_entry_id)
     if entry is None:
         raise ValueError("plan_entry_id does not resolve inside the admitted plan")
+    if isinstance(entry.apparatus, AdmittedMixedCompositionBindingModel):
+        raise ValueError("mixed-composition runtime coordination is not implemented")
     _validate_experiment_and_task(admitted_plan, inputs.experiment, inputs.task)
     _validate_capture_specs(
         admitted_plan,

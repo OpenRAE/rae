@@ -216,6 +216,7 @@ ownership:
     - implementations/python/tests/test_authoring_adapter_governance.py
     - implementations/python/tests/test_corpus_packaging.py
     - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
     - implementations/python/tests/test_formal_semantic_validation.py
     - implementations/python/tests/test_issue_989_versioned_evidence.py
   realization-honesty-conformance:
@@ -592,19 +593,30 @@ ownership:
     - specs/sdl/observability-and-evidence.md
   mixed-participant-composition:
     # SEM-234 publishes semantics and composes incumbent SCE-002 authority into
-    # portable contracts, not mixed-runtime implementation (#1013/#1014).
+    # portable contracts, not mixed-runtime implementation (#1013/#1014); the
+    # #1015 extends that authority through deterministic mixed/staged admission.
     - specs/formal/participant-semantics/cross-backend-participant-control.md
     - specs/formal/participant-semantics/README.md
     - specs/formal/assurance-fulfillment.yaml
     - docs/decisions/issue-1013-sem-234-mixed-participant-control-preflight.md
     - docs/decisions/issue-1014-mixed-composition-contracts-preflight.md
+    - docs/decisions/issue-1015-mixed-staged-trial-admission-preflight.md
     - docs/explain/reference/mixed-participant-composition.md
+    - docs/explain/reference/scenario-variation-and-trial-realization.md
     - docs/governance/requirement-scopes/1014.json
     - docs/research/formal-semantic-validation/bundles/retest-v31.json
     - docs/research/formal-semantic-validation/execution-snapshot-v31.json
+    - docs/research/formal-semantic-validation/index.md
+    - docs/research/formal-semantic-validation/analysis-v32.json
+    - docs/research/formal-semantic-validation/bundles/retest-v32.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v32.json
     - docs/research/specification-coverage/analysis-v31.json
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1183-v31.json
     - docs/research/specification-coverage/execution-snapshot-v31.json
+    - docs/research/specification-coverage/index.md
+    - docs/research/specification-coverage/analysis-v32.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1015-v32.json
+    - docs/research/specification-coverage/execution-snapshot-v32.json
     - docs/explain/sdl/lineage.md
     - docs/public/participant-control.md
     - docs/requirements/SEM-234/requirement.md
@@ -619,6 +631,9 @@ ownership:
     - implementations/python/packages/raes_contracts/contracts/mixed_composition.py
     - implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py
     - implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py
+    - implementations/python/packages/raes_contracts/contracts/admitted_trial_plan.py
+    - implementations/python/packages/raes_contracts/contracts/admitted_trial_plan_components.py
+    - implementations/python/packages/raes_contracts/contracts/trial_compilation.py
     - implementations/python/packages/raes_contracts/json_ingress.py
     - implementations/python/packages/raes_contracts/contracts/bundle.py
     - implementations/python/packages/raes_contracts/contracts/__init__.py
@@ -627,8 +642,15 @@ ownership:
     - implementations/python/packages/raes_conformance/conformance/validators.py
     - implementations/python/tests/test_issue_1014_mixed_composition_contracts.py
     - implementations/python/tests/test_issue_1014_mixed_composition_governance.py
+    - implementations/python/tests/test_issue_1015_mixed_staged_trial_admission.py
+    - implementations/python/tests/test_formal_semantic_validation.py
+    - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
     - contracts/schemas/plans/mixed-participant-composition-profile-v1.json
+    - contracts/schemas/plans/admitted-trial-plan-v1.json
     - contracts/schema-publication/entries/mixed-participant-composition-profile-v1.json
+    - contracts/schema-publication/entries/admitted-trial-plan-v1.json
+    - contracts/fixtures/plans/trial-compiler-mixed-composition-v1/identity-vectors.json
     - contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/alternative.json
     - contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/simultaneous-mixed.json
     - contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/staged.json
@@ -639,6 +661,14 @@ ownership:
     - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/staged-unadmitted-member.json
     - contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/unknown-revision.json
     - tools/generate_contract_schemas.py
+    - implementations/python/packages/raes_processor/trial_compiler/__init__.py
+    - implementations/python/packages/raes_processor/trial_compiler/apparatus.py
+    - implementations/python/packages/raes_processor/trial_compiler/compiler.py
+    - implementations/python/packages/raes_processor/trial_compiler/inputs.py
+    - implementations/python/packages/raes_processor/trial_compiler/models.py
+    - implementations/python/packages/raes_processor/trial_compiler/profiles.py
+    - implementations/python/packages/raes_processor/trial_compiler/realization_admission.py
+    - implementations/python/packages/raes_processor/trial_realization.py
     - tools/policy/requirement_order.yaml
     # Supporting delivery-hook regression requested during #1013 review.
     - implementations/python/tests/test_nox_shard_wiring.py

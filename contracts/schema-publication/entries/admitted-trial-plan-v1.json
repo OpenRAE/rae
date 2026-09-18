@@ -1,9 +1,9 @@
 {
-  "content_hash": "76e26273f6a500068b808854715ebb2f1f30ee9ccc09a763dc40ed3659bff1b5",
+  "content_hash": "a7196c336041aba73cbb7cbad3895d086d39b0a9445e6389d58756d2844df6f2",
   "contract_id": "admitted-trial-plan-v1",
   "last_change": {
-    "content_hash": "76e26273f6a500068b808854715ebb2f1f30ee9ccc09a763dc40ed3659bff1b5",
-    "summary": "Add the distinct materialization-attestation reference kind to portable artifact joins; it never replaces the original scenario-snapshot identity (#1241)."
+    "content_hash": "a7196c336041aba73cbb7cbad3895d086d39b0a9445e6389d58756d2844df6f2",
+    "summary": "Add exact mixed-composition profile, participant-manifest authority, and immediate-source bindings to admitted trial entries while preserving legacy single-realizer serialization (#1015)."
   },
   "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
   "stability": "draft"

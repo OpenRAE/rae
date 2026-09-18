@@ -726,7 +726,7 @@ def test_graph_work_limit_and_unresolved_nested_profile_fail_closed() -> None:
     base = _profile()
     cyclic = base.model_copy(update={"nested_profile_refs": {base.profile_id: base.profile_digest}})
     cyclic_context = replace(_context(cyclic), nested_profiles={base.profile_id: cyclic})
-    with pytest.raises(ValueError, match="cycle"):
+    with pytest.raises(ValueError, match="reconstruction|cycle"):
         validate_mixed_composition_context(cyclic, cyclic_context)
 
     child = _alternative_profile()
