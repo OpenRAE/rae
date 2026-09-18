@@ -40,8 +40,10 @@ REQUIRED_EVIDENCE = ("build-inventory.json", "sdist.cdx.json", "wheel.cdx.json")
 MAX_EVIDENCE_BYTES = 4 * 1024 * 1024
 _READ_CHUNK = 1024 * 1024
 
-_WHEEL_SUFFIX = ".whl"
-_SDIST_SUFFIX = ".tar.gz"
+# Shared with the publication boundary, which derives the expected release
+# filenames from these same suffixes.
+WHEEL_SUFFIX = ".whl"
+SDIST_SUFFIX = ".tar.gz"
 _DERIVED_DIRECTORY = "from-sdist"
 
 
@@ -107,7 +109,7 @@ def _single(paths: Sequence[Path], role: str) -> Path:
 
 def _distribution_files(distribution_dir: Path) -> tuple[Path, Path, Path]:
     wheels = sorted(p for p in distribution_dir.glob("*.whl") if p.is_file())
-    sdists = sorted(p for p in distribution_dir.glob(f"*{_SDIST_SUFFIX}") if p.is_file())
+    sdists = sorted(p for p in distribution_dir.glob(f"*{SDIST_SUFFIX}") if p.is_file())
     derived = sorted(p for p in (distribution_dir / _DERIVED_DIRECTORY).glob("*.whl") if p.is_file())
     return (
         _single(wheels, "release wheel"),
@@ -428,6 +430,8 @@ __all__ = [
     "REQUIRED_EVIDENCE",
     "MAX_EVIDENCE_BYTES",
     "SCHEMA_VERSION",
+    "SDIST_SUFFIX",
+    "WHEEL_SUFFIX",
     "AdmissionError",
     "ProducerIdentity",
     "build_evidence_index",

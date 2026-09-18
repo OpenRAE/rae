@@ -53,6 +53,10 @@ from tools.release_evidence_documents import (
     render_build_inventory,
     render_runtime_sbom,
 )
+from tools.release_evidence_publication import (
+    admitted_publication_subjects,
+    render_publication_outputs,
+)
 from tools.release_evidence_sbom import (
     RuntimeClosureError,
     observed_installation,
@@ -402,6 +406,10 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     # context rather than from the index being verified.
     verify_parser.add_argument("--release-tag", required=True)
     verify_parser.add_argument("--repo-root", default=REPO_ROOT, type=Path)
+    # The admission job is the trust bridge to the credentialed publishers: it
+    # writes the validated wheel/sdist identity here, and they publish nothing
+    # that does not match it.
+    verify_parser.add_argument("--emit-subjects", type=Path)
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
@@ -416,6 +424,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ("evidence_dir", "evidence directory"),
             ("environment", "smoke environment"),
             ("sdist_environment", "sdist smoke environment"),
+            ("emit_subjects", "publication handoff sink"),
         ):
             value = getattr(args, name, None)
             if value is not None:
@@ -456,6 +465,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             expected=ReleaseIdentity(**identity, tag=args.release_tag),
             policy_hashes=policy_hashes,
         )
+        # Unconditional: the admitted subject names must correspond to the
+        # release being published on every admission, not only when a caller
+        # asks for the handoff to be written out.
+        subjects = admitted_publication_subjects(index, expected_tag=args.release_tag)
+        if args.emit_subjects is not None:
+            # Written only here, after admission accepted the release, so a
+            # refused release leaves no scalars a publisher could act on.
+            args.emit_subjects.write_text(
+                render_publication_outputs(subjects) + "\n",
+                encoding="utf-8",
+            )
         print("release evidence admitted")
         return 0
     except (

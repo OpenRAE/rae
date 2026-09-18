@@ -42,18 +42,45 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    and sdist, checks the corpus in both archives, installs each exact artifact in
    its own fresh environment, and runs `raes conformance backend --profile
    provisioning-only` outside the checkout.
-7. Only those tested distributions cross into the `pypi` environment. After any
-   environment approval and artifact download, the job freshly revalidates the
-   Release object id, draft state, exact tag ref, and fully dereferenced commit
-   SHA immediately before its pinned OIDC publisher runs. A separate GitHub-only
-   job performs the same identity checks again, attaches the artifacts, and
-   re-reads the Release identity after attachment before making the exact
-   numeric Release id public. Keeping these jobs separate means a failed
-   attachment/finalization can be retried without attempting a second PyPI
-   upload. If the public-finalization response was lost after GitHub applied
-   it, the retry accepts the already-public Release only after downloading and
-   byte-comparing both attached distributions and rechecking the id, tag, and
-   commit SHA.
+7. An admission job downloads those distributions and their evidence, runs the
+   full evidence admission, and checks that the admitted wheel and sdist
+   filenames correspond to the resolved tag version. Because it is the last job
+   permitted to run repository code, it is the trust bridge: on success it
+   exports only four validated scalars — the wheel and sdist basenames and
+   their SHA-256 digests — as job outputs. A refused release exports nothing.
+8. Only those tested distributions cross into the `pypi` environment. Each
+   publisher independently downloads the artifact, requires exactly the two
+   admitted filenames, and rehashes the bytes against the admitted digests
+   immediately before its destination operation. Neither publisher checks out
+   or executes repository source, so publication credentials never coexist
+   with candidate code in the same job; the identity checks they need are made
+   over the API.
+9. Each destination is then reconciled independently — this is deliberately
+   not a transaction:
+   - **PyPI.** The workflow queries the release's JSON API before uploading.
+     PyPI reports a SHA-256 for every file it stores, so an "already exists"
+     answer is never taken as proof of byte identity. Every expected file
+     already present with matching bytes means there is nothing to upload; a
+     missing file leaves that upload pending; a same-name file with different
+     bytes fails the run. An unreachable or unexpected API response fails
+     rather than being read as "not published".
+   - **GitHub.** The job revalidates the Release object id, draft state, exact
+     tag ref, and fully dereferenced commit SHA, then reconciles every asset
+     it writes — both distributions and the retained evidence — one at a time.
+     GitHub publishes no server-side asset digest, so presence comes from the
+     Release's asset listing and identity from a byte comparison. Exactly three
+     outcomes are allowed: matching existing bytes (already published),
+     confirmed absence (upload, then read the stored bytes back and compare),
+     or failure. An asset listing or download that does not succeed is never
+     read as absence, so a transient API error cannot become an overwrite, and
+     nothing is ever overwritten. The Release identity is re-read after
+     attachment before the numeric Release id is made public.
+
+   Keeping these jobs separate means a failed attachment or finalization is
+   retried without attempting a second PyPI upload. If the public-finalization
+   response was lost after GitHub applied it, the retry accepts the
+   already-public Release only after downloading and byte-comparing both
+   attached distributions and rechecking the id, tag, and commit SHA.
 
 GitHub exposes draft Releases only to push-capable identities. Consequently,
 the release-resolution job and the pre-PyPI revalidation job each need
@@ -199,22 +226,61 @@ must not grant itself permission to rewrite live organization rulesets. This
 ruleset remains a maintainer-owned external control and a release-readiness
 requirement.
 
-## Manual recovery publish
+## Recovering a partial publication
 
-`workflow_dispatch` accepts an existing GitHub Release tag when a prior upload
-needs to be retried. The tag must be stable SemVer (`vX.Y.Z`), resolve to a
-commit reachable from `main`, and have a policy base. The workflow resolves it
-once to a full SHA and runs the same canonical verification, build, corpus
-checks, exact wheel and sdist installation/conformance smokes, and OIDC
-publication chain. PyPI upload and GitHub attachment are separate jobs, so use
-GitHub's **re-run failed jobs** operation if attachment or finalization fails
-after PyPI succeeds.
-For a draft created by an older run that failed before PyPI publication, invoke
-the current workflow from the default branch with that existing tag rather than
-re-running the stale workflow definition. This preserves the bound tag, commit,
-and numeric Release identity while applying the current publication gates.
-Manual dispatch is not a verification bypass and never builds from the current
-branch head.
+Publication is two independently reconciled destinations, so a run that
+published to PyPI and then failed on GitHub is a normal, recoverable state. The
+governing rule is that recovery republishes **the original tested bytes** and
+never rebuilds a new artifact under an existing version.
+
+**Start here: re-run the failed jobs on the original run.** In the Actions UI,
+open the release run and use **re-run failed jobs**. This reuses that run's own
+distribution and evidence artifacts, so `build-release` does not run again and
+the bytes are the ones that were admitted. The publishers reconcile each
+destination and complete only what is outstanding:
+
+| Observed state | What the re-run does |
+| --- | --- |
+| PyPI published, GitHub not attached | Skips the PyPI upload (digests already match) and attaches/finalizes GitHub. |
+| PyPI partially uploaded | Uploads only the missing file; the present one is verified byte-identical first. |
+| GitHub asset or evidence already attached | Leaves it in place after a byte comparison. |
+| Outcome uncertain (lost API response) | Queries each destination and compares bytes before doing anything. |
+| Destination query itself fails | Stops. An unavailable answer is never read as "not published". |
+| Same version, different bytes at a destination | Fails visibly. See below. |
+
+Actions artifacts are retained for **seven days**. Within that window the
+re-run is the whole procedure.
+
+**If the artifacts have aged out.** The distribution artifact is the only
+source of publishable bytes; no publisher can rebuild. When the download fails,
+that failure *is* the diagnosis: stop. Do not dispatch a fresh run to recreate
+the version — a rebuild is not guaranteed to reproduce the published bytes, and
+replacing an already-published version silently is exactly what this design
+forbids. Cut a new patch release through the normal reviewed process instead.
+The release evidence itself outlives the artifact window, because it is
+attached to the durable GitHub Release.
+
+**A same-version digest mismatch is an incident, not a retry.** If PyPI or the
+Release already stores a file under an expected name with different bytes, the
+run fails and says so. Do not overwrite it, move the tag, or rebuild. Establish
+where the divergent bytes came from, then publish a new version.
+
+### Dispatching the workflow for an existing tag
+
+`workflow_dispatch` accepts an existing stable-SemVer tag (`vX.Y.Z`) that
+resolves to a commit reachable from `main` and has a policy base. The workflow
+resolves it once to a full SHA and runs the whole graph — canonical
+verification, the required real-container lane, build, corpus checks, the exact
+wheel and sdist installation/conformance smokes, evidence admission, and the
+OIDC publication chain.
+
+Use this for a draft created by an older run that failed **before** PyPI
+publication: it preserves the bound tag, commit, and numeric Release identity
+while applying the current publication gates, rather than re-running a stale
+workflow definition. It is not the recovery path for a version that is already
+on PyPI — that run rebuilds, and the destination digest comparison will reject
+the result unless the rebuild is byte-identical. Manual dispatch is not a
+verification bypass and never builds from the current branch head.
 
 ## First release
 
