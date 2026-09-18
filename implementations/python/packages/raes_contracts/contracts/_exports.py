@@ -3,6 +3,10 @@
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 
 PUBLIC_EXPORTS = [
+    "MIXED_COMPOSITION_CONTRACT_ID",
+    "MixedParticipantCompositionProfileModel",
+    "parse_mixed_composition_profile",
+    "seal_mixed_composition_profile",
     "MaterializationArchiveRecord",
     "MaterializationAttestationReferenceModel",
     "DescriptionCoverageModel",

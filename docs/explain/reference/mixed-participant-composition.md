@@ -2,10 +2,53 @@
 
 The authority is
 [`mixed-cross-backend-participant-control-v1@rev1`](../../../specs/formal/participant-semantics/cross-backend-participant-control.md)
-(`sem-234/rev1`). These are finite semantic witnesses for #1013, not runnable
-backend manifests or evidence that a mixed runtime exists. The executable
-oracle is [sem234_mixed_composition_model.py](../../../implementations/python/tests/sem234_mixed_composition_model.py);
-its tests are [test_sem_234_mixed_composition.py](../../../implementations/python/tests/test_sem_234_mixed_composition.py).
+(`sem-234/rev1`). The finite semantic witnesses from #1013 remain separate from
+the portable contract published by #1014. Neither is a runnable backend
+manifest or evidence that a mixed runtime exists. The semantic oracle is
+[sem234_mixed_composition_model.py](../../../implementations/python/tests/sem234_mixed_composition_model.py),
+with witnesses in
+[test_sem_234_mixed_composition.py](../../../implementations/python/tests/test_sem_234_mixed_composition.py).
+
+## Published portable profile
+
+The normative wire carrier is
+[`mixed-participant-composition-profile-v1`](../../../contracts/schemas/plans/mixed-participant-composition-profile-v1.json).
+It seals one root containing component identities, compiled-target allocations,
+directed edges, cross-clock bindings, mapping loss, evidence obligations, and a
+finite phase schedule. Its RFC 8785 digest excludes only the digest field
+itself. The profile has no trial or run identity, current phase, retry state,
+backend command, HLA/FOM handle, credential, host path, or open metadata map.
+Alternative realizations therefore use separate roots and digests; the admitted
+trial-plan join owns their separate entry and run identities.
+
+Validation has three explicit stages:
+
+1. Bounded JSON ingress rejects oversized input, duplicate members, non-finite
+   numbers, excessive depth or node count, unknown revisions, and non-object
+   roots before model construction.
+2. Closed model and root-local validation enforce keyed identity equality,
+   unique apparatus identities, complete references, one provider per target
+   and phase, directed active edges, complete finite phase ordering, mode rules,
+   and the canonical root digest.
+3. Trusted contextual validation resolves the scenario snapshot, exact compiled
+   target kinds, manifest and realization-envelope digests, API-407 feature
+   strength per provider, API-423 subjects and policy cuts, time mappings,
+   independent authority/controller/routing/disclosure coordinates, evidence,
+   and bounded acyclic nested profiles. It performs no I/O, compilation,
+   provider selection, repair, dispatch, or mutation.
+
+The root model lives in
+[`mixed_composition.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition.py),
+with its decomposed local graph checks in
+[`mixed_composition_validation.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py);
+trusted relationship joins live in
+[`mixed_composition_resolution.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py).
+The generated schema must remain identical to `schema_bundle()`. Positive
+and negative fixtures cover alternative, simultaneous-mixed, and staged roots.
+Conformance classifies model success as `structural-context-required`: schema
+presence or contextual validity does not establish runtime realization,
+backend capability, interoperability, transfer, IFC/noninterference,
+bisimulation, exactly-once effects, or equivalence.
 
 ## Common interpretation
 
