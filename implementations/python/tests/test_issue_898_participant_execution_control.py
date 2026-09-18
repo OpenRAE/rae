@@ -811,7 +811,7 @@ def test_control_plane_exposes_authenticated_generation_bound_execution_control(
         )
         status = client.get(
             f"/operations/{started.json()['operation_id']}",
-            headers=auditor_headers,
+            headers=backend_headers,
         )
 
     assert unauthenticated.status_code == 401
