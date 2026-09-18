@@ -105,12 +105,12 @@
       "version": "3.32.6"
     },
     {
-      "filename": "hatchling-1.27.0-py3-none-any.whl",
+      "filename": "hatchling-1.32.0-py3-none-any.whl",
       "name": "hatchling",
-      "sha256": "d3a2f3567c4f926ea39849cdf924c7e99e6686c9c8e288ae1037c8fa2a5d937b",
-      "size": 75794,
-      "url": "https://files.pythonhosted.org/packages/08/e7/ae38d7a6dfba0533684e0b2136817d667588ae3ec984c1a4e5df5eb88482/hatchling-1.27.0-py3-none-any.whl",
-      "version": "1.27.0"
+      "sha256": "0e17c9c3b9aa7c625acc8d0f5b622f107d5049af9ecf5ada4de1aada5be7cdbc",
+      "size": 78435,
+      "url": "https://files.pythonhosted.org/packages/a9/84/1798b6d85ecde0e31546004efd25c5de1b1f49250644a60cce460e12593a/hatchling-1.32.0-py3-none-any.whl",
+      "version": "1.32.0"
     },
     {
       "filename": "humanize-4.16.0-py3-none-any.whl",
@@ -329,6 +329,14 @@
       "version": "0.15.9"
     },
     {
+      "filename": "tomlkit-0.15.1-py3-none-any.whl",
+      "name": "tomlkit",
+      "sha256": "177a05aece5a8ca5266fd3c448abb47b8d352f09d477d3ca8332db4d89b24304",
+      "size": 49449,
+      "url": "https://files.pythonhosted.org/packages/13/bc/8c13eb66537dce1d2bd3a57132902f38d0e7f5bb46fa9f4daed9fe9d76ee/tomlkit-0.15.1-py3-none-any.whl",
+      "version": "0.15.1"
+    },
+    {
       "filename": "trove_classifiers-2026.6.1.19-py3-none-any.whl",
       "name": "trove-classifiers",
       "sha256": "ab4c4ec93cc4a4e7815fa759906e05e6bb3f2fbd92ea0f897288c6a43efd15b3",
@@ -362,8 +370,8 @@
     }
   ],
   "lock_path": "implementations/tooling/python/uv.lock",
-  "lock_sha256": "ef9663222cbae7f8cc41fe04f88827cc69c944dd4994064b26d8e7f077dad51f",
+  "lock_sha256": "ecd2e55cbb8fed828c1929ee2c22a37b1da6837d0d93ab37d4ef0e87f6892789",
   "python_closure_profile_id": "public-linux-x86_64-cp314-tools",
-  "requirements_sha256": "7bd4a78064e7e8eb1aa712f992bc52f9bf1588d59ae89ad18a7f125be8d0d234",
+  "requirements_sha256": "64ededd82ab36c81a31b5a525e551dbc8ab4db42603cc18c51c4e7b0cf44faad",
   "schema_version": "raes-python-wheelhouse-manifest/v1"
 }

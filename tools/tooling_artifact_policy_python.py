@@ -44,7 +44,7 @@ _EXPECTED_TOOLS = {
     "ruff": "0.15.9",
     "uv": "0.12.4",
 }
-_EXPECTED_BUILD = {"hatchling": "1.27.0"}
+_EXPECTED_BUILD = {"hatchling": "1.32.0"}
 _HASH_RE = re.compile(r"--hash=sha256:([0-9a-f]{64})")
 _TOML_SIZE_LIMIT = 4 * 1024 * 1024
 
