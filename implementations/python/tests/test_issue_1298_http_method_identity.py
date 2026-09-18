@@ -76,6 +76,10 @@ def test_invalid_method_tokens_are_rejected_without_repair(method: str) -> None:
         RuntimeApplicationRoute(route_id="documents", path="/documents", methods=[method])
 
 
+def test_omitted_methods_preserves_legacy_unknown_inventory_shape() -> None:
+    assert RuntimeApplicationRoute(route_id="documents", path="/documents").methods == []
+
+
 def test_parser_diagnostic_does_not_echo_a_rejected_method() -> None:
     rejected = "PRIVATE INVALID METHOD 1298"
     with pytest.raises(SDLParseError) as caught:

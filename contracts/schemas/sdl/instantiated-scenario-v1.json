@@ -14198,8 +14198,7 @@
       },
       "required": [
         "route_id",
-        "path",
-        "methods"
+        "path"
       ],
       "title": "RuntimeApplicationRoute",
       "type": "object"

@@ -325,7 +325,7 @@ class RuntimeApplicationRoute(LegacyClassificationGuard):
 
     route_id: str
     path: str
-    methods: list[HttpMethod] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
+    methods: list[HttpMethod] = Field(default_factory=list, min_length=1, json_schema_extra={"uniqueItems": True})
     name: str = ""
     description: str = ""
     auth_required: bool | str | None = None
