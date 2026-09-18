@@ -101,6 +101,8 @@ from raes_contracts.validation_profiles import ValidationProfileCatalogModel
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
 
 _SCHEMA_INVALID_DIAGNOSTIC_CODE = "conformance.schema-invalid"
+_SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE = "conformance.semantic-context-required"
+_SEMANTIC_INVALID_DIAGNOSTIC_CODE = "conformance.semantic-invalid"
 _MODEL_VALIDATORS = {
     "authoring-adapter-profile-v1": AuthoringAdapterProfileModel.model_validate,
     "authoring-adapter-vector-v1": AuthoringAdapterVectorModel.model_validate,
@@ -286,7 +288,7 @@ def _information_state_context_diagnostics(
     if information_state_context_resolver is None:
         diagnostics.append(
             _diagnostic(
-                "conformance.semantic-context-required",
+                _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
                 contract_name,
                 "participant information-state context resolver is required",
             )
@@ -302,7 +304,7 @@ def _information_state_context_diagnostics(
         except (TypeError, ValueError) as exc:
             diagnostics.append(
                 _diagnostic(
-                    "conformance.semantic-invalid",
+                    _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                     contract_name,
                     "participant information-state context is invalid: " + sanitized_failure_message(exc),
                 )
@@ -318,7 +320,7 @@ def _flow_control_context_diagnostics(
     if flow_control_context_resolver is None:
         return [
             _diagnostic(
-                "conformance.semantic-context-required",
+                _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
                 contract_name,
                 "participant flow-control context resolver is required",
             )
@@ -333,7 +335,7 @@ def _flow_control_context_diagnostics(
     except (TypeError, ValueError) as exc:
         return [
             _diagnostic(
-                "conformance.semantic-invalid",
+                _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                 contract_name,
                 "participant flow-control context is invalid: " + sanitized_failure_message(exc),
             )
@@ -349,7 +351,7 @@ def _mixed_composition_context_diagnostics(
     if context is None:
         return [
             _diagnostic(
-                "conformance.semantic-context-required",
+                _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
                 contract_name,
                 "mixed composition trusted resolution context is required",
             )
@@ -360,7 +362,7 @@ def _mixed_composition_context_diagnostics(
     except (TypeError, ValueError) as exc:
         return [
             _diagnostic(
-                "conformance.semantic-invalid",
+                _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                 contract_name,
                 "mixed composition context is invalid: " + sanitized_failure_message(exc),
             )

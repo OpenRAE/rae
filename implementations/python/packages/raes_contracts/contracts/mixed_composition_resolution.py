@@ -297,6 +297,64 @@ def _validate_transition_context(
         raise ValueError("composition transition trigger or evaluator relationship is unresolved or stale")
 
 
+class _ContextValidator:
+    def __init__(
+        self,
+        context: MixedCompositionResolutionContext,
+        limits: MixedCompositionValidationLimits,
+    ) -> None:
+        self.context = context
+        self.limits = limits
+        self.budget = _WorkBudget(limits.max_context_work)
+        self.visited: set[str] = set()
+        self.visiting: set[str] = set()
+
+    def visit(self, profile: MixedParticipantCompositionProfileModel) -> None:
+        if not self._begin_visit(profile.profile_id):
+            return
+        self._validate_profile_context(profile)
+        for child_id, child_digest in profile.nested_profile_refs.items():
+            self.visit(self._resolve_child(child_id, child_digest))
+        self.visiting.remove(profile.profile_id)
+        self.visited.add(profile.profile_id)
+
+    def _begin_visit(self, profile_id: str) -> bool:
+        self.budget.charge()
+        if profile_id in self.visiting:
+            raise ValueError("mixed composition nested profile cycle detected")
+        if profile_id in self.visited:
+            return False
+        if len(self.visited) >= self.limits.max_nested_profiles:
+            raise ValueError("mixed composition nested profile limit exceeded")
+        self.visiting.add(profile_id)
+        return True
+
+    def _validate_profile_context(self, profile: MixedParticipantCompositionProfileModel) -> None:
+        scenario = profile.scenario_snapshot_ref
+        if self.context.scenario_snapshots.get(scenario.ref_id) != scenario:
+            raise ValueError("composition scenario snapshot is unresolved or stale")
+        for component in profile.components.values():
+            _validate_component_context(profile.profile_id, component, self.context, self.budget)
+        for allocation in profile.allocations.values():
+            _validate_allocation_context(profile.profile_id, allocation, self.context, self.budget)
+        for edge in profile.edges.values():
+            _validate_edge_context(profile.profile_id, edge, self.context, self.budget)
+        for transition in profile.transitions.values():
+            _validate_transition_context(profile.profile_id, transition, self.context, self.budget)
+        _validate_phase_evidence(profile, self.context, self.budget)
+
+    def _resolve_child(
+        self,
+        child_id: str,
+        child_digest: str,
+    ) -> MixedParticipantCompositionProfileModel:
+        self.budget.charge()
+        child = self.context.nested_profiles.get(child_id)
+        if child is None or child.profile_id != child_id or child.profile_digest != child_digest:
+            raise ValueError("composition nested profile is unresolved or stale")
+        return child
+
+
 def validate_mixed_composition_context(
     profile: MixedParticipantCompositionProfileModel,
     context: MixedCompositionResolutionContext,
@@ -311,41 +369,7 @@ def validate_mixed_composition_context(
 
     selected = limits or MixedCompositionValidationLimits()
     _validate_profile_limits(profile, selected)
-    budget = _WorkBudget(selected.max_context_work)
-    visited: set[str] = set()
-    visiting: set[str] = set()
-
-    def visit(current: MixedParticipantCompositionProfileModel) -> None:
-        budget.charge()
-        if current.profile_id in visiting:
-            raise ValueError("mixed composition nested profile cycle detected")
-        if current.profile_id in visited:
-            return
-        if len(visited) >= selected.max_nested_profiles:
-            raise ValueError("mixed composition nested profile limit exceeded")
-        visiting.add(current.profile_id)
-        scenario = current.scenario_snapshot_ref
-        if context.scenario_snapshots.get(scenario.ref_id) != scenario:
-            raise ValueError("composition scenario snapshot is unresolved or stale")
-        for component in current.components.values():
-            _validate_component_context(current.profile_id, component, context, budget)
-        for allocation in current.allocations.values():
-            _validate_allocation_context(current.profile_id, allocation, context, budget)
-        for edge in current.edges.values():
-            _validate_edge_context(current.profile_id, edge, context, budget)
-        for transition in current.transitions.values():
-            _validate_transition_context(current.profile_id, transition, context, budget)
-        _validate_phase_evidence(current, context, budget)
-        for child_id, child_digest in current.nested_profile_refs.items():
-            budget.charge()
-            child = context.nested_profiles.get(child_id)
-            if child is None or child.profile_id != child_id or child.profile_digest != child_digest:
-                raise ValueError("composition nested profile is unresolved or stale")
-            visit(child)
-        visiting.remove(current.profile_id)
-        visited.add(current.profile_id)
-
-    visit(profile)
+    _ContextValidator(context, selected).visit(profile)
 
 
 __all__ = [

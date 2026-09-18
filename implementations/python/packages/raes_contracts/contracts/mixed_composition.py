@@ -24,6 +24,7 @@ from ..vocabulary import ParticipantFeatureSupportLevel
 from .base import ContractModel, NonEmptyString, PositiveInteger, PrefixedDigestString
 from .experiment_manifest_references import ExperimentManifestReferenceModel
 from .experiment_references import ExperimentReferenceModel
+from .mixed_composition_validation import validate_mixed_composition_phase_graph
 from .participant_crossing import (
     ParticipantCrossingPolicyReferenceModel,
     ParticipantCrossingSubjectReferenceModel,
@@ -310,76 +311,7 @@ class MixedParticipantCompositionProfileModel(ContractModel):
             raise ValueError("composition scenario snapshot references must not carry host paths")
 
     def _validate_phase_graph(self) -> None:
-        phase_ids = set(self.phases)
-        if self.initial_phase_id not in phase_ids:
-            raise ValueError("initial_phase_id must resolve inside phases")
-        if len(self.phase_order) != len(set(self.phase_order)) or set(self.phase_order) != phase_ids:
-            raise ValueError("phase_order must contain every phase exactly once")
-        if self.phase_order[0] != self.initial_phase_id:
-            raise ValueError("phase_order must begin with initial_phase_id")
-
-        seen_components: set[str] = set()
-        seen_allocations: set[str] = set()
-        seen_edges: set[str] = set()
-        active_phase_by_allocation: dict[str, set[str]] = {key: set() for key in self.allocations}
-        active_phase_by_edge: dict[str, set[str]] = {key: set() for key in self.edges}
-        for phase in self.phases.values():
-            components = set(phase.active_component_ids)
-            allocations = set(phase.active_allocation_ids)
-            edges = set(phase.active_edge_ids)
-            if not components <= set(self.components):
-                raise ValueError("phase references an unknown component")
-            if not allocations <= set(self.allocations):
-                raise ValueError("phase references an unknown allocation")
-            if not edges <= set(self.edges):
-                raise ValueError("phase references an unknown edge")
-            seen_components.update(components)
-            seen_allocations.update(allocations)
-            seen_edges.update(edges)
-            providers_by_target: dict[tuple[str, str], str] = {}
-            for allocation_id in allocations:
-                allocation = self.allocations[allocation_id]
-                active_phase_by_allocation[allocation_id].add(phase.phase_id)
-                if allocation.provider_component_id not in components:
-                    raise ValueError("phase allocation provider must be an active component")
-                target = (allocation.target_kind, allocation.target_address)
-                incumbent = providers_by_target.setdefault(target, allocation.provider_component_id)
-                if incumbent != allocation.provider_component_id:
-                    raise ValueError("each phase target must have exactly one canonical provider")
-            for edge_id in edges:
-                edge = self.edges[edge_id]
-                active_phase_by_edge[edge_id].add(phase.phase_id)
-                if edge.source_component_id not in components or edge.target_component_id not in components:
-                    raise ValueError("active edge endpoints must both be active components")
-
-        if seen_components != set(self.components):
-            raise ValueError("composition profile must not contain orphan components")
-        if seen_allocations != set(self.allocations):
-            raise ValueError("composition profile must not contain orphan allocations")
-        if seen_edges != set(self.edges):
-            raise ValueError("composition profile must not contain orphan edges")
-        for allocation_id, active_phases in active_phase_by_allocation.items():
-            if active_phases != set(self.allocations[allocation_id].phase_ids):
-                raise ValueError("allocation phase_ids must equal its active phase membership")
-        for edge_id, active_phases in active_phase_by_edge.items():
-            if active_phases != set(self.edges[edge_id].phase_ids):
-                raise ValueError("edge phase_ids must equal its active phase membership")
-
-        transition_pairs: set[tuple[str, str]] = set()
-        for transition in self.transitions.values():
-            if transition.source_phase_id not in phase_ids or transition.target_phase_id not in phase_ids:
-                raise ValueError("transition phases must resolve inside the profile")
-            pair = (transition.source_phase_id, transition.target_phase_id)
-            if pair in transition_pairs:
-                raise ValueError("phase transitions must have one canonical transition per directed pair")
-            transition_pairs.add(pair)
-        expected_pairs = set(zip(self.phase_order, self.phase_order[1:], strict=False))
-        if transition_pairs != expected_pairs:
-            raise ValueError("transitions must exactly connect adjacent phase_order entries")
-        if self.federation_membership == "fixed":
-            memberships = {tuple(sorted(phase.active_component_ids)) for phase in self.phases.values()}
-            if len(memberships) != 1:
-                raise ValueError("fixed federation membership cannot vary by phase")
+        validate_mixed_composition_phase_graph(self)
 
     def _validate_mode(self) -> None:
         if self.composition_mode == "alternative":
@@ -412,7 +344,9 @@ class MixedParticipantCompositionProfileModel(ContractModel):
             "mixed-composition-root-local-graph-valid",
             "The sealed root has exact keyed identities, closed references, one provider per target and phase, "
             "complete finite phase membership, mode-specific realization rules, and a matching canonical digest.",
-            validator="raes_contracts.contracts.mixed_composition.MixedParticipantCompositionProfileModel._validate_profile",
+            validator=(
+                "raes_contracts.contracts.mixed_composition.MixedParticipantCompositionProfileModel._validate_profile"
+            ),
             inputs=[{"contract_id": MIXED_COMPOSITION_CONTRACT_ID, "instance_path": "#"}],
         )
         _add_raes_invariant(

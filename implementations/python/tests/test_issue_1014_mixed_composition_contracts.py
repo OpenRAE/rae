@@ -546,22 +546,17 @@ def test_bounded_ingress_rejects_duplicate_members_depth_nodes_and_unknown_revis
         parse_mixed_composition_profile('{"profile_id":"a","profile_id":"b"}')
 
     payload = _profile().model_dump(mode="json")
+    encoded_payload = json.dumps(payload)
+    depth_limits = MixedCompositionValidationLimits(max_json_depth=2)
     with pytest.raises(ValueError, match="depth limit"):
-        parse_mixed_composition_profile(
-            json.dumps(payload),
-            limits=MixedCompositionValidationLimits(max_json_depth=2),
-        )
+        parse_mixed_composition_profile(encoded_payload, limits=depth_limits)
+    node_limits = MixedCompositionValidationLimits(max_json_nodes=10)
     with pytest.raises(ValueError, match="node limit"):
-        parse_mixed_composition_profile(
-            json.dumps(payload),
-            limits=MixedCompositionValidationLimits(max_json_nodes=10),
-        )
+        parse_mixed_composition_profile(encoded_payload, limits=node_limits)
     deeply_nested = '{"value":' + "[" * 2_000 + "0" + "]" * 2_000 + "}"
+    nesting_limits = MixedCompositionValidationLimits(max_json_depth=64)
     with pytest.raises(ValueError, match="depth limit"):
-        parse_mixed_composition_profile(
-            deeply_nested,
-            limits=MixedCompositionValidationLimits(max_json_depth=64),
-        )
+        parse_mixed_composition_profile(deeply_nested, limits=nesting_limits)
 
     payload["schema_version"] = "mixed-participant-composition-profile/v2"
     with pytest.raises(ValidationError):
@@ -629,9 +624,10 @@ def test_context_rejects_resealed_profiles_with_untrusted_external_coordinates(
         target = target[coordinate]
     target[path[-1]] = replacement
     attacker_profile = seal_mixed_composition_profile(**fields)
+    trusted_context = _context(trusted)
 
     with pytest.raises(ValueError, match="unresolved|stale"):
-        validate_mixed_composition_context(attacker_profile, _context(trusted))
+        validate_mixed_composition_context(attacker_profile, trusted_context)
 
 
 def test_context_rejects_resealed_component_with_consistently_rekeyed_manifest_identity() -> None:
@@ -641,9 +637,10 @@ def test_context_rejects_resealed_component_with_consistently_rekeyed_manifest_i
     manifest["ref_id"] = "backend:other"
     manifest["subject_ref"]["ref_id"] = "backend:other"
     attacker_profile = seal_mixed_composition_profile(**fields)
+    trusted_context = _context(trusted)
 
     with pytest.raises(ValueError, match="component identity relationship"):
-        validate_mixed_composition_context(attacker_profile, _context(trusted))
+        validate_mixed_composition_context(attacker_profile, trusted_context)
 
 
 @pytest.mark.parametrize("coordinate", ["trigger_ref", "evaluator_ref"])
@@ -655,9 +652,10 @@ def test_context_rejects_untrusted_staged_transition_ownership(coordinate: str) 
     )
     fields["transitions"]["transition.sim-to-emu"][coordinate] = f"{coordinate}:other"
     attacker_profile = seal_mixed_composition_profile(**fields)
+    trusted_context = _context(trusted)
 
     with pytest.raises(ValueError, match="transition trigger or evaluator"):
-        validate_mixed_composition_context(attacker_profile, _context(trusted))
+        validate_mixed_composition_context(attacker_profile, trusted_context)
 
 
 def test_capability_support_is_resolved_per_provider_and_downgrade_requires_authority() -> None:
@@ -703,30 +701,28 @@ def test_capability_support_is_resolved_per_provider_and_downgrade_requires_auth
     validate_mixed_composition_context(downgraded, context)
 
     unrelated_authorization = replace(authorization, provider_component_id="emu")
+    unrelated_context = _context(
+        downgraded,
+        backend_manifests={
+            "sim": _backend_manifest(ParticipantFeatureSupportLevel.BOUNDED),
+            "emu": _backend_manifest(),
+        },
+        downgrade_authorizations=frozenset({unrelated_authorization}),
+    )
     with pytest.raises(ValueError, match="downgrade authorization"):
-        validate_mixed_composition_context(
-            downgraded,
-            _context(
-                downgraded,
-                backend_manifests={
-                    "sim": _backend_manifest(ParticipantFeatureSupportLevel.BOUNDED),
-                    "emu": _backend_manifest(),
-                },
-                downgrade_authorizations=frozenset({unrelated_authorization}),
-            ),
-        )
+        validate_mixed_composition_context(downgraded, unrelated_context)
 
 
 def test_graph_work_limit_and_unresolved_nested_profile_fail_closed() -> None:
     profile = _profile(nested_profile_refs={"profile:child": SHA_E})
+    context = _context()
     with pytest.raises(ValueError, match="nested profile"):
-        validate_mixed_composition_context(profile, _context())
+        validate_mixed_composition_context(profile, context)
+    base_profile = _profile()
+    base_context = _context()
+    work_limits = MixedCompositionValidationLimits(max_context_work=1)
     with pytest.raises(ValueError, match="work limit"):
-        validate_mixed_composition_context(
-            _profile(),
-            _context(),
-            limits=MixedCompositionValidationLimits(max_context_work=1),
-        )
+        validate_mixed_composition_context(base_profile, base_context, limits=work_limits)
     base = _profile()
     cyclic = base.model_copy(update={"nested_profile_refs": {base.profile_id: base.profile_digest}})
     cyclic_context = replace(_context(cyclic), nested_profiles={base.profile_id: cyclic})
@@ -742,7 +738,11 @@ def test_graph_work_limit_and_unresolved_nested_profile_fail_closed() -> None:
 
 def test_contract_layer_keeps_feature_resolution_dependency_inverted() -> None:
     contracts = REPO_ROOT / "implementations/python/packages/raes_contracts/contracts"
-    for module in ("mixed_composition.py", "mixed_composition_resolution.py"):
+    for module in (
+        "mixed_composition.py",
+        "mixed_composition_validation.py",
+        "mixed_composition_resolution.py",
+    ):
         assert "raes_backend_protocols" not in (contracts / module).read_text(encoding="utf-8")
 
 
@@ -764,8 +764,9 @@ def test_published_schema_bundle_fixtures_and_change_ledger_are_consistent() -> 
     for path in valid:
         MixedParticipantCompositionProfileModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
     for path in invalid:
+        payload = json.loads(path.read_text(encoding="utf-8"))
         with pytest.raises(ValidationError):
-            MixedParticipantCompositionProfileModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
+            MixedParticipantCompositionProfileModel.model_validate(payload)
 
     publication = json.loads(PUBLICATION_PATH.read_text(encoding="utf-8"))
     digest = hashlib.sha256(

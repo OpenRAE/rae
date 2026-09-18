@@ -24,6 +24,7 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Resolve mixed-composition feature strength per provider)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Closed per-allocation feature requirement and downgrade authority carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Per-allocation feature-strength and downgrade carriers)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py` (Closed provider membership for feature-bearing allocations)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Dependency-inverted per-provider support and downgrade authorization joins)
 - TESTS → TEST `implementations/python/tests/test_issue_1014_mixed_composition_contracts.py` (Exact, unsupported, and authorized-downgrade resolution tests)
 - TESTS → TEST `implementations/python/tests/test_issue_965_participant_opacity_backend.py` (Backend participant-opacity assurance tests)

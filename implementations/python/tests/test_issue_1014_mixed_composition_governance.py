@@ -41,6 +41,7 @@ DELIVERY_PATHS = {
     "implementations/python/packages/raes_contracts/contracts/_exports.py",
     "implementations/python/packages/raes_contracts/contracts/bundle.py",
     "implementations/python/packages/raes_contracts/contracts/mixed_composition.py",
+    "implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py",
     "implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py",
     "implementations/python/packages/raes_contracts/json_ingress.py",
     "implementations/python/packages/raes_contracts/versions.py",

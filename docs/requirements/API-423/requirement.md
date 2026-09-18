@@ -24,6 +24,7 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Bind composition edges to participant crossing policy and evidence authority)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Typed crossing subject, policy, loss, and evidence bindings)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Typed composition-edge crossing contract carriers)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py` (Closed active-edge endpoint and phase-membership validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Exact crossing scope, audience, policy, loss, and evidence joins)
 - TESTS → TEST `implementations/python/tests/test_issue_1014_mixed_composition_contracts.py` (Crossing policy, evidence, mapping, and stale-reference rejection tests)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing API-423 authority in SEM-234 without changing its runtime contract)

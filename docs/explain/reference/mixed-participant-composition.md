@@ -37,8 +37,10 @@ Validation has three explicit stages:
    and bounded acyclic nested profiles. It performs no I/O, compilation,
    provider selection, repair, dispatch, or mutation.
 
-The root model and local validation live in
-[`mixed_composition.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition.py);
+The root model lives in
+[`mixed_composition.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition.py),
+with its decomposed local graph checks in
+[`mixed_composition_validation.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition_validation.py);
 trusted relationship joins live in
 [`mixed_composition_resolution.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py).
 The generated schema must remain identical to `schema_bundle()`. Positive

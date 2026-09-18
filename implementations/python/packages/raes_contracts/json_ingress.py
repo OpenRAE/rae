@@ -6,6 +6,10 @@ import json
 from typing import Literal
 
 JSONValue = None | bool | int | float | str | list["JSONValue"] | dict[str, "JSONValue"]
+_BACKSLASH_BYTE = 0x5C
+_DOUBLE_QUOTE_BYTE = 0x22
+_CONTAINER_START_BYTES = (0x5B, 0x7B)
+_CONTAINER_END_BYTES = (0x5D, 0x7D)
 
 
 class StrictJsonIngressError(ValueError):
@@ -31,6 +35,14 @@ def _reject_non_finite_number(_: str) -> float:
     raise StrictJsonIngressError("non-finite-number", "JSON contains a non-finite number")
 
 
+def _advance_quoted_state(byte: int, escaped: bool) -> tuple[bool, bool]:
+    if escaped:
+        return True, False
+    if byte == _BACKSLASH_BYTE:
+        return True, True
+    return byte != _DOUBLE_QUOTE_BYTE, False
+
+
 def _reject_excessive_nesting(encoded: bytes, max_depth: int) -> None:
     """Reject excessive container nesting before the recursive JSON decoder runs."""
 
@@ -41,23 +53,18 @@ def _reject_excessive_nesting(encoded: bytes, max_depth: int) -> None:
     escaped = False
     for byte in encoded:
         if in_string:
-            if escaped:
-                escaped = False
-            elif byte == 0x5C:  # backslash
-                escaped = True
-            elif byte == 0x22:  # double quote
-                in_string = False
+            in_string, escaped = _advance_quoted_state(byte, escaped)
             continue
-        if byte == 0x22:
+        if byte == _DOUBLE_QUOTE_BYTE:
             in_string = True
-        elif byte in (0x5B, 0x7B):  # [ or {
+        elif byte in _CONTAINER_START_BYTES:
             depth += 1
             if depth > max_depth:
                 raise StrictJsonIngressError(
                     "input-too-deep",
                     "JSON input exceeds the configured depth limit",
                 )
-        elif byte in (0x5D, 0x7D):  # ] or }
+        elif byte in _CONTAINER_END_BYTES:
             depth -= 1
 
 
