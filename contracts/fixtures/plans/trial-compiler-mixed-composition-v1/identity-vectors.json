@@ -1,0 +1,63 @@
+{
+  "schema_version": "trial-compiler-conformance-v1",
+  "profile_id": "trial-compiler-mixed-composition-v1",
+  "identity_domain": "raes-trial-compiler-mixed-composition-identity-v1",
+  "identities": [
+    {
+      "kind": "trial-plan",
+      "projection": {
+        "fixture": "mixed-minimal",
+        "realization_assignments": {
+          "{\"replicate_id\":\"replicate-000001\"}": {
+            "profile_ref": {
+              "ref_kind": "profile",
+              "ref_id": "profile:mixed",
+              "ref_version": "mixed-cross-backend-participant-control-v1@rev1",
+              "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "realization_kind": "mixed-composition"
+          }
+        }
+      },
+      "expected": "trial-plan-fbe01bc4f392c773801220735fd9a60486de56036d3d8a54cc98bca51369efe1"
+    },
+    {
+      "kind": "trial-entry",
+      "projection": {
+        "plan_id": "trial-plan-mixed-fixture",
+        "coordinate": {
+          "replicate_id": "replicate-000001"
+        },
+        "realization": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "profile:mixed",
+            "ref_version": "mixed-cross-backend-participant-control-v1@rev1",
+            "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "realization_kind": "mixed-composition"
+        }
+      },
+      "expected": "trial-entry-f15f6f0a0e27bc7694ffb06501be969ddfe48ace83e402f34139aef7a1d29d25"
+    },
+    {
+      "kind": "archival-run",
+      "projection": {
+        "plan_id": "trial-plan-mixed-fixture",
+        "coordinate": {
+          "replicate_id": "replicate-000001"
+        },
+        "realization": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "profile:mixed",
+            "ref_version": "mixed-cross-backend-participant-control-v1@rev1",
+            "ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "realization_kind": "mixed-composition"
+        }
+      },
+      "expected": "archival-run-cda33a2500dcd058017fd09f483da4b2b8d88621fb1acf0546c2bd65c43295d9"
+    }
+  ]
+}

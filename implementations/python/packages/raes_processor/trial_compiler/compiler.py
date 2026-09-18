@@ -6,11 +6,8 @@ from collections.abc import Mapping
 
 from raes import (
     ExpandedScenarioBindingTargetResolver,
-    InstantiatedScenario,
-    select_scenario_family,
     validate_experiment_selection_against_family,
 )
-from raes.realization_envelope import member
 from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.canonical import canonical_json_bytes
@@ -50,14 +47,26 @@ from .apparatus import (
     validate_selected_apparatus,
     validate_selected_participant_manifests,
 )
-from .inputs import coordinates, plan_intent, validate_input_identities, visit_indices
+from .inputs import (
+    canonical_input_refs,
+    canonical_realization_binding,
+    coordinates,
+    entry_descriptor_ids,
+    plan_intent,
+    validate_input_identities,
+    validate_realization_assignments,
+    visit_indices,
+)
 from .models import CompilationFailure, TrialCompilationRequest, TrialCompilationResult
 from .policies import CoordinateSelections, ResolvedSelection, compile_coordinate_selections
-from .profiles import admitted_profiles, coordinate_projection, derive_identity
+from .profiles import admitted_profiles, coordinate_projection, derive_identity, realization_assignment_key
+from .realization_admission import validate_mixed_authority, validate_mixed_realization, validate_selected_scenario
 
 _DOMAIN = "trial-compiler"
 _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
 _ENTRIES_ADDRESS = "/entries/"
+# Preserve the established monkeypatch seam used by compiler failure-path tests.
+_validate_selected_scenario = validate_selected_scenario
 
 
 class _CaptureAdmissionFailure(Exception):
@@ -116,10 +125,17 @@ def _admitted_descriptors(
     request: TrialCompilationRequest,
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest],
     participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel],
+    *,
+    descriptor_ids: set[str] | None = None,
 ) -> dict[str, ExperimentBindingDescriptorModel]:
     descriptors = request.experiment.binding_descriptors
     if descriptors is None:
         return {}
+    if descriptor_ids is not None:
+        selected = [descriptor for descriptor in descriptors.descriptors if descriptor.binding_id in descriptor_ids]
+        if not selected:
+            return {}
+        descriptors = descriptors.model_copy(update={"descriptors": selected})
     try:
         admitted = validate_experiment_binding_targets(
             descriptors,
@@ -183,30 +199,6 @@ def _selection_records(row: CoordinateSelections) -> list[AdmittedSelectionRecor
     ]
 
 
-def _validate_selected_scenario(
-    request: TrialCompilationRequest,
-    row: CoordinateSelections,
-    coordinate: TrialCoordinateModel,
-) -> InstantiatedScenario:
-    outcomes = {selection.point_id: selection.outcome for selection in row.selections}
-    try:
-        selected = select_scenario_family(request.family, outcomes)
-    except (TypeError, ValueError) as exc:
-        raise _fail(
-            "selected-scenario-rejected",
-            _ENTRIES_ADDRESS + (coordinate.replicate_id or "coordinate"),
-            "the complete selection failed SDL-owned whole-scenario admission",
-        ) from exc
-    envelope_result = member(selected, request.realization_envelope.expression)
-    if not envelope_result.holds:
-        raise _fail(
-            "realization-envelope-membership-rejected",
-            _ENTRIES_ADDRESS + (coordinate.replicate_id or "coordinate"),
-            "the selected scenario is outside the admitted realization envelope",
-        )
-    return selected
-
-
 def _require_capture_admission(
     demands: tuple[CaptureDemand, ...],
     observations: tuple[ObservationCapabilities | None, ...],
@@ -226,7 +218,10 @@ def _compile_entry(
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
     observations: tuple[ObservationCapabilities | None, ...],
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
+    realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     selected = _validate_selected_scenario(request, row, coordinate)
+    if realization is not None:
+        validate_mixed_realization(request, realization, selected)
     relations = (
         *request.task.evidence_requirement_relations,
         *request.experiment.run_plan.evidence_requirement_relations,
@@ -244,8 +239,11 @@ def _compile_entry(
         "plan_id": plan_id,
         "coordinate": coordinate_projection(coordinate),
     }
-    entry_id = derive_identity("trial-entry", identity_projection)
-    run_id = derive_identity("archival-run", identity_projection)
+    mixed = realization is not None
+    if realization is not None:
+        identity_projection["realization"] = canonical_realization_binding(realization).model_dump(mode="json")
+    entry_id = derive_identity("trial-entry", identity_projection, mixed_composition=mixed)
+    run_id = derive_identity("archival-run", identity_projection, mixed_composition=mixed)
     cleanup_id = derive_identity(
         "trial-cleanup",
         {
@@ -273,7 +271,7 @@ def _compile_entry(
         selections=_selection_records(row),
         bindings=bindings,
         stochastic_draws=list(row.draws),
-        apparatus=request.apparatus,
+        apparatus=canonical_realization_binding(realization) if realization is not None else request.apparatus,
         execution_controls=AdmittedExecutionControlModel(
             attempt_timeout_seconds=request.execution_authority.attempt_timeout_seconds,
             on_timeout=request.execution_authority.on_timeout,
@@ -299,9 +297,11 @@ def _compile_entries(
     plan_id: str,
     coordinates: list[TrialCoordinateModel],
     rows: list[CoordinateSelections],
-    descriptors: Mapping[str, ExperimentBindingDescriptorModel],
+    descriptors: Mapping[str, ExperimentBindingDescriptorModel] | None,
     visit_indices: tuple[int, ...],
-    observations: tuple[ObservationCapabilities | None, ...],
+    observations_by_profile: Mapping[str, tuple[ObservationCapabilities | None, ...]],
+    apparatus_manifests_by_profile: Mapping[str, Mapping[ApparatusManifestKey, ApparatusManifest]],
+    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel],
 ) -> tuple[dict[str, AdmittedTrialEntryModel], dict[str, TrialCleanupPlanModel], set[str]]:
     entries: dict[str, AdmittedTrialEntryModel] = {}
     cleanup_plans: dict[str, TrialCleanupPlanModel] = {}
@@ -311,14 +311,24 @@ def _compile_entries(
     for coordinate_index in visit_indices:
         coordinate = coordinates[coordinate_index]
         row = rows[coordinate_index]
+        realization = request.realization_assignments.get(realization_assignment_key(coordinate))
+        profile_id = realization.profile_ref.ref_id if realization is not None else ""
         try:
+            entry_descriptors = descriptors
+            if entry_descriptors is None:
+                entry_descriptors = _admitted_descriptors(
+                    request,
+                    apparatus_manifests_by_profile[profile_id],
+                    participant_manifests,
+                    descriptor_ids=entry_descriptor_ids(request, row, coordinate),
+                )
             entry_id, entry, cleanup_id, cleanup = _compile_entry(
                 request,
                 plan_id,
                 row,
                 coordinate,
-                descriptors,
-                observations,
+                entry_descriptors,
+                observations_by_profile[profile_id],
             )
         except _CaptureAdmissionFailure as failure:
             capture_failures.update(
@@ -356,15 +366,6 @@ def _compile(
     coordinate_partitions: tuple[tuple[int, ...], ...] | None,
 ) -> AdmittedTrialPlanModel:
     validate_input_identities(request)
-    apparatus_manifests = validate_selected_apparatus(request)
-    participant_manifests = validate_selected_participant_manifests(request)
-    runtime_observations = tuple(
-        backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope).observation
-        for backend in sorted(
-            (manifest for manifest in apparatus_manifests.values() if isinstance(manifest, BackendManifestV2Model)),
-            key=lambda manifest: (manifest.identity.name, manifest.identity.version),
-        )
-    )
     try:
         validate_experiment_selection_against_family(request.experiment, family=request.family)
     except ValueError as exc:
@@ -374,18 +375,51 @@ def _compile(
             "selection policy intent failed scenario-family admission",
         ) from exc
     planned_coordinates = coordinates(request)
+    validate_realization_assignments(request, planned_coordinates)
+    mixed = bool(request.realization_assignments)
+    if mixed:
+        authority = validate_mixed_authority(request)
+        apparatus_manifests_by_profile = authority.apparatus_manifests_by_root
+        participant_manifests = authority.participant_manifests
+        observations_by_profile = {
+            profile_id: tuple(
+                backend_manifest_from_v2_model_with_envelope(
+                    manifest,
+                    request.mixed_realization_envelopes[manifest.realization_envelope.envelope_id],
+                ).observation
+                for manifest in manifests
+            )
+            for profile_id, manifests in authority.backend_manifests_by_root.items()
+        }
+    else:
+        apparatus_manifests = validate_selected_apparatus(request)
+        apparatus_manifests_by_profile = {"": apparatus_manifests}
+        participant_manifests = validate_selected_participant_manifests(request)
+        observations_by_profile = {
+            "": tuple(
+                backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope).observation
+                for backend in sorted(
+                    (
+                        manifest
+                        for manifest in apparatus_manifests.values()
+                        if isinstance(manifest, BackendManifestV2Model)
+                    ),
+                    key=lambda manifest: (manifest.identity.name, manifest.identity.version),
+                )
+            )
+        }
     rows = compile_coordinate_selections(
         family=request.family,
         spec=request.experiment,
         coordinates=planned_coordinates,
         limits=request.limits,
     )
-    descriptors = _admitted_descriptors(
-        request,
-        apparatus_manifests,
-        participant_manifests,
+    descriptors = None if mixed else _admitted_descriptors(request, apparatus_manifests, participant_manifests)
+    plan_id = derive_identity(
+        "trial-plan",
+        plan_intent(request, planned_coordinates),
+        mixed_composition=mixed,
     )
-    plan_id = derive_identity("trial-plan", plan_intent(request, planned_coordinates))
     traversal = visit_indices(len(planned_coordinates), coordinate_partitions)
     entries, cleanup_plans, used_control_ids = _compile_entries(
         request,
@@ -394,7 +428,9 @@ def _compile(
         rows,
         descriptors,
         traversal,
-        runtime_observations,
+        observations_by_profile,
+        apparatus_manifests_by_profile,
+        participant_manifests,
     )
     controls = {
         control.control_id: control
@@ -403,8 +439,8 @@ def _compile(
     }
     plan = seal_admitted_trial_plan(
         plan_id=plan_id,
-        profiles=admitted_profiles(),
-        input_refs=request.input_refs,
+        profiles=admitted_profiles(mixed_composition=mixed),
+        input_refs=canonical_input_refs(request),
         stochastic_controls=controls,
         cleanup_plans=cleanup_plans,
         entries=entries,

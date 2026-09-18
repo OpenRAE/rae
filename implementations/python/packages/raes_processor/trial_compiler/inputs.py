@@ -4,10 +4,15 @@ from __future__ import annotations
 
 from raes import canonical_sdl_digest
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import TrialCoordinateModel
+from raes_contracts.contracts import (
+    AdmittedMixedCompositionBindingModel,
+    AdmittedParticipantManifestReferenceModel,
+    TrialCoordinateModel,
+)
 
 from .models import CompilationFailure, TrialCompilationRequest
-from .profiles import admitted_profiles, coordinate_projection, replicate_id
+from .policies import CoordinateSelections
+from .profiles import admitted_profiles, coordinate_projection, realization_assignment_key, replicate_id
 
 _RUN_PLAN_ADDRESS = "/run_plan"
 _CAPTURE_SPEC_REFS_ADDRESS = "/input_refs/capture_spec_refs"
@@ -140,7 +145,10 @@ def validate_input_identities(request: TrialCompilationRequest) -> None:
     _validate_binding_input_ref(request)
     _validate_capture_inputs(request)
     refs = request.input_refs
-    if request.apparatus.realization_envelope != request.realization_envelope.identity:
+    if (
+        not request.realization_assignments
+        and request.apparatus.realization_envelope != request.realization_envelope.identity
+    ):
         raise _fail(
             "realization-envelope-ref-mismatch",
             "/apparatus/realization_envelope",
@@ -152,6 +160,114 @@ def validate_input_identities(request: TrialCompilationRequest) -> None:
             "/input_refs",
             "optional study or associated-artifact references require their exact typed payloads",
         )
+    declared_profiles = {
+        (reference.ref_id, reference.ref_version, reference.ref_digest)
+        for reference in refs.mixed_composition_profile_refs
+    }
+    supplied_profiles = set()
+    for _, profile in sorted(request.mixed_profiles.items()):
+        try:
+            reconstructed = type(profile).model_validate(profile.model_dump(mode="python"))
+        except (TypeError, ValueError) as exc:
+            raise _fail(
+                "mixed-profile-invalid",
+                "/input_refs/mixed_composition_profile_refs",
+                "a supplied mixed composition profile failed closed reconstruction",
+            ) from exc
+        supplied_profiles.add((reconstructed.profile_id, reconstructed.profile_revision, reconstructed.profile_digest))
+    if declared_profiles != supplied_profiles or any(
+        key != profile.profile_id for key, profile in request.mixed_profiles.items()
+    ):
+        raise _fail(
+            "mixed-profile-input-mismatch",
+            "/input_refs/mixed_composition_profile_refs",
+            "mixed composition profile references do not resolve exactly to the supplied profiles",
+        )
+
+
+def validate_realization_assignments(
+    request: TrialCompilationRequest,
+    planned_coordinates: list[TrialCoordinateModel],
+) -> None:
+    """Require an exact mixed-profile assignment for every coordinate when composition is used."""
+
+    if not (
+        request.realization_assignments or request.mixed_profiles or request.input_refs.mixed_composition_profile_refs
+    ):
+        return
+    expected = {realization_assignment_key(coordinate) for coordinate in planned_coordinates}
+    if set(request.realization_assignments) != expected:
+        raise _fail(
+            "realization-assignment-incomplete",
+            "/realization_assignments",
+            "mixed composition realization assignments must cover every canonical coordinate exactly once",
+        )
+    expected_participants = {
+        _participant_reference_key(reference) for reference in request.apparatus.participant_manifest_refs
+    }
+    for _, binding in sorted(request.realization_assignments.items()):
+        profile = request.mixed_profiles.get(binding.profile_ref.ref_id)
+        if (
+            profile is None
+            or binding.profile_ref.ref_version != profile.profile_revision
+            or binding.profile_ref.ref_digest != profile.profile_digest
+        ):
+            raise _fail(
+                "realization-assignment-profile-mismatch",
+                "/realization_assignments",
+                "a realization assignment does not resolve to its exact supplied composition profile",
+            )
+        if {
+            _participant_reference_key(reference) for reference in binding.participant_manifest_refs
+        } != expected_participants:
+            raise _fail(
+                "realization-assignment-participant-manifest-mismatch",
+                "/realization_assignments",
+                "a realization assignment does not bind the exact selected participant manifest authority",
+            )
+
+
+def _participant_reference_key(
+    reference: AdmittedParticipantManifestReferenceModel,
+) -> tuple[str, str, str, str, str]:
+    return (
+        reference.participant_address,
+        reference.implementation_name,
+        reference.implementation_version,
+        reference.manifest_version,
+        reference.manifest_digest,
+    )
+
+
+def canonical_realization_binding(
+    binding: AdmittedMixedCompositionBindingModel,
+) -> AdmittedMixedCompositionBindingModel:
+    """Return a binding with its set-like participant authority canonically ordered."""
+
+    return binding.model_copy(
+        update={"participant_manifest_refs": sorted(binding.participant_manifest_refs, key=_participant_reference_key)}
+    )
+
+
+def entry_descriptor_ids(
+    request: TrialCompilationRequest,
+    row: CoordinateSelections,
+    coordinate: TrialCoordinateModel,
+) -> set[str]:
+    """Return descriptor IDs selected for one exact logical coordinate."""
+
+    descriptors = request.experiment.binding_descriptors
+    if descriptors is None:
+        return set()
+    declared = {descriptor.binding_id: descriptor for descriptor in descriptors.descriptors}
+    return {
+        descriptor_id
+        for selection in row.selections
+        for descriptor_id in getattr(
+            request.experiment.run_plan.selection_policies[selection.policy_id], "binding_descriptor_refs", ()
+        )
+        if descriptor_id in declared and declared[descriptor_id].source_condition_id == coordinate.condition_id
+    }
 
 
 def coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
@@ -194,13 +310,39 @@ def coordinates(request: TrialCompilationRequest) -> list[TrialCoordinateModel]:
 def plan_intent(request: TrialCompilationRequest, planned_coordinates: list[TrialCoordinateModel]) -> dict[str, object]:
     """Return the complete plan-identity projection."""
 
-    return {
-        "profiles": admitted_profiles().model_dump(mode="json"),
-        "input_refs": request.input_refs.model_dump(mode="json"),
-        "apparatus": request.apparatus.model_dump(mode="json"),
+    mixed = bool(request.realization_assignments)
+    input_refs = canonical_input_refs(request)
+    intent = {
+        "profiles": admitted_profiles(mixed_composition=mixed).model_dump(mode="json"),
+        "input_refs": input_refs.model_dump(mode="json"),
         "execution_authority": request.execution_authority.model_dump(mode="json"),
         "coordinates": [coordinate_projection(coordinate) for coordinate in planned_coordinates],
     }
+    if mixed:
+        intent["realization_assignments"] = {
+            key: canonical_realization_binding(binding).model_dump(mode="json")
+            for key, binding in sorted(request.realization_assignments.items())
+        }
+    else:
+        intent["apparatus"] = request.apparatus.model_dump(mode="json")
+    return intent
+
+
+def canonical_input_refs(request: TrialCompilationRequest):
+    """Return input refs with set-like composition profile refs in canonical order."""
+
+    refs = request.input_refs.mixed_composition_profile_refs
+    if not refs:
+        return request.input_refs
+    ordered = sorted(
+        refs,
+        key=lambda reference: (
+            reference.ref_id,
+            reference.ref_version or "",
+            reference.ref_digest or "",
+        ),
+    )
+    return request.input_refs.model_copy(update={"mixed_composition_profile_refs": ordered})
 
 
 def visit_indices(
@@ -221,4 +363,13 @@ def visit_indices(
     return flattened
 
 
-__all__ = ["coordinates", "plan_intent", "validate_input_identities", "visit_indices"]
+__all__ = [
+    "coordinates",
+    "entry_descriptor_ids",
+    "canonical_realization_binding",
+    "canonical_input_refs",
+    "plan_intent",
+    "validate_input_identities",
+    "validate_realization_assignments",
+    "visit_indices",
+]

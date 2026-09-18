@@ -10,6 +10,7 @@ from raes.scenario import ExpandedScenario
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedApparatusBindingModel,
+    AdmittedMixedCompositionBindingModel,
     AdmittedTrialPlanInputRefsModel,
     AdmittedTrialPlanModel,
     ExperimentCaptureSpecModel,
@@ -19,6 +20,11 @@ from raes_contracts.contracts import (
     TrialCompilationLimitsModel,
     TrialExecutionAuthorityModel,
 )
+from raes_contracts.contracts.mixed_composition import (
+    MixedCompositionValidationLimits,
+    MixedParticipantCompositionProfileModel,
+)
+from raes_contracts.contracts.mixed_composition_resolution import MixedCompositionResolutionContext
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.experiment_bindings import (
     ApparatusManifest,
@@ -40,6 +46,12 @@ class TrialCompilationRequest:
     realization_envelope: BackendRealizationEnvelopeModel
     execution_authority: TrialExecutionAuthorityModel
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest]
+    realization_assignments: Mapping[str, AdmittedMixedCompositionBindingModel] = field(default_factory=dict)
+    mixed_profiles: Mapping[str, MixedParticipantCompositionProfileModel] = field(default_factory=dict)
+    mixed_profile_contexts: Mapping[str, MixedCompositionResolutionContext] = field(default_factory=dict)
+    mixed_realization_envelopes: Mapping[str, BackendRealizationEnvelopeModel] = field(default_factory=dict)
+    source_plans: Mapping[str, AdmittedTrialPlanModel] = field(default_factory=dict)
+    mixed_composition_limits: MixedCompositionValidationLimits = field(default_factory=MixedCompositionValidationLimits)
     capture_specs: Mapping[str, ExperimentCaptureSpecModel] = field(default_factory=dict)
     participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel] = field(
         default_factory=dict
@@ -66,6 +78,12 @@ class TrialCompilationRequest:
             realization_envelope=self.realization_envelope,
             execution_authority=self.execution_authority,
             apparatus_manifests=self.apparatus_manifests,
+            realization_assignments=self.realization_assignments,
+            mixed_profiles=self.mixed_profiles,
+            mixed_profile_contexts=self.mixed_profile_contexts,
+            mixed_realization_envelopes=self.mixed_realization_envelopes,
+            source_plans=self.source_plans,
+            mixed_composition_limits=self.mixed_composition_limits,
             capture_specs=self.capture_specs,
             participant_manifests=self.participant_manifests,
             limits=self.limits,
@@ -90,6 +108,12 @@ class TrialCompilationRequest:
             realization_envelope=self.realization_envelope,
             execution_authority=self.execution_authority,
             apparatus_manifests=self.apparatus_manifests,
+            realization_assignments=self.realization_assignments,
+            mixed_profiles=self.mixed_profiles,
+            mixed_profile_contexts=self.mixed_profile_contexts,
+            mixed_realization_envelopes=self.mixed_realization_envelopes,
+            source_plans=self.source_plans,
+            mixed_composition_limits=self.mixed_composition_limits,
             capture_specs=self.capture_specs,
             participant_manifests=self.participant_manifests,
             limits=self.limits,

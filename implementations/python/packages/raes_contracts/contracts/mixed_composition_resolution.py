@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ..vocabulary import ParticipantFeatureSupportLevel
 from .experiment_manifest_references import ExperimentManifestReferenceModel
@@ -124,6 +124,9 @@ class MixedCompositionResolutionContext:
     time_model_digests: Mapping[str, str]
     evidence_satisfaction: Mapping[tuple[str, str], frozenset[str]]
     nested_profiles: Mapping[str, MixedParticipantCompositionProfileModel]
+    allocation_effects: Mapping[tuple[str, str], frozenset[str]] = field(default_factory=dict)
+    resource_refs: Mapping[str, frozenset[str]] = field(default_factory=dict)
+    component_projection_membership: Mapping[tuple[str, str], bool] = field(default_factory=dict)
 
 
 class _WorkBudget:
@@ -273,7 +276,11 @@ def _validate_phase_evidence(
     context: MixedCompositionResolutionContext,
     budget: _WorkBudget,
 ) -> None:
-    for carrier in (*profile.phases.values(), *profile.transitions.values()):
+    carriers = (
+        *(profile.phases[phase_id] for phase_id in sorted(profile.phases)),
+        *(profile.transitions[transition_id] for transition_id in sorted(profile.transitions)),
+    )
+    for carrier in carriers:
         for binding in carrier.evidence_bindings:
             _validate_evidence_binding(profile.profile_id, binding, context, budget)
 
@@ -302,18 +309,26 @@ class _ContextValidator:
         self,
         context: MixedCompositionResolutionContext,
         limits: MixedCompositionValidationLimits,
+        *,
+        require_trial_admission: bool,
     ) -> None:
         self.context = context
         self.limits = limits
+        self.require_trial_admission = require_trial_admission
         self.budget = _WorkBudget(limits.max_context_work)
         self.visited: set[str] = set()
         self.visiting: set[str] = set()
+        self.profiles: dict[str, MixedParticipantCompositionProfileModel] = {}
 
     def visit(self, profile: MixedParticipantCompositionProfileModel) -> None:
         if not self._begin_visit(profile.profile_id):
             return
+        _validate_profile_limits(profile, self.limits)
         self._validate_profile_context(profile)
-        for child_id, child_digest in profile.nested_profile_refs.items():
+        if self.require_trial_admission:
+            _validate_trial_admission_context(profile, self.context)
+        self.profiles[profile.profile_id] = profile
+        for child_id, child_digest in sorted(profile.nested_profile_refs.items()):
             self.visit(self._resolve_child(child_id, child_digest))
         self.visiting.remove(profile.profile_id)
         self.visited.add(profile.profile_id)
@@ -333,13 +348,17 @@ class _ContextValidator:
         scenario = profile.scenario_snapshot_ref
         if self.context.scenario_snapshots.get(scenario.ref_id) != scenario:
             raise ValueError("composition scenario snapshot is unresolved or stale")
-        for component in profile.components.values():
+        for component_id in sorted(profile.components):
+            component = profile.components[component_id]
             _validate_component_context(profile.profile_id, component, self.context, self.budget)
-        for allocation in profile.allocations.values():
+        for allocation_id in sorted(profile.allocations):
+            allocation = profile.allocations[allocation_id]
             _validate_allocation_context(profile.profile_id, allocation, self.context, self.budget)
-        for edge in profile.edges.values():
+        for edge_id in sorted(profile.edges):
+            edge = profile.edges[edge_id]
             _validate_edge_context(profile.profile_id, edge, self.context, self.budget)
-        for transition in profile.transitions.values():
+        for transition_id in sorted(profile.transitions):
+            transition = profile.transitions[transition_id]
             _validate_transition_context(profile.profile_id, transition, self.context, self.budget)
         _validate_phase_evidence(profile, self.context, self.budget)
 
@@ -352,7 +371,36 @@ class _ContextValidator:
         child = self.context.nested_profiles.get(child_id)
         if child is None or child.profile_id != child_id or child.profile_digest != child_digest:
             raise ValueError("composition nested profile is unresolved or stale")
-        return child
+        try:
+            reconstructed = type(child).model_validate(child.model_dump(mode="python"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("composition nested profile failed closed reconstruction") from exc
+        if reconstructed.profile_id != child_id or reconstructed.profile_digest != child_digest:
+            raise ValueError("composition nested profile is unresolved or stale")
+        return reconstructed
+
+
+def resolve_mixed_composition_profiles(
+    profile: MixedParticipantCompositionProfileModel,
+    context: MixedCompositionResolutionContext,
+    *,
+    limits: MixedCompositionValidationLimits | None = None,
+    require_trial_admission: bool = False,
+) -> tuple[MixedParticipantCompositionProfileModel, ...]:
+    """Validate and return the complete canonical reachable profile closure."""
+
+    selected = limits or MixedCompositionValidationLimits()
+    try:
+        root = type(profile).model_validate(profile.model_dump(mode="python"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("mixed composition root profile failed closed reconstruction") from exc
+    validator = _ContextValidator(
+        context,
+        selected,
+        require_trial_admission=require_trial_admission,
+    )
+    validator.visit(root)
+    return tuple(validator.profiles[profile_id] for profile_id in sorted(validator.profiles))
 
 
 def validate_mixed_composition_context(
@@ -360,6 +408,7 @@ def validate_mixed_composition_context(
     context: MixedCompositionResolutionContext,
     *,
     limits: MixedCompositionValidationLimits | None = None,
+    require_trial_admission: bool = False,
 ) -> None:
     """Resolve all external profile authority through bounded trusted indexes.
 
@@ -367,9 +416,42 @@ def validate_mixed_composition_context(
     repair. A successful return establishes only contextual contract validity.
     """
 
-    selected = limits or MixedCompositionValidationLimits()
-    _validate_profile_limits(profile, selected)
-    _ContextValidator(context, selected).visit(profile)
+    resolve_mixed_composition_profiles(
+        profile,
+        context,
+        limits=limits,
+        require_trial_admission=require_trial_admission,
+    )
+
+
+def _validate_trial_admission_context(
+    profile: MixedParticipantCompositionProfileModel,
+    context: MixedCompositionResolutionContext,
+) -> None:
+    """Validate scenario-owned projection/effect relationships required by trial admission."""
+
+    for component_id in profile.components:
+        if context.component_projection_membership.get((profile.profile_id, component_id)) is not True:
+            raise ValueError("composition component realization-envelope projection is unresolved or rejected")
+    effects: dict[str, frozenset[str]] = {}
+    for allocation_id in profile.allocations:
+        resolved = context.allocation_effects.get((profile.profile_id, allocation_id))
+        if not resolved:
+            raise ValueError("composition allocation semantic-effect coverage is unresolved")
+        effects[allocation_id] = resolved
+    for phase in profile.phases.values():
+        active = sorted(phase.active_allocation_ids)
+        for index, first_id in enumerate(active):
+            first = profile.allocations[first_id]
+            for second_id in active[index + 1 :]:
+                second = profile.allocations[second_id]
+                if (
+                    first.provider_component_id != second.provider_component_id
+                    and effects[first_id] & effects[second_id]
+                ):
+                    raise ValueError("active composition providers overlap one canonical semantic effect")
+    if profile.profile_id not in context.resource_refs:
+        raise ValueError("composition all-phase resource coverage is unresolved")
 
 
 __all__ = [
@@ -380,5 +462,6 @@ __all__ = [
     "MixedCompositionTrustedComponent",
     "MixedCompositionTrustedEdge",
     "MixedCompositionTrustedTransition",
+    "resolve_mixed_composition_profiles",
     "validate_mixed_composition_context",
 ]
