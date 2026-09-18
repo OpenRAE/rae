@@ -82,8 +82,9 @@ def test_omitted_methods_preserves_legacy_unknown_inventory_shape() -> None:
 
 def test_parser_diagnostic_does_not_echo_a_rejected_method() -> None:
     rejected = "PRIVATE INVALID METHOD 1298"
+    source = _source(rejected)
     with pytest.raises(SDLParseError) as caught:
-        parse_sdl(_source(rejected))
+        parse_sdl(source)
     assert rejected not in str(caught.value)
 
 
