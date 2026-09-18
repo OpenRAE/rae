@@ -1251,9 +1251,9 @@ def test_credentialed_publishers_check_out_no_candidate_source() -> None:
 
     for name in ("publish-pypi", "publish-github"):
         steps = jobs[name]["steps"]
-        assert all(
-            not step.get("uses", "").startswith("actions/checkout@") for step in steps
-        ), f"{name} must not check out candidate source"
+        assert all(not step.get("uses", "").startswith("actions/checkout@") for step in steps), (
+            f"{name} must not check out candidate source"
+        )
 
 
 def test_admission_exports_the_validated_artifact_identity() -> None:

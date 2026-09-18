@@ -162,9 +162,7 @@ def test_emitted_scalars_are_shell_safe_key_values(tmp_path: Path) -> None:
 
     from tools.release_evidence_admission import render_publication_outputs
 
-    rendered = render_publication_outputs(
-        admitted_publication_subjects(index=_index(tmp_path), expected_tag="v1.2.3")
-    )
+    rendered = render_publication_outputs(admitted_publication_subjects(index=_index(tmp_path), expected_tag="v1.2.3"))
 
     assert rendered.splitlines() == [
         "wheel_name=raes-1.2.3-py3-none-any.whl",
@@ -262,9 +260,7 @@ def test_cli_emits_the_handoff_only_after_admission_succeeds() -> None:
         return next(
             index
             for index, statement in enumerate(ast.walk(main))
-            if isinstance(statement, ast.Call)
-            and isinstance(statement.func, ast.Name)
-            and statement.func.id == needle
+            if isinstance(statement, ast.Call) and isinstance(statement.func, ast.Name) and statement.func.id == needle
         )
 
     assert _position("verify_admission") < _position("render_publication_outputs")
