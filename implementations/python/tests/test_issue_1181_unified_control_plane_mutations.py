@@ -407,7 +407,9 @@ def test_cancelled_http_mutation_retains_reservation_until_worker_exits(
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> InMemoryControlPlaneStore | LocalControlPlaneStore:
     if request.param == "memory":
         return InMemoryControlPlaneStore()
-    return LocalControlPlaneStore(tmp_path / "control-plane")
+    local_store = LocalControlPlaneStore(tmp_path / "control-plane")
+    local_store.admit_runtime(target_scope="target:stub", run_scope="run:issue-1181")
+    return local_store
 
 
 @pytest.mark.parametrize(
@@ -584,7 +586,7 @@ def test_restart_terminalizes_running_claim_through_governed_recovery() -> None:
     running = _running_record("interrupted-operation")
     store.claim_record(running)
 
-    control_plane = RuntimeControlPlane(create_stub_target(), store=store)
+    control_plane = RuntimeControlPlane(create_stub_target(), store=store, run_scope="run:issue-1181")
 
     recovered = store.load_records()[running.receipt.operation_id]
     assert recovered.status.state is OperationState.INDETERMINATE
@@ -686,7 +688,7 @@ def test_accepted_indeterminate_resolution_reaches_the_shared_authority() -> Non
     store = InMemoryControlPlaneStore()
     parent = _running_record("indeterminate-parent-1181")
     store.claim_record(parent)
-    control_plane = RuntimeControlPlane(create_stub_target(), store=store)
+    control_plane = RuntimeControlPlane(create_stub_target(), store=store, run_scope="run:issue-1181")
     assert store.load_records()[parent.receipt.operation_id].status.state is OperationState.INDETERMINATE
 
     _assert_requests_mutation_reservation(

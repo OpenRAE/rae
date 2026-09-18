@@ -50,13 +50,10 @@ Changing these migration pins is an explicit, reviewable workflow trust change.
 
 ## Set up the repository
 
-The fastest start is the
-[development container](docs/explain/development-container.md): open the
-repository in VS Code with the Dev Containers extension, or create a GitHub
-Codespace, and setup runs by itself. It is an x86_64 image; on Apple silicon,
-Docker Desktop runs it under emulation. The container cannot run the Isabelle
-proof lane, so continuous integration runs the full `verify` gate for container
-users.
+An optional [development container](docs/explain/development-container.md)
+provides automated setup for the reviewed x86_64 image. The guide distinguishes
+the exercised Docker lifecycle from client-specific verification owned by
+#1277. The container cannot run the Isabelle proof lane; CI runs that gate.
 
 To set up natively instead:
 
@@ -70,8 +67,8 @@ The host profile also requires Git, trusted CA roots, SHA-256 tooling, GH CLI
 when GitHub operations are used, and curl 8.4.0 or newer with verified
 unknown-length size enforcement. An older client is a hard failure for generic
 artifact acquisition. Provision native prerequisites from the reviewed host
-image or repository snapshot; the offline payload kit supplies exact Python,
-uv, and generic-tool objects after those prerequisites are present. Do not pipe
+image or signed package repositories. Connected setup acquires exact Python,
+uv and generic-tool inputs against their reviewed identities. Do not pipe
 a remote installer into a shell.
 
 Install the separate locked project and verification-tool environments:
@@ -82,6 +79,12 @@ cd rae
 uv sync --project implementations/python --all-extras --frozen
 uv sync --project implementations/tooling/python --frozen --no-default-groups
 ```
+
+Specialized TLS acquisition fixtures use the tooling `acquisition-tests`
+dependency group; ordinary tooling sync does not need it. The existing Intel
+Mac restriction is not lifted by that separation: patched runtime dependencies
+and actual target smoke evidence are still required. No vulnerable dependency
+downgrade or untested support is implied.
 
 The [developer documentation index](docs/README.md) links to architecture,
 research, migration, release, and workflow records that are not part of the

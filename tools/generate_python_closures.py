@@ -16,7 +16,11 @@ from urllib.parse import urlsplit
 from packaging.tags import Tag, compatible_tags, cpython_tags, mac_platforms
 from packaging.utils import InvalidWheelFilename, parse_wheel_filename
 
-from tools.generate_python_closures_locks import lock_mappings, locked_closure, target_environment
+from tools.generate_python_closures_locks import (
+    lock_mappings,
+    locked_closure,
+    target_environment,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _SHA256_PREFIX = "sha256:"
@@ -78,11 +82,6 @@ TARGETS = (
         "aarch64-unknown-linux-gnu",
     ),
     ("public-macos-arm64-cp314-all-extras", "3.14", "cp314", "aarch64-apple-darwin"),
-)
-TOOL_TARGETS = (
-    ("public-linux-x86_64-cp314-tools", "3.14", "cp314", "x86_64-unknown-linux-gnu"),
-    ("public-linux-arm64-cp314-tools", "3.14", "cp314", "aarch64-unknown-linux-gnu"),
-    ("public-macos-arm64-cp314-tools", "3.14", "cp314", "aarch64-apple-darwin"),
 )
 
 
@@ -356,13 +355,6 @@ def generate(*, check: bool, repo_root: Path = REPO_ROOT) -> bool:
             root_name="raes",
             include_root_optional=True,
             targets=TARGETS,
-        ),
-        _LockDefinition(
-            lock_path=tool_lock_path,
-            root_name=_TOOL_ROOT_NAME,
-            include_root_optional=False,
-            targets=TOOL_TARGETS,
-            root_groups=("build",),
         ),
     )
     for definition in definitions:

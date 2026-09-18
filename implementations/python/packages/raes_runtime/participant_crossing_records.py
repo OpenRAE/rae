@@ -157,7 +157,6 @@ def _prepare_crossing_decision(
             kind=OperationKind.PARTICIPANT_CROSSING,
             request=intent,
             identity=identity,
-            run_scope=f"run:{intent.episode_id}",
         ),
     )
     record = ControlPlaneOperationRecord(

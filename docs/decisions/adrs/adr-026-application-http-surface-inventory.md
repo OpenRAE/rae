@@ -232,3 +232,36 @@ schema elsewhere.
 - Overfitting to Flask would make the ACES surface poor at representing other
   HTTP applications, API gateways, reverse proxies, or scanner-observed
   surfaces.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-18 | #1298 | Separated extensible case-sensitive HTTP wire-method identity from controlled vocabularies while retaining legacy built-in aliases and execution boundaries. |
+
+### HTTP method identity
+
+Issue #1298 corrects the original closed nine-method interpretation. RFC HTTP
+method identity is an extensible, case-sensitive wire token. It is therefore
+owned by `RuntimeApplicationRoute.methods` and its published SDL schema, not by
+the RAES governed-vocabulary extension syntax. The field accepts the non-empty
+ASCII HTTP token grammar up to 128 characters, without trimming malformed
+input. Whole-field method variables are authoring-only alternatives and must
+pass the same token and duplicate checks after substitution.
+
+Existing serialized uppercase built-ins remain stable. Lowercase and
+mixed-case spellings of the nine historically admitted built-ins retain their
+existing uppercase result as an explicit compatibility alias. All other valid
+tokens, including `PROPFIND` and private tokens, retain exact case. Duplicate
+method/path checks operate on the post-alias identities, so `get` and `GET`
+collide while an extension token and a differently cased extension token do
+not.
+
+This changes neither the HTTP/HTTPS-only proxy-upstream profile nor any
+observation, authorization, capability, selected-operation, or backend
+execution contract. Implementations must not add HTTP methods to the
+controlled-vocabulary catalog, encode them as `x-<owner>:<term>`, case-fold
+extension methods, trim malformed input into a valid token, or make parser
+acceptance imply backend support. See the focused
+[issue #1298 architecture preflight](../../explain/reference/issue-1298-http-method-identity-preflight.md)
+for the cross-cutting boundaries.

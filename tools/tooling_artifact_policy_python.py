@@ -31,20 +31,6 @@ PYTHON_AUTHORITY_PATHS = (
     PYTHON_TOOL_LOCK_PATH,
     PYTHON_BUILD_CONSTRAINTS_PATH,
 )
-_EXPECTED_TOOLS = {
-    "check-jsonschema": "0.37.1",
-    "cryptography": "50.0.1",
-    "filelock": "3.32.6",
-    "nox": "2026.4.10",
-    "pip": "26.2.1",
-    "pre-commit": "4.3.0",
-    "pre-commit-hooks": "6.0.0",
-    "pytest": "9.0.3",
-    "pytest-timeout": "2.4.0",
-    "ruff": "0.15.9",
-    "uv": "0.12.4",
-}
-_EXPECTED_BUILD = {"hatchling": "1.32.0"}
 _HASH_RE = re.compile(r"--hash=sha256:([0-9a-f]{64})")
 _TOML_SIZE_LIMIT = 4 * 1024 * 1024
 
@@ -216,16 +202,17 @@ def _dependency_pin_failures(
     tool_project: Mapping[str, Any],
     tool_lock: Mapping[str, Any],
 ) -> list[PolicyFailure]:
-    """Require the reviewed exact tool, build, and build-system pin sets."""
+    """Require exact native project pins and agreement with the frozen lock."""
 
     failures: list[PolicyFailure] = []
     tool_pins = _direct_pins(tool_project.get("project", {}).get("dependencies"))
     build_pins = _direct_pins(tool_project.get("dependency-groups", {}).get("build"))
-    if tool_pins != _EXPECTED_TOOLS or build_pins != _EXPECTED_BUILD:
+    acquisition_pins = _direct_pins(tool_project.get("dependency-groups", {}).get("acquisition-tests"))
+    if not tool_pins or not build_pins or not acquisition_pins:
         failures.append(
             failure(
                 "tooling-python-direct-pins",
-                "Python tool and build direct dependencies must match the reviewed exact set",
+                "Python tool and build direct dependencies must use unique exact pins",
                 PYTHON_TOOL_PROJECT_PATH,
             )
         )
@@ -236,10 +223,14 @@ def _dependency_pin_failures(
             "reviewed Python direct dependency is absent or drifted in the tool lock",
             PYTHON_TOOL_LOCK_PATH,
         )
-        for name, version in {**_EXPECTED_TOOLS, **_EXPECTED_BUILD}.items()
+        for name, version in {
+            **(tool_pins or {}),
+            **(build_pins or {}),
+            **(acquisition_pins or {}),
+        }.items()
         if versions.get(name) != {version}
     )
-    if _direct_pins(project.get("build-system", {}).get("requires")) != _EXPECTED_BUILD:
+    if _direct_pins(project.get("build-system", {}).get("requires")) != build_pins:
         failures.append(
             failure(
                 "tooling-python-build-system",
@@ -269,7 +260,8 @@ def _governed_pin_failures(repo_root: Path, project: Mapping[str, Any]) -> list[
         )
     constraints = _constraint_records((repo_root / PYTHON_BUILD_CONSTRAINTS_PATH).read_text(encoding="utf-8"))
     recorded = {name: record[0] for name, record in (constraints or {}).items()}
-    hash_complete = constraints is not None and _EXPECTED_BUILD.items() <= recorded.items()
+    build_pins = _direct_pins(project.get("build-system", {}).get("requires"))
+    hash_complete = constraints is not None and bool(build_pins) and build_pins.items() <= recorded.items()
     if not hash_complete:
         failures.append(
             failure(

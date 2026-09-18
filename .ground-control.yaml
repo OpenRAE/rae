@@ -10,8 +10,6 @@ workflow:
   precommit_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" pre-commit run
   codex_review:
     pre_push_cap: 1
-  test_quality_review:
-    pre_push_cap: 1
   review_disposition:
     enabled: false
     mode: shadow

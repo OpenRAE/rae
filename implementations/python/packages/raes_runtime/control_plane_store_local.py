@@ -7,7 +7,6 @@ import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import asdict
-from datetime import UTC, datetime
 from pathlib import Path
 
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
@@ -29,7 +28,6 @@ from .control_plane_store import (
     terminal_operation_audit,
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
-from .control_plane_store_legacy import _read_legacy_state
 from .control_plane_store_local_codec import (
     decode_payload as _decode_payload,
 )
@@ -39,9 +37,9 @@ from .control_plane_store_local_codec import (
 from .control_plane_store_local_codec import (
     transaction as _transaction,
 )
+from .control_plane_store_local_scope import LocalStoreScopeMigrationMixin
 from .control_plane_store_local_snapshot import LocalSnapshotRevisionStoreMixin
 from .control_plane_store_paths import (
-    _copy_regular_file_durably,
     _fsync_directory,
     _require_same_file,
     _secure_database_file,
@@ -73,7 +71,7 @@ def _participant_transition_count(snapshot: RuntimeSnapshot) -> int:
     return _count_participant_transitions(snapshot)
 
 
-class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
+class LocalControlPlaneStore(LocalStoreScopeMigrationMixin, LocalSnapshotRevisionStoreMixin):
     """Transactional single-host control-plane durability.
 
     SQLite WAL transactions serialize writers across processes, keep operation
@@ -83,7 +81,6 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
 
     def __init__(self, base_dir: Path) -> None:
         self._base_dir = base_dir
-        _secure_store_directory(self._base_dir)
         self._database_path = self._base_dir / _DATABASE_NAME
         self._runtime_owner_path = self._base_dir / _RUNTIME_OWNER_LOCK_NAME
         self._active_runtime_lease: RuntimeOwnerLease | None = None
@@ -92,15 +89,11 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
         self._audit_path = self._base_dir / "audit.jsonl"
         self._control_state_path = self._base_dir / "control-transition-state.json"
         self._database_identity: os.stat_result | None = None
-        database_existed = _secure_database_file(self._database_path, allow_missing=True) is not None
-        _validate_sqlite_sidecars(self._database_path)
-        self._initialize_database(database_existed=database_existed)
-        database_identity = _secure_database_file(self._database_path, allow_missing=False)
-        assert database_identity is not None
-        self._database_identity = database_identity
+        self._provider_closed = False
+        self._admitted_scope: tuple[str, str] | None = None
 
-    def acquire_runtime_lease(self) -> RuntimeOwnerLease:
-        """Fail fast unless this process is the store's sole runtime owner."""
+    def admit_runtime(self, *, target_scope: str, run_scope: str) -> RuntimeOwnerLease:
+        """Acquire sole ownership, bind scope, and only then inspect SQLite."""
 
         require_single_worker_configuration()
         active = self._active_runtime_lease
@@ -108,9 +101,48 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
             raise RuntimeError(
                 "local control-plane store already has a runtime owner; use exactly one worker with reload disabled"
             )
+        _secure_store_directory(self._base_dir)
+        directory_identity = self._base_dir.lstat()
         lease = RuntimeOwnerLease.acquire(self._runtime_owner_path)
-        self._active_runtime_lease = lease
-        return lease
+        try:
+            current_directory_identity = self._base_dir.lstat()
+            if not os.path.samestat(directory_identity, current_directory_identity):
+                raise RuntimeError("local control-plane store directory changed during runtime admission")
+            self._active_runtime_lease = lease
+            self._provider_closed = False
+            self._admitted_scope = (target_scope, run_scope)
+            database_existed = _secure_database_file(self._database_path, allow_missing=True) is not None
+            _validate_sqlite_sidecars(self._database_path)
+            self._initialize_database(
+                database_existed=database_existed,
+                target_scope=target_scope,
+                run_scope=run_scope,
+            )
+            database_identity = _secure_database_file(self._database_path, allow_missing=False)
+            assert database_identity is not None
+            self._database_identity = database_identity
+            return lease
+        except BaseException:
+            self._active_runtime_lease = None
+            self._admitted_scope = None
+            lease.close()
+            raise
+
+    def acquire_runtime_lease(self) -> RuntimeOwnerLease:
+        """Legacy entry point retained only to fail closed without scope."""
+
+        raise RuntimeError("local control-plane store runtime admission requires target and run scope")
+
+    def _assert_runtime_admitted(self) -> None:
+        lease = self._active_runtime_lease
+        if lease is None or lease.closed or self._provider_closed:
+            raise RuntimeError("local control-plane store requires live runtime admission")
+        lease.assert_owner()
+
+    def close(self) -> None:
+        """Close provider resources without releasing the runtime-owner lease."""
+
+        self._provider_closed = True
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
         with self._connection() as connection:
@@ -285,6 +317,7 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
         ]
 
     def _connect(self, *, allow_create: bool = False) -> tuple[sqlite3.Connection, os.stat_result]:
+        self._assert_runtime_admitted()
         before = _secure_database_file(self._database_path, allow_missing=allow_create)
         expected_identity = self._database_identity
         if expected_identity is not None and before is not None:
@@ -332,8 +365,10 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
                 )
             _validate_sqlite_sidecars(self._database_path)
 
-    def _initialize_database(self, *, database_existed: bool) -> None:
+    def _initialize_database(self, *, database_existed: bool, target_scope: str, run_scope: str) -> None:
         with self._connection(allow_create=not database_existed) as connection:
+            if database_existed:
+                self._require_compatible_scope(connection, target_scope=target_scope, run_scope=run_scope)
             if connection.execute("PRAGMA journal_mode=WAL").fetchone() != ("wal",):
                 raise RuntimeError("local control-plane database did not enter required SQLite WAL journal mode")
             _validate_sqlite_sidecars(self._database_path)
@@ -366,73 +401,23 @@ class LocalControlPlaneStore(LocalSnapshotRevisionStoreMixin):
                 """
             )
             with _transaction(connection):
+                self._bind_runtime_scope(connection, target_scope=target_scope, run_scope=run_scope)
                 connection.execute(
                     "INSERT OR IGNORE INTO metadata(key, value) VALUES ('schema-version', ?)",
                     (_SCHEMA_VERSION,),
                 )
                 migrate_sqlite_schema(connection, _decode_payload, _encode_payload)
                 self._migrate_legacy_json(connection)
+                self._rebind_legacy_operation_scopes(
+                    connection,
+                    target_scope=target_scope,
+                    run_scope=run_scope,
+                )
             quick_check = connection.execute("PRAGMA quick_check").fetchone()
             if quick_check is None or quick_check[0] != "ok":
                 raise ValueError("local control-plane database failed its integrity check")
         if not database_existed:
             _fsync_directory(self._base_dir)
-
-    def _migrate_legacy_json(self, connection: sqlite3.Connection) -> None:
-        completed = connection.execute("SELECT value FROM metadata WHERE key='legacy-json-migration'").fetchone()
-        if completed is not None:
-            return
-        legacy_paths = self._existing_legacy_paths()
-        if not legacy_paths:
-            connection.execute("INSERT INTO metadata(key, value) VALUES ('legacy-json-migration', 'not-present')")
-            return
-
-        snapshot, records, audits = _read_legacy_state(
-            snapshot_path=self._snapshot_path,
-            operations_path=self._operations_path,
-            audit_path=self._audit_path,
-            control_state_path=self._control_state_path,
-        )
-        backup_dir = self._backup_legacy_files(legacy_paths)
-        self._upsert_snapshot(connection, snapshot)
-        for record in records.values():
-            self._upsert_record(connection, record)
-        for event in audits:
-            payload, digest = _encode_payload(asdict(event))
-            connection.execute(
-                _INSERT_AUDIT_EVENT,
-                (payload, digest),
-            )
-        stored_record_count = connection.execute("SELECT COUNT(*) FROM operations").fetchone()[0]
-        stored_audit_count = connection.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0]
-        if stored_record_count != len(records) or stored_audit_count != len(audits):
-            raise ValueError("legacy control-plane migration verification failed")
-        connection.execute(
-            "INSERT INTO metadata(key, value) VALUES ('legacy-json-migration', ?)",
-            (backup_dir.name,),
-        )
-
-    def _existing_legacy_paths(self) -> list[Path]:
-        return [
-            path
-            for path in (
-                self._snapshot_path,
-                self._operations_path,
-                self._audit_path,
-                self._control_state_path,
-            )
-            if path.exists()
-        ]
-
-    def _backup_legacy_files(self, paths: list[Path]) -> Path:
-        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S.%fZ")
-        backup_dir = self._base_dir / f"legacy-json-backup-{timestamp}"
-        backup_dir.mkdir(mode=0o700)
-        for path in paths:
-            _copy_regular_file_durably(path, backup_dir / path.name)
-        _fsync_directory(backup_dir)
-        _fsync_directory(self._base_dir)
-        return backup_dir
 
     @staticmethod
     def _load_record(

@@ -662,7 +662,6 @@ version = "0"
 source = { virtual = "." }
 dependencies = [
     { name = "check-jsonschema" },
-    { name = "cryptography" },
     { name = "filelock" },
     { name = "nox", extra = ["uv"] },
     { name = "pip" },
@@ -675,6 +674,9 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+acquisition-tests = [
+    { name = "cryptography" },
+]
 build = [
     { name = "hatchling" },
 ]
@@ -682,7 +684,6 @@ build = [
 [package.metadata]
 requires-dist = [
     { name = "check-jsonschema", specifier = "==0.37.1" },
-    { name = "cryptography", specifier = "==50.0.1" },
     { name = "filelock", specifier = "==3.32.6" },
     { name = "nox", extras = ["uv"], specifier = "==2026.4.10" },
     { name = "pip", specifier = "==26.2.1" },
@@ -695,6 +696,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+acquisition-tests = [{ name = "cryptography", specifier = "==50.0.1" }]
 build = [{ name = "hatchling", specifier = "==1.32.0" }]
 
 [[package]]

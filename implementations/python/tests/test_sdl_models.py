@@ -3123,9 +3123,9 @@ class TestRuntimeApplicationSurface:
         with pytest.raises(ValidationError, match="route methods must not be empty"):
             RuntimeApplicationRoute(route_id="r1", path="/login", methods=[])
 
-    def test_route_method_must_be_known(self):
-        with pytest.raises(ValidationError, match="must be one of"):
-            RuntimeApplicationRoute(route_id="r1", path="/login", methods=["FETCH"])
+    def test_route_method_must_be_an_http_token(self):
+        with pytest.raises(ValidationError, match="HTTP method"):
+            RuntimeApplicationRoute(route_id="r1", path="/login", methods=["FETCH/ITEM"])
 
     def test_route_id_rejects_variable_placeholder(self):
         with pytest.raises(ValidationError, match="portable SDL identifier"):

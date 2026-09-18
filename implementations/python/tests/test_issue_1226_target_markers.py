@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 from packaging.markers import Marker, default_environment
-from tools.generate_python_closures import TARGETS, TOOL_TARGETS
+from tools.generate_python_closures import TARGETS
 from tools.generate_python_closures_locks import locked_closure, target_environment
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -154,7 +154,7 @@ def test_patch_sensitive_selection_reaches_the_locked_closure() -> None:
 def test_every_reviewed_target_resolves_a_locked_full_version() -> None:
     """Each projected target names an interpreter the artifact lock actually pins."""
 
-    for _profile_id, python_version, _abi, platform in (*TARGETS, *TOOL_TARGETS):
+    for _profile_id, python_version, _abi, platform in TARGETS:
         full_version = _reviewed_full_version(python_version)
         assert full_version.startswith(f"{python_version}.")
         environment = target_environment(python_version, platform, full_version=full_version)

@@ -31,16 +31,13 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    branch status or accept a check from another commit.
 5. A separate read-only job checks out that SHA and must complete the RUN-314
    reference-backend tests against a real container runtime. Before the lane
-   runs, the job exports the reviewed multi-platform OCI graph named by
-   `implementations/tooling/artifacts.lock.json`, re-hashes every object in that
-   export against the lock offline, and loads it into the runtime; the lane then
-   runs pre-seeded and performs no registry pull of its own. Release-required
-   mode fails when the runtime or reviewed image is unavailable, when the
-   runtime holds anything other than the reviewed graph, when pytest collects
-   zero tests, or when any selected test skips. A mirror-only site sets
-   `RAES_OCI_SOURCE_CLASS=mirror` with `RAES_OCI_MIRROR_REPOSITORY`; no source
-   class ever falls back to the public origin. The ordinary PR/local Docker lane
-   remains optional.
+   runs, the native runtime pulls the pinned platform manifest from the public
+   registry. The lane verifies daemon OS, architecture, and uncompressed layer
+   identities against `implementations/tooling/artifacts.lock.json`.
+   Release-required mode fails when the runtime or reviewed image is unavailable,
+   its identity differs, pytest collects zero tests, or any selected test skips.
+   Retired mirror/pre-seed environment switches are rejected. The ordinary
+   PR/local Docker lane remains optional.
 6. A read-only job checks out the verified SHA, builds the corpus-bundled wheel
    and sdist, checks the corpus in both archives, installs each exact artifact in
    its own fresh environment, and runs `raes conformance backend --profile

@@ -183,11 +183,18 @@ this run does not repair them.
   limits remain unchanged.
 
 - [`execution-snapshot-v30.json`](execution-snapshot-v30.json) and
-  [`analysis-v30.json`](analysis-v30.json) are current release 30.0.0. Fresh
+  [`analysis-v30.json`](analysis-v30.json) preserve release 30.0.0. Fresh
   replay binds the API-404 operational recovery-observation contract to exact
   source and package digests. Classifications and claim limits remain
   unchanged; crash recovery and EXP-715 experiment observation are not
   evaluated by this corpus.
+
+- [`execution-snapshot-v31.json`](execution-snapshot-v31.json) and
+  [`analysis-v31.json`](analysis-v31.json) are current release 31.0.0. Fresh
+  replay binds API-404 CP-5 single-owner admission, immutable target/run scope,
+  and lifecycle changes to exact source and package digests. The retained
+  language corpus does not evaluate process leases, SQLite ordering, or crash
+  recovery, and its classifications and claim limits remain unchanged.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
@@ -217,7 +224,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 30.0.0 and rejects duplicate or unsupported
+Current validation requires release 31.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

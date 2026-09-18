@@ -52,21 +52,13 @@ def default_kit_root() -> Path:
 def container_host_profile_id(repo_root: Path, platform_id: str) -> str:
     """Return the one reviewed container host profile qualified for this platform."""
 
-    from tools.check_tooling_artifact_policy import (
-        PROFILES_PATH,
-        evaluate_tooling_artifact_policy,
-    )
-    from tools.policy.common import load_bounded_json_object
     from tools.tooling_artifact_policy_common import (
-        MAX_JSON_BYTES,
+        PROFILES_PATH,
         normalize_platform_id,
+        read_tooling_document,
     )
 
-    failures = evaluate_tooling_artifact_policy(repo_root)
-    if failures:
-        rendered = "\n".join(item.render() for item in failures)
-        raise DevcontainerSetupError(f"the development artifact policy is invalid:\n{rendered}")
-    profiles = load_bounded_json_object(repo_root, PROFILES_PATH, max_bytes=MAX_JSON_BYTES)
+    profiles = read_tooling_document(repo_root, PROFILES_PATH)
     matches = [
         str(host["host_profile_id"])
         for host in profiles.get("host_profiles", [])
@@ -129,9 +121,9 @@ def prepare_kit(host_profile_id: str, kit_root: Path) -> dict[str, str]:
             else:
                 missing.append(artifact_id)
         if missing:
-            bootstrap_profile.fetch_offline_kit_payloads(host_profile_id, staging, missing)
-        bootstrap_profile.install_offline_uv_payload(host_profile_id, staging, uv_id)
-        python = bootstrap_profile.install_offline_python_payload(host_profile_id, staging, python_id)
+            bootstrap_profile.fetch_bootstrap_payloads(host_profile_id, staging, missing)
+        bootstrap_profile.install_uv_payload(host_profile_id, staging, uv_id)
+        python = bootstrap_profile.install_python_payload(host_profile_id, staging, python_id)
         (staging / "python" / PYTHON_LINK_NAME).symlink_to(Path(python["path"]).name, target_is_directory=True)
         previous = kit_root.with_name(f".{kit_root.name}-previous")
         shutil.rmtree(previous, ignore_errors=True)

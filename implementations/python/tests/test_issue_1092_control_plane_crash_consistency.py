@@ -425,7 +425,25 @@ def _audit_event(
 def _atomic_store(kind: str, tmp_path: Path) -> InMemoryControlPlaneStore | LocalControlPlaneStore:
     if kind.startswith("memory"):
         return InMemoryControlPlaneStore()
-    return LocalControlPlaneStore(tmp_path / f"control-plane-{kind}")
+    return _admitted_local_store(tmp_path / f"control-plane-{kind}")
+
+
+def _admitted_local_store(
+    path: Path,
+    *,
+    target_scope: str = "target:stub",
+    run_scope: str = "run:test",
+) -> LocalControlPlaneStore:
+    store = LocalControlPlaneStore(path)
+    store.admit_runtime(target_scope=target_scope, run_scope=run_scope)
+    return store
+
+
+def _close_admitted_local_store(store: LocalControlPlaneStore) -> None:
+    store.close()
+    lease = store._active_runtime_lease
+    assert lease is not None
+    lease.close()
 
 
 def _runtime_owner_result(store_path: str, queue: Any) -> None:
@@ -700,7 +718,7 @@ def test_terminal_transaction_rolls_back_at_each_internal_write_boundary(
     monkeypatch: pytest.MonkeyPatch,
     write_boundary: str,
 ) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store = _admitted_local_store(tmp_path / "control-plane")
     running = _running_record("transaction-crash")
     store.claim_record(running)
     next_snapshot = RuntimeSnapshot(metadata={"generation": 2})
@@ -898,11 +916,13 @@ def test_startup_recovery_commit_failure_aborts_readiness_and_resumes_without_re
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     store_path = tmp_path / "control-plane"
-    store = LocalControlPlaneStore(store_path)
+    preparation_store = _admitted_local_store(store_path)
     accepted = _running_record("accepted", state=OperationState.ACCEPTED)
     running = _running_record("running")
-    store.save_record(accepted)
-    store.save_record(running)
+    preparation_store.save_record(accepted)
+    preparation_store.save_record(running)
+    _close_admitted_local_store(preparation_store)
+    store = LocalControlPlaneStore(store_path)
     real_upsert = store._upsert_record
     writes = 0
 
@@ -916,15 +936,19 @@ def test_startup_recovery_commit_failure_aborts_readiness_and_resumes_without_re
     monkeypatch.setattr(store, "_upsert_record", fail_second_recovery_write)
     target = create_stub_target()
     with pytest.raises(OSError, match="injected recovery crash"):
-        RuntimeControlPlane(target, store=store)
+        RuntimeControlPlane(target, store=store, run_scope="run:test")
 
     assert writes == 2
-    assert {record.status.state for record in store.load_records().values()} == {
+    inspection_store = _admitted_local_store(store_path)
+    assert {record.status.state for record in inspection_store.load_records().values()} == {
         OperationState.CANCELLED,
         OperationState.RUNNING,
     }
+    _close_admitted_local_store(inspection_store)
 
-    restarted = RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
+    restarted = RuntimeControlPlane(
+        create_stub_target(), store=LocalControlPlaneStore(store_path), run_scope="run:test"
+    )
     recovered = restarted._operations.values()
     assert {record.status.state for record in recovered} == {
         OperationState.CANCELLED,
@@ -955,7 +979,7 @@ def test_local_store_rejects_second_runtime_owner_then_allows_clean_handoff(tmp_
 
 
 def test_local_store_rejects_empty_idempotency_lookup_and_tampered_operation_identity(tmp_path: Path) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store = _admitted_local_store(tmp_path / "control-plane")
     record = _running_record("durable-identity")
     store.save_record(record)
     assert store.find_by_idempotency("") is None
@@ -985,14 +1009,16 @@ def test_local_store_rejects_unsupported_schema_and_failed_quick_check(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     schema_path = tmp_path / "unsupported-schema"
-    schema_store = LocalControlPlaneStore(schema_path)
+    schema_store = _admitted_local_store(schema_path)
     with schema_store._connection() as connection, local_store_module._transaction(connection):
         connection.execute("UPDATE metadata SET value='future' WHERE key='schema-version'")
+    _close_admitted_local_store(schema_store)
     with pytest.raises(ValueError, match="unsupported local control-plane database schema"):
-        LocalControlPlaneStore(schema_path)
+        _admitted_local_store(schema_path)
 
     quick_check_path = tmp_path / "failed-quick-check"
-    LocalControlPlaneStore(quick_check_path)
+    quick_check_store = _admitted_local_store(quick_check_path)
+    _close_admitted_local_store(quick_check_store)
     real_connect = LocalControlPlaneStore._connect
 
     class _QuickCheckFailureConnection:
@@ -1016,12 +1042,12 @@ def test_local_store_rejects_unsupported_schema_and_failed_quick_check(
 
     monkeypatch.setattr(LocalControlPlaneStore, "_connect", failed_quick_check_connect)
     with pytest.raises(ValueError, match="database failed its integrity check"):
-        LocalControlPlaneStore(quick_check_path)
+        _admitted_local_store(quick_check_path)
 
 
 def test_local_store_migrates_v1_sqlite_operations_and_disposes_denials(tmp_path: Path) -> None:
     store_path = tmp_path / "v1-operation-records"
-    original = LocalControlPlaneStore(store_path)
+    original = _admitted_local_store(store_path)
     accepted = _running_record("legacy-sqlite-accepted", state=OperationState.FAILED)
     denied = _running_record("legacy-sqlite-denied", state=OperationState.FAILED)
     with original._connection() as connection, local_store_module._transaction(connection):
@@ -1044,7 +1070,8 @@ def test_local_store_migrates_v1_sqlite_operations_and_disposes_denials(tmp_path
             )
         connection.execute("UPDATE metadata SET value='1' WHERE key='schema-version'")
 
-    migrated = LocalControlPlaneStore(store_path)
+    _close_admitted_local_store(original)
+    migrated = _admitted_local_store(store_path)
     records = migrated.load_records()
 
     assert set(records) == {accepted.receipt.operation_id}
@@ -1099,7 +1126,7 @@ def test_local_store_rejects_non_wal_before_schema_or_legacy_migration(
     )
 
     with pytest.raises(RuntimeError, match="did not enter required SQLite WAL journal mode"):
-        LocalControlPlaneStore(store_path)
+        _admitted_local_store(store_path)
 
     assert legacy_path.read_text(encoding="utf-8") == legacy_payload
     assert list(store_path.glob("legacy-json-backup-*")) == []
@@ -1108,7 +1135,7 @@ def test_local_store_rejects_non_wal_before_schema_or_legacy_migration(
 
 
 def test_local_store_rejects_non_object_durable_payload(tmp_path: Path) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store = _admitted_local_store(tmp_path / "control-plane")
     store.save_snapshot(
         RuntimeSnapshot(metadata={"stored": True}),
         expected_revision=store.load_snapshot_state().revision,
@@ -1172,7 +1199,7 @@ def test_local_store_migrates_complete_legacy_state_and_keeps_auditable_backup(
 
     monkeypatch.setattr(store_paths_module.os, "fsync", observe_fsync)
 
-    migrated = LocalControlPlaneStore(store_path)
+    migrated = _admitted_local_store(store_path)
 
     assert migrated.load_snapshot().metadata == {"source": "control-transition-state"}
     assert set(migrated.load_records()) == {
@@ -1188,7 +1215,7 @@ def test_local_store_migrates_complete_legacy_state_and_keeps_auditable_backup(
         "operations.json",
         "audit.jsonl",
     }
-    expected_fsync_targets = ["file"] * 4
+    expected_fsync_targets = ["file"] * 5
     if store_paths_module._DIRECTORY_FSYNC_SUPPORTED:
         expected_fsync_targets.extend(["directory"] * 3)
     assert fsync_targets == expected_fsync_targets
@@ -1205,19 +1232,20 @@ def test_local_store_backup_file_fsync_failure_rolls_back_and_restarts_migration
     legacy_payload = json.dumps({record.receipt.operation_id: local_store_module._record_payload(record)})
     legacy_path.write_text(legacy_payload, encoding="utf-8")
     real_fsync = store_paths_module.os.fsync
-    failed_regular_file = False
+    regular_file_fsyncs = 0
 
     def fail_first_regular_file(descriptor: int) -> None:
-        nonlocal failed_regular_file
-        if stat.S_ISREG(os.fstat(descriptor).st_mode) and not failed_regular_file:
-            failed_regular_file = True
-            raise OSError(errno.EIO, "injected backup fsync failure")
+        nonlocal regular_file_fsyncs
+        if stat.S_ISREG(os.fstat(descriptor).st_mode):
+            regular_file_fsyncs += 1
+            if regular_file_fsyncs == 2:
+                raise OSError(errno.EIO, "injected backup fsync failure")
         real_fsync(descriptor)
 
     monkeypatch.setattr(store_paths_module.os, "fsync", fail_first_regular_file)
 
     with pytest.raises(RuntimeError, match="could not durably synchronize local control-plane file") as caught:
-        LocalControlPlaneStore(store_path)
+        _admitted_local_store(store_path)
 
     assert isinstance(caught.value.__cause__, OSError)
     assert caught.value.__cause__.errno == errno.EIO
@@ -1227,7 +1255,7 @@ def test_local_store_backup_file_fsync_failure_rolls_back_and_restarts_migration
         assert connection.execute("SELECT value FROM metadata WHERE key='legacy-json-migration'").fetchone() is None
 
     monkeypatch.undo()
-    migrated = LocalControlPlaneStore(store_path)
+    migrated = _admitted_local_store(store_path)
     assert migrated.load_records() == {record.receipt.operation_id: record}
     assert legacy_path.read_text(encoding="utf-8") == legacy_payload
     assert len(list(store_path.glob("legacy-json-backup-*"))) == 2
@@ -1260,7 +1288,7 @@ def test_local_store_rolls_back_unverified_legacy_migration(
     )
 
     with pytest.raises(ValueError, match="legacy control-plane migration verification failed"):
-        LocalControlPlaneStore(store_path)
+        _admitted_local_store(store_path)
 
 
 def test_local_store_migrates_legacy_records_without_snapshot_files(tmp_path: Path) -> None:
@@ -1272,7 +1300,7 @@ def test_local_store_migrates_legacy_records_without_snapshot_files(tmp_path: Pa
         encoding="utf-8",
     )
 
-    migrated = LocalControlPlaneStore(store_path)
+    migrated = _admitted_local_store(store_path)
     migrated_record = migrated.load_records()[record.receipt.operation_id]
 
     assert migrated.load_snapshot() == RuntimeSnapshot()
@@ -1322,7 +1350,7 @@ def test_terminal_commit_retry_compares_canonical_value_free_snapshot(tmp_path: 
             )
         }
     )
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store = _admitted_local_store(tmp_path / "control-plane")
     running = replace(_running_record("canonical-terminal-retry"), idempotency_key="canonical-retry")
     terminal = _terminal_record(running)
     store.claim_record(running)
@@ -1395,7 +1423,7 @@ def test_local_store_migrates_directory_and_database_and_validates_private_sidec
 
     monkeypatch.setattr(local_store_module.sqlite3, "connect", observe_connect)
 
-    store = LocalControlPlaneStore(store_path)
+    store = _admitted_local_store(store_path)
 
     assert connection_observations[0] == (0o700, ())
     assert store_path.stat().st_mode & 0o777 == 0o700
@@ -1443,7 +1471,7 @@ def test_local_store_never_uses_raw_descriptors_for_sqlite_files(
     monkeypatch.setattr(store_paths_module.os, "fchmod", guarded_fchmod)
     monkeypatch.setattr(Path, "open", guarded_path_open)
 
-    store = LocalControlPlaneStore(store_path)
+    store = _admitted_local_store(store_path)
     with store._connection() as connection:
         connection.execute("BEGIN IMMEDIATE")
         connection.execute("INSERT OR REPLACE INTO metadata(key, value) VALUES ('sidecar-probe', 'ok')")
@@ -1466,7 +1494,7 @@ def test_local_store_uses_encoded_sqlite_uri_creation_and_existing_modes(
 
     monkeypatch.setattr(local_store_module.sqlite3, "connect", observe_connect)
 
-    store = LocalControlPlaneStore(store_path)
+    store = _admitted_local_store(store_path)
     store.load_snapshot()
 
     assert connection_uris[0][0].endswith("control%20plane%3F%23/control-plane.sqlite3?mode=rwc")
@@ -1478,7 +1506,7 @@ def test_local_store_does_not_recreate_existing_database_that_disappears_before_
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store = _admitted_local_store(tmp_path / "control-plane")
     database_path = store._database_path
     connect = local_store_module.sqlite3.connect
 
@@ -1506,7 +1534,7 @@ def test_local_store_rejects_database_identity_replacement_across_sqlite_connect
     changed_call: int,
     message: str,
 ) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store = _admitted_local_store(tmp_path / "control-plane")
     secure_database_file = local_store_module._secure_database_file
     calls = 0
 
@@ -1529,12 +1557,12 @@ def test_local_store_rejects_database_identity_replacement_across_sqlite_connect
 def test_local_store_rejects_database_replacement_between_connections(tmp_path: Path) -> None:
     original_path = tmp_path / "original"
     replacement_path = tmp_path / "replacement"
-    store = LocalControlPlaneStore(original_path)
+    store = _admitted_local_store(original_path)
     store.save_snapshot(
         RuntimeSnapshot(metadata={"database": "original"}),
         expected_revision=store.load_snapshot_state().revision,
     )
-    replacement = LocalControlPlaneStore(replacement_path)
+    replacement = _admitted_local_store(replacement_path)
     replacement.save_snapshot(
         RuntimeSnapshot(metadata={"database": "replacement"}),
         expected_revision=replacement.load_snapshot_state().revision,
@@ -1636,9 +1664,10 @@ def test_sqlite_sidecar_validation_rejects_unsafe_metadata(
 
 
 @pytest.mark.integration
-def test_local_store_repeated_multiprocess_wal_lifecycle(tmp_path: Path) -> None:
+def test_local_store_repeated_multiprocess_writes_require_runtime_admission(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
-    LocalControlPlaneStore(store_path)
+    owner_store = LocalControlPlaneStore(store_path)
+    owner = RuntimeControlPlane(create_stub_target(), store=owner_store)
     context = get_context("spawn")
     process_count = 4
     write_count = 6
@@ -1660,12 +1689,11 @@ def test_local_store_repeated_multiprocess_wal_lifecycle(tmp_path: Path) -> None
             process.terminate()
             process.join(timeout=5)
 
-    assert [process.exitcode for process in processes] == [0] * process_count
-    assert set(LocalControlPlaneStore(store_path).load_records()) == {
-        f"stress-{process_index}-{write_index}"
-        for process_index in range(process_count)
-        for write_index in range(write_count)
-    }
+    try:
+        assert all(process.exitcode not in (0, None) for process in processes)
+        assert owner_store.load_records() == {}
+    finally:
+        owner.close()
 
 
 def test_local_store_rejects_symlink_directory_without_touching_target(tmp_path: Path) -> None:
@@ -1680,7 +1708,7 @@ def test_local_store_rejects_symlink_directory_without_touching_target(tmp_path:
         pytest.skip("symlink creation is unavailable")
 
     with pytest.raises(RuntimeError, match="directory must not be a symlink or reparse point"):
-        LocalControlPlaneStore(store_path)
+        _admitted_local_store(store_path)
 
     assert marker.read_text(encoding="utf-8") == "unchanged"
 
@@ -1700,7 +1728,7 @@ def test_local_store_rejects_non_directory_store_path(
     monkeypatch.setattr(store_paths_module.os, "fchmod", unexpected_mutation, raising=False)
 
     with pytest.raises(RuntimeError, match="directory has the wrong filesystem type"):
-        LocalControlPlaneStore(store_path)
+        _admitted_local_store(store_path)
 
     after = os.stat(store_path)
     assert store_path.read_text(encoding="utf-8") == "not a directory"
@@ -1738,7 +1766,7 @@ def test_local_store_rejects_foreign_directory_without_open_or_chmod(
     monkeypatch.setattr(store_paths_module.os, "fchmod", unexpected_mutation, raising=False)
 
     with pytest.raises(RuntimeError, match="directory must be owned by the current user"):
-        LocalControlPlaneStore(store_path)
+        _admitted_local_store(store_path)
 
     after = os.stat(store_path)
     assert (after.st_ino, after.st_mode, after.st_mtime_ns) == (before.st_ino, before.st_mode, before.st_mtime_ns)
@@ -1901,7 +1929,7 @@ def test_local_store_rejects_symlink_database_paths_without_touching_target(
 
     path_kind = "database file" if not suffix else "SQLite sidecar"
     with pytest.raises(RuntimeError, match=rf"{path_kind} must not be a symlink or reparse point"):
-        LocalControlPlaneStore(store_path)
+        _admitted_local_store(store_path)
 
     assert victim.read_text(encoding="utf-8") == "unchanged"
 
@@ -1951,7 +1979,7 @@ def test_local_store_rejects_directory_and_database_identity_changes(
     with monkeypatch.context() as patch:
         patch.setattr(store_paths_module.os.path, "samestat", lambda _left, _right: False)
         with pytest.raises(RuntimeError, match="directory changed while it was opened"):
-            LocalControlPlaneStore(directory_path)
+            _admitted_local_store(directory_path)
 
     database_path = tmp_path / "database-race"
     database_path.mkdir(mode=0o700)
@@ -1961,12 +1989,12 @@ def test_local_store_rejects_directory_and_database_identity_changes(
     def change_database_identity(_left: object, _right: object) -> bool:
         nonlocal comparisons
         comparisons += 1
-        return comparisons == 1
+        return comparisons < 4
 
     with monkeypatch.context() as patch:
         patch.setattr(store_paths_module.os.path, "samestat", change_database_identity)
         with pytest.raises(RuntimeError, match="database file changed while it was secured"):
-            LocalControlPlaneStore(database_path)
+            _admitted_local_store(database_path)
 
 
 def test_secure_database_file_handles_missing_path(
@@ -2033,7 +2061,7 @@ def test_secure_database_file_fails_when_main_database_disappears_during_identit
 
 
 def test_local_store_fails_closed_when_database_disappears(tmp_path: Path) -> None:
-    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store = _admitted_local_store(tmp_path / "control-plane")
     store._database_path.unlink()
 
     with pytest.raises(RuntimeError, match="database file is missing"):
@@ -2100,7 +2128,9 @@ def test_close_waits_for_backend_and_keeps_lease_until_terminal_commit(tmp_path:
     assert submission_errors == []
     assert close_errors == []
     assert all(completed.is_set() for completed in close_completed)
-    record = next(iter(LocalControlPlaneStore(store_path).load_records().values()))
+    inspection_store = _admitted_local_store(store_path, run_scope="run:default")
+    record = next(iter(inspection_store.load_records().values()))
+    _close_admitted_local_store(inspection_store)
     assert record.status.state == OperationState.SUCCEEDED
 
     restarted = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
@@ -2362,7 +2392,7 @@ def test_runtime_owner_file_lock_failure_releases_directory_guard(
 
 def test_closed_runtime_owner_lease_fails_closed_and_close_is_idempotent(tmp_path: Path) -> None:
     store = LocalControlPlaneStore(tmp_path / "control-plane")
-    lease = store.acquire_runtime_lease()
+    lease = store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     lease.close()
     lease.close()
 
@@ -2717,6 +2747,7 @@ def test_runtime_owner_lock_rejects_symlink_without_opening_or_changing_target(
 def test_runtime_owner_lock_rejects_hard_link_alias(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
+    store_path.mkdir(mode=0o700)
     lock_path = store_path / "runtime-owner.lock"
     lock_path.touch(mode=0o600)
     try:
@@ -2735,6 +2766,7 @@ def test_runtime_owner_lock_rejects_post_open_identity_change_before_truncation(
 ) -> None:
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
+    store_path.mkdir(mode=0o700)
     lock_path = store_path / "runtime-owner.lock"
     lock_path.write_text("sentinel", encoding="ascii")
     lock_path.chmod(0o600)

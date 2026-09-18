@@ -1,5 +1,38 @@
 # Developer artifact architecture
 
+## Current architecture — #1313
+
+Reviewed Git selects input identity; maintained clients acquire it; private
+installers validate and atomically publish it. There is no promotion-service
+hop. Ordinary selection reads only its owning bounded, duplicate-free
+authorities and selected dependencies. Repository-wide validation is a separate
+explicit check.
+
+| Concern | Current authority |
+|---|---|
+| Tool versions and raw/installed hashes | `implementations/tooling/artifacts.lock.json`; `tools/tool_versions.py` and selected literal bindings are checked projections |
+| Python resolution | Project and tooling `pyproject.toml`/`uv.lock` pairs; no second Python version table |
+| Build and installed smokes | Hashed build constraints and project-target smoke projections generated from those locks |
+| Workflow execution and updates | Native `.github/workflows/*.yml` and `.github/dependabot.yml`; focused pin, credential and permission tests |
+| Optional container | Native Dockerfile/devcontainer configuration; locked base digest, signed OS repositories, non-root lifecycle |
+| Release evidence | Standard runtime SBOM/provenance plus exact output/producer identity; native release-workflow inputs, not an Actions inventory model |
+
+Python acquisition is public and connected. An isolated smoke may install a
+verified local wheelhouse; that is a test mechanism, not a supported
+disconnected-development profile. Host prerequisites are capability declarations,
+not a package-repository snapshot service. The release test image uses the
+locked digest directly; no same-job export/import is required.
+
+Roles name responsibilities of the one maintainer in MAINTAINERS.md. There is
+no independent-review fiction, mandatory deputy, or service activation program.
+The ADR amendments and [migration](migration.md) supersede the original model.
+
+## Historical design — superseded where inconsistent
+
+The remainder records the earlier design. It is not current acceptance policy;
+the #1313 ADR amendments and current scope above take precedence.
+
+
 ## Authority map
 
 The following paths are the selected *implementation contract*, not files

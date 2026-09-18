@@ -223,7 +223,8 @@ def _run_fast_feedback(
         changes = []
         session.log(f"fast-feedback change classification unavailable: {exc}")
 
-    changed_paths = [path for change in changes for path in change.paths]
+    # Linters and pytest consume current files, not deleted or rename-source paths.
+    changed_paths = [change.path for change in changes if change.status != "D"]
     base_policy_args = ["--base-rev", base_rev] if base_rev is not None else []
     policy_args = _requirement_aware_policy_args(*base_policy_args)
     if base_rev is not None:

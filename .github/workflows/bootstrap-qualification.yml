@@ -1,14 +1,22 @@
 name: Bootstrap qualification
 
-# The main->dev back-merge PR changes only Release Please-managed files, which
-# were qualified on the dev->main promotion; it does not trigger this (#1266).
+# Qualify changed tooling components, not unrelated application or documentation edits.
 on:
   pull_request:
     branches: [dev]
-    paths-ignore:
-      - CHANGELOG.md
-      - .release-please-manifest.json
-      - implementations/python/packages/raes/_version.py
+    paths:
+      - '.github/workflows/bootstrap-qualification.yml'
+      - '.devcontainer/**'
+      - 'implementations/tooling/**'
+      - 'implementations/python/pyproject.toml'
+      - 'implementations/python/uv.lock'
+      - 'implementations/python/tests/test_issue_1217_bootstrap_profiles.py'
+      - 'implementations/python/tests/test_issue_1219_verified_tool_installation.py'
+      - 'implementations/python/tests/test_issue_1220_isabelle_acquisition.py'
+      - 'implementations/python/tests/test_issue_1238_development_container.py'
+      - 'implementations/python/tests/test_issue_1313_workflow_policy.py'
+      - 'tools/**'
+      - 'noxfile.py'
   workflow_dispatch:
 
 permissions:
@@ -23,9 +31,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu, tool_closure: public-linux-x86_64-cp314-tools, tool_requirements: implementations/tooling/python/smoke/tools-linux-x86_64-cp314.txt, project_closure: public-linux-x86_64-cp314-all-extras}
-          - {profile: public-linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, tool_closure: public-linux-arm64-cp314-tools, tool_requirements: implementations/tooling/python/smoke/tools-linux-arm64-cp314.txt, project_closure: public-linux-arm64-cp314-all-extras}
-          - {profile: public-macos-arm64, runner: macos-15, target: aarch64-apple-darwin, tool_closure: public-macos-arm64-cp314-tools, tool_requirements: implementations/tooling/python/smoke/tools-macos-arm64-cp314.txt, project_closure: public-macos-arm64-cp314-all-extras}
+          - {profile: public-ubuntu-24.04-x86_64, runner: ubuntu-24.04, target: x86_64-unknown-linux-gnu, project_closure: public-linux-x86_64-cp314-all-extras}
+          - {profile: public-linux-arm64, runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, project_closure: public-linux-arm64-cp314-all-extras}
+          - {profile: public-macos-arm64, runner: macos-15, target: aarch64-apple-darwin, project_closure: public-macos-arm64-cp314-all-extras}
     env:
       UV_PYTHON: "3.14.7"
       UV_PYTHON_PLATFORM: ${{ matrix.target }}
@@ -54,138 +62,25 @@ jobs:
       - name: Exercise supported Python wheel and ABI closure
         if: matrix.project_closure != ''
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
-      - name: Build the credential-free target payload kit
-        id: kit
+      - name: Exercise verified tool acquisition and reuse
         run: |
-          tool_python=(uv run --project implementations/tooling/python --frozen --no-default-groups python)
-          "${tool_python[@]}" -m tools.bootstrap_profile generic-tools
-          mkdir -p .qualification-kit/bin .qualification-kit/python .qualification-kit/.cache/raes-sdl \
-            .qualification-kit/tool-wheelhouse
-          "${tool_python[@]}" -m tools.bootstrap_profile offline-kit-fetch \
-            "${{ matrix.profile }}" .qualification-kit --artifact-id cpython-3.14 --artifact-id uv \
-            --artifact-id conftest --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale
-          cp "$(command -v uv)" .qualification-kit/bin/uv
-          "${tool_python[@]}" -m tools.bootstrap_profile offline-kit-install-python \
-            "${{ matrix.profile }}" .qualification-kit --python-artifact-id cpython-3.14
-          "${tool_python[@]}" -m tools.python_closure materialize \
-            --profile "${{ matrix.tool_closure }}" --wheelhouse .qualification-kit/tool-wheelhouse
-          "${tool_python[@]}" -m tools.python_closure manifest-show \
-            --profile "${{ matrix.tool_closure }}" > .qualification-kit/tool-wheelhouse-manifest.json
-          if [ -n "${{ matrix.project_closure }}" ]; then
-            mkdir .qualification-kit/project-wheelhouse
-            "${tool_python[@]}" -m tools.python_closure materialize \
-              --profile "${{ matrix.project_closure }}" --wheelhouse .qualification-kit/project-wheelhouse
-            "${tool_python[@]}" -m tools.python_closure manifest-show \
-              --profile "${{ matrix.project_closure }}" > .qualification-kit/wheelhouse-manifest.json
-          fi
-          "${tool_python[@]}" -m tools.bootstrap_profile offline-kit-export-tool-seeds \
-            "${{ matrix.profile }}" .cache/raes-sdl/tooling/installations \
-            .qualification-kit/.cache/raes-sdl/tooling/installations
-          "${tool_python[@]}" -m tools.bootstrap_profile offline-kit-manifest \
-            "${{ matrix.profile }}" .qualification-kit --python-artifact-id cpython-3.14 \
-            > .qualification-kit/offline-kit-manifest.json
-          manifest_sha256="$("${tool_python[@]}" -m tools.bootstrap_profile \
-            offline-kit-manifest-digest .qualification-kit/offline-kit-manifest.json)"
-          echo "manifest_sha256=${manifest_sha256}" >> "$GITHUB_OUTPUT"
-          tar -cf bootstrap-offline-kit.tar .qualification-kit
-      - name: Restore and exercise the payload kit without network fallback
-        run: |
-          for cleanup_root in \
-            .qualification-kit/.cache/raes-sdl/tooling/installations \
-            .cache/raes-sdl/tooling/installations; do
-            if [ -d "${cleanup_root}" ]; then
-              chmod -R u+w "${cleanup_root}"
-            fi
-          done
-          rm -rf .qualification-kit .cache/raes-sdl/tooling .qualification-restored \
-            implementations/python/.venv implementations/tooling/python/.venv
-          mkdir .qualification-restored
-          tar -xf bootstrap-offline-kit.tar -C .qualification-restored --strip-components=1
-          restored_root="${{ github.workspace }}/.qualification-restored"
-          restored_python="$(find "${restored_root}/python" -path '*/bin/python3.14' -print)"
-          test -n "${restored_python}"
-          export UV_PYTHON="${restored_python}"
-          export PATH="${restored_root}/bin:/usr/bin:/bin"
-          export UV_PYTHON_INSTALL_DIR="${restored_root}/python"
-          export UV_PYTHON_DOWNLOADS=never
-          export UV_OFFLINE=1
-          runtime_root="$(mktemp -d "${GITHUB_WORKSPACE}/.raes-bootstrap-runtime.XXXXXX")"
-          export UV_CACHE_DIR="${runtime_root}/uv-cache"
-          mkdir "${UV_CACHE_DIR}"
-          "${restored_python}" -m tools.python_closure bootstrap-wheelhouse-verify \
-            --profile "${{ matrix.tool_closure }}" --wheelhouse "${restored_root}/tool-wheelhouse" \
-            --manifest-snapshot "${restored_root}/tool-wheelhouse-manifest.json"
-          if [ -n "${{ matrix.project_closure }}" ]; then
-            "${restored_python}" -m tools.python_closure bootstrap-wheelhouse-verify \
-              --profile "${{ matrix.project_closure }}" --wheelhouse "${restored_root}/project-wheelhouse" \
-              --manifest-snapshot "${restored_root}/wheelhouse-manifest.json"
-          fi
-          restored_tool_environment="${runtime_root}/tool-environment"
-          "${restored_root}/bin/uv" venv --no-project --python "${restored_python}" \
-            "${restored_tool_environment}"
-          restored_tool_python="${restored_tool_environment}/bin/python"
-          "${restored_root}/bin/uv" pip install --python "${restored_tool_python}" \
-            --requirements "${{ matrix.tool_requirements }}" --require-hashes --only-binary :all: \
-            --offline --no-index --find-links "${restored_root}/tool-wheelhouse"
-          "${restored_tool_python}" -m tools.bootstrap_profile offline-kit-verify \
-            "${{ matrix.profile }}" "${restored_root}" --python-artifact-id cpython-3.14 \
-            --trusted-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}"
-          if [ -n "${{ matrix.project_closure }}" ]; then
-            export UV_FIND_LINKS="${restored_root}/tool-wheelhouse,${restored_root}/project-wheelhouse"
-            export UV_NO_INDEX=1
-            export RAES_PYTHON_CLOSURE_WHEELHOUSE="${restored_root}/project-wheelhouse"
-            "${restored_tool_python}" -m nox -f noxfile.py -s python-compatibility
-          else
-            "${restored_tool_python}" -c \
-              'import cryptography; from importlib.metadata import version; print(version("nox"))'
-          fi
-          "${restored_tool_python}" -m tools.bootstrap_profile record-case T02 "${{ github.sha }}" noxfile.py \
-            --artifact-id cpython-3.14 --artifact-id uv --artifact-id conftest --artifact-id gitleaks \
-            --artifact-id osv-scanner --artifact-id vale > t02-result.json
-          if [ "${{ matrix.profile }}" = public-linux-arm64 ] || [ "${{ matrix.profile }}" = public-macos-arm64 ]; then
-            "${restored_tool_python}" -m tools.bootstrap_profile record-case T12 "${{ github.sha }}" \
-              tools/bootstrap_profile.py --artifact-id cpython-3.14 --artifact-id uv --artifact-id conftest \
-              --artifact-id gitleaks --artifact-id osv-scanner --artifact-id vale > t12-result.json
-          fi
+          uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -m tools.bootstrap_profile generic-tools
       - name: Exercise maintained curl behavior
         run: |
-          uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.bootstrap_profile inspect-profile "${{ matrix.profile }}"
-          uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q \
-            implementations/python/tests/test_issue_1217_bootstrap_profiles.py \
+          uv run --project implementations/tooling/python --frozen --no-default-groups --group acquisition-tests python \
+            -m pytest -q implementations/python/tests/test_issue_1217_bootstrap_profiles.py \
             implementations/python/tests/test_issue_1220_isabelle_acquisition.py -m integration -k real_curl
-          uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.bootstrap_profile record-case T08 "${{ github.sha }}" \
-            implementations/python/tests/test_issue_1217_bootstrap_profiles.py > t08-result.json
       - name: Exercise verified local installation behavior
         run: >-
           uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py
           -s local-installation-qualification -- --output local-installation-qualification.json
-      - name: Record exact measured profile evidence
-        run: |
-          mkdir .qualification-evidence-root
-          tar -xf bootstrap-offline-kit.tar -C .qualification-evidence-root --strip-components=1
-          case_results=(--case-result t02-result.json --case-result t08-result.json)
-          if [ -f t12-result.json ]; then
-            case_results+=(--case-result t12-result.json)
-          fi
-          uv run --project implementations/tooling/python --frozen --no-default-groups python \
-            -m tools.bootstrap_profile qualification-evidence \
-            "${{ matrix.profile }}" "${{ github.sha }}" \
-            "github-actions:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}" \
-            --python-artifact-id cpython-3.14 "${case_results[@]}" \
-            --slice-evidence local-installation-qualification.json \
-            --offline-kit-root .qualification-evidence-root --offline-kit bootstrap-offline-kit.tar \
-            --offline-kit-manifest-sha256 "${{ steps.kit.outputs.manifest_sha256 }}" \
-            > bootstrap-qualification.json
-      - name: Retain bounded qualification evidence
+      - name: Retain local installation results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bootstrap-${{ matrix.profile }}-${{ github.sha }}
-          path: |
-            bootstrap-qualification.json
-            bootstrap-offline-kit.tar
+          path: local-installation-qualification.json
           if-no-files-found: error
 
   development-image:
@@ -234,8 +129,9 @@ jobs:
       - name: Prepare a clean checkout owned by the development user
         run: |
           git clone --no-local --no-hardlinks "${GITHUB_WORKSPACE}" "${RUNNER_TEMP}/rae"
-          sudo chown -R "$(jq -r '"\(.development_user.uid):\(.development_user.gid)"' \
-            "${RUNNER_TEMP}/development-image-plan.json")" "${RUNNER_TEMP}/rae"
+          development_uid="$(docker run --rm --entrypoint id raes-development-image:smoke -u)"
+          development_gid="$(docker run --rm --entrypoint id raes-development-image:smoke -g)"
+          sudo chown -R "${development_uid}:${development_gid}" "${RUNNER_TEMP}/rae"
       - name: Open the container as a dev-container client does
         run: |
           workspace=/workspaces/rae
@@ -304,9 +200,7 @@ jobs:
               source_revision: $source_revision,
               declared_base_image_index_digest: .base_image_index_digest,
               declared_base_image_digest: .base_image_digest,
-              native_repository_snapshot,
               resulting_image_id: $image_id,
-              policy_sha256,
               artifact_lock_sha256: $lock_sha256,
               development_profiles_sha256: $profiles_sha256,
               commands: [

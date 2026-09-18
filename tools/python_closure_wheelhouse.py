@@ -4,13 +4,10 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import stat
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
-
-from tools.python_closure_profiles import PROFILES_PATH, _repo_file
 
 
 def operator_path(path: Path, *, purpose: str) -> Path:
@@ -114,70 +111,10 @@ def verify_wheelhouse(wheelhouse: Path, manifest: Mapping[str, Any]) -> None:
         _require_wheelhouse_artifact(filename, observed[filename], artifact)
 
 
-def _reviewed_bootstrap_profile(repo_root: Path, profile_id: str) -> Mapping[str, Any]:
-    profiles_path = _repo_file(repo_root, PROFILES_PATH)
-    profiles = json.loads(profiles_path.read_text(encoding="utf-8"))
-    matches = [
-        value
-        for value in profiles.get("python_closure_profiles", [])
-        if isinstance(value, Mapping) and value.get("python_closure_profile_id") == profile_id
-    ]
-    if len(matches) != 1:
-        raise ValueError("bootstrap Python closure profile must resolve exactly once")
-    return matches[0]
-
-
-def admitted_kit_paths(wheelhouse: Path, manifest_snapshot: Path) -> tuple[Path, Path]:
-    """Admit a bootstrap kit's wheelhouse and manifest from inside one shared root.
-
-    A payload kit is one directory holding both the wheelhouse and its manifest
-    snapshot, so each canonical path must resolve directly inside the same root.
-    Establishing that before either file is opened keeps an operator-supplied
-    argument from reaching a filesystem read on its own.
-    """
-
-    wheelhouse = operator_path(wheelhouse, purpose="bootstrap wheelhouse")
-    manifest_snapshot = operator_path(manifest_snapshot, purpose="wheelhouse manifest snapshot")
-    kit_root = wheelhouse.parent
-    if manifest_snapshot.parent != kit_root:
-        raise ValueError("bootstrap wheelhouse and manifest snapshot must share one kit root")
-    return wheelhouse, manifest_snapshot
-
-
-def verify_bootstrap_wheelhouse(
-    repo_root: Path,
-    profile_id: str,
-    wheelhouse: Path,
-    manifest_snapshot: Path,
-) -> None:
-    """Verify a raw kit before installing the full frozen policy environment."""
-
-    wheelhouse, manifest_snapshot = admitted_kit_paths(wheelhouse, manifest_snapshot)
-    reviewed = _reviewed_bootstrap_profile(repo_root, profile_id)
-    authority = _repo_file(repo_root, reviewed.get("wheelhouse_manifest"))
-    if not manifest_snapshot.is_file():
-        raise ValueError("wheelhouse manifest snapshot must be a regular file")
-    snapshot = manifest_snapshot.read_bytes()
-    if snapshot != authority.read_bytes():
-        raise ValueError("wheelhouse manifest snapshot does not match the reviewed authority")
-    manifest = json.loads(snapshot)
-    lock_path = _repo_file(repo_root, manifest.get("lock_path"))
-    requirements_path = _repo_file(repo_root, reviewed.get("smoke_requirements"))
-    if manifest.get("python_closure_profile_id") != profile_id:
-        raise ValueError("wheelhouse manifest profile identity is wrong")
-    if manifest.get("lock_sha256") != hashlib.sha256(lock_path.read_bytes()).hexdigest():
-        raise ValueError("wheelhouse manifest lock identity is stale")
-    if manifest.get("requirements_sha256") != hashlib.sha256(requirements_path.read_bytes()).hexdigest():
-        raise ValueError("wheelhouse manifest requirements identity is stale")
-    verify_wheelhouse(wheelhouse, manifest)
-
-
 __all__ = (
-    "admitted_kit_paths",
     "candidate_digest",
     "operator_path",
     "require_empty_destination",
     "sha256_file",
-    "verify_bootstrap_wheelhouse",
     "verify_wheelhouse",
 )

@@ -90,7 +90,15 @@ def revisioned_store(
 ) -> InMemoryControlPlaneStore | LocalControlPlaneStore:
     if request.param == "memory":
         return InMemoryControlPlaneStore()
-    return LocalControlPlaneStore(tmp_path / "control-plane")
+    store = LocalControlPlaneStore(tmp_path / "control-plane")
+    lease = store.admit_runtime(target_scope="target:stub", run_scope="run:test")
+
+    def close_store() -> None:
+        store.close()
+        lease.close()
+
+    request.addfinalizer(close_store)
+    return store
 
 
 def test_snapshot_state_rejects_non_revision_values() -> None:
@@ -380,10 +388,13 @@ def test_runtime_stale_terminal_conflict_discards_candidate_without_recovery_or_
 def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_change(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
+    lease = store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     store.save_snapshot(
         RuntimeSnapshot(metadata={"portable": "unchanged"}),
         expected_revision=0,
     )
+    store.close()
+    lease.close()
     database_path = store_path / "control-plane.sqlite3"
     with sqlite3.connect(database_path) as connection:
         payload_before = connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone()[0]
@@ -394,6 +405,7 @@ def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_chang
         connection.execute("UPDATE metadata SET value='2' WHERE key='schema-version'")
 
     migrated = LocalControlPlaneStore(store_path)
+    migrated_lease = migrated.admit_runtime(target_scope="target:stub", run_scope="run:test")
 
     assert migrated.load_snapshot_state() == SnapshotState(
         snapshot=RuntimeSnapshot(metadata={"portable": "unchanged"}),
@@ -404,14 +416,19 @@ def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_chang
         assert connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone() == (
             payload_before,
         )
+    migrated.close()
+    migrated_lease.close()
 
 
 def test_local_store_rejects_corrupt_provider_revision(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     store = LocalControlPlaneStore(store_path)
+    lease = store.admit_runtime(target_scope="target:stub", run_scope="run:test")
     store.save_snapshot(RuntimeSnapshot(), expected_revision=0)
     with sqlite3.connect(store_path / "control-plane.sqlite3") as connection:
         connection.execute("UPDATE state SET revision=-1 WHERE key='runtime-snapshot'")
 
     with pytest.raises(ValueError, match="snapshot revision"):
         store.load_snapshot_state()
+    store.close()
+    lease.close()

@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import pytest
 import test_reference_backend_docker_integration as docker_integration
 from tools import oci_release_image
-from tools.oci_image_layout import LockedPlatformGraph, OciDescriptor
+from tools.oci_release_selection import LockedPlatformGraph, OciDescriptor
 
 _RUNTIME = "docker"
 _REPOSITORY = "docker.io/library/alpine"
@@ -63,7 +63,7 @@ def test_required_docker_integration_admits_a_successful_public_acquisition(
     monkeypatch.setattr(
         docker_integration.oci_release_image,
         "acquire_image",
-        lambda _source, reference, **_kwargs: acquired.append(reference),
+        lambda reference, **_kwargs: acquired.append(reference),
     )
     verified: list[str] = []
     monkeypatch.setattr(
@@ -97,15 +97,15 @@ def test_release_gate_takes_its_image_identity_from_the_reviewed_lock(monkeypatc
     monkeypatch.setattr(docker_integration, "_locked_graphs", lambda: (graph,))
     monkeypatch.setattr(docker_integration.oci_release_image, "locked_repository", lambda: _REPOSITORY)
 
-    admitted = docker_integration._locked_image(docker_integration.oci_release_image.resolve_source({}))
+    admitted = docker_integration._locked_image()
 
     assert admitted.reference == f"{_REPOSITORY}@{graph.index.digest}"
     assert admitted.graph is graph
 
 
-def test_preseeded_release_run_admits_without_any_acquisition(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_release_run_pulls_the_locked_reference_once(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(docker_integration._REQUIRED_MODE_ENV, "1")
-    monkeypatch.setenv(oci_release_image.SOURCE_CLASS_ENV, "preseeded")
+    monkeypatch.delenv(oci_release_image.SOURCE_CLASS_ENV, raising=False)
     monkeypatch.setattr(docker_integration, "_available_runtime", lambda: _RUNTIME)
     monkeypatch.setattr(docker_integration, "_locked_graphs", lambda: (_graph(),))
     monkeypatch.setattr(docker_integration.oci_release_image, "locked_repository", lambda: _REPOSITORY)
@@ -118,9 +118,7 @@ def test_preseeded_release_run_admits_without_any_acquisition(monkeypatch: pytes
     monkeypatch.setattr(docker_integration.oci_release_image, "verify_daemon_image", lambda *a, **k: None)
 
     assert docker_integration._require_container_runtime().runtime == _RUNTIME
-    # `acquire_image` is still called -- it is the one seam that decides -- and
-    # it is what refuses to reach the network in a pre-seeded context.
-    assert len(pulls) == 1
+    assert pulls == [(f"{_REPOSITORY}@{_graph().index.digest}",)]
 
 
 @pytest.mark.parametrize("required", [False, True])

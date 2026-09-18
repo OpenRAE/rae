@@ -467,8 +467,6 @@ ownership:
     - implementations/python/uv.lock
     - implementations/tooling/python/smoke
     - implementations/tooling/profiles/development-profiles.json
-    # Delivery-guard repair retains its existing external-service inventory owner.
-    - implementations/tooling/inventory-coverage.json
     - specs/formal
     - specs/sdl
   # SEM-225 owns common SDL/contract semantics plus the exact runtime, archive,

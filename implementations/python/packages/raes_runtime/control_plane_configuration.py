@@ -6,6 +6,7 @@ from typing import TypedDict
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.materialization import MaterializationArchive
+from raes_contracts.planning import PlanScope
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ParticipantBehaviorSpecificationRuntime
 
@@ -23,6 +24,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     information_state_context_resolver: ParticipantInformationStateContextResolver | None
     enforce_final_sink_flow_control: bool
     materialization_archive: MaterializationArchive | None
+    run_scope: str
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -36,3 +38,9 @@ class ControlPlaneConfiguration:
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None
     enforce_final_sink_flow_control: bool = True
     materialization_archive: MaterializationArchive | None = None
+    run_scope: str = "run:default"
+
+    def __post_init__(self) -> None:
+        if not self.run_scope.startswith("run:"):
+            raise ValueError("control-plane run_scope must use the normalized run:<id> form")
+        PlanScope(run_id=self.run_scope.removeprefix("run:"))

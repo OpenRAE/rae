@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import platform
 import re
 import shutil
@@ -12,7 +13,11 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
-from tools.tooling_installed_tree import SHA256_PATTERN, LockedInstalledTree, locked_installed_tree
+from tools.tooling_installed_tree import (
+    SHA256_PATTERN,
+    LockedInstalledTree,
+    locked_installed_tree,
+)
 from tools.tooling_oci_selection import LockedOciGraph, locked_oci_graph
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -170,6 +175,18 @@ def _current_interpreter_validator_command(policy_root: Path) -> list[str]:
     return [str(validator_python), str(validator)]
 
 
+def _validator_environment() -> dict[str, str]:
+    """Pass process essentials, never ambient credentials or Python overrides."""
+    environment = {key: os.environ[key] for key in ("HOME", "PATH", "TMPDIR", "UV_CACHE_DIR") if key in os.environ}
+    environment.update(
+        LC_ALL="C",
+        LANG="C",
+        UV_PYTHON_DOWNLOADS="never",
+        UV_DEFAULT_INDEX="https://pypi.org/simple",
+    )
+    return environment
+
+
 def _validator_stdout(
     validator_command: list[str],
     *,
@@ -192,6 +209,8 @@ def _validator_stdout(
                 profile_id,
             ],
             cwd=REPO_ROOT,
+            env=_validator_environment(),
+            stdin=subprocess.DEVNULL,
             text=True,
             capture_output=True,
             check=False,
@@ -202,8 +221,7 @@ def _validator_stdout(
             "development artifact policy failed before acquisition: the frozen project validator could not complete"
         ) from exc
     if proc.returncode != 0:
-        details = proc.stderr.strip() or "the frozen project validator rejected the selection"
-        raise RuntimeError(f"development artifact policy failed before acquisition:\n{details}")
+        raise RuntimeError("development artifact policy failed before acquisition: selection rejected") from None
     return proc.stdout
 
 
@@ -212,6 +230,8 @@ def _validator_host_stdout(validator_command: list[str], *, host_profile_id: str
         proc = subprocess.run(
             [*validator_command, "--select-host-profile", host_profile_id],
             cwd=REPO_ROOT,
+            env=_validator_environment(),
+            stdin=subprocess.DEVNULL,
             text=True,
             capture_output=True,
             check=False,
@@ -222,8 +242,7 @@ def _validator_host_stdout(validator_command: list[str], *, host_profile_id: str
             "development artifact policy failed before acquisition: the frozen project validator could not complete"
         ) from exc
     if proc.returncode != 0:
-        details = proc.stderr.strip() or "the frozen project validator rejected the host selection"
-        raise RuntimeError(f"development artifact policy failed before acquisition:\n{details}")
+        raise RuntimeError("development artifact policy failed before acquisition: selection rejected") from None
     return proc.stdout
 
 

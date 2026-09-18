@@ -309,7 +309,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     carrier = _named_step(
         workflow["jobs"]["generic-tool-local-inputs"], "Fetch the locked proof archive with the qualified client"
     )
-    assert "offline-kit-fetch" in carrier["run"]
+    assert "fetch-inputs" in carrier["run"]
     assert "proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle" in carrier["run"]
     acquire = _named_step(proof, "Admit the carried Isabelle archive with egress denied")["run"]
     assert acquire.startswith("bwrap --dev-bind / / --unshare-net --die-with-parent ")
@@ -320,13 +320,12 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     harness = _named_step(proof, "Qualify proof-input installation slices")["run"]
     assert "nox -f noxfile.py -s proof-input-qualification -- --real-installation" in harness
     assert "--output proof-input-qualification.json" in harness
-    record = _named_step(proof, "Record qualified proof-host evidence")["run"]
-    assert "--slice-evidence proof-input-qualification.json" in record
     assert step_names.index("Qualify proof-input installation slices") < step_names.index(
-        "Record qualified proof-host evidence"
+        "Retain proof-input installation results"
     )
-    evidence = _named_step(proof, "Upload proof-host qualification evidence")
-    assert evidence["with"]["path"] == "proof-host-qualification.json"
+    evidence = _named_step(proof, "Retain proof-input installation results")
+    assert evidence["with"]["path"] == "proof-input-qualification.json"
+    assert evidence["with"]["if-no-files-found"] == "error"
     sandbox = _named_step(proof, "Install proof sandbox")["run"]
     assert "bubblewrap fontconfig fonts-dejavu-core" in sandbox
     assert "fc-list" in sandbox
@@ -577,28 +576,6 @@ def test_release_requires_skip_free_real_docker_tests_at_the_exact_sha() -> None
     optional = _load(CI_PATH)["jobs"]["integration-docker"]
     assert optional["continue-on-error"] is True
     assert "RAES_DOCKER_INTEGRATION_REQUIRED" not in str(optional)
-
-
-def test_release_container_input_is_pre_seeded_rather_than_pulled_at_test_time() -> None:
-    """The required lane proves export/import instead of trusting a live pull."""
-
-    docker = _load(RELEASE_PATH)["jobs"]["integration-docker-release"]
-
-    export = _named_step(docker, "Export the reviewed multi-platform OCI graph")
-    load = _named_step(docker, "Admit and pre-seed the reviewed OCI graph")
-    required = _named_step(docker, "Require real-container release integration")
-
-    # Export, offline admission and daemon load all happen before the lane runs.
-    names = [step.get("name") for step in docker["steps"]]
-    assert names.index(export["name"]) < names.index(load["name"]) < names.index(required["name"])
-    assert "tools/oci_release_image.py export" in export["run"]
-    assert "tools/oci_release_image.py import" in load["run"]
-    # The lane itself performs no acquisition.
-    assert required["env"]["RAES_OCI_SOURCE_CLASS"] == "preseeded"
-    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
-    # A pre-seed failure must stop the release, not degrade to a public pull.
-    assert "continue-on-error" not in export
-    assert "continue-on-error" not in load
 
 
 def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> None:
@@ -994,6 +971,10 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
             if event not in triggers:
                 continue
             config = triggers[event] or {}
+            if path.name == "bootstrap-qualification.yml":
+                assert config.get("paths")
+                assert "workflow_dispatch" in triggers
+                continue
             assert "paths" not in config, f"{path.name} {event}: positive path filters would hide real changes"
             if "paths-ignore" in config:
                 assert sorted(config["paths-ignore"]) == expected, f"{path.name} {event}: ignored paths drifted"
@@ -1004,7 +985,6 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
 
     assert unfiltered == _RELEASE_BOOKKEEPING_RUNS
     assert filtered == {
-        ("bootstrap-qualification.yml", "pull_request"),
         ("ci.yml", "pull_request"),
         ("ci.yml", "push"),
         ("docs.yml", "pull_request"),

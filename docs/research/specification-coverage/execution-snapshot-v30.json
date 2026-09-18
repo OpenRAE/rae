@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-18T01:53:33+00:00",
+  "captured_at": "2026-09-17T22:34:13+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "d1be26cafc51e38cc50d804164ecc582b4ec79ea177613ce3a7114732549f62e",
+      "content_sha256": "e91019889bff7e3d0787c3561d96d2d6f95ffdb1b3c157955dedc2ec52d9f001",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -657,7 +657,7 @@
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "9fa4aac600aa08069c50802ce0b4aa628f589ae0ebe218ffec545a9a47e8e3f5",
+      "content_sha256": "04b807cb977006b6ae420958db1df21d911b9635b262d9d5c26d4f2023675b73",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -680,13 +680,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "bfb838af5e79cb886e388fdba4d036ef09606d75",
+  "raes_revision": "340ba7aad2897c8404554787754976986cead084",
   "snapshot_id": "raes-standardized-specification-coverage-issue-1179-v30",
   "snapshot_revision": "30.0.0",
   "source_state": {
-    "base_revision": "bfb838af5e79cb886e388fdba4d036ef09606d75",
+    "base_revision": "340ba7aad2897c8404554787754976986cead084",
     "checkout_state": "modified",
-    "implementation_digest": "3899b62489e666e407a984b1fd114d14b3453a6362a5633761cc8bacdcdae9a3",
+    "implementation_digest": "629eda2ab733a9989bbb4d0605da8221d319831b5d731c5b3cbb3fdaa1123fbf",
     "profile": "python-reference-source/v2"
   }
 }

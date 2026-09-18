@@ -8,8 +8,8 @@ available. The exact-SHA release gate sets ``RAES_DOCKER_INTEGRATION_REQUIRED=1`
 to turn every such condition into a hard failure.
 
 The image identity is reviewed lock data (``release-test-alpine``), not a
-literal here, and *where* it is obtained is the operator's closed source class
-(``RAES_OCI_SOURCE_CLASS``). An availability failure may skip an optional run;
+literal here, and is pulled by the native runtime from its pinned public
+reference. An availability failure may skip an optional run;
 an integrity failure -- a runtime holding something other than the reviewed
 graph -- never may, in either mode.
 """
@@ -38,7 +38,7 @@ from raes_reference_backend.drivers.oci import ImageTrustPolicy, OciDeploymentDr
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
 from tools import oci_release_image
-from tools.oci_image_layout import LockedPlatformGraph
+from tools.oci_release_selection import LockedPlatformGraph
 
 pytestmark = pytest.mark.docker
 
@@ -110,14 +110,13 @@ def _unavailable(reason: str) -> NoReturn:
     pytest.skip(reason)
 
 
-def _locked_image(source: oci_release_image.ImageSource) -> AdmittedImage:
+def _locked_image() -> AdmittedImage:
     """Resolve the reviewed image identity for *source*."""
 
     graph = oci_release_image.execution_graph(_locked_graphs())
     reference = oci_release_image.image_reference(
         oci_release_image.locked_repository(),
         graph.index.digest,
-        source,
     )
     return AdmittedImage(reference=reference, graph=graph)
 
@@ -127,23 +126,20 @@ def _require_container_runtime() -> ContainerRuntime:
     # resolve; a misspelled admission setting must never silently become an
     # optional run.
     _required_mode()
-    source, reason = oci_release_image.attempt(lambda: oci_release_image.resolve_source(os.environ))
+    _, reason = oci_release_image.attempt(lambda: oci_release_image.resolve_source(os.environ))
     if reason is not None:
         pytest.fail(f"reviewed OCI input is misconfigured: {reason}")
     runtime = _available_runtime()
     if runtime is None:
         _unavailable("no container runtime (docker/podman) available")
-    image, reason = oci_release_image.attempt(lambda: _locked_image(source))
+    image, reason = oci_release_image.attempt(_locked_image)
     if reason is not None or image is None:
         pytest.fail(f"reviewed OCI input is misconfigured: {reason}")
-    # Obtain the reviewed bytes for this source class. A pre-seeded context
-    # performs no acquisition, and a mirror-only one never falls back publicly.
-    _, reason = oci_release_image.attempt(
-        lambda: oci_release_image.acquire_image(source, image.reference, runtime=runtime)
-    )
+    # Pull the locked bytes using the native runtime.
+    _, reason = oci_release_image.attempt(lambda: oci_release_image.acquire_image(image.reference, runtime=runtime))
     if reason is not None:
         _unavailable("integration image is not available (offline registry?)")
-    # Whatever the source class, the runtime must now hold exactly the reviewed
+    # The runtime must now hold exactly the reviewed
     # platform graph. This is an integrity check, so it fails in either mode.
     _, reason = oci_release_image.attempt(
         lambda: oci_release_image.verify_daemon_image(image.reference, image.graph, runtime=runtime)
