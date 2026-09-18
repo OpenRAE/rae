@@ -62,12 +62,14 @@ def test_runtime_admission_binds_and_reopens_one_immutable_scope(tmp_path: Path)
     reopened = RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path), run_scope="run:first")
     reopened.close()
 
+    second_run_store = LocalControlPlaneStore(store_path)
     with pytest.raises(RuntimeError, match="scope does not match"):
-        RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path), run_scope="run:second")
+        RuntimeControlPlane(target, store=second_run_store, run_scope="run:second")
 
     other_target = replace(target, name="other")
+    other_target_store = LocalControlPlaneStore(store_path)
     with pytest.raises(RuntimeError, match="scope does not match"):
-        RuntimeControlPlane(other_target, store=LocalControlPlaneStore(store_path), run_scope="run:first")
+        RuntimeControlPlane(other_target, store=other_target_store, run_scope="run:first")
 
 
 def test_scope_mismatch_fails_before_schema_migration(
@@ -87,12 +89,10 @@ def test_scope_mismatch_fails_before_schema_migration(
         lambda *_args, **_kwargs: pytest.fail("scope mismatch must precede schema migration"),
     )
 
+    target = create_stub_target()
+    mismatched_store = LocalControlPlaneStore(store_path)
     with pytest.raises(RuntimeError, match="scope does not match"):
-        RuntimeControlPlane(
-            create_stub_target(),
-            store=LocalControlPlaneStore(store_path),
-            run_scope="run:second",
-        )
+        RuntimeControlPlane(target, store=mismatched_store, run_scope="run:second")
 
 
 def test_unscoped_store_is_adopted_once_and_partial_scope_fails_closed(tmp_path: Path) -> None:
@@ -124,12 +124,10 @@ def test_unscoped_store_is_adopted_once_and_partial_scope_fails_closed(tmp_path:
     if os.name != "nt":
         partial_database.chmod(0o600)
 
+    target = create_stub_target()
+    partial_store = LocalControlPlaneStore(partial_path)
     with pytest.raises(RuntimeError, match="scope metadata is incomplete"):
-        RuntimeControlPlane(
-            create_stub_target(),
-            store=LocalControlPlaneStore(partial_path),
-            run_scope="run:adopted",
-        )
+        RuntimeControlPlane(target, store=partial_store, run_scope="run:adopted")
 
 
 def test_duplicate_scope_metadata_fails_closed_before_store_reads(tmp_path: Path) -> None:
@@ -149,8 +147,10 @@ def test_duplicate_scope_metadata_fails_closed_before_store_reads(tmp_path: Path
     if os.name != "nt":
         database.chmod(0o600)
 
+    target = create_stub_target()
+    duplicate_store = LocalControlPlaneStore(store_path)
     with pytest.raises(RuntimeError, match="scope metadata contains duplicate keys"):
-        RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
+        RuntimeControlPlane(target, store=duplicate_store)
 
 
 @pytest.mark.integration
@@ -280,9 +280,10 @@ def test_concurrent_close_callers_do_not_deadlock_after_provider_failure() -> No
 def test_invalid_target_name_is_rejected_before_store_admission(tmp_path: Path, target_name: str) -> None:
     store_path = tmp_path / "control-plane"
     target = replace(create_stub_target(), name=target_name)
+    store = LocalControlPlaneStore(store_path)
 
     with pytest.raises(ValueError, match="runtime target name"):
-        RuntimeControlPlane(target, store=LocalControlPlaneStore(store_path))
+        RuntimeControlPlane(target, store=store)
 
     assert not store_path.exists()
 
@@ -311,5 +312,6 @@ def test_control_plane_api_rejects_multiple_workers(
 
 @pytest.mark.parametrize("run_scope", ["default", "run:", "run:contains space"])
 def test_control_plane_rejects_non_normalized_or_invalid_run_scope(run_scope: str) -> None:
+    target = create_stub_target()
     with pytest.raises(ValueError, match="run_scope|run_id"):
-        RuntimeControlPlane(create_stub_target(), run_scope=run_scope)
+        RuntimeControlPlane(target, run_scope=run_scope)

@@ -6,7 +6,9 @@ import sqlite3
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
+from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_store_legacy import _read_legacy_state
 from .control_plane_store_local_codec import decode_payload as _decode_payload
 from .control_plane_store_local_codec import encode_payload as _encode_payload
@@ -115,10 +117,13 @@ class LocalStoreScopeMigrationMixin:
             ):
                 continue
             rebound_context = context.model_copy(update={"target_scope": target_scope, "run_scope": run_scope})
-            rebound = replace(
-                record,
-                receipt=replace(record.receipt, context=rebound_context),
-                status=replace(record.status, context=rebound_context),
+            rebound = cast(
+                ControlPlaneOperationRecord,
+                replace(
+                    record,
+                    receipt=replace(record.receipt, context=rebound_context),
+                    status=replace(record.status, context=rebound_context),
+                ),
             )
             rebound_payload, rebound_digest = _encode_payload(_record_payload(rebound))
             connection.execute(

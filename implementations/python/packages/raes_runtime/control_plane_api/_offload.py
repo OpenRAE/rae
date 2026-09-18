@@ -70,8 +70,8 @@ class _ControlPlaneCallExecutor:
             finally:
                 self._pending_mutations -= 1
 
+    @staticmethod
     async def _run_reserved(
-        self,
         call: Callable[_P, _T],
         /,
         *args: _P.args,

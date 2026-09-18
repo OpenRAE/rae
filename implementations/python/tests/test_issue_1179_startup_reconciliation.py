@@ -446,8 +446,9 @@ def test_resolution_creates_fresh_linked_operation_and_unblocks_mutation_without
 def test_runtime_rejects_a_persisted_operation_from_another_run_scope() -> None:
     parent = _record("other-run-parent-1179", run_scope="run:other")
     store = _store_with(parent)
+    target = _target()
     with pytest.raises(RuntimeError, match="persisted operation scope does not match"):
-        RuntimeControlPlane(_target(), store=store)
+        RuntimeControlPlane(target, store=store)
 
 
 def test_resolution_retry_is_idempotent_and_already_resolved_parent_rejects_a_new_child() -> None:

@@ -20,6 +20,7 @@ for a re-export.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as distribution_version
@@ -71,7 +72,7 @@ def create_control_plane_app(
     executor = _ControlPlaneCallExecutor(max_pending_mutations=security.max_pending_mutations)
 
     @asynccontextmanager
-    async def lifespan(_app: FastAPI):
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         try:
             yield
         finally:
