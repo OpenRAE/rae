@@ -43,8 +43,10 @@ from tools.release_evidence_admission import (
     AdmissionError,
     ProducerIdentity,
     ReleaseIdentity,
+    admitted_publication_subjects,
     build_evidence_index,
     digest_file,
+    render_publication_outputs,
     verify_admission,
 )
 from tools.release_evidence_documents import (
@@ -402,6 +404,10 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     # context rather than from the index being verified.
     verify_parser.add_argument("--release-tag", required=True)
     verify_parser.add_argument("--repo-root", default=REPO_ROOT, type=Path)
+    # The admission job is the trust bridge to the credentialed publishers: it
+    # writes the validated wheel/sdist identity here, and they publish nothing
+    # that does not match it.
+    verify_parser.add_argument("--emit-subjects", type=Path)
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
@@ -416,6 +422,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ("evidence_dir", "evidence directory"),
             ("environment", "smoke environment"),
             ("sdist_environment", "sdist smoke environment"),
+            ("emit_subjects", "publication handoff sink"),
         ):
             value = getattr(args, name, None)
             if value is not None:
@@ -456,6 +463,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             expected=ReleaseIdentity(**identity, tag=args.release_tag),
             policy_hashes=policy_hashes,
         )
+        if args.emit_subjects is not None:
+            # Written only here, after admission accepted the release, so a
+            # refused release leaves no scalars a publisher could act on.
+            args.emit_subjects.write_text(
+                render_publication_outputs(
+                    admitted_publication_subjects(index, expected_tag=args.release_tag)
+                )
+                + "\n",
+                encoding="utf-8",
+            )
         print("release evidence admitted")
         return 0
     except (

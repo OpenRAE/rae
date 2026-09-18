@@ -352,11 +352,11 @@ raw project-lock, tool-lock and build-constraint digests.
 
 Retention: the SBOMs, build inventory and evidence index are attached to the
 GitHub Release and digest-compared on readback, so they outlive the seven-day
-Actions artifact retention. Retention owner: Release. The existing `--clobber`
-on distribution attachment remains the recorded #1227 gap and is deliberately
-not used for evidence. Durable admission-bundle storage (#1224), full publisher
-admission and same-byte recovery (#1227) and operations qualification (#1228)
-remain outside this issue.
+Actions artifact retention. Retention owner: Release. Distribution attachment
+no longer overwrites: #1227 replaced `--clobber` with per-asset reconciliation,
+so an existing asset is byte-compared and a same-name mismatch fails visibly.
+Durable admission-bundle storage (#1224) and operations qualification (#1228)
+were cancelled by the milestone scope audit and are outside this issue.
 
 This record describes implemented repository behavior. The release-time
 execution of T03/T04/T19 against a real tagged release is observed when the next

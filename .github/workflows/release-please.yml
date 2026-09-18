@@ -570,6 +570,14 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    # Admission is the trust bridge to the credentialed publishers (#1227).
+    # It is the last job that may execute candidate code, so it validates the
+    # artifact set here and hands the publishers only these scalars.
+    outputs:
+      wheel_name: ${{ steps.admit.outputs.wheel_name }}
+      wheel_sha256: ${{ steps.admit.outputs.wheel_sha256 }}
+      sdist_name: ${{ steps.admit.outputs.sdist_name }}
+      sdist_sha256: ${{ steps.admit.outputs.sdist_sha256 }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -599,18 +607,30 @@ jobs:
           version: "0.12.4"
 
       - name: Admit the release evidence
+        id: admit
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_WORKFLOW_SHA: ${{ github.workflow_sha }}
           RELEASE_TAG: ${{ needs.resolve-release.outputs.tag }}
         run: |
           set -euo pipefail
+          subjects="${RUNNER_TEMP}/admitted-subjects.env"
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.release_evidence verify \
             --distribution-dir dist \
             --evidence-dir evidence \
             --release-tag "${RELEASE_TAG}" \
-            --signer-workflow "${GITHUB_REPOSITORY}/.github/workflows/release-please.yml"
+            --signer-workflow "${GITHUB_REPOSITORY}/.github/workflows/release-please.yml" \
+            --emit-subjects "${subjects}"
+
+          # The file exists only because admission accepted the release, and
+          # the emitting helper refuses a value carrying a newline or `=`, so
+          # one admitted scalar cannot declare another output here.
+          if [ "$(wc -l <"${subjects}")" -ne 4 ]; then
+            echo "Admitted subject handoff is not the expected four scalars" >&2
+            exit 1
+          fi
+          cat "${subjects}" >>"${GITHUB_OUTPUT}"
 
   publish-pypi:
     needs:
@@ -634,6 +654,48 @@ jobs:
         with:
           name: release-distributions-${{ needs.resolve-release.outputs.release_sha }}
           path: dist/
+
+      - name: Verify the admitted release distributions
+        env:
+          WHEEL_NAME: ${{ needs.admit-release.outputs.wheel_name }}
+          WHEEL_SHA256: ${{ needs.admit-release.outputs.wheel_sha256 }}
+          SDIST_NAME: ${{ needs.admit-release.outputs.sdist_name }}
+          SDIST_SHA256: ${{ needs.admit-release.outputs.sdist_sha256 }}
+        run: |
+          set -euo pipefail
+          # This job holds publication credentials and no candidate checkout,
+          # so the check is plain shell over the admitted scalars (#1227).
+          for scalar in "${WHEEL_NAME}" "${WHEEL_SHA256}" "${SDIST_NAME}" "${SDIST_SHA256}"; do
+            if [ -z "${scalar}" ]; then
+              echo "Admitted artifact identity is incomplete; refusing to publish" >&2
+              exit 1
+            fi
+          done
+          for digest in "${WHEEL_SHA256}" "${SDIST_SHA256}"; do
+            if ! printf '%s\n' "${digest}" | grep -Eq '^[0-9a-f]{64}$'; then
+              echo "Admitted digest '${digest}' is not a SHA-256" >&2
+              exit 1
+            fi
+          done
+
+          # The publisher consumes exactly the admitted set: an extra file must
+          # not ride along, neither expected file may be absent, and a
+          # directory or symlink is never a publication candidate.
+          actual="$(find dist -mindepth 1 -maxdepth 1 -printf '%y %f\n' | LC_ALL=C sort)"
+          expected="$(printf 'f %s\nf %s\n' "${WHEEL_NAME}" "${SDIST_NAME}" | LC_ALL=C sort)"
+          if [ "${actual}" != "${expected}" ]; then
+            echo "Downloaded distributions are not the admitted set" >&2
+            printf 'expected:\n%s\nactual:\n%s\n' "${expected}" "${actual}" >&2
+            exit 1
+          fi
+
+          # Rehash the bytes rather than trusting the channel that delivered
+          # them or a name that merely looks right.
+          printf '%s  dist/%s\n%s  dist/%s\n' \
+            "${WHEEL_SHA256}" "${WHEEL_NAME}" \
+            "${SDIST_SHA256}" "${SDIST_NAME}" \
+            | sha256sum --check --strict --quiet
+          echo "Verified the admitted wheel and sdist immediately before publication"
 
       - name: Revalidate release identity immediately before PyPI
         env:
@@ -729,10 +791,79 @@ jobs:
           fi
           echo "Revalidated Release ${EXPECTED_RELEASE_ID}, ${EXPECTED_TAG}, and ${EXPECTED_SHA} immediately before PyPI"
 
+      - name: Reconcile the PyPI destination
+        id: pypi-destination
+        env:
+          EXPECTED_TAG: ${{ needs.resolve-release.outputs.tag }}
+          WHEEL_NAME: ${{ needs.admit-release.outputs.wheel_name }}
+          WHEEL_SHA256: ${{ needs.admit-release.outputs.wheel_sha256 }}
+          SDIST_NAME: ${{ needs.admit-release.outputs.sdist_name }}
+          SDIST_SHA256: ${{ needs.admit-release.outputs.sdist_sha256 }}
+        run: |
+          set -euo pipefail
+          # PyPI and GitHub are reconciled independently; this is not a
+          # transaction. A re-run after a partial publication completes only
+          # the work that is actually outstanding (#1227, ADR-107).
+          version="${EXPECTED_TAG#v}"
+          response="${RUNNER_TEMP}/pypi-release.json"
+          status="$(
+            curl --silent --show-error --location --max-time 60 --retry 3 \
+              --write-out '%{http_code}' --output "${response}" \
+              "https://pypi.org/pypi/raes/${version}/json"
+          )"
+
+          if [ "${status}" = "404" ]; then
+            echo "PyPI carries no raes ${version}; the whole distribution set is pending"
+            echo "pending=true" >>"${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          if [ "${status}" != "200" ]; then
+            echo "PyPI destination query returned HTTP ${status}; refusing to guess the state" >&2
+            exit 1
+          fi
+
+          # An "already exists" answer is never proof of byte identity, so
+          # compare the digests PyPI reports for the bytes it actually stores.
+          pending=false
+          for subject in "${WHEEL_NAME}:${WHEEL_SHA256}" "${SDIST_NAME}:${SDIST_SHA256}"; do
+            name="${subject%%:*}"
+            expected_digest="${subject##*:}"
+            published="$(
+              jq -r --arg name "${name}" \
+                '[.urls[] | select(.filename == $name) | .digests.sha256] | unique | join(" ")' \
+                "${response}"
+            )"
+            if [ -z "${published}" ]; then
+              echo "PyPI ${version} does not yet carry ${name}; it remains pending"
+              pending=true
+              continue
+            fi
+            if [ "${published}" != "${expected_digest}" ]; then
+              echo "PyPI already stores ${name} with different bytes" >&2
+              echo "  admitted:  ${expected_digest}" >&2
+              echo "  published: ${published}" >&2
+              echo "A same-version digest mismatch is a release incident. Do not" >&2
+              echo "overwrite, move the tag, or rebuild; cut a reviewed new release." >&2
+              exit 1
+            fi
+            echo "PyPI already stores ${name} with the admitted bytes"
+          done
+
+          echo "pending=${pending}" >>"${GITHUB_OUTPUT}"
+          if [ "${pending}" = "false" ]; then
+            echo "Every admitted distribution is already on PyPI; nothing to upload"
+          fi
+
       - name: Publish to PyPI (OIDC trusted publishing)
+        if: steps.pypi-destination.outputs.pending == 'true'
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
           packages-dir: dist
+          # Reconciliation above proved that any file already on PyPI is
+          # byte-identical to the admitted original, so skipping it completes
+          # a partial upload instead of failing the whole run. It never
+          # silently accepts a mismatch: that path exits above.
+          skip-existing: true
 
   publish-github:
     needs: [resolve-release, verify-release, build-release, admit-release, publish-pypi]
@@ -748,17 +879,49 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.resolve-release.outputs.release_sha }}
-          persist-credentials: false
-
+      # This job holds `contents: write`, so it deliberately checks out no
+      # candidate source (#1227). The tag identity it needs is resolved over
+      # the API instead of from a working tree.
       - name: Download the tested release distributions
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-distributions-${{ needs.resolve-release.outputs.release_sha }}
           path: dist/
+
+      - name: Verify the admitted release distributions
+        env:
+          WHEEL_NAME: ${{ needs.admit-release.outputs.wheel_name }}
+          WHEEL_SHA256: ${{ needs.admit-release.outputs.wheel_sha256 }}
+          SDIST_NAME: ${{ needs.admit-release.outputs.sdist_name }}
+          SDIST_SHA256: ${{ needs.admit-release.outputs.sdist_sha256 }}
+        run: |
+          set -euo pipefail
+          for scalar in "${WHEEL_NAME}" "${WHEEL_SHA256}" "${SDIST_NAME}" "${SDIST_SHA256}"; do
+            if [ -z "${scalar}" ]; then
+              echo "Admitted artifact identity is incomplete; refusing to publish" >&2
+              exit 1
+            fi
+          done
+          for digest in "${WHEEL_SHA256}" "${SDIST_SHA256}"; do
+            if ! printf '%s\n' "${digest}" | grep -Eq '^[0-9a-f]{64}$'; then
+              echo "Admitted digest '${digest}' is not a SHA-256" >&2
+              exit 1
+            fi
+          done
+
+          actual="$(find dist -mindepth 1 -maxdepth 1 -printf '%y %f\n' | LC_ALL=C sort)"
+          expected="$(printf 'f %s\nf %s\n' "${WHEEL_NAME}" "${SDIST_NAME}" | LC_ALL=C sort)"
+          if [ "${actual}" != "${expected}" ]; then
+            echo "Downloaded distributions are not the admitted set" >&2
+            printf 'expected:\n%s\nactual:\n%s\n' "${expected}" "${actual}" >&2
+            exit 1
+          fi
+
+          printf '%s  dist/%s\n%s  dist/%s\n' \
+            "${WHEEL_SHA256}" "${WHEEL_NAME}" \
+            "${SDIST_SHA256}" "${SDIST_NAME}" \
+            | sha256sum --check --strict --quiet
+          echo "Verified the admitted wheel and sdist immediately before publication"
 
       - name: Download the release evidence
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -773,13 +936,58 @@ jobs:
           EXPECTED_TAG: ${{ needs.resolve-release.outputs.tag }}
           EXPECTED_RELEASE_ID: ${{ needs.resolve-release.outputs.release_id }}
           EXPECTED_DRAFT: ${{ needs.resolve-release.outputs.release_is_draft }}
+          WHEEL_NAME: ${{ needs.admit-release.outputs.wheel_name }}
+          SDIST_NAME: ${{ needs.admit-release.outputs.sdist_name }}
         run: |
           set -euo pipefail
-          actual_sha="$(git rev-parse HEAD)"
-          if [ "${actual_sha}" != "${EXPECTED_SHA}" ]; then
-            echo "Release attachment checkout mismatch: expected ${EXPECTED_SHA}, got ${actual_sha}" >&2
-            exit 1
-          fi
+
+          # The job holds no checkout, so the tag is resolved over the API with
+          # the same bounded annotated-tag dereference the PyPI boundary uses.
+          resolve_tag_commit() {
+            local ref_json current_ref current_type current_sha depth=0
+            ref_json="$(
+              gh api --method GET \
+                -H 'Accept: application/vnd.github+json' \
+                -H 'X-GitHub-Api-Version: 2022-11-28' \
+                "repos/${GITHUB_REPOSITORY}/git/ref/tags/${EXPECTED_TAG}"
+            )"
+            current_ref="$(jq -er '.ref' <<<"${ref_json}")"
+            current_type="$(jq -er '.object.type' <<<"${ref_json}")"
+            current_sha="$(jq -er '.object.sha' <<<"${ref_json}")"
+            if [ "${current_ref}" != "refs/tags/${EXPECTED_TAG}" ]; then
+              echo "Tag ref lookup changed: expected refs/tags/${EXPECTED_TAG}, got ${current_ref}" >&2
+              return 1
+            fi
+            while [ "${current_type}" = "tag" ]; do
+              depth=$((depth + 1))
+              if [ "${depth}" -gt 16 ]; then
+                echo "Release tag exceeded the bounded annotated-tag dereference depth" >&2
+                return 1
+              fi
+              if ! printf '%s\n' "${current_sha}" | grep -Eq '^[0-9a-f]{40}$'; then
+                echo "Annotated release tag resolved to malformed object SHA '${current_sha}'" >&2
+                return 1
+              fi
+              local tag_json
+              tag_json="$(
+                gh api --method GET \
+                  -H 'Accept: application/vnd.github+json' \
+                  -H 'X-GitHub-Api-Version: 2022-11-28' \
+                  "repos/${GITHUB_REPOSITORY}/git/tags/${current_sha}"
+              )"
+              current_type="$(jq -er '.object.type' <<<"${tag_json}")"
+              current_sha="$(jq -er '.object.sha' <<<"${tag_json}")"
+            done
+            if [ "${current_type}" != "commit" ]; then
+              echo "Release tag resolved to unsupported object type '${current_type}'" >&2
+              return 1
+            fi
+            if ! printf '%s\n' "${current_sha}" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "Release tag resolved to malformed commit SHA '${current_sha}'" >&2
+              return 1
+            fi
+            printf '%s\n' "${current_sha}"
+          }
 
           release_json="$(
             gh release view "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
@@ -810,29 +1018,25 @@ jobs:
             already_public_retry="false"
           fi
 
-          git fetch --force --tags origin
-          current_tag_sha="$(git rev-parse --verify "${EXPECTED_TAG}^{commit}")"
+          current_tag_sha="$(resolve_tag_commit)"
           if [ "${current_tag_sha}" != "${EXPECTED_SHA}" ]; then
             echo "Release tag moved: expected ${EXPECTED_SHA}, got ${current_tag_sha}" >&2
             exit 1
           fi
 
-          wheels=(dist/raes-*.whl)
-          sdists=(dist/raes-*.tar.gz)
-          if [ "${#wheels[@]}" -ne 1 ] || [ ! -f "${wheels[0]}" ] \
-            || [ "${#sdists[@]}" -ne 1 ] || [ ! -f "${sdists[0]}" ]; then
-            echo "Expected one tested wheel and sdist before attachment" >&2
-            exit 1
-          fi
+          # The publication candidates are the admitted names, never a glob
+          # match over whatever the artifact happened to contain (#1227).
+          wheel="dist/${WHEEL_NAME}"
+          sdist="dist/${SDIST_NAME}"
 
           if [ "${already_public_retry}" = "true" ]; then
             retry_dir="$(mktemp -d "${RUNNER_TEMP}/raes-release-retry.XXXXXX")"
             gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
               --dir "${retry_dir}" \
-              --pattern "$(basename "${wheels[0]}")" \
-              --pattern "$(basename "${sdists[0]}")"
-            if ! cmp -s "${wheels[0]}" "${retry_dir}/$(basename "${wheels[0]}")" \
-              || ! cmp -s "${sdists[0]}" "${retry_dir}/$(basename "${sdists[0]}")"; then
+              --pattern "${WHEEL_NAME}" \
+              --pattern "${SDIST_NAME}"
+            if ! cmp -s "${wheel}" "${retry_dir}/${WHEEL_NAME}" \
+              || ! cmp -s "${sdist}" "${retry_dir}/${SDIST_NAME}"; then
               echo "Already-public Release assets do not match the tested distributions" >&2
               exit 1
             fi
@@ -847,8 +1051,7 @@ jobs:
               echo "Already-public Release identity changed during retry verification" >&2
               exit 1
             fi
-            git fetch --force --tags origin
-            current_tag_sha="$(git rev-parse --verify "${EXPECTED_TAG}^{commit}")"
+            current_tag_sha="$(resolve_tag_commit)"
             if [ "${current_tag_sha}" != "${EXPECTED_SHA}" ]; then
               echo "Release tag moved during retry verification: expected ${EXPECTED_SHA}, got ${current_tag_sha}" >&2
               exit 1
@@ -857,12 +1060,43 @@ jobs:
             exit 0
           fi
 
-          gh release upload "${EXPECTED_TAG}" "${wheels[0]}" "${sdists[0]}" --clobber
+          # Each distribution is reconciled against the Release before it is
+          # written (#1227). GitHub publishes no server-side asset digest, so
+          # an existing asset is compared byte-for-byte: identical bytes are
+          # already-published, differing bytes are an incident, and neither is
+          # resolved by overwriting.
+          for admitted_name in "${WHEEL_NAME}" "${SDIST_NAME}"; do
+            local_path="dist/${admitted_name}"
+            existing_dir="$(mktemp -d "${RUNNER_TEMP}/raes-asset-existing.XXXXXX")"
+            if gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
+              --dir "${existing_dir}" --pattern "${admitted_name}" 2>/dev/null \
+              && [ -f "${existing_dir}/${admitted_name}" ]; then
+              if cmp -s "${local_path}" "${existing_dir}/${admitted_name}"; then
+                echo "${admitted_name} is already attached with the admitted bytes"
+                continue
+              fi
+              echo "Release already stores ${admitted_name} with different bytes" >&2
+              echo "A same-name digest mismatch is a release incident. Do not" >&2
+              echo "overwrite, move the tag, or rebuild; cut a reviewed new release." >&2
+              exit 1
+            fi
+
+            gh release upload "${EXPECTED_TAG}" "${local_path}"
+
+            # Read the stored bytes back, so the claim rests on observed
+            # content rather than on a successful upload call.
+            readback_dir="$(mktemp -d "${RUNNER_TEMP}/raes-asset-readback.XXXXXX")"
+            gh release download "${EXPECTED_TAG}" --repo "${GITHUB_REPOSITORY}" \
+              --dir "${readback_dir}" --pattern "${admitted_name}"
+            if ! cmp -s "${local_path}" "${readback_dir}/${admitted_name}"; then
+              echo "Attached ${admitted_name} does not match the admitted bytes" >&2
+              exit 1
+            fi
+            echo "Attached ${admitted_name} with verified readback"
+          done
 
           # Retain the evidence on the durable Release, not only as a 7-day
-          # Actions artifact (#1226). Deliberately no --clobber: the incumbent
-          # --clobber above is a recorded #1227 gap, not a pattern to copy for
-          # retained evidence. Retention owner: Release.
+          # Actions artifact (#1226). Retention owner: Release.
           evidence_files=(evidence/*.json)
           if [ "${#evidence_files[@]}" -eq 0 ] || [ ! -f "${evidence_files[0]}" ]; then
             echo "Release evidence is absent; refusing to finalize" >&2
@@ -898,8 +1132,7 @@ jobs:
             exit 1
           fi
 
-          git fetch --force --tags origin
-          current_tag_sha="$(git rev-parse --verify "${EXPECTED_TAG}^{commit}")"
+          current_tag_sha="$(resolve_tag_commit)"
           if [ "${current_tag_sha}" != "${EXPECTED_SHA}" ]; then
             echo "Release tag moved during attachment: expected ${EXPECTED_SHA}, got ${current_tag_sha}" >&2
             exit 1
