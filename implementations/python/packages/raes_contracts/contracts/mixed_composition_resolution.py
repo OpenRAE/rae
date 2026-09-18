@@ -433,12 +433,29 @@ def _validate_trial_admission_context(
     for component_id in profile.components:
         if context.component_projection_membership.get((profile.profile_id, component_id)) is not True:
             raise ValueError("composition component realization-envelope projection is unresolved or rejected")
+    effects = _resolved_allocation_effects(profile, context)
+    _validate_active_effect_overlap(profile, effects)
+    if profile.profile_id not in context.resource_refs:
+        raise ValueError("composition all-phase resource coverage is unresolved")
+
+
+def _resolved_allocation_effects(
+    profile: MixedParticipantCompositionProfileModel,
+    context: MixedCompositionResolutionContext,
+) -> dict[str, frozenset[str]]:
     effects: dict[str, frozenset[str]] = {}
     for allocation_id in profile.allocations:
         resolved = context.allocation_effects.get((profile.profile_id, allocation_id))
         if not resolved:
             raise ValueError("composition allocation semantic-effect coverage is unresolved")
         effects[allocation_id] = resolved
+    return effects
+
+
+def _validate_active_effect_overlap(
+    profile: MixedParticipantCompositionProfileModel,
+    effects: dict[str, frozenset[str]],
+) -> None:
     for phase in profile.phases.values():
         active = sorted(phase.active_allocation_ids)
         for index, first_id in enumerate(active):
@@ -450,8 +467,6 @@ def _validate_trial_admission_context(
                     and effects[first_id] & effects[second_id]
                 ):
                     raise ValueError("active composition providers overlap one canonical semantic effect")
-    if profile.profile_id not in context.resource_refs:
-        raise ValueError("composition all-phase resource coverage is unresolved")
 
 
 __all__ = [

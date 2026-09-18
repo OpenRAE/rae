@@ -13,6 +13,9 @@ from raes.realization_envelope import member
 from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts import (
     AdmittedMixedCompositionBindingModel,
+    AdmittedTrialEntryModel,
+    AdmittedTrialPlanModel,
+    AdmittedTrialSourceReferenceModel,
     BackendManifestV2Model,
     ParticipantImplementationManifestModel,
     TrialCoordinateModel,
@@ -38,6 +41,7 @@ from .policies import CoordinateSelections
 from .profiles import realization_assignment_key
 
 _ENTRIES_ADDRESS = "/entries/"
+_REALIZATION_ASSIGNMENTS_ADDRESS = "/realization_assignments"
 
 
 @dataclass(frozen=True)
@@ -89,7 +93,7 @@ def _validate_mixed_resources(
     if required is None:
         raise _fail(
             "composition-resource-coverage-unresolved",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "composition cleanup and isolation resource coverage is unresolved",
         )
     covered = {
@@ -128,7 +132,7 @@ def _resolve_profile_closure(
     if context is None:
         raise _fail(
             "composition-context-missing",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "composition profile trusted resolution context is missing",
         )
     try:
@@ -141,7 +145,7 @@ def _resolve_profile_closure(
     except ValueError as exc:
         raise _fail(
             "composition-context-rejected",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "composition profile failed trusted contextual admission",
         ) from exc
     return context, profiles
@@ -159,13 +163,19 @@ def _validate_profile_apparatus(
     )
 
 
-def validate_mixed_authority(request: TrialCompilationRequest) -> MixedCompositionAuthority:
-    """Admit only exact participant and reachable component authority."""
-
-    participant_manifests = validate_selected_participant_manifests(request)
-    apparatus_manifests_by_root: dict[str, dict[ApparatusManifestKey, ApparatusManifest]] = {}
+def _profile_closures(
+    request: TrialCompilationRequest,
+) -> tuple[
+    dict[str, MixedParticipantCompositionProfileModel],
+    list[
+        tuple[
+            str,
+            MixedCompositionResolutionContext,
+            tuple[MixedParticipantCompositionProfileModel, ...],
+        ]
+    ],
+]:
     admitted_profiles: dict[str, MixedParticipantCompositionProfileModel] = {}
-    backends_by_root: dict[str, tuple[BackendManifestV2Model, ...]] = {}
     closures: list[
         tuple[
             str,
@@ -180,23 +190,47 @@ def validate_mixed_authority(request: TrialCompilationRequest) -> MixedCompositi
             if prior is not None and prior != profile:
                 raise _fail(
                     "composition-profile-identity-conflict",
-                    "/realization_assignments",
+                    _REALIZATION_ASSIGNMENTS_ADDRESS,
                     "one composition profile identity resolves to conflicting payloads",
                 )
             admitted_profiles[profile.profile_id] = profile
         closures.append((root_id, context, profiles))
+    return admitted_profiles, closures
+
+
+def _validate_profile_limits(
+    request: TrialCompilationRequest,
+    admitted_profiles: dict[str, MixedParticipantCompositionProfileModel],
+) -> None:
     if len(admitted_profiles) > request.limits.max_mixed_profiles:
         raise _fail(
             "mixed-profile-limit-exceeded",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "reachable mixed composition profiles exceed the compilation limit",
         )
     if sum(_profile_work(profile) for profile in admitted_profiles.values()) > request.limits.max_mixed_context_work:
         raise _fail(
             "mixed-context-work-limit-exceeded",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "reachable mixed composition contextual work exceeds the compilation limit",
         )
+
+
+def _admit_profile_apparatus(
+    request: TrialCompilationRequest,
+    closures: list[
+        tuple[
+            str,
+            MixedCompositionResolutionContext,
+            tuple[MixedParticipantCompositionProfileModel, ...],
+        ]
+    ],
+) -> tuple[
+    dict[str, dict[ApparatusManifestKey, ApparatusManifest]],
+    dict[str, tuple[BackendManifestV2Model, ...]],
+]:
+    apparatus_manifests_by_root: dict[str, dict[ApparatusManifestKey, ApparatusManifest]] = {}
+    backends_by_root: dict[str, tuple[BackendManifestV2Model, ...]] = {}
     for root_id, context, profiles in closures:
         root_manifests: dict[ApparatusManifestKey, ApparatusManifest] = {}
         root_backends: list[BackendManifestV2Model] = []
@@ -210,6 +244,16 @@ def validate_mixed_authority(request: TrialCompilationRequest) -> MixedCompositi
                     root_backends.append(manifest)
         apparatus_manifests_by_root[root_id] = root_manifests
         backends_by_root[root_id] = tuple(root_backends)
+    return apparatus_manifests_by_root, backends_by_root
+
+
+def validate_mixed_authority(request: TrialCompilationRequest) -> MixedCompositionAuthority:
+    """Admit only exact participant and reachable component authority."""
+
+    participant_manifests = validate_selected_participant_manifests(request)
+    admitted_profiles, closures = _profile_closures(request)
+    _validate_profile_limits(request, admitted_profiles)
+    apparatus_manifests_by_root, backends_by_root = _admit_profile_apparatus(request, closures)
     return MixedCompositionAuthority(
         apparatus_manifests_by_root=apparatus_manifests_by_root,
         participant_manifests=participant_manifests,
@@ -217,19 +261,15 @@ def validate_mixed_authority(request: TrialCompilationRequest) -> MixedCompositi
     )
 
 
-def _validate_mixed_source(
+def _revalidate_source_plan(
     request: TrialCompilationRequest,
-    binding: AdmittedMixedCompositionBindingModel,
-    selected: InstantiatedScenario,
-) -> None:
-    source_ref = binding.source_trial
-    if source_ref is None:
-        return
+    source_ref: AdmittedTrialSourceReferenceModel,
+) -> AdmittedTrialPlanModel:
     source = request.source_plans.get(source_ref.plan_id)
     if source is None:
         raise _fail(
             "composition-source-plan-unresolved",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "linked realization source plan is unresolved",
         )
     try:
@@ -237,9 +277,16 @@ def _validate_mixed_source(
     except ValueError as exc:
         raise _fail(
             "composition-source-plan-invalid",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "linked realization source plan failed closed reconstruction",
         ) from exc
+    return admitted
+
+
+def _resolve_source_entry(
+    admitted: AdmittedTrialPlanModel,
+    source_ref: AdmittedTrialSourceReferenceModel,
+) -> AdmittedTrialEntryModel:
     entry = admitted.entries.get(source_ref.plan_entry_id)
     if (
         admitted.plan_id != source_ref.plan_id
@@ -250,9 +297,13 @@ def _validate_mixed_source(
     ):
         raise _fail(
             "composition-source-trial-mismatch",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "linked realization source tuple does not match the sealed source plan",
         )
+    return entry
+
+
+def _validate_source_inputs(request: TrialCompilationRequest, admitted: AdmittedTrialPlanModel) -> None:
     if (
         admitted.input_refs.authoring_input_ref != request.input_refs.authoring_input_ref
         or admitted.input_refs.task_ref != request.input_refs.task_ref
@@ -261,22 +312,40 @@ def _validate_mixed_source(
     ):
         raise _fail(
             "composition-source-input-mismatch",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "linked realization source does not bind the same authoring, task, and scenario-family inputs",
         )
+
+
+def _source_scenario(request: TrialCompilationRequest, entry: AdmittedTrialEntryModel) -> InstantiatedScenario:
     source_outcomes = {selection.variation_point_id: selection.outcome for selection in entry.selections}
     try:
         source_selected = select_scenario_family(request.family, source_outcomes)
     except (TypeError, ValueError) as exc:
         raise _fail(
             "composition-source-selection-invalid",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "linked realization source selection failed scenario admission",
         ) from exc
+    return source_selected
+
+
+def _validate_mixed_source(
+    request: TrialCompilationRequest,
+    binding: AdmittedMixedCompositionBindingModel,
+    selected: InstantiatedScenario,
+) -> None:
+    source_ref = binding.source_trial
+    if source_ref is None:
+        return
+    admitted = _revalidate_source_plan(request, source_ref)
+    entry = _resolve_source_entry(admitted, source_ref)
+    _validate_source_inputs(request, admitted)
+    source_selected = _source_scenario(request, entry)
     if canonical_instantiated_sdl_digest(source_selected) != canonical_instantiated_sdl_digest(selected):
         raise _fail(
             "composition-source-selection-mismatch",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "linked realization source does not bind the same admitted scenario selection",
         )
 
@@ -293,7 +362,7 @@ def validate_mixed_realization(
     if profile.scenario_snapshot_ref.ref_digest != selected_digest:
         raise _fail(
             "composition-scenario-snapshot-mismatch",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "composition profile scenario snapshot does not match the selected scenario",
         )
     context, profiles = _resolve_profile_closure(request, profile)
@@ -301,7 +370,7 @@ def validate_mixed_realization(
         if reachable.scenario_snapshot_ref.ref_digest != selected_digest:
             raise _fail(
                 "composition-scenario-snapshot-mismatch",
-                "/realization_assignments",
+                _REALIZATION_ASSIGNMENTS_ADDRESS,
                 "a reachable composition profile scenario snapshot does not match the selected scenario",
             )
         _validate_profile_apparatus(request, reachable)

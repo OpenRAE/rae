@@ -7,6 +7,7 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedMixedCompositionBindingModel,
     AdmittedParticipantManifestReferenceModel,
+    AdmittedTrialPlanInputRefsModel,
     TrialCoordinateModel,
 )
 
@@ -16,6 +17,7 @@ from .profiles import admitted_profiles, coordinate_projection, realization_assi
 
 _RUN_PLAN_ADDRESS = "/run_plan"
 _CAPTURE_SPEC_REFS_ADDRESS = "/input_refs/capture_spec_refs"
+_REALIZATION_ASSIGNMENTS_ADDRESS = "/realization_assignments"
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -199,7 +201,7 @@ def validate_realization_assignments(
     if set(request.realization_assignments) != expected:
         raise _fail(
             "realization-assignment-incomplete",
-            "/realization_assignments",
+            _REALIZATION_ASSIGNMENTS_ADDRESS,
             "mixed composition realization assignments must cover every canonical coordinate exactly once",
         )
     expected_participants = {
@@ -214,7 +216,7 @@ def validate_realization_assignments(
         ):
             raise _fail(
                 "realization-assignment-profile-mismatch",
-                "/realization_assignments",
+                _REALIZATION_ASSIGNMENTS_ADDRESS,
                 "a realization assignment does not resolve to its exact supplied composition profile",
             )
         if {
@@ -222,7 +224,7 @@ def validate_realization_assignments(
         } != expected_participants:
             raise _fail(
                 "realization-assignment-participant-manifest-mismatch",
-                "/realization_assignments",
+                _REALIZATION_ASSIGNMENTS_ADDRESS,
                 "a realization assignment does not bind the exact selected participant manifest authority",
             )
 
@@ -328,7 +330,7 @@ def plan_intent(request: TrialCompilationRequest, planned_coordinates: list[Tria
     return intent
 
 
-def canonical_input_refs(request: TrialCompilationRequest):
+def canonical_input_refs(request: TrialCompilationRequest) -> AdmittedTrialPlanInputRefsModel:
     """Return input refs with set-like composition profile refs in canonical order."""
 
     refs = request.input_refs.mixed_composition_profile_refs

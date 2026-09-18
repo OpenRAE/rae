@@ -530,7 +530,8 @@ def test_linked_realization_change_uses_exact_source_tuple_and_new_identity() ->
     baseline = compile_admitted_trial_plan(request)
     changed = compile_admitted_trial_plan(linked)
 
-    assert baseline.plan is not None and changed.plan is not None
+    assert baseline.plan is not None
+    assert changed.plan is not None
     assert baseline.plan.plan_id != changed.plan.plan_id
     baseline_runs = {entry.coordinate.replicate_id: entry.run_id for entry in baseline.plan.entries.values()}
     changed_runs = {entry.coordinate.replicate_id: entry.run_id for entry in changed.plan.entries.values()}
@@ -581,7 +582,8 @@ def test_mixed_binding_carries_and_validates_exact_participant_manifest_authorit
     admitted = compile_admitted_trial_plan(admitted_request)
     baseline_result = compile_admitted_trial_plan(baseline)
 
-    assert admitted.plan is not None and baseline_result.plan is not None
+    assert admitted.plan is not None
+    assert baseline_result.plan is not None
     assert admitted.plan.plan_id != baseline_result.plan.plan_id
     assert all(
         entry.apparatus.participant_manifest_refs == request.apparatus.participant_manifest_refs
@@ -765,8 +767,9 @@ def test_legacy_plan_rejects_mixed_identity_profile_claims(field: str, value: st
     payload = result.plan.model_dump(mode="python")
     payload["profiles"][field] = value
 
+    plan_type = type(result.plan)
     with pytest.raises(ValueError, match="legacy compiler and identity profiles"):
-        type(result.plan).model_validate(payload)
+        plan_type.model_validate(payload)
 
 
 def test_legacy_empty_participant_manifest_serialization_remains_omitted() -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 
 from raes import (
     ExpandedScenarioBindingTargetResolver,
@@ -73,6 +74,14 @@ class _CaptureAdmissionFailure(Exception):
     def __init__(self, diagnostics: tuple[Diagnostic, ...]) -> None:
         super().__init__("required capture is not supported by the admitted apparatus")
         self.diagnostics = diagnostics
+
+
+@dataclass(frozen=True)
+class _EntryCompilationAuthority:
+    descriptors: Mapping[str, ExperimentBindingDescriptorModel] | None
+    observations_by_profile: Mapping[str, tuple[ObservationCapabilities | None, ...]]
+    apparatus_manifests_by_profile: Mapping[str, Mapping[ApparatusManifestKey, ApparatusManifest]]
+    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel]
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -292,16 +301,40 @@ def _failure_key(failure: CompilationFailure) -> tuple[str, str, str]:
     return failure.address, failure.code, failure.safe_message
 
 
+def _compile_coordinate(
+    request: TrialCompilationRequest,
+    plan_id: str,
+    coordinate: TrialCoordinateModel,
+    row: CoordinateSelections,
+    authority: _EntryCompilationAuthority,
+) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
+    realization = request.realization_assignments.get(realization_assignment_key(coordinate))
+    profile_id = realization.profile_ref.ref_id if realization is not None else ""
+    descriptors = authority.descriptors
+    if descriptors is None:
+        descriptors = _admitted_descriptors(
+            request,
+            authority.apparatus_manifests_by_profile[profile_id],
+            authority.participant_manifests,
+            descriptor_ids=entry_descriptor_ids(request, row, coordinate),
+        )
+    return _compile_entry(
+        request,
+        plan_id,
+        row,
+        coordinate,
+        descriptors,
+        authority.observations_by_profile[profile_id],
+    )
+
+
 def _compile_entries(
     request: TrialCompilationRequest,
     plan_id: str,
     coordinates: list[TrialCoordinateModel],
     rows: list[CoordinateSelections],
-    descriptors: Mapping[str, ExperimentBindingDescriptorModel] | None,
     visit_indices: tuple[int, ...],
-    observations_by_profile: Mapping[str, tuple[ObservationCapabilities | None, ...]],
-    apparatus_manifests_by_profile: Mapping[str, Mapping[ApparatusManifestKey, ApparatusManifest]],
-    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel],
+    authority: _EntryCompilationAuthority,
 ) -> tuple[dict[str, AdmittedTrialEntryModel], dict[str, TrialCleanupPlanModel], set[str]]:
     entries: dict[str, AdmittedTrialEntryModel] = {}
     cleanup_plans: dict[str, TrialCleanupPlanModel] = {}
@@ -311,25 +344,8 @@ def _compile_entries(
     for coordinate_index in visit_indices:
         coordinate = coordinates[coordinate_index]
         row = rows[coordinate_index]
-        realization = request.realization_assignments.get(realization_assignment_key(coordinate))
-        profile_id = realization.profile_ref.ref_id if realization is not None else ""
         try:
-            entry_descriptors = descriptors
-            if entry_descriptors is None:
-                entry_descriptors = _admitted_descriptors(
-                    request,
-                    apparatus_manifests_by_profile[profile_id],
-                    participant_manifests,
-                    descriptor_ids=entry_descriptor_ids(request, row, coordinate),
-                )
-            entry_id, entry, cleanup_id, cleanup = _compile_entry(
-                request,
-                plan_id,
-                row,
-                coordinate,
-                entry_descriptors,
-                observations_by_profile[profile_id],
-            )
+            entry_id, entry, cleanup_id, cleanup = _compile_coordinate(request, plan_id, coordinate, row, authority)
         except _CaptureAdmissionFailure as failure:
             capture_failures.update(
                 {
@@ -426,11 +442,13 @@ def _compile(
         plan_id,
         planned_coordinates,
         rows,
-        descriptors,
         traversal,
-        observations_by_profile,
-        apparatus_manifests_by_profile,
-        participant_manifests,
+        _EntryCompilationAuthority(
+            descriptors=descriptors,
+            observations_by_profile=observations_by_profile,
+            apparatus_manifests_by_profile=apparatus_manifests_by_profile,
+            participant_manifests=participant_manifests,
+        ),
     )
     controls = {
         control.control_id: control

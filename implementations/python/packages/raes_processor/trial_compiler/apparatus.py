@@ -30,6 +30,7 @@ _CAPABILITY_CONTRACT_ALIASES = {
 _MANIFEST_REFS_ADDRESS = "/apparatus/manifest_refs"
 _PARTICIPANT_MANIFEST_REFS_ADDRESS = "/apparatus/participant_manifest_refs"
 _CAPABILITY_REFS_ADDRESS = "/apparatus/capability_refs"
+_REALIZATION_ENVELOPE_ADDRESS = "/apparatus/realization_envelope"
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -186,14 +187,14 @@ def _validate_apparatus_envelope_and_capabilities(
     ):
         raise _fail(
             "apparatus-envelope-unsupported",
-            "/apparatus/realization_envelope",
+            _REALIZATION_ENVELOPE_ADDRESS,
             "selected backend manifests do not bind the admitted realization envelope",
         )
     available_capabilities = set().union(*(_manifest_capability_ids(manifest) for manifest in selected.values()))
     if apparatus.realization_envelope != getattr(realization_envelope, "identity", None):
         raise _fail(
             "apparatus-envelope-identity-mismatch",
-            "/apparatus/realization_envelope",
+            _REALIZATION_ENVELOPE_ADDRESS,
             "admitted apparatus realization envelope does not match the concrete payload",
         )
     declared_capabilities = set(apparatus.capability_refs)
@@ -344,15 +345,15 @@ def validate_selected_participant_manifests(
     return selected
 
 
-def validate_composition_components(
+def _resolve_composition_components(
     components: Mapping[str, MixedCompositionComponentModel],
     apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest],
     realization_envelopes: Mapping[str, BackendRealizationEnvelopeModel],
-    *,
-    intent: ExperimentApparatusConstraintModel | None,
-) -> dict[str, ApparatusManifest]:
-    """Resolve exact component manifests/envelopes and their joint compatibility."""
-
+) -> tuple[
+    dict[str, ApparatusManifest],
+    dict[ApparatusManifestKey, ApparatusManifest],
+    dict[ApparatusManifestKey, ExperimentManifestReferenceModel],
+]:
     selected: dict[str, ApparatusManifest] = {}
     selected_by_key: dict[ApparatusManifestKey, ApparatusManifest] = {}
     references_by_key: dict[ApparatusManifestKey, ExperimentManifestReferenceModel] = {}
@@ -370,52 +371,80 @@ def validate_composition_components(
         if envelope is None or envelope.identity != component.realization_envelope:
             raise _fail(
                 "apparatus-envelope-identity-mismatch",
-                "/apparatus/realization_envelope",
+                _REALIZATION_ENVELOPE_ADDRESS,
                 "composition component realization envelope is unresolved or stale",
             )
         if isinstance(manifest, BackendManifestV2Model) and manifest.realization_envelope != envelope.identity:
             raise _fail(
                 "apparatus-envelope-unsupported",
-                "/apparatus/realization_envelope",
+                _REALIZATION_ENVELOPE_ADDRESS,
                 "composition backend manifest does not bind its selected realization envelope",
             )
         selected[component_id] = manifest
         selected_by_key[key] = manifest
         references_by_key[key] = component.manifest_ref
+    return selected, selected_by_key, references_by_key
 
+
+def _validate_composition_compatibility(selected: Mapping[str, ApparatusManifest]) -> None:
     processors = [manifest for manifest in selected.values() if isinstance(manifest, ProcessorManifestV2Model)]
     backends = [manifest for manifest in selected.values() if isinstance(manifest, BackendManifestV2Model)]
-    if processors and backends:
-        for processor in processors:
-            if not any(
-                backend.identity.name in processor.compatibility.backends
-                and processor.identity.name in backend.compatibility.processors
-                for backend in backends
-            ):
-                raise _fail(
-                    "apparatus-compatibility-rejected",
-                    _MANIFEST_REFS_ADDRESS,
-                    "composition processor has no mutually compatible selected backend",
-                )
-    if intent is not None:
-        available_capabilities = set().union(*(_manifest_capability_ids(manifest) for manifest in selected.values()))
-        if not set(intent.required_capabilities).issubset(available_capabilities):
-            raise _fail(
-                "apparatus-capability-missing",
-                _CAPABILITY_REFS_ADDRESS,
-                "composition apparatus does not satisfy every required capability",
-            )
-        _validate_apparatus_allowlists(selected_by_key, intent)
-        selected_references = tuple(references_by_key.values())
-        if any(
-            not any(_reference_satisfies_requirement(selected_ref, required) for selected_ref in selected_references)
-            for required in intent.required_manifest_refs
+    for processor in processors:
+        if backends and not any(
+            backend.identity.name in processor.compatibility.backends
+            and processor.identity.name in backend.compatibility.processors
+            for backend in backends
         ):
             raise _fail(
-                "apparatus-manifest-missing",
+                "apparatus-compatibility-rejected",
                 _MANIFEST_REFS_ADDRESS,
-                "composition apparatus omits a required manifest",
+                "composition processor has no mutually compatible selected backend",
             )
+
+
+def _validate_composition_intent(
+    selected: Mapping[str, ApparatusManifest],
+    selected_by_key: dict[ApparatusManifestKey, ApparatusManifest],
+    references_by_key: Mapping[ApparatusManifestKey, ExperimentManifestReferenceModel],
+    intent: ExperimentApparatusConstraintModel,
+) -> None:
+    available_capabilities = set().union(*(_manifest_capability_ids(manifest) for manifest in selected.values()))
+    if not set(intent.required_capabilities).issubset(available_capabilities):
+        raise _fail(
+            "apparatus-capability-missing",
+            _CAPABILITY_REFS_ADDRESS,
+            "composition apparatus does not satisfy every required capability",
+        )
+    _validate_apparatus_allowlists(selected_by_key, intent)
+    selected_references = tuple(references_by_key.values())
+    if any(
+        not any(_reference_satisfies_requirement(selected_ref, required) for selected_ref in selected_references)
+        for required in intent.required_manifest_refs
+    ):
+        raise _fail(
+            "apparatus-manifest-missing",
+            _MANIFEST_REFS_ADDRESS,
+            "composition apparatus omits a required manifest",
+        )
+
+
+def validate_composition_components(
+    components: Mapping[str, MixedCompositionComponentModel],
+    apparatus_manifests: Mapping[ApparatusManifestKey, ApparatusManifest],
+    realization_envelopes: Mapping[str, BackendRealizationEnvelopeModel],
+    *,
+    intent: ExperimentApparatusConstraintModel | None,
+) -> dict[str, ApparatusManifest]:
+    """Resolve exact component manifests/envelopes and their joint compatibility."""
+
+    selected, selected_by_key, references_by_key = _resolve_composition_components(
+        components,
+        apparatus_manifests,
+        realization_envelopes,
+    )
+    _validate_composition_compatibility(selected)
+    if intent is not None:
+        _validate_composition_intent(selected, selected_by_key, references_by_key, intent)
     return selected
 
 

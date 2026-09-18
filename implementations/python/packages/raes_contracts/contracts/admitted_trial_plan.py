@@ -268,6 +268,15 @@ class AdmittedTrialPlanModel(ContractModel):
                 raise ValueError("entry instantiation_provenance scenario_family_id must equal the pinned family ref")
 
     def _validate_joins(self) -> None:
+        mixed_entries = self._validate_profile_joins()
+        if any(
+            entry.apparatus.source_trial is not None and entry.apparatus.source_trial.plan_id == self.plan_id
+            for entry in mixed_entries
+        ):
+            raise ValueError("mixed composition source trials must reference an external already-sealed plan")
+        self._validate_cleanup_joins()
+
+    def _validate_profile_joins(self) -> list[AdmittedTrialEntryModel]:
         mixed_entries = [
             entry
             for entry in self.entries.values()
@@ -300,11 +309,9 @@ class AdmittedTrialPlanModel(ContractModel):
         }
         if declared_profiles != used_profiles:
             raise ValueError("mixed composition entry profile references must equal the plan's exact input set")
-        if any(
-            entry.apparatus.source_trial is not None and entry.apparatus.source_trial.plan_id == self.plan_id
-            for entry in mixed_entries
-        ):
-            raise ValueError("mixed composition source trials must reference an external already-sealed plan")
+        return mixed_entries
+
+    def _validate_cleanup_joins(self) -> None:
         referenced_cleanup: set[str] = set()
         for entry in self.entries.values():
             cleanup_ref = entry.execution_controls.cleanup_plan_ref
