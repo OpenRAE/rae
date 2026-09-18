@@ -541,6 +541,69 @@ def test_setup_syncs_both_locked_environments_with_the_verified_clients(
     assert {env["UV_PYTHON_DOWNLOADS"] for _argv, env in calls} == {"never"}
 
 
+def _relocated_tooling_venv(checkout: Path, *, shebang_root: str) -> Path:
+    """Build a project tree whose console script names ``shebang_root`` as its venv."""
+
+    venv = checkout / "implementations" / "tooling" / "python" / ".venv"
+    (venv / "bin").mkdir(parents=True)
+    (venv / "bin" / "python").symlink_to("/nonexistent/python3")
+    (venv / "pyvenv.cfg").write_text("home = /nonexistent/bin\n", encoding="utf-8")
+    script = venv / "bin" / "pre-commit"
+    script.write_text(
+        f"#!{shebang_root}/implementations/tooling/python/.venv/bin/python\nprint('hook')\n",
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    return venv
+
+
+def test_relocated_environment_is_detected_from_its_console_script(tmp_path: Path) -> None:
+    from tools.devcontainer_setup import environment_is_relocated
+
+    venv = _relocated_tooling_venv(tmp_path / "clone2", shebang_root="/workspaces/rae")
+    assert environment_is_relocated(venv) is True
+
+
+def test_environment_at_its_own_path_is_not_relocated(tmp_path: Path) -> None:
+    from tools.devcontainer_setup import environment_is_relocated
+
+    checkout = tmp_path / "clone2"
+    venv = _relocated_tooling_venv(checkout, shebang_root=str(checkout))
+    assert environment_is_relocated(venv) is False
+
+
+def test_missing_environment_is_not_relocated(tmp_path: Path) -> None:
+    from tools.devcontainer_setup import environment_is_relocated
+
+    assert environment_is_relocated(tmp_path / "absent" / ".venv") is False
+
+
+def test_setup_removes_a_relocated_environment_before_syncing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A checkout mounted at a second path must not keep stale console scripts.
+
+    ``uv sync`` reports such an environment as already satisfied, so setup would
+    otherwise fail later with an unspawnable ``pre-commit``.
+    """
+
+    from tools import devcontainer_setup
+
+    checkout = tmp_path / "clone2"
+    venv = _relocated_tooling_venv(checkout, shebang_root="/workspaces/rae")
+    monkeypatch.setattr(devcontainer_setup, "_run", lambda _argv, _root, _env: None)
+    devcontainer_setup.sync_projects(checkout, tmp_path / "raes-bootstrap")
+    assert not venv.exists()
+
+
+def test_setup_keeps_an_environment_that_matches_its_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools import devcontainer_setup
+
+    checkout = tmp_path / "clone2"
+    venv = _relocated_tooling_venv(checkout, shebang_root=str(checkout))
+    monkeypatch.setattr(devcontainer_setup, "_run", lambda _argv, _root, _env: None)
+    devcontainer_setup.sync_projects(checkout, tmp_path / "raes-bootstrap")
+    assert venv.exists()
+
+
 def test_setup_skips_hooks_when_the_git_directory_is_outside_the_container(tmp_path: Path) -> None:
     from tools.devcontainer_setup import install_git_hooks
 

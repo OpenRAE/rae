@@ -3,8 +3,10 @@
 The repository ships an optional connected development container with locked
 Python/uv, frozen project and tooling environments, CLI tools and git hooks.
 The bootstrap workflow exercises an x86_64 Docker build and repeated lifecycle
-setup. Client-specific entry-point verification belongs to #1277; the routes
-below are configuration guidance, not a claim that each client has been tested.
+setup. Each start route below is labelled verified or unverified. The verified
+entry points section records the host, client versions and results behind those
+labels. A route is never labelled verified because a client can read
+`devcontainer.json`.
 
 The container is optional. Native setup, described in
 [Contribute to RAES](../../CONTRIBUTING.md), stays fully supported.
@@ -13,13 +15,17 @@ The container is optional. Native setup, described in
 
 Pick one:
 
-- **VS Code:** install the Dev Containers extension, open the repository, and
-  choose **Reopen in Container**.
-- **GitHub Codespaces:** on the repository page choose **Code**, then
-  **Codespaces**, then **Create codespace**. The configuration asks for a
+- **Dev Containers CLI (verified):** `devcontainer up --workspace-folder .`,
+  then `devcontainer exec --workspace-folder . bash`.
+- **Docker without a dev-container client (verified):** see the section on
+  running Docker or Podman directly.
+- **VS Code (unverified):** install the Dev Containers extension, open the
+  repository, and choose **Reopen in Container**. The extension reads the same
+  `devcontainer.json`, and its interpreter and formatter paths resolve inside
+  the built container. Nobody has exercised the editor route itself.
+- **GitHub Codespaces (unverified):** on the repository page choose **Code**,
+  then **Codespaces**, then **Create codespace**. The configuration asks for a
   4-core, 16 GB machine.
-- **Dev Containers CLI:** `devcontainer up --workspace-folder .`, then
-  `devcontainer exec --workspace-folder . bash`.
 
 The first open builds the image and runs the repository setup. Setup prints each
 step and finishes with `Ready.`:
@@ -53,13 +59,22 @@ suites before merge.
 
 ## Git, signing, and GitHub
 
-- **VS Code** copies your git identity into the container and forwards your SSH
-  agent, git credential helper, and GPG agent. SSH remotes and signed commits
-  work when they work on your host; load your SSH key into the host's agent
-  first.
-- **Codespaces** authenticates git and signs commits itself when GPG
-  verification is enabled for your account.
+Ordinary Git use works in the verified routes. Reading history, staging files
+and committing all run against the mounted checkout.
+
+- **Dev Containers CLI and plain Docker (verified):** the container carries no
+  Git identity of its own. Set `user.name` and `user.email` in the checkout
+  before you commit, or let your client supply them.
+- **VS Code (unverified):** the extension is documented to copy your Git
+  identity into the container and to forward your SSH agent, credential helper
+  and GPG agent. This repository has not exercised that path, so treat signing
+  and SSH remotes as untested here.
+- **Codespaces (unverified):** Codespaces is documented to authenticate Git and
+  sign commits itself. This repository has not exercised that path.
 - **GitHub CLI:** run `gh auth login` once. The container stores no token.
+
+No authentication or signing matrix is claimed. The verified routes record only
+what they observed.
 
 ## Supported platforms
 
@@ -70,7 +85,40 @@ native build in continuous integration. Every build stage pins the reviewed
 Native arm64 support and client/emulation behavior are not newly qualified by
 this change. A native arm64 variant needs a reviewed image/interpreter tuple
 and actual build/setup tests, **not** an immutable-package-snapshot service.
-The current image remains linux/amd64; #1277 owns accurate entry-point claims.
+The current image remains linux/amd64. Native arm64, client emulation,
+Codespaces and rootless Podman stay unverified until a run is recorded.
+
+## Verified entry points
+
+These results come from a single host on one day. They record what ran. They
+are not a support matrix, and they do not qualify another client or platform.
+
+- Source revision `803257b2`.
+- Host: Ubuntu 24.04.4 LTS, `x86_64`, kernel 6.8.0-117.
+- Container runtime: Docker 29.5.0. Client: Dev Containers CLI 0.89.0.
+
+| Route | Result |
+| --- | --- |
+| `devcontainer up`, then `devcontainer exec` | Setup printed the five steps and finished `Ready. Git hooks: installed.` |
+| `docker build` and `docker run`, as shown below | Setup finished `Ready. Git hooks: installed.` |
+| VS Code, Codespaces, Apple Silicon emulation, rootless Podman | Not exercised. The host had no editor client, no display and no Podman. |
+
+Inside the container the checkout was writable and owned by `raes` at uid 1000.
+`uv`, `python`, `nox`, `pre-commit`, `ruff`, `git`, `gh`, `ssh`, `gpg`, `make`,
+`jq`, `less` and `nano` were all on the path. The run recorded Python 3.14.7,
+uv 0.12.4, ruff 0.15.9, nox 2026.4.10, git 2.43.0 and gh 2.45.0. It also
+recorded Conftest 0.68.0, Gitleaks 8.30.1, OSV-Scanner 2.4.0 and Vale 3.15.2.
+The interpreter and formatter paths that `devcontainer.json` gives an editor
+all resolved.
+
+A clean commit passed the installed hook. A commit that broke file hygiene was
+repaired by the hook and stopped, as it does natively. The container held no
+Docker or Podman client, no daemon socket and no `sudo`.
+
+`nox -s verify-changed` ran in the container against a documentation change and
+passed every selected lane in about seven minutes. That included the policy,
+lint, contracts, test and docs lanes. Starting the container a second time ran
+no setup steps again, as this page describes.
 
 ## What is in the image
 
@@ -107,8 +155,11 @@ To repeat setup at any time, run:
 ```
 
 The project virtual environments live in the checkout, as they do natively.
-Don't share one checkout between the container and a native setup: each would
-rebuild the other's `.venv` for its own platform. Use a separate clone for
+Their console scripts record absolute paths, so a checkout mounted at a second
+path carries scripts that cannot start. Setup detects a relocated environment
+and rebuilds it, because `uv sync` alone reports it as already locked. Even so,
+don't share one checkout between the container and a native setup: each would
+rebuild the other's environment for its own platform. Use a separate clone for
 each.
 
 ## Use Docker or Podman without a dev-container client
@@ -130,9 +181,13 @@ export PATH="$PWD/implementations/tooling/python/.venv/bin:$PATH"
 ```
 
 Plain Docker doesn't remap user IDs, so the checkout must be owned by uid 1000.
-With rootless Podman, add `--userns=keep-id:uid=1000,gid=1000` to `podman run`
-instead. Git worktrees whose `.git` file points outside the mounted directory
-can't be used from the container; setup skips hook installation for them.
+The Docker route above is verified. Rootless Podman is unverified: add
+`--userns=keep-id:uid=1000,gid=1000` to `podman run` if you try it.
+
+Git worktrees whose `.git` file points outside the mounted directory can't be
+used from the container. Setup still reaches `Ready.`, but it reports the hook
+step as skipped, and Git reports a missing repository. Mount a plain clone
+instead.
 
 ## Limitations
 

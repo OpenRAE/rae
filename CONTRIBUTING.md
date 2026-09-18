@@ -51,9 +51,9 @@ Changing these migration pins is an explicit, reviewable workflow trust change.
 ## Set up the repository
 
 An optional [development container](docs/explain/development-container.md)
-provides automated setup for the reviewed x86_64 image. The guide distinguishes
-the exercised Docker lifecycle from client-specific verification owned by
-#1277. The container cannot run the Isabelle proof lane; CI runs that gate.
+provides automated setup for the reviewed x86_64 image. The guide labels each
+start route verified or unverified, and records the evidence behind those
+labels. The container cannot run the Isabelle proof lane; CI runs that gate.
 
 To set up natively instead:
 
