@@ -138,7 +138,9 @@ def test_composition_compile_comparison_and_snapshot_preserve_exact_identity(tmp
     ]
     instantiated = instantiate_scenario(expanded)
     compiled = compile_runtime_model(instantiated)
-    requirement = next(item for item in compiled.realization_requirements if item.requirement_kind == "runtime-applications")
+    requirement = next(
+        item for item in compiled.realization_requirements if item.requirement_kind == "runtime-applications"
+    )
     route_constraints = requirement.constraint_document.root.items[0].fields["routes"].items[0].fields
     assert [item.value for item in route_constraints["methods"].items] == [
         "PROPFIND",
@@ -154,7 +156,12 @@ def test_composition_compile_comparison_and_snapshot_preserve_exact_identity(tmp
     assert _methods(restored, "component.host") == ["PROPFIND", "PrivateQuery", "privateQuery"]
 
     case_changed = parse_sdl(_source("PROPFIND", "PrivateQuery", "Privatequery"))
-    assert compare(parse_sdl(_source("PROPFIND", "PrivateQuery", "privateQuery")), case_changed).changes[0].semantic_relation.value == "changed"
+    assert (
+        compare(parse_sdl(_source("PROPFIND", "PrivateQuery", "privateQuery")), case_changed)
+        .changes[0]
+        .semantic_relation.value
+        == "changed"
+    )
 
 
 def test_authoring_schema_matches_model_token_and_collection_rules() -> None:
