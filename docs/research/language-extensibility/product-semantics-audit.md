@@ -5,11 +5,13 @@ against `2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e`.
 This is the current semantic supplement to the existing
 [scope inventory](scope-inventory.md), not another runtime-family registry.
 
-The review confirms three remaining local defects: service-manager naming,
-HTTP method identity and partial listener completeness. Focused corrections are
-recorded in [#1297](https://github.com/OpenRAE/rae/issues/1297),
+The review found three local defects: service-manager naming, HTTP method
+identity and partial listener completeness. Their focused corrections shipped in
+[#1297](https://github.com/OpenRAE/rae/issues/1297),
 [#1298](https://github.com/OpenRAE/rae/issues/1298) and
-[#1299](https://github.com/OpenRAE/rae/issues/1299). It also corrects current
+[#1299](https://github.com/OpenRAE/rae/issues/1299), and the integrated
+conformance evidence in #1211 consumes those corrected boundaries. It also
+corrects current
 explanatory prose that still described guards removed by #1207. The original
 platform-application defect was corrected by
 [#956](https://github.com/OpenRAE/rae/issues/956); that correction remains intact.
@@ -155,18 +157,19 @@ round trips. Appending a fake `.service` suffix is not a migration.
 
 ### F2 — An observed HTTP method is treated as a closed operation catalog
 
-`RuntimeApplicationRoute` with `route_id=dav`, `path=/files` and
-`methods=[PROPFIND]` fails `normalize_methods`. The function restricts methods
-to nine spellings and uppercases inputs. [RFC 9110 §9.1](https://www.rfc-editor.org/rfc/rfc9110.html#section-9.1)
+The original defect made `RuntimeApplicationRoute` reject `methods=[PROPFIND]`
+and normalize every accepted spelling as though the field were a nine-member
+operation catalog. [RFC 9110 §9.1](https://www.rfc-editor.org/rfc/rfc9110.html#section-9.1)
 defines case-sensitive method tokens; [RFC 4918 §9.1](https://www.rfc-editor.org/rfc/rfc4918.html#section-9.1)
 defines PROPFIND. These are protocol identities in an inventory, not permission
 to invoke a backend operation.
 
-[#1298](https://github.com/OpenRAE/rae/issues/1298) owns the wire-token grammar,
-exact extension identity and explicit compatibility for normalized built-ins.
-Migration must preserve serialized uppercase methods and reconcile duplicates,
-variables, schemas and comparison. Tests include private case-sensitive tokens,
-WebDAV, malformed/control characters and unchanged execution authorization.
+[#1298](https://github.com/OpenRAE/rae/issues/1298) delivered the wire-token
+grammar, exact extension identity and explicit compatibility for normalized
+built-ins. Its migration preserves serialized uppercase methods and reconciles
+duplicates, variables, schemas and comparison. Focused and #1211 integrated
+tests cover private case-sensitive tokens, WebDAV, malformed/control characters
+and unchanged execution authorization.
 
 ### F3 — Listener knowledge is forced into a complete endpoint
 
@@ -222,9 +225,10 @@ ownership/status fact, not a substitute for the bounded implementation evidence.
 
 The first coverage test run failed because the field ledger was absent. After
 the ledger was populated, the coverage and negative-mutation cases passed.
-The three defect inputs above were run against the unchanged runtime models
-and produced the stated validation failures. The delivery does not change
-those runtime behaviors or assert that their focused corrections have shipped.
+The three defect inputs above retain their historical finding context. The
+focused corrections have now shipped, and #1211 replays their private and
+partial cases through the integrated lifecycle without reopening their runtime
+ownership.
 
 Relevant existing executable evidence includes:
 
