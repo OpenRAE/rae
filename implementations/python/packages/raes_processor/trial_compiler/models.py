@@ -7,12 +7,14 @@ from dataclasses import dataclass, field
 
 from raes.canonical import canonical_sdl_digest
 from raes.scenario import ExpandedScenario
+from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedApparatusBindingModel,
     AdmittedMixedCompositionBindingModel,
     AdmittedTrialPlanInputRefsModel,
     AdmittedTrialPlanModel,
+    ExperimentBindingDescriptorModel,
     ExperimentCaptureSpecModel,
     ExperimentSpecModel,
     ExperimentTaskModel,
@@ -32,6 +34,16 @@ from raes_contracts.experiment_bindings import (
     ParticipantManifestKey,
 )
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
+
+
+@dataclass(frozen=True)
+class _EntryCompilationAuthority:
+    """Per-entry authorities selected once for a compiler invocation."""
+
+    descriptors: Mapping[str, ExperimentBindingDescriptorModel] | None
+    observations_by_profile: Mapping[str, tuple[ObservationCapabilities | None, ...]]
+    apparatus_manifests_by_profile: Mapping[str, Mapping[ApparatusManifestKey, ApparatusManifest]]
+    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel]
 
 
 @dataclass(frozen=True)

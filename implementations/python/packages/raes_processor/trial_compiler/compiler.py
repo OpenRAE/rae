@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
 
 from raes import (
     ExpandedScenarioBindingTargetResolver,
@@ -44,6 +43,7 @@ from ..capture_admission import (
     capture_admission_diagnostics,
     compile_scoped_evidence_requirement_demands,
 )
+from . import models as compiler_models
 from .apparatus import (
     validate_selected_apparatus,
     validate_selected_participant_manifests,
@@ -74,14 +74,6 @@ class _CaptureAdmissionFailure(Exception):
     def __init__(self, diagnostics: tuple[Diagnostic, ...]) -> None:
         super().__init__("required capture is not supported by the admitted apparatus")
         self.diagnostics = diagnostics
-
-
-@dataclass(frozen=True)
-class _EntryCompilationAuthority:
-    descriptors: Mapping[str, ExperimentBindingDescriptorModel] | None
-    observations_by_profile: Mapping[str, tuple[ObservationCapabilities | None, ...]]
-    apparatus_manifests_by_profile: Mapping[str, Mapping[ApparatusManifestKey, ApparatusManifest]]
-    participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel]
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -306,7 +298,7 @@ def _compile_coordinate(
     plan_id: str,
     coordinate: TrialCoordinateModel,
     row: CoordinateSelections,
-    authority: _EntryCompilationAuthority,
+    authority: compiler_models._EntryCompilationAuthority,
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
     realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     profile_id = realization.profile_ref.ref_id if realization is not None else ""
@@ -334,7 +326,7 @@ def _compile_entries(
     coordinates: list[TrialCoordinateModel],
     rows: list[CoordinateSelections],
     visit_indices: tuple[int, ...],
-    authority: _EntryCompilationAuthority,
+    authority: compiler_models._EntryCompilationAuthority,
 ) -> tuple[dict[str, AdmittedTrialEntryModel], dict[str, TrialCleanupPlanModel], set[str]]:
     entries: dict[str, AdmittedTrialEntryModel] = {}
     cleanup_plans: dict[str, TrialCleanupPlanModel] = {}
@@ -443,7 +435,7 @@ def _compile(
         planned_coordinates,
         rows,
         traversal,
-        _EntryCompilationAuthority(
+        compiler_models._EntryCompilationAuthority(
             descriptors=descriptors,
             observations_by_profile=observations_by_profile,
             apparatus_manifests_by_profile=apparatus_manifests_by_profile,
