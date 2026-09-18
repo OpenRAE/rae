@@ -14608,13 +14608,18 @@
         },
         "methods": {
           "items": {
+            "maxLength": 128,
+            "minLength": 1,
             "not": {
               "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
             },
+            "pattern": "^[!#$%&'*+\\-.^_`|~0-9A-Za-z]{1,128}$(?![\\s\\S])",
             "type": "string"
           },
+          "minItems": 1,
           "title": "Methods",
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "name": {
           "default": "",

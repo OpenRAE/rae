@@ -1,9 +1,9 @@
 {
-  "content_hash": "3d1f28649c1a58d2e608fdb913e51386ff656db0f180749ee3c75afaf80821c4",
+  "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "3d1f28649c1a58d2e608fdb913e51386ff656db0f180749ee3c75afaf80821c4",
-    "summary": "Carry bounded augmentation permission, partial runtime listener descriptions, and portable service-manager contracts (#1242, #1299, #1297)."
+    "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
+    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
