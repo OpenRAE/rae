@@ -3,6 +3,19 @@
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 
 PUBLIC_EXPORTS = [
+    "MIXED_COMPOSITION_CONTRACT_ID",
+    "MixedCompositionFeatureDowngradeAuthorization",
+    "MixedCompositionFeatureSupportResolver",
+    "MixedCompositionResolutionContext",
+    "MixedCompositionTrustedAllocation",
+    "MixedCompositionTrustedComponent",
+    "MixedCompositionTrustedEdge",
+    "MixedCompositionTrustedTransition",
+    "MixedCompositionValidationLimits",
+    "MixedParticipantCompositionProfileModel",
+    "parse_mixed_composition_profile",
+    "seal_mixed_composition_profile",
+    "validate_mixed_composition_context",
     "MaterializationArchiveRecord",
     "MaterializationAttestationReferenceModel",
     "DescriptionCoverageModel",

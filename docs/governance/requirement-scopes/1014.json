@@ -1,0 +1,139 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1014,
+  "primary_requirement_uid": "SEM-234",
+  "requirement_uids": [
+    "SEM-234",
+    "SCE-002",
+    "API-407",
+    "API-423"
+  ],
+  "bindings": {
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/alternative-fallback-pool.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/duplicate-apparatus-identity.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/open-metadata.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/simultaneous-single-form.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/staged-unadmitted-member.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/invalid/unknown-revision.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/alternative.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/simultaneous-mixed.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/fixtures/plans/mixed-participant-composition-profile-v1/valid/staged.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "contracts/schema-publication/entries/mixed-participant-composition-profile-v1.json": [
+      "SEM-234"
+    ],
+    "contracts/schemas/plans/mixed-participant-composition-profile-v1.json": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "docs/decisions/issue-1014-mixed-composition-contracts-preflight.md": [
+      "SEM-234"
+    ],
+    "docs/explain/reference/mixed-participant-composition.md": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "docs/governance/requirement-scopes/1014.json": [
+      "SEM-234"
+    ],
+    "docs/requirements/API-407/requirement.md": [
+      "API-407"
+    ],
+    "docs/requirements/API-423/requirement.md": [
+      "API-423"
+    ],
+    "docs/requirements/SCE-002/requirement.md": [
+      "SCE-002"
+    ],
+    "docs/requirements/SEM-234/requirement.md": [
+      "SEM-234"
+    ],
+    "implementations/python/packages/raes_conformance/conformance/validators.py": [
+      "SEM-234"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/__init__.py": [
+      "SEM-234"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/_exports.py": [
+      "SEM-234"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/bundle.py": [
+      "SEM-234"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/mixed_composition.py": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "implementations/python/packages/raes_contracts/json_ingress.py": [
+      "SEM-234"
+    ],
+    "implementations/python/packages/raes_contracts/versions.py": [
+      "SEM-234"
+    ],
+    "implementations/python/tests/test_issue_1014_mixed_composition_contracts.py": [
+      "SEM-234",
+      "SCE-002",
+      "API-407",
+      "API-423"
+    ],
+    "implementations/python/tests/test_issue_1014_mixed_composition_governance.py": [
+      "SEM-234"
+    ],
+    "tools/generate_contract_schemas.py": [
+      "SEM-234"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "SEM-234"
+    ]
+  }
+}

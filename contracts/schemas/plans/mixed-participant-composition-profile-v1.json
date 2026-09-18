@@ -1,0 +1,1345 @@
+{
+  "$defs": {
+    "CompositionFeatureRequirementModel": {
+      "additionalProperties": false,
+      "description": "One API-407 feature strength required from one allocated provider.",
+      "properties": {
+        "allowed_downgrade_level": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantFeatureSupportLevel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "downgrade_policy_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Downgrade Policy Ref"
+        },
+        "downgrade_provenance_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Downgrade Provenance Ref"
+        },
+        "feature": {
+          "minLength": 1,
+          "title": "Feature",
+          "type": "string"
+        },
+        "required_level": {
+          "$ref": "#/$defs/ParticipantFeatureSupportLevel",
+          "default": "exact"
+        }
+      },
+      "required": [
+        "feature"
+      ],
+      "title": "CompositionFeatureRequirementModel",
+      "type": "object"
+    },
+    "ExperimentManifestReferenceModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "properties": {
+            "ref_path": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "ref_digest": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ref_digest"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject_ref": {
+                "properties": {
+                  "ref_kind": {
+                    "enum": [
+                      "processor",
+                      "backend"
+                    ]
+                  }
+                },
+                "required": [
+                  "ref_kind"
+                ]
+              }
+            },
+            "required": [
+              "subject_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "ref_digest": {
+                "type": "string"
+              },
+              "subject_ref": {
+                "properties": {
+                  "ref_kind": {
+                    "const": "processor"
+                  }
+                },
+                "required": [
+                  "ref_kind"
+                ]
+              }
+            },
+            "required": [
+              "ref_digest",
+              "subject_ref"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ref_version": {
+                "const": "processor-manifest/v2"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "ref_digest": {
+                "type": "string"
+              },
+              "subject_ref": {
+                "properties": {
+                  "ref_kind": {
+                    "const": "backend"
+                  }
+                },
+                "required": [
+                  "ref_kind"
+                ]
+              }
+            },
+            "required": [
+              "ref_digest",
+              "subject_ref"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ref_version": {
+                "const": "backend-manifest/v2"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "subject_ref": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "subject_ref"
+            ]
+          },
+          "then": {
+            "properties": {
+              "subject_ref": {
+                "properties": {
+                  "ref_digest": {
+                    "type": "null"
+                  },
+                  "ref_path": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Reference constrained to an apparatus or capability manifest.",
+      "properties": {
+        "ref_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Digest"
+        },
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "manifest",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_path": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Path"
+        },
+        "ref_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Version"
+        },
+        "subject_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExperimentReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ref_kind",
+        "ref_id"
+      ],
+      "title": "ExperimentManifestReferenceModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked against concrete manifest payload digests; manifest path qualifiers are not accepted in v1.",
+          "id": "manifest-reference-digest-scope-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-task-v1",
+              "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+            },
+            {
+              "contract_id": "experiment-apparatus-context-v1",
+              "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+            },
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/$defs/ExperimentManifestReferenceModel"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.ExperimentManifestReferenceModel._validate_manifest_reference_scope"
+        }
+      ]
+    },
+    "ExperimentReferenceModel": {
+      "additionalProperties": false,
+      "description": "Typed reference to an experiment-core or adjacent RAES artifact.",
+      "properties": {
+        "ref_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Digest"
+        },
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "enum": [
+            "processor",
+            "backend",
+            "participant-implementation",
+            "scenario",
+            "scenario-snapshot",
+            "materialization-attestation",
+            "task",
+            "authoring-input",
+            "protocol",
+            "apparatus-context",
+            "run",
+            "metric-definition",
+            "result",
+            "study",
+            "manifest",
+            "profile",
+            "capability",
+            "capture-spec",
+            "evidence",
+            "evidence-record",
+            "derived-measure",
+            "measurement-channel",
+            "analysis-artifact",
+            "other"
+          ],
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_path": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Path"
+        },
+        "ref_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Version"
+        }
+      },
+      "required": [
+        "ref_kind",
+        "ref_id"
+      ],
+      "title": "ExperimentReferenceModel",
+      "type": "object"
+    },
+    "MixedCompositionAllocationModel": {
+      "additionalProperties": false,
+      "description": "Stable allocation of one compiled semantic target to one provider.",
+      "properties": {
+        "action_authority_ref": {
+          "minLength": 1,
+          "title": "Action Authority Ref",
+          "type": "string"
+        },
+        "allocation_id": {
+          "minLength": 1,
+          "title": "Allocation Id",
+          "type": "string"
+        },
+        "controller_ref": {
+          "minLength": 1,
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "feature_requirements": {
+          "items": {
+            "$ref": "#/$defs/CompositionFeatureRequirementModel"
+          },
+          "title": "Feature Requirements",
+          "type": "array"
+        },
+        "participant_identity_ref": {
+          "minLength": 1,
+          "title": "Participant Identity Ref",
+          "type": "string"
+        },
+        "phase_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Phase Ids",
+          "type": "array"
+        },
+        "provider_component_id": {
+          "minLength": 1,
+          "title": "Provider Component Id",
+          "type": "string"
+        },
+        "routing_ref": {
+          "minLength": 1,
+          "title": "Routing Ref",
+          "type": "string"
+        },
+        "target_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Target Address",
+          "type": "string"
+        },
+        "target_kind": {
+          "enum": [
+            "participant",
+            "controlled-scope",
+            "action-family",
+            "observation-source",
+            "crossing"
+          ],
+          "title": "Target Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "allocation_id",
+        "target_kind",
+        "target_address",
+        "provider_component_id",
+        "phase_ids",
+        "participant_identity_ref",
+        "controller_ref",
+        "action_authority_ref",
+        "routing_ref"
+      ],
+      "title": "MixedCompositionAllocationModel",
+      "type": "object"
+    },
+    "MixedCompositionComponentModel": {
+      "additionalProperties": false,
+      "description": "One exact admitted apparatus component, not an observed runtime fact.",
+      "properties": {
+        "apparatus_identity_ref": {
+          "minLength": 1,
+          "title": "Apparatus Identity Ref",
+          "type": "string"
+        },
+        "component_id": {
+          "minLength": 1,
+          "title": "Component Id",
+          "type": "string"
+        },
+        "manifest_ref": {
+          "$ref": "#/$defs/ExperimentManifestReferenceModel"
+        },
+        "native_ownership_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Native Ownership Ref"
+        },
+        "realization_envelope": {
+          "$ref": "#/$defs/RealizationEnvelopeIdentityModel"
+        },
+        "realization_form": {
+          "enum": [
+            "simulation",
+            "emulation-or-operation"
+          ],
+          "title": "Realization Form",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component_id",
+        "apparatus_identity_ref",
+        "realization_form",
+        "manifest_ref",
+        "realization_envelope"
+      ],
+      "title": "MixedCompositionComponentModel",
+      "type": "object"
+    },
+    "MixedCompositionEdgeModel": {
+      "additionalProperties": false,
+      "description": "One directed composition edge; never an API-423 runtime occurrence.",
+      "properties": {
+        "audience_scope_ref": {
+          "minLength": 1,
+          "title": "Audience Scope Ref",
+          "type": "string"
+        },
+        "authority_ref": {
+          "minLength": 1,
+          "title": "Authority Ref",
+          "type": "string"
+        },
+        "controller_ref": {
+          "minLength": 1,
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "crossing_scope_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Crossing Scope Address",
+          "type": "string"
+        },
+        "crossing_subject": {
+          "$ref": "#/$defs/ParticipantCrossingSubjectReferenceModel"
+        },
+        "disclosure_authority_ref": {
+          "minLength": 1,
+          "title": "Disclosure Authority Ref",
+          "type": "string"
+        },
+        "edge_id": {
+          "minLength": 1,
+          "title": "Edge Id",
+          "type": "string"
+        },
+        "evidence_bindings": {
+          "items": {
+            "$ref": "#/$defs/MixedCompositionEvidenceBindingModel"
+          },
+          "minItems": 1,
+          "title": "Evidence Bindings",
+          "type": "array"
+        },
+        "failure_behavior": {
+          "$ref": "#/$defs/MixedCompositionFailureBehaviorModel"
+        },
+        "mapping_loss": {
+          "$ref": "#/$defs/MixedCompositionMappingLossModel"
+        },
+        "native_ownership_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Native Ownership Ref"
+        },
+        "phase_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Phase Ids",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ParticipantCrossingPolicyReferenceModel"
+        },
+        "routing_ref": {
+          "minLength": 1,
+          "title": "Routing Ref",
+          "type": "string"
+        },
+        "source_component_id": {
+          "minLength": 1,
+          "title": "Source Component Id",
+          "type": "string"
+        },
+        "target_component_id": {
+          "minLength": 1,
+          "title": "Target Component Id",
+          "type": "string"
+        },
+        "time_binding": {
+          "$ref": "#/$defs/MixedCompositionTimeBindingModel"
+        }
+      },
+      "required": [
+        "edge_id",
+        "source_component_id",
+        "target_component_id",
+        "phase_ids",
+        "crossing_scope_address",
+        "crossing_subject",
+        "audience_scope_ref",
+        "policy",
+        "controller_ref",
+        "authority_ref",
+        "routing_ref",
+        "disclosure_authority_ref",
+        "time_binding",
+        "mapping_loss",
+        "failure_behavior",
+        "evidence_bindings"
+      ],
+      "title": "MixedCompositionEdgeModel",
+      "type": "object"
+    },
+    "MixedCompositionEvidenceBindingModel": {
+      "additionalProperties": false,
+      "description": "Typed obligation-to-evidence reference; it is not an evidence body.",
+      "properties": {
+        "evidence_ref": {
+          "minLength": 1,
+          "title": "Evidence Ref",
+          "type": "string"
+        },
+        "obligation_ref": {
+          "minLength": 1,
+          "title": "Obligation Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "obligation_ref",
+        "evidence_ref"
+      ],
+      "title": "MixedCompositionEvidenceBindingModel",
+      "type": "object"
+    },
+    "MixedCompositionFailureBehaviorModel": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "enum": [
+            "fail-profile",
+            "hold-phase",
+            "abort-transition"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "failure_ref": {
+          "minLength": 1,
+          "title": "Failure Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failure_ref",
+        "disposition"
+      ],
+      "title": "MixedCompositionFailureBehaviorModel",
+      "type": "object"
+    },
+    "MixedCompositionMappingLossModel": {
+      "additionalProperties": false,
+      "description": "Prospective mapping-loss obligation using the incumbent loss vocabulary.",
+      "properties": {
+        "affected_ref": {
+          "minLength": 1,
+          "title": "Affected Ref",
+          "type": "string"
+        },
+        "basis_ref": {
+          "minLength": 1,
+          "title": "Basis Ref",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "none",
+            "private_apparatus_detail",
+            "source_fields_omitted",
+            "semantics_approximated",
+            "redacted_by_policy",
+            "temporal_detail_collapsed",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "limitation_ref": {
+          "minLength": 1,
+          "title": "Limitation Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "basis_ref",
+        "affected_ref",
+        "limitation_ref"
+      ],
+      "title": "MixedCompositionMappingLossModel",
+      "type": "object"
+    },
+    "MixedCompositionPhaseModel": {
+      "additionalProperties": false,
+      "description": "One finite admitted membership slice, not mutable runtime state.",
+      "properties": {
+        "active_allocation_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Active Allocation Ids",
+          "type": "array"
+        },
+        "active_component_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Active Component Ids",
+          "type": "array"
+        },
+        "active_edge_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Active Edge Ids",
+          "type": "array"
+        },
+        "evidence_bindings": {
+          "items": {
+            "$ref": "#/$defs/MixedCompositionEvidenceBindingModel"
+          },
+          "minItems": 1,
+          "title": "Evidence Bindings",
+          "type": "array"
+        },
+        "phase_id": {
+          "minLength": 1,
+          "title": "Phase Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "phase_id",
+        "active_component_ids",
+        "active_allocation_ids",
+        "evidence_bindings"
+      ],
+      "title": "MixedCompositionPhaseModel",
+      "type": "object"
+    },
+    "MixedCompositionTimeBindingModel": {
+      "additionalProperties": false,
+      "description": "Edge-relative order/coupling over an incumbent time-model mapping.",
+      "properties": {
+        "mapping_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Mapping Address",
+          "type": "string"
+        },
+        "ordering_basis": {
+          "enum": [
+            "total_order",
+            "partial_order",
+            "simultaneous",
+            "serialized_backend_order",
+            "simulation_tick",
+            "control_plane_order",
+            "logical_clock",
+            "vector_clock",
+            "wall_clock_only",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "Ordering Basis",
+          "type": "string"
+        },
+        "source_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Clock Address",
+          "type": "string"
+        },
+        "target_clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Target Clock Address",
+          "type": "string"
+        },
+        "temporal_coupling": {
+          "enum": [
+            "tight",
+            "bounded-asynchronous",
+            "asynchronous"
+          ],
+          "title": "Temporal Coupling",
+          "type": "string"
+        },
+        "time_model_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Time Model Digest",
+          "type": "string"
+        },
+        "time_model_ref": {
+          "minLength": 1,
+          "title": "Time Model Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time_model_ref",
+        "time_model_digest",
+        "source_clock_address",
+        "target_clock_address",
+        "mapping_address",
+        "ordering_basis",
+        "temporal_coupling"
+      ],
+      "title": "MixedCompositionTimeBindingModel",
+      "type": "object"
+    },
+    "MixedCompositionTransitionModel": {
+      "additionalProperties": false,
+      "description": "One bounded pre-admitted phase transition declaration.",
+      "properties": {
+        "evaluator_ref": {
+          "minLength": 1,
+          "title": "Evaluator Ref",
+          "type": "string"
+        },
+        "evidence_bindings": {
+          "items": {
+            "$ref": "#/$defs/MixedCompositionEvidenceBindingModel"
+          },
+          "minItems": 1,
+          "title": "Evidence Bindings",
+          "type": "array"
+        },
+        "failure_disposition": {
+          "enum": [
+            "fail-profile",
+            "hold-phase"
+          ],
+          "title": "Failure Disposition",
+          "type": "string"
+        },
+        "progress_bound": {
+          "minimum": 1,
+          "title": "Progress Bound",
+          "type": "integer"
+        },
+        "source_phase_id": {
+          "minLength": 1,
+          "title": "Source Phase Id",
+          "type": "string"
+        },
+        "target_phase_id": {
+          "minLength": 1,
+          "title": "Target Phase Id",
+          "type": "string"
+        },
+        "transition_id": {
+          "minLength": 1,
+          "title": "Transition Id",
+          "type": "string"
+        },
+        "trigger_ref": {
+          "minLength": 1,
+          "title": "Trigger Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transition_id",
+        "source_phase_id",
+        "target_phase_id",
+        "trigger_ref",
+        "evaluator_ref",
+        "progress_bound",
+        "failure_disposition",
+        "evidence_bindings"
+      ],
+      "title": "MixedCompositionTransitionModel",
+      "type": "object"
+    },
+    "ParticipantCrossingPolicyReferenceModel": {
+      "additionalProperties": false,
+      "description": "Exact revision and order interval for the policy used at a crossing.",
+      "properties": {
+        "decision_cut_ref": {
+          "minLength": 1,
+          "title": "Decision Cut Ref",
+          "type": "string"
+        },
+        "effective_order": {
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "policy_decision_ref": {
+          "minLength": 1,
+          "title": "Policy Decision Ref",
+          "type": "string"
+        },
+        "policy_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Policy Digest",
+          "type": "string"
+        },
+        "policy_id": {
+          "minLength": 1,
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_revision": {
+          "minLength": 1,
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "policy_id",
+        "policy_revision",
+        "policy_digest",
+        "policy_decision_ref",
+        "decision_cut_ref",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order"
+      ],
+      "title": "ParticipantCrossingPolicyReferenceModel",
+      "type": "object"
+    },
+    "ParticipantCrossingSubjectKind": {
+      "description": "Closed typed references to incumbent participant and evidence carriers.",
+      "enum": [
+        "participant-control-occurrence",
+        "participant-action-contract",
+        "participant-action-admission",
+        "participant-action-attempt",
+        "participant-action-result",
+        "participant-lifecycle-event",
+        "participant-observation",
+        "participant-decision-surface",
+        "participant-exposure",
+        "participant-inject-delivery",
+        "participant-context-view",
+        "participant-history-view",
+        "participant-status-view",
+        "experiment-evidence"
+      ],
+      "title": "ParticipantCrossingSubjectKind",
+      "type": "string"
+    },
+    "ParticipantCrossingSubjectReferenceModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "subject_revision": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subject_revision"
+          ]
+        },
+        {
+          "properties": {
+            "subject_digest": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subject_digest"
+          ]
+        }
+      ],
+      "description": "Typed identity for an existing carrier without copying its payload.",
+      "properties": {
+        "contract_id": {
+          "minLength": 1,
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "episode_id": {
+          "minLength": 1,
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "participant_address": {
+          "minLength": 1,
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "subject_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Digest"
+        },
+        "subject_kind": {
+          "$ref": "#/$defs/ParticipantCrossingSubjectKind"
+        },
+        "subject_ref": {
+          "minLength": 1,
+          "title": "Subject Ref",
+          "type": "string"
+        },
+        "subject_revision": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Revision"
+        }
+      },
+      "required": [
+        "subject_kind",
+        "contract_id",
+        "subject_ref",
+        "participant_address",
+        "episode_id"
+      ],
+      "title": "ParticipantCrossingSubjectReferenceModel",
+      "type": "object"
+    },
+    "ParticipantFeatureSupportLevel": {
+      "description": "ADR-054 guarantee-strength scale for per-feature participant runtime support.",
+      "enum": [
+        "unsupported",
+        "disclosed_weak",
+        "bounded",
+        "exact"
+      ],
+      "title": "ParticipantFeatureSupportLevel",
+      "type": "string"
+    },
+    "RealizationEnvelopeIdentityModel": {
+      "additionalProperties": false,
+      "description": "Immutable realization-envelope identity carried across runtime contracts.",
+      "properties": {
+        "configuration_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Configuration Digest",
+          "type": "string"
+        },
+        "contract_id": {
+          "const": "realization-envelope-v1",
+          "default": "realization-envelope-v1",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "envelope_id": {
+          "minLength": 1,
+          "title": "Envelope Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "realization-envelope/v1",
+          "default": "realization-envelope/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "envelope_id",
+        "digest",
+        "configuration_digest"
+      ],
+      "title": "RealizationEnvelopeIdentityModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/mixed-participant-composition-profile-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One sealed portable mixed-participant composition root.",
+  "properties": {
+    "allocations": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MixedCompositionAllocationModel"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Allocations",
+      "type": "object"
+    },
+    "components": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MixedCompositionComponentModel"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Components",
+      "type": "object"
+    },
+    "composition_mode": {
+      "enum": [
+        "alternative",
+        "simultaneous-mixed",
+        "staged"
+      ],
+      "title": "Composition Mode",
+      "type": "string"
+    },
+    "contract_id": {
+      "const": "mixed-participant-composition-profile-v1",
+      "default": "mixed-participant-composition-profile-v1",
+      "title": "Contract Id",
+      "type": "string"
+    },
+    "control_loop_posture": {
+      "enum": [
+        "open-loop",
+        "closed-loop"
+      ],
+      "title": "Control Loop Posture",
+      "type": "string"
+    },
+    "edges": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MixedCompositionEdgeModel"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Edges",
+      "type": "object"
+    },
+    "federation_membership": {
+      "enum": [
+        "fixed",
+        "pre-admitted-staged"
+      ],
+      "title": "Federation Membership",
+      "type": "string"
+    },
+    "initial_phase_id": {
+      "minLength": 1,
+      "title": "Initial Phase Id",
+      "type": "string"
+    },
+    "nested_profile_refs": {
+      "additionalProperties": {
+        "minLength": 1,
+        "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+        "type": "string"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Nested Profile Refs",
+      "type": "object"
+    },
+    "phase_order": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Phase Order",
+      "type": "array"
+    },
+    "phases": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MixedCompositionPhaseModel"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Phases",
+      "type": "object"
+    },
+    "profile_digest": {
+      "minLength": 1,
+      "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+      "title": "Profile Digest",
+      "type": "string"
+    },
+    "profile_id": {
+      "minLength": 1,
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "profile_revision": {
+      "const": "mixed-cross-backend-participant-control-v1@rev1",
+      "default": "mixed-cross-backend-participant-control-v1@rev1",
+      "title": "Profile Revision",
+      "type": "string"
+    },
+    "scenario_snapshot_ref": {
+      "$ref": "#/$defs/ExperimentReferenceModel"
+    },
+    "schema_version": {
+      "const": "mixed-participant-composition-profile/v1",
+      "default": "mixed-participant-composition-profile/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "semantic_revision": {
+      "const": "sem-234/rev1",
+      "default": "sem-234/rev1",
+      "title": "Semantic Revision",
+      "type": "string"
+    },
+    "transitions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MixedCompositionTransitionModel"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Transitions",
+      "type": "object"
+    },
+    "world_assumption": {
+      "enum": [
+        "closed-world",
+        "bounded-open-world"
+      ],
+      "title": "World Assumption",
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "scenario_snapshot_ref",
+    "composition_mode",
+    "control_loop_posture",
+    "world_assumption",
+    "federation_membership",
+    "components",
+    "allocations",
+    "phases",
+    "initial_phase_id",
+    "phase_order",
+    "profile_digest"
+  ],
+  "title": "MixedParticipantCompositionProfileModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "The sealed root has exact keyed identities, closed references, one provider per target and phase, complete finite phase membership, mode-specific realization rules, and a matching canonical digest.",
+      "id": "mixed-composition-root-local-graph-valid",
+      "inputs": [
+        {
+          "contract_id": "mixed-participant-composition-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.mixed_composition.MixedParticipantCompositionProfileModel._validate_profile"
+    },
+    {
+      "description": "Schema validity does not resolve scenario targets, manifests, envelopes, participant features, crossing policies, clocks, evidence, or nested profiles; trusted contextual validation is required.",
+      "id": "mixed-composition-trusted-context-required",
+      "inputs": [
+        {
+          "contract_id": "mixed-participant-composition-profile-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.mixed_composition.validate_mixed_composition_context"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "mixed-participant-composition-profile-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}
