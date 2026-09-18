@@ -123,6 +123,41 @@ def test_missing_admission_policy_is_refused(tmp_path: Path) -> None:
     assert excinfo.value.code == "approved-producers-absent"
 
 
+def test_workflow_inputs_follow_reusable_calls_and_deduplicate_cycles(tmp_path: Path) -> None:
+    workflows = tmp_path / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    pin = "a" * 40
+    (workflows / "release-please.yml").write_text(
+        f"jobs:\n  build:\n    steps:\n      - uses: owner/action@{pin}\n      - run: echo checked\n"
+        "  verify:\n    uses: ./.github/workflows/reusable.yml\n",
+        encoding="utf-8",
+    )
+    (workflows / "reusable.yml").write_text(
+        f"jobs:\n  build:\n    steps:\n      - uses: owner/action@{pin}\n"
+        "  again:\n    uses: ./.github/workflows/release-please.yml\n",
+        encoding="utf-8",
+    )
+    assert release_evidence._workflow_actions(tmp_path) == [{"action": "owner/action", "commit": pin}]
+
+
+@pytest.mark.parametrize("reference", ["owner/action@main", "owner/action", "owner/action@" + "g" * 40])
+def test_workflow_inputs_preserve_invalid_pin_error_code(tmp_path: Path, reference: str) -> None:
+    workflows = tmp_path / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "release-please.yml").write_text(
+        f"jobs:\n  build:\n    steps:\n      - uses: {reference}\n", encoding="utf-8"
+    )
+    with pytest.raises(ReleaseEvidenceError) as excinfo:
+        release_evidence._workflow_actions(tmp_path)
+    assert excinfo.value.code == "workflow-input-invalid"
+
+
+def test_workflow_inputs_preserve_missing_workflow_error_code(tmp_path: Path) -> None:
+    with pytest.raises(ReleaseEvidenceError) as excinfo:
+        release_evidence._workflow_actions(tmp_path)
+    assert excinfo.value.code == "workflow-input-invalid"
+
+
 def _venv(tmp_path: Path, **distributions: str) -> Path:
     site = tmp_path / "venv" / "lib" / "python3.12" / "site-packages"
     site.mkdir(parents=True)

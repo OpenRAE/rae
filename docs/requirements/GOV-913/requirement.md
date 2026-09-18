@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-04-03T07:58:36.322037Z
-updated_at: 2026-09-17T00:00:00.000000Z
+updated_at: 2026-09-18T00:00:00.000000Z
 ---
 
 # GOV-913 — Trust And Integrity Of Reusable Assets
@@ -72,6 +72,7 @@ Requirement inventory expansion. Reusable ecosystem assets need explicit trust a
 - IMPLEMENTS → CONFIG `implementations/tooling/selector-bindings.json` (Literal selector authority bindings)
 - IMPLEMENTS → GITHUB_ISSUE `1226` (Output-bound release SBOM and build provenance)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence.py` (Release evidence generation and admission entry point)
+- IMPLEMENTS → CODE_FILE `tools/release_evidence_workflows.py` (Native release and reusable-workflow action input identities)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence_sbom.py` (Reconciled runtime dependency closure for a built distribution)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence_documents.py` (CycloneDX SBOM and build/tool input inventory rendering)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence_admission.py` (Output-subject and evidence admission decision)

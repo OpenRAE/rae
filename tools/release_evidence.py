@@ -64,6 +64,7 @@ from tools.release_evidence_verifier import (
     build_verify_command,
     parse_verifier_output,
 )
+from tools.release_evidence_workflows import WorkflowInputError, workflow_actions
 
 INVENTORY_FILENAME = "build-inventory.json"
 _VERIFIER_TIMEOUT_SECONDS = 120
@@ -276,46 +277,12 @@ def _tool_inputs(repo_root: Path) -> list[dict[str, str]]:
     return inputs
 
 
-def _workflow_uses(workflow: Mapping[str, Any]) -> list[str]:
-    from tools.tooling_artifact_policy_common import as_list, as_mapping
-
-    uses = []
-    for job in as_mapping(workflow.get("jobs")).values():
-        for entry in [as_mapping(job), *as_list(as_mapping(job).get("steps"))]:
-            reference = as_mapping(entry).get("uses")
-            if isinstance(reference, str):
-                uses.append(reference)
-    return uses
-
-
-def _pinned_action(reference: str) -> tuple[str, str]:
-    action, separator, commit = reference.partition("@")
-    if not separator or len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
-        raise ReleaseEvidenceError("workflow-input-invalid", "release action must use a commit pin")
-    return action, commit
-
-
 def _workflow_actions(repo_root: Path) -> list[dict[str, str]]:
     """Record pinned actions from the release workflow and its reusable calls."""
-    from implementations.tooling.action_policy_yaml import parse_yaml_mapping
-
-    pending = [".github/workflows/release-please.yml"]
-    visited: set[str] = set()
-    actions: set[tuple[str, str]] = set()
-    while pending:
-        path = pending.pop()
-        if path in visited:
-            continue
-        visited.add(path)
-        workflow, failures = parse_yaml_mapping(repo_root, path)
-        if failures or workflow is None:
-            raise ReleaseEvidenceError("workflow-input-invalid", "release workflow cannot be read safely")
-        for uses in _workflow_uses(workflow):
-            if uses.startswith("./.github/workflows/"):
-                pending.append(uses[2:])
-            else:
-                actions.add(_pinned_action(uses))
-    return [{"action": action, "commit": commit} for action, commit in sorted(actions)]
+    try:
+        return workflow_actions(repo_root)
+    except WorkflowInputError as exc:
+        raise ReleaseEvidenceError("workflow-input-invalid", str(exc)) from exc
 
 
 def _run_verifier(command: Sequence[str]) -> str:
