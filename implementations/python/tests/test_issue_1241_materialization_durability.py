@@ -59,7 +59,10 @@ def test_durable_restart_retains_references_or_cleanup_without_reapplying(tmp_pa
     target = RuntimeTarget(name="attesting", manifest=execution.manifest, provisioner=backend)
     archive = FailingArchive() if archive_fails else RunMaterializationArchive(tmp_path / "archive")
     control = RuntimeControlPlane(
-        target, store=LocalControlPlaneStore(tmp_path / "state"), materialization_archive=archive
+        target,
+        store=LocalControlPlaneStore(tmp_path / "state"),
+        materialization_archive=archive,
+        run_scope=f"run:{execution.provisioning.run_id}",
     )
     try:
         control.register_planner_produced_plan(execution)
@@ -74,7 +77,10 @@ def test_durable_restart_retains_references_or_cleanup_without_reapplying(tmp_pa
         control.close()
 
     recovered = RuntimeControlPlane(
-        target, store=LocalControlPlaneStore(tmp_path / "state"), materialization_archive=archive
+        target,
+        store=LocalControlPlaneStore(tmp_path / "state"),
+        materialization_archive=archive,
+        run_scope=f"run:{execution.provisioning.run_id}",
     )
     try:
         again = recovered.submit_provisioning(execution.provisioning, idempotency_key="materialization-once")

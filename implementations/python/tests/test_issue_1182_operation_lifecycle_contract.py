@@ -572,6 +572,7 @@ def test_sensitive_retry_proof_is_not_persisted_and_fails_closed_after_restart(t
     first.close()
 
     persisted = LocalControlPlaneStore(store_path)
+    lease = persisted.admit_runtime(target_scope="target:stub", run_scope="run:default")
     with persisted._connection() as connection:
         request_fingerprint, payload = connection.execute(
             "SELECT request_fingerprint, payload FROM operations WHERE operation_id=?",
@@ -580,8 +581,10 @@ def test_sensitive_retry_proof_is_not_persisted_and_fails_closed_after_restart(t
     assert request_fingerprint == context.request_commitment
     assert exact not in payload
     assert "fixture-restart-proof" not in payload
+    persisted.close()
+    lease.close()
 
-    restarted = RuntimeControlPlane(create_stub_target(), store=persisted)
+    restarted = RuntimeControlPlane(create_stub_target(), store=LocalControlPlaneStore(store_path))
     with pytest.raises(ValueError, match="sensitive retry proof"):
         restarted._idempotent_receipt(
             idempotency_key=record.idempotency_key,

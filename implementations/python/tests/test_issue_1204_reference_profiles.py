@@ -123,32 +123,31 @@ def test_profile_authentication_and_rejected_delivery_preserve_durable_predecess
         assert accepted.is_success, accepted.text
         receipt = accepted.json()
         assert control.get_operation(receipt["operation_id"]).state is OperationState.SUCCEEDED
-    before = _snapshot_payload(control.snapshot)
-    second = manager.plan(
-        parse_sdl("name: profiles\nnodes:\n  host: {type: compute, resources: {cpu: 2, ram: 1 gib}}\n"),
-        snapshot=control.snapshot,
-        profile_authority=authority,
-    )
-    control.register_planner_produced_plan(second)
-    original_apply = target.provisioner.apply
+        before = _snapshot_payload(control.snapshot)
+        second = manager.plan(
+            parse_sdl("name: profiles\nnodes:\n  host: {type: compute, resources: {cpu: 2, ram: 1 gib}}\n"),
+            snapshot=control.snapshot,
+            profile_authority=authority,
+        )
+        control.register_planner_produced_plan(second)
+        original_apply = target.provisioner.apply
 
-    def reject_delivery(request, snapshot):
-        result = original_apply(request, snapshot)
-        entry = result.snapshot.entries["provision.node.host"]
-        wrong = entry.profile_bindings[0].model_copy(update={"value": {"name": "red"}})
-        result.snapshot.entries[entry.address] = replace(entry, profile_bindings=(wrong,))
-        return result
+        def reject_delivery(request, snapshot):
+            result = original_apply(request, snapshot)
+            entry = result.snapshot.entries["provision.node.host"]
+            wrong = entry.profile_bindings[0].model_copy(update={"value": {"name": "red"}})
+            result.snapshot.entries[entry.address] = replace(entry, profile_bindings=(wrong,))
+            return result
 
-    # A bound method preserves the target-owned preparation context.
-    from types import MethodType
+        # A bound method preserves the target-owned preparation context.
+        from types import MethodType
 
-    target.provisioner.apply = MethodType(
-        lambda self, request, snapshot: reject_delivery(request, snapshot), target.provisioner
-    )
-    receipt = control.submit_provisioning(second.provisioning)
-    assert control.get_operation(receipt.operation_id).state is OperationState.FAILED
-    assert _snapshot_payload(control.snapshot) == before
-    control.close()
+        target.provisioner.apply = MethodType(
+            lambda self, request, snapshot: reject_delivery(request, snapshot), target.provisioner
+        )
+        receipt = control.submit_provisioning(second.provisioning)
+        assert control.get_operation(receipt.operation_id).state is OperationState.FAILED
+        assert _snapshot_payload(control.snapshot) == before
     recovered = RuntimeControlPlane(target, store=LocalControlPlaneStore(tmp_path / "profile-state"))
     assert _snapshot_payload(recovered.snapshot) == before
     assert recovered.get_operation(receipt.operation_id).state is OperationState.FAILED

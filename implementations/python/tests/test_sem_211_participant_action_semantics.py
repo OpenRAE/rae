@@ -1306,6 +1306,7 @@ def test_local_control_plane_store_preserves_participant_behavior_history(tmp_pa
         }
     )
     store = LocalControlPlaneStore(tmp_path / "control-plane")
+    store.admit_runtime(target_scope="target:stub", run_scope="run:test")
 
     store.save_snapshot(snapshot, expected_revision=store.load_snapshot_state().revision)
     loaded = store.load_snapshot()

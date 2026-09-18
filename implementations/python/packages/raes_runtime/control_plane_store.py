@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 from raes_contracts.runtime_state import (
     OperationReceipt,
@@ -267,6 +267,26 @@ class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
     ) -> SnapshotState: ...
 
 
+@runtime_checkable
+class RuntimeAdmittedControlPlaneStore(Protocol):
+    """Durable provider that must be admitted before any store access."""
+
+    def admit_runtime(self, *, target_scope: str, run_scope: str) -> object: ...
+
+    def close(self) -> None: ...
+
+
+def require_operation_record_scopes(
+    records: dict[str, ControlPlaneOperationRecord], *, target_scope: str, run_scope: str
+) -> None:
+    """Reject persisted operations outside the runtime-admitted store scope."""
+
+    for record in records.values():
+        context = record.status.context
+        if (context.target_scope, context.run_scope) != (target_scope, run_scope):
+            raise RuntimeError("persisted operation scope does not match control-plane runtime admission")
+
+
 from .control_plane_store_memory import InMemoryControlPlaneStore  # noqa: E402
 
 
@@ -289,11 +309,13 @@ __all__ = [
     "ParticipantCrossingHistoryPresence",
     "SnapshotRevisionConflict",
     "SnapshotState",
+    "RuntimeAdmittedControlPlaneStore",
     "TerminalCommitMode",
     "_require_expected_control_head",
     "_require_expected_history_heads",
     "_snapshot_from_payload",
     "_snapshot_payload",
     "participant_crossing_history_presence",
+    "require_operation_record_scopes",
     "terminal_operation_audit",
 ]
