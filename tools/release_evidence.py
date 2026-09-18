@@ -467,10 +467,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             # Written only here, after admission accepted the release, so a
             # refused release leaves no scalars a publisher could act on.
             args.emit_subjects.write_text(
-                render_publication_outputs(
-                    admitted_publication_subjects(index, expected_tag=args.release_tag)
-                )
-                + "\n",
+                render_publication_outputs(admitted_publication_subjects(index, expected_tag=args.release_tag)) + "\n",
                 encoding="utf-8",
             )
         print("release evidence admitted")
