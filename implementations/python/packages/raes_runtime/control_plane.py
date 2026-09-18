@@ -1,6 +1,4 @@
-"""Reference async-style control plane over runtime targets.
-Expose schema-oriented runtime execution as eagerly completed operations over an async-compatible API.
-"""
+"""Reference async-style control plane over runtime targets."""
 
 from __future__ import annotations
 
@@ -42,6 +40,7 @@ from .control_plane_operation_context import (
     operation_admission_context,
     operation_idempotency_fingerprint,
     operation_requires_ephemeral_retry_proof,
+    runtime_target_scope,
 )
 from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
 from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_operations
@@ -49,7 +48,9 @@ from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
     InMemoryControlPlaneStore,
+    RuntimeAdmittedControlPlaneStore,
     SnapshotState,
+    require_operation_record_scopes,
 )
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
@@ -129,6 +130,7 @@ class RuntimeControlPlane(
         **options: Unpack[ControlPlaneOptions],
     ) -> None:
         config = ControlPlaneConfiguration(**options)
+        target_scope = runtime_target_scope(target.name)
         initial_snapshot, store = config.initial_snapshot, config.store
         crossing_policy_resolver = config.crossing_policy_resolver
         information_state_context_resolver = config.information_state_context_resolver
@@ -138,6 +140,7 @@ class RuntimeControlPlane(
         _require_crossing_policy_configuration(target, crossing_policy_resolver)
         _require_final_sink_flow_control_configuration(crossing_policy_resolver, config.enforce_final_sink_flow_control)
         self._target = target
+        self._target_scope, self._run_scope = target_scope, config.run_scope
         self._materialization_archive = config.materialization_archive
         self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
         self._store = store or InMemoryControlPlaneStore(initial_snapshot)
@@ -146,11 +149,16 @@ class RuntimeControlPlane(
             self._operation_lock = RLock()
             self._snapshot_projection_depth = 0
             self._store_commits = adapt_control_plane_store(self._store)
-            acquire_runtime_lease = getattr(self._store, "acquire_runtime_lease", None)
-            if callable(acquire_runtime_lease):
-                self._runtime_lease = acquire_runtime_lease()
+            if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
+                self._runtime_lease = self._store.admit_runtime(
+                    target_scope=self._target_scope,
+                    run_scope=self._run_scope,
+                )
             self._snapshot_state = self._store.load_snapshot_state()
             self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
+            require_operation_record_scopes(
+                self._operations, target_scope=self._target_scope, run_scope=self._run_scope
+            )
             self._behavior_specifications = dict(config.behavior_specifications or {})
             self._crossing_policy_resolver = crossing_policy_resolver
             self._information_state_context_resolver = information_state_context_resolver
@@ -490,7 +498,3 @@ class RuntimeControlPlane(
         with self._operation_lock:
             self._reload_derived_state_if_unpinned()
             return RuntimeSnapshotEnvelope(snapshot=self._snapshot)
-
-    def _require_observed_base_snapshot(self, base_snapshot: RuntimeSnapshot | None) -> None:
-        if base_snapshot is not None and base_snapshot != self._snapshot:
-            raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")

@@ -50,7 +50,7 @@ from raes_runtime.registry import RuntimeTarget
 def _context(
     *,
     kind: OperationKind = OperationKind.PROVISIONING,
-    run_scope: str = "run:issue-1179",
+    run_scope: str = "run:default",
     subject_scope: str | None = None,
 ) -> OperationAdmissionContext:
     scopes = ["role:operator"]
@@ -71,7 +71,7 @@ def _record(
     *,
     state: OperationState = OperationState.RUNNING,
     kind: OperationKind = OperationKind.PROVISIONING,
-    run_scope: str = "run:issue-1179",
+    run_scope: str = "run:default",
     subject_scope: str | None = None,
     idempotency_key: str | None = None,
 ) -> ControlPlaneOperationRecord:
@@ -213,7 +213,11 @@ def test_legacy_migrated_accepted_claim_is_indeterminate_without_replay() -> Non
     store = _store_with(migrated)
     provisioner = _CountingProvisioner()
 
-    RuntimeControlPlane(_target(provisioner=provisioner), store=store)
+    RuntimeControlPlane(
+        replace(_target(provisioner=provisioner), name="legacy-unattributed"),
+        store=store,
+        run_scope="run:legacy-unattributed",
+    )
 
     recovered = store.load_records()[migrated.receipt.operation_id]
     assert recovered.status.state is OperationState.INDETERMINATE
@@ -439,15 +443,11 @@ def test_resolution_creates_fresh_linked_operation_and_unblocks_mutation_without
     assert control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="unblocked-effect").accepted
 
 
-def test_quarantine_is_scoped_to_the_indeterminate_target_and_run() -> None:
+def test_runtime_rejects_a_persisted_operation_from_another_run_scope() -> None:
     parent = _record("other-run-parent-1179", run_scope="run:other")
     store = _store_with(parent)
-    control_plane = RuntimeControlPlane(_target(), store=store)
-
-    receipt = control_plane.submit_provisioning(ProvisioningPlan(), idempotency_key="default-run-effect")
-
-    assert receipt.accepted
-    assert store.load_records()[parent.receipt.operation_id].status.state is OperationState.INDETERMINATE
+    with pytest.raises(RuntimeError, match="persisted operation scope does not match"):
+        RuntimeControlPlane(_target(), store=store)
 
 
 def test_resolution_retry_is_idempotent_and_already_resolved_parent_rejects_a_new_child() -> None:

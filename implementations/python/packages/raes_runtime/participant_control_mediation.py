@@ -165,7 +165,6 @@ def bind_participant_control_request(
             kind=OperationKind.PARTICIPANT_CONTROL,
             request=intent,
             identity=identity,
-            run_scope=f"run:{intent.episode_id}",
         ),
     )
 

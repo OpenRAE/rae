@@ -20,14 +20,17 @@ for a re-export.
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as distribution_version
 
 from fastapi import FastAPI
+from starlette.concurrency import run_in_threadpool
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_api_participant_retrieval import register_participant_retrieval_routes
 from ..control_plane_security import ControlPlaneSecurityConfig
+from ..control_plane_store_lease import require_single_worker_configuration
 from ._auth import _ControlPlaneApiAuth
 from ._offload import _ControlPlaneCallExecutor
 from ._operation_routes import _install_request_guards, _register_operation_routes
@@ -63,16 +66,26 @@ def create_control_plane_app(
 ) -> FastAPI:
     """Create a reference HTTP/JSON control-plane app."""
 
+    require_single_worker_configuration()
     security = security or ControlPlaneSecurityConfig.strict_defaults()
+    executor = _ControlPlaneCallExecutor(max_pending_mutations=security.max_pending_mutations)
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        try:
+            yield
+        finally:
+            await executor.close()
+            await run_in_threadpool(control_plane.close)
+
     app = FastAPI(
         title="RAES Runtime Control Plane",
         version=_control_plane_api_version(),
         description="Reference HTTP/JSON adapter over the repo-owned runtime control plane.",
+        lifespan=lifespan,
     )
     app.state.control_plane_api_auth = _ControlPlaneApiAuth(control_plane, security)
-    app.state.control_plane_call_executor = _ControlPlaneCallExecutor(
-        max_pending_mutations=security.max_pending_mutations
-    )
+    app.state.control_plane_call_executor = executor
     _install_request_guards(app, control_plane, security)
     _register_operation_routes(app, control_plane)
     _register_workflow_routes(app, control_plane)

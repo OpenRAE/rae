@@ -58,6 +58,7 @@ _V2_REVISIONS = frozenset(
         "28.0.0",
         "29.0.0",
         "30.0.0",
+        "31.0.0",
     }
 )
 _V3_CORPUS_REVISIONS = frozenset(
@@ -77,6 +78,7 @@ _V3_CORPUS_REVISIONS = frozenset(
         "28.0.0",
         "29.0.0",
         "30.0.0",
+        "31.0.0",
     }
 )
 

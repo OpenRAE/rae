@@ -92,8 +92,9 @@ class RuntimeLifecycleMixin:
                 return
             if getattr(self._lifecycle_local, "depth", 0):
                 raise RuntimeError("cannot close a runtime control plane from one of its active calls")
-            if self._closing:
-                condition.wait_for(lambda: self._closed)
+            while self._closing and not self._closed:
+                condition.wait()
+            if self._closed:
                 return
             self._closing = True
             try:
@@ -103,11 +104,22 @@ class RuntimeLifecycleMixin:
                 condition.notify_all()
                 raise
             try:
+                self._close_runtime_provider()
                 self._close_runtime_lease()
-            finally:
                 self._closed = True
                 self._closing = False
                 condition.notify_all()
+            except BaseException:
+                self._durability_poisoned = True
+                self._closing = False
+                condition.notify_all()
+                raise
+
+    def _close_runtime_provider(self) -> None:
+        store = getattr(self, "_store", None)
+        close = getattr(store, "close", None)
+        if callable(close):
+            close()
 
     def _close_runtime_lease(self) -> None:
         lease = getattr(self, "_runtime_lease", None)

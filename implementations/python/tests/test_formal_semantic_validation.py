@@ -110,6 +110,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "29.0.0",
         "30.0.0",
         "31.0.0",
+        "32.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -118,10 +119,10 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "31.0.0"
+    assert release.manifest["revision"] == "32.0.0"
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "3.0.0"
-    assert snapshot["baseline"]["release_revision"] == "30.0.0"
+    assert snapshot["baseline"]["release_revision"] == "31.0.0"
     assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 

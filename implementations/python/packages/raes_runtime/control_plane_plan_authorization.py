@@ -8,6 +8,7 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
+from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ExecutionPlan
 
 from .control_plane_lifecycle import runtime_owned
@@ -75,6 +76,10 @@ class RuntimePlanAuthorizationMixin:
                 message="Effect-capable plan is not an exact planner-authorized artifact.",
             )
         ]
+
+    def _require_observed_base_snapshot(self, base_snapshot: RuntimeSnapshot | None) -> None:
+        if base_snapshot is not None and base_snapshot != self._snapshot:
+            raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
 
     def _assert_runtime_owner(self) -> None:
         """Provided by RuntimeLifecycleMixin on the concrete control plane."""
