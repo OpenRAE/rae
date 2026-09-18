@@ -18,16 +18,18 @@ from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.mixed_composition import (
     MIXED_COMPOSITION_CONTRACT_ID,
     CompositionFeatureRequirementModel,
+    MixedCompositionValidationLimits,
+    MixedParticipantCompositionProfileModel,
+    parse_mixed_composition_profile,
+    seal_mixed_composition_profile,
+)
+from raes_contracts.contracts.mixed_composition_resolution import (
     MixedCompositionFeatureDowngradeAuthorization,
     MixedCompositionResolutionContext,
     MixedCompositionTrustedAllocation,
     MixedCompositionTrustedComponent,
     MixedCompositionTrustedEdge,
     MixedCompositionTrustedTransition,
-    MixedCompositionValidationLimits,
-    MixedParticipantCompositionProfileModel,
-    parse_mixed_composition_profile,
-    seal_mixed_composition_profile,
     validate_mixed_composition_context,
 )
 from raes_contracts.contracts.time_model import (
@@ -739,10 +741,9 @@ def test_graph_work_limit_and_unresolved_nested_profile_fail_closed() -> None:
 
 
 def test_contract_layer_keeps_feature_resolution_dependency_inverted() -> None:
-    source = (REPO_ROOT / "implementations/python/packages/raes_contracts/contracts/mixed_composition.py").read_text(
-        encoding="utf-8"
-    )
-    assert "raes_backend_protocols" not in source
+    contracts = REPO_ROOT / "implementations/python/packages/raes_contracts/contracts"
+    for module in ("mixed_composition.py", "mixed_composition_resolution.py"):
+        assert "raes_backend_protocols" not in (contracts / module).read_text(encoding="utf-8")
 
 
 def test_published_schema_bundle_fixtures_and_change_ledger_are_consistent() -> None:

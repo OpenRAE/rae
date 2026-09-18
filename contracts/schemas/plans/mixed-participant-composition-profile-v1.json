@@ -1330,7 +1330,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.contracts.mixed_composition.validate_mixed_composition_context"
+      "validator": "raes_contracts.contracts.mixed_composition_resolution.validate_mixed_composition_context"
     }
   ],
   "x-raes-semantic-profile": {

@@ -37,9 +37,11 @@ Validation has three explicit stages:
    and bounded acyclic nested profiles. It performs no I/O, compilation,
    provider selection, repair, dispatch, or mutation.
 
-The reference implementation is
-[`mixed_composition.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition.py),
-and its generated schema must remain identical to `schema_bundle()`. Positive
+The root model and local validation live in
+[`mixed_composition.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition.py);
+trusted relationship joins live in
+[`mixed_composition_resolution.py`](../../../implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py).
+The generated schema must remain identical to `schema_bundle()`. Positive
 and negative fixtures cover alternative, simultaneous-mixed, and staged roots.
 Conformance classifies model success as `structural-context-required`: schema
 presence or contextual validity does not establish runtime realization,

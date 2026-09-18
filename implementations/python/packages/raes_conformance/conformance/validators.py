@@ -64,8 +64,10 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 from raes_contracts.contracts.mixed_composition import (
-    MixedCompositionResolutionContext,
     MixedParticipantCompositionProfileModel,
+)
+from raes_contracts.contracts.mixed_composition_resolution import (
+    MixedCompositionResolutionContext,
     validate_mixed_composition_context,
 )
 from raes_contracts.contracts.participant_execution import (

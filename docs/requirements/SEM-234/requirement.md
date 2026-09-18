@@ -23,7 +23,8 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Publish portable mixed-composition contracts)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Closed portable composition profile schema)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Sealed profile models plus local and contextual validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition.py` (Sealed profile models and root-local validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/mixed_composition_resolution.py` (Bounded trusted-context relationship resolution)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/json_ingress.py` (Shared pre-decode nesting bound for safe composition ingress)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py` (Reference schema bundle registration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py` (Public contract facade registration)
