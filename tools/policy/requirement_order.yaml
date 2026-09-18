@@ -159,6 +159,12 @@ phases:
   - id: reusable-asset-integrity
     requirements:
       - GOV-913
+  # Package publication is a supply-chain trust boundary in its own right and
+  # does not depend on the reusable-asset phases: the OIDC publishing path and
+  # its exact-SHA gates ship independently (#1227).
+  - id: trusted-package-publishing
+    requirements:
+      - GOV-928
   - id: semantic-migration
     requirements:
       - GOV-903
