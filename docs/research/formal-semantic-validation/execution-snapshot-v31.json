@@ -5,7 +5,7 @@
     "release_revision": "31.0.0",
     "release_sha256": "2ff815191d32934375ef9d49d8962d8bb00f7dceb0df7f6253bd59ec5bf07975"
   },
-  "captured_at": "2026-09-18T03:48:12+00:00",
+  "captured_at": "2026-09-18T17:37:29+00:00",
   "commands": [
     {
       "argv": [
@@ -641,11 +641,11 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "eb5756894b11a1301d0521832cc41898659436dd",
+  "raes_revision": "c7eb71ea701eab0394b16181954590225f15d781",
   "source_state": {
-    "base_revision": "eb5756894b11a1301d0521832cc41898659436dd",
-    "checkout_state": "clean",
-    "implementation_digest": "3120608cb2bbf7efc9cc95b1242952b79a729f2f55ac049886cd457b2caad9e3",
+    "base_revision": "c7eb71ea701eab0394b16181954590225f15d781",
+    "checkout_state": "modified",
+    "implementation_digest": "21a7e470b979d2fd7feb721af31af7106754645eaaca78b8aadb4415959b46fc",
     "profile": "python-reference-source/v2"
   },
   "versions": {

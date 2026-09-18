@@ -6,6 +6,7 @@ from collections.abc import Callable
 from threading import RLock
 from typing import TypeVar, Unpack
 
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,
@@ -30,6 +31,7 @@ from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
     OperationExecutionRequest,
     execute_operation,
+    reject_new_operation_if_admission_fails,
 )
 from .control_plane_lifecycle import RuntimeLifecycleMixin, runtime_owned, store_authoritative_state
 from .control_plane_mutation import (
@@ -39,6 +41,8 @@ from .control_plane_mutation import (
     mutation_entry,
 )
 from .control_plane_operation_context import (
+    legacy_operation_request_commitment,
+    operation_actor_scope,
     operation_admission_context,
     operation_idempotency_fingerprint,
     operation_requires_ephemeral_retry_proof,
@@ -49,6 +53,7 @@ from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_oper
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
+    IdempotencyClaimIdentity,
     InMemoryControlPlaneStore,
     RuntimeAdmittedControlPlaneStore,
     SnapshotState,
@@ -69,6 +74,21 @@ from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
 
 _ProjectionT = TypeVar("_ProjectionT")
+
+
+def _unavailable_backend_diagnostics(domain: RuntimeDomain, component: str) -> list[Diagnostic]:
+    return [
+        Diagnostic(
+            code="runtime.control-plane.rejected",
+            domain="runtime",
+            address=f"runtime.control-plane.{domain.value}",
+            message=f"Target does not provide {component}.",
+        )
+    ]
+
+
+def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
+    raise AssertionError("an unavailable backend cannot be invoked")
 
 
 class RuntimeControlPlane(
@@ -121,7 +141,7 @@ class RuntimeControlPlane(
             self._behavior_specifications = dict(config.behavior_specifications or {})
             self._crossing_policy_resolver = crossing_policy_resolver
             self._information_state_context_resolver = information_state_context_resolver
-            self._ephemeral_idempotency_fingerprints: dict[str, str] = {}
+            self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
             self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
             self._trusted_runtime_plan_lock = RLock()
             self._trusted_runtime_plan_digests: set[str] = set()
@@ -246,41 +266,27 @@ class RuntimeControlPlane(
             if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
             else None
         )
-        existing = self._idempotent_receipt(
+        request = OperationExecutionRequest(
+            domain=RuntimeDomain.PROVISIONING,
+            method=self._target.provisioner.apply,
+            plan=plan,
+            address="runtime.control-plane.provisioning",
+            diagnostics=[],
+            validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
+            base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
             context=context,
-            exact_retry_fingerprint=exact_retry_fingerprint,
-        )
-        if existing is not None:
-            return existing
-        self._require_observed_base_snapshot(base_snapshot)
-        diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING)
-        if diagnostics:
-            return self._reject_diagnostics(
-                domain=RuntimeDomain.PROVISIONING,
-                diagnostics=diagnostics,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        return execute_operation(
-            self,
-            OperationExecutionRequest(
-                domain=RuntimeDomain.PROVISIONING,
-                method=self._target.provisioner.apply,
-                plan=plan,
-                address="runtime.control-plane.provisioning",
-                diagnostics=[],
-                validation_method=(self._target.provisioner.validate if plan.preparation is None else None),
+            legacy_request_fingerprint=legacy_operation_request_commitment(
+                kind=OperationKind.PROVISIONING,
+                request=plan,
                 base_snapshot=base_snapshot,
-                idempotency_key=idempotency_key,
-                request_fingerprint=context.request_commitment,
-                context=context,
-                exact_retry_fingerprint=exact_retry_fingerprint,
-                admission_diagnostics=lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING),
             ),
+            exact_retry_fingerprint=exact_retry_fingerprint,
+            admission_diagnostics=lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.PROVISIONING),
         )
+        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
+        return denied_or_replay or execute_operation(self, request)
 
     @runtime_owned
     @mutation_entry(OperationKind.ORCHESTRATION)
@@ -311,52 +317,31 @@ class RuntimeControlPlane(
             if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
             else None
         )
-        existing = self._idempotent_receipt(
+        orchestrator = self._target.orchestrator
+        request = OperationExecutionRequest(
+            domain=RuntimeDomain.ORCHESTRATION,
+            method=_unavailable_backend if orchestrator is None else orchestrator.start,
+            plan=plan,
+            address="runtime.control-plane.orchestration",
+            diagnostics=[],
+            base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
             context=context,
+            legacy_request_fingerprint=legacy_operation_request_commitment(
+                kind=OperationKind.ORCHESTRATION,
+                request=plan,
+                base_snapshot=base_snapshot,
+            ),
             exact_retry_fingerprint=exact_retry_fingerprint,
+            admission_diagnostics=(
+                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.ORCHESTRATION, "an orchestrator"))
+                if orchestrator is None
+                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
+            ),
         )
-        if existing is not None:
-            return existing
-        self._require_observed_base_snapshot(base_snapshot)
-        if self._target.orchestrator is None:
-            receipt = self._reject_submission(
-                domain=RuntimeDomain.ORCHESTRATION,
-                message="Target does not provide an orchestrator.",
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        else:
-            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
-            if diagnostics:
-                receipt = self._reject_diagnostics(
-                    domain=RuntimeDomain.ORCHESTRATION,
-                    diagnostics=diagnostics,
-                    idempotency_key=idempotency_key,
-                    request_fingerprint=context.request_commitment,
-                    context=context,
-                )
-            else:
-                receipt = execute_operation(
-                    self,
-                    OperationExecutionRequest(
-                        domain=RuntimeDomain.ORCHESTRATION,
-                        method=self._target.orchestrator.start,
-                        plan=plan,
-                        address="runtime.control-plane.orchestration",
-                        diagnostics=[],
-                        base_snapshot=base_snapshot,
-                        idempotency_key=idempotency_key,
-                        request_fingerprint=context.request_commitment,
-                        context=context,
-                        exact_retry_fingerprint=exact_retry_fingerprint,
-                        admission_diagnostics=lambda: control_plane_plan_diagnostics(
-                            self, plan, RuntimeDomain.ORCHESTRATION
-                        ),
-                    ),
-                )
-        return receipt
+        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
+        return denied_or_replay or execute_operation(self, request)
 
     @runtime_owned
     @mutation_entry(OperationKind.EVALUATION)
@@ -387,60 +372,60 @@ class RuntimeControlPlane(
             if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
             else None
         )
-        existing = self._idempotent_receipt(
+        evaluator = self._target.evaluator
+        request = OperationExecutionRequest(
+            domain=RuntimeDomain.EVALUATION,
+            method=_unavailable_backend if evaluator is None else evaluator.start,
+            plan=plan,
+            address="runtime.control-plane.evaluation",
+            diagnostics=[],
+            base_snapshot=base_snapshot,
             idempotency_key=idempotency_key,
             request_fingerprint=context.request_commitment,
             context=context,
+            legacy_request_fingerprint=legacy_operation_request_commitment(
+                kind=OperationKind.EVALUATION,
+                request=plan,
+                base_snapshot=base_snapshot,
+            ),
             exact_retry_fingerprint=exact_retry_fingerprint,
+            admission_diagnostics=(
+                (lambda: _unavailable_backend_diagnostics(RuntimeDomain.EVALUATION, "an evaluator"))
+                if evaluator is None
+                else lambda: control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
+            ),
         )
-        if existing is not None:
-            return existing
-        self._require_observed_base_snapshot(base_snapshot)
-        if self._target.evaluator is None:
-            receipt = self._reject_submission(
-                domain=RuntimeDomain.EVALUATION,
-                message="Target does not provide an evaluator.",
-                request_fingerprint=context.request_commitment,
-                context=context,
-            )
-        else:
-            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.EVALUATION)
-            if diagnostics:
-                receipt = self._reject_diagnostics(
-                    domain=RuntimeDomain.EVALUATION,
-                    diagnostics=diagnostics,
-                    idempotency_key=idempotency_key,
-                    request_fingerprint=context.request_commitment,
-                    context=context,
-                )
-            else:
-                receipt = execute_operation(
-                    self,
-                    OperationExecutionRequest(
-                        domain=RuntimeDomain.EVALUATION,
-                        method=self._target.evaluator.start,
-                        plan=plan,
-                        address="runtime.control-plane.evaluation",
-                        diagnostics=[],
-                        base_snapshot=base_snapshot,
-                        idempotency_key=idempotency_key,
-                        request_fingerprint=context.request_commitment,
-                        context=context,
-                        exact_retry_fingerprint=exact_retry_fingerprint,
-                        admission_diagnostics=lambda: control_plane_plan_diagnostics(
-                            self, plan, RuntimeDomain.EVALUATION
-                        ),
-                    ),
-                )
-        return receipt
+        denied_or_replay = reject_new_operation_if_admission_fails(self, request)
+        return denied_or_replay or execute_operation(self, request)
 
     @runtime_owned
-    def get_operation(self, operation_id: str) -> OperationStatus | None:
+    def get_operation(
+        self,
+        operation_id: str,
+        *,
+        identity: object | None = None,
+    ) -> OperationStatus | None:
         self._assert_runtime_owner()
         with self._operation_lock:
             self._operations = self._store.load_records()
             record = self._operations.get(operation_id)
-        return None if record is None else record.status
+        if record is None or not self._operation_read_allowed(record, identity):
+            return None
+        return record.status
+
+    def _operation_read_allowed(
+        self,
+        record: ControlPlaneOperationRecord,
+        identity: object | None,
+    ) -> bool:
+        if identity is None:
+            return True
+        target_name = getattr(identity, "target_name", None)
+        if target_name is not None and target_name != self._target.name:
+            return False
+        actor_id, authorization_scope = operation_actor_scope(identity)
+        context = record.status.context
+        return (actor_id, authorization_scope) == (context.actor_id, context.authorization_scope)
 
     @runtime_owned
     def observation_execution(self, operation_id: str) -> ObservationExecution | None:
@@ -448,6 +433,7 @@ class RuntimeControlPlane(
 
         self._assert_runtime_owner()
         with self._operation_lock:
+            self._operations = self._store.load_records()
             record = self._operations.get(operation_id)
         return observation_execution_from_payload(None if record is None else record.result_payload)
 

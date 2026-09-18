@@ -30,8 +30,7 @@ def participant_crossing_operation_artifacts(
     identity: ControlPlaneIdentity,
     decision: ParticipantCrossingOccurrenceModel,
     disposition: ParticipantCrossingDecisionDisposition,
-    semantic_fingerprint: str,
-    scoped_key: str,
+    idempotency_key: str,
     context: OperationAdmissionContext,
 ) -> tuple[ControlPlaneOperationRecord, AuditEvent]:
     """Build one terminal operation carrier and its bounded audit event."""
@@ -77,8 +76,8 @@ def participant_crossing_operation_artifacts(
     record = ControlPlaneOperationRecord(
         receipt=receipt,
         status=status,
-        request_fingerprint=semantic_fingerprint,
-        idempotency_key=scoped_key,
+        request_fingerprint=context.request_commitment,
+        idempotency_key=idempotency_key,
     )
     occurrence = decision.occurrence
     audit_event = AuditEvent(

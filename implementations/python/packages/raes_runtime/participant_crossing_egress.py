@@ -163,7 +163,13 @@ def _serialize_participant_view_authorized(
                 ),
             ),
         )
-        commit_prepared_crossing(control_plane, prepared)
+        receipt = commit_prepared_crossing(control_plane, prepared)
+        if receipt.operation_id != prepared.record.receipt.operation_id:
+            records = control_plane._store.load_records()
+            incumbent = records.get(receipt.operation_id)
+            if incumbent is None or incumbent.result_payload is None:
+                raise ValueError("idempotent participant projection is missing its governed result")
+            return type(view).model_validate(incumbent.result_payload)
         return governed
 
 

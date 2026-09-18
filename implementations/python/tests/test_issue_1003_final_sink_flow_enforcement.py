@@ -271,7 +271,7 @@ def test_replay_after_state_cut_advance_is_rejected() -> None:
         idempotency_key="later",
     )
 
-    with pytest.raises(ValueError, match="state cut advanced"):
+    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
         admit(plane, idempotency_key="cut-bound")
 
 

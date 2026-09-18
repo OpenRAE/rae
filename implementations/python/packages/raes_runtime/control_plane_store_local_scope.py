@@ -127,9 +127,36 @@ class LocalStoreScopeMigrationMixin:
             )
             rebound_payload, rebound_digest = _encode_payload(_record_payload(rebound))
             connection.execute(
-                "UPDATE operations SET payload=?, digest=? WHERE operation_id=?",
-                (rebound_payload, rebound_digest, operation_id),
+                """
+                UPDATE operations SET
+                    target_scope=?, run_scope=?, request_fingerprint=?, payload=?, digest=?
+                WHERE operation_id=?
+                """,
+                (
+                    target_scope,
+                    run_scope,
+                    rebound_context.request_commitment,
+                    rebound_payload,
+                    rebound_digest,
+                    operation_id,
+                ),
             )
+
+    @staticmethod
+    def _require_bound_operation_scopes(
+        connection: sqlite3.Connection,
+        *,
+        target_scope: str,
+        run_scope: str,
+    ) -> None:
+        rows = connection.execute("SELECT operation_id, payload, digest FROM operations").fetchall()
+        for operation_id, payload, digest in rows:
+            record = _record_from_payload(_decode_payload(payload, digest, kind=_OPERATION_RECORD_KIND))
+            context = record.status.context
+            if (context.target_scope, context.run_scope) != (target_scope, run_scope):
+                raise ValueError("persisted operation scope does not match admitted store scope")
+            if record.receipt.operation_id != operation_id:
+                raise ValueError("operation record identity does not match its durable key")
 
     def _existing_legacy_paths(self) -> list[Path]:
         return [

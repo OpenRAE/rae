@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-17T00:00:00.000000Z
+updated_at: 2026-09-18T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -59,7 +59,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → GITHUB_ISSUE `1183` (CP-5: Store lease admission)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1183-store-ownership-lease-preflight.md` (CP-5 immutable scope, exclusive ownership, startup, and shutdown boundaries)
 - DOCUMENTS → GITHUB_ISSUE `1092` (CP-6: Transactional local store)
-- DOCUMENTS → GITHUB_ISSUE `1184` (CP-7: Atomic idempotency claims and cache demotion)
+- IMPLEMENTS → GITHUB_ISSUE `1184` (CP-7: Atomic idempotency claims and cache demotion)
 - DOCUMENTS → GITHUB_ISSUE `1188` (CP-8: Served profile alignment)
 - DOCUMENTS → GITHUB_ISSUE `1187` (CP-9: Crash and profile conformance suite)
 - DOCUMENTS → GITHUB_ISSUE `1189` (CP-10: Profile declaration and capability discovery)
@@ -98,6 +98,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_lease.py` (Secure single-process local runtime ownership)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py` (Compatibility-preserving portable snapshot serialization split)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local.py` (Required WAL admission, pinned database identity, durable legacy backup copies, and atomic transactions)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_records.py` (SQLite atomic idempotency claims and operation-record persistence)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_scope.py` (Immutable target/run binding and admitted legacy-store migration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_records.py` (Strict lossless decoding of persisted operation and audit provenance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_legacy.py` (Complexity-bounded legacy JSON import readers)
@@ -127,6 +128,8 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1181-unified-control-plane-mutations-preflight.md` (CP-2 mutation authority, write-ahead claim, atomic terminal cut, and compatibility boundaries)
 - TESTS → TEST `implementations/python/tests/test_issue_1181_unified_control_plane_mutations.py` (CP-2 authority, claim ordering, validation gate, atomicity, audit provenance, capability, recovery, and facade-boundary acceptance tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1183_store_ownership_leases.py` (CP-5 admission, scope binding, process ownership, shutdown ordering, and worker-posture acceptance tests)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1184-atomic-idempotency-claims-preflight.md` (CP-7 atomic claim, replay authorization, migration, and cache-authority boundaries)
+- TESTS → TEST `implementations/python/tests/test_issue_1184_atomic_idempotency_claims.py` (CP-7 atomic scoped claims, replay conflicts, migration, authorization, and authoritative-read regressions)
 - TESTS → TEST `implementations/python/tests/test_dsl_437_snapshot_durability_conformance.py` (Snapshot durability conformance under explicit local-store admission)
 - TESTS → TEST `implementations/python/tests/test_realization_envelope_contract.py` (Realization envelope persistence under explicit local-store admission)
 - TESTS → TEST `implementations/python/tests/test_run_310_supervisory_lifecycle.py` (Supervisory lifecycle persistence under explicit local-store admission)

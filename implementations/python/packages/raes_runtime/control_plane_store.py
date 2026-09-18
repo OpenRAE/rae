@@ -5,9 +5,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Literal, Protocol, runtime_checkable
 
 from raes_contracts.runtime_state import (
+    OperationAdmissionContext,
+    OperationKind,
     OperationReceipt,
     OperationState,
     OperationStatus,
@@ -32,6 +34,11 @@ _snapshot_payload = _store_types._snapshot_payload
 participant_crossing_history_presence = _store_types.participant_crossing_history_presence
 
 _IDEMPOTENCY_KEY_CONFLICT = "idempotency key already belongs to another operation"
+IDEMPOTENCY_CLAIM_CONFLICT = "idempotency claim conflicts with the original request"
+
+IdempotencyClaimIdentity = tuple[str, OperationKind, str]
+NewClaimBlock = Literal["current-state", "indeterminate", "stale-base-snapshot"] | None
+_MAX_IDEMPOTENCY_KEY_LENGTH = 256
 
 
 @dataclass(frozen=True)
@@ -59,6 +66,7 @@ class ControlPlaneOperationRecord:
     result_payload: dict[str, Any] | None = None
     decision_history_heads: dict[str, str | None] = field(default_factory=dict)
     result_history_heads: dict[str, str | None] = field(default_factory=dict)
+    legacy_request_commitment: bool = False
 
     def __post_init__(self) -> None:
         _require_operation_record_identity(self)
@@ -79,6 +87,64 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
         raise ValueError("operation receipt and status contexts do not match")
     if not record.receipt.accepted:
         raise ValueError("denied operation receipts cannot be persisted")
+
+
+def idempotency_claim_identity(
+    context: OperationAdmissionContext,
+    key: str,
+) -> IdempotencyClaimIdentity:
+    """Return the provider-private claim identity inside one target/run store."""
+
+    return (context.actor_id, context.operation_kind, key)
+
+
+def require_idempotency_key(key: str) -> str:
+    """Validate the one client-key shape used by every operation family."""
+
+    if not isinstance(key, str):
+        raise TypeError("Idempotency-Key must be a string")
+    if key and (len(key) > _MAX_IDEMPOTENCY_KEY_LENGTH or any(character < "!" or character > "~" for character in key)):
+        raise ValueError("Idempotency-Key must be 1-256 visible ASCII characters")
+    return key
+
+
+def _require_same_idempotency_replay(
+    existing: ControlPlaneOperationRecord,
+    candidate: ControlPlaneOperationRecord,
+    *,
+    legacy_request_fingerprint: str = "",
+) -> None:
+    """Authorize one replay without disclosing the incumbent on mismatch."""
+
+    existing_context = existing.receipt.context
+    candidate_context = candidate.receipt.context
+    context_matches = existing_context == candidate_context
+    fingerprint_matches = existing.request_fingerprint == candidate.request_fingerprint
+    if existing.legacy_request_commitment and legacy_request_fingerprint:
+        context_matches = (
+            existing_context.model_copy(update={"request_commitment": candidate_context.request_commitment})
+            == candidate_context
+        )
+        fingerprint_matches = existing.request_fingerprint == legacy_request_fingerprint
+    if (
+        not context_matches
+        or not fingerprint_matches
+        or candidate.decision_history_heads not in (existing.decision_history_heads, existing.result_history_heads)
+    ):
+        raise ValueError(IDEMPOTENCY_CLAIM_CONFLICT)
+
+
+def _raise_new_claim_block(block: NewClaimBlock) -> None:
+    if block == "current-state":
+        raise NewClaimRejected
+    if block == "indeterminate":
+        raise RuntimeError("indeterminate operation requires resolution before effectful mutation")
+    if block == "stale-base-snapshot":
+        raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
+
+
+class NewClaimRejected(RuntimeError):
+    """Signal that current state forbids creation after incumbent resolution."""
 
 
 def _require_same_operation_identity(
@@ -223,6 +289,8 @@ class ControlPlaneStore(Protocol):
     def find_by_idempotency(
         self,
         key: str,
+        *,
+        context: OperationAdmissionContext | None = None,
     ) -> ControlPlaneOperationRecord | None: ...
 
     def append_audit(self, event: AuditEvent) -> None: ...
@@ -254,7 +322,13 @@ class ControlPlaneStore(Protocol):
 class AtomicControlPlaneStore(ControlPlaneStore, Protocol):
     """Crash-atomic claim and terminal commit capabilities."""
 
-    def claim_record(self, record: ControlPlaneOperationRecord) -> ControlPlaneOperationRecord: ...
+    def claim_record(
+        self,
+        record: ControlPlaneOperationRecord,
+        *,
+        legacy_request_fingerprint: str = "",
+        new_claim_blocked: NewClaimBlock = None,
+    ) -> ControlPlaneOperationRecord: ...
 
     def commit_terminal_operation(
         self,
@@ -303,6 +377,8 @@ __all__ = [
     "AuditEvent",
     "ControlPlaneOperationRecord",
     "ControlPlaneStore",
+    "IDEMPOTENCY_CLAIM_CONFLICT",
+    "IdempotencyClaimIdentity",
     "INTERRUPTED_OPERATION_DIAGNOSTIC_CODE",
     "InMemoryControlPlaneStore",
     "LocalControlPlaneStore",
@@ -313,9 +389,12 @@ __all__ = [
     "TerminalCommitMode",
     "_require_expected_control_head",
     "_require_expected_history_heads",
+    "_require_same_idempotency_replay",
     "_snapshot_from_payload",
     "_snapshot_payload",
     "participant_crossing_history_presence",
+    "idempotency_claim_identity",
     "require_operation_record_scopes",
+    "require_idempotency_key",
     "terminal_operation_audit",
 ]

@@ -31,6 +31,7 @@ from ._offload import _control_plane_calls
 from ._responses import (
     _CONFLICT_RESPONSES,
     _NOT_FOUND_RESPONSES,
+    _conflict_detail,
     _receipt_response,
     _record_operation_receipt_audit,
     _set_snapshot_revision_header,
@@ -161,7 +162,7 @@ def _register_provisioning_submission_route(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -206,7 +207,7 @@ def _register_orchestration_submission_route(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -251,7 +252,7 @@ def _register_evaluation_submission_route(
                 identity=identity,
             )
         except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
         _record_operation_receipt_audit(
             calls,
             control_plane,
@@ -274,9 +275,9 @@ def _register_operation_read_routes(
         identity: _ReadIdentity,
     ) -> OperationStatusModel:
         calls = _control_plane_calls(request)
-        status = await calls.run(control_plane.get_operation, operation_id)
+        status = await calls.run(control_plane.get_operation, operation_id, identity=identity)
         if status is None:
-            raise HTTPException(status_code=404, detail=f"Unknown operation: {operation_id}")
+            raise HTTPException(status_code=404, detail="operation not found")
         await calls.run(
             control_plane.record_audit,
             action="get_operation",

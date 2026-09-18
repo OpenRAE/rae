@@ -541,7 +541,7 @@ def test_exact_retry_reuses_opacity_decision_and_changed_binding_conflicts() -> 
             "enforcement_rule_digest": canonical_json_digest({"rule": "changed"}),
         }
     )
-    with pytest.raises(ValueError, match="different semantics"):
+    with pytest.raises(ValueError, match="conflicts with the original request"):
         admit(plane, idempotency_key="opacity-retry")
 
 

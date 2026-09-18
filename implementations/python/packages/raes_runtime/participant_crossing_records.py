@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from uuid import uuid4
@@ -20,12 +18,11 @@ from raes_contracts.contracts.participant_crossing_validation import (
     validate_participant_crossing_occurrence_context,
 )
 from raes_contracts.runtime_state import (
-    OperationKind,
+    OperationAdmissionContext,
     RuntimeSnapshot,
 )
 
 from .control_plane_mutation import external_control_plane_call
-from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import ControlPlaneOperationRecord
 from .participant_crossing_mediation import (
@@ -57,8 +54,8 @@ class _CrossingDecisionPreparation:
     gates: ParticipantCrossingDecisionGatesModel
     disposition: ParticipantCrossingDecisionDisposition
     expected_heads: dict[str, str | None]
-    semantic_fingerprint: str
-    scoped_key: str
+    context: OperationAdmissionContext
+    idempotency_key: str
 
 
 def _next_crossing_snapshot(
@@ -150,14 +147,8 @@ def _prepare_crossing_decision(
         identity=identity,
         decision=final_decision,
         disposition=final_disposition,
-        semantic_fingerprint=preparation.semantic_fingerprint,
-        scoped_key=preparation.scoped_key,
-        context=operation_admission_context(
-            control_plane,
-            kind=OperationKind.PARTICIPANT_CROSSING,
-            request=intent,
-            identity=identity,
-        ),
+        idempotency_key=preparation.idempotency_key,
+        context=preparation.context,
     )
     record = ControlPlaneOperationRecord(
         receipt=record.receipt,
@@ -372,20 +363,14 @@ def _base_envelope(
     }
 
 
-def _semantic_fingerprint(
-    control_plane: object,
+def _semantic_request(
     intent: ParticipantCrossingIntent,
-    identity: ControlPlaneIdentity,
     resolution: ParticipantCrossingPolicyResolution,
     support: _BackendSupport,
-    expected_heads: dict[str, str | None],
-) -> str:
+) -> dict[str, object]:
     stable_intent = intent.model_dump(mode="json")
     stable_intent.pop("effective_order", None)
-    payload = {
-        "target": control_plane.target_name,
-        "identity": identity.identity,
-        "decision_history_heads": expected_heads,
+    return {
         "intent": stable_intent,
         "policy": resolution.policy.model_dump(mode="json"),
         "gates": asdict(resolution.gates),
@@ -402,34 +387,10 @@ def _semantic_fingerprint(
             else None
         ),
     }
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
-    return hashlib.sha256(encoded).hexdigest()
-
-
-def _scoped_idempotency_key(
-    control_plane: object,
-    intent: ParticipantCrossingIntent,
-    identity: ControlPlaneIdentity,
-    idempotency_key: str,
-) -> str:
-    if not idempotency_key:
-        return ""
-    encoded = "\x1f".join(
-        (
-            control_plane.target_name,
-            identity.identity,
-            intent.participant_address,
-            intent.episode_id,
-            intent.audience_scope_ref,
-            idempotency_key,
-        )
-    ).encode()
-    return f"participant-crossing:{hashlib.sha256(encoded).hexdigest()}"
 
 
 __all__ = (
     "_expected_history_heads",
     "_prepare_crossing_decision",
-    "_scoped_idempotency_key",
-    "_semantic_fingerprint",
+    "_semantic_request",
 )

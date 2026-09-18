@@ -27,8 +27,7 @@ class ParticipantControlOperationAuthority:
 
     identity: ControlPlaneIdentity
     context: OperationAdmissionContext
-    semantic_fingerprint: str
-    scoped_key: str
+    idempotency_key: str
 
 
 def participant_control_operation_artifacts(
@@ -70,8 +69,8 @@ def participant_control_operation_artifacts(
     record = ControlPlaneOperationRecord(
         receipt=receipt,
         status=status,
-        request_fingerprint=authority.semantic_fingerprint,
-        idempotency_key=authority.scoped_key,
+        request_fingerprint=authority.context.request_commitment,
+        idempotency_key=authority.idempotency_key,
     )
     audit_event = AuditEvent(
         timestamp=submitted_at,

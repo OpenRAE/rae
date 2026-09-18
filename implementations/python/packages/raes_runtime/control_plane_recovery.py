@@ -29,8 +29,15 @@ from .backend_calls import _BackendCallContext, _RealizationApplyContext, _valid
 from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
-from .control_plane_operation_context import operation_admission_context
-from .control_plane_store import ControlPlaneOperationRecord, TerminalCommitMode
+from .control_plane_operation_context import (
+    legacy_operation_request_commitment,
+    operation_admission_context,
+)
+from .control_plane_store import (
+    ControlPlaneOperationRecord,
+    NewClaimRejected,
+    TerminalCommitMode,
+)
 
 
 class IndeterminateResolutionDisposition(str, Enum):
@@ -317,18 +324,9 @@ def resolve_indeterminate_operation(
             run_scope=parent.status.context.run_scope,
             parent_operation_id=operation_id,
         )
-        existing = control_plane._idempotent_receipt(
-            idempotency_key=idempotency_key,
-            request_fingerprint=context.request_commitment,
-            context=context,
-        )
-        if existing is not None:
-            return existing
         _authorize_resolution(control_plane, parent, context, identity)
         if parent.status.state is not OperationState.INDETERMINATE:
             raise ValueError("resolution parent must be indeterminate")
-        if operation_id not in unresolved_indeterminate_operation_ids(control_plane):
-            raise ValueError("indeterminate operation is already resolved")
         if not idempotency_key:
             raise ValueError("resolution requires an idempotency key")
         if idempotency_key == parent.idempotency_key:
@@ -350,14 +348,26 @@ def resolve_indeterminate_operation(
             updated_at=submitted_at,
             context=context,
         )
-        claimed = control_plane._claim_record(
-            ControlPlaneOperationRecord(
-                receipt=receipt,
-                status=running,
-                request_fingerprint=context.request_commitment,
-                idempotency_key=idempotency_key,
+        try:
+            claimed = control_plane._claim_record(
+                ControlPlaneOperationRecord(
+                    receipt=receipt,
+                    status=running,
+                    request_fingerprint=context.request_commitment,
+                    idempotency_key=idempotency_key,
+                ),
+                legacy_request_fingerprint=legacy_operation_request_commitment(
+                    kind=OperationKind.INDETERMINATE_RESOLUTION,
+                    request={"disposition": disposition.value},
+                ),
+                new_claim_blocked=(
+                    "current-state"
+                    if operation_id not in unresolved_indeterminate_operation_ids(control_plane)
+                    else None
+                ),
             )
-        )
+        except NewClaimRejected:
+            raise ValueError("indeterminate operation is already resolved") from None
         if claimed.receipt.operation_id != child_id:
             return claimed.receipt
         terminal = replace(running, state=OperationState.SUCCEEDED, updated_at=_utc_now())
