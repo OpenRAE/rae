@@ -90,9 +90,7 @@ def _load_bounded_json_object(repo_root: Path, relative_path: object) -> dict[st
     return read_tooling_document(repo_root, str(path.relative_to(repo_root.resolve())))
 
 
-def load_python_closure_profile(repo_root: Path, profile_id: str) -> PythonClosureProfile:
-    """Validate one Python environment without inspecting unrelated repository policy."""
-    document = _load_bounded_json_object(repo_root, PROFILES_PATH)
+def _selected_closure_profile(repo_root: Path, document: dict[str, Any], profile_id: str) -> Mapping[str, Any]:
     matches = [
         value
         for value in document.get("python_closure_profiles", [])
@@ -102,9 +100,14 @@ def load_python_closure_profile(repo_root: Path, profile_id: str) -> PythonClosu
         raise ValueError("Python closure profile must resolve to exactly one reviewed entry")
     value = matches[0]
     validate_tooling_record(repo_root, value, PROFILES_PATH, definition="pythonClosureProfile")
-    python = value["python"]
+    return value
+
+
+def _selected_closure_contexts(
+    repo_root: Path, document: dict[str, Any], context_ids: list[str]
+) -> dict[str, Mapping[str, Any]]:
     contexts = {}
-    for context_id in value["acquisition_context_ids"]:
+    for context_id in context_ids:
         matches = [
             context
             for context in document.get("python_package_contexts", [])
@@ -114,6 +117,15 @@ def load_python_closure_profile(repo_root: Path, profile_id: str) -> PythonClosu
             raise ValueError("Python acquisition context must resolve to exactly one entry")
         validate_tooling_record(repo_root, matches[0], PROFILES_PATH, definition="pythonPackageContext")
         contexts[context_id] = matches[0]
+    return contexts
+
+
+def load_python_closure_profile(repo_root: Path, profile_id: str) -> PythonClosureProfile:
+    """Validate one Python environment without inspecting unrelated repository policy."""
+    document = _load_bounded_json_object(repo_root, PROFILES_PATH)
+    value = _selected_closure_profile(repo_root, document, profile_id)
+    python = value["python"]
+    contexts = _selected_closure_contexts(repo_root, document, value["acquisition_context_ids"])
     project_scoped = bool(set(value["purposes"]) & {"wheel-smoke", "sdist-smoke", "compatibility", "docs"})
     failures = _closure_binding_failures(
         value,

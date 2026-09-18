@@ -148,6 +148,15 @@ def _executable_entry(selection: ArtifactSelection) -> ManifestEntry:
     return next(entry for entry in selection.installed_manifest if entry.executable)
 
 
+def _archive_member_path(member: tarfile.TarInfo, seen: set[PurePosixPath], files: set[PurePosixPath]) -> PurePosixPath:
+    path = _portable_path(member.name)
+    if path in seen:
+        raise RuntimeError("tool-installation: duplicate-archive-member")
+    if any(parent in files for parent in path.parents) or any(path in existing.parents for existing in seen):
+        raise RuntimeError("tool-installation: conflicting-archive-member")
+    return path
+
+
 def _validate_archive_shape(
     members: list[tarfile.TarInfo],
 ) -> None:  # NOSONAR -- explicit archive limits fail closed.
@@ -157,11 +166,7 @@ def _validate_archive_shape(
     files: set[PurePosixPath] = set()
     total = 0
     for member in members:
-        path = _portable_path(member.name)
-        if path in seen:
-            raise RuntimeError("tool-installation: duplicate-archive-member")
-        if any(parent in files for parent in path.parents) or any(path in existing.parents for existing in seen):
-            raise RuntimeError("tool-installation: conflicting-archive-member")
+        path = _archive_member_path(member, seen, files)
         if not (member.isfile() or member.isdir()) or getattr(member, "sparse", None):
             raise RuntimeError("tool-installation: unsafe-archive-member")
         if member.size < 0 or member.size > MAX_ARCHIVE_MEMBER_BYTES:
@@ -475,6 +480,13 @@ def _validate_tree(  # NOSONAR -- the full tree shape and every leaf are checked
     return {entry.path: _read_verified_file(tree / entry.path, entry, mode=mode) for entry in entries}
 
 
+def _chmod_non_symlink_children(parent: Path, names: list[str], permissions: int) -> None:
+    for name in names:
+        child = parent / name
+        if not child.is_symlink():
+            child.chmod(permissions)
+
+
 def _make_quarantine_non_executable(
     path: Path,
 ) -> None:  # NOSONAR -- every file type fails non-executable.
@@ -484,14 +496,8 @@ def _make_quarantine_non_executable(
     if path.is_dir():
         for current, directories, files in os.walk(path, topdown=False, followlinks=False):
             current_path = Path(current)
-            for name in files:
-                child = current_path / name
-                if not child.is_symlink():
-                    child.chmod(0o600)
-            for name in directories:
-                child = current_path / name
-                if not child.is_symlink():
-                    child.chmod(0o700)
+            _chmod_non_symlink_children(current_path, files, 0o600)
+            _chmod_non_symlink_children(current_path, directories, 0o700)
             current_path.chmod(0o700)
     elif stat.S_ISREG(state.st_mode):
         path.chmod(0o600)

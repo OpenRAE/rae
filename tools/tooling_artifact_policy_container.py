@@ -72,16 +72,15 @@ def container_failures(
     del tracked_paths
     hosts = _container_host_profiles(documents)
     dockerfile = safe_text(repo_root, CONTAINER_DOCKERFILE_PATH)
-    if not hosts and dockerfile is None:
-        return []
     if len(hosts) != 1 or dockerfile is None:
-        return [
+        failures = [
             failure(
                 "tooling-container-profile",
                 "one reviewed container profile and Dockerfile are required",
                 PROFILES_PATH,
             )
         ]
+        return [] if not hosts and dockerfile is None else failures
     host = hosts[0]
     platform_id = normalize_platform_id(str(host.get("platform_id", "")))
     locked = _locked_platform_manifest(documents, host.get("base_image_artifact_ref"), platform_id)
@@ -97,8 +96,19 @@ def container_failures(
                 PROFILES_PATH,
             )
         ]
+    return [
+        *_container_base_failures(dockerfile, platform_id, locked),
+        *_container_user_failures(repo_root, dockerfile),
+    ]
+
+
+def _dockerfile_instructions(dockerfile: str, instruction: str) -> list[list[str]]:
+    return [line.split() for line in dockerfile.splitlines() if line.strip().upper().startswith(instruction + " ")]
+
+
+def _container_base_failures(dockerfile: str, platform_id: str, locked: tuple[str, str]) -> list[PolicyFailure]:
     failures = []
-    stages = [line.split() for line in dockerfile.splitlines() if line.strip().upper().startswith("FROM ")]
+    stages = _dockerfile_instructions(dockerfile, "FROM")
     reference = f"{locked[0]}@sha256:{locked[1]}"
     if not stages or any(len(tokens) < 3 or tokens[2] != reference for tokens in stages):
         failures.append(
@@ -116,12 +126,17 @@ def container_failures(
                 CONTAINER_DOCKERFILE_PATH,
             )
         )
+    return failures
+
+
+def _container_user_failures(repo_root: Path, dockerfile: str) -> list[PolicyFailure]:
     document, config_failure = load_devcontainer_config(repo_root)
     if document is None:
-        return [*failures, config_failure]
+        return [config_failure]
+    failures = []
     user = document.get("containerUser")
-    users = [line.split()[1:] for line in dockerfile.splitlines() if line.strip().upper().startswith("USER ")]
-    if not isinstance(user, str) or user in {"", "root", "0"} or not users or users[-1] != [user]:
+    users = _dockerfile_instructions(dockerfile, "USER")
+    if not isinstance(user, str) or user in {"", "root", "0"} or not users or users[-1][1:] != [user]:
         failures.append(
             failure(
                 "tooling-container-user",

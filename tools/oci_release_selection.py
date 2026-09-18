@@ -20,7 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools.tooling_oci_selection import LockedOciDescriptor as OciDescriptor  # noqa: E402, F401
+from tools.tooling_oci_selection import LockedOciDescriptor as OciDescriptor  # noqa: E402
 from tools.tooling_oci_selection import LockedOciGraph  # noqa: E402
 from tools.tooling_policy_gate import LockedArtifactSelection  # noqa: E402
 
@@ -144,6 +144,8 @@ def execution_graph(graphs: Sequence[LockedPlatformGraph]) -> LockedPlatformGrap
 
 
 __all__ = [
+    "OciDescriptor",
+    "LockedPlatformGraph",
     "EXECUTION_PLATFORM_ID",
     "EXECUTION_PROFILE_ID",
     "RELEASE_TEST_IMAGE_ARTIFACT_ID",

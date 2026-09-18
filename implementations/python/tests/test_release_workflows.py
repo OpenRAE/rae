@@ -972,7 +972,8 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
                 continue
             config = triggers[event] or {}
             if path.name == "bootstrap-qualification.yml":
-                assert config.get("paths") and "workflow_dispatch" in triggers
+                assert config.get("paths")
+                assert "workflow_dispatch" in triggers
                 continue
             assert "paths" not in config, f"{path.name} {event}: positive path filters would hide real changes"
             if "paths-ignore" in config:

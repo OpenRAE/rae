@@ -252,17 +252,14 @@ def test_selection_launcher_sanitizes_environment_and_failure(monkeypatch: pytes
         return SimpleNamespace(returncode=1, stdout="", stderr="fixture-credential: candidate-url?token=private")
 
     monkeypatch.setattr(tooling_policy_gate.subprocess, "run", run)
+    validator = tooling_policy_gate._validator_host_stdout if host else tooling_policy_gate._validator_stdout
+    selection = (
+        {"host_profile_id": "host"}
+        if host
+        else {"artifact_id": "tool", "version": "1", "platform_id": "linux-x86_64", "profile_id": "public-linux-x86_64"}
+    )
     with pytest.raises(RuntimeError) as caught:
-        if host:
-            tooling_policy_gate._validator_host_stdout(["python", "validator"], host_profile_id="host")
-        else:
-            tooling_policy_gate._validator_stdout(
-                ["python", "validator"],
-                artifact_id="tool",
-                version="1",
-                platform_id="linux-x86_64",
-                profile_id="public-linux-x86_64",
-            )
+        validator(["python", "validator"], **selection)
     assert "fixture-credential" not in str(caught.value)
     assert "candidate-url" not in str(caught.value)
     assert "GITHUB_TOKEN" not in observed["env"]

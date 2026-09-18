@@ -276,10 +276,28 @@ def _tool_inputs(repo_root: Path) -> list[dict[str, str]]:
     return inputs
 
 
+def _workflow_uses(workflow: Mapping[str, Any]) -> list[str]:
+    from tools.tooling_artifact_policy_common import as_list, as_mapping
+
+    uses = []
+    for job in as_mapping(workflow.get("jobs")).values():
+        for entry in [as_mapping(job), *as_list(as_mapping(job).get("steps"))]:
+            reference = as_mapping(entry).get("uses")
+            if isinstance(reference, str):
+                uses.append(reference)
+    return uses
+
+
+def _pinned_action(reference: str) -> tuple[str, str]:
+    action, separator, commit = reference.partition("@")
+    if not separator or len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
+        raise ReleaseEvidenceError("workflow-input-invalid", "release action must use a commit pin")
+    return action, commit
+
+
 def _workflow_actions(repo_root: Path) -> list[dict[str, str]]:
     """Record pinned actions from the release workflow and its reusable calls."""
     from implementations.tooling.action_policy_yaml import parse_yaml_mapping
-    from tools.tooling_artifact_policy_common import as_list, as_mapping
 
     pending = [".github/workflows/release-please.yml"]
     visited: set[str] = set()
@@ -292,21 +310,11 @@ def _workflow_actions(repo_root: Path) -> list[dict[str, str]]:
         workflow, failures = parse_yaml_mapping(repo_root, path)
         if failures or workflow is None:
             raise ReleaseEvidenceError("workflow-input-invalid", "release workflow cannot be read safely")
-        for job in as_mapping(workflow.get("jobs")).values():
-            for entry in [as_mapping(job), *as_list(as_mapping(job).get("steps"))]:
-                uses = as_mapping(entry).get("uses")
-                if not isinstance(uses, str):
-                    continue
-                if uses.startswith("./.github/workflows/"):
-                    pending.append(uses[2:])
-                else:
-                    action, separator, commit = uses.partition("@")
-                    if not separator or len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
-                        raise ReleaseEvidenceError(
-                            "workflow-input-invalid",
-                            "release action must use a commit pin",
-                        )
-                    actions.add((action, commit))
+        for uses in _workflow_uses(workflow):
+            if uses.startswith("./.github/workflows/"):
+                pending.append(uses[2:])
+            else:
+                actions.add(_pinned_action(uses))
     return [{"action": action, "commit": commit} for action, commit in sorted(actions)]
 
 

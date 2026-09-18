@@ -29,16 +29,17 @@ def _condition(value: object) -> str:
 
 
 def _secret_expressions(value: object) -> set[str]:
+    expressions: set[str] = set()
     if isinstance(value, str):
-        return {value} if "${{" in value and _SECRET.search(value) is not None else set()
-    if isinstance(value, Mapping):
-        return set().union(*(_secret_expressions(child) for child in value.values()))
-    if isinstance(value, list):
-        return set().union(*(_secret_expressions(child) for child in value))
-    return set()
+        expressions = {value} if "${{" in value and _SECRET.search(value) is not None else set()
+    elif isinstance(value, Mapping):
+        expressions = set().union(*(_secret_expressions(child) for child in value.values()))
+    elif isinstance(value, list):
+        expressions = set().union(*(_secret_expressions(child) for child in value))
+    return expressions
 
 
-def _sonar_boundary(path: str, name: str, job: Mapping[str, Any], workflows: Mapping) -> bool:
+def _sonar_boundary(path: str, name: str, job: Mapping[str, Any], workflows: Mapping[str, Any]) -> bool:
     target = as_mapping(as_mapping(workflows.get(_CANONICAL)).get("jobs")).get("sonar", {})
     guarded = _condition(as_mapping(target).get("if")) == _condition(_SONAR_GUARD)
     if path == _CANONICAL and name == "sonar":
@@ -53,7 +54,7 @@ def _sonar_boundary(path: str, name: str, job: Mapping[str, Any], workflows: Map
     )
 
 
-def _pin_failures(path: str, step: Mapping[str, Any], workflows: Mapping) -> list[PolicyFailure]:
+def _pin_failures(path: str, step: Mapping[str, Any], workflows: Mapping[str, Any]) -> list[PolicyFailure]:
     uses = step.get("uses")
     if uses is None:
         return []
@@ -78,6 +79,13 @@ def _pin_failures(path: str, step: Mapping[str, Any], workflows: Mapping) -> lis
     return failures
 
 
+def _supplied_contract_invalid(supplied: object, declared: Mapping[str, Any]) -> bool:
+    if not isinstance(supplied, Mapping):
+        return True
+    required = {name for name, definition in declared.items() if as_mapping(definition).get("required") is True}
+    return bool(set(supplied) - set(declared) or required - set(supplied))
+
+
 def _target_contract_invalid(target: Mapping[str, Any], job: Mapping[str, Any]) -> bool:
     """Compare a reusable call with its native workflow_call declaration."""
 
@@ -85,15 +93,66 @@ def _target_contract_invalid(target: Mapping[str, Any], job: Mapping[str, Any]) 
     if "workflow_call" not in triggers:
         return True
     call = as_mapping(triggers["workflow_call"])
-    for supplied_key, declared_key in (("with", "inputs"), ("secrets", "secrets")):
-        supplied = job.get(supplied_key, {})
-        if not isinstance(supplied, Mapping):
-            return True
-        declared = as_mapping(call.get(declared_key))
-        required = {name for name, definition in declared.items() if as_mapping(definition).get("required") is True}
-        if set(supplied) - set(declared) or required - set(supplied):
-            return True
-    return False
+    return any(
+        _supplied_contract_invalid(job.get(supplied_key, {}), as_mapping(call.get(declared_key)))
+        for supplied_key, declared_key in (("with", "inputs"), ("secrets", "secrets"))
+    )
+
+
+def _permission_failures(path: str, permissions: object, *, untrusted: bool) -> list[PolicyFailure]:
+    failures = []
+    if not isinstance(permissions, Mapping) or any(
+        level not in {"read", "write", "none"} for level in as_mapping(permissions).values()
+    ):
+        failures.append(failure("tooling-action-permissions", "job permissions must be explicit and scoped", path))
+    elif untrusted and "write" in permissions.values():
+        failures.append(failure("tooling-action-permissions", "PR jobs cannot hold publishing permissions", path))
+    return failures
+
+
+def _credential_failures(
+    path: str,
+    name: str,
+    job: Mapping[str, Any],
+    workflow: Mapping[str, Any],
+    workflows: Mapping[str, Any],
+    *,
+    untrusted: bool,
+) -> list[PolicyFailure]:
+    failures = []
+    workflow_secrets = _secret_expressions(workflow.get("env"))
+    exposed = workflow_secrets or (_secret_expressions(job) and not _sonar_boundary(path, name, job, workflows))
+    if untrusted and exposed:
+        failures.append(
+            failure("tooling-action-credentials", "PR job exposes a credential outside its reviewed boundary", path)
+        )
+    if job.get("secrets") == "inherit":
+        failures.append(failure("tooling-action-credentials", "reusable workflows must name supplied secrets", path))
+    return failures
+
+
+def _container_pin_failures(path: str, container: object) -> list[PolicyFailure]:
+    if container is None:
+        return []
+    image = container if isinstance(container, str) else as_mapping(container).get("image", "")
+    if not isinstance(image, str) or not _IMAGE_PIN.fullmatch(image):
+        return [failure("tooling-action-pin", "container image must use a digest", path)]
+    return []
+
+
+def _job_input_failures(path: str, job: Mapping[str, Any], workflows: Mapping[str, Any]) -> list[PolicyFailure]:
+    failures = _pin_failures(path, job, workflows)
+    uses = job.get("uses")
+    if isinstance(uses, str) and uses.startswith("./"):
+        if _target_contract_invalid(as_mapping(workflows.get(uses[2:])), job):
+            failures.append(
+                failure("tooling-reusable-workflow", "reusable call differs from its declared contract", path)
+            )
+    for step in as_list(job.get("steps")):
+        failures.extend(_pin_failures(path, as_mapping(step), workflows))
+    for container in [job.get("container"), *as_mapping(job.get("services")).values()]:
+        failures.extend(_container_pin_failures(path, container))
+    return failures
 
 
 def action_failures(
@@ -123,66 +182,9 @@ def action_failures(
             protected = (
                 "pull_request_target" not in events and _condition(job.get("if")) == "github.ref == 'refs/heads/main'"
             )
-            if not isinstance(permissions, Mapping) or any(
-                level not in {"read", "write", "none"} for level in as_mapping(permissions).values()
-            ):
-                failures.append(
-                    failure(
-                        "tooling-action-permissions",
-                        "job permissions must be explicit and scoped",
-                        path,
-                    )
-                )
-            elif untrusted and not protected and "write" in permissions.values():
-                failures.append(
-                    failure(
-                        "tooling-action-permissions",
-                        "PR jobs cannot hold publishing permissions",
-                        path,
-                    )
-                )
-            if untrusted and not protected and (_secret_expressions(workflow.get("env")) or _secret_expressions(job)):
-                if _secret_expressions(workflow.get("env")) or not _sonar_boundary(path, str(name), job, workflows):
-                    failures.append(
-                        failure(
-                            "tooling-action-credentials",
-                            "PR job exposes a credential outside its reviewed boundary",
-                            path,
-                        )
-                    )
-            if job.get("secrets") == "inherit":
-                failures.append(
-                    failure(
-                        "tooling-action-credentials",
-                        "reusable workflows must name supplied secrets",
-                        path,
-                    )
-                )
-            failures.extend(_pin_failures(path, job, workflows))
-            uses = job.get("uses")
-            if isinstance(uses, str) and uses.startswith("./"):
-                if _target_contract_invalid(as_mapping(workflows.get(uses[2:])), job):
-                    failures.append(
-                        failure(
-                            "tooling-reusable-workflow",
-                            "reusable call differs from its declared contract",
-                            path,
-                        )
-                    )
-            for step in as_list(job.get("steps")):
-                failures.extend(_pin_failures(path, as_mapping(step), workflows))
-            for container in [
-                job.get("container"),
-                *as_mapping(job.get("services")).values(),
-            ]:
-                if container is not None:
-                    image = container if isinstance(container, str) else as_mapping(container).get("image", "")
-                    if not isinstance(image, str) or not _IMAGE_PIN.fullmatch(image):
-                        failures.append(
-                            failure(
-                                "tooling-action-pin",
-                                "container image must use a digest",
-                                path,
-                            )
-                        )
+            failures.extend(_permission_failures(path, permissions, untrusted=untrusted and not protected))
+            failures.extend(
+                _credential_failures(path, str(name), job, workflow, workflows, untrusted=untrusted and not protected)
+            )
+            failures.extend(_job_input_failures(path, job, workflows))
     return failures
