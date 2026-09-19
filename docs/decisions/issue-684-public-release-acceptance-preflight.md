@@ -167,8 +167,8 @@ not add another release classifier, manifest, or multi-registry framework.
 
 ## Non-goals and anti-patterns
 
-- No unauthorized release, test publication, second package, legacy
-  `aces-sdl` publication, semantic-release/towncrier restoration, or manual
+- No unauthorized release, test publication, second package, retired-identity
+  publication, semantic-release/towncrier restoration, or manual
   version/changelog edit.
 - No enterprise artifact host, offline bundle, promotion/quarantine/revocation
   service, backup/DR program, retention/GC service, deployment, or operational
