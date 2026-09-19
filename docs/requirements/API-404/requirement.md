@@ -129,6 +129,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - TESTS → TEST `implementations/python/tests/test_issue_1181_unified_control_plane_mutations.py` (CP-2 authority, claim ordering, validation gate, atomicity, audit provenance, capability, recovery, and facade-boundary acceptance tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1183_store_ownership_leases.py` (CP-5 admission, scope binding, process ownership, shutdown ordering, and worker-posture acceptance tests)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1184-atomic-idempotency-claims-preflight.md` (CP-7 atomic claim, replay authorization, migration, and cache-authority boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1188-served-control-plane-profile-preflight.md` (CP-8 P2 identity, authorization, audit, read, error-redaction, and single-owner boundaries)
 - TESTS → TEST `implementations/python/tests/test_issue_1184_atomic_idempotency_claims.py` (CP-7 atomic scoped claims, replay conflicts, migration, authorization, and authoritative-read regressions)
 - TESTS → TEST `implementations/python/tests/test_dsl_437_snapshot_durability_conformance.py` (Snapshot durability conformance under explicit local-store admission)
 - TESTS → TEST `implementations/python/tests/test_realization_envelope_contract.py` (Realization envelope persistence under explicit local-store admission)
