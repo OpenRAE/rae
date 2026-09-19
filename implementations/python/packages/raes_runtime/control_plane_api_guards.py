@@ -158,8 +158,10 @@ class RequestSizeLimitMiddleware:
             )
         except Exception:
             # Admission already failed closed. An unavailable audit store must
-            # neither dispatch the body nor replace the stable rejection.
-            _LOGGER.exception("control-plane rejection audit persistence failed")
+            # neither dispatch the body nor replace the stable rejection. Log only a
+            # stable, bounded label: a traceback or exception chain here could carry
+            # provider/store internals (ADR-104 §7; issue-1188 preflight).
+            _LOGGER.error("control-plane rejection audit persistence failed")
         response = JSONResponse(status_code=status_code, content={"detail": detail})
         await response(scope, receive, send)
 
