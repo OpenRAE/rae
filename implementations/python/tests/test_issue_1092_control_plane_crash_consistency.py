@@ -1087,7 +1087,7 @@ def test_local_store_migrates_v1_sqlite_operations_and_disposes_denials(tmp_path
     assert denial_audit.allowed is False
     assert denial_audit.reason == "legacy-denied-operation-disposed"
     with migrated._connection() as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("4",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
 
 
 def test_local_store_rejects_non_wal_before_schema_or_legacy_migration(

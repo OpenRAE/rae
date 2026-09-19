@@ -7,6 +7,17 @@ from tools.formal_semantic_validation._types import _PARTICIPANT_OBSERVATION_KEY
 from tools.policy.common import PolicyFailure
 
 
+def _retained_fixture_paths(cases_by_id: Mapping[str, Mapping[str, object]]) -> set[str]:
+    """Select the retained case fixtures required by the release boundary."""
+
+    return {
+        value
+        for case in cases_by_id.values()
+        for value in (case.get("fixture_path"), case.get("comparison_fixture_path"))
+        if isinstance(value, str)
+    }
+
+
 def _validate_retest_participant_observations(
     protocol: Mapping[str, object],
     snapshot: Mapping[str, object],

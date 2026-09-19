@@ -106,7 +106,7 @@ async def _resolved_governed_view(
         action=resolution.action,
         identity=identity.identity,
         allowed=True,
-        target=str(request.url.path),
+        target=control_plane._target_scope,
     )
     _set_snapshot_revision_header(response, revision)
     return view
@@ -134,7 +134,7 @@ def register_participant_retrieval_routes(
             participant_address,
             _GovernedViewResolution(
                 action="get_participant_status_view",
-                not_found_detail=f"Unknown participant: {participant_address}",
+                not_found_detail="participant not found",
                 resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_status_view(
                     participant_address,
                     identity=identity,
@@ -163,7 +163,7 @@ def register_participant_retrieval_routes(
             participant_address,
             _GovernedViewResolution(
                 action="get_participant_history_view",
-                not_found_detail=f"Unknown participant episode: {participant_address}/{episode_id}",
+                not_found_detail="participant episode not found",
                 resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_history_view(
                     participant_address,
                     episode_id,
@@ -193,7 +193,7 @@ def register_participant_retrieval_routes(
             participant_address,
             _GovernedViewResolution(
                 action="get_participant_context_view",
-                not_found_detail=f"Unknown participant: {participant_address}",
+                not_found_detail="participant not found",
                 resolve=lambda audience_binding, idempotency_key: control_plane.get_participant_context_view(
                     participant_address,
                     view_ref=query.view_ref,

@@ -564,14 +564,16 @@ def test_control_plane_api_redacts_unexpected_route_errors(monkeypatch: pytest.M
             "/snapshot",
             headers={"authorization": "Bearer test-auditor-token"},
         )
-        audit_reason = control_plane.audit_log()[-1].reason
+        audit_event = control_plane.audit_log()[-1]
 
     assert response.status_code == 500
     assert response.json() == {"detail": "internal server error"}
     assert "SECRET-BACKEND-DETAIL" not in response.text
     # Stable audit reason: no exception class name (issue-1188 preflight).
-    assert audit_reason == "internal-error"
-    assert "RuntimeError" not in audit_reason
+    assert audit_event.reason == "internal-error"
+    assert audit_event.action == "http-internal-error"
+    assert audit_event.target == control_plane._target_scope
+    assert "RuntimeError" not in audit_event.reason
 
 
 def test_control_plane_api_internal_error_survives_audit_failure(monkeypatch: pytest.MonkeyPatch) -> None:

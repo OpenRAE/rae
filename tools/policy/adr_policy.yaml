@@ -207,10 +207,12 @@ module_boundaries:
         - raes_conformance
         - raes_operations
         - raes_processor
-        - raes
-      forbidden_import_prefixes:
+        # ADR-104 operator-command exception: the closed offline maintenance API.
         - raes_runtime
+        - raes
       public_import_prefixes:
+        raes_runtime:
+          - raes_runtime.control_plane_store_maintenance
         # Plan-inspection CLI (issue #609): the backend-manifest-v2 adapter and
         # the pure stub-manifest declaration seam only -- never the stub runtime
         # components (raes_backend_stubs.stubs pulls raes_runtime).

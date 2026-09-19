@@ -19,7 +19,7 @@ from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .control_plane_store_records import _record_from_payload, _record_payload
 
 _MIGRATION_ID = "local-operation-record/v1-to-v2"
-LOCAL_OPERATION_SCHEMA_VERSION = "4"
+LOCAL_OPERATION_SCHEMA_VERSION = "5"
 _OPERATION_KINDS = {
     RuntimeDomain.PROVISIONING: OperationKind.PROVISIONING,
     RuntimeDomain.ORCHESTRATION: OperationKind.ORCHESTRATION,
@@ -140,7 +140,7 @@ def migrate_sqlite_schema(
             decode_payload=decode_payload,
             encode_payload=encode_payload,
         )
-    elif row is None or row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
+    elif row is None or row[0] not in {"4", LOCAL_OPERATION_SCHEMA_VERSION}:
         raise ValueError("unsupported local control-plane database schema")
     _ensure_idempotency_claim_index(connection)
     if row is not None and row[0] != LOCAL_OPERATION_SCHEMA_VERSION:

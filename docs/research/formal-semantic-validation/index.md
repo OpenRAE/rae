@@ -223,11 +223,16 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   replay retains bounded outcomes and claim limits without claiming that this
   corpus executes process contention, SQLite lifecycle ordering, or crash
   recovery.
-- [`bundles/retest-v32.json`](bundles/retest-v32.json) is current release 33.0.0.
+- [`bundles/retest-v32.json`](bundles/retest-v32.json) preserves release 33.0.0.
   It binds [`execution-snapshot-v32.json`](execution-snapshot-v32.json) and
   [`analysis-v32.json`](analysis-v32.json) to issue #1015 mixed and staged trial
   admission. Fresh replay retains bounded outcomes and claim limits without
   claiming that this corpus executes a mixed-backend trial realization.
+- [`bundles/retest-v33.json`](bundles/retest-v33.json) is current release 34.0.0.
+  It binds [`execution-snapshot-v33.json`](execution-snapshot-v33.json) and
+  [`analysis-v33.json`](analysis-v33.json) to issue #1186 runtime maintenance,
+  health, and audit source. Replay retains the formal corpus outcomes without
+  claiming that it exercises those operator paths.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -278,12 +283,14 @@ substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
 code. Only the current release supports a current-code claim.
 
-The two JSON files in [`historical-artifacts/`](historical-artifacts/) preserve
-original baseline bytes recovered from Git revision
-`106b195e3dc0048a647e845876e8eaefe08e3d1b`. They remain immutable recovery
-material; the current release-10 linkage is described above. Validation admits
-an archived copy only through the independently pinned archive record and an
-exact requested digest, without network access or historical capture rewriting.
+The archived JSON pairs in [`historical-artifacts/`](historical-artifacts/)
+preserve original baseline bytes recovered from Git revisions
+`106b195e3dc0048a647e845876e8eaefe08e3d1b` and
+`803257b2d9d3a4808295f47dd6fecd697aa9e558`. The latter retains the exact
+release-32 baseline selected by the now-historical release-33 snapshot.
+Validation admits an archived copy only through its independently pinned
+record and exact requested digest, without network access or historical
+capture rewriting.
 
 The current capture's `source_state` records a base Git commit, the modified
 checkout state, and a deterministic digest of all reference-package Python
