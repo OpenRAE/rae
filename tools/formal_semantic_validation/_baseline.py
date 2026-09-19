@@ -26,6 +26,8 @@ from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_re
 
 _ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/historical-artifacts/pins-v1.json"
 _ARCHIVE_PINS_SHA256 = "bcb61fa1f0bce5411eb4d3f9583b51df47798ac955d85b6dd3eadf50c14599f2"
+_ADDITIONAL_ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/historical-artifacts/pins-v2.json"
+_ADDITIONAL_ARCHIVE_PINS_SHA256 = "04b4a1cdfa8c76ccbc536e87365e9343bec4fb8dcde712c15a6535c6e927352a"
 
 _DRIFT_COMPARISON_KEYS = ("actual_outcome", "diagnostic_kind", "result_digest")
 _V2_REVISIONS = frozenset(
@@ -60,6 +62,7 @@ _V2_REVISIONS = frozenset(
         "30.0.0",
         "31.0.0",
         "32.0.0",
+        "33.0.0",
     }
 )
 _V3_CORPUS_REVISIONS = frozenset(
@@ -81,6 +84,7 @@ _V3_CORPUS_REVISIONS = frozenset(
         "30.0.0",
         "31.0.0",
         "32.0.0",
+        "33.0.0",
     }
 )
 
@@ -96,12 +100,18 @@ def _pinned_document(repo_root: Path, relative: str, digest: str) -> Mapping[str
 
 
 def _archive_allowed(repo_root: Path, relative: str, digest: str) -> bool:
-    pins = _pinned_document(repo_root, _ARCHIVE_PINS_PATH, _ARCHIVE_PINS_SHA256)
-    return pins is not None and any(
-        (row[f"{kind}_path"], row[f"{kind}_sha256"]) == (relative, digest)
-        for row in pins["releases"]
-        for kind in ("release", "snapshot")
-    )
+    for path, expected in (
+        (_ARCHIVE_PINS_PATH, _ARCHIVE_PINS_SHA256),
+        (_ADDITIONAL_ARCHIVE_PINS_PATH, _ADDITIONAL_ARCHIVE_PINS_SHA256),
+    ):
+        pins = _pinned_document(repo_root, path, expected)
+        if pins is not None and any(
+            (row[f"{kind}_path"], row[f"{kind}_sha256"]) == (relative, digest)
+            for row in pins["releases"]
+            for kind in ("release", "snapshot")
+        ):
+            return True
+    return False
 
 
 def _baseline_document(repo_root: Path, path_value: object, digest: object) -> Mapping[str, object] | None:

@@ -197,12 +197,18 @@ this run does not repair them.
   recovery, and its classifications and claim limits remain unchanged.
 
 - [`execution-snapshot-v32.json`](execution-snapshot-v32.json) and
-  [`analysis-v32.json`](analysis-v32.json) are current release 32.0.0. Fresh
+  [`analysis-v32.json`](analysis-v32.json) preserve release 32.0.0. Fresh
   replay binds issue #1015 deterministic mixed/staged trial admission and its
   exact plan/compiler identities to current source. The retained language
   corpus does not execute mixed runtimes, phase transitions, backend handoff,
   or scheduler-driven realization; classifications and claim limits remain
   unchanged.
+
+- [`execution-snapshot-v33.json`](execution-snapshot-v33.json) and
+  [`analysis-v33.json`](analysis-v33.json) are current release 33.0.0. Replay
+  binds issue #1186 maintenance, health, and audit source to the current
+  reference implementation. The retained language corpus does not execute
+  those operator paths; classifications and claim limits remain unchanged.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
@@ -232,7 +238,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 32.0.0 and rejects duplicate or unsupported
+Current validation requires release 33.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
