@@ -569,7 +569,127 @@ def test_control_plane_api_redacts_unexpected_route_errors(monkeypatch: pytest.M
     assert response.status_code == 500
     assert response.json() == {"detail": "internal server error"}
     assert "SECRET-BACKEND-DETAIL" not in response.text
-    assert audit_reason == "internal-error:RuntimeError"
+    # Stable audit reason: no exception class name (issue-1188 preflight).
+    assert audit_reason == "internal-error"
+    assert "RuntimeError" not in audit_reason
+
+
+def test_control_plane_api_internal_error_survives_audit_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A failed secondary audit must not replace the stable 500 envelope (core-F1)."""
+
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    def failing_audit(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("audit store unavailable /var/secret")
+
+    monkeypatch.setattr(control_plane, "get_snapshot", lambda: (_ for _ in ()).throw(RuntimeError("boom")))
+    monkeypatch.setattr(control_plane, "record_audit", failing_audit)
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.get("/snapshot", headers={"authorization": "Bearer test-auditor-token"})
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "internal server error"}
+    assert "audit store unavailable" not in response.text
+    assert "/var/secret" not in response.text
+
+
+def test_control_plane_api_request_validation_error_survives_audit_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failed secondary audit must not replace the stable 422 envelope (core-F1)."""
+
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    def failing_audit(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("audit store unavailable /var/secret")
+
+    monkeypatch.setattr(control_plane, "record_audit", failing_audit)
+    headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.post("/operations/provisioning", json={"operations": "not-a-list"}, headers=headers)
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "request validation failed"}
+    assert "audit store unavailable" not in response.text
+    assert "/var/secret" not in response.text
+
+
+@pytest.mark.parametrize(
+    ("method_name", "path", "payload"),
+    (
+        (
+            "submit_provisioning",
+            "/operations/provisioning",
+            {"operations": [], "diagnostics": [], "realization_authority": []},
+        ),
+        (
+            "submit_orchestration",
+            "/operations/orchestration",
+            {"operations": [], "startup_order": [], "diagnostics": []},
+        ),
+        ("submit_evaluation", "/operations/evaluation", {"operations": [], "diagnostics": []}),
+    ),
+)
+def test_control_plane_api_redacts_core_conflict_exception_text(
+    monkeypatch: pytest.MonkeyPatch,
+    method_name: str,
+    path: str,
+    payload: dict[str, object],
+) -> None:
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+    secret = "token=abcd /var/secrets/store.db SELECT * FROM operations WHERE actor='alice'"
+
+    def leaking(*_args: object, **_kwargs: object) -> None:
+        raise ValueError(secret)
+
+    monkeypatch.setattr(control_plane, method_name, leaking)
+    headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+
+    with TestClient(app) as client:
+        response = client.post(path, json=payload, headers=headers)
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "operation conflict"}
+    assert "token=abcd" not in response.text
+    assert "SELECT" not in response.text
+    assert "/var/secrets" not in response.text
+
+
+def test_control_plane_api_redacts_participant_execution_state_error_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+
+    def leaking(*_args: object, **_kwargs: object) -> None:
+        raise ValueError("/secret/exec/path backend disclosure detail")
+
+    monkeypatch.setattr(control_plane, "participant_execution_state", leaking)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/participant-executions/exec-scope-1",
+            headers={"authorization": "Bearer test-operator-token"},
+        )
+
+    assert response.status_code == 404
+    assert "/secret/exec/path" not in response.text
+    assert "backend disclosure detail" not in response.text
 
 
 def test_control_plane_api_accepts_orchestration_plan_and_exposes_snapshot():
@@ -877,6 +997,90 @@ nodes:
     assert len(operation_audits) == 1
 
 
+def test_control_plane_api_scopes_idempotency_claims_per_principal() -> None:
+    """A shared idempotency key never returns another principal's receipt.
+
+    Claims are scoped by (store, actor, kind, key) (ADR-104 §7; FM3 invariant 8),
+    so two principals presenting the same key mint distinct operations and neither
+    can read the other's (guessing an operation id grants no authority).
+    """
+
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+    payload = {"operations": [], "diagnostics": [], "realization_authority": []}
+    backend_headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+        "idempotency-key": "shared-key",
+    }
+    operator_headers = {
+        "authorization": "Bearer test-operator-token",
+        "idempotency-key": "shared-key",
+    }
+
+    with TestClient(app) as client:
+        backend = client.post("/operations/provisioning", json=payload, headers=backend_headers)
+        operator = client.post("/operations/provisioning", json=payload, headers=operator_headers)
+        cross_read = client.get(
+            f"/operations/{backend.json()['operation_id']}",
+            headers=operator_headers,
+        )
+
+    assert backend.status_code == 200
+    assert operator.status_code == 200
+    assert backend.json()["operation_id"] != operator.json()["operation_id"]
+    assert backend.json()["context"]["actor_id"] == "backend-service"
+    assert operator.json()["context"]["actor_id"] == "operator"
+    assert cross_read.status_code == 404
+
+
+def test_control_plane_api_commits_one_actor_bound_terminal_audit() -> None:
+    """A successful mutation commits exactly one actor-bound terminal audit.
+
+    The core transaction owns terminal audit (ADR-104 §4; FM3 invariant 4); the
+    route appends none. Exactly one operation-scoped audit exists and it carries
+    the authenticated actor.
+    """
+
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    app = create_control_plane_app(control_plane, security=_test_security(target.name))
+    headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/operations/provisioning",
+            json={"operations": [], "diagnostics": [], "realization_authority": []},
+            headers=headers,
+        )
+        operation_id = response.json()["operation_id"]
+        operation_audits = [event for event in control_plane.audit_log() if event.operation_id == operation_id]
+
+    assert response.status_code == 200
+    assert response.json()["accepted"] is True
+    assert len(operation_audits) == 1
+    assert operation_audits[0].identity == "backend-service"
+    assert operation_audits[0].allowed is True
+
+
+def test_create_control_plane_app_rejects_multi_worker_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2 is one owning application worker; multi-worker service posture fails closed."""
+
+    monkeypatch.setenv("WEB_CONCURRENCY", "2")
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    security = _test_security(target.name)
+
+    with pytest.raises(RuntimeError, match="unsupported for a local control-plane store"):
+        create_control_plane_app(control_plane, security=security)
+
+
 def test_slow_backend_submission_does_not_block_unrelated_http_reads(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -939,6 +1143,140 @@ def test_slow_backend_submission_does_not_block_unrelated_http_reads(
             assert response.status_code == 200
 
     _run(exercise())
+
+
+def test_participant_status_projection_does_not_contend_with_mutations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A side-effect-free API-408 projection must not wait on backend mutation latency.
+
+    With no crossing-policy resolver configured the status view records no
+    crossing evidence, so it is a pure read: it runs on the non-contending
+    ``run`` path and carries its observed snapshot revision even while a slow
+    mutation owns the mutation authority (ADR-104 §2 P2; issue-1188 preflight).
+    """
+
+    target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    # One mutation slot: while a mutation holds it, the mutate() path fails closed
+    # with 503, so a pure projection surviving proves it is on the run() path.
+    app = create_control_plane_app(control_plane, security=_test_security(target.name, max_pending_mutations=1))
+    mutate_headers = {
+        "x-raes-client-verified": "true",
+        "x-raes-client-identity": "backend-service",
+    }
+    read_headers = {"authorization": "Bearer test-operator-token"}
+    entered = Event()
+    release = Event()
+    real_submit = control_plane.submit_provisioning
+
+    def blocking_submit(
+        submitted_plan: ProvisioningPlan,
+        *,
+        base_snapshot: RuntimeSnapshot | None = None,
+        idempotency_key: str = "",
+        request_fingerprint: str = "",
+        identity: object | None = None,
+    ) -> OperationReceipt:
+        entered.set()
+        if not release.wait(timeout=5):
+            raise TimeoutError("test backend was not released")
+        return real_submit(
+            submitted_plan,
+            base_snapshot=base_snapshot,
+            idempotency_key=idempotency_key,
+            request_fingerprint=request_fingerprint,
+            identity=identity,
+        )
+
+    async def exercise() -> None:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            initialized = await client.post(
+                "/participants/participant.alice/episodes/initialize",
+                json={},
+                headers=mutate_headers,
+            )
+            assert initialized.status_code == 200
+            monkeypatch.setattr(control_plane, "submit_provisioning", blocking_submit)
+            submission = asyncio.create_task(
+                client.post(
+                    "/operations/provisioning",
+                    json={"operations": [], "diagnostics": [], "realization_authority": []},
+                    headers=mutate_headers,
+                )
+            )
+            try:
+                assert await asyncio.to_thread(entered.wait, 2)
+                assert not submission.done()
+                status = await asyncio.wait_for(
+                    client.get("/participants/participant.alice/status", headers=read_headers),
+                    timeout=1,
+                )
+                assert status.status_code == 200
+                assert status.headers["X-RAES-Snapshot-Revision"]
+            finally:
+                release.set()
+            response = await asyncio.wait_for(submission, timeout=2)
+            assert response.status_code == 200
+
+    _run(exercise())
+
+
+def test_governed_participant_status_view_commits_crossing_before_disclosure() -> None:
+    """A governed API-408 egress stays a read-shaped mutation.
+
+    With a crossing-policy resolver configured, the status view records a
+    RUN-319 crossing occurrence before disclosure (the mutation/evidence path a
+    pure ``run`` read would never take) and an audience-unbound reader is
+    refused. This is CP-8's "governed egress remains a separately asserted
+    mutation contract" (issue-1188 preflight).
+    """
+
+    from participant_crossing_fixtures import (
+        PARTICIPANT,
+        StaticCrossingResolver,
+        action_plane,
+        evidence,
+        policy_capable_target,
+    )
+    from participant_crossing_fixtures import identity as _governed_identity
+
+    class _ViewEvidenceResolver(StaticCrossingResolver):
+        """A resolver that supplies trusted egress evidence to the HTTP adapter."""
+
+        def resolve_participant_view_evidence(self, **_kwargs: object):
+            return evidence()
+
+    target = policy_capable_target("participant_egress_projection", "participant_transformation")
+    control_plane = action_plane(_ViewEvidenceResolver(), target=target)
+    security = ControlPlaneSecurityConfig(
+        trust_proxy_identity_headers=False,
+        bearer_tokens={
+            "audience-token": _governed_identity(audience_bound=True),
+            "unbound-token": _governed_identity(audience_bound=False),
+        },
+    )
+    app = create_control_plane_app(control_plane, security=security)
+
+    with TestClient(app) as client:
+        before = len(control_plane.snapshot.participant_crossing_history.get(PARTICIPANT, ()))
+        governed = client.get(
+            f"/participants/{PARTICIPANT}/status",
+            headers={"authorization": "Bearer audience-token"},
+        )
+        after = len(control_plane.snapshot.participant_crossing_history.get(PARTICIPANT, ()))
+        forbidden = client.get(
+            f"/participants/{PARTICIPANT}/status",
+            headers={"authorization": "Bearer unbound-token"},
+        )
+
+    assert governed.status_code == 200
+    assert governed.headers["X-RAES-Snapshot-Revision"]
+    # A pure read records no crossing history; growth proves the governed egress
+    # committed its RUN-319 evidence through the mutation path before disclosure.
+    assert after > before
+    assert forbidden.status_code == 403
 
 
 def test_control_plane_rejects_mutation_queue_overload(
@@ -2159,7 +2497,9 @@ class TestParticipantEpisodeHttpRoutes:
         )
 
         assert response.status_code == 400
-        assert "invalid terminal_reason" in response.json()["detail"]
+        assert response.json()["detail"] == "invalid terminal_reason"
+        assert "exploded" not in response.text
+        assert "ParticipantEpisodeTerminalReason" not in response.text
 
     def test_restart_route_resumes_after_termination(self):
         client = self._build_client()

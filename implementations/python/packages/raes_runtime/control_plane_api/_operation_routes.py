@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -33,15 +35,46 @@ from ._responses import (
     _NOT_FOUND_RESPONSES,
     _conflict_detail,
     _receipt_response,
-    _record_operation_receipt_audit,
     _set_snapshot_revision_header,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class _IndeterminateResolutionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     disposition: IndeterminateResolutionDisposition
+
+
+async def _record_admission_denial_best_effort(
+    request: Request,
+    control_plane: RuntimeControlPlane,
+    *,
+    action: str,
+    reason: str,
+) -> None:
+    """Record a redacted admission-denial audit without letting its failure replace the response.
+
+    A failed secondary audit must never escape and replace the already-selected
+    stable 4xx/5xx envelope (ADR-104 §7; issue-1188 preflight: the request-size
+    middleware and global exception handlers need the same best-effort audit
+    rule). Any audit or offload failure is swallowed after a stable log label,
+    and ``reason`` is always a stable code — never exception text or a provider
+    class name.
+    """
+
+    try:
+        await _control_plane_calls(request).run(
+            control_plane.record_audit,
+            action=action,
+            identity="anonymous",
+            allowed=False,
+            target=str(request.url.path),
+            reason=reason,
+        )
+    except Exception:
+        _LOGGER.error("control-plane redacted-error audit persistence failed")
 
 
 def _install_request_guards(
@@ -58,26 +91,17 @@ def _install_request_guards(
 
     @app.exception_handler(Exception)
     async def _redacted_errors(request: Request, exc: Exception) -> JSONResponse:
-        await _control_plane_calls(request).run(
-            control_plane.record_audit,
-            action=request.method,
-            identity="anonymous",
-            allowed=False,
-            target=str(request.url.path),
-            reason=f"internal-error:{type(exc).__name__}",
+        del exc
+        await _record_admission_denial_best_effort(
+            request, control_plane, action=request.method, reason="internal-error"
         )
         return JSONResponse(status_code=500, content={"detail": "internal server error"})
 
     @app.exception_handler(RequestValidationError)
     async def _redacted_request_validation_errors(request: Request, exc: RequestValidationError) -> JSONResponse:
         del exc
-        await _control_plane_calls(request).run(
-            control_plane.record_audit,
-            action=request.method,
-            identity="anonymous",
-            allowed=False,
-            target=str(request.url.path),
-            reason="request-validation-failed",
+        await _record_admission_denial_best_effort(
+            request, control_plane, action=request.method, reason="request-validation-failed"
         )
         return JSONResponse(status_code=422, content={"detail": "request validation failed"})
 
@@ -163,14 +187,6 @@ def _register_provisioning_submission_route(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="submit_provisioning",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
         return _receipt_response(receipt)
 
 
@@ -208,14 +224,6 @@ def _register_orchestration_submission_route(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="submit_orchestration",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
         return _receipt_response(receipt)
 
 
@@ -253,14 +261,6 @@ def _register_evaluation_submission_route(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="submit_evaluation",
-            identity=identity.identity,
-            target=str(request.url.path),
-            receipt=receipt,
-        )
         return _receipt_response(receipt)
 
 
