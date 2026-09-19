@@ -56,15 +56,19 @@ def _require_safe_store_path_metadata(
     _require_safe_link_count(metadata, path, kind=kind)
 
 
-def _secure_store_directory(path: Path) -> None:
+def _secure_store_directory(path: Path, *, reject_insecure_existing: bool = False) -> None:
+    existed = True
     try:
         metadata = path.lstat()
     except FileNotFoundError:
+        existed = False
         path.mkdir(mode=_PRIVATE_DIRECTORY_MODE, parents=True, exist_ok=True)
         metadata = path.lstat()
     _require_safe_store_path_metadata(metadata, path, kind="directory")
     if os.name == "nt":
         return
+    if existed and reject_insecure_existing and stat.S_IMODE(metadata.st_mode) != _PRIVATE_DIRECTORY_MODE:
+        raise RuntimeError(f"local control-plane directory must use private permissions 0700: {path}")
     flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_CLOEXEC", 0)
     flags |= getattr(os, "O_NOFOLLOW", 0)
     descriptor = os.open(path, flags)

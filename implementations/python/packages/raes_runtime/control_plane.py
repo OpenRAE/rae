@@ -154,6 +154,7 @@ class RuntimeControlPlane(
                     raise ValueError("persisted participant crossing history requires a policy resolver")
                 validate_persisted_crossing_history(self._snapshot, crossing_policy_resolver)
             reconcile_startup_operations(self)
+            self._runtime_ready = True
         except BaseException:
             self.close()
             raise

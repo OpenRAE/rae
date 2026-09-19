@@ -86,7 +86,7 @@ def _register_participant_execution_routes(
             action="get_participant_execution_state",
             identity=identity.identity,
             allowed=True,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
         )
         _set_snapshot_revision_header(response, revision)
         return state
@@ -129,7 +129,7 @@ def _register_participant_control_routes(
                 action="record_participant_control",
                 identity=identity.identity,
                 allowed=False,
-                target=participant_address,
+                target=control_plane._target_scope,
                 reason="forbidden-subject",
             )
             raise HTTPException(status_code=403, detail="forbidden") from exc

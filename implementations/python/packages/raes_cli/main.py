@@ -2,7 +2,7 @@
 
 import typer
 
-from raes_cli import conformance, corpus, libvirt, processor, sdl, semantic
+from raes_cli import conformance, corpus, libvirt, processor, runtime, sdl, semantic
 from raes_cli.entrypoint import _distribution_version
 
 app = typer.Typer(
@@ -17,6 +17,7 @@ app.add_typer(conformance.app, name="conformance")
 app.add_typer(semantic.app, name="semantic")
 app.add_typer(libvirt.app, name="libvirt")
 app.add_typer(corpus.app, name="corpus")
+app.add_typer(runtime.app, name="runtime")
 
 
 def _version_callback(value: bool) -> None:

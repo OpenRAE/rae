@@ -412,7 +412,7 @@ def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_chang
         revision=0,
     )
     with sqlite3.connect(database_path) as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("4",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
         assert connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone() == (
             payload_before,
         )

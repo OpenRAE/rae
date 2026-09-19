@@ -27,9 +27,13 @@ class LocalOperationRecordStoreMixin:
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
         with self._connection() as connection:
-            rows = connection.execute(
-                "SELECT operation_id, payload, digest FROM operations ORDER BY operation_id"
-            ).fetchall()
+            return self._load_records(connection)
+
+    @staticmethod
+    def _load_records(connection: sqlite3.Connection) -> dict[str, ControlPlaneOperationRecord]:
+        rows = connection.execute(
+            "SELECT operation_id, payload, digest FROM operations ORDER BY operation_id"
+        ).fetchall()
         records: dict[str, ControlPlaneOperationRecord] = {}
         for operation_id, payload, digest in rows:
             record = _record_from_payload(_decode_payload(payload, digest, kind=_OPERATION_RECORD_KIND))

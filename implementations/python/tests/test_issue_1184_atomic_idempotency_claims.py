@@ -377,7 +377,7 @@ def test_v3_store_migration_builds_composite_claims_and_quarantines_opaque_parti
         with sqlite3.connect(database) as connection:
             row = connection.execute("SELECT actor_id, operation_kind, legacy_opaque_claim FROM operations").fetchone()
             assert row == ("operator-a", "participant-control", 1)
-            assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("4",)
+            assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
         conflicting_record = _record(
             "post-migration-retry",
             context=_context(kind=OperationKind.PARTICIPANT_CONTROL),

@@ -33,6 +33,7 @@ from ..control_plane_api_participant_retrieval import register_participant_retri
 from ..control_plane_security import ControlPlaneSecurityConfig
 from ..control_plane_store_lease import require_single_worker_configuration
 from ._auth import _ControlPlaneApiAuth
+from ._health_routes import _register_health_routes
 from ._offload import _ControlPlaneCallExecutor
 from ._operation_routes import _install_request_guards, _register_operation_routes
 from ._participant_routes import (
@@ -87,6 +88,7 @@ def create_control_plane_app(
     )
     app.state.control_plane_api_auth = _ControlPlaneApiAuth(control_plane, security)
     app.state.control_plane_call_executor = executor
+    _register_health_routes(app, control_plane)
     _install_request_guards(app, control_plane, security)
     _register_operation_routes(app, control_plane)
     _register_workflow_routes(app, control_plane)

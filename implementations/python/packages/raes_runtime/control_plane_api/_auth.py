@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hmac
+import logging
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request
@@ -13,6 +14,8 @@ from ..control_plane_security import (
     ControlPlaneRole,
     ControlPlaneSecurityConfig,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class _ControlPlaneApiAuth:
@@ -111,23 +114,30 @@ class _ControlPlaneApiAuth:
     ) -> ControlPlaneIdentity:
         if not identity.roles.isdisjoint(roles):
             return identity
-        self._control_plane.record_audit(
+        self._record_audit_safely(
             action=request.method,
             identity=identity.identity,
             allowed=False,
-            target=str(request.url.path),
             reason="forbidden",
         )
         raise HTTPException(status_code=403, detail="forbidden")
 
     def _record_denial(self, request: Request, reason: str) -> None:
-        self._control_plane.record_audit(
+        self._record_audit_safely(
             action=request.method,
             identity="anonymous",
             allowed=False,
-            target=str(request.url.path),
             reason=reason,
         )
+
+    def _record_audit_safely(self, **fields: object) -> None:
+        try:
+            self._control_plane.record_audit(
+                **fields,
+                target=self._control_plane._target_scope,
+            )
+        except Exception:
+            _LOGGER.error("control-plane-auth-audit-failed")
 
 
 def _mutating_identity_dependency(request: Request) -> ControlPlaneIdentity:

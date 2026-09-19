@@ -17,6 +17,7 @@ from tools.formal_semantic_validation._replay import (
 )
 from tools.formal_semantic_validation._retest_header import _validate_retest_header
 from tools.formal_semantic_validation._retest_participants import (
+    _retained_fixture_paths,
     _validate_retest_participant_observations,
 )
 from tools.formal_semantic_validation._shape import (
@@ -97,6 +98,7 @@ def _validate_retest_snapshot(
                 "31.0.0",
                 "32.0.0",
                 "33.0.0",
+                "34.0.0",
             }
             else set()
         ),
@@ -147,6 +149,7 @@ def _validate_retest_snapshot(
         "31.0.0",
         "32.0.0",
         "33.0.0",
+        "34.0.0",
     }:
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
     _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)
@@ -186,17 +189,6 @@ def _validate_release_selection(
                 scope.release.manifest_path,
             )
         )
-
-
-def _retained_fixture_paths(
-    cases_by_id: Mapping[str, Mapping[str, object]],
-) -> set[str]:
-    return {
-        value
-        for case in cases_by_id.values()
-        for value in (case.get("fixture_path"), case.get("comparison_fixture_path"))
-        if isinstance(value, str)
-    }
 
 
 def _retest_observation_failures(

@@ -70,7 +70,7 @@ async def _record_admission_denial_best_effort(
             action=action,
             identity="anonymous",
             allowed=False,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             reason=reason,
         )
     except Exception:
@@ -93,7 +93,7 @@ def _install_request_guards(
     async def _redacted_errors(request: Request, exc: Exception) -> JSONResponse:
         del exc
         await _record_admission_denial_best_effort(
-            request, control_plane, action=request.method, reason="internal-error"
+            request, control_plane, action="http-internal-error", reason="internal-error"
         )
         return JSONResponse(status_code=500, content={"detail": "internal server error"})
 
@@ -101,7 +101,7 @@ def _install_request_guards(
     async def _redacted_request_validation_errors(request: Request, exc: RequestValidationError) -> JSONResponse:
         del exc
         await _record_admission_denial_best_effort(
-            request, control_plane, action=request.method, reason="request-validation-failed"
+            request, control_plane, action="http-request-validation-failed", reason="request-validation-failed"
         )
         return JSONResponse(status_code=422, content={"detail": "request validation failed"})
 
@@ -174,7 +174,7 @@ def _register_provisioning_submission_route(
                 action="submit_provisioning",
                 identity=identity.identity,
                 allowed=False,
-                target=str(request.url.path),
+                target=control_plane._target_scope,
                 reason="planner-authorization-mismatch",
             )
             raise HTTPException(status_code=403, detail="provisioning plan is not planner-authorized")
@@ -211,7 +211,7 @@ def _register_orchestration_submission_route(
                 action="submit_orchestration",
                 identity=identity.identity,
                 allowed=False,
-                target=str(request.url.path),
+                target=control_plane._target_scope,
                 reason="planner-authorization-mismatch",
             )
             raise HTTPException(status_code=403, detail="orchestration plan is not planner-authorized")
@@ -248,7 +248,7 @@ def _register_evaluation_submission_route(
                 action="submit_evaluation",
                 identity=identity.identity,
                 allowed=False,
-                target=str(request.url.path),
+                target=control_plane._target_scope,
                 reason="planner-authorization-mismatch",
             )
             raise HTTPException(status_code=403, detail="evaluation plan is not planner-authorized")
@@ -283,7 +283,7 @@ def _register_operation_read_routes(
             action="get_operation",
             identity=identity.identity,
             allowed=True,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             operation_id=operation_id,
         )
         return _operation_status_model(status)
@@ -300,7 +300,7 @@ def _register_operation_read_routes(
             action="get_snapshot",
             identity=identity.identity,
             allowed=True,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
         )
         model, revision = await calls.run(
             control_plane._project_snapshot_read,
@@ -321,7 +321,7 @@ def _register_operation_read_routes(
             action="get_operational_apparatus_summary",
             identity=identity.identity,
             allowed=True,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
         )
         summary, revision = await calls.run(
             control_plane._project_snapshot_read,

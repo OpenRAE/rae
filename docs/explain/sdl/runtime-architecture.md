@@ -502,9 +502,12 @@ writes. A stale writer therefore changes none of them. An exact retry of an
 already committed terminal operation returns the durable state without
 incrementing its revision. A backend claim is stored before execution, and its
 resulting snapshot and terminal operation record commit in one transaction.
-Startup marks an orphaned non-terminal record `FAILED` with
-an explicit indeterminate-outcome diagnostic and never replays it; retaining
-the idempotency claim prevents a retry from blindly repeating backend effects.
+Startup classifies each orphaned non-terminal record without replay: a known
+absent effect becomes `FAILED` or `CANCELLED`, a validated observed effect
+becomes `SUCCEEDED`, and an outcome that cannot be established becomes
+`INDETERMINATE`. Retaining the idempotency claim prevents a retry from blindly
+repeating backend effects, and resolving an indeterminate outcome creates a
+linked operation instead of rewriting the original.
 On first use, legacy JSON state is imported without deleting its source and is
 copied to a timestamped backup. Payload digests and SQLite integrity checks
 detect accidental durable-state corruption. Owned POSIX store directories are
@@ -552,6 +555,12 @@ drains admitted composite calls, including their nested guarded work, before it
 releases authority. Run one ASGI worker with reload disabled. This is a
 single-host reference boundary, not a distributed queue, replication, or
 multi-host availability claim.
+
+The reference provider's operator procedures, including value-free health
+probes, shutdown ordering, recovery classification, and lease-admitted local
+store check/backup/restore commands, are documented in the
+[Control-Plane Recovery Operations runbook](control-plane-operations.md).
+Database restore does not establish equivalent external backend state.
 
 Bearer and verified-proxy authentication require the same exact target binding.
 An identity with no target, and an explicitly supplied bearer that is unknown,

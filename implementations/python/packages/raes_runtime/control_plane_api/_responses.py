@@ -7,7 +7,7 @@ from raes_contracts.contracts import OperationReceiptModel
 from raes_contracts.diagnostics import portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt
 
-from ..control_plane_store import SnapshotRevisionConflict
+from ..control_plane_store_revision import SnapshotRevisionConflict
 
 _CONFLICT_RESPONSES = {409: {"description": "Conflict"}}
 _CONFLICT_DETAIL = "operation conflict"

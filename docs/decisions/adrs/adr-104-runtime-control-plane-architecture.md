@@ -146,6 +146,12 @@ coordination providers implement the store, lease, and clock contracts; the
 control plane owns operation bookkeeping, receipts, snapshots, transitions,
 and audit.
 
+The P1 offline store-maintenance command is a narrow operator exception to
+ADR-036's CLI import boundary: `raes_cli` may call only the closed public
+`raes_runtime.control_plane_store_maintenance` interface for scope-bound
+check, backup, and restore. No other CLI-to-runtime import is authorized;
+SQLite validation, migration, and publication stay within the runtime owner.
+
 ### 7. Identity, authorization, and isolation
 
 P0 and P1 trust the embedding process to authenticate its caller, but the
@@ -238,3 +244,4 @@ demonstrated its lost-update and partial-state failures.
 | Date | Commit/PR | Summary |
 |---|---|---|
 | 2026-09-03 | #1151 | Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation. |
+| 2026-09-19 | #1186 | Permitted the operator CLI to call only the closed public P1 offline-maintenance interface while keeping runtime validation and publication ownership intact. |
