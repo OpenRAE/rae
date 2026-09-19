@@ -207,7 +207,7 @@ module_boundaries:
         - raes_conformance
         - raes_operations
         - raes_processor
-        # ADR-036 operator-command exception: the closed offline maintenance API.
+        # ADR-104 operator-command exception: the closed offline maintenance API.
         - raes_runtime
         - raes
       public_import_prefixes:

@@ -146,6 +146,12 @@ coordination providers implement the store, lease, and clock contracts; the
 control plane owns operation bookkeeping, receipts, snapshots, transitions,
 and audit.
 
+The P1 offline store-maintenance command is a narrow operator exception to
+ADR-036's CLI import boundary: `raes_cli` may call only the closed public
+`raes_runtime.control_plane_store_maintenance` interface for scope-bound
+check, backup, and restore. No other CLI-to-runtime import is authorized;
+SQLite validation, migration, and publication stay within the runtime owner.
+
 ### 7. Identity, authorization, and isolation
 
 P0 and P1 trust the embedding process to authenticate its caller, but the
