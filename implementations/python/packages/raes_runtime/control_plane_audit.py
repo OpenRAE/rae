@@ -159,8 +159,8 @@ def _valid_count(value: object, _details: Mapping[object, object]) -> bool:
 
 
 _DETAIL_VALIDATORS = {
-    **{key: _valid_identifier for key in _IDENTIFIER_KEYS - _OPTIONAL_FLOW_IDENTIFIERS},
-    **{key: _valid_optional_flow_identifier for key in _OPTIONAL_FLOW_IDENTIFIERS},
+    **dict.fromkeys(_IDENTIFIER_KEYS - _OPTIONAL_FLOW_IDENTIFIERS, _valid_identifier),
+    **dict.fromkeys(_OPTIONAL_FLOW_IDENTIFIERS, _valid_optional_flow_identifier),
     **{key: partial(_valid_enum, allowed=allowed) for key, allowed in _ENUM_DOMAINS.items()},
     "diagnostic_codes": _valid_diagnostic_codes,
     "diagnostics_truncated": _valid_boolean,
