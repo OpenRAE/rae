@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Mapping, Sequence
+from functools import partial
+from typing import cast
 
 from raes_contracts.operation_lifecycle import OperationState
 
@@ -55,6 +57,24 @@ _IDENTIFIER_KEYS = frozenset(
 _OPTIONAL_FLOW_IDENTIFIERS = frozenset(
     {"flow_sink_decision_id", "flow_relation_document_id", "flow_relation_document_revision"}
 )
+_DEFAULT_DETAIL_KEYS = frozenset({"count"})
+_ADMISSION_DETAIL_KEYS = frozenset({"diagnostic_codes", "diagnostics_truncated"})
+_TERMINAL_DETAIL_KEYS = frozenset({"state"})
+_DETAIL_KEYS_BY_ACTION = {
+    "legacy_operation_admission": frozenset({"migration"}),
+    "record_participant_control": _CONTROL_DETAIL_KEYS | _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "record_participant_crossing": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "authorize_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "admit_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+}
+_ENUM_DOMAINS = {
+    "state": frozenset(state.value for state in OperationState),
+    "kind": _CONTROL_KINDS,
+    "disposition": _CROSSING_DISPOSITIONS,
+    "crossing_disposition": _CROSSING_DISPOSITIONS,
+    "flow_final_disposition": _FLOW_DISPOSITIONS,
+    "migration": frozenset({"local-operation-record/v1-to-v2"}),
+}
 
 
 def require_audit_event_fields(
@@ -89,59 +109,63 @@ def require_audit_event_fields(
 
 
 def _allowed_detail_keys(action: object) -> frozenset[str]:
-    if action == "legacy_operation_admission":
-        return frozenset({"migration"})
-    if isinstance(action, str) and action.endswith("_admission"):
-        return frozenset({"diagnostic_codes", "diagnostics_truncated"})
-    if isinstance(action, str) and action.endswith("_terminal"):
-        return frozenset({"state"})
-    if action == "record_participant_control":
-        return _CONTROL_DETAIL_KEYS | _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS
-    if action == "record_participant_crossing":
-        return _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS
-    if action in {"authorize_participant_action", "admit_participant_action"}:
-        return _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS
-    return frozenset({"count"})
+    if not isinstance(action, str):
+        return _DEFAULT_DETAIL_KEYS
+    allowed = _DETAIL_KEYS_BY_ACTION.get(action)
+    if allowed is None and action.endswith("_admission"):
+        allowed = _ADMISSION_DETAIL_KEYS
+    if allowed is None and action.endswith("_terminal"):
+        allowed = _TERMINAL_DETAIL_KEYS
+    return allowed if allowed is not None else _DEFAULT_DETAIL_KEYS
 
 
 def _require_detail_value(key: str, value: object, details: Mapping[object, object]) -> str | int | bool | list[str]:
-    if key in _IDENTIFIER_KEYS:
-        if isinstance(value, str) and _IDENTIFIER.fullmatch(value):
-            return value
-        if (
-            key in _OPTIONAL_FLOW_IDENTIFIERS
-            and value == ""
-            and details.get("flow_final_disposition") in _FLOW_DISPOSITIONS - {"permit"}
-        ):
-            return ""
-    elif key == "state":
-        if isinstance(value, str) and value in {state.value for state in OperationState}:
-            return value
-    elif key == "kind":
-        if isinstance(value, str) and value in _CONTROL_KINDS:
-            return value
-    elif key in {"disposition", "crossing_disposition"}:
-        if isinstance(value, str) and value in _CROSSING_DISPOSITIONS:
-            return value
-    elif key == "flow_final_disposition":
-        if isinstance(value, str) and value in _FLOW_DISPOSITIONS:
-            return value
-    elif key == "migration":
-        if value == "local-operation-record/v1-to-v2":
-            return value
-    elif key == "diagnostic_codes":
-        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-            if len(value) <= _MAX_DETAIL_SEQUENCE_LENGTH and all(
-                isinstance(item, str) and _DIAGNOSTIC_CODE.fullmatch(item) for item in value
-            ):
-                return list(value)
-    elif key == "diagnostics_truncated":
-        if isinstance(value, bool):
-            return value
-    elif key == "count":
-        if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= _MAX_INTEGER:
-            return value
-    raise ValueError("audit details value is outside its allowed domain")
+    validator = _DETAIL_VALIDATORS.get(key)
+    if validator is None or not validator(value, details):
+        raise ValueError("audit details value is outside its allowed domain")
+    normalized = list(value) if key == "diagnostic_codes" and isinstance(value, Sequence) else value
+    return cast("str | int | bool | list[str]", normalized)
+
+
+def _valid_identifier(value: object, _details: Mapping[object, object]) -> bool:
+    return isinstance(value, str) and _IDENTIFIER.fullmatch(value) is not None
+
+
+def _valid_optional_flow_identifier(value: object, details: Mapping[object, object]) -> bool:
+    return _valid_identifier(value, details) or (
+        value == "" and details.get("flow_final_disposition") in _FLOW_DISPOSITIONS - {"permit"}
+    )
+
+
+def _valid_enum(value: object, _details: Mapping[object, object], *, allowed: frozenset[str]) -> bool:
+    return isinstance(value, str) and value in allowed
+
+
+def _valid_diagnostic_codes(value: object, _details: Mapping[object, object]) -> bool:
+    return (
+        isinstance(value, Sequence)
+        and not isinstance(value, (str, bytes, bytearray))
+        and len(value) <= _MAX_DETAIL_SEQUENCE_LENGTH
+        and all(isinstance(item, str) and _DIAGNOSTIC_CODE.fullmatch(item) for item in value)
+    )
+
+
+def _valid_boolean(value: object, _details: Mapping[object, object]) -> bool:
+    return isinstance(value, bool)
+
+
+def _valid_count(value: object, _details: Mapping[object, object]) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= _MAX_INTEGER
+
+
+_DETAIL_VALIDATORS = {
+    **{key: _valid_identifier for key in _IDENTIFIER_KEYS - _OPTIONAL_FLOW_IDENTIFIERS},
+    **{key: _valid_optional_flow_identifier for key in _OPTIONAL_FLOW_IDENTIFIERS},
+    **{key: partial(_valid_enum, allowed=allowed) for key, allowed in _ENUM_DOMAINS.items()},
+    "diagnostic_codes": _valid_diagnostic_codes,
+    "diagnostics_truncated": _valid_boolean,
+    "count": _valid_count,
+}
 
 
 def _require_string(value: object, *, label: str, allow_empty: bool) -> None:

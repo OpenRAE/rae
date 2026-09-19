@@ -140,9 +140,7 @@ def migrate_sqlite_schema(
             decode_payload=decode_payload,
             encode_payload=encode_payload,
         )
-    elif row is not None and row[0] == "4":
-        pass
-    elif row is None or row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
+    elif row is None or row[0] not in {"4", LOCAL_OPERATION_SCHEMA_VERSION}:
         raise ValueError("unsupported local control-plane database schema")
     _ensure_idempotency_claim_index(connection)
     if row is not None and row[0] != LOCAL_OPERATION_SCHEMA_VERSION:

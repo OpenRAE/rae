@@ -880,17 +880,16 @@ def test_schema_v4_audit_history_is_validated_before_v5_upgrade(
         content, digest = encode_payload(payload)
         connection.execute("UPDATE audit_events SET payload=?, digest=?", (content, digest))
 
+    target = create_stub_target()
+    store = LocalControlPlaneStore(store_path)
     with pytest.raises(ValueError):
-        RuntimeControlPlane(
-            create_stub_target(),
-            store=LocalControlPlaneStore(store_path),
-            run_scope="run:ops",
-        )
+        RuntimeControlPlane(target, store=store, run_scope="run:ops")
 
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("4",)
         persisted = connection.execute("SELECT payload FROM audit_events").fetchone()
-        assert persisted is not None and "must-not-be-rewritten" in persisted[0]
+        assert persisted is not None
+        assert "must-not-be-rewritten" in persisted[0]
 
 
 def test_valid_schema_v4_audit_history_advances_to_v5(tmp_path: Path) -> None:

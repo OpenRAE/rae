@@ -203,7 +203,7 @@ def _restore_store(
                         working_path=working_path,
                         directory=store_path,
                     )
-                except BaseException:
+                except Exception:
                     release_lease = False
                     _UNCERTAIN_RESTORE_LEASES.append(lease)
                     raise RuntimeError("local control-plane restore rollback could not be confirmed") from None
