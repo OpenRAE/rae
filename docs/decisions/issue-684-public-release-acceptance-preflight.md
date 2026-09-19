@@ -74,7 +74,7 @@ enterprise retention prerequisite. Keep the focused #1227 same-run recovery:
 re-run failed jobs while the original Actions artifacts remain available; never
 rebuild, overwrite, or move a tag for an existing version.
 
-## Read-only control observations (2026-09-19)
+## Control observations (2026-09-19)
 
 - The public [PyPI project](https://pypi.org/project/raes/) is `raes`.
   The [wheel](https://pypi.org/integrity/raes/5.0.0/raes-5.0.0-py3-none-any.whl/provenance)
@@ -93,10 +93,12 @@ rebuild, overwrite, or move a tag for an existing version.
   Active branch rulesets `merge-policy-main` and `merge-policy-dev` require a
   PR and likewise name no independent reviewer. This matches the single
   maintainer in `MAINTAINERS.md` and `GOVERNANCE.md`.
-- The repository ruleset API listed those two branch rulesets and no active
-  tag-targeting ruleset. The operator runbook still requires `v*` tag
-  protection before a future release. Adding that live administrative control
-  needs a separate maintainer decision; this document does not claim it exists.
+- After maintainer authorization, the active
+  [`protect-v-release-tags` ruleset](https://github.com/OpenRAE/rae/rules/23692605)
+  targets `refs/tags/v*` and restricts updates and deletions with no bypass
+  actors. It does not restrict creation, so Release Please can still create new
+  version tags. The rule was read back from the repository ruleset API; no
+  release was created to test it.
 - The current release workflow contains the exact-SHA verifier, required
   real-container lane, constrained build/smokes, separate attestation and
   admission, and two credentialed publisher jobs. The #1227 recovery tests
