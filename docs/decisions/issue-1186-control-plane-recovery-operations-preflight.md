@@ -267,9 +267,9 @@ injection must remain explicitly operational and cannot accept a `TimeRuntime`.
 - `raes_cli.main` and Typer sub-app registration are the incumbent operator CLI
   composition. Any local maintenance commands delegate to runtime-owned
   maintenance functions; CLI callbacks do not open SQLite, migrate rows, or
-  implement redaction themselves. ADR-036's module boundary permits only the
-  closed public maintenance import for this operator command; other CLI-to-
-  runtime imports remain forbidden.
+  implement redaction themselves. The ADR-104 amendment narrows ADR-036's
+  module boundary to permit only this closed public maintenance import; other
+  CLI-to-runtime imports remain forbidden.
 - `.ground-control.yaml`, `.gc/plan-rules.md`, `noxfile.py`,
   `tools/check_repo_policy.py`, `tools/check_requirement_governance.py`, and
   `tools/verify_all.py` remain the workflow gates. ADR-015's 500-line

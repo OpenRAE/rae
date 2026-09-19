@@ -244,3 +244,4 @@ demonstrated its lost-update and partial-state failures.
 | Date | Commit/PR | Summary |
 |---|---|---|
 | 2026-09-03 | #1151 | Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation. |
+| 2026-09-19 | #1186 | Permitted the operator CLI to call only the closed public P1 offline-maintenance interface while keeping runtime validation and publication ownership intact. |

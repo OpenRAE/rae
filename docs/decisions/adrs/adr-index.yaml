@@ -567,11 +567,14 @@ adrs:
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: 0743c8ac05d02bc482804066ded6414fb44c499d9817f9694efa108878f413ed
+    pin: 358435be3e823dc99d76df3ae38352c2ca6aaa115a6c10a6f9d0ff19c258e105
     amendments:
       - date: 2026-09-03
         ref: "#1151"
         summary: "Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation."
+      - date: 2026-09-19
+        ref: "#1186"
+        summary: "Permitted the operator CLI to call only the closed public P1 offline-maintenance interface while keeping runtime validation and publication ownership intact."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
     pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e
