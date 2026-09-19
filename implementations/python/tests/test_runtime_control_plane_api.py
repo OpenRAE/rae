@@ -1074,9 +1074,11 @@ def test_create_control_plane_app_rejects_multi_worker_configuration(
 
     monkeypatch.setenv("WEB_CONCURRENCY", "2")
     target = create_stub_target()
+    control_plane = RuntimeControlPlane(target)
+    security = _test_security(target.name)
 
     with pytest.raises(RuntimeError, match="unsupported for a local control-plane store"):
-        create_control_plane_app(RuntimeControlPlane(target), security=_test_security(target.name))
+        create_control_plane_app(control_plane, security=security)
 
 
 def test_slow_backend_submission_does_not_block_unrelated_http_reads(
