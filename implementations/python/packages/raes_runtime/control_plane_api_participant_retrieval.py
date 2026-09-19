@@ -74,14 +74,31 @@ async def _resolved_governed_view(
 
     audience_binding = _require_governed_audience_candidate(control_plane, identity, participant_address)
     calls = _control_plane_calls(request)
-    projection = await calls.mutate(
-        _governed_view,
-        lambda: control_plane._project_snapshot_read(
-            lambda: resolution.resolve(audience_binding, request.headers.get("idempotency-key", "")),
-            mutation_kind=OperationKind.PARTICIPANT_CROSSING,
-        ),
-    )
-    view, revision = projection
+    idempotency_key = request.headers.get("idempotency-key", "")
+    if audience_binding is None:
+        # No crossing-policy resolver governs this participant: the projection
+        # records no crossing evidence, so it is a side-effect-free read. Serve it
+        # on the non-contending run() path from one authoritative state cut so it
+        # never waits on backend mutation latency (ADR-104 §2 P2; issue-1188
+        # preflight "only the legacy/pure projection path may bypass mutation
+        # admission").
+        view, revision = await calls.run(
+            _governed_view,
+            lambda: control_plane._project_snapshot_read(
+                lambda: resolution.resolve(audience_binding, idempotency_key),
+            ),
+        )
+    else:
+        # Governed egress must commit its RUN-319 crossing occurrence before the
+        # view is disclosed, so it stays a read-shaped mutation on the one
+        # mutation authority with revision/history-head checks.
+        view, revision = await calls.mutate(
+            _governed_view,
+            lambda: control_plane._project_snapshot_read(
+                lambda: resolution.resolve(audience_binding, idempotency_key),
+                mutation_kind=OperationKind.PARTICIPANT_CROSSING,
+            ),
+        )
     if view is None:
         raise HTTPException(status_code=404, detail=resolution.not_found_detail)
     await calls.run(

@@ -27,7 +27,6 @@ from ._responses import (
     _NOT_FOUND_RESPONSES,
     _conflict_detail,
     _receipt_response,
-    _record_operation_receipt_audit,
     _set_snapshot_revision_header,
 )
 
@@ -62,14 +61,6 @@ def _register_participant_execution_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action=f"participant_execution_{body.action}",
-            identity=identity.identity,
-            target=control_plane._target_scope,
-            receipt=receipt,
-        )
         return _receipt_response(receipt)
 
     @app.get(
@@ -89,7 +80,7 @@ def _register_participant_execution_routes(
                 lambda: control_plane.participant_execution_state(execution_scope_ref),
             )
         except ValueError as exc:
-            raise HTTPException(status_code=404, detail="participant execution state not found") from exc
+            raise HTTPException(status_code=404, detail="participant execution not found") from exc
         await calls.run(
             control_plane.record_audit,
             action="get_participant_execution_state",
@@ -176,14 +167,6 @@ def _register_participant_episode_start_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="initialize_participant_episode",
-            identity=identity.identity,
-            target=control_plane._target_scope,
-            receipt=receipt,
-        )
         return _receipt_response(receipt)
 
     @app.post(
@@ -209,14 +192,6 @@ def _register_participant_episode_start_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="reset_participant_episode",
-            identity=identity.identity,
-            target=control_plane._target_scope,
-            receipt=receipt,
-        )
         return _receipt_response(receipt)
 
 
@@ -247,14 +222,6 @@ def _register_participant_episode_end_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="restart_participant_episode",
-            identity=identity.identity,
-            target=control_plane._target_scope,
-            receipt=receipt,
-        )
         return _receipt_response(receipt)
 
     @app.post(
@@ -284,12 +251,4 @@ def _register_participant_episode_end_routes(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
-        _record_operation_receipt_audit(
-            calls,
-            control_plane,
-            action="terminate_participant_episode",
-            identity=identity.identity,
-            target=control_plane._target_scope,
-            receipt=receipt,
-        )
         return _receipt_response(receipt)

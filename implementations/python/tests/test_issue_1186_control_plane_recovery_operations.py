@@ -960,7 +960,7 @@ def test_rejection_audit_failure_log_omits_exception_and_request_path(
     response = client.post("/secret/request/path", content=b"xx")
 
     assert response.status_code == 413
-    assert "control-plane-rejection-audit-failed" in caplog.text
+    assert "control-plane rejection audit persistence failed" in caplog.text
     assert sentinel not in caplog.text
     assert "/secret/request/path" not in caplog.text
 
@@ -1018,6 +1018,6 @@ def test_validation_secondary_audit_failure_preserves_coarse_response_and_log(
 
     assert response.status_code == 422
     assert response.json() == {"detail": "request validation failed"}
-    assert "control-plane-validation-audit-failed" in caplog.text
+    assert "control-plane redacted-error audit persistence failed" in caplog.text
     assert sentinel not in caplog.text
     assert raw_request_value not in caplog.text

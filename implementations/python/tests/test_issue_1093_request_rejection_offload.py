@@ -490,4 +490,4 @@ def test_rejection_remains_fail_closed_when_audit_persistence_fails(
     assert response_start["status"] == expected_status
     assert route_calls == []
     assert store.read_audit() == []
-    assert "control-plane-rejection-audit-failed" in caplog.text
+    assert "control-plane rejection audit persistence failed" in caplog.text
