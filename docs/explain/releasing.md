@@ -16,9 +16,11 @@ verification graph to pass for the exact commit named by the release (GOV-928).
 1. Feature PRs **squash-merge** (into `dev`, then promoted to `main`) with a
    Conventional Commit **PR title** — the squashed commit is what release-please
    reads. The required `title-guard` check enforces the shape.
-2. On every push to `main`, `.github/workflows/release-please.yml` maintains a
-   **release PR** titled `chore(main): release X.Y.Z` that bumps the version and
-   regenerates `CHANGELOG.md` from the commits since the last release.
+2. On a push to `main` containing a releasable Conventional Commit,
+   `.github/workflows/release-please.yml` maintains a **release PR** titled
+   `chore(main): release X.Y.Z` that bumps the version and regenerates
+   `CHANGELOG.md` from the commits since the last release. Documentation and
+   maintenance-only pushes do not create a release PR.
 3. **Merge that release PR.** Release Please tags `vX.Y.Z`, creates a **draft**
    GitHub Release, and returns the commit SHA that it tagged. Forced tag creation
    keeps draft releases discoverable by Release Please. The release workflow
@@ -91,8 +93,9 @@ for attachment and publication. Checkouts in either write-scoped job must not
 persist the elevated credential, and the permission correction must not
 introduce a PAT or long-lived publication secret.
 
-Nothing is hand-run, and feature PRs never touch `CHANGELOG.md` (release-please
-owns it) — no fragment collisions.
+The maintainer authorizes a release by merging its Release Please PR; artifact
+building and publication are automated afterward. Feature PRs never touch
+`CHANGELOG.md` (release-please owns it), so there are no fragment collisions.
 
 ## Version rubric (PR-title type → bump)
 
@@ -101,15 +104,21 @@ owns it) — no fragment collisions.
 | `feat` | yes | minor |
 | `fix`, `perf` | yes | patch |
 | `feat!` / `fix!` / `BREAKING CHANGE:` footer | yes | major (pre-1.0 demoted to minor) |
-| `docs`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
+| `docs`, `style`, `chore`, `refactor`, `test`, `ci`, `build` | no | — |
 
+The Python Release Please strategy normally includes `docs` in visible release
+notes. `release-please-config.json` explicitly hides that section alongside
+maintenance types, so a documentation-only change does not produce release
+notes and therefore does not propose a release. A later `feat:`, `fix:`, or
+`perf:` can still produce a release and include those changes in its history.
 Use `feat:`/`fix:` for consumer-visible changes so release-please cuts a release.
 
 ## Configuration
 
 - `release-please-config.json` — package at repo root (so `CHANGELOG.md` stays at
-  the root), `release-type: python`, `package-name: raes`. The actual version
-  literal lives in a dedicated RAES package file and is bumped via `extra-files`
+  the root), `release-type: python`, `package-name: raes`, and explicit
+  changelog-section visibility. The actual version literal lives in a dedicated
+  RAES package file and is bumped via `extra-files`
   (`implementations/python/packages/raes/_version.py`).
 - `.release-please-manifest.json` — the version source of truth: `{".": "X.Y.Z"}`.
 - `implementations/python/packages/raes/_version.py` — build version source
@@ -169,10 +178,9 @@ the wrong repository, workflow, run, attempt, or subject is a rejection.
 ### Where it is retained
 
 The evidence is attached to the GitHub Release beside the wheel and sdist, and
-read back and digest-compared after upload, so it outlives the seven-day Actions
-artifact retention. Retention owner: Release; the
-supported-release-lifetime-plus-one-year rule in
-[operations](../decisions/package-artifacts/operations.md) applies.
+read back and digest-compared after upload. It is therefore available as a
+Release asset after the seven-day Actions artifact retry window; no enterprise
+retention service or separate copy is a prerequisite for public publication.
 
 ### Verifying a release as a consumer
 
@@ -277,38 +285,38 @@ OIDC publication chain.
 Use this for a draft created by an older run that failed **before** PyPI
 publication: it preserves the bound tag, commit, and numeric Release identity
 while applying the current publication gates, rather than re-running a stale
-workflow definition. It is not the recovery path for a version that is already
-on PyPI — that run rebuilds, and the destination digest comparison will reject
-the result unless the rebuild is byte-identical. Manual dispatch is not a
-verification bypass and never builds from the current branch head.
+workflow definition. Never use manual dispatch for a version already on PyPI:
+it rebuilds instead of reusing the original admitted artifacts, even if the
+resulting bytes happen to match. Re-run failed jobs on the original run while
+its artifacts remain available; otherwise stop and cut a new patch release.
+Manual dispatch is not a verification bypass and never builds from the current
+branch head.
 
-## First release
+## Verify PyPI trusted publishing and release controls
 
-`main` starts at `0.18.0` (the manifest/pyproject baseline; the historical
-changelog through `0.18.0` is preserved in `CHANGELOG.md`). The first `feat:`/
-`fix:` merged to `main` after adoption produces a release PR bumping from
-`0.18.0`; merging it publishes the first PyPI artifact.
+Before merging a Release Please PR, the maintainer checks the existing PyPI
+project's *Publishing* settings for this exact Trusted Publisher tuple:
 
-## PyPI trusted publishing (one-time, maintainer)
+- PyPI project: `raes`
+- Owner/repository: `OpenRAE/rae`
+- Workflow: `release-please.yml`
+- Environment: `pypi`
 
-Register a **pending** trusted publisher on PyPI before the first upload (no
-token stored):
+The GitHub `pypi` environment must allow deployments only from `main`. Its
+publisher job alone receives that environment and `id-token: write`; it also
+has job-scoped `contents: write` solely so its post-approval identity check can
+see the still-draft GitHub Release. Resolution, canonical verification,
+distribution installation, GitHub attachment, and CLI execution cannot mint
+the PyPI publishing credential. The workflow uses short-lived OIDC rather than
+a stored PyPI API token. A successful historical publish attestation can prove
+which identity published that file, but does not prove that private publisher
+settings or account tokens remain unchanged today.
 
-- PyPI → *Your projects* → *Publishing* → *Add a pending publisher* → GitHub
-- PyPI Project Name: `raes`
-- Owner: `OpenRAE`  ·  Repository: `rae`
-- **Workflow name: `release-please.yml`**  ·  Environment name: `pypi`
-
-> If you previously registered the publisher against `release.yml`, update it to
-> `release-please.yml` (or add a second pending publisher) — the workflow filename
-> must match or only the PyPI publish step 403s.
-
-The `pypi` environment and `id-token: write` permission exist only on the PyPI
-upload job. That job also has job-scoped `contents: write` solely so its
-post-approval identity check can see the still-draft GitHub Release. Configure
-the environment's deployment branch policy for `main`. Resolution, canonical
-verification, distribution installation, GitHub attachment, and CLI execution
-cannot mint the PyPI publishing credential.
+Check the protected `main` and `dev` merge policies and the `v*` tag rule before
+authorizing a release. This is a single-maintainer decision; do not require a
+fictional second approver or deputy. Preserve the separation of machine
+permissions between verification, signing, PyPI publication, and GitHub
+finalization.
 
 ## Pinning from a downstream backend
 

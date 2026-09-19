@@ -545,6 +545,41 @@ def test_release_resolves_and_verifies_one_immutable_release_commit() -> None:
     assert verify["with"]["base-rev"] == "${{ needs.resolve-release.outputs.base_sha }}"
 
 
+def test_python_release_notes_do_not_make_docs_or_maintenance_releasable() -> None:
+    """Python's default visible ``docs`` section can propose a patch release.
+
+    Release Please skips a release PR when the generated notes contain no
+    visible section. Keep release-bearing types visible and hide repository-only
+    types explicitly. The action pin binds this policy to the engine version
+    exercised by the issue-684 behavior probe; changing engines requires a new
+    eligibility check, not just a configuration-shape check.
+    """
+
+    release_job = _load(RELEASE_PATH)["jobs"]["release-please"]
+    assert release_job["steps"][0]["uses"] == (
+        "googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7"
+    )
+    package = _load(RELEASE_CONFIG_PATH)["packages"]["."]
+    assert package["release-type"] == "python"
+    sections = package["changelog-sections"]
+    visibility = {section["type"]: section.get("hidden", False) for section in sections}
+    assert len(visibility) == len(sections)
+    assert visibility == {
+        "feat": False,
+        "fix": False,
+        "perf": False,
+        "deps": False,
+        "revert": False,
+        "docs": True,
+        "style": True,
+        "chore": True,
+        "refactor": True,
+        "test": True,
+        "build": True,
+        "ci": True,
+    }
+
+
 def test_every_shell_draft_release_inspection_has_push_capable_token() -> None:
     workflow = _load(RELEASE_PATH)
     assert workflow["permissions"] == {"contents": "read"}
