@@ -9,7 +9,7 @@ from raes_contracts.contracts import OperationReceiptModel
 from raes_contracts.diagnostics import portable_diagnostic_payload
 from raes_contracts.runtime_state import OperationReceipt
 
-from ..control_plane_store import IDEMPOTENCY_CLAIM_CONFLICT
+from ..control_plane_store_revision import SnapshotRevisionConflict
 
 if TYPE_CHECKING:
     from ..control_plane import RuntimeControlPlane
@@ -30,9 +30,11 @@ def _set_snapshot_revision_header(response: Response, revision: int) -> None:
 
 
 def _conflict_detail(error: ValueError) -> str:
-    """Redact the authoritative claim conflict while retaining bounded validation errors."""
+    """Return one coarse conflict without exposing provider or request values."""
 
-    return _CONFLICT_DETAIL if str(error) == IDEMPOTENCY_CLAIM_CONFLICT else str(error)
+    if isinstance(error, SnapshotRevisionConflict):
+        return "snapshot revision conflict"
+    return _CONFLICT_DETAIL
 
 
 def _receipt_response(receipt: OperationReceipt) -> OperationReceiptModel:

@@ -24,6 +24,7 @@ class RejectionAuditExecutor:
         if max_pending <= 0:
             raise ValueError("max_pending rejection audits must be positive")
         self._control_plane = control_plane
+        self._audit_target = control_plane._target_scope
         self._max_pending = max_pending
         self._pending = 0
         self._limiter = CapacityLimiter(1)
@@ -34,16 +35,10 @@ class RejectionAuditExecutor:
         action: str,
         identity: str,
         allowed: bool,
-        target: str,
         reason: str,
     ) -> bool:
         if self._pending >= self._max_pending:
-            _LOGGER.warning(
-                "control-plane rejection audit queue is full; dropping audit action=%s target=%s reason=%s",
-                action,
-                target,
-                reason,
-            )
+            _LOGGER.warning("control-plane-rejection-audit-dropped queue-full")
             return False
         self._pending += 1
         try:
@@ -52,7 +47,7 @@ class RejectionAuditExecutor:
                 action=action,
                 identity=identity,
                 allowed=allowed,
-                target=target,
+                target=self._audit_target,
                 reason=reason,
             )
             await to_thread.run_sync(call, limiter=self._limiter)
@@ -150,16 +145,15 @@ class RequestSizeLimitMiddleware:
     ) -> None:
         try:
             await self._rejection_audits.record(
-                action=scope.get("method", ""),
+                action="http-request-rejected",
                 identity="anonymous",
                 allowed=False,
-                target=scope.get("path", ""),
                 reason=detail,
             )
         except Exception:
             # Admission already failed closed. An unavailable audit store must
             # neither dispatch the body nor replace the stable rejection.
-            _LOGGER.exception("control-plane rejection audit persistence failed")
+            _LOGGER.error("control-plane-rejection-audit-failed")
         response = JSONResponse(status_code=status_code, content={"detail": detail})
         await response(scope, receive, send)
 

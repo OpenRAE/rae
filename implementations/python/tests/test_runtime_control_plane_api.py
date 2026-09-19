@@ -569,7 +569,7 @@ def test_control_plane_api_redacts_unexpected_route_errors(monkeypatch: pytest.M
     assert response.status_code == 500
     assert response.json() == {"detail": "internal server error"}
     assert "SECRET-BACKEND-DETAIL" not in response.text
-    assert audit_reason == "internal-error:RuntimeError"
+    assert audit_reason == "internal-error"
 
 
 def test_control_plane_api_accepts_orchestration_plan_and_exposes_snapshot():

@@ -40,7 +40,7 @@ def _register_workflow_routes(
             control_plane,
             action="cancel_workflow",
             identity=identity.identity,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             receipt=receipt,
         )
         return _receipt_response(receipt)
@@ -64,7 +64,7 @@ def _register_workflow_routes(
             control_plane,
             action="reconcile_workflow_timeouts",
             identity=identity.identity,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             receipt=receipt,
         )
         return _receipt_response(receipt)

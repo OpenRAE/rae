@@ -403,10 +403,10 @@ def test_rejection_audit_saturation_does_not_starve_real_authenticated_route(
             try:
                 assert await asyncio.to_thread(entered.wait, 2)
                 for _ in range(100):
-                    if "rejection audit queue is full" in caplog.text:
+                    if "control-plane-rejection-audit-dropped queue-full" in caplog.text:
                         break
                     await asyncio.sleep(0.01)
-                assert "rejection audit queue is full" in caplog.text
+                assert "control-plane-rejection-audit-dropped queue-full" in caplog.text
                 default_workers_in_use = to_thread.current_default_thread_limiter().borrowed_tokens
                 snapshot = await asyncio.wait_for(
                     client.get(
@@ -490,4 +490,4 @@ def test_rejection_remains_fail_closed_when_audit_persistence_fails(
     assert response_start["status"] == expected_status
     assert route_calls == []
     assert store.read_audit() == []
-    assert "control-plane rejection audit persistence failed" in caplog.text
+    assert "control-plane-rejection-audit-failed" in caplog.text

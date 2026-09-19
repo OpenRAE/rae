@@ -58,6 +58,7 @@ class RuntimeLifecycleMixin:
     _closed: bool
     _durability_poisoned: bool
     _runtime_lease: object | None
+    _runtime_ready: bool
 
     def _initialize_runtime_lifecycle(self) -> None:
         self._lifecycle_condition = Condition(RLock())
@@ -67,6 +68,7 @@ class RuntimeLifecycleMixin:
         self._closed = False
         self._durability_poisoned = False
         self._runtime_lease = None
+        self._runtime_ready = False
 
     @runtime_owned
     def __enter__(self) -> Self:
@@ -97,6 +99,7 @@ class RuntimeLifecycleMixin:
             if self._closed:
                 return
             self._closing = True
+            self._runtime_ready = False
             try:
                 condition.wait_for(lambda: self._active_runtime_calls == 0)
             except BaseException:

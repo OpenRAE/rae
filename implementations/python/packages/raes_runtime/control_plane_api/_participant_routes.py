@@ -67,7 +67,7 @@ def _register_participant_execution_routes(
             control_plane,
             action=f"participant_execution_{body.action}",
             identity=identity.identity,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             receipt=receipt,
         )
         return _receipt_response(receipt)
@@ -89,13 +89,13 @@ def _register_participant_execution_routes(
                 lambda: control_plane.participant_execution_state(execution_scope_ref),
             )
         except ValueError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+            raise HTTPException(status_code=404, detail="participant execution state not found") from exc
         await calls.run(
             control_plane.record_audit,
             action="get_participant_execution_state",
             identity=identity.identity,
             allowed=True,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
         )
         _set_snapshot_revision_header(response, revision)
         return state
@@ -138,7 +138,7 @@ def _register_participant_control_routes(
                 action="record_participant_control",
                 identity=identity.identity,
                 allowed=False,
-                target=participant_address,
+                target=control_plane._target_scope,
                 reason="forbidden-subject",
             )
             raise HTTPException(status_code=403, detail="forbidden") from exc
@@ -181,7 +181,7 @@ def _register_participant_episode_start_routes(
             control_plane,
             action="initialize_participant_episode",
             identity=identity.identity,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             receipt=receipt,
         )
         return _receipt_response(receipt)
@@ -214,7 +214,7 @@ def _register_participant_episode_start_routes(
             control_plane,
             action="reset_participant_episode",
             identity=identity.identity,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             receipt=receipt,
         )
         return _receipt_response(receipt)
@@ -252,7 +252,7 @@ def _register_participant_episode_end_routes(
             control_plane,
             action="restart_participant_episode",
             identity=identity.identity,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             receipt=receipt,
         )
         return _receipt_response(receipt)
@@ -272,7 +272,7 @@ def _register_participant_episode_end_routes(
         try:
             terminal_reason = ParticipantEpisodeTerminalReason(payload.terminal_reason)
         except ValueError as exc:
-            raise HTTPException(status_code=400, detail=f"invalid terminal_reason: {exc}") from exc
+            raise HTTPException(status_code=400, detail="invalid terminal_reason") from exc
         try:
             receipt = await calls.mutate(
                 control_plane.terminate_participant_episode,
@@ -289,7 +289,7 @@ def _register_participant_episode_end_routes(
             control_plane,
             action="terminate_participant_episode",
             identity=identity.identity,
-            target=str(request.url.path),
+            target=control_plane._target_scope,
             receipt=receipt,
         )
         return _receipt_response(receipt)

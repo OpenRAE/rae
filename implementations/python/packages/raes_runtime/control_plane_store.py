@@ -18,6 +18,7 @@ from raes_contracts.runtime_state import (
     operation_transition_diagnostic,
 )
 
+from .control_plane_audit import require_audit_event_fields
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
     SnapshotState,
@@ -53,6 +54,17 @@ class AuditEvent:
     operation_id: str = ""
     reason: str = ""
     details: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        require_audit_event_fields(
+            timestamp=self.timestamp,
+            action=self.action,
+            identity=self.identity,
+            target=self.target,
+            operation_id=self.operation_id,
+            reason=self.reason,
+            details=self.details,
+        )
 
 
 @dataclass(frozen=True)

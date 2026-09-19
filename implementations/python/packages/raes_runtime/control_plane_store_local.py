@@ -25,6 +25,7 @@ from .control_plane_store import (
     _require_terminal_operation_audit,
     _require_terminal_operation_transition,
     _require_terminal_retry_mode,
+    require_operation_record_scopes,
     terminal_operation_audit,
 )
 from .control_plane_store_lease import RuntimeOwnerLease, require_single_worker_configuration
@@ -95,13 +96,28 @@ class LocalControlPlaneStore(
     def admit_runtime(self, *, target_scope: str, run_scope: str) -> RuntimeOwnerLease:
         """Acquire sole ownership, bind scope, and only then inspect SQLite."""
 
+        return self._admit(target_scope=target_scope, run_scope=run_scope, require_existing=False)
+
+    def admit_maintenance(self, *, target_scope: str, run_scope: str) -> RuntimeOwnerLease:
+        """Acquire runtime-exclusive authority for an existing local store."""
+
+        return self._admit(target_scope=target_scope, run_scope=run_scope, require_existing=True)
+
+    def _admit(
+        self,
+        *,
+        target_scope: str,
+        run_scope: str,
+        require_existing: bool,
+    ) -> RuntimeOwnerLease:
+
         require_single_worker_configuration()
         active = self._active_runtime_lease
         if active is not None and not active.closed:
             raise RuntimeError(
                 "local control-plane store already has a runtime owner; use exactly one worker with reload disabled"
             )
-        _secure_store_directory(self._base_dir)
+        _secure_store_directory(self._base_dir, reject_insecure_existing=require_existing)
         directory_identity = self._base_dir.lstat()
         lease = RuntimeOwnerLease.acquire(self._runtime_owner_path)
         try:
@@ -111,13 +127,29 @@ class LocalControlPlaneStore(
             self._active_runtime_lease = lease
             self._provider_closed = False
             self._admitted_scope = (target_scope, run_scope)
-            database_existed = _secure_database_file(self._database_path, allow_missing=True) is not None
-            _validate_sqlite_sidecars(self._database_path)
-            self._initialize_database(
-                database_existed=database_existed,
-                target_scope=target_scope,
-                run_scope=run_scope,
+            database_existed = (
+                _secure_database_file(
+                    self._database_path,
+                    allow_missing=not require_existing,
+                )
+                is not None
             )
+            _validate_sqlite_sidecars(self._database_path)
+            if require_existing:
+                with self._connection() as connection:
+                    if connection.execute("PRAGMA journal_mode").fetchone() != ("wal",):
+                        raise RuntimeError("local control-plane maintenance requires WAL journal mode")
+                    self._validate_persisted_state(
+                        connection,
+                        target_scope=target_scope,
+                        run_scope=run_scope,
+                    )
+            else:
+                self._initialize_database(
+                    database_existed=database_existed,
+                    target_scope=target_scope,
+                    run_scope=run_scope,
+                )
             database_identity = _secure_database_file(self._database_path, allow_missing=False)
             assert database_identity is not None
             self._database_identity = database_identity
@@ -383,11 +415,40 @@ class LocalControlPlaneStore(
                     target_scope=target_scope,
                     run_scope=run_scope,
                 )
+                self._validate_persisted_state(
+                    connection,
+                    target_scope=target_scope,
+                    run_scope=run_scope,
+                )
             quick_check = connection.execute("PRAGMA quick_check").fetchone()
             if quick_check is None or quick_check[0] != "ok":
                 raise ValueError("local control-plane database failed its integrity check")
         if not database_existed:
             _fsync_directory(self._base_dir)
+
+    @classmethod
+    def _validate_persisted_state(
+        cls,
+        connection: sqlite3.Connection,
+        *,
+        target_scope: str,
+        run_scope: str,
+    ) -> None:
+        """Run strict startup/maintenance validation over one SQLite cut."""
+
+        stored_target, stored_run = cls._scope_metadata(connection)
+        if (stored_target, stored_run) != (target_scope, run_scope):
+            raise RuntimeError("local control-plane store scope does not match runtime admission")
+        schema = connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone()
+        if schema != (_SCHEMA_VERSION,):
+            raise ValueError("unsupported local control-plane database schema")
+        cls._load_snapshot_state(connection)
+        records = cls._load_records(connection)
+        require_operation_record_scopes(records, target_scope=target_scope, run_scope=run_scope)
+        cls._load_audits(connection)
+        quick_check = connection.execute("PRAGMA quick_check").fetchone()
+        if quick_check is None or quick_check[0] != "ok":
+            raise ValueError("local control-plane database failed its integrity check")
 
 
 __all__ = ("LocalControlPlaneStore",)

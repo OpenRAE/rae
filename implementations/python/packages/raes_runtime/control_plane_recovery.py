@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
 from enum import Enum
@@ -280,6 +281,21 @@ def unresolved_indeterminate_operation_ids(
     """Return immutable indeterminate parents without a successful resolution child."""
 
     records = control_plane._store.load_records()
+    return unresolved_indeterminate_operation_ids_from_records(
+        records,
+        target_scope=target_scope,
+        run_scope=run_scope,
+    )
+
+
+def unresolved_indeterminate_operation_ids_from_records(
+    records: Mapping[str, ControlPlaneOperationRecord],
+    *,
+    target_scope: str | None = None,
+    run_scope: str | None = None,
+) -> tuple[str, ...]:
+    """Classify unresolved parents from an already-authoritative record cut."""
+
     resolved = {
         parent_id
         for record in records.values()
