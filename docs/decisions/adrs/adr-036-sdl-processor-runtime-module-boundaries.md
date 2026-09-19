@@ -51,6 +51,14 @@ Split the current implementation into these owning packages:
   SDL and processor APIs. They must not own semantic truth or call runtime
   internals.
 
+The offline control-plane store operator commands introduced by issue #1186
+are a narrow CLI exception: the CLI may call the public, closed maintenance
+interface in `raes_runtime.control_plane_store_maintenance` to request scoped
+check, backup, or restore under runtime-exclusive ownership. This grants no
+access to other runtime modules or to SQLite internals; the runtime package
+continues to own validation, migration, and publication semantics. The
+`module_boundaries` policy names only that public import prefix.
+
 This ADR supersedes:
 
 - the part of ADR-008 that placed execution-facing runtime control inside the

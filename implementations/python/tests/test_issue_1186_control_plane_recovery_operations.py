@@ -9,6 +9,7 @@ from pathlib import Path
 from threading import Event
 
 import pytest
+import raes_runtime.control_plane_store_maintenance as maintenance_module
 from fastapi.testclient import TestClient
 from raes_backend_stubs.stubs import create_stub_target
 from raes_cli.main import app as cli_app
@@ -45,7 +46,6 @@ from raes_runtime.control_plane_store_maintenance import (
     LocalStoreMaintenanceOperation,
     maintain_local_control_plane_store,
 )
-import raes_runtime.control_plane_store_maintenance as maintenance_module
 from typer.testing import CliRunner
 
 
