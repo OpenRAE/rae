@@ -83,6 +83,7 @@ from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
 
 _ProjectionT = TypeVar("_ProjectionT")
+_P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 
 
 def _unavailable_backend_diagnostics(domain: RuntimeDomain, component: str) -> list[Diagnostic]:
@@ -117,7 +118,7 @@ def _prepare_control_plane_store(
 def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclaration, store: ControlPlaneStore) -> None:
     require_profile_capabilities(declaration, CORE_CAPABILITIES | store_capabilities(store))
     if declaration.profile is ControlPlaneProfile.P0 and not callable(getattr(store, "bind_scope", None)):
-        raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+        raise TypeError(_P0_SCOPE_BOUND_ERROR)
     if declaration.profile is ControlPlaneProfile.P1 and not isinstance(store, RuntimeAdmittedControlPlaneStore):
         raise TypeError("control-plane profile P1 missing capabilities: store.owner-lease")
 
@@ -170,13 +171,13 @@ class RuntimeControlPlane(
         if self._profile_declaration is not None and self._profile_declaration.profile is ControlPlaneProfile.P0:
             scope_binder = getattr(self._store, "bind_scope", None)
             if not callable(scope_binder):
-                raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+                raise TypeError(_P0_SCOPE_BOUND_ERROR)
             owner = scope_binder(target_scope=self._target_scope, run_scope=self._run_scope)
             if not callable(getattr(owner, "assert_owner", None)) or not callable(getattr(owner, "close", None)):
                 close = getattr(owner, "close", None)
                 if callable(close):
                     close()
-                raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+                raise TypeError(_P0_SCOPE_BOUND_ERROR)
             self._runtime_lease = owner
         if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
             self._runtime_lease = self._store.admit_runtime(
