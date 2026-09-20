@@ -1202,7 +1202,8 @@ def test_authored_demand_executes_protected_collection_and_retention_in_control_
     assert recovered_execution.lifecycle == execution.lifecycle
 
 
-def test_required_observation_rejects_mutation_and_read_only_failure_is_terminal() -> None:
+@pytest.mark.control_plane_conformance
+def test_required_observation_rejects_mutation_and_read_only_failure_is_terminal(caplog) -> None:
     scenario = parse_sdl(
         """
         name: runtime-observation-failure
@@ -1237,10 +1238,11 @@ def test_required_observation_rejects_mutation_and_read_only_failure_is_terminal
     selector = _selector("/nodes/kali", "filesystem-trace")
 
     collection_calls: list[str] = []
+    provider_error = type("SyntheticObservationSecret1187", (RuntimeError,), {})
 
     def fail_collection(_selector: object, _plan: object, _snapshot: object) -> tuple[object, ...]:
         collection_calls.append("collect")
-        raise RuntimeError("adapter failed")
+        raise provider_error("synthetic-observation-secret-1187")
 
     runtime = ConfiguredObservationRuntime(
         capabilities=(
@@ -1274,6 +1276,9 @@ def test_required_observation_rejects_mutation_and_read_only_failure_is_terminal
     assert control_plane.snapshot.entries == {}
     assert status.changed_addresses == []
     assert collection_calls == ["collect"]
+    evidence = repr((receipt, status, control_plane._store.load_records(), control_plane._store.read_audit()))
+    assert provider_error.__name__ not in evidence + caplog.text
+    assert "synthetic-observation-secret-1187" not in evidence + caplog.text
 
 
 def test_runtime_manager_uses_the_same_observation_apply_boundary() -> None:

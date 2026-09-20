@@ -48,6 +48,8 @@ from raes_runtime.control_plane_store_maintenance import (
 )
 from typer.testing import CliRunner
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _running_record(operation_id: str) -> ControlPlaneOperationRecord:
     submitted_at = "2026-09-19T00:00:00Z"

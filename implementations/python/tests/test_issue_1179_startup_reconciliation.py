@@ -46,6 +46,8 @@ from raes_runtime.control_plane_store_record_migration import migrate_legacy_ope
 from raes_runtime.control_plane_store_records import _record_payload
 from raes_runtime.registry import RuntimeTarget
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _context(
     *,

@@ -18,6 +18,20 @@ same operating-system identity that owns the private store and backup
 directories. Do not expose command output, paths, or database contents as run
 evidence.
 
+The [control-plane conformance suite](../../research/runtime-control-plane/conformance.md)
+documents the tested reference compositions, crash boundaries, and explicit
+nonclaims. Its process-loss evidence does not establish that a deployment's
+external backend matches a restored database.
+
+HTTP security configuration rejects empty configured credentials or principal
+names. Configured identity and verification headers must be valid, distinct
+HTTP field names and cannot alias `Authorization`. Strict defaults still reject
+caller-supplied proxy identity. Exceptions from backend calls and observation
+adapters produce bounded diagnostics without exception names or text. A failure
+to persist a planner-denial audit
+keeps the intended forbidden response and emits only a stable error log label;
+operators should investigate that label as an audit availability failure.
+
 ## Classify Recovery Before Acting
 
 Inspect the operation through the authenticated status API and use only its

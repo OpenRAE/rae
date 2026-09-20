@@ -124,6 +124,7 @@ path = "hatch_build.py"
 testpaths = ["tests"]
 pythonpath = ["../..", "src", "packages", "tests"]
 markers = [
+    "control_plane_conformance: ADR-104 P0/P1/P2 contract, crash, and explicit nonclaim evidence",
     "fuzz: property-based fuzz tests (run with: pytest -m fuzz)",
     "integration: subprocess, build, installed-distribution, or whole-system tests (run with: pytest -m integration)",
     "docker: opt-in tests that require a real container runtime (run with: pytest -m docker / nox -s integration_docker)",

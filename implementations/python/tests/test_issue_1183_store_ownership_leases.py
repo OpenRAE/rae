@@ -23,6 +23,8 @@ from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_memory import InMemoryControlPlaneStore
 from starlette.testclient import TestClient
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _competing_runtime_result(store_path: str, queue: object) -> None:
     try:

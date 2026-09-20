@@ -66,6 +66,8 @@ from raes_runtime.control_plane_store import (
 from starlette.requests import Request
 from starlette.testclient import TestClient
 
+pytestmark = pytest.mark.control_plane_conformance
+
 _T = TypeVar("_T")
 
 

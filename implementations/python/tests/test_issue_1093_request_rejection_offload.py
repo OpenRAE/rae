@@ -28,6 +28,8 @@ from raes_runtime.control_plane_security import (
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from starlette.types import Message, Receive, Scope, Send
 
+pytestmark = pytest.mark.control_plane_conformance
+
 _T = TypeVar("_T")
 
 

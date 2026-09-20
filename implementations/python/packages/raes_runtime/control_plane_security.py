@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
@@ -51,6 +52,29 @@ class ControlPlaneIdentity:
     participant_audience_subjects: tuple[ParticipantAudienceSubjectBinding, ...] = ()
 
 
+def _require_identity_headers(verified: str, identity: str) -> None:
+    headers = (verified, identity)
+    if any(not isinstance(name, str) or not re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", name) for name in headers):
+        raise ValueError("identity header names must be valid HTTP field names")
+    normalized = {name.lower() for name in headers}
+    if len(normalized) != 2 or "authorization" in normalized:
+        raise ValueError("identity headers must be distinct and must not alias Authorization")
+
+
+def _frozen_principals(principals: Mapping[str, ControlPlaneIdentity]) -> Mapping[str, ControlPlaneIdentity]:
+    copied = dict(principals)
+    for key, principal in copied.items():
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError("configured credentials and principal names must be non-empty")
+        if (
+            not isinstance(principal, ControlPlaneIdentity)
+            or not isinstance(principal.identity, str)
+            or not principal.identity.strip()
+        ):
+            raise ValueError("configured principal must have a non-empty identity")
+    return MappingProxyType(copied)
+
+
 @dataclass(frozen=True)
 class ControlPlaneSecurityConfig:
     """Reference security settings for the HTTP/JSON control-plane adapter.
@@ -70,6 +94,7 @@ class ControlPlaneSecurityConfig:
     bearer_tokens: Mapping[str, ControlPlaneIdentity] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        _require_identity_headers(self.verified_header, self.identity_header)
         if self.max_pending_mutations <= 0:
             raise ValueError("max_pending_mutations must be positive")
         if self.max_pending_rejection_audits <= 0:
@@ -78,8 +103,8 @@ class ControlPlaneSecurityConfig:
         # later code path) could still mutate the underlying dicts and grant
         # principals or tokens after construction, defeating ``strict_defaults``.
         # Read-only proxies keep dict equality while blocking that mutation.
-        object.__setattr__(self, "trusted_identities", MappingProxyType(dict(self.trusted_identities)))
-        object.__setattr__(self, "bearer_tokens", MappingProxyType(dict(self.bearer_tokens)))
+        object.__setattr__(self, "trusted_identities", _frozen_principals(self.trusted_identities))
+        object.__setattr__(self, "bearer_tokens", _frozen_principals(self.bearer_tokens))
 
     @classmethod
     def strict_defaults(cls) -> ControlPlaneSecurityConfig:

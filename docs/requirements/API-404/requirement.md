@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-18T00:00:00.000000Z
+updated_at: 2026-09-20T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -61,7 +61,22 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - DOCUMENTS → GITHUB_ISSUE `1092` (CP-6: Transactional local store)
 - IMPLEMENTS → GITHUB_ISSUE `1184` (CP-7: Atomic idempotency claims and cache demotion)
 - DOCUMENTS → GITHUB_ISSUE `1188` (CP-8: Served profile alignment)
-- DOCUMENTS → GITHUB_ISSUE `1187` (CP-9: Crash and profile conformance suite)
+- IMPLEMENTS → GITHUB_ISSUE `1187` (CP-9: Crash and profile conformance suite)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1187-control-plane-conformance-preflight.md` (CP-9 profile, fault-evidence, and security boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/research/runtime-control-plane/conformance.md` (Unified suite invocation, finite evidence map, and explicit profile nonclaims)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_result_diagnostics.py` (Value-free backend failure diagnostics without provider type names)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_execution.py` (Observation-adapter failure diagnostics without provider exception names or text)
+- TESTS → TEST `implementations/python/tests/test_issue_1212_observation_demand.py` (Observation failures preserve terminal state and redact exception details from operation carriers)
+- TESTS → TEST `implementations/python/tests/test_issue_1187_control_plane_profiles.py` (Shared P0/P1/P2 retry, isolation, concurrency, coherence, ownership, and restore checks)
+- TESTS → TEST `implementations/python/tests/test_issue_1187_control_plane_process_loss.py` (Supervised abrupt loss across claim, invocation, terminal commit and recovery, with independent effect witnesses)
+- TESTS → TEST `implementations/python/tests/test_issue_1187_control_plane_lifecycle_properties.py` (Independent lifecycle matrix, generated sequences, operation-kind audit coverage and enforcement mutation detection)
+- TESTS → TEST `implementations/python/tests/test_issue_1187_control_plane_durable_carriers.py` (Fail-closed durable-carrier mutation and corruption checks on reopen)
+- TESTS → TEST `implementations/python/tests/test_issue_1187_control_plane_security_conformance.py` (Configuration admission, provider error redaction, and denial response preservation)
+- TESTS → TEST `implementations/python/tests/control_plane_conformance_fixtures.py` (Shared reference compositions and independent backend-effect witness)
+- TESTS → TEST `implementations/python/tests/control_plane_crash_fixtures.py` (Supervised process termination at acknowledged real transaction boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v34.json` (Fresh retained formal and participant replay bound to CP-9 source without new claim classes)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1187-v34.json` (Fresh retained language coverage replay bound to CP-9 source without crash-conformance claims)
+- TESTS → TEST `implementations/python/tests/test_run_319_participant_flow_policy.py` (Operation-bound participant authorization, atomic crossing history, and idempotent replay in the conformance suite)
 - DOCUMENTS → GITHUB_ISSUE `1189` (CP-10: Profile declaration and capability discovery)
 - DOCUMENTS → GITHUB_ISSUE `1185` (CP-11: API-404 requirement update)
 - IMPLEMENTS → GITHUB_ISSUE `1186` (CP-12: Recovery runbook and operator tooling)
