@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import cast
 from uuid import uuid4
 
 from raes_contracts.planning import RuntimeDomain
@@ -75,9 +76,12 @@ def _authorize_lifecycle(
     action: str,
 ) -> ControlPlaneOperationRecord:
     authorized_at = _utc_now()
-    running = replace(
-        accepted,
-        status=replace(accepted.status, state=OperationState.RUNNING, updated_at=authorized_at),
+    running = cast(
+        ControlPlaneOperationRecord,
+        replace(
+            accepted,
+            status=replace(accepted.status, state=OperationState.RUNNING, updated_at=authorized_at),
+        ),
     )
     context = accepted.status.context
     control_plane._commit_participant_transition(
@@ -125,16 +129,19 @@ def _terminal_lifecycle_record(
     final_state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
     history_key = f"mixed_composition_history:{control_plane._mixed_runtime.entry.run_id}"
     history_head = snapshot.mixed_composition_states[control_plane._mixed_runtime.entry.run_id]["history_head"]
-    return replace(
-        running,
-        status=replace(
-            running.status,
-            state=final_state,
-            updated_at=_utc_now(),
-            diagnostics=operation_terminal_diagnostics(final_state, result.diagnostics),
-            changed_addresses=list(result.changed_addresses),
+    return cast(
+        ControlPlaneOperationRecord,
+        replace(
+            running,
+            status=replace(
+                running.status,
+                state=final_state,
+                updated_at=_utc_now(),
+                diagnostics=operation_terminal_diagnostics(final_state, result.diagnostics),
+                changed_addresses=list(result.changed_addresses),
+            ),
+            result_history_heads={history_key: history_head},
         ),
-        result_history_heads={history_key: history_head},
     )
 
 

@@ -11,20 +11,22 @@ def iter_mixed_runtime_snapshot_violations(
     states: Mapping[str, dict[str, object]],
     histories: Mapping[str, list[dict[str, object]]],
 ) -> Iterator[tuple[str, str]]:
+    violations: list[tuple[str, str]] = []
     if set(states) != set(histories):
-        yield "runtime.composition", "Composition state and history identities must match."
+        violations.append(("runtime.composition", "Composition state and history identities must match."))
     for run_id, events in histories.items():
         if not events or len(events) > 4096:
-            yield run_id, "Composition history must be nonempty and bounded."
+            violations.append((run_id, "Composition history must be nonempty and bounded."))
             continue
         models = _runtime_models(states, run_id, events)
         if models is None:
-            yield run_id, "Composition state or history is invalid."
+            violations.append((run_id, "Composition state or history is invalid."))
             continue
         state, chain = models
-        yield from _iter_chain_violations(run_id, state, chain)
+        violations.extend(_iter_chain_violations(run_id, state, chain))
         if not _state_matches_history(state, chain[-1]):
-            yield run_id, "Composition state must fold from the final history event."
+            violations.append((run_id, "Composition state must fold from the final history event."))
+    return iter(violations)
 
 
 def _runtime_models(
@@ -45,14 +47,16 @@ def _iter_chain_violations(
     state: MixedCompositionRuntimeStateModel,
     chain: list[MixedCompositionRuntimeEventModel],
 ) -> Iterator[tuple[str, str]]:
+    violations: list[tuple[str, str]] = []
     if state.run_id != run_id or any(event.run_id != run_id for event in chain):
-        yield run_id, "Composition map key must match the embedded run identity."
+        violations.append((run_id, "Composition map key must match the embedded run identity."))
     if chain[0].event_kind != "phase-activated":
-        yield run_id, "Composition history must start with phase activation."
+        violations.append((run_id, "Composition history must start with phase activation."))
     if len({event.event_id for event in chain}) != len(chain):
-        yield run_id, "Composition event identities must be unique."
+        violations.append((run_id, "Composition event identities must be unique."))
     for previous, current in zip(chain, chain[1:], strict=False):
-        yield from _iter_event_transition_violations(run_id, previous, current)
+        violations.extend(_iter_event_transition_violations(run_id, previous, current))
+    return iter(violations)
 
 
 def _iter_event_transition_violations(
@@ -60,17 +64,19 @@ def _iter_event_transition_violations(
     previous: MixedCompositionRuntimeEventModel,
     current: MixedCompositionRuntimeEventModel,
 ) -> Iterator[tuple[str, str]]:
+    violations: list[tuple[str, str]] = []
     if current.predecessor_event_id != previous.event_id:
-        yield run_id, "Composition event predecessor does not match the history head."
+        violations.append((run_id, "Composition event predecessor does not match the history head."))
     current_identity = (current.plan_id, current.plan_entry_id, current.profile_id, current.profile_digest)
     previous_identity = (previous.plan_id, previous.plan_entry_id, previous.profile_id, previous.profile_digest)
     if current_identity != previous_identity:
-        yield run_id, "Composition plan and profile identity cannot change within a run."
+        violations.append((run_id, "Composition plan and profile identity cannot change within a run."))
     if current.event_kind == "phase-transition":
         if current.phase_revision != previous.phase_revision + 1:
-            yield run_id, "Composition phase revision must advance exactly once."
+            violations.append((run_id, "Composition phase revision must advance exactly once."))
     elif _composition_membership(current) != _composition_membership(previous):
-        yield run_id, "Only a phase transition may change active composition membership."
+        violations.append((run_id, "Only a phase transition may change active composition membership."))
+    return iter(violations)
 
 
 def _composition_membership(event: MixedCompositionRuntimeEventModel) -> tuple[object, ...]:
