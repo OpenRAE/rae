@@ -17,6 +17,7 @@ This document is the issue #71 formal design artifact for:
 - `SEM-232` - Proof-Bearing Participant-Crossing Bisimulation
 - `SEM-233` - Adversarial Participant Boundary Information-Flow Control
 - `SEM-234` - Mixed Cross-Backend Participant-Control Composition
+- `SEM-235` - Modular Participant Control and Extensible Dynamic IFC Semantics
 - `ASR-536` - Intentional-Subversion Participant Control Evaluation
 - `ASR-537` - Cross-Backend Participant-Control Realization And Transfer Evidence
 - `DSL-437` - Benign Participant Autonomous Execution
@@ -26,6 +27,16 @@ original design status does not mean the family is wholly unimplemented:
 delivered slices now bind parts of the model into SDL models, semantic helpers,
 compiler/runtime contracts, evidence/provenance contracts, and focused tests.
 The remaining boundaries below state what those slices do not establish.
+
+Issue #1070 publishes [`sem-235/rev1`](modular-participant-control.md) under
+ADR-108: separately revisioned IFC domains, typed mechanism composition and
+independently governed effects. The teaching-influence/rev1 semantic profile
+and unchanged SEM-233 security profile have bounded symbolic witnesses.
+Publication preserves SEM-230 projection and SEM-233 security meanings;
+API-424 contracts, RUN-320 orchestration and ASR-538 conformance retain their
+separate fulfillment boundaries. The
+[verification record](../../../docs/research/modular-participant-control/semantic-verification.md)
+states exact coverage and assumptions.
 
 Issue #119 and ADR-083 extend the original issue #71 design with the joint
 `SEM-219`, `SEM-220`, and `SEM-226` decision-surface model. Their executable

@@ -1,6 +1,6 @@
 {
   "schema_version": "sdl-lineage-ledger/v1",
-  "reviewed_on": "2026-09-16",
+  "reviewed_on": "2026-09-20",
   "citations": [
     {
       "citation_id": "ocr-sdl-v0.21.2",
@@ -3826,6 +3826,47 @@
             "docs/decisions/adrs/adr-095-participant-decision-epoch-state-cut-and-delivery-semantics.md",
             "specs/formal/behavioral-relations/README.md",
             "specs/formal/participant-semantics/README.md"
+          ],
+          "compatibility_direction": "raes_relative_to_source"
+        },
+        {
+          "plane": "semantics",
+          "classification": "adapted",
+          "source_refs": [
+            "myers-liskov-1998",
+            "flume-2007"
+          ],
+          "raes_boundaries": [
+            {
+              "artifact": "specs/formal/participant-semantics/modular-participant-control.md",
+              "symbol_or_pointer": "MPC-04 \u2014 Dynamic IFC and the first non-security domain"
+            },
+            {
+              "artifact": "specs/formal/participant-semantics/modular-participant-control.md",
+              "symbol_or_pointer": "MPC-05 \u2014 Dependency and conjunction relation"
+            }
+          ],
+          "source_boundaries": [
+            {
+              "artifact": "Complete, Safe Information Flow with Decentralized Labels",
+              "symbol_or_pointer": "principal-relative policies, joins and authority-bounded declassification"
+            },
+            {
+              "artifact": "Information Flow Control for Standard OS Abstractions",
+              "symbol_or_pointer": "dynamic decentralized IFC and explicit privilege"
+            }
+          ],
+          "divergence": "SEM-235 sem-235/rev1 reuses closed-domain conservative IFC machinery while preserving sem-233/rev1. The teaching-influence powerset, typed mandatory/advisory slot conjunction, independent governed injects, exact-cut commit, stable logical effect keys and finite causal budgets are RAES constructions. They do not import an OS API, compiler, provider implementation, source theorem, security guarantee, wire contract or compatibility claim. Non-IFC mechanisms retain their own state; finite witnesses establish no universal noninterference or realization result.",
+          "compatibility": "none",
+          "citation_refs": [
+            "myers-liskov-1998",
+            "flume-2007"
+          ],
+          "internal_authority_refs": [
+            "specs/formal/participant-semantics/modular-participant-control.md",
+            "specs/concept-authority/participant-control.md",
+            "docs/research/modular-participant-control/semantic-verification.md",
+            "docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md"
           ],
           "compatibility_direction": "raes_relative_to_source"
         }

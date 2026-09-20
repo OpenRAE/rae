@@ -1692,3 +1692,36 @@ conformance through those generic declarations.
   establish runtime enforcement, backend realization, intentional-subversion
   robustness, model alignment, monitor honesty, private-reasoning safety, or
   control of undeclared covert channels.
+
+## Modular participant-control semantics (SEM-235)
+
+Issue #1070 publishes `sem-235/rev1` under ADR-108 at the accepted #1068
+revision `ebb70a34b8e7d1cc8964c443841ae57e12ed1014`.
+[The formal authority](../../../specs/formal/participant-semantics/modular-participant-control.md)
+uses separately identified closed IFC domains and typed mechanism composition.
+The [concept placement](../../../specs/concept-authority/participant-control.md)
+reuses incumbent families and keeps profile, mechanism, policy, effect and claim
+identities distinct.
+
+The existing Myers–Liskov decentralized-label and Flume lineage contributes
+conservative joins and explicit release privilege. The primary sources were
+rechecked on 2026-09-20:
+[Myers–Liskov, sections 2–4](https://www.cs.cornell.edu/andru/papers/sp98/paper.html)
+and [Flume, abstract and introduction](https://pdos.csail.mit.edu/papers/flume-sosp07.pdf).
+The new claim in the current lineage ledger records their exact semantic
+boundaries; it preserves historical SEM-230/233 claims and source records.
+
+The accepted [mechanism assessment](../../research/modular-participant-control/assessment.md)
+also distinguishes runtime editing, shields and policy composition.
+[Shield Synthesis](https://arxiv.org/abs/1501.02573) and
+[Carter's composition thesis](https://digitalcommons.usf.edu/etd/4006/)
+were rechecked at their abstracts on 2026-09-20: they motivate explicit
+correction and composition boundaries, without supplying a proof for RAES.
+
+The non-security teaching-influence powerset, deterministic mandatory/advisory
+conjunction, independently admitted injects, retry identity and causal budgets
+are RAES design choices. They neither broaden SEM-233's confidentiality/integrity
+product nor claim that every mechanism is IFC. The
+[finite witnesses](../../research/modular-participant-control/semantic-verification.md)
+are bounded semantic falsification, not an installed provider, runtime,
+conformance result, universal noninterference theorem or backend-integrity proof.
