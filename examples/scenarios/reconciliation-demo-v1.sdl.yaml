@@ -18,7 +18,8 @@ nodes:
     conditions:
       health: ops
     roles:
-      ops: operator
+      ops:
+        username: operator
   database:
     type: compute
     resources:
@@ -27,7 +28,8 @@ nodes:
     conditions:
       health: ops
     roles:
-      ops: operator
+      ops:
+        username: operator
   retired:
     type: compute
     resources:
