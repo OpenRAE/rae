@@ -153,7 +153,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "36.0.0",
+                replay_current=manifest.get("revision") == "37.0.0",
             )
         )
     else:
@@ -251,10 +251,11 @@ _HISTORICAL_RETEST_REVISIONS = frozenset(
         "33.0.0",
         "34.0.0",
         "35.0.0",
+        "36.0.0",
     }
 )
 
-_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"36.0.0"}
+_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"37.0.0"}
 _SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}
 
 
@@ -280,7 +281,7 @@ def validate_retest_bundle(
         return [
             _failure(
                 "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 35.0.0 can use integrated historical validation",
+                "only releases 3.0.0 through 36.0.0 can use integrated historical validation",
                 snapshot_path,
             )
         ]
@@ -317,6 +318,7 @@ def validate_retest_bundle(
             "34.0.0",
             "35.0.0",
             "36.0.0",
+            "37.0.0",
         }
         else "2.0.0"
     )
@@ -415,6 +417,7 @@ def _current_retest_source_failures(
         "34.0.0": "33.0.0",
         "35.0.0": "34.0.0",
         "36.0.0": "35.0.0",
+        "37.0.0": "36.0.0",
     }[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(

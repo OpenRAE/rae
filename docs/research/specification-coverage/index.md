@@ -217,10 +217,16 @@ this run does not repair them.
   conformance; classifications and claim limits remain unchanged.
 
 - [`execution-snapshot-v35.json`](execution-snapshot-v35.json) and
-  [`analysis-v35.json`](analysis-v35.json) are current release 35.0.0. Fresh
+  [`analysis-v35.json`](analysis-v35.json) preserve release 35.0.0. Fresh
   replay binds issue #1189 profile declarations to the exact source state.
   The retained language corpus does not execute profile composition;
   classifications and claim limits remain unchanged.
+
+- [`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
+  [`analysis-v36.json`](analysis-v36.json) are current release 36.0.0. Fresh
+  replay binds issue #610's reconciliation demonstration harness to the exact
+  source state. The retained language corpus does not execute planner
+  reconciliation; classifications and claim limits remain unchanged.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
@@ -250,7 +256,7 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 35.0.0 and rejects duplicate or unsupported
+Current validation requires release 36.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
