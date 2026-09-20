@@ -124,24 +124,33 @@ def _claims(*items: tuple[str, str]) -> tuple[ControlPlaneClaim, ...]:
     return tuple(ControlPlaneClaim(identifier, description) for identifier, description in items)
 
 
+_IN_PROCESS_SAFETY = "One process owns runtime mutation and validation."
+_ACTOR_SCOPED_IDEMPOTENCY = "Claims and receipts bind to the actor and scope."
+_TARGET_RUN_ISOLATION = "One target and one run occupy a store."
+_REVISION_CAS = "Snapshot writes compare the observed revision."
+_ATOMIC_AUDIT = "Terminal state and operational audit commit together."
+_NO_HIGH_AVAILABILITY = "No availability topology is promised."
+_NO_MULTITENANCY = "One store does not multiplex tenants."
+
+
 _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = MappingProxyType(
     {
         ControlPlaneProfile.P0: ControlPlaneProfileDeclaration(
             profile=ControlPlaneProfile.P0,
             label="ephemeral",
             guarantees=_claims(
-                ("in-process-safety", "One process owns runtime mutation and validation."),
-                ("actor-scoped-idempotency", "Claims and receipts bind to the actor and scope."),
-                ("target-run-isolation", "One target and one run occupy a store."),
-                ("revision-cas", "Snapshot writes compare the observed revision."),
-                ("atomic-audit", "Terminal state and operational audit commit together."),
+                ("in-process-safety", _IN_PROCESS_SAFETY),
+                ("actor-scoped-idempotency", _ACTOR_SCOPED_IDEMPOTENCY),
+                ("target-run-isolation", _TARGET_RUN_ISOLATION),
+                ("revision-cas", _REVISION_CAS),
+                ("atomic-audit", _ATOMIC_AUDIT),
             ),
             nonclaims=_claims(
                 ("durability", "Process loss loses the run."),
                 ("restart-recovery", "No process-loss recovery is promised."),
                 ("multi-owner", "No concurrent process ownership is promised."),
-                ("high-availability", "No availability topology is promised."),
-                ("multitenancy", "One store does not multiplex tenants."),
+                ("high-availability", _NO_HIGH_AVAILABILITY),
+                ("multitenancy", _NO_MULTITENANCY),
             ),
             one_target_per_store=True,
             one_run_per_store=True,
@@ -154,11 +163,11 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
             profile=ControlPlaneProfile.P1,
             label="local durable",
             guarantees=_claims(
-                ("in-process-safety", "One process owns runtime mutation and validation."),
-                ("actor-scoped-idempotency", "Claims and receipts bind to the actor and scope."),
-                ("target-run-isolation", "One target and one run occupy a store."),
-                ("revision-cas", "Snapshot writes compare the observed revision."),
-                ("atomic-audit", "Terminal state and operational audit commit together."),
+                ("in-process-safety", _IN_PROCESS_SAFETY),
+                ("actor-scoped-idempotency", _ACTOR_SCOPED_IDEMPOTENCY),
+                ("target-run-isolation", _TARGET_RUN_ISOLATION),
+                ("revision-cas", _REVISION_CAS),
+                ("atomic-audit", _ATOMIC_AUDIT),
                 ("durable-state", "Authoritative state survives process loss."),
                 ("retained-idempotency", "Durable claims prevent automatic effect replay."),
                 ("lease-admission", "One process-bound owner is admitted."),
@@ -166,9 +175,9 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
             ),
             nonclaims=_claims(
                 ("multi-owner", "No concurrent process ownership is promised."),
-                ("high-availability", "No availability topology is promised."),
+                ("high-availability", _NO_HIGH_AVAILABILITY),
                 ("exactly-once-effects", "External backend effects are not exactly once."),
-                ("multitenancy", "One store does not multiplex tenants."),
+                ("multitenancy", _NO_MULTITENANCY),
             ),
             one_target_per_store=True,
             one_run_per_store=True,
@@ -181,11 +190,11 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
             profile=ControlPlaneProfile.P2,
             label="served",
             guarantees=_claims(
-                ("in-process-safety", "One process owns runtime mutation and validation."),
-                ("actor-scoped-idempotency", "Claims and receipts bind to the actor and scope."),
-                ("target-run-isolation", "One target and one run occupy a store."),
-                ("revision-cas", "Snapshot writes compare the observed revision."),
-                ("atomic-audit", "Terminal state and operational audit commit together."),
+                ("in-process-safety", _IN_PROCESS_SAFETY),
+                ("actor-scoped-idempotency", _ACTOR_SCOPED_IDEMPOTENCY),
+                ("target-run-isolation", _TARGET_RUN_ISOLATION),
+                ("revision-cas", _REVISION_CAS),
+                ("atomic-audit", _ATOMIC_AUDIT),
                 ("durable-state", "Authoritative state survives process loss."),
                 ("retained-idempotency", "Durable claims prevent automatic effect replay."),
                 ("lease-admission", "One process-bound owner is admitted."),
@@ -198,9 +207,9 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
             nonclaims=_claims(
                 ("multi-worker", "The adapter does not coordinate multiple workers."),
                 ("tls-proxy-deployment", "TLS and proxy topology belong to deployment."),
-                ("high-availability", "No availability topology is promised."),
+                ("high-availability", _NO_HIGH_AVAILABILITY),
                 ("exactly-once-effects", "External backend effects are not exactly once."),
-                ("multitenancy", "One store does not multiplex tenants."),
+                ("multitenancy", _NO_MULTITENANCY),
             ),
             one_target_per_store=True,
             one_run_per_store=True,
@@ -216,7 +225,8 @@ _DECLARATIONS: Mapping[ControlPlaneProfile, ControlPlaneProfileDeclaration] = Ma
             nonclaims=_claims(
                 (
                     "future-coordination",
-                    "Coordination, fencing, scheduling, cache coherence, and tenant isolation require a future decision.",
+                    "Coordination, fencing, scheduling, cache coherence, and tenant isolation "
+                    "require a future decision.",
                 ),
             ),
             one_target_per_store=False,

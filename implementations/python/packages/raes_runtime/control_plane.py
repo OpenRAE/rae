@@ -61,6 +61,7 @@ from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_oper
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
+    ControlPlaneStore,
     IdempotencyClaimIdentity,
     InMemoryControlPlaneStore,
     RuntimeAdmittedControlPlaneStore,
@@ -99,6 +100,28 @@ def _unavailable_backend(*_args: object, **_kwargs: object) -> object:
     raise AssertionError("an unavailable backend cannot be invoked")
 
 
+def _prepare_control_plane_store(
+    config: ControlPlaneConfiguration,
+) -> tuple[ControlPlaneProfileDeclaration | None, ControlPlaneStore]:
+    if config.store is not None and config.initial_snapshot is not None:
+        raise ValueError("initial_snapshot cannot be combined with an explicit store")
+    declaration = select_profile(config.profile) if config.profile is not None else None
+    if declaration is not None and declaration.profile is ControlPlaneProfile.P2:
+        raise ValueError("P2 is selected by the HTTP composition over a P1 core")
+    store = config.store if config.store is not None else InMemoryControlPlaneStore(config.initial_snapshot)
+    if declaration is not None:
+        _require_selected_store_capabilities(declaration, store)
+    return declaration, store
+
+
+def _require_selected_store_capabilities(declaration: ControlPlaneProfileDeclaration, store: ControlPlaneStore) -> None:
+    require_profile_capabilities(declaration, CORE_CAPABILITIES | store_capabilities(store))
+    if declaration.profile is ControlPlaneProfile.P0 and not callable(getattr(store, "bind_scope", None)):
+        raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+    if declaration.profile is ControlPlaneProfile.P1 and not isinstance(store, RuntimeAdmittedControlPlaneStore):
+        raise TypeError("control-plane profile P1 missing capabilities: store.owner-lease")
+
+
 class RuntimeControlPlane(
     RuntimeLifecycleMixin,
     RuntimeRecoveryMixin,
@@ -118,29 +141,13 @@ class RuntimeControlPlane(
     ) -> None:
         config = ControlPlaneConfiguration(**options)
         target_scope = runtime_target_scope(target.name)
-        initial_snapshot, store = config.initial_snapshot, config.store
-        crossing_policy_resolver = config.crossing_policy_resolver
-        information_state_context_resolver = config.information_state_context_resolver
-        if store is not None and initial_snapshot is not None:
-            raise ValueError("initial_snapshot cannot be combined with an explicit store")
-        declaration = select_profile(config.profile) if config.profile is not None else None
-        if declaration is not None and declaration.profile is ControlPlaneProfile.P2:
-            raise ValueError("P2 is selected by the HTTP composition over a P1 core")
-        selected_store = store if store is not None else InMemoryControlPlaneStore(initial_snapshot)
-        provider_capabilities = store_capabilities(selected_store) if declaration is not None else frozenset()
-        scope_binder = getattr(selected_store, "bind_scope", None)
-        if declaration is not None:
-            require_profile_capabilities(declaration, CORE_CAPABILITIES | provider_capabilities)
-            if declaration.profile is ControlPlaneProfile.P0 and not callable(scope_binder):
-                raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
-            if declaration.profile is ControlPlaneProfile.P1 and not isinstance(
-                selected_store, RuntimeAdmittedControlPlaneStore
-            ):
-                raise TypeError("control-plane profile P1 missing capabilities: store.owner-lease")
+        declaration, selected_store = _prepare_control_plane_store(config)
         self._profile_declaration = declaration
         self._initialize_runtime_lifecycle()
-        require_crossing_policy_configuration(target, crossing_policy_resolver)
-        require_final_sink_flow_control_configuration(crossing_policy_resolver, config.enforce_final_sink_flow_control)
+        require_crossing_policy_configuration(target, config.crossing_policy_resolver)
+        require_final_sink_flow_control_configuration(
+            config.crossing_policy_resolver, config.enforce_final_sink_flow_control
+        )
         self._target = target
         self._target_scope, self._run_scope = target_scope, config.run_scope
         self._materialization_archive = config.materialization_archive
@@ -151,44 +158,48 @@ class RuntimeControlPlane(
             self._operation_lock = RLock()
             self._snapshot_projection_depth = 0
             self._store_commits = adapt_control_plane_store(self._store)
-            if declaration is not None and declaration.profile is ControlPlaneProfile.P0:
-                owner = scope_binder(target_scope=target_scope, run_scope=config.run_scope)
-                if not callable(getattr(owner, "assert_owner", None)) or not callable(getattr(owner, "close", None)):
-                    close = getattr(owner, "close", None)
-                    if callable(close):
-                        close()
-                    raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
-                self._runtime_lease = owner
-            if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
-                self._runtime_lease = self._store.admit_runtime(
-                    target_scope=self._target_scope,
-                    run_scope=self._run_scope,
-                )
-            self._snapshot_state = self._store.load_snapshot_state()
-            self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
-            require_operation_record_scopes(
-                self._operations, target_scope=self._target_scope, run_scope=self._run_scope
-            )
-            self._behavior_specifications = dict(config.behavior_specifications or {})
-            self._crossing_policy_resolver = crossing_policy_resolver
-            self._information_state_context_resolver = information_state_context_resolver
-            self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
-            self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
-            self._trusted_runtime_plan_lock = RLock()
-            self._trusted_runtime_plan_digests: set[str] = set()
-            require_participant_information_state_snapshot(
-                self._snapshot,
-                information_state_context_resolver,
-            )
-            if self._snapshot.participant_crossing_history:
-                if crossing_policy_resolver is None:
-                    raise ValueError("persisted participant crossing history requires a policy resolver")
-                validate_persisted_crossing_history(self._snapshot, crossing_policy_resolver)
+            self._admit_store_owner()
+            self._restore_persisted_state(config)
             reconcile_startup_operations(self)
             self._runtime_ready = True
         except BaseException:
             self.close()
             raise
+
+    def _admit_store_owner(self) -> None:
+        if self._profile_declaration is not None and self._profile_declaration.profile is ControlPlaneProfile.P0:
+            scope_binder = getattr(self._store, "bind_scope", None)
+            if not callable(scope_binder):
+                raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+            owner = scope_binder(target_scope=self._target_scope, run_scope=self._run_scope)
+            if not callable(getattr(owner, "assert_owner", None)) or not callable(getattr(owner, "close", None)):
+                close = getattr(owner, "close", None)
+                if callable(close):
+                    close()
+                raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+            self._runtime_lease = owner
+        if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
+            self._runtime_lease = self._store.admit_runtime(
+                target_scope=self._target_scope,
+                run_scope=self._run_scope,
+            )
+
+    def _restore_persisted_state(self, config: ControlPlaneConfiguration) -> None:
+        self._snapshot_state = self._store.load_snapshot_state()
+        self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
+        require_operation_record_scopes(self._operations, target_scope=self._target_scope, run_scope=self._run_scope)
+        self._behavior_specifications = dict(config.behavior_specifications or {})
+        self._crossing_policy_resolver = config.crossing_policy_resolver
+        self._information_state_context_resolver = config.information_state_context_resolver
+        self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
+        self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
+        self._trusted_runtime_plan_lock = RLock()
+        self._trusted_runtime_plan_digests: set[str] = set()
+        require_participant_information_state_snapshot(self._snapshot, config.information_state_context_resolver)
+        if self._snapshot.participant_crossing_history:
+            if config.crossing_policy_resolver is None:
+                raise ValueError("persisted participant crossing history requires a policy resolver")
+            validate_persisted_crossing_history(self._snapshot, config.crossing_policy_resolver)
 
     @property
     def _snapshot(self) -> RuntimeSnapshot:

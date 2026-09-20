@@ -129,9 +129,10 @@ def test_selected_p0_uses_canonical_declaration_and_binds_one_scope() -> None:
         }
     finally:
         first.close()
+    other_target = replace(create_stub_target(), name="other")
     with pytest.raises(ValueError, match="store scope"):
         RuntimeControlPlane(
-            replace(create_stub_target(), name="other"),
+            other_target,
             store=store,
             profile=ControlPlaneProfile.P0,
         )
@@ -154,8 +155,9 @@ def test_selected_p0_store_has_one_active_owner_and_releases_it_on_close() -> No
     first = RuntimeControlPlane(create_stub_target(), store=store, profile=ControlPlaneProfile.P0)
     second = None
     try:
+        target = create_stub_target()
         with pytest.raises(RuntimeError, match="already has a runtime owner"):
-            second = RuntimeControlPlane(create_stub_target(), store=store, profile=ControlPlaneProfile.P0)
+            second = RuntimeControlPlane(target, store=store, profile=ControlPlaneProfile.P0)
     finally:
         if second is not None:
             second.close()
@@ -181,10 +183,12 @@ def test_missing_p1_capabilities_fail_before_store_access(tmp_path) -> None:
         def load_snapshot_state(self):
             raise AssertionError("store was accessed")
 
+    target = create_stub_target()
+    store = ObservedMemoryStore()
     with pytest.raises(TypeError, match="store.durable.*store.owner-lease"):
         RuntimeControlPlane(
-            create_stub_target(),
-            store=ObservedMemoryStore(),
+            target,
+            store=store,
             profile=ControlPlaneProfile.P1,
         )
     assert not (tmp_path / "store").exists()
@@ -201,8 +205,10 @@ def test_every_p1_store_capability_is_required_before_admission(tmp_path, capabi
         )
 
     path = tmp_path / "unopened"
+    target = create_stub_target()
+    store = DeficientStore(path)
     with pytest.raises(TypeError, match=capability.value):
-        RuntimeControlPlane(create_stub_target(), store=DeficientStore(path), profile=ControlPlaneProfile.P1)
+        RuntimeControlPlane(target, store=store, profile=ControlPlaneProfile.P1)
     assert not path.exists()
 
 
@@ -222,13 +228,15 @@ def test_p2_rejects_p0_core_and_p3_rejects_before_provider_access() -> None:
             create_control_plane_app(plane, profile=ControlPlaneProfile.P2)
     finally:
         plane.close()
+    target = create_stub_target()
     with pytest.raises(ValueError, match="P3"):
-        RuntimeControlPlane(create_stub_target(), profile=ControlPlaneProfile.P3)
+        RuntimeControlPlane(target, profile=ControlPlaneProfile.P3)
 
 
 def test_explicit_selection_does_not_infer_or_downgrade() -> None:
+    target = create_stub_target()
     with pytest.raises(TypeError):
-        RuntimeControlPlane(create_stub_target(), profile="P0")
+        RuntimeControlPlane(target, profile="P0")
     plane = RuntimeControlPlane(create_stub_target())
     try:
         assert plane.profile_declaration is None
