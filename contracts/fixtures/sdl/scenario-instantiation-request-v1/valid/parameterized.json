@@ -1,0 +1,9 @@
+{
+  "parameters": {
+    "attempt_budget": 3,
+    "network_isolated": true,
+    "target_host": "workstation-01"
+  },
+  "profile": "reference-stack-v1",
+  "schema_version": "scenario-instantiation/v1"
+}

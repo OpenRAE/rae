@@ -1,0 +1,88 @@
+{
+  "contract_id": "backend-realization-preparation-v1",
+  "diagnostics": [],
+  "operations": [
+    {
+      "action": "create",
+      "address": "provision.node.host",
+      "ordering_dependencies": [],
+      "payload": {
+        "architecture": "",
+        "count": null,
+        "domain_topology": null,
+        "name": "host",
+        "network_namespace_target": "",
+        "node_kind": "compute",
+        "node_name": "host",
+        "os_distribution": "",
+        "os_family": "",
+        "os_version": "",
+        "spec": {
+          "infrastructure": {},
+          "node": {
+            "architecture": null,
+            "asset_value": null,
+            "conditions": {},
+            "description": "",
+            "endpoint_persona": null,
+            "features": {},
+            "injects": {},
+            "os": null,
+            "os_distribution": null,
+            "os_version": "",
+            "resources": null,
+            "roles": {},
+            "runtime": {
+              "app_authorizations": [],
+              "applications": [],
+              "container": null,
+              "database_services": [
+                {
+                  "database_service_id": "db",
+                  "engine": "sqlite"
+                }
+              ],
+              "datastore_services": [],
+              "dependency_manifests": [],
+              "dns_services": [],
+              "environment": [],
+              "environment_files": [],
+              "file_services": [],
+              "filesystem_inventory": [],
+              "forwarding_agents": [],
+              "identity_authorities": [],
+              "linux_capabilities": null,
+              "local_control_interfaces": [],
+              "local_identity": null,
+              "mail_services": [],
+              "mounts": [],
+              "network": null,
+              "network_detection_engines": [],
+              "network_sensors": [],
+              "operational_policy": null,
+              "orchestration_authorities": [],
+              "packages": [],
+              "platform_applications": [],
+              "processes": [],
+              "repository_state": null,
+              "scheduled_jobs": [],
+              "security_monitoring_managers": [],
+              "service_listeners": [],
+              "service_manager_units": [],
+              "software_components": [],
+              "ssh_servers": []
+            },
+            "services": [],
+            "source": null,
+            "type": "compute"
+          }
+        }
+      },
+      "refresh_dependencies": [],
+      "resource_type": "node"
+    }
+  ],
+  "predecessor_digest": "sha256:4a9a06a5df6fa95ac1149b786948d7f4d82d439c03ef414558311849d9ae4981",
+  "request_digest": "sha256:a848b81883f731fa3e730089f83e08b1655f4bd7394832003b8ecde62173b040",
+  "success": true
+}

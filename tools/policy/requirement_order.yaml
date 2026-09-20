@@ -170,6 +170,14 @@ phases:
       - GOV-903
     blocked_until:
       - gov-concept-authority
+  # Published-schema evidence is a property of the normative contract surface
+  # itself, so it depends on no other phase: the coverage gate reads the
+  # publication catalog, the corpus router, and the assurance fulfillment map
+  # that already exist (#1330). No ownership list, because the gate's evidence
+  # repairs legitimately land in any contract family's corpus.
+  - id: published-schema-coverage
+    requirements:
+      - ASR-501
 
 ownership:
   authoring-adapter-conformance:
