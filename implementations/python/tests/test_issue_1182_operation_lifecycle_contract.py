@@ -40,6 +40,8 @@ from raes_runtime.control_plane_store import ControlPlaneOperationRecord, InMemo
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_records import _record_from_payload, _record_payload
 
+pytestmark = pytest.mark.control_plane_conformance
+
 _LEGAL_TRANSITIONS = {
     (OperationState.ACCEPTED, OperationState.RUNNING),
     (OperationState.ACCEPTED, OperationState.CANCELLED),

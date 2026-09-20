@@ -29,6 +29,8 @@ from raes_runtime.control_plane_store import (
 )
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _running_record(operation_id: str) -> ControlPlaneOperationRecord:
     submitted_at = "2026-09-07T12:00:00Z"

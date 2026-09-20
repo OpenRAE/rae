@@ -53,6 +53,7 @@ async def _record_admission_denial_best_effort(
     *,
     action: str,
     reason: str,
+    identity: str = "anonymous",
 ) -> None:
     """Record a redacted admission-denial audit without letting its failure replace the response.
 
@@ -68,7 +69,7 @@ async def _record_admission_denial_best_effort(
         await _control_plane_calls(request).run(
             control_plane.record_audit,
             action=action,
-            identity="anonymous",
+            identity=identity,
             allowed=False,
             target=control_plane._target_scope,
             reason=reason,
@@ -169,12 +170,11 @@ def _register_provisioning_submission_route(
             submitted_plan,
         )
         if (submitted_plan.operations or submitted_plan.observation_demands) and not planner_authorized:
-            await calls.run(
-                control_plane.record_audit,
+            await _record_admission_denial_best_effort(
+                request,
+                control_plane,
                 action="submit_provisioning",
                 identity=identity.identity,
-                allowed=False,
-                target=control_plane._target_scope,
                 reason="planner-authorization-mismatch",
             )
             raise HTTPException(status_code=403, detail="provisioning plan is not planner-authorized")
@@ -206,12 +206,11 @@ def _register_orchestration_submission_route(
             control_plane.is_planner_authorized_plan,
             submitted_plan,
         ):
-            await calls.run(
-                control_plane.record_audit,
+            await _record_admission_denial_best_effort(
+                request,
+                control_plane,
                 action="submit_orchestration",
                 identity=identity.identity,
-                allowed=False,
-                target=control_plane._target_scope,
                 reason="planner-authorization-mismatch",
             )
             raise HTTPException(status_code=403, detail="orchestration plan is not planner-authorized")
@@ -243,12 +242,11 @@ def _register_evaluation_submission_route(
             control_plane.is_planner_authorized_plan,
             submitted_plan,
         ):
-            await calls.run(
-                control_plane.record_audit,
+            await _record_admission_denial_best_effort(
+                request,
+                control_plane,
                 action="submit_evaluation",
                 identity=identity.identity,
-                allowed=False,
-                target=control_plane._target_scope,
                 reason="planner-authorization-mismatch",
             )
             raise HTTPException(status_code=403, detail="evaluation plan is not planner-authorized")

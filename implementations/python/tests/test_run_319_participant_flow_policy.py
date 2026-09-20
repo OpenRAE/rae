@@ -56,6 +56,8 @@ from raes_runtime.participant_result_contracts import (
 )
 from raes_runtime.participant_retrieval import _context_revision_paths, _ContextViewOptions
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def test_crossing_history_is_first_class_serialized_and_operational_state() -> None:
     request = crossing_request()

@@ -228,11 +228,17 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v32.json`](analysis-v32.json) to issue #1015 mixed and staged trial
   admission. Fresh replay retains bounded outcomes and claim limits without
   claiming that this corpus executes a mixed-backend trial realization.
-- [`bundles/retest-v33.json`](bundles/retest-v33.json) is current release 34.0.0.
+- [`bundles/retest-v33.json`](bundles/retest-v33.json) preserves release 34.0.0.
   It binds [`execution-snapshot-v33.json`](execution-snapshot-v33.json) and
   [`analysis-v33.json`](analysis-v33.json) to issue #1186 runtime maintenance,
   health, and audit source. Replay retains the formal corpus outcomes without
   claiming that it exercises those operator paths.
+- [`bundles/retest-v34.json`](bundles/retest-v34.json) is current release 35.0.0.
+  It binds [`execution-snapshot-v34.json`](execution-snapshot-v34.json) and
+  [`analysis-v34.json`](analysis-v34.json) to issue #1187 control-plane
+  conformance and exception-redaction source. Fresh production and participant
+  replay retains the prior outcomes and claim limits. Crash/profile conformance
+  remains evidence from its dedicated suite, not a new claim in this corpus.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -277,7 +283,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 33.0.0, rejects unsupported future
+Current validation requires explicit release 35.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

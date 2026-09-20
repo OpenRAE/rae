@@ -54,6 +54,8 @@ from raes_runtime.participant_result_contracts import (
 )
 from starlette.testclient import TestClient
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _control_event(event_id: str, *, revision: int = 1) -> dict[str, object]:
     return {

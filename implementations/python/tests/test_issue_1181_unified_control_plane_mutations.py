@@ -54,6 +54,8 @@ from raes_runtime.control_plane_store_records import _audit_event_from_payload
 from raes_runtime.manager import RuntimeManager
 from raes_runtime.participant_crossing_egress import ParticipantViewSerialization, serialize_participant_view
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _context() -> OperationAdmissionContext:
     return OperationAdmissionContext(

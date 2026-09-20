@@ -81,6 +81,8 @@ from raes_runtime.control_plane_store_snapshots import (
     _snapshot_payload,
 )
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 class _CountingProvisioner:
     def __init__(

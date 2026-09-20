@@ -33,6 +33,8 @@ from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_local_codec import encode_payload
 from raes_runtime.control_plane_store_records import _record_payload
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _context(
     *,

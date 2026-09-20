@@ -44,6 +44,8 @@ from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import ControlPlaneOperationRecord
 from raes_runtime.registry import RuntimeTarget
 
+pytestmark = pytest.mark.control_plane_conformance
+
 
 def _scenario(yaml_str: str):
     return parse_sdl(textwrap.dedent(yaml_str))
