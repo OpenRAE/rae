@@ -6,7 +6,6 @@ import re
 from pathlib import Path
 
 from raes_runtime.control_plane_profiles import ControlPlaneProfile, profile_declaration
-
 from tools.policy.repository_requirements import RepositoryRequirementClient
 
 ROOT = Path(__file__).resolve().parents[3]
