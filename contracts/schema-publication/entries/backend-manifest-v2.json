@@ -1,9 +1,9 @@
 {
-  "content_hash": "867e452a3d269e1bcfa831fa9e5fd71ed28c638a02bb2898ae360827b254bb72",
+  "content_hash": "3e48ee506aee21e026e610ca453d7a0daca79e18912e9bbcd0bd927b8f7ec603",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "content_hash": "867e452a3d269e1bcfa831fa9e5fd71ed28c638a02bb2898ae360827b254bb72",
-    "summary": "Declare backend-neutral operational recovery observation independently from EXP-715 evidence capture (#1179)."
+    "content_hash": "3e48ee506aee21e026e610ca453d7a0daca79e18912e9bbcd0bd927b8f7ec603",
+    "summary": "Recognize the runtime-owned mixed-composition phase operation kind (#1016)."
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

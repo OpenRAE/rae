@@ -31,6 +31,7 @@ def participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str
         "participant_behavior_history": snapshot.participant_behavior_history,
         "participant_control_history": snapshot.participant_control_history,
         "participant_crossing_history": snapshot.participant_crossing_history,
+        "mixed_composition_history": snapshot.mixed_composition_history,
         "information_state_history": snapshot.information_state_history,
     }
     history = histories.get(history_name)

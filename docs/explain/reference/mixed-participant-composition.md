@@ -4,7 +4,9 @@ The authority is
 [`mixed-cross-backend-participant-control-v1@rev1`](../../../specs/formal/participant-semantics/cross-backend-participant-control.md)
 (`sem-234/rev1`). The finite semantic witnesses from #1013 remain separate from
 the portable contract published by #1014. Neither is a runnable backend
-manifest or evidence that a mixed runtime exists. The semantic oracle is
+manifest or evidence that a conforming backend exists. Issue #1016 adds a
+bounded reference coordinator over exactly admitted runtime targets; it does
+not turn the semantic witnesses or portable profile into backend evidence. The semantic oracle is
 [sem234_mixed_composition_model.py](../../../implementations/python/tests/sem234_mixed_composition_model.py),
 with witnesses in
 [test_sem_234_mixed_composition.py](../../../implementations/python/tests/test_sem_234_mixed_composition.py).
@@ -72,6 +74,50 @@ The common cut names Alice, one episode, the selected operator, active
 authority, policy revision, capability revision, state revision and history
 heads. SEM-230's existing projection model resolves the participant audience.
 Provider membership does not create a controller or disclosure permission.
+
+## Reference runtime coordination
+
+`RuntimeControlPlane` accepts an immutable `MixedRuntimeBinding` only when its
+plan entry, profile digest, trusted resolution context, component manifests,
+realization envelopes, runtime targets, run scope, and transition evaluators
+match exactly. Activation commits the admitted initial phase into typed
+`mixed_composition_states` and append-only `mixed_composition_history` fields
+in `runtime-snapshot-v1`. A second activation is either an exact idempotent
+replay or a refusal; it cannot replace the incumbent composition.
+
+Participant action ingress still passes through the incumbent RUN-319/API-423
+crossing and final-sink policy decision. Under the same mutation cut, the
+coordinator resolves one active participant allocation, action allocation,
+authenticated controller and action authority. If the providers differ, it
+also requires the admitted directed edge and records its time mapping and
+declared mapping loss. The coordinator atomically commits `decision` and
+`attempt` facts before invoking the selected component. It then appends the
+result plus delivery and observation facts, an explicit weakening fact when
+mapping loss applies, or a failure fact when the provider refuses. An inactive,
+ambiguous, unmapped, unauthorized, stale, or unsupported cut invokes no
+component and discloses no backend result.
+
+Participant episode initialize, reset, restart, and terminate calls resolve the
+active participant allocation and authenticated controller in the same way.
+They commit lifecycle decision and attempt facts before invoking the component,
+then append a lifecycle result and, on refusal, a failure fact. The logical
+coordinator is never used as an unadmitted lifecycle fallback.
+
+Staged progression invokes only the evaluator bound to the admitted
+`evaluator_ref`, enforces its finite `progress_bound` and required evidence,
+and commits a monotone phase revision plus handoff fact. Evaluator exceptions
+become sanitized failure facts without changing phase membership. Snapshot
+history-head checks and store revision CAS prevent stale concurrent commits.
+The authoritative operation ledger also refuses progression while a mixed
+effect is accepted, running, or indeterminate, so provider responsibility
+cannot change around an outstanding effect. Restart recovery derives the exact
+component from the durable pre-effect
+attempt and never falls back to the logical target.
+
+This is a single-control-plane reference realization. It does not claim
+backend-native federation, multi-controller consensus, leases, HLA ownership
+transfer, joint/fused action semantics, IFC/noninterference, equivalence,
+exactly-once external effects, or conformance of any production backend.
 
 ## Four worked realizations
 
@@ -161,12 +207,12 @@ fulfillment of the corresponding invariant family.
 | SEM-234(4), MCB-013–022 | Exact cut, policy/authority joins, existing SEM-230 projection; metadata, revocation and single-controller tests | No provider handshake, new RUN-310 protocol or noninterference proof |
 | SEM-234(5), MCB-027–034 | `advance` and `link_trials`; changed provider, immutable identity, stale/pending/commit and history tests | Synthetic result and trigger facts; no cleanup or derived-model realization |
 | SEM-234(6), MCB-035–037 | Cartesian axis cases and open-loop actuation refusal | Not description closure or a backend/product catalog |
-| SEM-234(7), MCB-023–026, 038–041 | Directed partial-order closure, fresh cuts, explicit loss, refusal and commit tests | Not a clock synchronizer, runtime final sink or distributed transaction |
+| SEM-234(7), MCB-023–026, 038–041 | Directed partial-order closure, fresh cuts, explicit loss, refusal and commit tests plus `test_issue_1016_mixed_runtime_coordination.py` | Reference final-sink coordination is bounded to one control plane; not a clock synchronizer or distributed transaction |
 | MCB-042–045 / ASR-537 | Demonstration and separate-claim definitions; source/nonclaim policy checks | No executed apparatus demonstration, universal transfer, proof or backend conformance result |
 | SEM-230 | Existing `project_history`/crossing decisions plus `test_sem_230_information_flow_control.py` | Retains admission, output projection, release, transformation, hidden/visible labels, policy change and quantified claim boundary |
 | SCE-002 | `test_sce_002_trial_compiler.py` and immutable phase-plan tests | Incumbent composition/parameterization/randomization are reused; mixed compilation is not claimed |
 | API-423 | `test_api_423_participant_crossing_contracts.py` plus edge policy/authority tests | Preserves typed ingress/egress, transformations, disclosure, intervention/inject stage lineage and out-of-line evidence; no generic transport |
-| RUN-310 | `test_run_310_supervisory_lifecycle.py`, `test_api_409_participant_control_occurrences.py` and `test_issue_1003_final_sink_flow_enforcement.py` | Incumbent supervision, denial, direction, intervention, handoff, override, cancellation, conflict/idempotency and append-only history; not mixed-runtime execution |
+| RUN-310 | `test_run_310_supervisory_lifecycle.py`, `test_api_409_participant_control_occurrences.py`, `test_issue_1003_final_sink_flow_enforcement.py` and `test_issue_1016_mixed_runtime_coordination.py` | Incumbent lifecycle plus bounded admitted mixed-runtime phase handoff; no multi-controller consensus or leases |
 | #1198 clarification | Existing description/lifecycle oracles composed by the new test | No mandatory internal recipe, universal capability or implied collection claim |
 
 ## Lineage and nonclaims
@@ -181,7 +227,8 @@ demand. No new source-derived API, product vocabulary or compatibility is adopte
 
 The repository lineage, behavioral-claim, semantic-coverage and assurance
 gates check publication consistency. The #813 structural test still checks the
-historical design program. Neither these gates nor the finite oracle establishes
-runtime enforcement, backend realization, interoperability, leases, simultaneous
+historical design program. The reference coordinator establishes only its
+tested fail-closed control-plane boundary; neither these gates nor the finite
+oracle establishes backend conformance, interoperability, leases, simultaneous
 scoped/joint control, IFC/noninterference, equivalence or universal transfer.
 SEM-234's definition can be ACTIVE while ASR-537's demonstration stays DRAFT.

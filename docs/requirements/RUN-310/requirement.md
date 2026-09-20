@@ -21,6 +21,11 @@ Issue #794 clarifies that behavior mode is not controller state and that supervi
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Coordinate admitted mixed-runtime phase and controller handoff)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_phase.py` (Bounded evaluator-driven phase progression and handoff evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_lifecycle.py` (Pre-effect participant-provider cut and lifecycle result evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_episode_control.py` (Active admitted participant-provider lifecycle routing)
+- TESTS → TEST `implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py` (Stale, idempotent, bounded, and failed handoff witnesses)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing RUN-310 authority in SEM-234 without changing its runtime contract)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
 - TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent RUN-310 authority)

@@ -74,6 +74,12 @@ def _snapshot_result_updates(
             "participant_crossing_history",
             snapshot.participant_crossing_history,
         ),
+        "mixed_composition_states": _mapping_update(
+            updates, "mixed_composition_states", snapshot.mixed_composition_states
+        ),
+        "mixed_composition_history": _history_update(
+            updates, "mixed_composition_history", snapshot.mixed_composition_history
+        ),
         "information_state_history": _history_update(
             updates,
             "information_state_history",
@@ -182,6 +188,8 @@ _SNAPSHOT_UPDATE_KEYS = {
     "participant_behavior_history",
     "participant_control_history",
     "participant_crossing_history",
+    "mixed_composition_states",
+    "mixed_composition_history",
     "information_state_history",
     "participant_autonomous_execution_states",
     "participant_execution_services",

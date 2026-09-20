@@ -16,6 +16,7 @@ from .control_plane_execution import apply_authorized_participant_action
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .control_plane_security import ControlPlaneIdentity
+from .mixed_runtime_dispatch import prepare_mixed_action_dispatch, record_mixed_action_result
 from .participant_control_intents import ParticipantControlIntent, ParticipantControlIntentBase
 from .participant_control_mediation import (
     bind_participant_control_request,
@@ -273,9 +274,20 @@ def _execute_action_ingress_crossing_authorized(
         governed_request = _governed_action_request(control_plane, crossing, request)
         _require_action_binding(participant_behavior, governed_request)
         _require_governed_subject(crossing, _action_subject(control_plane, governed_request))
+        mixed_dispatch = prepare_mixed_action_dispatch(control_plane, governed_request, crossing)
+        authorization_snapshot = mixed_dispatch.snapshot if mixed_dispatch is not None else crossing.next_snapshot
+        authorization_expected_heads = (
+            mixed_dispatch.expected_history_heads if mixed_dispatch is not None else crossing.expected_history_heads
+        )
         authorization_record = replace(
             crossing.record,
             status=replace(crossing.record.status, state=OperationState.RUNNING),
+            decision_history_heads=authorization_expected_heads,
+            result_history_heads=(
+                mixed_dispatch.committed_history_heads
+                if mixed_dispatch is not None
+                else crossing.record.result_history_heads
+            ),
         )
         accepted_claim = replace(
             authorization_record,
@@ -299,18 +311,18 @@ def _execute_action_ingress_crossing_authorized(
         if sink_decision is not None:
             authorization_audit = apply_flow_sink_details(authorization_audit, sink_decision)
         control_plane._commit_participant_transition(
-            expected_history_heads=crossing.expected_history_heads,
-            snapshot=crossing.next_snapshot,
+            expected_history_heads=authorization_expected_heads,
+            snapshot=authorization_snapshot,
             record=authorization_record,
             audit_event=authorization_audit,
         )
 
         with control_plane._mutation_authority.external_call():
             result = apply_authorized_participant_action(
-                method=execution.method,
+                method=mixed_dispatch.method if mixed_dispatch is not None else execution.method,
                 request=governed_request,
                 snapshot=control_plane._snapshot,
-                address=execution.address,
+                address=mixed_dispatch.address if mixed_dispatch is not None else execution.address,
                 information_state_context_resolver=getattr(
                     control_plane,
                     "_information_state_context_resolver",
@@ -321,9 +333,21 @@ def _execute_action_ingress_crossing_authorized(
             dict(result.snapshot.entries),
             participant_crossing_history=crossing.next_snapshot.participant_crossing_history,
         )
+        next_snapshot = record_mixed_action_result(
+            control_plane,
+            next_snapshot,
+            crossing,
+            success=result.success,
+        )
+        result_history_heads = _expected_history_heads(next_snapshot, request.participant_address)
+        if mixed_dispatch is not None:
+            result_history_heads[f"mixed_composition_history:{control_plane._mixed_runtime.entry.run_id}"] = (
+                next_snapshot.mixed_composition_states[control_plane._mixed_runtime.entry.run_id]["history_head"]
+            )
         record = replace(
             action_operation_record(crossing, result),
-            result_history_heads=_expected_history_heads(next_snapshot, request.participant_address),
+            decision_history_heads=authorization_expected_heads,
+            result_history_heads=result_history_heads,
         )
         audit = combined_crossing_audit(
             crossing.audit_event,
@@ -335,7 +359,11 @@ def _execute_action_ingress_crossing_authorized(
         if sink_decision is not None:
             audit = apply_flow_sink_details(audit, sink_decision)
         control_plane._commit_participant_transition(
-            expected_history_heads=crossing.record.result_history_heads,
+            expected_history_heads=(
+                mixed_dispatch.committed_history_heads
+                if mixed_dispatch is not None
+                else crossing.record.result_history_heads
+            ),
             snapshot=next_snapshot,
             record=record,
             audit_event=audit,

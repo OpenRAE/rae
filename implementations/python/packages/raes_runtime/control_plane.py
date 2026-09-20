@@ -62,6 +62,7 @@ from .control_plane_store import (
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_workflow_control import WorkflowControlMixin
+from .mixed_runtime import MixedRuntimeMixin
 from .observation_execution import ObservationExecution
 from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
@@ -100,6 +101,7 @@ class RuntimeControlPlane(
     WorkflowControlMixin,
     ParticipantControlMixin,
     ParticipantRetrievalMixin,
+    MixedRuntimeMixin,
 ):
     """Reference control plane for async runtime submission and observation."""
 
@@ -120,6 +122,7 @@ class RuntimeControlPlane(
         require_final_sink_flow_control_configuration(crossing_policy_resolver, config.enforce_final_sink_flow_control)
         self._target = target
         self._target_scope, self._run_scope = target_scope, config.run_scope
+        self._mixed_runtime = config.mixed_runtime
         self._materialization_archive = config.materialization_archive
         self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
         self._store = store or InMemoryControlPlaneStore(initial_snapshot)

@@ -14,6 +14,10 @@ from .participant_crossing_boundary import execute_action_ingress_crossing
 from .participant_crossing_mediation import ParticipantCrossingEvidence
 
 
+def _mixed_dispatch_only(*_args: object, **_kwargs: object) -> object:
+    raise AssertionError("mixed action dispatch must resolve an admitted provider before effect")
+
+
 @dataclass(frozen=True)
 class ParticipantSubmissionOptions:
     idempotency_key: str = ""
@@ -54,6 +58,7 @@ def submit_bound_participant_action(
     options: ParticipantSubmissionOptions,
 ) -> OperationReceipt:
     if getattr(control_plane, "_crossing_policy_resolver", None) is not None:
+        participant_runtime = control_plane._target.participant_runtime
         return execute_action_ingress_crossing(
             control_plane,
             participant_behavior,
@@ -62,7 +67,7 @@ def submit_bound_participant_action(
                 crossing_evidence=options.crossing_evidence,
                 identity=options.identity,
                 idempotency_key=options.idempotency_key,
-                method=control_plane._target.participant_runtime.admit_action,
+                method=(_mixed_dispatch_only if participant_runtime is None else participant_runtime.admit_action),
                 address=f"runtime.control-plane.participant.{request.participant_address}.admit-action",
             ),
         )

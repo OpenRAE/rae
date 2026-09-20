@@ -38,6 +38,52 @@ def _resolve_backend_support(
     intent: ParticipantCrossingIntent,
     resolution: ParticipantCrossingPolicyResolution,
 ) -> _BackendSupport:
+    if getattr(control_plane, "_mixed_runtime", None) is not None:
+        from .mixed_runtime_dispatch import mixed_policy_allocation
+
+        allocation = mixed_policy_allocation(control_plane, intent)
+        if allocation is None:
+            return _BackendSupport(
+                gate=ParticipantCrossingGateDisposition.UNSUPPORTED,
+                posture=ParticipantCrossingBackendPosture.UNSUPPORTED,
+                limitations=("limitation:mixed-provider-unresolved",),
+            )
+        requirements = {requirement.feature: requirement for requirement in allocation.feature_requirements}
+        levels = []
+        limitations = []
+        evidence_refs = []
+        for feature in _required_features(intent):
+            requirement = requirements.get(feature)
+            if requirement is None:
+                return _BackendSupport(
+                    gate=ParticipantCrossingGateDisposition.UNSUPPORTED,
+                    posture=ParticipantCrossingBackendPosture.UNSUPPORTED,
+                    limitations=(f"limitation:{feature}:unsupported",),
+                    effective_levels=((feature, ParticipantFeatureSupportLevel.UNSUPPORTED.value),),
+                )
+            level = requirement.allowed_downgrade_level or requirement.required_level
+            levels.append((feature, level.value))
+            if requirement.allowed_downgrade_level is not None:
+                limitations.append(f"limitation:{feature}:admitted-downgrade")
+                evidence_refs.append(requirement.downgrade_provenance_ref)
+        weakest = min((ParticipantFeatureSupportLevel(level) for _, level in levels), key=_support_rank)
+        posture = {
+            ParticipantFeatureSupportLevel.EXACT: ParticipantCrossingBackendPosture.EXACT,
+            ParticipantFeatureSupportLevel.BOUNDED: ParticipantCrossingBackendPosture.BOUNDED,
+            ParticipantFeatureSupportLevel.DISCLOSED_WEAK: ParticipantCrossingBackendPosture.DISCLOSED_WEAK,
+            ParticipantFeatureSupportLevel.UNSUPPORTED: ParticipantCrossingBackendPosture.UNSUPPORTED,
+        }[weakest]
+        return _BackendSupport(
+            gate=(
+                ParticipantCrossingGateDisposition.PERMIT
+                if weakest is not ParticipantFeatureSupportLevel.UNSUPPORTED
+                else ParticipantCrossingGateDisposition.UNSUPPORTED
+            ),
+            posture=posture,
+            evidence_refs=tuple(ref for ref in evidence_refs if ref is not None),
+            limitations=tuple(limitations),
+            effective_levels=tuple(levels),
+        )
     declarations = []
     for feature in _required_features(intent):
         try:

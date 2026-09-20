@@ -243,6 +243,7 @@ from .mixed_composition import (
     parse_mixed_composition_profile,
     seal_mixed_composition_profile,
 )
+from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .observation_capture import ObservationCaptureOfferModel
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel

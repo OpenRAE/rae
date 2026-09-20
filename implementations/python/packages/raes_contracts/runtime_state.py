@@ -94,6 +94,8 @@ class RuntimeSnapshot:
     participant_behavior_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_control_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_crossing_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    mixed_composition_states: dict[str, dict[str, Any]] = field(default_factory=dict)
+    mixed_composition_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     information_state_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_autonomous_execution_states: dict[str, dict[str, Any]] = field(default_factory=dict)
     participant_execution_services: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -114,6 +116,13 @@ class RuntimeSnapshot:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        from .mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+
+        violations = list(
+            iter_mixed_runtime_snapshot_violations(self.mixed_composition_states, self.mixed_composition_history)
+        )
+        if violations:
+            raise ValueError(violations[0][1])
         require_materialization_records(self.materialization_attestations)
         for map_key, entry in self.entries.items():
             require_compiled_address(map_key, field_name="snapshot map key")
