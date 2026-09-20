@@ -175,8 +175,16 @@ def _observe_running_record(
 ) -> tuple[RecoveryEffectClassification, ApplyResult | None]:
     kind = record.status.context.operation_kind
     if kind is OperationKind.COMPOSITION_PHASE:
-        return RecoveryEffectClassification.EFFECT_ABSENT, None
+        observation = (RecoveryEffectClassification.EFFECT_ABSENT, None)
+    else:
+        target = _recovery_target(control_plane, record)
+        observation = _observe_recovery_target(control_plane, record, target)
+    return observation
+
+
+def _recovery_target(control_plane: object, record: ControlPlaneOperationRecord) -> object | None:
     target = control_plane._target
+    kind = record.status.context.operation_kind
     mixed_history = "mixed_composition_history:"
     mixed_record = any(key.startswith(mixed_history) for key in record.decision_history_heads)
     if (
@@ -187,8 +195,17 @@ def _observe_running_record(
         from .mixed_runtime_dispatch import mixed_recovery_target
 
         target = mixed_recovery_target(control_plane, record.receipt.operation_id)
-        if target is None:
-            return RecoveryEffectClassification.INDETERMINATE, None
+    return target
+
+
+def _observe_recovery_target(
+    control_plane: object,
+    record: ControlPlaneOperationRecord,
+    target: object | None,
+) -> tuple[RecoveryEffectClassification, ApplyResult | None]:
+    kind = record.status.context.operation_kind
+    if target is None:
+        return RecoveryEffectClassification.INDETERMINATE, None
     observer = target.recovery_observer
     capability = target.manifest.recovery_observation
     if observer is None or capability is None or kind not in capability.supported_operation_kinds:

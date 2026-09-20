@@ -5,8 +5,13 @@ from __future__ import annotations
 from dataclasses import replace
 from uuid import uuid4
 
-from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeEventModel
+from raes_contracts.contracts.mixed_composition import MixedCompositionTransitionModel
+from raes_contracts.contracts.mixed_runtime import (
+    MixedCompositionRuntimeEventModel,
+    MixedCompositionRuntimeStateModel,
+)
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
 
@@ -15,7 +20,7 @@ from .control_plane_mutation import external_control_plane_call
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
-from .mixed_runtime import MixedPhaseTransitionEvaluation
+from .mixed_runtime import MixedPhaseTransitionEvaluation, MixedRuntimeBinding
 from .mixed_runtime_state import append_runtime_events, runtime_state
 
 _OUTSTANDING_STATES = {OperationState.ACCEPTED, OperationState.RUNNING, OperationState.INDETERMINATE}
@@ -44,44 +49,36 @@ def _evaluate(control_plane: object, transition: object, state: object) -> Mixed
         with external_control_plane_call(control_plane):
             evaluation = evaluator(transition, state, control_plane._snapshot)
     except Exception:
-        return MixedPhaseTransitionEvaluation(
-            permitted=False,
-            attempts=1,
-            order_ref="order:evaluator-failed",
-            evidence_refs=(),
+        evaluation = _failed_evaluation("order:evaluator-failed")
+    if isinstance(evaluation, MixedPhaseTransitionEvaluation):
+        required = {item.evidence_ref for item in transition.evidence_bindings}
+        valid = (
+            1 <= evaluation.attempts <= transition.progress_bound
+            and bool(evaluation.order_ref)
+            and required.issubset(evaluation.evidence_refs)
         )
-    if not isinstance(evaluation, MixedPhaseTransitionEvaluation):
-        return MixedPhaseTransitionEvaluation(
-            permitted=False,
-            attempts=1,
-            order_ref="order:evaluator-invalid",
-            evidence_refs=(),
-        )
-    required = {item.evidence_ref for item in transition.evidence_bindings}
-    valid = (
-        1 <= evaluation.attempts <= transition.progress_bound
-        and bool(evaluation.order_ref)
-        and required.issubset(evaluation.evidence_refs)
-    )
-    if not valid:
-        return MixedPhaseTransitionEvaluation(
-            permitted=False,
-            attempts=min(max(evaluation.attempts, 1), transition.progress_bound),
-            order_ref="order:evaluator-invalid",
-            evidence_refs=(),
-        )
+        if not valid:
+            attempts = min(max(evaluation.attempts, 1), transition.progress_bound)
+            evaluation = _failed_evaluation("order:evaluator-invalid", attempts)
+    else:
+        evaluation = _failed_evaluation("order:evaluator-invalid")
     return evaluation
 
 
-def advance_mixed_composition(
+def _failed_evaluation(order_ref: str, attempts: int = 1) -> MixedPhaseTransitionEvaluation:
+    return MixedPhaseTransitionEvaluation(
+        permitted=False,
+        attempts=attempts,
+        order_ref=order_ref,
+        evidence_refs=(),
+    )
+
+
+def _phase_binding(
     control_plane: object,
-    *,
     transition_id: str,
     identity: object,
-    idempotency_key: str,
-) -> OperationReceipt:
-    """Evaluate and commit exactly one pre-admitted forward transition."""
-
+) -> tuple[MixedRuntimeBinding, MixedCompositionTransitionModel]:
     if not isinstance(identity, ControlPlaneIdentity):
         raise PermissionError("mixed phase transition requires an authenticated identity")
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
@@ -92,9 +89,18 @@ def advance_mixed_composition(
     transition = binding.profile.transitions.get(transition_id)
     if transition is None:
         raise ValueError("mixed phase transition is not admitted")
-    control_plane._reload_derived_state()
-    state = runtime_state(binding, control_plane._snapshot)
-    history_key = f"mixed_composition_history:{state.run_id}"
+    return binding, transition
+
+
+def _phase_operation(
+    control_plane: object,
+    binding: MixedRuntimeBinding,
+    transition_id: str,
+    identity: ControlPlaneIdentity,
+    idempotency_key: str,
+    state: MixedCompositionRuntimeStateModel,
+    history_key: str,
+) -> tuple[OperationReceipt, ControlPlaneOperationRecord, OperationAdmissionContext]:
     context = operation_admission_context(
         control_plane,
         kind=control_plane._composition_operation_kind,
@@ -129,57 +135,37 @@ def advance_mixed_composition(
         decision_history_heads={history_key: state.history_head},
         result_history_heads={history_key: state.history_head},
     )
-    source_matches = state.phase_id == transition.source_phase_id
-    quiescent = _mixed_runtime_is_quiescent(control_plane, state.run_id, history_key)
-    claimed = control_plane._claim_record(
-        running,
-        new_claim_blocked="current-state" if not source_matches or not quiescent else None,
-    )
-    if claimed.receipt.operation_id != operation_id:
-        return claimed.receipt
-    evaluation = _evaluate(control_plane, transition, state)
-    target_phase = binding.profile.phases[transition.target_phase_id]
-    common = dict(
-        run_id=state.run_id,
-        plan_id=state.plan_id,
-        plan_entry_id=state.plan_entry_id,
-        profile_id=state.profile_id,
-        profile_digest=state.profile_digest,
-        control_event_ref=transition.trigger_ref,
-        order_ref=evaluation.order_ref,
-        evidence_refs=list(evaluation.evidence_refs),
-        provenance_refs=list(evaluation.provenance_refs),
-    )
-    diagnostic = None
-    if evaluation.permitted:
-        phase_event = MixedCompositionRuntimeEventModel(
-            event_id=f"composition:{operation_id}:phase",
-            event_kind="phase-transition",
-            disposition="committed",
-            predecessor_event_id=state.history_head,
-            phase_id=target_phase.phase_id,
-            phase_revision=state.phase_revision + 1,
-            active_component_ids=target_phase.active_component_ids,
-            active_allocation_ids=target_phase.active_allocation_ids,
-            active_edge_ids=target_phase.active_edge_ids,
-            **common,
-        )
-        handoff_event = MixedCompositionRuntimeEventModel(
-            event_id=f"composition:{operation_id}:handoff",
-            event_kind="handoff",
-            disposition="committed",
-            predecessor_event_id=phase_event.event_id,
-            phase_id=target_phase.phase_id,
-            phase_revision=state.phase_revision + 1,
-            active_component_ids=target_phase.active_component_ids,
-            active_allocation_ids=target_phase.active_allocation_ids,
-            active_edge_ids=target_phase.active_edge_ids,
-            **common,
-        )
-        events = [phase_event, handoff_event]
-        terminal_state = OperationState.SUCCEEDED
-    else:
-        failure_event = MixedCompositionRuntimeEventModel(
+    return receipt, running, context
+
+
+def _phase_event_fields(
+    state: MixedCompositionRuntimeStateModel,
+    transition: MixedCompositionTransitionModel,
+    evaluation: MixedPhaseTransitionEvaluation,
+) -> dict[str, object]:
+    return {
+        "run_id": state.run_id,
+        "plan_id": state.plan_id,
+        "plan_entry_id": state.plan_entry_id,
+        "profile_id": state.profile_id,
+        "profile_digest": state.profile_digest,
+        "control_event_ref": transition.trigger_ref,
+        "order_ref": evaluation.order_ref,
+        "evidence_refs": list(evaluation.evidence_refs),
+        "provenance_refs": list(evaluation.provenance_refs),
+    }
+
+
+def _phase_outcome(
+    binding: MixedRuntimeBinding,
+    transition: MixedCompositionTransitionModel,
+    state: MixedCompositionRuntimeStateModel,
+    evaluation: MixedPhaseTransitionEvaluation,
+    operation_id: str,
+) -> tuple[list[MixedCompositionRuntimeEventModel], OperationState, Diagnostic | None]:
+    common = _phase_event_fields(state, transition, evaluation)
+    if not evaluation.permitted:
+        failure = MixedCompositionRuntimeEventModel(
             event_id=f"composition:{operation_id}:failure",
             event_kind="failure",
             disposition="denied",
@@ -191,14 +177,63 @@ def advance_mixed_composition(
             active_edge_ids=state.active_edge_ids,
             **common,
         )
-        events = [failure_event]
-        terminal_state = OperationState.FAILED
         diagnostic = Diagnostic(
             code="runtime.mixed-composition-transition-denied",
             domain="runtime",
             address=f"mixed-composition.{state.run_id}",
             message="The admitted phase transition evaluator did not permit progression.",
         )
+        return [failure], OperationState.FAILED, diagnostic
+    target = binding.profile.phases[transition.target_phase_id]
+    phase = MixedCompositionRuntimeEventModel(
+        event_id=f"composition:{operation_id}:phase",
+        event_kind="phase-transition",
+        disposition="committed",
+        predecessor_event_id=state.history_head,
+        phase_id=target.phase_id,
+        phase_revision=state.phase_revision + 1,
+        active_component_ids=target.active_component_ids,
+        active_allocation_ids=target.active_allocation_ids,
+        active_edge_ids=target.active_edge_ids,
+        **common,
+    )
+    handoff = phase.model_copy(
+        update={
+            "event_id": f"composition:{operation_id}:handoff",
+            "event_kind": "handoff",
+            "predecessor_event_id": phase.event_id,
+        }
+    )
+    return [phase, handoff], OperationState.SUCCEEDED, None
+
+
+def advance_mixed_composition(
+    control_plane: object,
+    *,
+    transition_id: str,
+    identity: object,
+    idempotency_key: str,
+) -> OperationReceipt:
+    """Evaluate and commit exactly one pre-admitted forward transition."""
+
+    binding, transition = _phase_binding(control_plane, transition_id, identity)
+    control_plane._reload_derived_state()
+    state = runtime_state(binding, control_plane._snapshot)
+    history_key = f"mixed_composition_history:{state.run_id}"
+    receipt, running, context = _phase_operation(
+        control_plane, binding, transition_id, identity, idempotency_key, state, history_key
+    )
+    operation_id = receipt.operation_id
+    source_matches = state.phase_id == transition.source_phase_id
+    quiescent = _mixed_runtime_is_quiescent(control_plane, state.run_id, history_key)
+    claimed = control_plane._claim_record(
+        running,
+        new_claim_blocked="current-state" if not source_matches or not quiescent else None,
+    )
+    if claimed.receipt.operation_id != operation_id:
+        return claimed.receipt
+    evaluation = _evaluate(control_plane, transition, state)
+    events, terminal_state, diagnostic = _phase_outcome(binding, transition, state, evaluation, operation_id)
     snapshot = append_runtime_events(binding, control_plane._snapshot, state, events)
     terminal = replace(
         running,

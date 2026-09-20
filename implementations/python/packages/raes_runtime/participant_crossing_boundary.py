@@ -2,21 +2,25 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 from raes_contracts.contracts import ParticipantFlowSinkKind
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingSubjectReferenceModel,
 )
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
-from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState
+from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState
 from raes_processor.models import ParticipantBehaviorRuntime
 
 from .control_plane_execution import apply_authorized_participant_action
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
 from .control_plane_security import ControlPlaneIdentity
-from .mixed_runtime_dispatch import prepare_mixed_action_dispatch, record_mixed_action_result
+from .mixed_runtime_dispatch import (
+    PreparedMixedActionDispatch,
+    prepare_mixed_action_dispatch,
+    record_mixed_action_result,
+)
 from .participant_control_intents import ParticipantControlIntent, ParticipantControlIntentBase
 from .participant_control_mediation import (
     bind_participant_control_request,
@@ -48,10 +52,20 @@ from .participant_crossing_mediation import (
 )
 from .participant_crossing_records import _expected_history_heads
 from .participant_flow_sink import (
+    ParticipantFlowSinkDecision,
     apply_flow_sink_details,
     early_crossing_receipt,
     resolve_flow_sink_denial,
 )
+
+
+@dataclass(frozen=True)
+class _PreparedActionEffect:
+    crossing: PreparedParticipantCrossing
+    request: ParticipantActionAdmissionRequest | None = None
+    mixed_dispatch: PreparedMixedActionDispatch | None = None
+    sink_decision: ParticipantFlowSinkDecision | None = None
+    early_receipt: OperationReceipt | None = None
 
 
 class ParticipantCrossingControlIngressMixin:
@@ -245,130 +259,168 @@ def _execute_action_ingress_crossing_authorized(
 ) -> OperationReceipt:
     with control_plane._participant_control_lock:
         control_plane._reload_derived_state()
-        canonical = _action_crossing_intent(
+        prepared = _prepare_action_effect(control_plane, participant_behavior, request, execution)
+        if prepared.early_receipt is not None:
+            return prepared.early_receipt
+        assert prepared.request is not None
+        replay, authorization_heads = _authorize_action_effect(control_plane, prepared)
+        if replay is not None:
+            return replay
+        result = _apply_action_effect(control_plane, prepared, execution)
+        return _commit_action_effect(control_plane, request, prepared, result, authorization_heads)
+
+
+def _prepare_action_effect(
+    control_plane: object,
+    behavior: ParticipantBehaviorRuntime,
+    request: ParticipantActionAdmissionRequest,
+    execution: ActionIngressExecution,
+) -> _PreparedActionEffect:
+    canonical = _action_crossing_intent(
+        control_plane,
+        behavior,
+        request,
+        execution.crossing_evidence,
+        execution.identity,
+    )
+    crossing = prepare_participant_crossing(
+        control_plane,
+        canonical,
+        identity=execution.identity,
+        idempotency_key=execution.idempotency_key,
+        incumbent_carrier=request,
+    )
+    early = early_crossing_receipt(control_plane, crossing)
+    sink_decision = None
+    if early is None:
+        sink_decision, early = resolve_flow_sink_denial(
             control_plane,
-            participant_behavior,
-            request,
-            execution.crossing_evidence,
-            execution.identity,
+            crossing,
+            sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
+            action="record_participant_crossing",
         )
-        crossing = prepare_participant_crossing(
-            control_plane,
-            canonical,
-            identity=execution.identity,
-            idempotency_key=execution.idempotency_key,
-            incumbent_carrier=request,
-        )
-        early = early_crossing_receipt(control_plane, crossing)
-        sink_decision = None
-        if early is None:
-            sink_decision, early = resolve_flow_sink_denial(
+    if early is not None:
+        return _PreparedActionEffect(crossing=crossing, early_receipt=early)
+    governed = _governed_action_request(control_plane, crossing, request)
+    _require_action_binding(behavior, governed)
+    _require_governed_subject(crossing, _action_subject(control_plane, governed))
+    return _PreparedActionEffect(
+        crossing=crossing,
+        request=governed,
+        mixed_dispatch=prepare_mixed_action_dispatch(control_plane, governed, crossing),
+        sink_decision=sink_decision,
+    )
+
+
+def _authorize_action_effect(
+    control_plane: object,
+    prepared: _PreparedActionEffect,
+) -> tuple[OperationReceipt | None, dict[str, str | None]]:
+    crossing = prepared.crossing
+    mixed = prepared.mixed_dispatch
+    snapshot = mixed.snapshot if mixed is not None else crossing.next_snapshot
+    expected_heads = mixed.expected_history_heads if mixed is not None else crossing.expected_history_heads
+    result_heads = mixed.committed_history_heads if mixed is not None else crossing.record.result_history_heads
+    authorization = replace(
+        crossing.record,
+        status=replace(crossing.record.status, state=OperationState.RUNNING),
+        decision_history_heads=expected_heads,
+        result_history_heads=result_heads,
+    )
+    accepted = replace(
+        authorization,
+        status=replace(authorization.status, state=OperationState.ACCEPTED, diagnostics=[], changed_addresses=[]),
+    )
+    claimed = control_plane._claim_record(accepted)
+    if claimed.receipt.operation_id != accepted.receipt.operation_id:
+        return claimed.receipt, expected_heads
+    audit = combined_crossing_audit(
+        crossing.audit_event,
+        crossing,
+        action="authorize_participant_action",
+        allowed=True,
+        reason="authorized",
+    )
+    if prepared.sink_decision is not None:
+        audit = apply_flow_sink_details(audit, prepared.sink_decision)
+    control_plane._commit_participant_transition(
+        expected_history_heads=expected_heads,
+        snapshot=snapshot,
+        record=authorization,
+        audit_event=audit,
+    )
+    return None, expected_heads
+
+
+def _apply_action_effect(
+    control_plane: object,
+    prepared: _PreparedActionEffect,
+    execution: ActionIngressExecution,
+) -> ApplyResult:
+    mixed = prepared.mixed_dispatch
+    with control_plane._mutation_authority.external_call():
+        return apply_authorized_participant_action(
+            method=mixed.method if mixed is not None else execution.method,
+            request=prepared.request,
+            snapshot=control_plane._snapshot,
+            address=mixed.address if mixed is not None else execution.address,
+            information_state_context_resolver=getattr(
                 control_plane,
-                crossing,
-                sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
-                action="record_participant_crossing",
-            )
-        if early is not None:
-            return early
-
-        governed_request = _governed_action_request(control_plane, crossing, request)
-        _require_action_binding(participant_behavior, governed_request)
-        _require_governed_subject(crossing, _action_subject(control_plane, governed_request))
-        mixed_dispatch = prepare_mixed_action_dispatch(control_plane, governed_request, crossing)
-        authorization_snapshot = mixed_dispatch.snapshot if mixed_dispatch is not None else crossing.next_snapshot
-        authorization_expected_heads = (
-            mixed_dispatch.expected_history_heads if mixed_dispatch is not None else crossing.expected_history_heads
-        )
-        authorization_record = replace(
-            crossing.record,
-            status=replace(crossing.record.status, state=OperationState.RUNNING),
-            decision_history_heads=authorization_expected_heads,
-            result_history_heads=(
-                mixed_dispatch.committed_history_heads
-                if mixed_dispatch is not None
-                else crossing.record.result_history_heads
+                "_information_state_context_resolver",
+                None,
             ),
-        )
-        accepted_claim = replace(
-            authorization_record,
-            status=replace(
-                authorization_record.status,
-                state=OperationState.ACCEPTED,
-                diagnostics=[],
-                changed_addresses=[],
-            ),
-        )
-        claimed = control_plane._claim_record(accepted_claim)
-        if claimed.receipt.operation_id != accepted_claim.receipt.operation_id:
-            return claimed.receipt
-        authorization_audit = combined_crossing_audit(
-            crossing.audit_event,
-            crossing,
-            action="authorize_participant_action",
-            allowed=True,
-            reason="authorized",
-        )
-        if sink_decision is not None:
-            authorization_audit = apply_flow_sink_details(authorization_audit, sink_decision)
-        control_plane._commit_participant_transition(
-            expected_history_heads=authorization_expected_heads,
-            snapshot=authorization_snapshot,
-            record=authorization_record,
-            audit_event=authorization_audit,
         )
 
-        with control_plane._mutation_authority.external_call():
-            result = apply_authorized_participant_action(
-                method=mixed_dispatch.method if mixed_dispatch is not None else execution.method,
-                request=governed_request,
-                snapshot=control_plane._snapshot,
-                address=mixed_dispatch.address if mixed_dispatch is not None else execution.address,
-                information_state_context_resolver=getattr(
-                    control_plane,
-                    "_information_state_context_resolver",
-                    None,
-                ),
-            )
-        next_snapshot = result.snapshot.with_entries(
-            dict(result.snapshot.entries),
-            participant_crossing_history=crossing.next_snapshot.participant_crossing_history,
+
+def _commit_action_effect(
+    control_plane: object,
+    request: ParticipantActionAdmissionRequest,
+    prepared: _PreparedActionEffect,
+    result: ApplyResult,
+    authorization_expected_heads: dict[str, str | None],
+) -> OperationReceipt:
+    crossing = prepared.crossing
+    mixed_dispatch = prepared.mixed_dispatch
+    next_snapshot = result.snapshot.with_entries(
+        dict(result.snapshot.entries),
+        participant_crossing_history=crossing.next_snapshot.participant_crossing_history,
+    )
+    next_snapshot = record_mixed_action_result(
+        control_plane,
+        next_snapshot,
+        crossing,
+        success=result.success,
+    )
+    result_history_heads = _expected_history_heads(next_snapshot, request.participant_address)
+    if mixed_dispatch is not None:
+        result_history_heads[f"mixed_composition_history:{control_plane._mixed_runtime.entry.run_id}"] = (
+            next_snapshot.mixed_composition_states[control_plane._mixed_runtime.entry.run_id]["history_head"]
         )
-        next_snapshot = record_mixed_action_result(
-            control_plane,
-            next_snapshot,
-            crossing,
-            success=result.success,
-        )
-        result_history_heads = _expected_history_heads(next_snapshot, request.participant_address)
-        if mixed_dispatch is not None:
-            result_history_heads[f"mixed_composition_history:{control_plane._mixed_runtime.entry.run_id}"] = (
-                next_snapshot.mixed_composition_states[control_plane._mixed_runtime.entry.run_id]["history_head"]
-            )
-        record = replace(
-            action_operation_record(crossing, result),
-            decision_history_heads=authorization_expected_heads,
-            result_history_heads=result_history_heads,
-        )
-        audit = combined_crossing_audit(
-            crossing.audit_event,
-            crossing,
-            action="admit_participant_action",
-            allowed=result.success,
-            reason="accepted" if result.success else "backend-admission-failed",
-        )
-        if sink_decision is not None:
-            audit = apply_flow_sink_details(audit, sink_decision)
-        control_plane._commit_participant_transition(
-            expected_history_heads=(
-                mixed_dispatch.committed_history_heads
-                if mixed_dispatch is not None
-                else crossing.record.result_history_heads
-            ),
-            snapshot=next_snapshot,
-            record=record,
-            audit_event=audit,
-        )
-        return record.receipt
+    record = replace(
+        action_operation_record(crossing, result),
+        decision_history_heads=authorization_expected_heads,
+        result_history_heads=result_history_heads,
+    )
+    audit = combined_crossing_audit(
+        crossing.audit_event,
+        crossing,
+        action="admit_participant_action",
+        allowed=result.success,
+        reason="accepted" if result.success else "backend-admission-failed",
+    )
+    if prepared.sink_decision is not None:
+        audit = apply_flow_sink_details(audit, prepared.sink_decision)
+    control_plane._commit_participant_transition(
+        expected_history_heads=(
+            mixed_dispatch.committed_history_heads
+            if mixed_dispatch is not None
+            else crossing.record.result_history_heads
+        ),
+        snapshot=next_snapshot,
+        record=record,
+        audit_event=audit,
+    )
+    return record.receipt
 
 
 def _governed_control_intent(

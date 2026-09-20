@@ -45,6 +45,25 @@ class PreparedMixedLifecycleDispatch:
     committed_history_heads: dict[str, str | None]
 
 
+def _runtime_event_fields(
+    state: MixedCompositionRuntimeStateModel,
+    **coordinates: object,
+) -> dict[str, object]:
+    return {
+        "run_id": state.run_id,
+        "plan_id": state.plan_id,
+        "plan_entry_id": state.plan_entry_id,
+        "profile_id": state.profile_id,
+        "profile_digest": state.profile_digest,
+        "phase_id": state.phase_id,
+        "phase_revision": state.phase_revision,
+        "active_component_ids": state.active_component_ids,
+        "active_allocation_ids": state.active_allocation_ids,
+        "active_edge_ids": state.active_edge_ids,
+        **coordinates,
+    }
+
+
 def _active_allocation(
     binding: object,
     state: MixedCompositionRuntimeStateModel,
@@ -106,41 +125,13 @@ def prepare_mixed_lifecycle_dispatch(
     binding = getattr(control_plane, "_mixed_runtime", None)
     if binding is None:
         raise ValueError("mixed runtime is not configured")
-    if not isinstance(identity, ControlPlaneIdentity):
-        raise PermissionError("mixed participant lifecycle requires an authenticated identity")
-    if identity.target_name is not None and identity.target_name != control_plane.target_name:
-        raise PermissionError("mixed participant lifecycle identity is not authorized for this target")
+    lifecycle_identity = _require_lifecycle_identity(control_plane, identity)
     state = runtime_state(binding, control_plane._snapshot)
     participant_address = getattr(request, "participant_address", "")
     allocation = _active_allocation(binding, state, "participant", participant_address)
-    controller_bindings = {
-        item.controller_ref
-        for item in identity.participant_control_subjects
-        if item.participant_address == participant_address
-    }
-    if allocation.controller_ref not in controller_bindings:
-        raise PermissionError("mixed participant controller differs from the authenticated subject binding")
-    if not any(
-        requirement.feature == "participant_ingress_admission" for requirement in allocation.feature_requirements
-    ):
-        raise ValueError("mixed participant provider lacks the admitted lifecycle capability")
-    if allocation.provider_component_id not in state.active_component_ids:
-        raise ValueError("mixed participant provider is not active in the committed phase")
-    runtime = binding.components[allocation.provider_component_id].target.participant_runtime
-    method = getattr(runtime, method_name, None)
-    if runtime is None or not callable(method):
-        raise ValueError("mixed participant provider does not expose the admitted lifecycle method")
-    common = dict(
-        run_id=state.run_id,
-        plan_id=state.plan_id,
-        plan_entry_id=state.plan_entry_id,
-        profile_id=state.profile_id,
-        profile_digest=state.profile_digest,
-        phase_id=state.phase_id,
-        phase_revision=state.phase_revision,
-        active_component_ids=state.active_component_ids,
-        active_allocation_ids=state.active_allocation_ids,
-        active_edge_ids=state.active_edge_ids,
+    method = _lifecycle_method(binding, state, allocation, lifecycle_identity, participant_address, method_name)
+    common = _runtime_event_fields(
+        state,
         allocation_id=allocation.allocation_id,
         component_id=allocation.provider_component_id,
         control_event_ref=allocation.controller_ref,
@@ -171,6 +162,41 @@ def prepare_mixed_lifecycle_dispatch(
     )
 
 
+def _require_lifecycle_identity(control_plane: object, identity: object) -> ControlPlaneIdentity:
+    if not isinstance(identity, ControlPlaneIdentity):
+        raise PermissionError("mixed participant lifecycle requires an authenticated identity")
+    if identity.target_name is not None and identity.target_name != control_plane.target_name:
+        raise PermissionError("mixed participant lifecycle identity is not authorized for this target")
+    return identity
+
+
+def _lifecycle_method(
+    binding: object,
+    state: MixedCompositionRuntimeStateModel,
+    allocation: MixedCompositionAllocationModel,
+    identity: ControlPlaneIdentity,
+    participant_address: str,
+    method_name: str,
+) -> Callable[..., object]:
+    controller_bindings = {
+        item.controller_ref
+        for item in identity.participant_control_subjects
+        if item.participant_address == participant_address
+    }
+    if allocation.controller_ref not in controller_bindings:
+        raise PermissionError("mixed participant controller differs from the authenticated subject binding")
+    features = {requirement.feature for requirement in allocation.feature_requirements}
+    if "participant_ingress_admission" not in features:
+        raise ValueError("mixed participant provider lacks the admitted lifecycle capability")
+    if allocation.provider_component_id not in state.active_component_ids:
+        raise ValueError("mixed participant provider is not active in the committed phase")
+    runtime = binding.components[allocation.provider_component_id].target.participant_runtime
+    method = getattr(runtime, method_name, None)
+    if not callable(method):
+        raise ValueError("mixed participant provider does not expose the admitted lifecycle method")
+    return method
+
+
 def record_mixed_lifecycle_result(
     control_plane: object,
     snapshot: RuntimeSnapshot,
@@ -185,17 +211,8 @@ def record_mixed_lifecycle_result(
     attempt = MixedCompositionRuntimeEventModel.model_validate(snapshot.mixed_composition_history[state.run_id][-1])
     if attempt.event_id != f"composition:{operation_id}:lifecycle-attempt" or attempt.event_kind != "lifecycle-attempt":
         raise ValueError("mixed lifecycle result requires its exact durable attempt fact")
-    common = dict(
-        run_id=state.run_id,
-        plan_id=state.plan_id,
-        plan_entry_id=state.plan_entry_id,
-        profile_id=state.profile_id,
-        profile_digest=state.profile_digest,
-        phase_id=state.phase_id,
-        phase_revision=state.phase_revision,
-        active_component_ids=state.active_component_ids,
-        active_allocation_ids=state.active_allocation_ids,
-        active_edge_ids=state.active_edge_ids,
+    common = _runtime_event_fields(
+        state,
         allocation_id=attempt.allocation_id,
         component_id=attempt.component_id,
         control_event_ref=attempt.control_event_ref,
@@ -235,53 +252,15 @@ def prepare_mixed_action_dispatch(
     state = runtime_state(binding, crossing.next_snapshot)
     participant = _active_allocation(binding, state, "participant", request.participant_address)
     allocation = _active_allocation(binding, state, "action-family", request.action_contract_address)
-    if participant.controller_ref != allocation.controller_ref:
-        raise ValueError("mixed participant and action allocations disagree on controller authority")
-    if participant.routing_ref != allocation.routing_ref:
-        raise ValueError("mixed participant and action allocations disagree on routing authority")
-    controller_bindings = {
-        item.controller_ref
-        for item in crossing.identity.participant_control_subjects
-        if item.participant_address == request.participant_address
-    }
-    if allocation.controller_ref not in controller_bindings:
-        raise PermissionError("mixed action controller differs from the authenticated subject binding")
-    if allocation.action_authority_ref not in crossing.intent.authority_basis_refs:
-        raise PermissionError("mixed action authority is absent from the committed crossing cut")
-    if allocation.provider_component_id not in state.active_component_ids:
-        raise ValueError("mixed action provider is not active in the committed phase")
-    edge = None
-    if participant.provider_component_id != allocation.provider_component_id:
-        edges = [
-            candidate
-            for candidate in binding.profile.edges.values()
-            if candidate.edge_id in state.active_edge_ids
-            and candidate.source_component_id == participant.provider_component_id
-            and candidate.target_component_id == allocation.provider_component_id
-            and state.phase_id in candidate.phase_ids
-        ]
-        if len(edges) != 1:
-            raise ValueError("mixed action dispatch requires one active admitted topology edge")
-        edge = edges[0]
-    component = binding.components[allocation.provider_component_id]
-    runtime = component.target.participant_runtime
-    if runtime is None or not callable(getattr(runtime, "admit_action", None)):
-        raise ValueError("mixed action provider has no admitted participant runtime")
+    _require_action_authority(participant, allocation, crossing, request, state)
+    edge = _action_edge(binding, state, participant, allocation)
+    method = _action_method(binding, allocation)
     decision = crossing.decision
     if decision is None:
         raise ValueError("mixed action dispatch requires a committed crossing decision")
     operation_id = crossing.record.receipt.operation_id
-    event_base = dict(
-        run_id=state.run_id,
-        plan_id=state.plan_id,
-        plan_entry_id=state.plan_entry_id,
-        profile_id=state.profile_id,
-        profile_digest=state.profile_digest,
-        phase_id=state.phase_id,
-        phase_revision=state.phase_revision,
-        active_component_ids=state.active_component_ids,
-        active_allocation_ids=state.active_allocation_ids,
-        active_edge_ids=state.active_edge_ids,
+    event_base = _runtime_event_fields(
+        state,
         allocation_id=allocation.allocation_id,
         component_id=allocation.provider_component_id,
         edge_id=edge.edge_id if edge is not None else None,
@@ -312,12 +291,65 @@ def prepare_mixed_action_dispatch(
     expected = {**crossing.expected_history_heads, history_key: state.history_head}
     committed = {**crossing.record.result_history_heads, history_key: attempt_event.event_id}
     return PreparedMixedActionDispatch(
-        method=runtime.admit_action,
+        method=method,
         address=f"runtime.component.{allocation.provider_component_id}.participant.admit-action",
         snapshot=snapshot,
         expected_history_heads=expected,
         committed_history_heads=committed,
     )
+
+
+def _require_action_authority(
+    participant: MixedCompositionAllocationModel,
+    allocation: MixedCompositionAllocationModel,
+    crossing: PreparedParticipantCrossing,
+    request: ParticipantActionAdmissionRequest,
+    state: MixedCompositionRuntimeStateModel,
+) -> None:
+    if participant.controller_ref != allocation.controller_ref:
+        raise ValueError("mixed participant and action allocations disagree on controller authority")
+    if participant.routing_ref != allocation.routing_ref:
+        raise ValueError("mixed participant and action allocations disagree on routing authority")
+    controller_bindings = {
+        item.controller_ref
+        for item in crossing.identity.participant_control_subjects
+        if item.participant_address == request.participant_address
+    }
+    if allocation.controller_ref not in controller_bindings:
+        raise PermissionError("mixed action controller differs from the authenticated subject binding")
+    if allocation.action_authority_ref not in crossing.intent.authority_basis_refs:
+        raise PermissionError("mixed action authority is absent from the committed crossing cut")
+    if allocation.provider_component_id not in state.active_component_ids:
+        raise ValueError("mixed action provider is not active in the committed phase")
+
+
+def _action_edge(
+    binding: object,
+    state: MixedCompositionRuntimeStateModel,
+    participant: MixedCompositionAllocationModel,
+    allocation: MixedCompositionAllocationModel,
+) -> object | None:
+    if participant.provider_component_id == allocation.provider_component_id:
+        return None
+    edges = [
+        candidate
+        for candidate in binding.profile.edges.values()
+        if candidate.edge_id in state.active_edge_ids
+        and candidate.source_component_id == participant.provider_component_id
+        and candidate.target_component_id == allocation.provider_component_id
+        and state.phase_id in candidate.phase_ids
+    ]
+    if len(edges) != 1:
+        raise ValueError("mixed action dispatch requires one active admitted topology edge")
+    return edges[0]
+
+
+def _action_method(binding: object, allocation: MixedCompositionAllocationModel) -> Callable[..., object]:
+    runtime = binding.components[allocation.provider_component_id].target.participant_runtime
+    method = getattr(runtime, "admit_action", None)
+    if not callable(method):
+        raise ValueError("mixed action provider has no admitted participant runtime")
+    return method
 
 
 def record_mixed_action_result(
@@ -334,17 +366,8 @@ def record_mixed_action_result(
         return snapshot
     state = runtime_state(binding, snapshot)
     attempt = snapshot.mixed_composition_history[state.run_id][-1]
-    common = dict(
-        run_id=state.run_id,
-        plan_id=state.plan_id,
-        plan_entry_id=state.plan_entry_id,
-        profile_id=state.profile_id,
-        profile_digest=state.profile_digest,
-        phase_id=state.phase_id,
-        phase_revision=state.phase_revision,
-        active_component_ids=state.active_component_ids,
-        active_allocation_ids=state.active_allocation_ids,
-        active_edge_ids=state.active_edge_ids,
+    common = _runtime_event_fields(
+        state,
         allocation_id=attempt.get("allocation_id"),
         component_id=attempt.get("component_id"),
         edge_id=attempt.get("edge_id"),
@@ -387,7 +410,18 @@ def mixed_recovery_target(control_plane: object, operation_id: str) -> RuntimeTa
 
     binding = getattr(control_plane, "_mixed_runtime", None)
     if binding is None:
-        return getattr(control_plane, "_target", None)
+        target = getattr(control_plane, "_target", None)
+    else:
+        event = _recovery_attempt(control_plane, binding, operation_id)
+        target = _recovery_component(binding, event) if event is not None else None
+    return target
+
+
+def _recovery_attempt(
+    control_plane: object,
+    binding: object,
+    operation_id: str,
+) -> MixedCompositionRuntimeEventModel | None:
     history = control_plane._snapshot.mixed_composition_history.get(binding.entry.run_id, ())
     matches = [
         MixedCompositionRuntimeEventModel.model_validate(event)
@@ -399,18 +433,21 @@ def mixed_recovery_target(control_plane: object, operation_id: str) -> RuntimeTa
         }
         and event.get("event_kind") in {"attempt", "lifecycle-attempt"}
     ]
-    if len(matches) != 1:
-        return None
-    event = matches[0]
+    return matches[0] if len(matches) == 1 else None
+
+
+def _recovery_component(
+    binding: object,
+    event: MixedCompositionRuntimeEventModel,
+) -> RuntimeTarget | None:
     allocation = binding.profile.allocations.get(event.allocation_id or "")
-    if (
+    invalid = (
         allocation is None
         or allocation.provider_component_id != event.component_id
         or allocation.allocation_id not in event.active_allocation_ids
         or allocation.provider_component_id not in event.active_component_ids
-    ):
-        return None
-    component = binding.components.get(allocation.provider_component_id)
+    )
+    component = None if invalid else binding.components.get(allocation.provider_component_id)
     return None if component is None else component.target
 
 

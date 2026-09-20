@@ -76,9 +76,7 @@ from .observation_execution import ObservationExecution
 from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
-from .participant_crossing_mediation import (
-    validate_persisted_crossing_history,
-)
+from .participant_crossing_mediation import validate_persisted_crossing_history
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget

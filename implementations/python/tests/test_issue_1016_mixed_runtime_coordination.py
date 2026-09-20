@@ -316,8 +316,9 @@ def test_mixed_runtime_activation_commits_the_admitted_initial_phase() -> None:
 
     replay = plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     assert replay.operation_id == receipt.operation_id
+    different_identity = identity()
     with pytest.raises(RuntimeError):
-        plane.activate_mixed_composition(identity=identity(), idempotency_key="different-activation")
+        plane.activate_mixed_composition(identity=different_identity, idempotency_key="different-activation")
     assert len(plane.snapshot.mixed_composition_history[run_id]) == 1
 
 
@@ -433,7 +434,8 @@ def test_backend_rejection_appends_failure_without_delivery() -> None:
     assert kinds[-2:] == ["result", "failure"]
     assert "delivery" not in kinds
     status = plane.get_operation(receipt.operation_id, identity=identity())
-    assert status is not None and status.state.value == "failed"
+    assert status is not None
+    assert status.state.value == "failed"
 
 
 def test_failed_decision_commit_invokes_no_component_and_publishes_no_cut() -> None:
@@ -449,12 +451,16 @@ def test_failed_decision_commit_invokes_no_component_and_publishes_no_cut() -> N
     plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
 
+    action_behavior = behavior()
+    action_request = admission_request()
+    action_identity = identity()
+    action_evidence = evidence()
     with pytest.raises(RuntimeError, match="composition commit failure"):
         plane.admit_participant_action(
-            behavior(),
-            admission_request(),
-            identity=identity(),
-            crossing_evidence=evidence(),
+            action_behavior,
+            action_request,
+            identity=action_identity,
+            crossing_evidence=action_evidence,
             idempotency_key="failed-decision-commit",
         )
 
@@ -479,11 +485,12 @@ def test_failed_lifecycle_cut_commit_invokes_no_component() -> None:
     )
     plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
 
+    lifecycle_identity = identity()
     with pytest.raises(RuntimeError, match="composition commit failure"):
         plane.initialize_participant_episode(
             PARTICIPANT,
             episode_id="episode-1",
-            identity=identity(),
+            identity=lifecycle_identity,
         )
 
     assert all(runtime.initialize_count == 0 for runtime in runtimes.values())
@@ -572,18 +579,23 @@ def test_staged_phase_progression_is_bounded_append_only_and_idempotent() -> Non
     )
     assert replay.operation_id == receipt.operation_id
     assert evaluations == [("transition.sim-to-emu", 0)]
+    stale_identity = identity()
     with pytest.raises(RuntimeError):
         plane.advance_mixed_composition(
             "transition.sim-to-emu",
-            identity=identity(),
+            identity=stale_identity,
             idempotency_key="stale-transition",
         )
+    inactive_behavior = behavior()
+    inactive_request = admission_request()
+    inactive_identity = identity()
+    inactive_evidence = evidence()
     with pytest.raises(ValueError, match="active .* allocation"):
         plane.admit_participant_action(
-            behavior(),
-            admission_request(),
-            identity=identity(),
-            crossing_evidence=evidence(),
+            inactive_behavior,
+            inactive_request,
+            identity=inactive_identity,
+            crossing_evidence=inactive_evidence,
             idempotency_key="inactive-action",
         )
     assert all(runtime.admission_count == 0 for runtime in runtimes.values())
@@ -633,10 +645,11 @@ def test_phase_progression_rejects_an_outstanding_mixed_effect() -> None:
         )
         assert started.wait(timeout=5)
         try:
+            blocked_identity = identity()
             with pytest.raises(RuntimeError):
                 second.advance_mixed_composition(
                     "transition.sim-to-emu",
-                    identity=identity(),
+                    identity=blocked_identity,
                     idempotency_key="blocked-advance",
                 )
             assert evaluations == []
@@ -646,7 +659,8 @@ def test_phase_progression_rejects_an_outstanding_mixed_effect() -> None:
         receipt = future.result(timeout=5)
 
     status = first.get_operation(receipt.operation_id, identity=identity())
-    assert status is not None and status.state.value == "succeeded"
+    assert status is not None
+    assert status.state.value == "succeeded"
 
 
 def test_transition_evaluator_failure_is_sanitized_and_records_failure_fact() -> None:
@@ -673,7 +687,8 @@ def test_transition_evaluator_failure_is_sanitized_and_records_failure_fact() ->
     assert state["phase_revision"] == 0
     assert plane.snapshot.mixed_composition_history[run_id][-1]["event_kind"] == "failure"
     status = plane.get_operation(receipt.operation_id, identity=identity())
-    assert status is not None and status.state.value == "failed"
+    assert status is not None
+    assert status.state.value == "failed"
     assert "private evaluator internals" not in repr(status.diagnostics)
 
 
