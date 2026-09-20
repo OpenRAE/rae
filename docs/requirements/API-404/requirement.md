@@ -13,23 +13,82 @@ updated_at: 2026-09-20T00:00:00.000000Z
 
 ## Statement
 
-The control-plane contract shall support authenticated and authorized access, durable operation state, idempotent submission behavior, and auditable lifecycle actions.
+The runtime control plane shall expose only explicitly selected operating
+profiles and shall satisfy the applicable stable clauses below. A profile makes
+no guarantee outside its matrix row.
+
+## Contract clauses
+
+### API-404-C1 — Common in-process control
+
+P0, P1, and P2 shall preserve typed actor provenance, authorize every mutation
+and disclosure, isolate one target and run, scope idempotency to the actor and
+operation context, validate admitted state, compare revisions before snapshot
+writes, route mutations through one authority, and commit terminal operation
+state with its operational audit atomically. The corresponding runtime
+guarantee identifiers are `in-process-safety`, `actor-scoped-idempotency`,
+`target-run-isolation`, `revision-cas`, and `atomic-audit`.
+
+P0 receives its actor identity from the trusted embedder. P0 process loss
+discards operation state, idempotency records, and audit evidence held by the
+composition. P0 does not provide durability, restart recovery, or retained
+deduplication across process loss.
+
+### API-404-C2 — Durable local control
+
+P1 and P2 shall add crash-consistent authoritative state, retained idempotency
+claims, exclusive owner-lease admission, strict persisted carriers, and startup
+classification without automatic effect replay. The corresponding runtime
+guarantee identifiers are `durable-state`, `retained-idempotency`,
+`lease-admission`, and `startup-reconciliation`.
+
+### API-404-C3 — Served transport control
+
+P2 shall add bounded authenticated HTTP admission, actor-bound disclosure,
+owner-serialized mutation, and revision-bearing reads over an explicitly
+selected P1 core. The corresponding runtime guarantee identifiers are
+`authenticated-transport`, `actor-bound-disclosure`,
+`owner-serialized-mutation`, and `revision-carrying-reads`. Only P2
+authenticates transport callers; P0 and P1 rely on their trusted embedders.
+
+### API-404-C4 — Excluded stronger claims
+
+P0, P1, and P2 shall not imply high availability, multitenancy, multi-owner
+coordination, exactly-once backend effects, TLS or proxy deployment correctness,
+or universal recovery proof. P3 is unavailable and satisfies no API-404 clause;
+coordination, fencing, scheduling, cache coherence, partition behavior, and
+tenant isolation require a future ADR and formal model.
+
+## Profile-to-clause matrix
+
+| Profile | Required clauses | Guarantee identifiers | Explicit boundaries |
+| --- | --- | --- | --- |
+| P0 | `API-404-C1` | `in-process-safety`, `actor-scoped-idempotency`, `target-run-isolation`, `revision-cas`, `atomic-audit` | Process-lifetime state only; no durability, restart recovery, retained deduplication after loss, or authenticated transport. |
+| P1 | `API-404-C1`, `API-404-C2` | `in-process-safety`, `actor-scoped-idempotency`, `target-run-isolation`, `revision-cas`, `atomic-audit`, `durable-state`, `retained-idempotency`, `lease-admission`, `startup-reconciliation` | Trusted-embedder identity; no authenticated transport, multi-owner operation, or exactly-once backend effects. |
+| P2 | `API-404-C1`, `API-404-C2`, `API-404-C3` | `in-process-safety`, `actor-scoped-idempotency`, `target-run-isolation`, `revision-cas`, `atomic-audit`, `durable-state`, `retained-idempotency`, `lease-admission`, `startup-reconciliation`, `authenticated-transport`, `actor-bound-disclosure`, `owner-serialized-mutation`, `revision-carrying-reads` | One P1 owner and one target/run scope; TLS, proxy correctness, high availability, and multitenancy remain deployment or future-profile duties. |
+| P3 | none | none | Unavailable; no guarantee or implementation claim. |
 
 ## Rationale
 
-Requirement inventory phase. Status audit deferred until the full canonical graph is complete.
+The control-plane implementations deliberately provide cumulative operating
+profiles rather than one universal durability and transport contract. Stable
+clause identifiers keep requirement traceability aligned with the runtime-owned
+profile catalog while preserving the distinction between trusted-embedder
+identity, crash-persistent local control, and authenticated served admission.
+ADR-104 and the FM3 model define the architecture; landed code and automated
+tests provide implementation evidence.
 
 ## Traceability
 
-- IMPLEMENTS → GITHUB_ISSUE `8` (API-404: Secure, Durable, And Idempotent Control-Plane Semantics)
-- IMPLEMENTS → GITHUB_ISSUE `1151` (design(runtime): define the runtime control-plane architecture)
+- DOCUMENTS → GITHUB_ISSUE `8` (API-404: Secure, Durable, And Idempotent Control-Plane Semantics)
+- DOCUMENTS → GITHUB_ISSUE `1151` (design(runtime): define the runtime control-plane architecture)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md` (ADR-104: Runtime Control-Plane Architecture)
 - DOCUMENTS → DOCUMENTATION `docs/research/runtime-control-plane/index.md` (Runtime control-plane architecture design set)
 - DOCUMENTS → SPEC `specs/formal/runtime-control-plane/README.md` (ADR-104 FM3 abstract operation model and invariants)
 - TESTS → TEST `implementations/python/tests/test_issue_1151_runtime_control_plane_design.py` (Structural acceptance gate for the design set)
-- IMPLEMENTS → GITHUB_ISSUE `1182` (CP-1: Operation lifecycle contract)
-- IMPLEMENTS → GITHUB_ISSUE `1181` (CP-2: Unified control-plane mutation commits)
-- IMPLEMENTS → GITHUB_ISSUE `1179` (CP-3: Startup reconciliation)
+- DOCUMENTS → GITHUB_ISSUE `1182` (CP-1: Operation lifecycle contract)
+- DOCUMENTS → GITHUB_ISSUE `1181` (CP-2: Unified control-plane mutation commits)
+- DOCUMENTS → GITHUB_ISSUE `1179` (CP-3: Startup reconciliation)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1179-startup-reconciliation-preflight.md` (CP-3 startup reconciliation classification, observation, authorization, and recovery boundaries)
 - IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json` (Optional backend-neutral recovery-observation capability and supported operation kinds)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/recovery_observation.py` (Closed value-free recovery classification request/result protocol)
@@ -55,13 +114,13 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_releases.py` (Historical and current formal-evidence release validation)
 - IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_retest.py` (Current retained-corpus replay validation)
 - IMPLEMENTS → CODE_FILE `tools/check_specification_coverage.py` (Complete specification-coverage release loading and current selection)
-- IMPLEMENTS → GITHUB_ISSUE `1180` (CP-4: Snapshot revision compare-and-swap)
-- IMPLEMENTS → GITHUB_ISSUE `1183` (CP-5: Store lease admission)
+- DOCUMENTS → GITHUB_ISSUE `1180` (CP-4: Snapshot revision compare-and-swap)
+- DOCUMENTS → GITHUB_ISSUE `1183` (CP-5: Store lease admission)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1183-store-ownership-lease-preflight.md` (CP-5 immutable scope, exclusive ownership, startup, and shutdown boundaries)
 - DOCUMENTS → GITHUB_ISSUE `1092` (CP-6: Transactional local store)
-- IMPLEMENTS → GITHUB_ISSUE `1184` (CP-7: Atomic idempotency claims and cache demotion)
+- DOCUMENTS → GITHUB_ISSUE `1184` (CP-7: Atomic idempotency claims and cache demotion)
 - DOCUMENTS → GITHUB_ISSUE `1188` (CP-8: Served profile alignment)
-- IMPLEMENTS → GITHUB_ISSUE `1187` (CP-9: Crash and profile conformance suite)
+- DOCUMENTS → GITHUB_ISSUE `1187` (CP-9: Crash and profile conformance suite)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1187-control-plane-conformance-preflight.md` (CP-9 profile, fault-evidence, and security boundaries)
 - DOCUMENTS → DOCUMENTATION `docs/research/runtime-control-plane/conformance.md` (Unified suite invocation, finite evidence map, and explicit profile nonclaims)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_result_diagnostics.py` (Value-free backend failure diagnostics without provider type names)
@@ -77,26 +136,28 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v34.json` (Fresh retained formal and participant replay bound to CP-9 source without new claim classes)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1187-v34.json` (Fresh retained language coverage replay bound to CP-9 source without crash-conformance claims)
 - TESTS → TEST `implementations/python/tests/test_run_319_participant_flow_policy.py` (Operation-bound participant authorization, atomic crossing history, and idempotent replay in the conformance suite)
-- IMPLEMENTS → GITHUB_ISSUE `1189` (CP-10: Profile declaration and capability discovery)
+- DOCUMENTS → GITHUB_ISSUE `1189` (CP-10: Profile declaration and capability discovery)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_profiles.py` (Canonical typed P0-P3 declarations and layer-qualified capability admission)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/__init__.py` (Public profile and capability declaration exports)
-- IMPLEMENTS → DOCUMENTATION `docs/explain/sdl/runtime-architecture.md` (Profile guarantees, nonclaims, selection, and deployment responsibilities)
+- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/runtime-architecture.md` (Profile guarantees, nonclaims, selection, and deployment responsibilities)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1189-control-plane-profile-declaration-preflight.md` (CP-10 composition and capability boundary)
 - TESTS → TEST `implementations/python/tests/test_issue_1189_control_plane_profile_declarations.py` (Profile matrix, fail-closed construction, cross-surface identity, and documentation drift tests)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v35.json` (Current retained formal and participant replay bound to CP-10 source without new profile claims)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1189-v35.json` (Current retained language coverage replay bound to CP-10 source without profile-composition claims)
 - DOCUMENTS → GITHUB_ISSUE `1185` (CP-11: API-404 requirement update)
-- IMPLEMENTS → GITHUB_ISSUE `1186` (CP-12: Recovery runbook and operator tooling)
-- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1186-control-plane-recovery-operations-preflight.md` (CP-12 recovery, maintenance, health, and disclosure boundaries)
-- IMPLEMENTS → DOCUMENTATION `docs/explain/sdl/control-plane-operations.md` (Operator recovery, health, shutdown, backup, restore, and upgrade runbook)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1185-api-404-profile-alignment-preflight.md` (CP-11 profile and evidence boundaries)
+- TESTS → TEST `implementations/python/tests/test_issue_1185_api_404_profile_alignment.py` (Clause matrix, profile catalog, nonclaims, public documentation, and local-evidence drift checks)
+- DOCUMENTS → GITHUB_ISSUE `1186` (CP-12: Recovery runbook and operator tooling)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1186-control-plane-recovery-operations-preflight.md` (CP-12 recovery, maintenance, health, and disclosure boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/control-plane-operations.md` (Operator recovery, health, shutdown, backup, restore, and upgrade runbook)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_cli/runtime.py` (Stable value-free local-store maintenance CLI)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_health_routes.py` (Public value-free liveness and readiness probes)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_audit.py` (Bounded audit-carrier validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_health.py` (Closed lifecycle, lease, poison, and recovery readiness projection)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_maintenance.py` (Lease-admitted local integrity check, SQLite backup, migration, and restore operations)
 - TESTS → TEST `implementations/python/tests/test_issue_1186_control_plane_recovery_operations.py` (CP-12 health, maintenance, migration, recovery, redaction, and failure-path acceptance tests)
-- IMPLEMENTS → GITHUB_ISSUE `1090` (Fail-closed bearer-token authentication and target binding)
-- IMPLEMENTS → GITHUB_ISSUE `1091` (Bounded pre-routing HTTP request admission)
+- DOCUMENTS → GITHUB_ISSUE `1090` (Fail-closed bearer-token authentication and target binding)
+- DOCUMENTS → GITHUB_ISSUE `1091` (Bounded pre-routing HTTP request admission)
 - DOCUMENTS → GITHUB_ISSUE `1093` (In-process HTTP offload and rejection-audit slice)
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/operation-receipt-v1.json` (Operation receipt JSON Schema — submission acknowledgment contract)
 - IMPLEMENTS → SPEC `contracts/schemas/control-plane/operation-status-v1.json` (Operation status JSON Schema — durable operation state contract)
@@ -117,7 +178,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane_api.py` (HTTP/JSON control-plane API tests — auth, idempotency, durability, audit)
 - TESTS → TEST `implementations/python/tests/test_issue_1182_operation_lifecycle_contract.py` (Closed transition matrix, malformed carriers, immutability, denial, semantic idempotency, and schema governance)
 - TESTS → TEST `implementations/python/tests/test_issue_1093_request_rejection_offload.py` (Non-blocking, saturation-bounded, fail-closed request rejection audit tests)
-- IMPLEMENTS → GITHUB_ISSUE `1092` (Make the local control plane crash-consistent and explicitly single-process)
+- DOCUMENTS → GITHUB_ISSUE `1092` (Make the local control plane crash-consistent and explicitly single-process)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_mutation.py` (Operation-family-neutral logical mutation authority and guarded extension callback boundary)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py` (Write-ahead RUNNING claims, guarded backend validation and execution, and terminal commit routing)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store.py` (Provider-neutral store contracts, transition validation, and actor-bound audit provenance)
@@ -155,7 +216,7 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1180-snapshot-revision-cas-preflight.md` (Snapshot CAS architecture guardrails and compatibility boundaries)
 - TESTS → TEST `implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py` (Atomic terminal rollback, WAL admission, durable path handling, uncertain-commit preservation, multiprocess stress, retry, and runtime-owner tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1180_snapshot_revision_cas.py` (Interleaved stale writers, cache rebuild, provider metadata isolation, and SQLite revision migration)
-- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1181-unified-control-plane-mutations-preflight.md` (CP-2 mutation authority, write-ahead claim, atomic terminal cut, and compatibility boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1181-unified-control-plane-mutations-preflight.md` (CP-2 mutation authority, write-ahead claim, atomic terminal cut, and compatibility boundaries)
 - TESTS → TEST `implementations/python/tests/test_issue_1181_unified_control_plane_mutations.py` (CP-2 authority, claim ordering, validation gate, atomicity, audit provenance, capability, recovery, and facade-boundary acceptance tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1183_store_ownership_leases.py` (CP-5 admission, scope binding, process ownership, shutdown ordering, and worker-posture acceptance tests)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1184-atomic-idempotency-claims-preflight.md` (CP-7 atomic claim, replay authorization, migration, and cache-authority boundaries)
