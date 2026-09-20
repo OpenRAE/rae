@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1187-v34",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1016-v36",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -51,7 +51,8 @@
     "Store ownership, immutable runtime scope, and provider shutdown ordering are covered by the API-404 CP-5 regression suite, not by this retained specification-coverage protocol.",
     "Mixed/staged trial compilation and admission are covered by issue #1015 regression tests, not by this retained specification-coverage corpus; no live mixed-runtime result is claimed.",
     "Issue #1186 control-plane recovery operations are covered by their runtime regression suite, not by this retained specification-coverage corpus.",
-    "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus."
+    "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus.",
+    "Issue #1189 control-plane profile declarations are covered by their dedicated runtime suite, not promoted to new claims by the retained language corpus."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -59,7 +60,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay on the integrated source state retains those classifications and claim limits; listener endpoint completeness, backend admission, realized participant relationships, authoring-adapter transport behavior, and native backend scope enforcement are not evaluated by this protocol. This replay also binds the operational recovery-observation implementation without treating it as EXP-715 experiment observation or a crash-recovery result. This replay binds the CP-5 source changes without treating the retained language artifacts as evidence of process leasing, SQLite ownership, or lifecycle drain ordering. This replay binds the issue #1015 admitted-plan and compiler source changes without treating the retained language artifacts as evidence of live mixed-runtime execution, phase coordination, or backend equivalence. This replay binds issue #1186 runtime maintenance, health, and audit source without claiming that the retained language corpus executes those operator paths. This replay binds issue #1187 source changes without treating the retained language corpus as crash/profile conformance evidence.",
+  "plain_language_outcome": "RAES preserved every issue-defined load-bearing concept through its tested typed stages without requiring backend fields in core SDL. The broader claim remains partial: the three preregistered missing-carrier slots were not run, which does not establish that those capabilities are absent from the current ecosystem. Replay on the integrated source state retains those classifications and claim limits; listener endpoint completeness, backend admission, realized participant relationships, authoring-adapter transport behavior, and native backend scope enforcement are not evaluated by this protocol. This replay also binds the operational recovery-observation implementation without treating it as EXP-715 experiment observation or a crash-recovery result. This replay binds the CP-5 source changes without treating the retained language artifacts as evidence of process leasing, SQLite ownership, or lifecycle drain ordering. This replay binds the issue #1015 admitted-plan and compiler source changes without treating the retained language artifacts as evidence of live mixed-runtime execution, phase coordination, or backend equivalence. This replay binds issue #1186 runtime maintenance, health, and audit source without claiming that the retained language corpus executes those operator paths. This replay binds issue #1187 source changes without treating the retained language corpus as crash/profile conformance evidence. This replay binds issue #1189 source changes without treating the retained language corpus as evidence of control-plane profile guarantees.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -91,6 +92,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1187-v34",
-  "snapshot_sha256": "adc516ed835201a29100e614d67623c4251b75b5735864a4d90a2538e4723cb4"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1016-v36",
+  "snapshot_sha256": "ffc779844e086eb8ad225f62a8216089454d713f81bbee8f7b6f4a9b2599b303"
 }

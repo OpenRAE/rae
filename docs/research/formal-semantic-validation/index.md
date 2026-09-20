@@ -233,12 +233,22 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v33.json`](analysis-v33.json) to issue #1186 runtime maintenance,
   health, and audit source. Replay retains the formal corpus outcomes without
   claiming that it exercises those operator paths.
-- [`bundles/retest-v34.json`](bundles/retest-v34.json) is current release 35.0.0.
+- [`bundles/retest-v34.json`](bundles/retest-v34.json) preserves release 35.0.0.
   It binds [`execution-snapshot-v34.json`](execution-snapshot-v34.json) and
   [`analysis-v34.json`](analysis-v34.json) to issue #1187 control-plane
   conformance and exception-redaction source. Fresh production and participant
   replay retains the prior outcomes and claim limits. Crash/profile conformance
   remains evidence from its dedicated suite, not a new claim in this corpus.
+- [`bundles/retest-v35.json`](bundles/retest-v35.json) preserves release 36.0.0.
+  It binds [`execution-snapshot-v35.json`](execution-snapshot-v35.json) and
+  [`analysis-v35.json`](analysis-v35.json) to issue #1189 runtime profile
+  declarations. Fresh replay retains prior outcomes and claim limits; profile
+  composition is verified by its dedicated runtime tests, not this corpus.
+- [`bundles/retest-v36.json`](bundles/retest-v36.json) is current release 37.0.0.
+  It binds [`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
+  [`analysis-v36.json`](analysis-v36.json) to issue #1016 mixed-runtime
+  coordination. Fresh replay retains prior outcomes and claim limits; the
+  mixed-runtime boundary is verified by its dedicated runtime tests.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -283,7 +293,7 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 35.0.0, rejects unsupported future
+Current validation requires explicit release 37.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

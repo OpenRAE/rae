@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-20T00:43:10.501349+00:00",
+  "captured_at": "2026-09-20T08:00:00.000000+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "ddcf7d5310b4f6643e653a849f49187b882483150bad41493ad93c638cfeaeb7",
+      "content_sha256": "13f2ab03a863d37ef1d9eeb9faacb22a63eed5aa0ee83e1e80cb9b5df6b0e399",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -680,17 +680,19 @@
     "This capture binds API-404 single-owner store admission and immutable target/run scope to the integrated source. The retained offline protocol does not exercise process leases, SQLite lifecycle ordering, or crash recovery.",
     "This capture binds issue #1015 deterministic mixed and staged trial admission to the integrated source. The retained offline language corpus does not execute mixed runtimes, phase transitions, backend handoff, or scheduler-driven realization.",
     "This replay binds issue #1186 offline control-plane maintenance, readiness, and bounded audit code to the integrated source. The retained language corpus does not execute store recovery, HTTP health behavior, or audit redaction.",
-    "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus."
+    "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus.",
+    "Issue #1189 control-plane profile declarations are covered by their dedicated runtime suite, not promoted to new claims by the retained language corpus.",
+    "Issue #1016 mixed-runtime coordination is covered by its dedicated runtime suite. The retained language corpus does not execute mixed providers or establish backend-native realization, multi-controller coordination, IFC, or equivalence."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "e0cc608a64b1912f2c69368bdd561815aa4b749c",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1187-v34",
-  "snapshot_revision": "34.0.0",
+  "raes_revision": "0d3e9a78edb278c80ac2ed41e78c50e6f3bee25b",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1016-v36",
+  "snapshot_revision": "36.0.0",
   "source_state": {
-    "base_revision": "e0cc608a64b1912f2c69368bdd561815aa4b749c",
+    "base_revision": "0d3e9a78edb278c80ac2ed41e78c50e6f3bee25b",
     "checkout_state": "modified",
-    "implementation_digest": "0ddedfed847f4cdf22334c6fc188065bdca1c1be661a75cc1e5ea7633831fda4",
+    "implementation_digest": "d3f85c9ea74f474adac7136c1943c7ab744aad8d4be68989c282301eb1a29f62",
     "profile": "python-reference-source/v2"
   }
 }
