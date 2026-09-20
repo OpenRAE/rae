@@ -585,6 +585,54 @@ count, so an unauthenticated rejection flood cannot consume the default AnyIO
 workers required by authenticated reads; excess audit records are dropped with
 an operational warning.
 
+## Control-plane operating profiles
+
+An embedder selects a profile explicitly through the typed
+`raes_runtime.ControlPlaneProfile` API. `profile_declaration()` returns the
+canonical immutable declaration for any of P0–P3, including the guarantees,
+nonclaims, required capability identifiers, target/run scope, and actor
+boundary. A selected profile fails construction if the store or composition
+cannot supply its required facts; it never falls back to a weaker profile.
+Existing callers that omit selection continue to work, but their compositions
+make no named profile claim.
+
+| Profile | Guarantee identifiers | Nonclaim identifiers |
+| --- | --- | --- |
+| P0 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit | durability, restart-recovery, multi-owner, high-availability, multitenancy |
+| P1 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation | multi-owner, high-availability, exactly-once-effects, multitenancy |
+| P2 | in-process-safety, actor-scoped-idempotency, target-run-isolation, revision-cas, atomic-audit, durable-state, retained-idempotency, lease-admission, startup-reconciliation, authenticated-transport, actor-bound-disclosure, owner-serialized-mutation, revision-carrying-reads | multi-worker, tls-proxy-deployment, high-availability, exactly-once-effects, multitenancy |
+| P3 | none | future-coordination |
+
+P0 uses an in-memory store for one target and one run, with an actor supplied
+by the trusted embedding process. Its audit and idempotency guarantees last
+only as long as that process. P1 uses a transactional local store, one
+process-bound owner lease, revision checks, atomic terminal audit, and startup
+classification of interrupted operations. A backend recovery observer is
+optional: when an effect cannot be established, the operation becomes
+`INDETERMINATE` without automatic replay. P2 is the reference HTTP adapter
+over an explicitly selected P1 core. It derives the actor from authenticated
+HTTP identity and keeps P1's one-target, one-run scope. A bare core cannot
+claim P2, and P3 is inspectable but unavailable pending a future coordination
+decision.
+
+For an in-process P0 composition, pass `profile=ControlPlaneProfile.P0` to
+`RuntimeControlPlane`. For a durable local P1 composition, pass a
+`LocalControlPlaneStore` and `profile=ControlPlaneProfile.P1`; construction
+admits its owner lease. To serve that
+core, pass `profile=ControlPlaneProfile.P2` to `create_control_plane_app()`;
+the app exposes the same canonical declaration to its embedder through
+`app.state.control_plane_profile`. Store providers declare facts through
+`ControlPlaneStoreCapabilities`; they do not name or choose a profile.
+
+The library owns operation bookkeeping, receipts, snapshots, participant
+transitions, audit, and profile admission. The embedding application owns its
+target/run selection, process lifecycle, actor source for P0/P1, and upgrade
+sequence. P2 deployment owns TLS termination, trusted-proxy header stripping,
+secret loading, worker configuration, service credentials, process supervision,
+and backup policy. Profile metadata is in-process discovery, not a health
+signal, HTTP discovery endpoint, availability promise, or tenant-multiplexing
+contract.
+
 ## Current Scope
 
 The current runtime scope includes:

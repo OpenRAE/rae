@@ -30,6 +30,12 @@ from starlette.concurrency import run_in_threadpool
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_api_participant_retrieval import register_participant_retrieval_routes
+from ..control_plane_profiles import (
+    ControlPlaneCapability,
+    ControlPlaneProfile,
+    require_profile_capabilities,
+    select_profile,
+)
 from ..control_plane_security import ControlPlaneSecurityConfig
 from ..control_plane_store_lease import require_single_worker_configuration
 from ._auth import _ControlPlaneApiAuth
@@ -43,6 +49,15 @@ from ._participant_routes import (
 )
 from ._responses import _receipt_response
 from ._workflow_routes import _register_workflow_routes
+
+_HTTP_CAPABILITIES = frozenset(
+    {
+        ControlPlaneCapability.HTTP_AUTHENTICATED_IDENTITY,
+        ControlPlaneCapability.HTTP_SINGLE_WORKER,
+        ControlPlaneCapability.HTTP_BOUNDED_ADMISSION,
+        ControlPlaneCapability.HTTP_REVISION_READS,
+    }
+)
 
 
 def _control_plane_api_version() -> str:
@@ -65,9 +80,21 @@ def create_control_plane_app(
     control_plane: RuntimeControlPlane,
     *,
     security: ControlPlaneSecurityConfig | None = None,
+    profile: ControlPlaneProfile | None = None,
 ) -> FastAPI:
     """Create a reference HTTP/JSON control-plane app."""
 
+    declaration = select_profile(profile) if profile is not None else None
+    if declaration is not None:
+        if declaration.profile is not ControlPlaneProfile.P2:
+            raise ValueError("HTTP composition can select only P2")
+        core_declaration = control_plane.profile_declaration
+        if core_declaration is None or core_declaration.profile is not ControlPlaneProfile.P1:
+            raise ValueError("P2 requires an explicitly selected P1 core")
+        require_profile_capabilities(
+            declaration,
+            core_declaration.required_capabilities | _HTTP_CAPABILITIES,
+        )
     require_single_worker_configuration()
     security = security or ControlPlaneSecurityConfig.strict_defaults()
     executor = _ControlPlaneCallExecutor(max_pending_mutations=security.max_pending_mutations)
@@ -87,6 +114,7 @@ def create_control_plane_app(
         lifespan=lifespan,
     )
     app.state.control_plane_api_auth = _ControlPlaneApiAuth(control_plane, security)
+    app.state.control_plane_profile = declaration
     app.state.control_plane_call_executor = executor
     _register_health_routes(app, control_plane)
     _install_request_guards(app, control_plane, security)
