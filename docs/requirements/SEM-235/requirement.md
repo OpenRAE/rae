@@ -44,6 +44,9 @@ owners; semantic publication is not their implementation.
 
 ## Traceability
 
+- DOCUMENTS → GITHUB_ISSUE `1072` (API-424 consumes the existing semantic publication without changing its fulfillment boundary)
+- DOCUMENTS → DOCUMENTATION `docs/explain/reference/modular-participant-control-contracts.md` (Published contract correspondence and nonclaims)
+
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1068` (Modular participant-control architecture)
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1070` (Semantic publication)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md` (ADR-108)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from typing import Literal
 
 JSONValue = None | bool | int | float | str | list["JSONValue"] | dict[str, "JSONValue"]
@@ -33,6 +34,13 @@ def _duplicate_rejecting_object(
 
 def _reject_non_finite_number(_: str) -> float:
     raise StrictJsonIngressError("non-finite-number", "JSON contains a non-finite number")
+
+
+def _finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        return _reject_non_finite_number(value)
+    return parsed
 
 
 def _advance_quoted_state(byte: int, escaped: bool) -> tuple[bool, bool]:
@@ -91,6 +99,7 @@ def parse_bounded_json(
             encoded,
             object_pairs_hook=_duplicate_rejecting_object,
             parse_constant=_reject_non_finite_number,
+            parse_float=_finite_float,
         )
     except StrictJsonIngressError:
         raise
