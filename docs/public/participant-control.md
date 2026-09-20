@@ -16,7 +16,7 @@ They own the rules. Follow them if this guide seems to differ.
 ## Keep four planes separate
 
 For backend authors, the
-[modular provider contract reference](../explain/reference/modular-participant-control-contracts.md)
+[modular provider contract reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/modular-participant-control-contracts.md)
 describes closed profile selections, typed results and requested effects.
 Publishing these contracts does not install a provider or execute its requests.
 
