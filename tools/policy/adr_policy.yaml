@@ -229,6 +229,9 @@ module_boundaries:
           - raes_processor.exploit_path
           - raes_processor.manifest
           - raes_processor.models
+          # Reconciliation demonstration (issue #610): the composable harness
+          # only; the CLI still never reaches the planner or the stub runtime.
+          - raes_processor.reconciliation_demonstration
           - raes_processor.reference
           - raes_processor.satisfiability
     - id: raes_mcp

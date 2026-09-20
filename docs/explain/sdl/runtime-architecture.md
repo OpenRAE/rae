@@ -184,6 +184,14 @@ Reconciliation actions are explicit:
 - `DELETE`
 - `UNCHANGED`
 
+`raes processor reconcile <v1> <v2> --format json` makes this directly
+observable: it plans `v1`, projects that plan into a snapshot, plans `v2`
+against the snapshot, and reports every resulting action. The worked pair is
+[`examples/scenarios/reconciliation-demo-v1.sdl.yaml`](../../../examples/scenarios/reconciliation-demo-v1.sdl.yaml)
+and its `-v2` counterpart. The projected snapshot is synthetic assumed state
+for inspection, not backend readback, a durable checkpoint, or evidence of
+realization; durable snapshots belong to the runtime control-plane stores.
+
 Runtime resources carry two dependency sets:
 
 - `ordering_dependencies`: same-domain edges used for create/start ordering and reverse delete ordering
