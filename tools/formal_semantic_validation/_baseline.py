@@ -24,18 +24,10 @@ from tools.formal_semantic_validation._types import (
 )
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
 
-_ARCHIVE_PINS_PATH = (
-    "docs/research/formal-semantic-validation/historical-artifacts/pins-v1.json"
-)
-_ARCHIVE_PINS_SHA256 = (
-    "bcb61fa1f0bce5411eb4d3f9583b51df47798ac955d85b6dd3eadf50c14599f2"
-)
-_ADDITIONAL_ARCHIVE_PINS_PATH = (
-    "docs/research/formal-semantic-validation/historical-artifacts/pins-v2.json"
-)
-_ADDITIONAL_ARCHIVE_PINS_SHA256 = (
-    "04b4a1cdfa8c76ccbc536e87365e9343bec4fb8dcde712c15a6535c6e927352a"
-)
+_ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/historical-artifacts/pins-v1.json"
+_ARCHIVE_PINS_SHA256 = "bcb61fa1f0bce5411eb4d3f9583b51df47798ac955d85b6dd3eadf50c14599f2"
+_ADDITIONAL_ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/historical-artifacts/pins-v2.json"
+_ADDITIONAL_ARCHIVE_PINS_SHA256 = "04b4a1cdfa8c76ccbc536e87365e9343bec4fb8dcde712c15a6535c6e927352a"
 
 _DRIFT_COMPARISON_KEYS = ("actual_outcome", "diagnostic_kind", "result_digest")
 _V2_REVISIONS = frozenset(
@@ -101,16 +93,9 @@ _V3_CORPUS_REVISIONS = frozenset(
 )
 
 
-def _pinned_document(
-    repo_root: Path, relative: str, digest: str
-) -> Mapping[str, object] | None:
+def _pinned_document(repo_root: Path, relative: str, digest: str) -> Mapping[str, object] | None:
     path = safe_repo_path(repo_root, relative)
-    if (
-        path is None
-        or not path.is_file()
-        or path.stat().st_size > _MAX_FILE_BYTES
-        or _sha256_file(path) != digest
-    ):
+    if path is None or not path.is_file() or path.stat().st_size > _MAX_FILE_BYTES or _sha256_file(path) != digest:
         return None
     try:
         return load_bounded_json_object(repo_root, relative, max_bytes=_MAX_FILE_BYTES)
@@ -133,9 +118,7 @@ def _archive_allowed(repo_root: Path, relative: str, digest: str) -> bool:
     return False
 
 
-def _baseline_document(
-    repo_root: Path, path_value: object, digest: object
-) -> Mapping[str, object] | None:
+def _baseline_document(repo_root: Path, path_value: object, digest: object) -> Mapping[str, object] | None:
     """Read the exact captured bytes, including a preserved historical copy."""
     if (
         not isinstance(path_value, str)
@@ -146,9 +129,7 @@ def _baseline_document(
         return None
     candidates = [path_value]
     if _archive_allowed(repo_root, path_value, digest):
-        candidates.append(
-            f"docs/research/formal-semantic-validation/historical-artifacts/{digest}.json"
-        )
+        candidates.append(f"docs/research/formal-semantic-validation/historical-artifacts/{digest}.json")
     document = None
     for candidate in candidates:
         document = _pinned_document(repo_root, candidate, digest)
@@ -217,9 +198,7 @@ def _selected_baseline_manifest(
         )
         return None
     indexed = indexed_records.get(baseline_path)
-    baseline_manifest = _baseline_document(
-        repo_root, baseline_path, baseline.get("release_sha256")
-    )
+    baseline_manifest = _baseline_document(repo_root, baseline_path, baseline.get("release_sha256"))
     baseline_revision = baseline.get("release_revision")
     expected_protocol_path = (
         "docs/research/formal-semantic-validation/protocol-v2.json"
@@ -227,17 +206,11 @@ def _selected_baseline_manifest(
         else "docs/research/formal-semantic-validation/protocol-v1.json"
     )
     if baseline_revision in _V3_CORPUS_REVISIONS:
-        expected_corpus_path = (
-            "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
-        )
+        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
     elif baseline_revision in _V2_REVISIONS:
-        expected_corpus_path = (
-            "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
-        )
+        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v2.json"
     else:
-        expected_corpus_path = (
-            "docs/research/formal-semantic-validation/corpus/manifest-v1.json"
-        )
+        expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v1.json"
     if (
         not isinstance(baseline_manifest, Mapping)
         or not isinstance(indexed, Mapping)
@@ -270,9 +243,7 @@ def _loaded_baseline_snapshot(
 ) -> Mapping[str, object] | None:
     baseline_snapshot_path = baseline_manifest.get("snapshot_path")
     baseline_snapshot_digest = baseline_manifest.get("snapshot_sha256")
-    baseline_snapshot = _baseline_document(
-        repo_root, baseline_snapshot_path, baseline_snapshot_digest
-    )
+    baseline_snapshot = _baseline_document(repo_root, baseline_snapshot_path, baseline_snapshot_digest)
     if baseline_snapshot is None:
         failures.append(
             _failure(
@@ -300,11 +271,7 @@ def _resolved_baseline_snapshot(
     path: str,
 ) -> Mapping[str, object] | None:
     baseline = _validated_baseline_pin(snapshot, failures, path)
-    manifest = (
-        _selected_baseline_manifest(repo_root, baseline, failures, path)
-        if baseline is not None
-        else None
-    )
+    manifest = _selected_baseline_manifest(repo_root, baseline, failures, path) if baseline is not None else None
     if manifest is None:
         return None
     return _loaded_baseline_snapshot(repo_root, manifest, baseline, failures, path)
@@ -316,10 +283,7 @@ def _drift_join(
     historical_cases: Mapping[object, Mapping[str, object]],
     failures: list[PolicyFailure],
     path: str,
-) -> (
-    tuple[dict[str, Mapping[str, object]], dict[str, Mapping[str, object]], set[str]]
-    | None
-):
+) -> tuple[dict[str, Mapping[str, object]], dict[str, Mapping[str, object]], set[str]] | None:
     baseline_observations = baseline_snapshot.get("observations")
     retest_observations = snapshot.get("observations")
     baseline_ids, baseline_unique = _stable_ids(baseline_observations, "case_id")
@@ -341,16 +305,8 @@ def _drift_join(
             )
         )
         return None
-    baseline_by_id = {
-        str(item.get("case_id")): item
-        for item in baseline_observations
-        if isinstance(item, Mapping)
-    }
-    retest_by_id = {
-        str(item.get("case_id")): item
-        for item in retest_observations
-        if isinstance(item, Mapping)
-    }
+    baseline_by_id = {str(item.get("case_id")): item for item in baseline_observations if isinstance(item, Mapping)}
+    retest_by_id = {str(item.get("case_id")): item for item in retest_observations if isinstance(item, Mapping)}
     return baseline_by_id, retest_by_id, retained_ids
 
 
@@ -365,9 +321,7 @@ def _deviation_entry_failures(
     """Check one retained case's drift disposition; return whether it changed."""
 
     changed_fields = [
-        key
-        for key in _DRIFT_COMPARISON_KEYS
-        if baseline_observation.get(key) != retest_observation.get(key)
+        key for key in _DRIFT_COMPARISON_KEYS if baseline_observation.get(key) != retest_observation.get(key)
     ]
     if not changed_fields:
         return False
@@ -381,12 +335,8 @@ def _deviation_entry_failures(
         path=path,
     ):
         return True
-    expected_baseline = {
-        key: baseline_observation.get(key) for key in _DRIFT_COMPARISON_KEYS
-    }
-    expected_retest = {
-        key: retest_observation.get(key) for key in _DRIFT_COMPARISON_KEYS
-    }
+    expected_baseline = {key: baseline_observation.get(key) for key in _DRIFT_COMPARISON_KEYS}
+    expected_retest = {key: retest_observation.get(key) for key in _DRIFT_COMPARISON_KEYS}
     if (
         deviation.get("changed_fields") != changed_fields
         or deviation.get("baseline") != expected_baseline
@@ -424,11 +374,7 @@ def _deviation_failures(
             )
         )
         deviations = []
-    deviations_by_id = {
-        str(item.get("case_id")): item
-        for item in deviations
-        if isinstance(item, Mapping)
-    }
+    deviations_by_id = {str(item.get("case_id")): item for item in deviations if isinstance(item, Mapping)}
     expected_deviation_ids: set[str] = set()
     for case_id in sorted(retained_ids):
         if _deviation_entry_failures(
@@ -466,6 +412,4 @@ def _validate_baseline_drift(
     if join is None:
         return
     baseline_by_id, retest_by_id, retained_ids = join
-    _deviation_failures(
-        snapshot, retained_ids, baseline_by_id, retest_by_id, failures, path
-    )
+    _deviation_failures(snapshot, retained_ids, baseline_by_id, retest_by_id, failures, path)

@@ -38,9 +38,7 @@ from tools.research_evidence import source_state_failures
 
 
 def _stale_pin(repo_root: Path, path_value: object, digest_value: object) -> bool:
-    resolved = (
-        safe_repo_path(repo_root, path_value) if isinstance(path_value, str) else None
-    )
+    resolved = safe_repo_path(repo_root, path_value) if isinstance(path_value, str) else None
     return (
         resolved is None
         or not resolved.is_file()
@@ -57,9 +55,7 @@ def _release_document_pin_failures(
     path: str,
 ) -> None:
     for label in ("protocol", "corpus", "snapshot", "analysis"):
-        if _stale_pin(
-            repo_root, manifest.get(f"{label}_path"), manifest.get(f"{label}_sha256")
-        ):
+        if _stale_pin(repo_root, manifest.get(f"{label}_path"), manifest.get(f"{label}_sha256")):
             failures.append(
                 _failure(
                     "formal-validation-release-digest",
@@ -119,9 +115,7 @@ def _pinned_release_artifacts(
     return list(artifacts)
 
 
-def validate_release_bundle(
-    repo_root: Path, release: EvidenceRelease
-) -> list[PolicyFailure]:
+def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[PolicyFailure]:
     """Validate one atomic release record, all digest pins, and its evidence."""
 
     failures: list[PolicyFailure] = []
@@ -184,9 +178,7 @@ def validate_release_bundle(
                 replay_cases=False,
             )
         )
-        artifact_by_kind = {
-            item.get("kind"): item for item in artifacts if isinstance(item, Mapping)
-        }
+        artifact_by_kind = {item.get("kind"): item for item in artifacts if isinstance(item, Mapping)}
         sat_snapshot_pin = artifact_by_kind.get("satisfiability-snapshot")
         sat_analysis_pin = artifact_by_kind.get("satisfiability-analysis")
         if sat_snapshot_pin is not None or sat_analysis_pin is not None:
@@ -200,12 +192,8 @@ def validate_release_bundle(
                 )
             else:
                 legacy_manifest["revision"] = "2.0.0"
-                legacy_manifest["satisfiability_snapshot_path"] = sat_snapshot_pin.get(
-                    "path"
-                )
-                legacy_manifest["satisfiability_analysis_path"] = sat_analysis_pin.get(
-                    "path"
-                )
+                legacy_manifest["satisfiability_snapshot_path"] = sat_snapshot_pin.get("path")
+                legacy_manifest["satisfiability_analysis_path"] = sat_analysis_pin.get("path")
                 snapshot = load_bounded_json_object(
                     repo_root,
                     str(sat_snapshot_pin.get("path")),
@@ -332,10 +320,7 @@ def validate_retest_bundle(
         }
         else "2.0.0"
     )
-    if (
-        protocol.get("revision") != "2.0.0"
-        or corpus.get("revision") != expected_corpus_revision
-    ):
+    if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
         failures.append(
             _failure(
                 "formal-validation-retest-revision",
@@ -356,9 +341,7 @@ def validate_retest_bundle(
         )
     _validate_protocol(repo_root, protocol, failures, protocol_path)
     cases_by_id = _validate_corpus(repo_root, protocol, corpus, failures, corpus_path)
-    historical_cases = _retained_historical_cases(
-        repo_root, cases_by_id, failures, corpus_path
-    )
+    historical_cases = _retained_historical_cases(repo_root, cases_by_id, failures, corpus_path)
     _validate_retest_snapshot(
         _RetestScope(
             repo_root=repo_root,
@@ -372,17 +355,9 @@ def validate_retest_bundle(
         failures,
         snapshot_path,
     )
-    baseline_cases = (
-        cases_by_id
-        if release_revision in _SOURCE_BOUND_RETEST_REVISIONS
-        else historical_cases
-    )
-    _validate_baseline_drift(
-        repo_root, snapshot, baseline_cases, failures, snapshot_path
-    )
-    _validate_analysis(
-        repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path
-    )
+    baseline_cases = cases_by_id if release_revision in _SOURCE_BOUND_RETEST_REVISIONS else historical_cases
+    _validate_baseline_drift(repo_root, snapshot, baseline_cases, failures, snapshot_path)
+    _validate_analysis(repo_root, protocol, corpus, snapshot, analysis, failures, analysis_path)
     return failures
 
 
@@ -395,15 +370,9 @@ def _current_retest_source_failures(
     release_revision: str,
     replay_current: bool,
 ) -> None:
-    failures.extend(
-        source_state_failures(
-            repo_root, snapshot.get("source_state"), path, current=replay_current
-        )
-    )
+    failures.extend(source_state_failures(repo_root, snapshot.get("source_state"), path, current=replay_current))
     state = snapshot.get("source_state")
-    if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get(
-        "raes_revision"
-    ):
+    if not isinstance(state, Mapping) or state.get("base_revision") != snapshot.get("raes_revision"):
         failures.append(
             _failure(
                 "research-evidence-source-state",
@@ -447,10 +416,7 @@ def _current_retest_source_failures(
         "35.0.0": "34.0.0",
         "36.0.0": "35.0.0",
     }[release_revision]
-    if (
-        not isinstance(baseline, Mapping)
-        or baseline.get("release_revision") != expected_baseline
-    ):
+    if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(
             _failure(
                 "formal-validation-baseline-selection",
@@ -482,9 +448,7 @@ def _retained_historical_cases(
         )
         historical_corpus = {}
     historical_cases = {
-        item.get("case_id"): item
-        for item in historical_corpus.get("cases", [])
-        if isinstance(item, Mapping)
+        item.get("case_id"): item for item in historical_corpus.get("cases", []) if isinstance(item, Mapping)
     }
     retained_cases_match = all(
         cases_by_id.get(str(case_id))
