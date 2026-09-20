@@ -134,6 +134,29 @@ orchestration, and evaluation plans as published-contract JSON. It does not
 apply or start anything. Pass `--manifest <backend-manifest-v2.json>` to plan
 against an explicitly supplied backend manifest.
 
+See how the planner reconciles one scenario version against another:
+
+```shell
+cd implementations/python
+uv run raes processor reconcile \
+  ../../examples/scenarios/reconciliation-demo-v1.sdl.yaml \
+  ../../examples/scenarios/reconciliation-demo-v2.sdl.yaml \
+  --format json
+```
+
+This plans the first version, projects that plan into a snapshot, plans the
+second version against the snapshot, and reports every resulting `create`,
+`update`, `delete`, and `unchanged` action across provisioning, orchestration,
+and evaluation. Both versions are planned against the same manifest, so the
+reported delta reflects the authored difference rather than a change of target.
+
+The projected snapshot is synthetic assumed state, not backend readback or
+proof that anything was realized, and this too is a read-only dry run. The
+report summarizes resource identity and dependencies; resource payloads are
+deliberately omitted because they can carry authored credentials and content. A
+rejected version exits non-zero: a rejected baseline stops before the snapshot
+is projected and reports no action counts at all, rather than reporting zeroes.
+
 Expose the agent-facing MCP tools:
 
 ```shell

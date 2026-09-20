@@ -1,0 +1,133 @@
+name: reconciliation-demo
+version: 1.0.0
+description: >-
+  Baseline version of the reconciliation demonstration pair. Compute intent is
+  authored without an operating system or virtualization mechanism, the
+  scenario imports no modules, and nothing regenerates per run or per
+  instantiation, so the pair plans offline and deterministically against the
+  reference dry-run manifest.
+
+nodes:
+  lab:
+    type: switch
+  web:
+    type: compute
+    resources:
+      ram: 1 GiB
+      cpu: 1
+    conditions:
+      health: ops
+    roles:
+      ops:
+        username: operator
+  database:
+    type: compute
+    resources:
+      ram: 2 GiB
+      cpu: 2
+    conditions:
+      health: ops
+    roles:
+      ops:
+        username: operator
+  retired:
+    type: compute
+    resources:
+      ram: 1 GiB
+      cpu: 1
+
+infrastructure:
+  lab:
+    count: 1
+    properties:
+      cidr: 10.10.0.0/24
+      gateway: 10.10.0.1
+      internal: true
+  web:
+    count: 1
+    links:
+      - lab
+  database:
+    count: 1
+    links:
+      - lab
+  retired:
+    count: 1
+    links:
+      - lab
+
+conditions:
+  health:
+    command: /bin/true
+    interval: 15
+
+propositions:
+  health:
+    description: The governed web node has declared runtime state.
+    subjects:
+      - nodes.web
+    basis: declared_state
+    predicate:
+      kind: presence
+      property: runtime
+      semantic_ref: urn:raes:declared-property:runtime
+      operator: exists
+
+assertions:
+  health:
+    proposition: health
+    role: postcondition
+    polarity: positive
+  pre-health:
+    proposition: health
+    role: precondition
+    polarity: positive
+
+entities:
+  blue:
+    role: blue
+
+events:
+  kickoff:
+    assertions:
+      - pre-health
+    description: kickoff
+
+scripts:
+  timeline:
+    start_time: 0
+    end_time: 60
+    speed: 1
+    events:
+      kickoff: 10
+
+workflows:
+  flow:
+    description: primary
+    start: branch
+    steps:
+      branch:
+        type: decision
+        when:
+          assertions:
+            - pre-health
+        then: finish
+        else: finish
+      finish:
+        type: end
+
+objectives:
+  initial:
+    entity: blue
+    success:
+      assertions:
+        - health
+    window:
+      scripts:
+        - timeline
+      events:
+        - kickoff
+      workflows:
+        - flow
+      steps:
+        - flow.branch
