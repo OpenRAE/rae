@@ -42,6 +42,21 @@ ACTIVE is proposed in this delivery diff and becomes authoritative on merge.
 Contract validity does not install a provider or execute an effect.
 
 ## Traceability
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/check_specification_coverage.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_baseline.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_loading.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_releases.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_retest.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/execution-snapshot-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/analysis-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1072-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/execution-snapshot-v36.json` (Retained evidence replay bound to participant-control contract source; no runtime claims)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py` (Order-independent compatibility and prior logical-claim accounting)
 - TESTS → TEST `implementations/python/tests/test_api_424_review_regressions.py` (Lifecycle ordering, exhausted-budget replay and duplicate-identity permutations)
