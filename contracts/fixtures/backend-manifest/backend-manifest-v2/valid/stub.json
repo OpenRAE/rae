@@ -218,6 +218,18 @@
         {
           "constraint_refs": [],
           "disclosure_refs": [
+            "disclosure:participant_modular_control:unsupported"
+          ],
+          "evidence_refs": [],
+          "feature": "participant_modular_control",
+          "limitation_refs": [
+            "limitation:participant_modular_control:not-realized"
+          ],
+          "support_level": "unsupported"
+        },
+        {
+          "constraint_refs": [],
+          "disclosure_refs": [
             "disclosure:participant_monitor_topology:unsupported"
           ],
           "evidence_refs": [],
@@ -502,6 +514,8 @@
     "participant-resource-budget-state-v1",
     "participant-resource-budget-event-v1",
     "participant-control-occurrence-v1",
+    "participant-control-selection-v1",
+    "participant-control-evaluation-v1",
     "participant-crossing-occurrence-v1",
     "participant-flow-control-relation-v1",
     "participant-lifecycle-event-v1",

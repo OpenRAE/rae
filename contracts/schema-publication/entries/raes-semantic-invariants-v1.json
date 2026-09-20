@@ -6,5 +6,24 @@
   "last_change": {
     "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
     "content_hash": "ca5215479a7e87ad3218d96c06f8a3ebb5cac1b520c1df27d3f68f86dca4c91d"
+  },
+  "coverage": {
+    "rationale": "This profile is realized as the x-raes-invariants entries and x-raes-semantic-profile references embedded in other published schemas, so it has no standalone document to route.",
+    "sources": [
+      {
+        "kind": "embedded",
+        "path": "contracts/schemas/experiment-core/experiment-run-v1.json",
+        "pointer": "/x-raes-invariants/0",
+        "schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+        "supports": "A published invariant annotation entry, validated at the contract-publication phase."
+      },
+      {
+        "kind": "embedded",
+        "path": "contracts/schemas/experiment-core/experiment-run-v1.json",
+        "pointer": "/x-raes-semantic-profile",
+        "schema_pointer": "#/$defs/RaesSemanticInvariantProfileReferenceModel",
+        "supports": "A published host-schema profile reference, validated at the same phase."
+      }
+    ]
   }
 }

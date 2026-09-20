@@ -1,0 +1,2262 @@
+{
+  "$defs": {
+    "ControlAdvisoryModel": {
+      "additionalProperties": false,
+      "properties": {
+        "assessment": {
+          "enum": [
+            "positive",
+            "negative",
+            "abstain"
+          ],
+          "title": "Assessment",
+          "type": "string"
+        },
+        "kind": {
+          "const": "advisory",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sample": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "assessment",
+        "score",
+        "sample"
+      ],
+      "title": "ControlAdvisoryModel",
+      "type": "object"
+    },
+    "ControlApplicabilityModel": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "enum": [
+            "ingress",
+            "egress"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "phase_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Phase Ref",
+          "type": "string"
+        },
+        "sink_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Sink Ref",
+          "type": "string"
+        },
+        "subject_kind": {
+          "$ref": "#/$defs/ParticipantCrossingSubjectKind"
+        }
+      },
+      "required": [
+        "participant_address",
+        "episode_id",
+        "direction",
+        "sink_ref",
+        "phase_ref",
+        "subject_kind"
+      ],
+      "title": "ControlApplicabilityModel",
+      "type": "object"
+    },
+    "ControlArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Exact out-of-line artifact coordinate, not an artifact/evidence payload.",
+      "properties": {
+        "digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "profile",
+            "mechanism",
+            "implementation",
+            "authority",
+            "evidence",
+            "limitation",
+            "memory",
+            "apparatus",
+            "run",
+            "crossing",
+            "history",
+            "provider-state",
+            "input",
+            "clock",
+            "trigger",
+            "rule",
+            "inject-delivery",
+            "disclosure",
+            "manifest",
+            "installation",
+            "control",
+            "transformation",
+            "action",
+            "lifecycle",
+            "audit",
+            "receipt",
+            "projection",
+            "policy",
+            "constraint",
+            "flow-relation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "ref",
+        "revision",
+        "digest"
+      ],
+      "title": "ControlArtifactReferenceModel",
+      "type": "object"
+    },
+    "ControlAuditEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "audience_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Audience Ref",
+          "type": "string"
+        },
+        "audit_record": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "kind": {
+          "const": "audit",
+          "title": "Kind",
+          "type": "string"
+        },
+        "retention_policy": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "subject": {
+          "$ref": "#/$defs/ControlSubjectReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "subject",
+        "audit_record",
+        "audience_ref",
+        "retention_policy"
+      ],
+      "title": "ControlAuditEffectModel",
+      "type": "object"
+    },
+    "ControlCausalBoundsModel": {
+      "additionalProperties": false,
+      "properties": {
+        "expires_at_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expires At Order",
+          "type": "integer"
+        },
+        "max_attempts": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "max_depth": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "max_effects": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Max Effects",
+          "type": "integer"
+        },
+        "max_fanout": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Max Fanout",
+          "type": "integer"
+        },
+        "max_firings_per_rule": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Max Firings Per Rule",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_depth",
+        "max_effects",
+        "max_fanout",
+        "max_firings_per_rule",
+        "max_attempts",
+        "expires_at_order"
+      ],
+      "title": "ControlCausalBoundsModel",
+      "type": "object"
+    },
+    "ControlCausalCutModel": {
+      "additionalProperties": false,
+      "properties": {
+        "cut_kind": {
+          "const": "causal_frontier",
+          "title": "Cut Kind",
+          "type": "string"
+        },
+        "cut_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Cut Ref",
+          "type": "string"
+        },
+        "frontier_event_refs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Frontier Event Refs",
+          "type": "array"
+        },
+        "history_domain": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "History Domain",
+          "type": "string"
+        },
+        "order_model": {
+          "const": "causal_partial_order",
+          "title": "Order Model",
+          "type": "string"
+        },
+        "predecessor_closure_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Predecessor Closure Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cut_kind",
+        "cut_ref",
+        "history_domain",
+        "order_model",
+        "frontier_event_refs",
+        "predecessor_closure_ref"
+      ],
+      "title": "ControlCausalCutModel",
+      "type": "object"
+    },
+    "ControlCompositionModel": {
+      "additionalProperties": false,
+      "properties": {
+        "blockers": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Blockers",
+          "type": "array"
+        },
+        "contributing_result_ids": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Contributing Result Ids",
+          "type": "array"
+        },
+        "disposition": {
+          "enum": [
+            "eligible",
+            "deny",
+            "withhold",
+            "unsupported",
+            "stale",
+            "failed",
+            "weakened",
+            "conflict"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "incumbent_gate_disposition": {
+          "enum": [
+            "permit",
+            "deny",
+            "withhold",
+            "unsupported",
+            "stale",
+            "failed"
+          ],
+          "title": "Incumbent Gate Disposition",
+          "type": "string"
+        },
+        "incumbent_gate_evidence": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "rule_revision": {
+          "const": "sem-235/rev1",
+          "title": "Rule Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_revision",
+        "disposition",
+        "blockers",
+        "contributing_result_ids",
+        "incumbent_gate_disposition",
+        "incumbent_gate_evidence"
+      ],
+      "title": "ControlCompositionModel",
+      "type": "object"
+    },
+    "ControlCrossingEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "crossing_decision": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "kind": {
+          "enum": [
+            "permit",
+            "deny",
+            "withhold"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/$defs/ControlSubjectReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "crossing_decision",
+        "subject"
+      ],
+      "title": "ControlCrossingEffectModel",
+      "type": "object"
+    },
+    "ControlDecisionModel": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "enum": [
+            "permit",
+            "deny",
+            "withhold",
+            "abstain"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "kind": {
+          "const": "decision",
+          "title": "Kind",
+          "type": "string"
+        },
+        "rule": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "disposition",
+        "rule"
+      ],
+      "title": "ControlDecisionModel",
+      "type": "object"
+    },
+    "ControlDelayEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "clock": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "earliest_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Earliest Order",
+          "type": "integer"
+        },
+        "expiry_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expiry Order",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "delay",
+          "title": "Kind",
+          "type": "string"
+        },
+        "latest_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Latest Order",
+          "type": "integer"
+        },
+        "resumption_policy": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "subject": {
+          "$ref": "#/$defs/ControlSubjectReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "subject",
+        "clock",
+        "earliest_order",
+        "latest_order",
+        "expiry_order",
+        "resumption_policy"
+      ],
+      "title": "ControlDelayEffectModel",
+      "type": "object"
+    },
+    "ControlEffectRequestModel": {
+      "additionalProperties": false,
+      "description": "One logical requested effect, independent of retry/cut/transport identity.",
+      "properties": {
+        "authority": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "effect_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "key": {
+          "$ref": "#/$defs/ControlLogicalEffectKeyModel"
+        },
+        "kind": {
+          "const": "effect-request",
+          "title": "Kind",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "required-predecessor",
+            "subsequent"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "predecessor_effect_ids": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Predecessor Effect Ids",
+          "type": "array"
+        },
+        "rule": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "target": {
+          "discriminator": {
+            "mapping": {
+              "audit": "#/$defs/ControlAuditEffectModel",
+              "delay": "#/$defs/ControlDelayEffectModel",
+              "deny": "#/$defs/ControlCrossingEffectModel",
+              "handoff": "#/$defs/ControlHandoffEffectModel",
+              "inject": "#/$defs/ControlInjectEffectModel",
+              "interrupt": "#/$defs/ControlLifecycleEffectModel",
+              "mask": "#/$defs/ControlTransformationEffectModel",
+              "permit": "#/$defs/ControlCrossingEffectModel",
+              "request-review": "#/$defs/ControlReviewEffectModel",
+              "route": "#/$defs/ControlTransformationEffectModel",
+              "shutdown": "#/$defs/ControlLifecycleEffectModel",
+              "transform": "#/$defs/ControlTransformationEffectModel",
+              "withhold": "#/$defs/ControlCrossingEffectModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ControlCrossingEffectModel"
+            },
+            {
+              "$ref": "#/$defs/ControlTransformationEffectModel"
+            },
+            {
+              "$ref": "#/$defs/ControlInjectEffectModel"
+            },
+            {
+              "$ref": "#/$defs/ControlDelayEffectModel"
+            },
+            {
+              "$ref": "#/$defs/ControlHandoffEffectModel"
+            },
+            {
+              "$ref": "#/$defs/ControlReviewEffectModel"
+            },
+            {
+              "$ref": "#/$defs/ControlLifecycleEffectModel"
+            },
+            {
+              "$ref": "#/$defs/ControlAuditEffectModel"
+            }
+          ],
+          "title": "Target"
+        }
+      },
+      "required": [
+        "kind",
+        "effect_id",
+        "key",
+        "rule",
+        "authority",
+        "phase",
+        "predecessor_effect_ids",
+        "target",
+        "evidence"
+      ],
+      "title": "ControlEffectRequestModel",
+      "type": "object"
+    },
+    "ControlEffectiveSupportModel": {
+      "additionalProperties": false,
+      "properties": {
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "title": "Constraints",
+          "type": "array"
+        },
+        "context_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Context Digest",
+          "type": "string"
+        },
+        "declaration_ref": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "declared_level": {
+          "enum": [
+            "exact",
+            "bounded",
+            "disclosed_weak",
+            "unsupported"
+          ],
+          "title": "Declared Level",
+          "type": "string"
+        },
+        "downgrade_authority": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective_level": {
+          "enum": [
+            "exact",
+            "bounded",
+            "disclosed_weak",
+            "unsupported"
+          ],
+          "title": "Effective Level",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "feature": {
+          "const": "participant_modular_control",
+          "title": "Feature",
+          "type": "string"
+        },
+        "installation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "instance_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "resolved",
+            "missing",
+            "unknown",
+            "unsupported",
+            "stale",
+            "failed",
+            "weakened"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instance_id",
+        "feature",
+        "declaration_ref",
+        "declared_level",
+        "effective_level",
+        "status",
+        "context_digest",
+        "installation",
+        "constraints",
+        "limitations",
+        "evidence",
+        "downgrade_authority"
+      ],
+      "title": "ControlEffectiveSupportModel",
+      "type": "object"
+    },
+    "ControlHandoffEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "completion_obligation": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "expected_state_revision": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expected State Revision",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "handoff",
+          "title": "Kind",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "prior_controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Prior Controller Ref",
+          "type": "string"
+        },
+        "resulting_controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Resulting Controller Ref",
+          "type": "string"
+        },
+        "transition": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "transition",
+        "participant_address",
+        "episode_id",
+        "prior_controller_ref",
+        "resulting_controller_ref",
+        "expected_state_revision",
+        "completion_obligation"
+      ],
+      "title": "ControlHandoffEffectModel",
+      "type": "object"
+    },
+    "ControlInjectEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "delivery_ref": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "disclosure_ref": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "event_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Event Ref",
+          "type": "string"
+        },
+        "inject_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Inject Ref",
+          "type": "string"
+        },
+        "kind": {
+          "const": "inject",
+          "title": "Kind",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "result_item_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Result Item Ref",
+          "type": "string"
+        },
+        "script_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Script Ref",
+          "type": "string"
+        },
+        "source_item_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Source Item Ref",
+          "type": "string"
+        },
+        "story_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Story Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "delivery_ref",
+        "inject_ref",
+        "event_ref",
+        "script_ref",
+        "story_ref",
+        "source_item_ref",
+        "result_item_ref",
+        "participant_address",
+        "episode_id",
+        "disclosure_ref"
+      ],
+      "title": "ControlInjectEffectModel",
+      "type": "object"
+    },
+    "ControlLifecycleEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Expected Revision",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "interrupt",
+            "shutdown"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "lifecycle_authority": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "operation": {
+          "enum": [
+            "pause",
+            "cancel",
+            "interrupt",
+            "terminate"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "target_kind": {
+          "enum": [
+            "participant",
+            "episode",
+            "execution",
+            "workflow",
+            "run"
+          ],
+          "title": "Target Kind",
+          "type": "string"
+        },
+        "target_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Target Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "target_kind",
+        "target_ref",
+        "operation",
+        "lifecycle_authority",
+        "expected_revision"
+      ],
+      "title": "ControlLifecycleEffectModel",
+      "type": "object"
+    },
+    "ControlLogicalEffectKeyModel": {
+      "additionalProperties": false,
+      "properties": {
+        "firing_epoch": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Firing Epoch",
+          "type": "string"
+        },
+        "rule_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "rule_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Rule Revision",
+          "type": "string"
+        },
+        "run_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Run Ref",
+          "type": "string"
+        },
+        "slot": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Slot",
+          "type": "string"
+        },
+        "trigger_root": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Trigger Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_ref",
+        "trigger_root",
+        "rule_id",
+        "rule_revision",
+        "slot",
+        "firing_epoch"
+      ],
+      "title": "ControlLogicalEffectKeyModel",
+      "type": "object"
+    },
+    "ControlMechanismBindingModel": {
+      "additionalProperties": false,
+      "properties": {
+        "applicability": {
+          "items": {
+            "$ref": "#/$defs/ControlApplicabilityModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Applicability",
+          "type": "array"
+        },
+        "authority": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "configuration_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Configuration Digest",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "implementation": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "instance_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "mechanism": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "memory_scope": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "profiles": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Profiles",
+          "type": "array"
+        },
+        "protocol_revision": {
+          "const": "participant-control-provider/v1",
+          "title": "Protocol Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "instance_id",
+        "profiles",
+        "mechanism",
+        "protocol_revision",
+        "implementation",
+        "configuration_digest",
+        "authority",
+        "memory_scope",
+        "applicability",
+        "evidence",
+        "limitations"
+      ],
+      "title": "ControlMechanismBindingModel",
+      "type": "object"
+    },
+    "ControlMechanismResultModel": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Binding Digest",
+          "type": "string"
+        },
+        "context_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Context Digest",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "instance_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "next_provider_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "payload": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "advisory": "#/$defs/ControlAdvisoryModel",
+                  "decision": "#/$defs/ControlDecisionModel",
+                  "effect-request": "#/$defs/ControlEffectRequestModel",
+                  "ifc-fact": {
+                    "discriminator": {
+                      "mapping": {
+                        "sem-233/rev1": "#/$defs/ControlSecurityFactModel",
+                        "teaching-influence-domain/rev1": "#/$defs/ControlTeachingFactModel"
+                      },
+                      "propertyName": "domain"
+                    },
+                    "oneOf": [
+                      {
+                        "$ref": "#/$defs/ControlTeachingFactModel"
+                      },
+                      {
+                        "$ref": "#/$defs/ControlSecurityFactModel"
+                      }
+                    ]
+                  }
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "discriminator": {
+                    "mapping": {
+                      "sem-233/rev1": "#/$defs/ControlSecurityFactModel",
+                      "teaching-influence-domain/rev1": "#/$defs/ControlTeachingFactModel"
+                    },
+                    "propertyName": "domain"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/ControlTeachingFactModel"
+                    },
+                    {
+                      "$ref": "#/$defs/ControlSecurityFactModel"
+                    }
+                  ]
+                },
+                {
+                  "$ref": "#/$defs/ControlDecisionModel"
+                },
+                {
+                  "$ref": "#/$defs/ControlAdvisoryModel"
+                },
+                {
+                  "$ref": "#/$defs/ControlEffectRequestModel"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Payload"
+        },
+        "result_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Result Id",
+          "type": "string"
+        },
+        "slot_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "resolved",
+            "missing",
+            "unknown",
+            "unsupported",
+            "stale",
+            "failed",
+            "weakened"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "slot_id",
+        "instance_id",
+        "binding_digest",
+        "context_digest",
+        "status",
+        "payload",
+        "evidence",
+        "next_provider_state"
+      ],
+      "title": "ControlMechanismResultModel",
+      "type": "object"
+    },
+    "ControlPolicyReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_cut_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Decision Cut Ref",
+          "type": "string"
+        },
+        "effective_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effective Order",
+          "type": "integer"
+        },
+        "policy_decision_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Policy Decision Ref",
+          "type": "string"
+        },
+        "policy_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Policy Digest",
+          "type": "string"
+        },
+        "policy_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Policy Revision",
+          "type": "string"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid From Order",
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Valid Until Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "policy_id",
+        "policy_revision",
+        "policy_digest",
+        "policy_decision_ref",
+        "decision_cut_ref",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order"
+      ],
+      "title": "ControlPolicyReferenceModel",
+      "type": "object"
+    },
+    "ControlPriorEffectClaimModel": {
+      "additionalProperties": false,
+      "description": "A retained logical claim, authenticated through the admitted context.",
+      "properties": {
+        "content_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "effect_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "key": {
+          "$ref": "#/$defs/ControlLogicalEffectKeyModel"
+        }
+      },
+      "required": [
+        "effect_id",
+        "key",
+        "content_digest"
+      ],
+      "title": "ControlPriorEffectClaimModel",
+      "type": "object"
+    },
+    "ControlProviderStateModel": {
+      "additionalProperties": false,
+      "properties": {
+        "instance_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        }
+      },
+      "required": [
+        "instance_id",
+        "state"
+      ],
+      "title": "ControlProviderStateModel",
+      "type": "object"
+    },
+    "ControlRealizationBindingModel": {
+      "additionalProperties": false,
+      "description": "An out-of-line owner outcome, never a provider result or permission.",
+      "properties": {
+        "disposition": {
+          "enum": [
+            "applied",
+            "failed",
+            "indeterminate",
+            "unsupported",
+            "withheld"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "effect_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "receipt": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        }
+      },
+      "required": [
+        "effect_id",
+        "disposition",
+        "receipt",
+        "evidence"
+      ],
+      "title": "ControlRealizationBindingModel",
+      "type": "object"
+    },
+    "ControlResultSlotModel": {
+      "additionalProperties": false,
+      "properties": {
+        "dependencies": {
+          "items": {
+            "$ref": "#/$defs/ControlSlotDependencyModel"
+          },
+          "maxItems": 256,
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "instance_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "ifc-fact",
+            "decision",
+            "advisory",
+            "effect-request"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "mandatory",
+            "advisory"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "slot_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "instance_id",
+        "kind",
+        "role",
+        "dependencies"
+      ],
+      "title": "ControlResultSlotModel",
+      "type": "object"
+    },
+    "ControlReviewEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "approval_ref": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "clock": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "denial_ref": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "expiry_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Expiry Order",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "request-review",
+          "title": "Kind",
+          "type": "string"
+        },
+        "obligation_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Obligation Ref",
+          "type": "string"
+        },
+        "parent": {
+          "$ref": "#/$defs/ControlSubjectReferenceModel"
+        },
+        "resumption_policy": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "supervisor_authority": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "parent",
+        "obligation_ref",
+        "supervisor_authority",
+        "approval_ref",
+        "denial_ref",
+        "clock",
+        "expiry_order",
+        "resumption_policy"
+      ],
+      "title": "ControlReviewEffectModel",
+      "type": "object"
+    },
+    "ControlRuleFiringsModel": {
+      "additionalProperties": false,
+      "properties": {
+        "firing_epochs": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Firing Epochs",
+          "type": "array"
+        },
+        "rule_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "rule_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Rule Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "rule_revision",
+        "firing_epochs"
+      ],
+      "title": "ControlRuleFiringsModel",
+      "type": "object"
+    },
+    "ControlSecurityFactModel": {
+      "additionalProperties": false,
+      "description": "Reference the exact incumbent SEM-233 label and owning relation.",
+      "properties": {
+        "domain": {
+          "const": "sem-233/rev1",
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "ifc-fact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "label_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Label Ref",
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "domain",
+        "relation",
+        "label_ref"
+      ],
+      "title": "ControlSecurityFactModel",
+      "type": "object"
+    },
+    "ControlSequenceCutModel": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_event_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Anchor Event Ref",
+          "type": "string"
+        },
+        "anchor_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Anchor Order",
+          "type": "integer"
+        },
+        "cut_kind": {
+          "const": "sequence_prefix",
+          "title": "Cut Kind",
+          "type": "string"
+        },
+        "cut_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Cut Ref",
+          "type": "string"
+        },
+        "history_domain": {
+          "enum": [
+            "participant_episode_lifecycle",
+            "participant_behavior_history"
+          ],
+          "title": "History Domain",
+          "type": "string"
+        },
+        "history_prefix_length": {
+          "maximum": 1000001,
+          "minimum": 1,
+          "title": "History Prefix Length",
+          "type": "integer"
+        },
+        "order_model": {
+          "enum": [
+            "control_plane_order",
+            "backend_serialized_order",
+            "behavior_history_order"
+          ],
+          "title": "Order Model",
+          "type": "string"
+        },
+        "predecessor_event_refs": {
+          "default": [],
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Predecessor Event Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cut_kind",
+        "cut_ref",
+        "history_domain",
+        "order_model",
+        "anchor_event_ref",
+        "anchor_order",
+        "history_prefix_length"
+      ],
+      "title": "ControlSequenceCutModel",
+      "type": "object"
+    },
+    "ControlSlotDependencyModel": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "ifc-fact",
+            "decision",
+            "advisory",
+            "effect-request"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "slot_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Slot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "kind"
+      ],
+      "title": "ControlSlotDependencyModel",
+      "type": "object"
+    },
+    "ControlSubjectReferenceModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "subject_revision": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subject_revision"
+          ]
+        },
+        {
+          "properties": {
+            "subject_digest": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "subject_digest"
+          ]
+        }
+      ],
+      "description": "Frozen specialization of the incumbent crossing subject coordinate.",
+      "properties": {
+        "contract_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "subject_digest": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Digest"
+        },
+        "subject_kind": {
+          "$ref": "#/$defs/ParticipantCrossingSubjectKind"
+        },
+        "subject_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Subject Ref",
+          "type": "string"
+        },
+        "subject_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Subject Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject_kind",
+        "contract_id",
+        "subject_ref",
+        "subject_revision",
+        "participant_address",
+        "episode_id"
+      ],
+      "title": "ControlSubjectReferenceModel",
+      "type": "object"
+    },
+    "ControlTeachingFactModel": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "const": "teaching-influence-domain/rev1",
+          "title": "Domain",
+          "type": "string"
+        },
+        "kind": {
+          "const": "ifc-fact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "tokens": {
+          "items": {
+            "enum": [
+              "coached-hint",
+              "worked-example"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Tokens",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "domain",
+        "tokens",
+        "source_refs"
+      ],
+      "title": "ControlTeachingFactModel",
+      "type": "object"
+    },
+    "ControlTransformationEffectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_policy": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "destination_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Destination Ref",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "transform",
+            "mask",
+            "route"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/ControlSubjectReferenceModel"
+        },
+        "source": {
+          "$ref": "#/$defs/ControlSubjectReferenceModel"
+        },
+        "transformation": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        }
+      },
+      "required": [
+        "kind",
+        "transformation",
+        "source",
+        "result",
+        "destination_ref",
+        "admission_policy"
+      ],
+      "title": "ControlTransformationEffectModel",
+      "type": "object"
+    },
+    "ParticipantControlContextModel": {
+      "additionalProperties": false,
+      "description": "MPC-03 exact context. No private state, prompt, or native handle.",
+      "properties": {
+        "apparatus": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "attempt": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "audience_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Audience Ref",
+          "type": "string"
+        },
+        "authority": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "clock": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "controller_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Controller Ref",
+          "type": "string"
+        },
+        "crossing": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "depth": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Depth",
+          "type": "integer"
+        },
+        "destination_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Destination Ref",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "ingress",
+            "egress"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "effects_consumed": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Effects Consumed",
+          "type": "integer"
+        },
+        "episode_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "expected_history_heads": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Expected History Heads",
+          "type": "array"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "memory_scope": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Order",
+          "type": "integer"
+        },
+        "participant_address": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "phase_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Phase Ref",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ControlPolicyReferenceModel"
+        },
+        "predecessors": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "title": "Predecessors",
+          "type": "array"
+        },
+        "prior_effect_claims": {
+          "items": {
+            "$ref": "#/$defs/ControlPriorEffectClaimModel"
+          },
+          "maxItems": 256,
+          "title": "Prior Effect Claims",
+          "type": "array"
+        },
+        "provider_states": {
+          "items": {
+            "$ref": "#/$defs/ControlProviderStateModel"
+          },
+          "maxItems": 64,
+          "title": "Provider States",
+          "type": "array"
+        },
+        "rule_firings": {
+          "items": {
+            "$ref": "#/$defs/ControlRuleFiringsModel"
+          },
+          "maxItems": 256,
+          "title": "Rule Firings",
+          "type": "array"
+        },
+        "run": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "sink_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Sink Ref",
+          "type": "string"
+        },
+        "state_cut": {
+          "discriminator": {
+            "mapping": {
+              "causal_frontier": "#/$defs/ControlCausalCutModel",
+              "sequence_prefix": "#/$defs/ControlSequenceCutModel"
+            },
+            "propertyName": "cut_kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ControlSequenceCutModel"
+            },
+            {
+              "$ref": "#/$defs/ControlCausalCutModel"
+            }
+          ],
+          "title": "State Cut"
+        },
+        "subject": {
+          "$ref": "#/$defs/ControlSubjectReferenceModel"
+        },
+        "trigger": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "trigger_root": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Trigger Root",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run",
+        "apparatus",
+        "participant_address",
+        "episode_id",
+        "subject",
+        "crossing",
+        "direction",
+        "sink_ref",
+        "audience_ref",
+        "destination_ref",
+        "controller_ref",
+        "authority",
+        "policy",
+        "state_cut",
+        "expected_history_heads",
+        "provider_states",
+        "inputs",
+        "memory_scope",
+        "clock",
+        "order",
+        "phase_ref",
+        "trigger_root",
+        "trigger",
+        "predecessors",
+        "depth",
+        "effects_consumed",
+        "prior_effect_claims",
+        "rule_firings",
+        "attempt"
+      ],
+      "title": "ParticipantControlContextModel",
+      "type": "object"
+    },
+    "ParticipantControlRequestModel": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/ParticipantControlContextModel"
+        },
+        "selection": {
+          "$ref": "#/$defs/ParticipantControlSelectionModel"
+        }
+      },
+      "required": [
+        "selection",
+        "context"
+      ],
+      "title": "ParticipantControlRequestModel",
+      "type": "object"
+    },
+    "ParticipantControlSelectionModel": {
+      "additionalProperties": false,
+      "description": "Exact finite selection; this document cannot install a provider.",
+      "properties": {
+        "apparatus": {
+          "$ref": "#/$defs/ControlArtifactReferenceModel"
+        },
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/ControlMechanismBindingModel"
+          },
+          "maxItems": 64,
+          "title": "Bindings",
+          "type": "array"
+        },
+        "bounds": {
+          "$ref": "#/$defs/ControlCausalBoundsModel"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ControlArtifactReferenceModel"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "required_profiles": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Required Profiles",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "participant-control-selection/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "selection_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+          "title": "Selection Id",
+          "type": "string"
+        },
+        "semantic_revision": {
+          "const": "sem-235/rev1",
+          "title": "Semantic Revision",
+          "type": "string"
+        },
+        "slots": {
+          "items": {
+            "$ref": "#/$defs/ControlResultSlotModel"
+          },
+          "maxItems": 256,
+          "title": "Slots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "selection_id",
+        "semantic_revision",
+        "apparatus",
+        "required_profiles",
+        "bindings",
+        "slots",
+        "bounds",
+        "evidence"
+      ],
+      "title": "ParticipantControlSelectionModel",
+      "type": "object"
+    },
+    "ParticipantCrossingSubjectKind": {
+      "description": "Closed typed references to incumbent participant and evidence carriers.",
+      "enum": [
+        "participant-control-occurrence",
+        "participant-action-contract",
+        "participant-action-admission",
+        "participant-action-attempt",
+        "participant-action-result",
+        "participant-lifecycle-event",
+        "participant-observation",
+        "participant-decision-surface",
+        "participant-exposure",
+        "participant-inject-delivery",
+        "participant-context-view",
+        "participant-history-view",
+        "participant-status-view",
+        "experiment-evidence"
+      ],
+      "title": "ParticipantCrossingSubjectKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/participant-control-evaluation-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Complete contributor record. Eligibility is not authorization or dispatch.",
+  "properties": {
+    "composition": {
+      "$ref": "#/$defs/ControlCompositionModel"
+    },
+    "evaluation_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+      "title": "Evaluation Id",
+      "type": "string"
+    },
+    "realizations": {
+      "items": {
+        "$ref": "#/$defs/ControlRealizationBindingModel"
+      },
+      "maxItems": 256,
+      "title": "Realizations",
+      "type": "array"
+    },
+    "request": {
+      "$ref": "#/$defs/ParticipantControlRequestModel"
+    },
+    "results": {
+      "items": {
+        "$ref": "#/$defs/ControlMechanismResultModel"
+      },
+      "maxItems": 256,
+      "title": "Results",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "participant-control-evaluation/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "support": {
+      "items": {
+        "$ref": "#/$defs/ControlEffectiveSupportModel"
+      },
+      "maxItems": 64,
+      "title": "Support",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "evaluation_id",
+    "request",
+    "results",
+    "support",
+    "composition",
+    "realizations"
+  ],
+  "title": "ParticipantControlEvaluationModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate closed selection dependencies and exact trusted evaluation context; structural validity is not execution authority.",
+      "id": "participant-control-resolved-context",
+      "inputs": [
+        {
+          "contract_id": "participant-control-evaluation-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.validate_participant_control_resolved_context"
+    }
+  ],
+  "x-raes-plane": "processor_backend_operational_observability",
+  "x-raes-semantic-profile": {
+    "contract_id": "participant-control-evaluation-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

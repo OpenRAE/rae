@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-20T08:00:00.000000+00:00",
+  "captured_at": "2026-09-20T08:01:56.690926+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "ad235a2db8d3b44f5147c8acccbc7c5828c24798ba339a3a401e757374c0d7c7",
+      "content_sha256": "40c0512638859df8034ff235c0b6974a97ac8978da78b7650da94c3d449c7266",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -657,7 +657,7 @@
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "04b807cb977006b6ae420958db1df21d911b9635b262d9d5c26d4f2023675b73",
+      "content_sha256": "208d6bb7f2dca977c06ac6d67cd47451e091c69bd9fd334e043506e51265aa7a",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -682,17 +682,17 @@
     "This replay binds issue #1186 offline control-plane maintenance, readiness, and bounded audit code to the integrated source. The retained language corpus does not execute store recovery, HTTP health behavior, or audit redaction.",
     "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus.",
     "Issue #1189 control-plane profile declarations are covered by their dedicated runtime suite, not promoted to new claims by the retained language corpus.",
-    "Issue #1016 mixed-runtime coordination is covered by its dedicated runtime suite. The retained language corpus does not execute mixed providers or establish backend-native realization, multi-controller coordination, IFC, or equivalence."
+    "Issue #1072 participant-control contracts are covered by their dedicated API-424 regression tests. This retained language replay does not execute providers or establish runtime effect realization."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "0d3e9a78edb278c80ac2ed41e78c50e6f3bee25b",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1016-v36",
+  "raes_revision": "ee943ee27fc4026af63dc5b6f59751688d707c7f",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1072-v36",
   "snapshot_revision": "36.0.0",
   "source_state": {
-    "base_revision": "0d3e9a78edb278c80ac2ed41e78c50e6f3bee25b",
+    "base_revision": "ee943ee27fc4026af63dc5b6f59751688d707c7f",
     "checkout_state": "modified",
-    "implementation_digest": "432fd89dad931f99e17c3f1e826597a136bdd09eb5118b8eff52d7afe8e495ca",
+    "implementation_digest": "889f03ada3caf66a7d1637faae0937a9e48e742a874d11e1a45acbd0923e5aa4",
     "profile": "python-reference-source/v2"
   }
 }
