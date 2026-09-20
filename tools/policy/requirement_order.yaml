@@ -754,6 +754,7 @@ ownership:
   mixed-participant-runtime:
     - docs/requirements/RUN-310/requirement.md
     - docs/requirements/RUN-319/requirement.md
+    - implementations/python/packages/raes_runtime/mixed_runtime_lifecycle.py
     - implementations/python/packages/raes_runtime/mixed_runtime_phase.py
     - implementations/python/packages/raes_runtime/participant_action_validation.py
     - implementations/python/packages/raes_runtime/participant_control.py
