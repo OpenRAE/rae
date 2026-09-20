@@ -336,9 +336,10 @@ def test_uncompilable_version_is_named_without_leaking_its_content(
     broken = tmp_path / "broken.sdl.yaml"
     broken.write_text("name: [unclosed SECRETMARKER\n", encoding="utf-8")
     versions = (broken, _CANDIDATE) if broken_first else (_BASELINE, broken)
+    manifest = create_stub_manifest()
 
     with pytest.raises(ScenarioVersionRejected) as raised:
-        reconcile_scenario_versions(*versions, create_stub_manifest())
+        reconcile_scenario_versions(*versions, manifest)
 
     assert raised.value.version is version
     assert "SECRETMARKER" not in str(raised.value)
