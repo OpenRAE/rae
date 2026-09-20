@@ -24,6 +24,7 @@ from ..vocabulary import (
 )
 from ._evidence_requirement_exports import *
 from ._exports import PUBLIC_EXPORTS as __all__
+from ._participant_control_exports import *
 from ._version_exports import *
 from .admitted_trial_plan import AdmittedApparatusBindingModel as AdmittedApparatusBindingModel
 from .admitted_trial_plan import AdmittedBindingModel as AdmittedBindingModel
@@ -246,19 +247,6 @@ from .mixed_composition import (
 from .observation_capture import ObservationCaptureOfferModel
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
-from .participant_control_composition import (
-    ParticipantControlEvaluationModel,
-    ParticipantControlRequestModel,
-    parse_participant_control_evaluation,
-)
-from .participant_control_profiles import ParticipantControlTeachingProfileModel, load_teaching_influence_profile
-from .participant_control_resolution import (
-    ParticipantControlContextResolver,
-    ParticipantControlValidationContext,
-    validate_participant_control_context,
-    validate_participant_control_resolved_context,
-)
-from .participant_control_selection import ParticipantControlSelectionModel
 from .participant_decision_surface import (
     ParticipantDecisionSurfaceActionEntryModel,
     ParticipantDecisionSurfaceCandidateSetFormModel,

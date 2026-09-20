@@ -9,6 +9,15 @@ from participant_control_contract_fixtures import evaluation_payload, selection_
 ROOTS = ("participant-control-selection-v1", "participant-control-evaluation-v1")
 
 
+def test_control_subdomain_exports_preserve_public_facade():
+    from raes_contracts import contracts
+    from raes_contracts.contracts import _participant_control_exports as control
+
+    for name in control.PARTICIPANT_CONTROL_EXPORTS:
+        assert contracts.__all__.count(name) == 1
+        assert getattr(contracts, name) is getattr(control, name)
+
+
 @pytest.mark.parametrize("contract,payload", [(ROOTS[0], selection_payload), (ROOTS[1], evaluation_payload)])
 def test_published_bundle_validates_closed_portable_fixtures(contract, payload):
     from raes_contracts.contracts import schema_bundle

@@ -10,6 +10,7 @@
     "API-423"
   ],
   "bindings": {
+    "implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py": ["API-424"],
     "contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/exhausted-replay.json": ["API-424"],
     "implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py": ["API-424"],
     "implementations/python/tests/test_api_424_review_regressions.py": ["API-424"],

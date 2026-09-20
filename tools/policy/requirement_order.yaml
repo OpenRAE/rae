@@ -612,6 +612,7 @@ ownership:
   modular-control-contracts:
     - contracts/fixtures/participant-runtime/participant-control-evaluation-v1/valid/exhausted-replay.json
     - implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py
+    - implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py
     - implementations/python/tests/test_api_424_review_regressions.py
     - implementations/python/packages/raes_contracts/participant_flow_policy_profiles.py
     - contracts/fixtures/backend-manifest/backend-manifest-v2/valid/stub.json

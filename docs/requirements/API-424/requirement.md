@@ -67,6 +67,7 @@ Contract validity does not install a provider or execute an effect.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/validators.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_participant_control_exports.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle_runtime.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py`
