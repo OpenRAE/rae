@@ -610,6 +610,7 @@ ownership:
     - implementations/python/tests/test_sem_235_modular_control.py
     - implementations/python/tests/test_sem_235_governance.py
   modular-control-contracts:
+    - implementations/python/tests/test_issue_989_versioned_evidence.py
     - docs/research/formal-semantic-validation/index.md
     - docs/research/specification-coverage/index.md
     - implementations/python/tests/test_formal_semantic_validation.py

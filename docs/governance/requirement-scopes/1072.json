@@ -10,6 +10,7 @@
     "API-423"
   ],
   "bindings": {
+    "implementations/python/tests/test_issue_989_versioned_evidence.py": ["API-424"],
     "docs/research/formal-semantic-validation/index.md": ["API-424"],
     "docs/research/specification-coverage/index.md": ["API-424"],
     "implementations/python/tests/test_formal_semantic_validation.py": ["API-424"],

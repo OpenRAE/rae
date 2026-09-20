@@ -42,6 +42,7 @@ ACTIVE is proposed in this delivery diff and becomes authoritative on merge.
 Contract validity does not install a provider or execute an effect.
 
 ## Traceability
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Current contract-source capture retains rejection of stale artifact digests)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Retained evidence replay bound to participant-control contract source; no runtime claims)

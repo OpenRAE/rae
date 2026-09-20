@@ -127,7 +127,7 @@ def test_current_retest_bundle_is_coherent_and_clean() -> None:
     assert release.manifest["revision"] == "37.0.0"
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "3.0.0"
-    assert snapshot["baseline"]["release_revision"] == "35.0.0"
+    assert snapshot["baseline"]["release_revision"] == "36.0.0"
     assert snapshot["deviations"] == []
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []
 
