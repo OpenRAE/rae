@@ -29,10 +29,13 @@ def test_teaching_domain_join_laws_memory_and_fresh_derivation():
     assert model.derive("unknown", (hint, replace(memory, labels=None))).labels is None
     with pytest.raises(ValueError, match="fresh"):
         model.derive("hint", (proposal,))
+    unknown_token = frozenset({"trusted"})
+    empty = frozenset()
     with pytest.raises(ValueError, match="domain"):
-        model.join(frozenset({"trusted"}), frozenset())
+        model.join(unknown_token, empty)
+    wrong_revision = replace(hint, revision="sem-233/rev1")
     with pytest.raises(ValueError, match="revision"):
-        model.derive("new", (replace(hint, revision="sem-233/rev1"),))
+        model.derive("new", (wrong_revision,))
 
 
 @pytest.mark.parametrize("status", ("missing", "unknown", "unsupported", "stale", "failed", "weakened"))
@@ -156,12 +159,14 @@ def test_causal_budget_depth_rule_limits_and_fresh_proposal_reentry():
         if state.claims:
             assert model.claim(state, state.claims[0].request)[0] == state
     transformed = model.derive("P2", (model.Influence("P", frozenset(model.TOKENS)),))
-    assert transformed.ref == "P2" and transformed.labels == frozenset(model.TOKENS)
+    assert transformed.ref == "P2"
+    assert transformed.labels == frozenset(model.TOKENS)
     assert model.compose(
         (model.Slot("sink", "decision"),), (model.Result("sink", "decision", payload="deny"),), cut="K0"
     )
     state, _ = model.claim(model.State(), replace(request, kind="transform", subject="P2"), allowed=False)
-    assert not state.claims and not state.calls
+    assert not state.claims
+    assert not state.calls
 
 
 def test_teaching_influence_requests_an_independently_governed_inject():
@@ -311,7 +316,9 @@ def test_model_refuses_unrepresented_multiple_effect_slots_per_rule():
 @pytest.mark.parametrize("kind", ("permit", "deny", "withhold"))
 def test_disposition_cannot_be_dispatched_as_an_occurrence(kind):
     state, result = model.claim(model.State(), model.Request("decision", kind, "P", "participant"))
-    assert result == "refused" and not state.claims and not state.calls
+    assert result == "refused"
+    assert not state.claims
+    assert not state.calls
 
 
 @pytest.mark.parametrize("payload", ("permit", "deny", "withhold", "abstain"))
