@@ -22,6 +22,21 @@ records deterministically and checks that every entry points at
 `contracts/schemas/`, every listed schema exists, every JSON Schema file is
 listed, and every entry records its stability class and canonical content hash.
 
+## Published-schema coverage
+
+Publication proves a contract exists; it does not prove anything exercises it.
+Every entry in the publication catalog must carry at least one of: a checked-in
+artifact that the corpus router validates against that schema, a delivered
+assurance artifact naming the schema in
+`specs/formal/assurance-fulfillment.yaml`, or a validated `coverage`
+association on the contract's publication record. A formal model is never
+required, and a `waived_artifacts` entry is an unresolved obligation rather than
+evidence. `tools/check_schema_coverage.py` enforces this over the whole
+published inventory as the `policy / published schema coverage` stage, and
+`--report` prints the covering leg per contract. The rule, the repair order, and
+the `coverage` shape are documented in
+[published-schema-coverage.md](../docs/explain/reference/published-schema-coverage.md).
+
 ## Schema authority direction (ADR-009 §7)
 
 The published schemas under `contracts/schemas/` are the **hand-governed
