@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from graphlib import CycleError, TopologicalSorter
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -47,7 +47,7 @@ class ControlMechanismBindingModel(ContractModel):
     limitations: Evidence
 
     @model_validator(mode="after")
-    def _binding(self):
+    def _binding(self) -> Self:
         for name, kind in (
             ("mechanism", "mechanism"),
             ("implementation", "implementation"),
@@ -107,7 +107,7 @@ class ParticipantControlSelectionModel(ContractModel):
     evidence: Evidence
 
     @model_validator(mode="after")
-    def _selection_graph(self):
+    def _selection_graph(self) -> Self:
         require_kind(self.apparatus, "apparatus")
         require_unique(self.required_profiles)
         require_unique(tuple(binding.instance_id for binding in self.bindings))

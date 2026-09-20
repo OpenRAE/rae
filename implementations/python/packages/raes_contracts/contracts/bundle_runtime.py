@@ -68,7 +68,8 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
             "participant-control-resolved-context"
             if "evaluation" in contract_id
             else "participant-control-selection-graph",
-            "Validate closed selection dependencies and exact trusted evaluation context; structural validity is not execution authority.",
+            "Validate closed selection dependencies and exact trusted evaluation context; "
+            "structural validity is not execution authority.",
             validator="raes_contracts.contracts.validate_participant_control_resolved_context"
             if "evaluation" in contract_id
             else "raes_contracts.contracts.ParticipantControlSelectionModel.model_validate",

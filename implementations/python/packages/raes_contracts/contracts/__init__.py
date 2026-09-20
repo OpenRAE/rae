@@ -22,6 +22,7 @@ from ..vocabulary import (
     WorkflowFeature,
     WorkflowStatePredicateFeature,
 )
+from ._candidate_synthesis_facade import *
 from ._evidence_requirement_exports import *
 from ._exports import PUBLIC_EXPORTS as __all__
 from ._participant_control_exports import *
@@ -67,30 +68,6 @@ from .batch_execution import BatchExecutionReceiptModel as BatchExecutionReceipt
 from .batch_execution import validate_batch_execution_receipt as validate_batch_execution_receipt
 from .batch_execution import validate_scheduler_isolation_proof as validate_scheduler_isolation_proof
 from .bundle import schema_bundle
-from .candidate_synthesis import (
-    CandidateSynthesisAssumptionModel,
-    CandidateSynthesisChoiceModel,
-    CandidateSynthesisConstructTraceModel,
-    CandidateSynthesisContributionModel,
-    CandidateSynthesisDecisionModel,
-    CandidateSynthesisDisposition,
-    CandidateSynthesisInputModel,
-    CandidateSynthesisProfileCoordinateModel,
-    CandidateSynthesisProfileDefinitionModel,
-    CandidateSynthesisProfileLimitsModel,
-    CandidateSynthesisReason,
-    CandidateSynthesisRecordModel,
-    CandidateSynthesisSourceModel,
-    CandidateSynthesisTargetModel,
-    ConceptSourceAssertionModel,
-    ExampleSourceAssertionModel,
-    OrderingSourceAssertionModel,
-    ParameterizationSourceAssertionModel,
-    PreconditionSourceAssertionModel,
-    RelationshipSourceAssertionModel,
-    SourceAssertion,
-    SynthesisContributionKind,
-)
 from .capabilities import (
     ApparatusIdentityModel,
     BackendCompatibilityModel,

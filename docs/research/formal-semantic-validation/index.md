@@ -288,14 +288,20 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current release 37.0.0 is retained in
+Release 37.0.0 is retained in
 [`bundles/retest-v36.json`](bundles/retest-v36.json), binding
 [`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
 [`analysis-v36.json`](analysis-v36.json) to issue #1072's contract source.
 The bounded replay does not execute control providers or establish runtime
 effect realization; the retained claim limits remain unchanged.
 
-Current validation requires explicit release 37.0.0, rejects unsupported future
+Current release 38.0.0 is retained in
+[`bundles/retest-v37.json`](bundles/retest-v37.json), binding
+[`execution-snapshot-v37.json`](execution-snapshot-v37.json) and
+[`analysis-v37.json`](analysis-v37.json) to the participant-control validator
+refactor. The corpus and claim limits remain unchanged.
+
+Current validation requires explicit release 38.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

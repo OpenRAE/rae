@@ -42,6 +42,13 @@ ACTIVE is proposed in this delivery diff and becomes authoritative on merge.
 Contract validity does not install a provider or execute an effect.
 
 ## Traceability
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/execution-snapshot-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/analysis-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1072-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/execution-snapshot-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_candidate_synthesis_facade.py` (Public-facade preservation and retained evidence after validator refactoring)
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Current contract-source capture retains rejection of stale artifact digests)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/index.md` (Retained evidence replay bound to participant-control contract source; no runtime claims)

@@ -1,26 +1,42 @@
 """Pure order-independent effect compatibility and retained-claim accounting."""
 
+from __future__ import annotations
+
 from collections import defaultdict
+from collections.abc import Mapping
 from graphlib import CycleError, TopologicalSorter
+from typing import TYPE_CHECKING
 
 from .._canonical import canonical_json_digest
-from .participant_control_coordinates import require_unique
-from .participant_control_effects import ControlEffectRequestModel
+from .participant_control_coordinates import (
+    ControlLogicalEffectKeyModel,
+    ParticipantControlContextModel,
+    require_unique,
+)
+from .participant_control_effects import ControlEffectRequestModel, ControlEffectTarget
+from .participant_control_selection import ControlCausalBoundsModel
+
+if TYPE_CHECKING:
+    from .participant_control_composition import ParticipantControlEvaluationModel
 
 
-def _effect_subject(target):
+def _effect_subject(target: ControlEffectTarget) -> str:
     if target.kind in {"transform", "mask", "route"}:
-        return target.source.subject_ref
-    if target.kind == "request-review":
-        return target.parent.subject_ref
-    if target.kind in {"interrupt", "shutdown"}:
-        return target.target_ref
-    if target.kind in {"inject", "handoff"}:
-        return target.participant_address
-    return target.subject.subject_ref
+        subject = target.source.subject_ref
+    elif target.kind == "request-review":
+        subject = target.parent.subject_ref
+    elif target.kind in {"interrupt", "shutdown"}:
+        subject = target.target_ref
+    elif target.kind in {"inject", "handoff"}:
+        subject = target.participant_address
+    else:
+        subject = target.subject.subject_ref
+    return subject
 
 
-def _lifecycle_invalidates(lifecycle, operation, context):
+def _lifecycle_invalidates(
+    lifecycle: ControlEffectTarget, operation: ControlEffectTarget, context: ParticipantControlContextModel
+) -> bool:
     """Pausing/cancelling/terminating cannot precede a live-target operation.
 
     A workflow/execution's membership is not encoded by these request targets,
@@ -41,7 +57,24 @@ def _lifecycle_invalidates(lifecycle, operation, context):
     return lifecycle.target_kind not in scopes or scopes[lifecycle.target_kind] == lifecycle.target_ref
 
 
-def _effect_pair_conflicts(left, right, ancestors, context):
+def _same_subject_conflicts(a: ControlEffectTarget, b: ControlEffectTarget) -> bool:
+    if a.kind == b.kind == "delay":
+        return a.clock != b.clock or max(a.earliest_order, b.earliest_order) > min(a.latest_order, b.latest_order)
+    if a.kind == b.kind == "handoff":
+        return a.resulting_controller_ref != b.resulting_controller_ref
+    transformations = {"transform", "mask", "route"}
+    return (a.kind in transformations and b.kind in transformations and a != b) or {a.kind, b.kind} == {
+        "interrupt",
+        "shutdown",
+    }
+
+
+def _effect_pair_conflicts(
+    left: ControlEffectRequestModel,
+    right: ControlEffectRequestModel,
+    ancestors: Mapping[str, set[str]],
+    context: ParticipantControlContextModel,
+) -> bool:
     a, b = left.target, right.target
     left_first = left.effect_id in ancestors[right.effect_id]
     right_first = right.effect_id in ancestors[left.effect_id]
@@ -49,26 +82,19 @@ def _effect_pair_conflicts(left, right, ancestors, context):
         right_first and _lifecycle_invalidates(b, a, context)
     ):
         return True
-    if _effect_subject(a) != _effect_subject(b):
-        return not (left_first or right_first)
-    if a.kind == b.kind == "delay":
-        return a.clock != b.clock or max(a.earliest_order, b.earliest_order) > min(a.latest_order, b.latest_order)
-    if a.kind in {"transform", "mask", "route"} and b.kind in {"transform", "mask", "route"} and a != b:
-        return True
-    if a.kind == b.kind == "handoff" and a.resulting_controller_ref != b.resulting_controller_ref:
-        return True
-    if {a.kind, b.kind} == {"interrupt", "shutdown"}:
-        return True
-    return not (left_first or right_first)
+    same_subject = _effect_subject(a) == _effect_subject(b)
+    if same_subject and a.kind == b.kind == "delay":
+        return _same_subject_conflicts(a, b)
+    return (same_subject and _same_subject_conflicts(a, b)) or not (left_first or right_first)
 
 
-def _effect_ancestors(by_id):
+def _effect_ancestors(by_id: Mapping[str, set[ControlEffectRequestModel]]) -> dict[str, set[str]]:
     # Every variant contributes its edges. No arrival-selected representative.
     graph = {
         identity: {dep for effect in variants for dep in effect.predecessor_effect_ids}
         for identity, variants in by_id.items()
     }
-    if any(not predecessors <= graph.keys() for predecessors in graph.values()):
+    if any(predecessors - graph.keys() for predecessors in graph.values()):
         raise ValueError("effect predecessor is unresolved")
     try:
         ordered = tuple(TopologicalSorter(graph).static_order())
@@ -82,7 +108,9 @@ def _effect_ancestors(by_id):
     return ancestors
 
 
-def _retained_claims(effects, context, blockers):
+def _retained_claims(
+    effects: set[ControlEffectRequestModel], context: ParticipantControlContextModel, blockers: set[str]
+) -> set[ControlLogicalEffectKeyModel]:
     prior_keys = {claim.key: claim for claim in context.prior_effect_claims}
     prior_ids = {claim.effect_id: claim for claim in context.prior_effect_claims}
     for effect in effects:
@@ -98,17 +126,29 @@ def _retained_claims(effects, context, blockers):
     return {effect.key for effect in effects} - prior_keys.keys()
 
 
-def _validate_effect_bounds(effects, new_keys, context, bounds):
+def _validate_new_effect_window(
+    target: ControlEffectTarget, context: ParticipantControlContextModel, bounds: ControlCausalBoundsModel
+) -> None:
+    if target.kind not in {"delay", "request-review"}:
+        return
+    if target.clock != context.clock or not context.order <= target.expiry_order <= bounds.expires_at_order:
+        raise ValueError("effect clock or expiry is not admitted")
+    if target.kind == "delay" and target.latest_order < context.order:
+        raise ValueError("delay window is exhausted")
+
+
+def _validate_effect_bounds(
+    effects: set[ControlEffectRequestModel],
+    new_keys: set[ControlLogicalEffectKeyModel],
+    context: ParticipantControlContextModel,
+    bounds: ControlCausalBoundsModel,
+) -> None:
     epochs = {(item.rule_id, item.rule_revision): set(item.firing_epochs) for item in context.rule_firings}
     for effect in effects:
         epochs.setdefault((effect.key.rule_id, effect.key.rule_revision), set()).add(effect.key.firing_epoch)
-        target = effect.target
         # Replaying an already claimed intent does not re-admit or re-dispatch it.
-        if effect.key in new_keys and target.kind in {"delay", "request-review"}:
-            if target.clock != context.clock or not context.order <= target.expiry_order <= bounds.expires_at_order:
-                raise ValueError("effect clock or expiry is not admitted")
-            if target.kind == "delay" and target.latest_order < context.order:
-                raise ValueError("delay window is exhausted")
+        if effect.key in new_keys:
+            _validate_new_effect_window(effect.target, context, bounds)
     if any(len(values) > bounds.max_firings_per_rule for values in epochs.values()):
         raise ValueError("effect requests exceed per-rule firing budget")
     if new_keys and context.depth >= bounds.max_depth:
@@ -117,7 +157,7 @@ def _validate_effect_bounds(effects, new_keys, context, bounds):
         raise ValueError("effect requests exceed causal budget")
 
 
-def validate_control_effect_composition(document):
+def validate_control_effect_composition(document: ParticipantControlEvaluationModel) -> set[str]:
     effects = {r.payload for r in document.results if isinstance(r.payload, ControlEffectRequestModel)}
     context = document.request.context
     blockers = set()

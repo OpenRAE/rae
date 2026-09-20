@@ -65,16 +65,18 @@ def test_self_reported_support_authority_or_evidence_is_insufficient(field, valu
     from raes_contracts.contracts.participant_control_resolution import validate_participant_control_context
 
     record, context = record_and_context()
+    untrusted = replace(context, **{field: value})
     with pytest.raises(ValueError):
-        validate_participant_control_context(record, replace(context, **{field: value}))
+        validate_participant_control_context(record, untrusted)
 
 
 def test_legacy_missing_support_strength_is_not_modular_support():
     from raes_contracts.contracts.participant_control_resolution import validate_participant_control_context
 
     record, context = record_and_context()
+    unresolved = replace(context, support_resolver=lambda *_: None)
     with pytest.raises(ValueError):
-        validate_participant_control_context(record, replace(context, support_resolver=lambda *_: None))
+        validate_participant_control_context(record, unresolved)
 
 
 def test_context_resolver_failure_is_value_independent():

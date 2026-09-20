@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, StrictFloat, model_validator
 
@@ -28,7 +28,7 @@ class ControlTeachingFactModel(ContractModel):
     source_refs: Evidence
 
     @model_validator(mode="after")
-    def _canonical_tokens(self):
+    def _canonical_tokens(self) -> Self:
         if self.tokens != tuple(sorted(set(self.tokens))):
             raise ValueError("teaching influence tokens must be canonical and unique")
         return self
@@ -44,7 +44,7 @@ class ControlSecurityFactModel(ContractModel):
     label_ref: ControlRef
 
     @model_validator(mode="after")
-    def _owner(self):
+    def _owner(self) -> Self:
         require_kind(self.relation, "flow-relation")
         return self
 
@@ -59,7 +59,7 @@ class ControlDecisionModel(ContractModel):
     rule: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _owner(self):
+    def _owner(self) -> Self:
         require_kind(self.rule, "rule")
         return self
 
@@ -91,7 +91,7 @@ class ControlMechanismResultModel(ContractModel):
     next_provider_state: ControlArtifactReferenceModel | None
 
     @model_validator(mode="after")
-    def _resolved_payload(self):
+    def _resolved_payload(self) -> Self:
         if (self.status == "resolved") != (self.payload is not None):
             raise ValueError("only a resolved mechanism result carries a typed payload")
         if self.next_provider_state is not None:
@@ -117,7 +117,7 @@ class ControlEffectiveSupportModel(ContractModel):
     downgrade_authority: ControlArtifactReferenceModel | None
 
     @model_validator(mode="after")
-    def _strength(self):
+    def _strength(self) -> Self:
         levels = ("unsupported", "disclosed_weak", "bounded", "exact")
         require_kind(self.declaration_ref, "manifest")
         if levels.index(self.effective_level) > levels.index(self.declared_level):
@@ -132,11 +132,14 @@ class ControlEffectiveSupportModel(ContractModel):
             require_kind(item, "limitation")
         if self.effective_level == "bounded" and not self.constraints:
             raise ValueError("bounded support requires constraints")
+        self._downgrade()
+        return self
+
+    def _downgrade(self) -> None:
         if self.downgrade_authority is not None:
             require_kind(self.downgrade_authority, "authority")
             if self.effective_level in {"unsupported", "exact"}:
                 raise ValueError("unsupported or exact support is not an authorized downgrade")
-        return self
 
 
 class ControlCompositionModel(ContractModel):
@@ -149,7 +152,7 @@ class ControlCompositionModel(ContractModel):
     incumbent_gate_evidence: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _contributors(self):
+    def _contributors(self) -> Self:
         require_unique(self.contributing_result_ids)
         if self.blockers != tuple(sorted(set(self.blockers))):
             raise ValueError("composition blockers must be canonical and unique")
@@ -166,6 +169,6 @@ class ControlRealizationBindingModel(ContractModel):
     evidence: Evidence
 
     @model_validator(mode="after")
-    def _receipt(self):
+    def _receipt(self) -> Self:
         require_kind(self.receipt, "receipt")
         return self

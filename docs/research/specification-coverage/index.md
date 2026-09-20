@@ -222,7 +222,7 @@ this run does not repair them.
   The retained language corpus does not execute profile composition;
   classifications and claim limits remain unchanged.
 
-Current release 36.0.0 is retained in
+Release 36.0.0 is retained in
 [`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
 [`analysis-v36.json`](analysis-v36.json). It replays the bounded language
 corpus against issue #1072's participant-control contract source. It does not
@@ -257,7 +257,13 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 36.0.0 and rejects duplicate or unsupported
+Current release 37.0.0 is retained in
+[`execution-snapshot-v37.json`](execution-snapshot-v37.json) and
+[`analysis-v37.json`](analysis-v37.json). It repeats the bounded replay after
+the participant-control validator decomposition and type annotations, with
+unchanged classifications and claim limits.
+
+Current validation requires release 37.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

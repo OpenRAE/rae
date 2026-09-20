@@ -8,6 +8,7 @@ from .._canonical import canonical_json_digest
 from ..corpus import PROFILES, corpus_family_root
 from ..json_ingress import parse_bounded_json_object
 from .base import ContractModel
+from .participant_control_coordinates import ControlArtifactReferenceModel
 from .participant_flow_control import PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_REV1_DIGEST
 
 
@@ -39,7 +40,7 @@ def load_teaching_influence_profile() -> ParticipantControlTeachingProfileModel:
         raise ValueError("published teaching influence profile is invalid") from None
 
 
-def validate_control_profile_reference(profile) -> None:
+def validate_control_profile_reference(profile: ControlArtifactReferenceModel) -> None:
     if profile.revision != "rev1":
         raise ValueError("participant control profile revision is unsupported")
     if profile.ref == "teaching-influence":

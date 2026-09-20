@@ -10,6 +10,13 @@
     "API-423"
   ],
   "bindings": {
+    "docs/research/formal-semantic-validation/analysis-v37.json": ["API-424"],
+    "docs/research/formal-semantic-validation/bundles/retest-v37.json": ["API-424"],
+    "docs/research/formal-semantic-validation/execution-snapshot-v37.json": ["API-424"],
+    "docs/research/specification-coverage/analysis-v37.json": ["API-424"],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1072-v37.json": ["API-424"],
+    "docs/research/specification-coverage/execution-snapshot-v37.json": ["API-424"],
+    "implementations/python/packages/raes_contracts/contracts/_candidate_synthesis_facade.py": ["API-424"],
     "implementations/python/tests/test_issue_989_versioned_evidence.py": ["API-424"],
     "docs/research/formal-semantic-validation/index.md": ["API-424"],
     "docs/research/specification-coverage/index.md": ["API-424"],

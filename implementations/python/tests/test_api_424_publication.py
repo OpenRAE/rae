@@ -9,6 +9,14 @@ from participant_control_contract_fixtures import evaluation_payload, selection_
 ROOTS = ("participant-control-selection-v1", "participant-control-evaluation-v1")
 
 
+def test_split_candidate_exports_preserve_public_objects():
+    from raes_contracts import contracts
+    from raes_contracts.contracts import _candidate_synthesis_facade, candidate_synthesis
+
+    for name in _candidate_synthesis_facade.__all__:
+        assert getattr(contracts, name) is getattr(candidate_synthesis, name)
+
+
 def test_control_subdomain_exports_preserve_public_facade():
     from raes_contracts import contracts
     from raes_contracts.contracts import _participant_control_exports as control
@@ -48,7 +56,8 @@ def test_evaluation_conformance_requires_trusted_context():
     assert contract_validation_strength(contract) == "structural-context-required"
     record, context = record_and_context()
     diagnostics = validate_contract_payload(contract, record.model_dump(mode="json"))
-    assert diagnostics and diagnostics[0].code == "conformance.semantic-context-required"
+    assert diagnostics
+    assert diagnostics[0].code == "conformance.semantic-context-required"
     assert not validate_contract_payload(
         contract, record.model_dump(mode="json"), control_context_resolver=lambda _: context
     )

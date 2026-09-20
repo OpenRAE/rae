@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from graphlib import TopologicalSorter
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -18,7 +18,11 @@ from .participant_control_results import (
     ControlMechanismResultModel,
     ControlRealizationBindingModel,
 )
-from .participant_control_selection import ParticipantControlSelectionModel
+from .participant_control_selection import (
+    ControlMechanismBindingModel,
+    ControlResultSlotModel,
+    ParticipantControlSelectionModel,
+)
 
 
 def control_digest(record: ContractModel) -> str:
@@ -32,7 +36,7 @@ class ParticipantControlRequestModel(ContractModel):
     context: ParticipantControlContextModel
 
     @model_validator(mode="after")
-    def _admitted_scope(self):
+    def _admitted_scope(self) -> Self:
         selection, context = self.selection, self.context
         if selection.apparatus != context.apparatus:
             raise ValueError("participant control apparatus binding differs")
@@ -78,60 +82,89 @@ class ParticipantControlEvaluationModel(ContractModel):
     realizations: Annotated[tuple[ControlRealizationBindingModel, ...], Field(max_length=256)]
 
     @model_validator(mode="after")
-    def _evaluation(self):
+    def _evaluation(self) -> Self:
         validate_evaluation_structure(self)
         return self
 
 
-def _result_satisfied(result):
+def _result_satisfied(result: ControlMechanismResultModel) -> bool:
     if result.status != "resolved":
         return False
     return result.payload.kind != "decision" or result.payload.disposition == "permit"
 
 
-def _validate_results(document):
-    selection = document.request.selection
-    context_digest = control_digest(document.request.context)
-    bindings = {binding.instance_id: binding for binding in selection.bindings}
-    slots = {slot.slot_id: slot for slot in selection.slots}
+def _validate_result_binding(
+    result: ControlMechanismResultModel,
+    slot: ControlResultSlotModel,
+    binding: ControlMechanismBindingModel,
+    context_digest: str,
+) -> None:
+    if result.instance_id != slot.instance_id or result.binding_digest != control_digest(binding):
+        raise ValueError("mechanism result does not bind the selected instance")
+    if result.context_digest != context_digest:
+        raise ValueError("mechanism result uses a stale or different exact context")
+    if result.payload is not None and result.payload.kind != slot.kind:
+        raise ValueError("mechanism result payload does not match its typed slot")
+
+
+def _validate_ifc_result(
+    result: ControlMechanismResultModel,
+    binding: ControlMechanismBindingModel,
+    context: ParticipantControlContextModel,
+) -> None:
+    if result.payload is None or result.payload.kind != "ifc-fact":
+        return
+    profiles = {profile.ref for profile in binding.profiles}
+    expected = (
+        "teaching-influence"
+        if result.payload.domain == "teaching-influence-domain/rev1"
+        else "participant-boundary-flow-policy-v1"
+    )
+    if expected not in profiles:
+        raise ValueError("IFC fact domain is not selected by its mechanism")
+    if expected == "teaching-influence" and set(result.payload.source_refs) != set(context.inputs):
+        raise ValueError("teaching propagation must cover every admitted input")
+
+
+def _result_index(document: ParticipantControlEvaluationModel) -> dict[str, ControlMechanismResultModel]:
     results = {result.slot_id: result for result in document.results}
     require_unique(tuple(result.slot_id for result in document.results))
     require_unique(tuple(result.result_id for result in document.results))
-    if results.keys() != slots.keys():
+    if results.keys() != {slot.slot_id for slot in document.request.selection.slots}:
         raise ValueError("every selected slot requires an explicit result or absence record")
     expected_contributors = tuple(
         result.result_id for result in sorted(document.results, key=lambda r: (r.instance_id, r.slot_id))
     )
     if document.composition.contributing_result_ids != expected_contributors:
         raise ValueError("composition must preserve every contributor in canonical order")
+    return results
+
+
+def _validate_results(document: ParticipantControlEvaluationModel) -> set[str]:
+    selection = document.request.selection
+    context_digest = control_digest(document.request.context)
+    bindings = {binding.instance_id: binding for binding in selection.bindings}
+    slots = {slot.slot_id: slot for slot in selection.slots}
+    results = _result_index(document)
+    for slot_id, result in results.items():
+        slot = slots[slot_id]
+        binding = bindings[slot.instance_id]
+        _validate_result_binding(result, slot, binding, context_digest)
+        _validate_ifc_result(result, binding, document.request.context)
+    return _mandatory_blockers(selection, results)
+
+
+def _mandatory_blockers(
+    selection: ParticipantControlSelectionModel, results: dict[str, ControlMechanismResultModel]
+) -> set[str]:
     graph = {slot.slot_id: {dep.slot_id for dep in slot.dependencies} for slot in selection.slots}
     satisfied = {}
     for identity in TopologicalSorter(graph).static_order():
         satisfied[identity] = _result_satisfied(results[identity]) and all(satisfied[dep] for dep in graph[identity])
     blockers = set()
-    for slot_id, result in results.items():
-        slot = slots[slot_id]
-        if result.instance_id != slot.instance_id or result.binding_digest != control_digest(
-            bindings[slot.instance_id]
-        ):
-            raise ValueError("mechanism result does not bind the selected instance")
-        if result.context_digest != context_digest:
-            raise ValueError("mechanism result uses a stale or different exact context")
-        if result.payload is not None and result.payload.kind != slot.kind:
-            raise ValueError("mechanism result payload does not match its typed slot")
-        if result.payload is not None and result.payload.kind == "ifc-fact":
-            profiles = {profile.ref for profile in bindings[slot.instance_id].profiles}
-            expected = (
-                "teaching-influence"
-                if result.payload.domain == "teaching-influence-domain/rev1"
-                else "participant-boundary-flow-policy-v1"
-            )
-            if expected not in profiles:
-                raise ValueError("IFC fact domain is not selected by its mechanism")
-            if expected == "teaching-influence" and set(result.payload.source_refs) != set(
-                document.request.context.inputs
-            ):
-                raise ValueError("teaching propagation must cover every admitted input")
+    for slot in selection.slots:
+        slot_id = slot.slot_id
+        result = results[slot_id]
         if slot.role == "mandatory" and not _result_satisfied(result):
             blockers.add("slot:" + slot_id)
         if slot.role == "mandatory" and any(not satisfied[dep.slot_id] for dep in slot.dependencies):
@@ -139,7 +172,7 @@ def _validate_results(document):
     return blockers
 
 
-def _validate_support(document):
+def _validate_support(document: ParticipantControlEvaluationModel) -> set[str]:
     bindings = document.request.selection.bindings
     support = {item.instance_id: item for item in document.support}
     require_unique(tuple(item.instance_id for item in document.support))
@@ -154,7 +187,7 @@ def _validate_support(document):
     return blockers
 
 
-def validate_evaluation_structure(document):
+def validate_evaluation_structure(document: ParticipantControlEvaluationModel) -> None:
     blockers = _validate_results(document) | _validate_support(document) | validate_control_effect_composition(document)
     if document.composition.incumbent_gate_disposition != "permit":
         blockers.add("incumbent-gates")

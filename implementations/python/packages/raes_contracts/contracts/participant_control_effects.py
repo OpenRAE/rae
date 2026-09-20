@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -27,7 +27,7 @@ class ControlCrossingEffectModel(ContractModel):
     subject: ControlSubjectReferenceModel
 
     @model_validator(mode="after")
-    def _owner(self):
+    def _owner(self) -> Self:
         require_kind(self.crossing_decision, "crossing")
         return self
 
@@ -42,7 +42,7 @@ class ControlTransformationEffectModel(ContractModel):
     admission_policy: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _fresh_subject(self):
+    def _fresh_subject(self) -> Self:
         require_kind(self.transformation, "transformation")
         require_kind(self.admission_policy, "policy")
         if self.source.subject_ref == self.result.subject_ref:
@@ -65,7 +65,7 @@ class ControlInjectEffectModel(ContractModel):
     disclosure_ref: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _inject(self):
+    def _inject(self) -> Self:
         require_kind(self.delivery_ref, "inject-delivery")
         require_kind(self.disclosure_ref, "disclosure")
         if self.source_item_ref == self.result_item_ref:
@@ -84,7 +84,7 @@ class ControlDelayEffectModel(ContractModel):
     resumption_policy: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _window(self):
+    def _window(self) -> Self:
         require_kind(self.clock, "clock")
         require_kind(self.resumption_policy, "policy")
         if not self.earliest_order <= self.latest_order <= self.expiry_order:
@@ -104,7 +104,7 @@ class ControlHandoffEffectModel(ContractModel):
     completion_obligation: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _owner(self):
+    def _owner(self) -> Self:
         require_kind(self.transition, "control")
         require_kind(self.completion_obligation, "evidence")
         if self.prior_controller_ref == self.resulting_controller_ref:
@@ -125,7 +125,7 @@ class ControlReviewEffectModel(ContractModel):
     resumption_policy: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _owner(self):
+    def _owner(self) -> Self:
         for name, kind in (
             ("supervisor_authority", "authority"),
             ("approval_ref", "control"),
@@ -149,7 +149,7 @@ class ControlLifecycleEffectModel(ContractModel):
     expected_revision: ControlRef
 
     @model_validator(mode="after")
-    def _operation(self):
+    def _operation(self) -> Self:
         require_kind(self.lifecycle_authority, "authority")
         if (self.kind == "shutdown") != (self.operation == "terminate"):
             raise ValueError("participant control lifecycle kind and operation disagree")
@@ -165,7 +165,7 @@ class ControlAuditEffectModel(ContractModel):
     retention_policy: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _owner(self):
+    def _owner(self) -> Self:
         require_kind(self.audit_record, "audit")
         require_kind(self.retention_policy, "policy")
         return self
@@ -199,7 +199,7 @@ class ControlEffectRequestModel(ContractModel):
     evidence: Evidence
 
     @model_validator(mode="after")
-    def _identity(self):
+    def _identity(self) -> Self:
         require_kind(self.rule, "rule")
         require_kind(self.authority, "authority")
         if (self.key.rule_id, self.key.rule_revision) != (self.rule.ref, self.rule.revision):

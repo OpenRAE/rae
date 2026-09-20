@@ -379,7 +379,9 @@ def _mixed_composition_context_diagnostics(
     return []
 
 
-def _control_context_diagnostics(payload, resolver):
+def _control_context_diagnostics(
+    payload: object, resolver: ParticipantControlContextResolver | None
+) -> list[Diagnostic]:
     contract_name = "participant-control-evaluation-v1"
     if resolver is None:
         return [

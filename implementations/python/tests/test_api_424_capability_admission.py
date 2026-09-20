@@ -50,8 +50,9 @@ def test_manifest_content_mismatch_rejects_dishonest_claim():
     from raes_backend_protocols.participant_control_admission import resolve_participant_control_support
 
     record = ParticipantControlEvaluationModel.model_validate(evaluation_payload())
+    manifest = manifest_with_modular_support()
     with pytest.raises(ValueError, match="participant control"):
-        resolve_participant_control_support(manifest_with_modular_support(), record.support[0])
+        resolve_participant_control_support(manifest, record.support[0])
 
 
 def test_unimplemented_stub_does_not_gain_modular_support():

@@ -74,8 +74,9 @@ def targets():
 def test_every_mpc09_effect_has_a_closed_request_shape(target):
     record = ControlEffectRequestModel.model_validate(effect_payload(target))
     assert record.target.kind == target["kind"]
+    invalid = effect_payload({**target, "callback": "execute"})
     with pytest.raises(ValidationError):
-        ControlEffectRequestModel.model_validate(effect_payload({**target, "callback": "execute"}))
+        ControlEffectRequestModel.model_validate(invalid)
 
 
 def add_second_result(payload, *, kind="effect-request", role="mandatory", result_payload=None):

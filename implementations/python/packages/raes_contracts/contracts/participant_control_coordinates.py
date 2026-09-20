@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from collections.abc import Hashable, Sequence
+from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, StrictInt, model_validator
 
@@ -70,7 +71,7 @@ def require_kind(reference: ControlArtifactReferenceModel, kind: str) -> None:
         raise ValueError("participant control reference has the wrong owning kind")
 
 
-def require_unique(values, label="participant control identities") -> None:
+def require_unique(values: Sequence[Hashable], label: str = "participant control identities") -> None:
     if len(values) != len(set(values)):
         raise ValueError(label + " must be unique")
 
@@ -123,7 +124,7 @@ class ControlProviderStateModel(ContractModel):
     state: ControlArtifactReferenceModel
 
     @model_validator(mode="after")
-    def _owner(self):
+    def _owner(self) -> Self:
         require_kind(self.state, "provider-state")
         return self
 
@@ -135,7 +136,7 @@ class ControlRuleFiringsModel(ContractModel):
     firing_epochs: ControlRefs
 
     @model_validator(mode="after")
-    def _epochs(self):
+    def _epochs(self) -> Self:
         require_unique(self.firing_epochs)
         return self
 
@@ -194,7 +195,7 @@ class ParticipantControlContextModel(ContractModel):
     attempt: Annotated[StrictInt, Field(ge=1, le=1_000_000)]
 
     @model_validator(mode="after")
-    def _coordinates(self):
+    def _coordinates(self) -> Self:
         for name, kind in (
             ("run", "run"),
             ("apparatus", "apparatus"),
@@ -217,6 +218,14 @@ class ParticipantControlContextModel(ContractModel):
         ):
             raise ValueError("participant control policy is outside its admitted order")
         require_unique(tuple(state.instance_id for state in self.provider_states))
+        self._retained_claims()
+        for name in ("expected_history_heads", "inputs", "predecessors"):
+            require_unique(getattr(self, name))
+        for head in self.expected_history_heads:
+            require_kind(head, "history")
+        return self
+
+    def _retained_claims(self) -> None:
         require_unique(tuple((state.rule_id, state.rule_revision) for state in self.rule_firings))
         require_unique(tuple(claim.effect_id for claim in self.prior_effect_claims))
         require_unique(tuple(claim.key for claim in self.prior_effect_claims))
@@ -228,8 +237,3 @@ class ParticipantControlContextModel(ContractModel):
                 raise ValueError("prior effect claim has a different causal root")
             if claim.key.firing_epoch not in epochs.get((claim.key.rule_id, claim.key.rule_revision), set()):
                 raise ValueError("prior effect claim is missing its retained firing epoch")
-        for name in ("expected_history_heads", "inputs", "predecessors"):
-            require_unique(getattr(self, name))
-        for head in self.expected_history_heads:
-            require_kind(head, "history")
-        return self

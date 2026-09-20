@@ -96,8 +96,9 @@ def test_security_fact_uses_incumbent_label_and_crossing_binding():
 
 def test_security_fact_cannot_self_certify_owning_flow_relation():
     record, context = security_record_and_context()
+    unresolved = replace(context, flow_contexts={})
     with pytest.raises(ValueError):
-        validate_participant_control_context(record, replace(context, flow_contexts={}))
+        validate_participant_control_context(record, unresolved)
 
 
 def test_incumbent_profile_file_read_is_bounded_before_decode(monkeypatch, tmp_path):
