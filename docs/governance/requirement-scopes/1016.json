@@ -65,6 +65,7 @@
     "implementations/python/tests/test_participant_concurrent_batch_reservations.py": ["SEM-234"],
     "implementations/python/tests/test_specification_coverage.py": ["SEM-234"],
     "tools/check_specification_coverage.py": ["SEM-234"],
+    "tools/check_json_artifacts.py": ["SEM-234"],
     "tools/formal_semantic_validation/_baseline.py": ["SEM-234"],
     "tools/formal_semantic_validation/_loading.py": ["SEM-234"],
     "tools/formal_semantic_validation/_releases.py": ["SEM-234"],

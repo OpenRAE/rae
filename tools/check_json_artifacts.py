@@ -58,16 +58,31 @@ _VERSIONED_SCHEMA_ROUTES: tuple[VersionedSchemaRoute, ...] = (
     VersionedSchemaRoute("contracts/profiles/semantic/", "profiles"),
     VersionedSchemaRoute("contracts/profiles/backend/", "profiles"),
     VersionedSchemaRoute("contracts/profiles/random-stream/", "profiles"),
-    VersionedSchemaRoute("contracts/profiles/participant-information-reconstruction/", "profiles"),
-    VersionedSchemaRoute("contracts/profiles/behavioral-relation/", "profiles", recursive=True),
-    VersionedSchemaRoute("contracts/profiles/participant-boundary-flow-policy/", "profiles"),
+    VersionedSchemaRoute(
+        "contracts/profiles/participant-information-reconstruction/", "profiles"
+    ),
+    VersionedSchemaRoute(
+        "contracts/profiles/behavioral-relation/", "profiles", recursive=True
+    ),
+    VersionedSchemaRoute(
+        "contracts/profiles/participant-boundary-flow-policy/", "profiles"
+    ),
     VersionedSchemaRoute("contracts/profiles/scientific-completeness/", "profiles"),
     VersionedSchemaRoute("contracts/profiles/validation/", "profiles"),
-    VersionedSchemaRoute("contracts/profiles/candidate-synthesis/", "candidate-synthesis"),
+    VersionedSchemaRoute(
+        "contracts/profiles/candidate-synthesis/", "candidate-synthesis"
+    ),
+    VersionedSchemaRoute(
+        "contracts/profiles/participant-control/", "participant-runtime"
+    ),
     VersionedSchemaRoute("contracts/concept-authority/history/", "concept-authority"),
     VersionedSchemaRoute("contracts/provenance/", "provenance"),
-    VersionedSchemaRoute("contracts/realization-envelopes/", "realization-envelope", recursive=True),
-    VersionedSchemaRoute("contracts/fixtures/random-stream-vectors/", "profiles", recursive=True),
+    VersionedSchemaRoute(
+        "contracts/realization-envelopes/", "realization-envelope", recursive=True
+    ),
+    VersionedSchemaRoute(
+        "contracts/fixtures/random-stream-vectors/", "profiles", recursive=True
+    ),
 )
 
 JSON_SUFFIX = ".json"
@@ -91,14 +106,18 @@ class ValidationBatch:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate published JSON Schemas and schema-governed JSON artifacts.")
+    parser = argparse.ArgumentParser(
+        description="Validate published JSON Schemas and schema-governed JSON artifacts."
+    )
     parser.add_argument(
         "--staged",
         action="store_true",
         help="Check staged changes instead of working tree changes.",
     )
     parser.add_argument("--base-rev", help="Compare against a specific git revision.")
-    parser.add_argument("paths", nargs="*", help="Explicit repo-relative paths to check.")
+    parser.add_argument(
+        "paths", nargs="*", help="Explicit repo-relative paths to check."
+    )
     return parser.parse_args()
 
 
@@ -148,14 +167,20 @@ def _frozen_historical_records(repo_root: Path) -> frozenset[str]:
     records: object = None
     if is_regular_repo_file(repo_root, _HISTORICAL_IDENTITY_RECORDS_PATH):
         try:
-            payload = json.loads((repo_root / _HISTORICAL_IDENTITY_RECORDS_PATH).read_text(encoding="utf-8"))
+            payload = json.loads(
+                (repo_root / _HISTORICAL_IDENTITY_RECORDS_PATH).read_text(
+                    encoding="utf-8"
+                )
+            )
         except (OSError, ValueError):
             payload = {}
         records = payload.get("records") if isinstance(payload, dict) else None
     if not isinstance(records, list):
         return frozenset()
     return frozenset(
-        record["path"] for record in records if isinstance(record, dict) and isinstance(record.get("path"), str)
+        record["path"]
+        for record in records
+        if isinstance(record, dict) and isinstance(record.get("path"), str)
     )
 
 
@@ -163,10 +188,14 @@ def _versioned_schema(repo_root: Path, path: Path, family: str) -> Path:
     """Resolve the published schema an artifact names through its own ``schema_version``."""
 
     schema_version = _load_json(path)["schema_version"]
-    return repo_root / "contracts" / "schemas" / family / _schema_filename(schema_version)
+    return (
+        repo_root / "contracts" / "schemas" / family / _schema_filename(schema_version)
+    )
 
 
-def _versioned_schema_targets(repo_root: Path, *, paths: list[str] | None = None) -> list[ValidationTarget]:
+def _versioned_schema_targets(
+    repo_root: Path, *, paths: list[str] | None = None
+) -> list[ValidationTarget]:
     """Route every artifact that names its own published contract via ``schema_version``."""
 
     frozen = _frozen_historical_records(repo_root)
@@ -174,7 +203,9 @@ def _versioned_schema_targets(repo_root: Path, *, paths: list[str] | None = None
     for route in _VERSIONED_SCHEMA_ROUTES:
         if paths is None:
             root = repo_root / route.prefix
-            candidates = sorted(root.rglob(JSON_GLOB) if route.recursive else root.glob(JSON_GLOB))
+            candidates = sorted(
+                root.rglob(JSON_GLOB) if route.recursive else root.glob(JSON_GLOB)
+            )
         else:
             candidates = [
                 repo_root / raw_path
@@ -188,7 +219,9 @@ def _versioned_schema_targets(repo_root: Path, *, paths: list[str] | None = None
             targets.append(
                 ValidationTarget(
                     relative,
-                    _repo_rel_from(repo_root, _versioned_schema(repo_root, candidate, route.family)),
+                    _repo_rel_from(
+                        repo_root, _versioned_schema(repo_root, candidate, route.family)
+                    ),
                     "schema",
                 )
             )
@@ -216,7 +249,10 @@ def collect_validation_targets(
     targets.extend(_versioned_schema_targets(repo_root, paths=paths))
     already_routed = {target.path for target in targets}
     for raw_path in paths:
-        if raw_path in already_routed or _routable(repo_root, repo_root / raw_path) is None:
+        if (
+            raw_path in already_routed
+            or _routable(repo_root, repo_root / raw_path) is None
+        ):
             continue
         target = _changed_path_target(repo_root, raw_path)
         if target is not None:
@@ -235,7 +271,10 @@ def _changed_path_target(repo_root: Path, raw_path: str) -> ValidationTarget | N
     elif raw_path.startswith("contracts/concept-authority/"):
         schema_path = f"contracts/schemas/concept-authority/{Path(raw_path).name}"
         target = ValidationTarget(raw_path, schema_path, "schema")
-    elif raw_path.startswith("contracts/fixtures/") and ("/valid/" in raw_path or "/migration/" in raw_path):
+    elif raw_path.startswith("contracts/fixtures/") and any(
+        segment in raw_path
+        for segment in ("/valid/", "/migration/", "/context-invalid/")
+    ):
         schema = _fixture_schema(repo_root, repo_root / raw_path)
         target = ValidationTarget(raw_path, _repo_rel_from(repo_root, schema), "schema")
     return target
@@ -259,7 +298,10 @@ def covered_schema_paths(repo_root: Path = REPO_ROOT) -> set[str]:
 
 
 def should_run_full_validation(paths: list[str]) -> bool:
-    return any(path.startswith(SCHEMA_DRIVER_PATHS) or path == "tools/check_json_artifacts.py" for path in paths)
+    return any(
+        path.startswith(SCHEMA_DRIVER_PATHS) or path == "tools/check_json_artifacts.py"
+        for path in paths
+    )
 
 
 def _collect_full_targets(repo_root: Path) -> list[ValidationTarget]:
@@ -269,12 +311,24 @@ def _collect_full_targets(repo_root: Path) -> list[ValidationTarget]:
         relative = _routable(repo_root, schema)
         if relative is not None:
             targets.append(ValidationTarget(relative, None, "metaschema"))
-    for artifact in sorted((repo_root / "contracts" / "concept-authority").glob(JSON_GLOB)):
+    for artifact in sorted(
+        (repo_root / "contracts" / "concept-authority").glob(JSON_GLOB)
+    ):
         relative = _routable(repo_root, artifact)
         if relative is not None:
-            targets.append(ValidationTarget(relative, f"contracts/schemas/concept-authority/{artifact.name}", "schema"))
+            targets.append(
+                ValidationTarget(
+                    relative,
+                    f"contracts/schemas/concept-authority/{artifact.name}",
+                    "schema",
+                )
+            )
     fixtures_root = repo_root / "contracts" / "fixtures"
-    for pattern in (f"valid/{JSON_GLOB}", f"migration/{JSON_GLOB}"):
+    for pattern in (
+        f"valid/{JSON_GLOB}",
+        f"migration/{JSON_GLOB}",
+        f"context-invalid/{JSON_GLOB}",
+    ):
         for fixture in sorted(fixtures_root.rglob(pattern)):
             relative = _routable(repo_root, fixture)
             if relative is not None:
@@ -288,20 +342,30 @@ def _collect_full_targets(repo_root: Path) -> list[ValidationTarget]:
     return _dedupe_targets(targets)
 
 
-def _authoring_adapter_targets(repo_root: Path, *, paths: list[str] | None = None) -> list[ValidationTarget]:
+def _authoring_adapter_targets(
+    repo_root: Path, *, paths: list[str] | None = None
+) -> list[ValidationTarget]:
     targets = []
     for prefix, contract in _AUTHORING_ADAPTER_ROUTES.items():
         candidates = (
             (repo_root / prefix).glob(JSON_GLOB)
             if paths is None
-            else (repo_root / path for path in paths if path.startswith(prefix) and path.endswith(JSON_SUFFIX))
+            else (
+                repo_root / path
+                for path in paths
+                if path.startswith(prefix) and path.endswith(JSON_SUFFIX)
+            )
         )
         for path in candidates:
             relative = _routable(repo_root, path)
             if relative is None:
                 continue
             targets.append(
-                ValidationTarget(relative, f"contracts/schemas/authoring-adapters/{contract}.json", "schema")
+                ValidationTarget(
+                    relative,
+                    f"contracts/schemas/authoring-adapters/{contract}.json",
+                    "schema",
+                )
             )
     return targets
 
@@ -330,7 +394,9 @@ def _run_check_jsonschema(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def _validation_batches(targets: list[ValidationTarget]) -> list[ValidationBatch]:
-    metaschema_paths = sorted(target.path for target in targets if target.mode == "metaschema")
+    metaschema_paths = sorted(
+        target.path for target in targets if target.mode == "metaschema"
+    )
     schema_groups: dict[str, list[str]] = defaultdict(list)
     for target in targets:
         if target.mode != "schema":
@@ -366,14 +432,18 @@ def validate_targets(targets: list[ValidationTarget]) -> list[str]:
         raise ValueError(f"{JSON_SCHEMA_WORKERS_ENV} must be an integer") from exc
     if worker_count < 1:
         raise ValueError(f"{JSON_SCHEMA_WORKERS_ENV} must be at least one")
-    with ThreadPoolExecutor(max_workers=min(worker_count, len(batches)), thread_name_prefix="json-schema") as executor:
+    with ThreadPoolExecutor(
+        max_workers=min(worker_count, len(batches)), thread_name_prefix="json-schema"
+    ) as executor:
         results = list(executor.map(_validate_batch, batches))
 
     failures: list[str] = []
     for batch, proc in zip(batches, results, strict=True):
         if proc.returncode == 0:
             continue
-        details = proc.stderr.strip() or proc.stdout.strip() or "schema validation failed"
+        details = (
+            proc.stderr.strip() or proc.stdout.strip() or "schema validation failed"
+        )
         failures.append(f"{', '.join(batch.paths)}: {details}")
     return failures
 

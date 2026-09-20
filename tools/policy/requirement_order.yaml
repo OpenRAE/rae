@@ -637,6 +637,7 @@ ownership:
     - implementations/python/tests/test_formal_semantic_validation.py
     - implementations/python/tests/test_specification_coverage.py
     - tools/check_specification_coverage.py
+    - tools/check_json_artifacts.py
     - tools/formal_semantic_validation/_baseline.py
     - tools/formal_semantic_validation/_loading.py
     - tools/formal_semantic_validation/_releases.py
@@ -749,6 +750,7 @@ ownership:
     - docs/research/specification-coverage/analysis-v38.json
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1016-v38.json
     - docs/research/specification-coverage/execution-snapshot-v38.json
+    - tools/check_json_artifacts.py
     - tools/check_specification_coverage.py
     - tools/formal_semantic_validation/_baseline.py
     - tools/formal_semantic_validation/_loading.py
