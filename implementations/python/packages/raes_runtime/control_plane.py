@@ -49,6 +49,14 @@ from .control_plane_operation_context import (
     runtime_target_scope,
 )
 from .control_plane_plan_authorization import RuntimePlanAuthorizationMixin
+from .control_plane_profiles import (
+    CORE_CAPABILITIES,
+    ControlPlaneProfile,
+    ControlPlaneProfileDeclaration,
+    require_profile_capabilities,
+    select_profile,
+    store_capabilities,
+)
 from .control_plane_recovery import RuntimeRecoveryMixin, reconcile_startup_operations
 from .control_plane_store import (
     AuditEvent,
@@ -113,21 +121,44 @@ class RuntimeControlPlane(
         initial_snapshot, store = config.initial_snapshot, config.store
         crossing_policy_resolver = config.crossing_policy_resolver
         information_state_context_resolver = config.information_state_context_resolver
-        self._initialize_runtime_lifecycle()
         if store is not None and initial_snapshot is not None:
             raise ValueError("initial_snapshot cannot be combined with an explicit store")
+        declaration = select_profile(config.profile) if config.profile is not None else None
+        if declaration is not None and declaration.profile is ControlPlaneProfile.P2:
+            raise ValueError("P2 is selected by the HTTP composition over a P1 core")
+        selected_store = store if store is not None else InMemoryControlPlaneStore(initial_snapshot)
+        provider_capabilities = store_capabilities(selected_store) if declaration is not None else frozenset()
+        scope_binder = getattr(selected_store, "bind_scope", None)
+        if declaration is not None:
+            require_profile_capabilities(declaration, CORE_CAPABILITIES | provider_capabilities)
+            if declaration.profile is ControlPlaneProfile.P0 and not callable(scope_binder):
+                raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+            if declaration.profile is ControlPlaneProfile.P1 and not isinstance(
+                selected_store, RuntimeAdmittedControlPlaneStore
+            ):
+                raise TypeError("control-plane profile P1 missing capabilities: store.owner-lease")
+        self._profile_declaration = declaration
+        self._initialize_runtime_lifecycle()
         require_crossing_policy_configuration(target, crossing_policy_resolver)
         require_final_sink_flow_control_configuration(crossing_policy_resolver, config.enforce_final_sink_flow_control)
         self._target = target
         self._target_scope, self._run_scope = target_scope, config.run_scope
         self._materialization_archive = config.materialization_archive
         self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
-        self._store = store or InMemoryControlPlaneStore(initial_snapshot)
+        self._store = selected_store
         try:
             self._mutation_authority = RuntimeMutationAuthority()
             self._operation_lock = RLock()
             self._snapshot_projection_depth = 0
             self._store_commits = adapt_control_plane_store(self._store)
+            if declaration is not None and declaration.profile is ControlPlaneProfile.P0:
+                owner = scope_binder(target_scope=target_scope, run_scope=config.run_scope)
+                if not callable(getattr(owner, "assert_owner", None)) or not callable(getattr(owner, "close", None)):
+                    close = getattr(owner, "close", None)
+                    if callable(close):
+                        close()
+                    raise TypeError("control-plane profile P0 missing capabilities: store.scope-bound")
+                self._runtime_lease = owner
             if isinstance(self._store, RuntimeAdmittedControlPlaneStore):
                 self._runtime_lease = self._store.admit_runtime(
                     target_scope=self._target_scope,
@@ -162,6 +193,12 @@ class RuntimeControlPlane(
     @property
     def _snapshot(self) -> RuntimeSnapshot:
         return self._snapshot_state.snapshot
+
+    @property
+    def profile_declaration(self) -> ControlPlaneProfileDeclaration | None:
+        """The selected core profile, or no claim for a legacy composition."""
+
+        return self._profile_declaration
 
     @_snapshot.setter
     def _snapshot(self, snapshot: RuntimeSnapshot) -> None:

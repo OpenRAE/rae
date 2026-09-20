@@ -194,6 +194,41 @@ interrupted-to-failed conversion. The full disposition table, including
 every store module and test surface, lives in the design set's requirement
 disposition.
 
+### 9. Profile declarations separate guarantees from provider facts
+
+The runtime package owns one immutable, typed declaration for the P0--P3
+profile vocabulary, guarantees, nonclaims, scope, actor boundary, and required
+composition capabilities. It is in-process composition metadata, not a new
+portable DTO, persisted record, backend manifest block, or HTTP discovery
+document. P3 remains queryable only as an unavailable future coordination seam:
+it has no guarantees and cannot be selected.
+
+Stores and adapters declare the facts they provide; they do not declare that
+they *are* a profile. The composition boundary validates those facts against
+the selected profile before lease acquisition, store inspection, route
+registration, or backend work. Missing capabilities fail construction with
+stable, value-free identifiers. A richer provider does not silently strengthen
+the selected profile, and a deficient provider never causes fallback to a
+weaker profile. Existing store-shape checks, target-manifest validation, lease
+admission, and HTTP security validation remain the authorities for their own
+layers rather than being copied into the profile catalog.
+
+P0 and P1 are core library compositions. P2 is the reference HTTP composition
+over a successfully admitted P1 core; only the HTTP composition may claim P2's
+authenticated actor boundary. Backend recovery observation remains the
+optional capability already declared by the target manifest and paired with a
+validated recovery observer. P1 and P2 require startup reconciliation, but
+absence of backend observation support resolves unknown effects to
+`INDETERMINATE`; it is not a reason to downgrade or reject an otherwise valid
+composition.
+
+Profile interrogation is an embedder API. It does not add an unauthenticated
+profile endpoint, a health signal, capability negotiation, or deployment
+configuration. TLS, proxy header stripping, secret loading, worker count,
+filesystem permissions, process supervision, and backup policy remain
+deployment responsibilities. The detailed CP-10 boundary is recorded in the
+[issue #1189 preflight](../issue-1189-control-plane-profile-declaration-preflight.md).
+
 ## Alternatives Considered
 
 ### One mandatory control-plane service
@@ -245,3 +280,4 @@ demonstrated its lost-update and partial-state failures.
 |---|---|---|
 | 2026-09-03 | #1151 | Reclassified the stateful control-plane design as FM3 and added the abstract lifecycle, actor-bound audit, authorization, idempotency, and target/run isolation invariants required before implementation. |
 | 2026-09-19 | #1186 | Permitted the operator CLI to call only the closed public P1 offline-maintenance interface while keeping runtime validation and publication ownership intact. |
+| 2026-09-20 | #1189 | Made profile declarations runtime-owned composition metadata, separated provider facts from guarantees, and fixed P2 and recovery-observation boundaries. |

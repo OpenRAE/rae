@@ -12,6 +12,7 @@ from pathlib import Path
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import RuntimeSnapshot
 
+from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
 from .control_plane_store import (
     AuditEvent,
     ControlPlaneOperationRecord,
@@ -79,6 +80,20 @@ class LocalControlPlaneStore(
     and audit lookup indexed, and make participant transition commits atomic.
     Legacy JSON files are imported once and retained with a timestamped backup.
     """
+
+    control_plane_capabilities = ControlPlaneStoreCapabilities(
+        frozenset(
+            {
+                ControlPlaneCapability.STORE_DURABLE,
+                ControlPlaneCapability.STORE_ATOMIC_CLAIMS,
+                ControlPlaneCapability.STORE_ATOMIC_TERMINAL,
+                ControlPlaneCapability.STORE_REVISION_CAS,
+                ControlPlaneCapability.STORE_AUDIT,
+                ControlPlaneCapability.STORE_SCOPE_BOUND,
+                ControlPlaneCapability.STORE_OWNER_LEASE,
+            }
+        )
+    )
 
     def __init__(self, base_dir: Path) -> None:
         self._base_dir = base_dir

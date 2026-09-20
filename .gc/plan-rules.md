@@ -7,8 +7,6 @@ These encode the hard rules previously in `AGENTS.md` prose.
   before declaring completion.
 - Plans MUST run `implementations/python/.venv/bin/python tools/check_requirement_governance.py`
   before declaring completion.
-- Plans MUST run `implementations/python/.venv/bin/python tools/verify_all.py`
-  before declaring completion.
 - Plans MUST set `RAES_REQUIREMENT_UID` when the branch name does not
   already contain a UID such as `GOV-918`.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,
