@@ -195,9 +195,11 @@ class RuntimeControlPlane(
         return self._snapshot_state.snapshot
 
     @property
+    @runtime_owned
     def profile_declaration(self) -> ControlPlaneProfileDeclaration | None:
         """The selected core profile, or no claim for a legacy composition."""
 
+        self._assert_runtime_owner()
         return self._profile_declaration
 
     @_snapshot.setter

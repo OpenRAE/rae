@@ -83,6 +83,8 @@ Requirement inventory phase. Status audit deferred until the full canonical grap
 - IMPLEMENTS → DOCUMENTATION `docs/explain/sdl/runtime-architecture.md` (Profile guarantees, nonclaims, selection, and deployment responsibilities)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1189-control-plane-profile-declaration-preflight.md` (CP-10 composition and capability boundary)
 - TESTS → TEST `implementations/python/tests/test_issue_1189_control_plane_profile_declarations.py` (Profile matrix, fail-closed construction, cross-surface identity, and documentation drift tests)
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v35.json` (Current retained formal and participant replay bound to CP-10 source without new profile claims)
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1189-v35.json` (Current retained language coverage replay bound to CP-10 source without profile-composition claims)
 - DOCUMENTS → GITHUB_ISSUE `1185` (CP-11: API-404 requirement update)
 - IMPLEMENTS → GITHUB_ISSUE `1186` (CP-12: Recovery runbook and operator tooling)
 - IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1186-control-plane-recovery-operations-preflight.md` (CP-12 recovery, maintenance, health, and disclosure boundaries)
