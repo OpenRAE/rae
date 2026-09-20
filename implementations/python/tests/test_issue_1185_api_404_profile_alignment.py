@@ -90,7 +90,7 @@ def test_api_404_scope_and_nonclaims_are_explicit() -> None:
 
 def test_api_404_traceability_names_existing_local_evidence() -> None:
     client = RepositoryRequirementClient(ROOT)
-    assert client.get_requirement("aces-sdl", "API-404")["status"] == "ACTIVE"
+    assert client.get_requirement("raes-sdl", "API-404")["status"] == "ACTIVE"
     links = client.get_traceability("API-404")
     triples = {(link["link_type"], link["artifact_type"], link["artifact_identifier"]) for link in links}
     assert (
