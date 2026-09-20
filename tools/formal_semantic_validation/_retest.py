@@ -37,7 +37,7 @@ from tools.formal_semantic_validation._types import (
 )
 from tools.policy.common import PolicyFailure
 
-_SOURCE_STATE_REVISIONS = frozenset(f"{revision}.0.0" for revision in range(4, 38))
+_SOURCE_STATE_REVISIONS = frozenset(f"{revision}.0.0" for revision in range(4, 41))
 
 
 @dataclasses.dataclass(frozen=True)

@@ -2,9 +2,9 @@
   "contract_id": "operation-receipt-v1",
   "schema_path": "contracts/schemas/control-plane/operation-receipt-v1.json",
   "stability": "draft",
-  "content_hash": "6c14b374ad2fe3e39acf9cc3d277314aab7d17858757c49ab67ebccf1d9820ce",
+  "content_hash": "6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed",
   "last_change": {
-    "summary": "Add the linked indeterminate-resolution operation kind for separately authorized recovery disposition (#1179).",
-    "content_hash": "6c14b374ad2fe3e39acf9cc3d277314aab7d17858757c49ab67ebccf1d9820ce"
+    "summary": "Add the runtime-owned mixed-composition phase operation kind (#1016).",
+    "content_hash": "6449c3dd60d34b2d40f8bfee5c6bb3360f2ceee3c04c0d34ec520dbc036cd7ed"
   }
 }

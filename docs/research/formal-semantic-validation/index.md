@@ -244,12 +244,6 @@ stability remain `partial`; counterfactual necessity remains `untested`.
   [`analysis-v35.json`](analysis-v35.json) to issue #1189 runtime profile
   declarations. Fresh replay retains prior outcomes and claim limits; profile
   composition is verified by its dedicated runtime tests, not this corpus.
-- [`bundles/retest-v36.json`](bundles/retest-v36.json) is current release 37.0.0.
-  It binds [`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
-  [`analysis-v36.json`](analysis-v36.json) to issue #610's reconciliation
-  demonstration harness. Fresh replay retains prior outcomes and claim limits;
-  planner reconciliation is verified by its dedicated processor and CLI tests,
-  not this corpus.
 - [`satisfiability-analysis-v1.json`](satisfiability-analysis-v1.json) is the
   preserved issue-826 historical supplement. It remains selected atomically in
   release 2.0 and is not independently combined with newer evidence.
@@ -294,7 +288,36 @@ Failed observations are evidence. A later product correction or RAES revision
 creates a new execution snapshot and analysis; it does not overwrite this
 record.
 
-Current validation requires explicit release 37.0.0, rejects unsupported future
+Release 37.0.0 is retained in
+[`bundles/retest-v36.json`](bundles/retest-v36.json), binding
+[`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
+[`analysis-v36.json`](analysis-v36.json) to issue #1072's contract source.
+The bounded replay does not execute control providers or establish runtime
+effect realization; the retained claim limits remain unchanged.
+
+Release 38.0.0 is retained in
+[`bundles/retest-v37.json`](bundles/retest-v37.json), binding
+[`execution-snapshot-v37.json`](execution-snapshot-v37.json) and
+[`analysis-v37.json`](analysis-v37.json) to the participant-control validator
+refactor. The corpus and claim limits remain unchanged.
+
+Release 39.0.0 is retained in
+[`bundles/retest-v38.json`](bundles/retest-v38.json), binding
+[`execution-snapshot-v38.json`](execution-snapshot-v38.json) and
+[`analysis-v38.json`](analysis-v38.json) to issue #1016 mixed-runtime
+coordination. The bounded replay does not establish backend-native mixed
+realization, multi-controller coordination, information-flow control, or
+equivalence; the retained claim limits remain unchanged.
+
+Current release 40.0.0 is retained in
+[`bundles/retest-v39.json`](bundles/retest-v39.json), binding
+[`execution-snapshot-v39.json`](execution-snapshot-v39.json) and
+[`analysis-v39.json`](analysis-v39.json) to issue #610's reconciliation
+demonstration harness. Fresh replay retains prior outcomes and claim limits;
+planner reconciliation is verified by its dedicated processor and CLI tests,
+not this corpus.
+
+Current validation requires explicit release 40.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current

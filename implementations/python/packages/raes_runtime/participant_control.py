@@ -250,7 +250,7 @@ class ParticipantControlMixin(
         crossing_evidence: ParticipantCrossingEvidence | None = None,
         **admission_fields: object,
     ) -> OperationReceipt:
-        if self._target.participant_runtime is None:
+        if self._target.participant_runtime is None and self._mixed_runtime is None:
             return self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
@@ -304,7 +304,7 @@ class ParticipantControlMixin(
 
         options = ParticipantSubmissionOptions.from_fields(submission_options)
         receipt: OperationReceipt
-        if self._target.participant_runtime is None:
+        if self._target.participant_runtime is None and self._mixed_runtime is None:
             receipt = self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,

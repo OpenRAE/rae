@@ -65,7 +65,11 @@ from tools.check_adr_immutability import (
 )
 from tools.check_generated_schemas import _extra_published_schema_paths
 from tools.check_json_artifacts import ValidationTarget, collect_validation_targets, should_run_full_validation
-from tools.check_schema_publication import schema_content_hash, validate_schema_publication_manifest
+from tools.check_schema_publication import (
+    load_schema_publication_catalog,
+    schema_content_hash,
+    validate_schema_publication_manifest,
+)
 from tools.gitleaks_tool import gitleaks_binary_path
 from tools.parallel_verification import VerificationLane, run_verification_lanes
 from tools.policy.common import PolicyFailure
@@ -2646,6 +2650,78 @@ def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Pa
     write_text(repo_root / "contracts" / "schema-publication" / "tombstones" / "README.md", "# Empty\n")
 
     assert validate_schema_publication_manifest(repo_root) == []
+
+
+def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_forms(tmp_path: Path) -> None:
+    """The publication gate keeps its own scope when a record carries coverage metadata.
+
+    ``coverage`` is repository governance owned by ``check_schema_coverage.py``
+    (issue #1330). The publication manifest must neither reject it nor be taken
+    to validate it, in the legacy inline array or in the sharded v2 records.
+    """
+
+    import json
+
+    coverage = {
+        "rationale": "The contract has no standalone corpus document to route.",
+        "sources": [
+            {
+                "kind": "test",
+                "path": "implementations/python/tests/test_repo_policy_tools.py",
+                "supports": "Publication-record shape at the contract-publication phase.",
+            }
+        ],
+    }
+
+    legacy_root = tmp_path / "legacy"
+    legacy_schema = legacy_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
+    write_text(legacy_schema, _published_schema({"name": {"type": "string"}}))
+    write_schema_publication_manifest(
+        legacy_root,
+        [
+            {
+                "contract_id": "draft-contract-v1",
+                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
+                "coverage": coverage,
+            },
+        ],
+    )
+
+    assert validate_schema_publication_manifest(legacy_root) == []
+
+    sharded_root = tmp_path / "sharded"
+    sharded_schema = sharded_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
+    write_text(sharded_schema, _published_schema({"name": {"type": "string"}}))
+    digest = schema_content_hash(sharded_schema)
+    write_text(
+        sharded_root / "contracts" / "schema-publication-manifest.json",
+        json.dumps(
+            {
+                "schema_version": "schema-publication-manifest/v2",
+                "hash_algorithm": "sha256",
+                "entries_directory": "contracts/schema-publication/entries",
+                "tombstones_directory": "contracts/schema-publication/tombstones",
+            }
+        )
+        + "\n",
+    )
+    write_text(
+        sharded_root / "contracts" / "schema-publication" / "entries" / "draft-contract-v1.json",
+        json.dumps(
+            {
+                "contract_id": "draft-contract-v1",
+                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
+                "stability": "draft",
+                "content_hash": digest,
+                "coverage": coverage,
+            }
+        )
+        + "\n",
+    )
+    write_text(sharded_root / "contracts" / "schema-publication" / "tombstones" / "README.md", "# Empty\n")
+
+    assert validate_schema_publication_manifest(sharded_root) == []
+    assert load_schema_publication_catalog(sharded_root)["schemas"][0]["coverage"] == coverage
 
 
 def test_schema_publication_manifest_rejects_last_change_without_summary(tmp_path: Path) -> None:

@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-610-analysis-v36",
+  "analysis_id": "issue-1072-analysis-v36",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,7 +123,7 @@
   ],
   "corpus_revision": "3.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-610-execution-v36",
+  "execution_id": "issue-1072-execution-v36",
   "generated_at": "2026-09-20",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
@@ -145,8 +145,8 @@
     "Offline control-plane maintenance, readiness, and bounded audit behavior are verified by issue #1186 runtime tests, not promoted to a formal claim by this retained corpus.",
     "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus.",
     "Issue #1189 profile declarations and capability admission are covered by dedicated runtime tests; the retained formal corpus does not execute control-plane profile composition.",
-    "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus."
+    "Issue #1072 participant-control contracts are covered by dedicated API-424 regression tests; this retained formal corpus does not execute providers or establish runtime effect realization."
   ],
-  "plain_language_outcome": "Replay after authoring-adapter conformance and issue #1299 partial listener admission on the integrated source state retains registered outcomes, compiled digests, and claim limits. This corpus does not establish listener endpoint completeness, backend admission, realized participant relationships, adapter transport behavior, or native backend scope enforcement. The replay also binds API-404 operational recovery code without claiming that this corpus executes crash recovery or live provider-effect classification. The replay binds CP-5 runtime ownership code without claiming that this corpus executes process contention, SQLite lifecycle ordering, or crash recovery. The replay binds issue #1015 mixed and staged trial-admission code without claiming that this corpus executes a mixed-backend realization. This replay binds issue #1186 runtime maintenance, health, and audit source without claiming that the formal corpus executes those operator paths. This replay binds issue #1187 source changes without treating the retained formal corpus as crash/profile conformance evidence. This replay binds issue #1189 source changes without treating the retained formal corpus as evidence of control-plane profile guarantees.",
+  "plain_language_outcome": "Replay after authoring-adapter conformance and issue #1299 partial listener admission on the integrated source state retains registered outcomes, compiled digests, and claim limits. This corpus does not establish listener endpoint completeness, backend admission, realized participant relationships, adapter transport behavior, or native backend scope enforcement. The replay also binds API-404 operational recovery code without claiming that this corpus executes crash recovery or live provider-effect classification. The replay binds CP-5 runtime ownership code without claiming that this corpus executes process contention, SQLite lifecycle ordering, or crash recovery. The replay binds issue #1015 mixed and staged trial-admission code without claiming that this corpus executes a mixed-backend realization. This replay binds issue #1186 runtime maintenance, health, and audit source without claiming that the formal corpus executes those operator paths. This replay binds issue #1187 source changes without treating the retained formal corpus as crash/profile conformance evidence. This replay binds issue #1189 source changes without treating the retained formal corpus as evidence of control-plane profile guarantees. This replay binds issue #1072 contract source without adding provider-execution or runtime effect-realization claims.",
   "protocol_revision": "2.0.0"
 }

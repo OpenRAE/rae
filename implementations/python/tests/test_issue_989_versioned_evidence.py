@@ -230,7 +230,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "37.0.0"
+    assert release.manifest["revision"] == "40.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -283,7 +283,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "36.0.0"
+    assert manifest["revision"] == "39.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
     artifact["sha256"] = old_digest
@@ -489,6 +489,9 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "35.0.0",
             "36.0.0",
             "37.0.0",
+            "38.0.0",
+            "39.0.0",
+            "40.0.0",
         ]
         if family == "formal"
         else [
@@ -529,6 +532,9 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "34.0.0",
             "35.0.0",
             "36.0.0",
+            "37.0.0",
+            "38.0.0",
+            "39.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)

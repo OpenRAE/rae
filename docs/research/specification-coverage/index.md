@@ -222,11 +222,12 @@ this run does not repair them.
   The retained language corpus does not execute profile composition;
   classifications and claim limits remain unchanged.
 
-- [`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
-  [`analysis-v36.json`](analysis-v36.json) are current release 36.0.0. Fresh
-  replay binds issue #610's reconciliation demonstration harness to the exact
-  source state. The retained language corpus does not execute planner
-  reconciliation; classifications and claim limits remain unchanged.
+Release 36.0.0 is retained in
+[`execution-snapshot-v36.json`](execution-snapshot-v36.json) and
+[`analysis-v36.json`](analysis-v36.json). It replays the bounded language
+corpus against issue #1072's participant-control contract source. It does not
+execute control providers or establish runtime effect realization; the
+classifications and claim limits remain unchanged.
 
 Earlier issue-1242 captures remain byte-exact in feature commits
 `77187a939a9872e5bd2fd93816f1fcd5ef6c5c08` (release 20) and
@@ -256,7 +257,27 @@ recovered. Recovery revisions are not substituted for the capture's declared
 revision; a matching archive proves the frozen byte pin, not the historical
 working-tree provenance. No network or Git history is required for validation.
 
-Current validation requires release 36.0.0 and rejects duplicate or unsupported
+Release 37.0.0 is retained in
+[`execution-snapshot-v37.json`](execution-snapshot-v37.json) and
+[`analysis-v37.json`](analysis-v37.json). It repeats the bounded replay after
+the participant-control validator decomposition and type annotations, with
+unchanged classifications and claim limits.
+
+Release 38.0.0 is retained in
+[`execution-snapshot-v38.json`](execution-snapshot-v38.json) and
+[`analysis-v38.json`](analysis-v38.json). It binds issue #1016 mixed-runtime
+coordination to the current source state without treating the retained language
+corpus as mixed-provider execution, backend-native realization,
+interoperability, information-flow, or equivalence evidence.
+
+Current release 39.0.0 is retained in
+[`execution-snapshot-v39.json`](execution-snapshot-v39.json) and
+[`analysis-v39.json`](analysis-v39.json). It binds issue #610's reconciliation
+demonstration harness to the current source state. The retained language corpus
+does not execute planner reconciliation; classifications and claim limits
+remain unchanged.
+
+Current validation requires release 39.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;

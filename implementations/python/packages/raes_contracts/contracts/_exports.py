@@ -2,8 +2,10 @@
 
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 from ._mixed_composition_exports import MIXED_COMPOSITION_EXPORTS
+from ._participant_control_exports import PARTICIPANT_CONTROL_EXPORTS
 
 PUBLIC_EXPORTS = [
+    *PARTICIPANT_CONTROL_EXPORTS,
     *MIXED_COMPOSITION_EXPORTS,
     "MaterializationArchiveRecord",
     "MaterializationAttestationReferenceModel",

@@ -35,6 +35,7 @@ from .execution_state import (
     WorkflowHistoryEventModel,
 )
 from .materialization_attestation import MaterializationArchiveRecord, MaterializationPlanModel
+from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .operating_systems import ObservedOperatingSystemIdentityModel
 from .participant_control import ParticipantControlOccurrenceModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
@@ -398,6 +399,8 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     participant_behavior_history: dict[str, list[ParticipantBehaviorHistoryEventModel]] = Field(default_factory=dict)
     participant_control_history: dict[str, list[ParticipantControlOccurrenceModel]] = Field(default_factory=dict)
     participant_crossing_history: dict[str, list[ParticipantCrossingOccurrenceModel]] = Field(default_factory=dict)
+    mixed_composition_states: dict[str, MixedCompositionRuntimeStateModel] = Field(default_factory=dict)
+    mixed_composition_history: dict[str, list[MixedCompositionRuntimeEventModel]] = Field(default_factory=dict)
     information_state_history: dict[str, list[ParticipantInformationStateRecordModel]] = Field(default_factory=dict)
     participant_autonomous_execution_states: dict[str, ParticipantAutonomousExecutionStateModel] = Field(
         default_factory=dict
@@ -419,6 +422,18 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_entry_addresses(self) -> RuntimeSnapshotEnvelopeModel:
+        from ..mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+
+        if list(
+            iter_mixed_runtime_snapshot_violations(
+                {key: value.model_dump(mode="json") for key, value in self.mixed_composition_states.items()},
+                {
+                    key: [event.model_dump(mode="json") for event in events]
+                    for key, events in self.mixed_composition_history.items()
+                },
+            )
+        ):
+            raise ValueError("Mixed composition state and history are inconsistent")
         require_materialization_records(tuple(self.materialization_attestations))
         _require_embedded_map_keys(
             self.entries,

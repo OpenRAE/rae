@@ -1,9 +1,9 @@
 {
-  "content_hash": "206e3e4927722e07d5588d19430b75b437098cc8467fe37f2611ac53e1bab555",
+  "content_hash": "096e0d4c4dca8d2917cc1ab60c495e29d9d629c7f680f89085db780b313aa66e",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "206e3e4927722e07d5588d19430b75b437098cc8467fe37f2611ac53e1bab555",
-    "summary": "Preserve typed protected materialization archive records and distinct provenance references through run and runtime snapshots; original input and evidence semantics remain unchanged (#1241)."
+    "content_hash": "096e0d4c4dca8d2917cc1ab60c495e29d9d629c7f680f89085db780b313aa66e",
+    "summary": "Persist typed append-only mixed-composition phase, decision, delivery, observation, weakening, and failure facts (#1016)."
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

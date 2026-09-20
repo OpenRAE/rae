@@ -1,9 +1,9 @@
 {
-  "content_hash": "8aaa6c66e5f9268b75c69e4c6281ed1f76e89d98c0179626d8104e2c59c192ba",
+  "content_hash": "163db0d1f1c1cf7e8e3d41b393a3c2a68d887a00964dacffc0c2dfc90306d36b",
   "contract_id": "backend-profile-v1",
   "last_change": {
-    "content_hash": "8aaa6c66e5f9268b75c69e4c6281ed1f76e89d98c0179626d8104e2c59c192ba",
-    "summary": "Permit explicit backend-augmentation-scope-v1 negotiation; unsupported implementations do not advertise it (#1242)."
+    "summary": "Publish closed modular participant-control contracts and governed declaration support for issue #1072.",
+    "content_hash": "163db0d1f1c1cf7e8e3d41b393a3c2a68d887a00964dacffc0c2dfc90306d36b"
   },
   "schema_path": "contracts/schemas/profiles/backend-profile-v1.json",
   "stability": "draft"

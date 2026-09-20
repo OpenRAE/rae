@@ -33,6 +33,8 @@ SNAPSHOT_CARRIER_OWNERS = {
     "participant_behavior_history": "participant",
     "participant_control_history": "participant",
     "participant_crossing_history": "participant",
+    "mixed_composition_states": "runtime",
+    "mixed_composition_history": "runtime",
     "information_state_history": "participant",
     "participant_autonomous_execution_states": "participant",
     "participant_execution_services": "participant",

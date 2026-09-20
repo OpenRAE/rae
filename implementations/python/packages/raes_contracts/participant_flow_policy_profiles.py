@@ -50,7 +50,9 @@ def load_participant_boundary_flow_policy_profile_from_path(
 
     _validate_profile_id(profile_id)
     try:
-        payload = parse_bounded_json_object(path.read_bytes(), max_bytes=_MAX_PROFILE_BYTES)
+        with path.open("rb") as stream:
+            source = stream.read(_MAX_PROFILE_BYTES + 1)
+        payload = parse_bounded_json_object(source, max_bytes=_MAX_PROFILE_BYTES)
         profile = ParticipantBoundaryFlowPolicyProfileModel.model_validate(payload)
     except (OSError, ValueError):
         raise ValueError("participant boundary flow profile JSON or contract is invalid") from None
