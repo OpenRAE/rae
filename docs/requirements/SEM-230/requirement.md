@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-07-15T05:45:06.805688Z
-updated_at: 2026-07-18T14:33:41.000394Z
+updated_at: 2026-09-20T00:00:00Z
 ---
 
 # SEM-230 — Participant Information-Flow And Control Semantics
@@ -52,3 +52,7 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_participant_retrieval.py` (Audience-bound participant retrieval API adapter)
 - TESTS → TEST `implementations/python/tests/test_public_docs_policy.py` (Executable participant-control public guide claim example)
 - DOCUMENTS → DOCUMENTATION `docs/public/participant-control.md` (Participant input and output control guide)
+
+- IMPLEMENTS → GITHUB_ISSUE `1070` (Modular participant-control semantic publication)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/modular-participant-control.md` (Reuses participant projection and exact-cut relation boundaries)
+- TESTS → TEST `implementations/python/tests/test_sem_235_modular_control.py` (Incumbent projection for supervisor-only injects)

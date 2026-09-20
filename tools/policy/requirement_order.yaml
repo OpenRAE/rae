@@ -591,6 +591,24 @@ ownership:
     - specs/sdl/document-model.md
     - specs/sdl/materialization-attestation.md
     - specs/sdl/observability-and-evidence.md
+  modular-control-semantics:
+    # SEM-235 owns semantic publication and finite witnesses (#1070).
+    # Contracts, providers and runtime implementations have separate phases.
+    - specs/formal/participant-semantics/modular-participant-control.md
+    - specs/formal/participant-semantics/README.md
+    - specs/formal/assurance-fulfillment.yaml
+    - specs/concept-authority/participant-control.md
+    - docs/decisions/issue-1070-sem-235-architecture-preflight.md
+    - docs/explain/reference/shared-semantic-integrity.md
+    - docs/explain/sdl/lineage.md
+    - docs/research/modular-participant-control/semantic-verification.md
+    - docs/requirements/SEM-235/requirement.md
+    - docs/requirements/SEM-230/requirement.md
+    - docs/requirements/SEM-233/requirement.md
+    - contracts/provenance/sdl-lineage-ledger-v2.json
+    - implementations/python/tests/sem235_modular_control_model.py
+    - implementations/python/tests/test_sem_235_modular_control.py
+    - implementations/python/tests/test_sem_235_governance.py
   mixed-participant-composition:
     # SEM-234 publishes semantics and composes incumbent SCE-002 authority into
     # portable contracts, not mixed-runtime implementation (#1013/#1014); the

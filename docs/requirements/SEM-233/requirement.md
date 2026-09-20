@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 4
 created_at: 2026-07-30T18:36:51.139346Z
-updated_at: 2026-09-06T00:00:00Z
+updated_at: 2026-09-20T00:00:00Z
 ---
 
 # SEM-233 — Adversarial Participant Boundary Information-Flow Control
@@ -45,3 +45,7 @@ SEM-230 and the current action, control, crossing, and runtime authorities defin
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1007` (Issue #1007 adversarial evaluation)
 - DOCUMENTS → GITHUB_ISSUE `https://github.com/OpenRAE/rae/issues/1008` (Issue #1008 evidenced documentation)
 - DOCUMENTS → GITHUB_ISSUE `812` (Issue #812 adversarial participant control design)
+
+- IMPLEMENTS → GITHUB_ISSUE `1070` (Modular participant-control semantic publication)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/modular-participant-control.md` (Preserves incumbent security domain in modular composition)
+- TESTS → TEST `implementations/python/tests/test_sem_235_modular_control.py` (Known adversarial exposure, retained influence and independent inject)
