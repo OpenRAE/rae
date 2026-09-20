@@ -70,6 +70,9 @@ _VERSIONED_SCHEMA_ROUTES: tuple[VersionedSchemaRoute, ...] = (
     VersionedSchemaRoute("contracts/fixtures/random-stream-vectors/", "profiles", recursive=True),
 )
 
+JSON_SUFFIX = ".json"
+JSON_GLOB = f"*{JSON_SUFFIX}"
+
 _HISTORICAL_IDENTITY_RECORDS_PATH = "tools/policy/historical_identity_records.json"
 
 
@@ -138,17 +141,17 @@ def _frozen_historical_records(repo_root: Path) -> frozenset[str]:
     gate reads the same join.
     """
 
-    if not is_regular_repo_file(repo_root, _HISTORICAL_IDENTITY_RECORDS_PATH):
-        # This manifest decides what routing skips, so a symlink here could
-        # redirect the exclusion set at a file outside the checkout and suppress
-        # validation. Absent or irregular means "exclude nothing", never
-        # "exclude whatever the link resolves to".
-        return frozenset()
-    try:
-        payload = json.loads((repo_root / _HISTORICAL_IDENTITY_RECORDS_PATH).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return frozenset()
-    records = payload.get("records")
+    # This manifest decides what routing skips, so a symlink here could redirect
+    # the exclusion set at a file outside the checkout and suppress validation.
+    # Absent, irregular, or unreadable means "exclude nothing", never "exclude
+    # whatever the link resolves to".
+    records: object = None
+    if is_regular_repo_file(repo_root, _HISTORICAL_IDENTITY_RECORDS_PATH):
+        try:
+            payload = json.loads((repo_root / _HISTORICAL_IDENTITY_RECORDS_PATH).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            payload = {}
+        records = payload.get("records") if isinstance(payload, dict) else None
     if not isinstance(records, list):
         return frozenset()
     return frozenset(
@@ -171,12 +174,12 @@ def _versioned_schema_targets(repo_root: Path, *, paths: list[str] | None = None
     for route in _VERSIONED_SCHEMA_ROUTES:
         if paths is None:
             root = repo_root / route.prefix
-            candidates = sorted(root.rglob("*.json") if route.recursive else root.glob("*.json"))
+            candidates = sorted(root.rglob(JSON_GLOB) if route.recursive else root.glob(JSON_GLOB))
         else:
             candidates = [
                 repo_root / raw_path
                 for raw_path in paths
-                if raw_path.startswith(route.prefix) and raw_path.endswith(".json")
+                if raw_path.startswith(route.prefix) and raw_path.endswith(JSON_SUFFIX)
             ]
         for candidate in candidates:
             relative = _routable(repo_root, candidate)
@@ -213,34 +216,29 @@ def collect_validation_targets(
     targets.extend(_versioned_schema_targets(repo_root, paths=paths))
     already_routed = {target.path for target in targets}
     for raw_path in paths:
-        path = repo_root / raw_path
-        if raw_path in already_routed or _routable(repo_root, path) is None:
+        if raw_path in already_routed or _routable(repo_root, repo_root / raw_path) is None:
             continue
-        if raw_path.startswith("contracts/schemas/") and raw_path.endswith(".json"):
-            targets.append(ValidationTarget(raw_path, None, "metaschema"))
-            continue
-        if raw_path.startswith("contracts/concept-authority/") and raw_path.endswith(".json"):
-            targets.append(
-                ValidationTarget(
-                    raw_path,
-                    f"contracts/schemas/concept-authority/{path.name}",
-                    "schema",
-                )
-            )
-            continue
-        if (
-            ("/valid/" in raw_path or "/migration/" in raw_path)
-            and raw_path.startswith("contracts/fixtures/")
-            and raw_path.endswith(".json")
-        ):
-            targets.append(
-                ValidationTarget(
-                    raw_path,
-                    _repo_rel_from(repo_root, _fixture_schema(repo_root, path)),
-                    "schema",
-                )
-            )
+        target = _changed_path_target(repo_root, raw_path)
+        if target is not None:
+            targets.append(target)
     return _dedupe_targets(targets)
+
+
+def _changed_path_target(repo_root: Path, raw_path: str) -> ValidationTarget | None:
+    """Route one changed path, or None when nothing validates it."""
+
+    if not raw_path.endswith(JSON_SUFFIX):
+        return None
+    target: ValidationTarget | None = None
+    if raw_path.startswith("contracts/schemas/"):
+        target = ValidationTarget(raw_path, None, "metaschema")
+    elif raw_path.startswith("contracts/concept-authority/"):
+        schema_path = f"contracts/schemas/concept-authority/{Path(raw_path).name}"
+        target = ValidationTarget(raw_path, schema_path, "schema")
+    elif raw_path.startswith("contracts/fixtures/") and ("/valid/" in raw_path or "/migration/" in raw_path):
+        schema = _fixture_schema(repo_root, repo_root / raw_path)
+        target = ValidationTarget(raw_path, _repo_rel_from(repo_root, schema), "schema")
+    return target
 
 
 def covered_schema_paths(repo_root: Path = REPO_ROOT) -> set[str]:
@@ -267,16 +265,16 @@ def should_run_full_validation(paths: list[str]) -> bool:
 def _collect_full_targets(repo_root: Path) -> list[ValidationTarget]:
     targets = _authoring_adapter_targets(repo_root)
     targets.extend(_versioned_schema_targets(repo_root))
-    for schema in sorted((repo_root / "contracts" / "schemas").rglob("*.json")):
+    for schema in sorted((repo_root / "contracts" / "schemas").rglob(JSON_GLOB)):
         relative = _routable(repo_root, schema)
         if relative is not None:
             targets.append(ValidationTarget(relative, None, "metaschema"))
-    for artifact in sorted((repo_root / "contracts" / "concept-authority").glob("*.json")):
+    for artifact in sorted((repo_root / "contracts" / "concept-authority").glob(JSON_GLOB)):
         relative = _routable(repo_root, artifact)
         if relative is not None:
             targets.append(ValidationTarget(relative, f"contracts/schemas/concept-authority/{artifact.name}", "schema"))
     fixtures_root = repo_root / "contracts" / "fixtures"
-    for pattern in ("valid/*.json", "migration/*.json"):
+    for pattern in (f"valid/{JSON_GLOB}", f"migration/{JSON_GLOB}"):
         for fixture in sorted(fixtures_root.rglob(pattern)):
             relative = _routable(repo_root, fixture)
             if relative is not None:
@@ -294,9 +292,9 @@ def _authoring_adapter_targets(repo_root: Path, *, paths: list[str] | None = Non
     targets = []
     for prefix, contract in _AUTHORING_ADAPTER_ROUTES.items():
         candidates = (
-            (repo_root / prefix).glob("*.json")
+            (repo_root / prefix).glob(JSON_GLOB)
             if paths is None
-            else (repo_root / path for path in paths if path.startswith(prefix) and path.endswith(".json"))
+            else (repo_root / path for path in paths if path.startswith(prefix) and path.endswith(JSON_SUFFIX))
         )
         for path in candidates:
             relative = _routable(repo_root, path)

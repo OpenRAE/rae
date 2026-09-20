@@ -665,16 +665,16 @@ def test_checked_in_declaration_is_falsifiable_against_its_real_carrier() -> Non
     association through the gate with the real carrier mutated.
     """
 
-    from tools.check_schema_coverage import _check_embedded_source
+    from tools.schema_coverage._evidence import check_embedded_source
 
     carrier = "contracts/schemas/experiment-core/experiment-run-v1.json"
     schema = "contracts/schemas/profiles/raes-semantic-invariants-v1.json"
     pointer = "/x-raes-invariants/0"
     definition = "#/$defs/RaesSemanticInvariantEntryModel"
 
-    assert _check_embedded_source(REPO_ROOT, carrier, schema, pointer, definition) is None
-    assert _check_embedded_source(REPO_ROOT, carrier, schema, "/x-raes-invariants/99999", definition) is not None
-    assert _check_embedded_source(REPO_ROOT, carrier, schema, pointer, "#/$defs/DoesNotExist") is not None
+    assert check_embedded_source(REPO_ROOT, carrier, schema, pointer, definition) is None
+    assert check_embedded_source(REPO_ROOT, carrier, schema, "/x-raes-invariants/99999", definition) is not None
+    assert check_embedded_source(REPO_ROOT, carrier, schema, pointer, "#/$defs/DoesNotExist") is not None
 
 
 # --- declaration hygiene -----------------------------------------------------
