@@ -1359,6 +1359,356 @@
       "title": "MaterializationAttestationReferenceModel",
       "type": "object"
     },
+    "MixedCompositionRuntimeEventModel": {
+      "additionalProperties": false,
+      "description": "One append-only phase or coordination fact, never a copied payload.",
+      "properties": {
+        "active_allocation_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "title": "Active Allocation Ids",
+          "type": "array"
+        },
+        "active_component_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Active Component Ids",
+          "type": "array"
+        },
+        "active_edge_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Active Edge Ids",
+          "type": "array"
+        },
+        "allocation_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allocation Id"
+        },
+        "component_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component Id"
+        },
+        "control_event_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Control Event Ref"
+        },
+        "crossing_event_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Crossing Event Ref"
+        },
+        "disposition": {
+          "enum": [
+            "committed",
+            "permitted",
+            "denied",
+            "succeeded",
+            "failed",
+            "indeterminate"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "edge_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edge Id"
+        },
+        "event_id": {
+          "minLength": 1,
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_kind": {
+          "enum": [
+            "phase-activated",
+            "phase-transition",
+            "decision",
+            "attempt",
+            "result",
+            "lifecycle-decision",
+            "lifecycle-attempt",
+            "lifecycle-result",
+            "delivery",
+            "observation",
+            "handoff",
+            "weakening",
+            "failure"
+          ],
+          "title": "Event Kind",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "mapping_loss_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Mapping Loss Refs",
+          "type": "array"
+        },
+        "mapping_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mapping Ref"
+        },
+        "order_ref": {
+          "minLength": 1,
+          "title": "Order Ref",
+          "type": "string"
+        },
+        "phase_id": {
+          "minLength": 1,
+          "title": "Phase Id",
+          "type": "string"
+        },
+        "phase_revision": {
+          "minimum": 0,
+          "title": "Phase Revision",
+          "type": "integer"
+        },
+        "plan_entry_id": {
+          "minLength": 1,
+          "title": "Plan Entry Id",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "policy_decision_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Policy Decision Ref"
+        },
+        "predecessor_event_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Predecessor Event Id"
+        },
+        "profile_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Profile Digest",
+          "type": "string"
+        },
+        "profile_id": {
+          "minLength": 1,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "provenance_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "run_id": {
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "event_kind",
+        "run_id",
+        "plan_id",
+        "plan_entry_id",
+        "profile_id",
+        "profile_digest",
+        "phase_id",
+        "phase_revision",
+        "active_component_ids",
+        "active_allocation_ids",
+        "disposition",
+        "order_ref"
+      ],
+      "title": "MixedCompositionRuntimeEventModel",
+      "type": "object"
+    },
+    "MixedCompositionRuntimeStateModel": {
+      "additionalProperties": false,
+      "description": "The current phase fold over a validated append-only event chain.",
+      "properties": {
+        "active_allocation_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "title": "Active Allocation Ids",
+          "type": "array"
+        },
+        "active_component_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Active Component Ids",
+          "type": "array"
+        },
+        "active_edge_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Active Edge Ids",
+          "type": "array"
+        },
+        "history_head": {
+          "minLength": 1,
+          "title": "History Head",
+          "type": "string"
+        },
+        "phase_id": {
+          "minLength": 1,
+          "title": "Phase Id",
+          "type": "string"
+        },
+        "phase_revision": {
+          "minimum": 0,
+          "title": "Phase Revision",
+          "type": "integer"
+        },
+        "plan_entry_id": {
+          "minLength": 1,
+          "title": "Plan Entry Id",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "profile_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Profile Digest",
+          "type": "string"
+        },
+        "profile_id": {
+          "minLength": 1,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "plan_id",
+        "plan_entry_id",
+        "profile_id",
+        "profile_digest",
+        "phase_id",
+        "phase_revision",
+        "active_component_ids",
+        "active_allocation_ids",
+        "history_head"
+      ],
+      "title": "MixedCompositionRuntimeStateModel",
+      "type": "object"
+    },
     "ObservationStrength": {
       "description": "Strongest evidence a backend configuration emits for one concern.",
       "enum": [
@@ -12106,6 +12456,23 @@
     "metadata": {
       "additionalProperties": true,
       "title": "Metadata",
+      "type": "object"
+    },
+    "mixed_composition_history": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/MixedCompositionRuntimeEventModel"
+        },
+        "type": "array"
+      },
+      "title": "Mixed Composition History",
+      "type": "object"
+    },
+    "mixed_composition_states": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MixedCompositionRuntimeStateModel"
+      },
+      "title": "Mixed Composition States",
       "type": "object"
     },
     "orchestration_history": {

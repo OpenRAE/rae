@@ -193,8 +193,22 @@ class ParticipantEpisodeControlMixin:
         request_fingerprint: str,
         identity: object | None,
     ) -> OperationReceipt:
+        participant_address = request.participant_address
+        if self._mixed_runtime is not None:
+            from .mixed_runtime_lifecycle import execute_mixed_participant_lifecycle
+
+            return execute_mixed_participant_lifecycle(
+                self,
+                request=request,
+                method_name=method_name,
+                action=action,
+                idempotency_key=idempotency_key,
+                request_fingerprint=request_fingerprint,
+                identity=identity,
+            )
         participant_runtime = self._target.participant_runtime
-        if participant_runtime is None:
+        method = getattr(participant_runtime, method_name, None)
+        if participant_runtime is None or not callable(method):
             return self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
@@ -203,10 +217,9 @@ class ParticipantEpisodeControlMixin:
                 identity=identity,
                 request=request,
             )
-        participant_address = request.participant_address
         return execute_participant_action(
             self,
-            method=getattr(participant_runtime, method_name),
+            method=method,
             request=request,
             address=f"runtime.control-plane.participant.{participant_address}.{action}",
             idempotency_key=idempotency_key,

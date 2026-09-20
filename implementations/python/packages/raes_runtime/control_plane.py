@@ -71,13 +71,12 @@ from .control_plane_store import (
 from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_workflow_control import WorkflowControlMixin
+from .mixed_runtime import MixedRuntimeMixin
 from .observation_execution import ObservationExecution
 from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
-from .participant_crossing_mediation import (
-    validate_persisted_crossing_history,
-)
+from .participant_crossing_mediation import validate_persisted_crossing_history
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
@@ -132,6 +131,7 @@ class RuntimeControlPlane(
     WorkflowControlMixin,
     ParticipantControlMixin,
     ParticipantRetrievalMixin,
+    MixedRuntimeMixin,
 ):
     """Reference control plane for async runtime submission and observation."""
 
@@ -151,6 +151,7 @@ class RuntimeControlPlane(
         )
         self._target = target
         self._target_scope, self._run_scope = target_scope, config.run_scope
+        self._mixed_runtime = config.mixed_runtime
         self._materialization_archive = config.materialization_archive
         self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
         self._store = selected_store

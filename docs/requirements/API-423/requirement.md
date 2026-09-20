@@ -21,6 +21,9 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Bind mixed-runtime dispatch to exact participant crossing facts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_result_contracts.py` (Append-only composition evidence validation across backend results)
+- TESTS → TEST `implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py` (Crossing, policy, delivery, observation, weakening, and failure evidence witnesses)
 - IMPLEMENTS → GITHUB_ISSUE `1072` (Modular crossing, inject and evidence bindings)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py` (Exact incumbent crossing and inject-delivery joins)
 - TESTS → TEST `implementations/python/tests/test_api_424_control_resolution.py` (Trusted crossing and delivery context rejection)

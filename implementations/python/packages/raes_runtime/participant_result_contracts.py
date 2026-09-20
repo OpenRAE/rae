@@ -7,6 +7,10 @@ from typing import Any
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.mixed_runtime_history import (
+    iter_mixed_runtime_snapshot_violations,
+    iter_mixed_runtime_transition_violations,
+)
 from raes_contracts.participant_behavior import (
     iter_participant_behavior_snapshot_violations,
     iter_participant_runtime_history_transition_violations,
@@ -133,6 +137,10 @@ def participant_runtime_state_contract_diagnostics(
         *iter_participant_crossing_history_snapshot_violations(
             snapshot.participant_crossing_history,
         ),
+        *iter_mixed_runtime_snapshot_violations(
+            snapshot.mixed_composition_states,
+            snapshot.mixed_composition_history,
+        ),
         *iter_participant_information_state_snapshot_violations(
             snapshot.information_state_history,
             information_state_context_resolver=information_state_context_resolver,
@@ -189,6 +197,13 @@ def participant_runtime_history_transition_diagnostics(
             for address, message in iter_participant_crossing_history_transition_violations(
                 previous_snapshot.participant_crossing_history,
                 next_snapshot.participant_crossing_history,
+            )
+        ]
+        + [
+            _failure_diagnostic("runtime.backend-contract-invalid", address, message)
+            for address, message in iter_mixed_runtime_transition_violations(
+                previous_snapshot.mixed_composition_history,
+                next_snapshot.mixed_composition_history,
             )
         ]
         + [

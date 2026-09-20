@@ -64,6 +64,7 @@ _VERSIONED_SCHEMA_ROUTES: tuple[VersionedSchemaRoute, ...] = (
     VersionedSchemaRoute("contracts/profiles/scientific-completeness/", "profiles"),
     VersionedSchemaRoute("contracts/profiles/validation/", "profiles"),
     VersionedSchemaRoute("contracts/profiles/candidate-synthesis/", "candidate-synthesis"),
+    VersionedSchemaRoute("contracts/profiles/participant-control/", "participant-runtime"),
     VersionedSchemaRoute("contracts/concept-authority/history/", "concept-authority"),
     VersionedSchemaRoute("contracts/provenance/", "provenance"),
     VersionedSchemaRoute("contracts/realization-envelopes/", "realization-envelope", recursive=True),
@@ -235,7 +236,9 @@ def _changed_path_target(repo_root: Path, raw_path: str) -> ValidationTarget | N
     elif raw_path.startswith("contracts/concept-authority/"):
         schema_path = f"contracts/schemas/concept-authority/{Path(raw_path).name}"
         target = ValidationTarget(raw_path, schema_path, "schema")
-    elif raw_path.startswith("contracts/fixtures/") and ("/valid/" in raw_path or "/migration/" in raw_path):
+    elif raw_path.startswith("contracts/fixtures/") and any(
+        segment in raw_path for segment in ("/valid/", "/migration/", "/context-invalid/")
+    ):
         schema = _fixture_schema(repo_root, repo_root / raw_path)
         target = ValidationTarget(raw_path, _repo_rel_from(repo_root, schema), "schema")
     return target
@@ -272,9 +275,19 @@ def _collect_full_targets(repo_root: Path) -> list[ValidationTarget]:
     for artifact in sorted((repo_root / "contracts" / "concept-authority").glob(JSON_GLOB)):
         relative = _routable(repo_root, artifact)
         if relative is not None:
-            targets.append(ValidationTarget(relative, f"contracts/schemas/concept-authority/{artifact.name}", "schema"))
+            targets.append(
+                ValidationTarget(
+                    relative,
+                    f"contracts/schemas/concept-authority/{artifact.name}",
+                    "schema",
+                )
+            )
     fixtures_root = repo_root / "contracts" / "fixtures"
-    for pattern in (f"valid/{JSON_GLOB}", f"migration/{JSON_GLOB}"):
+    for pattern in (
+        f"valid/{JSON_GLOB}",
+        f"migration/{JSON_GLOB}",
+        f"context-invalid/{JSON_GLOB}",
+    ):
         for fixture in sorted(fixtures_root.rglob(pattern)):
             relative = _routable(repo_root, fixture)
             if relative is not None:
@@ -301,7 +314,11 @@ def _authoring_adapter_targets(repo_root: Path, *, paths: list[str] | None = Non
             if relative is None:
                 continue
             targets.append(
-                ValidationTarget(relative, f"contracts/schemas/authoring-adapters/{contract}.json", "schema")
+                ValidationTarget(
+                    relative,
+                    f"contracts/schemas/authoring-adapters/{contract}.json",
+                    "schema",
+                )
             )
     return targets
 

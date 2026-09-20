@@ -33,6 +33,7 @@ class OperationKind(str, Enum):
     PARTICIPANT_ACTION = "participant-action"
     PARTICIPANT_CONTROL = "participant-control"
     PARTICIPANT_CROSSING = "participant-crossing"
+    COMPOSITION_PHASE = "composition-phase"
     INDETERMINATE_RESOLUTION = "indeterminate-resolution"
 
 

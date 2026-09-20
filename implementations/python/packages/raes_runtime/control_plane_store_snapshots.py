@@ -141,6 +141,10 @@ def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
             participant_address: list(events)
             for participant_address, events in snapshot.participant_crossing_history.items()
         },
+        "mixed_composition_states": dict(snapshot.mixed_composition_states),
+        "mixed_composition_history": {
+            run_id: list(events) for run_id, events in snapshot.mixed_composition_history.items()
+        },
         "information_state_history": {
             participant_address: list(records)
             for participant_address, records in snapshot.information_state_history.items()
@@ -261,6 +265,10 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
         "participant_crossing_history": {
             participant_address: list(events)
             for participant_address, events in payload.get("participant_crossing_history", {}).items()
+        },
+        "mixed_composition_states": dict(payload.get("mixed_composition_states", {})),
+        "mixed_composition_history": {
+            run_id: list(events) for run_id, events in payload.get("mixed_composition_history", {}).items()
         },
         "information_state_history": {
             participant_address: list(records)
