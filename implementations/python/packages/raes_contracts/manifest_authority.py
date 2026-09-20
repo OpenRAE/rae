@@ -67,6 +67,8 @@ BACKEND_SUPPORTED_CONTRACT_IDS = (
     "participant-resource-budget-state-v1",
     "participant-resource-budget-event-v1",
     "participant-control-occurrence-v1",
+    "participant-control-selection-v1",
+    "participant-control-evaluation-v1",
     "participant-crossing-occurrence-v1",
     "participant-flow-control-relation-v1",
     "participant-lifecycle-event-v1",
@@ -122,6 +124,7 @@ PARTICIPANT_RUNTIME_EVIDENCE_REQUIRED_FEATURES = frozenset(
     {
         *PARTICIPANT_RUNTIME_POLICY_FEATURES,
         "participant_predicate_opacity",
+        "participant_modular_control",
         *PARTICIPANT_ADVERSARIAL_CONTROL_FEATURES,
     }
 )
@@ -189,6 +192,9 @@ PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS = {
         "observation_boundaries": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "outcome_interpretation": _PARTICIPANT_BEHAVIOR_CONTRACTS,
         "participant_predicate_opacity": _PARTICIPANT_OPACITY_CONTRACTS,
+        "participant_modular_control": frozenset(
+            {"participant-control-selection-v1", "participant-control-evaluation-v1"}
+        ),
         "participant_declassification": frozenset({"participant-crossing-occurrence-v1"}),
         "participant_directed_inject_delivery": frozenset(
             {"orchestration-plan-v1", "participant-crossing-occurrence-v1"}

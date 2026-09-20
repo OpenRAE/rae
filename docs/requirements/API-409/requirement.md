@@ -21,6 +21,13 @@ Issue #794 found that mixed-control input needs more than an undifferentiated ex
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `1072` (Typed modular requests referencing incumbent control authorities)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control.py` (Owning external control occurrence alternatives)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_validation.py` (Owning control occurrence contextual validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_effects.py` (Closed control, review, delay and lifecycle request bindings)
+- TESTS → TEST `implementations/python/tests/test_api_424_control_effects.py` (Typed effects and conflict preservation)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1072-api-409-control-effect-bindings-preflight.md` (Reuse of incumbent control/effect authority)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control_incumbent_validation.py` (API-409 flow-control incumbent carrier joins)
 - TESTS → TEST `implementations/python/tests/test_sem_233_flow_control_contracts.py` (API-409 flow-control incumbent join tests)
 - IMPLEMENTS → GITHUB_ISSUE `1002` (Issue #1002 portable flow-control contracts)

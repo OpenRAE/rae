@@ -1127,6 +1127,10 @@
           "title": "Participant Boundary Flow Resolution",
           "description": "Backend declares evidence-bound resolution of SEM-233 two-coordinate boundary flow labels with conservative provenance-preserving propagation; a declaration is not proof of realization."
         },
+        "participant_modular_control": {
+          "title": "Participant Modular Control",
+          "description": "Backend declares evidence-bound resolution of closed SEM-235 provider/profile selections and typed contributions at an exact admitted context; declaration, provider installation, effective support, and effect realization remain distinct."
+        },
         "participant_final_sink_mediation": {
           "title": "Participant Final Sink Mediation",
           "description": "Backend declares evidence-bound fail-closed exact-cut permit mediation immediately before an RAES-controlled external effect; enforcement remains the RUN-319 runtime boundary, not this declaration."

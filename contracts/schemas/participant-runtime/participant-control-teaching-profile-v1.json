@@ -1,0 +1,111 @@
+{
+  "$id": "https://openrae.github.io/rae/schemas/participant-control-teaching-profile-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "const": "teaching-influence-domain/rev1",
+      "title": "Domain",
+      "type": "string"
+    },
+    "join": {
+      "const": "union",
+      "title": "Join",
+      "type": "string"
+    },
+    "memory": {
+      "const": "retain-across-episodes",
+      "title": "Memory",
+      "type": "string"
+    },
+    "order": {
+      "const": "subset",
+      "title": "Order",
+      "type": "string"
+    },
+    "profile_id": {
+      "const": "teaching-influence",
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "profile_revision": {
+      "const": "rev1",
+      "title": "Profile Revision",
+      "type": "string"
+    },
+    "release": {
+      "const": "none",
+      "title": "Release",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "participant-control-teaching-profile/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "semantic_revision": {
+      "const": "sem-235/rev1",
+      "title": "Semantic Revision",
+      "type": "string"
+    },
+    "sinks": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "const": "practice-action",
+          "type": "string"
+        },
+        {
+          "const": "teaching-observation",
+          "type": "string"
+        }
+      ],
+      "title": "Sinks",
+      "type": "array"
+    },
+    "tokens": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "const": "coached-hint",
+          "type": "string"
+        },
+        {
+          "const": "worked-example",
+          "type": "string"
+        }
+      ],
+      "title": "Tokens",
+      "type": "array"
+    },
+    "trigger_rule": {
+      "const": "hint-followup/1",
+      "title": "Trigger Rule",
+      "type": "string"
+    },
+    "unknown_source": {
+      "const": "unknown",
+      "title": "Unknown Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "profile_id",
+    "profile_revision",
+    "semantic_revision",
+    "domain",
+    "tokens",
+    "order",
+    "join",
+    "unknown_source",
+    "memory",
+    "release",
+    "sinks",
+    "trigger_rule"
+  ],
+  "title": "ParticipantControlTeachingProfileModel",
+  "type": "object"
+}

@@ -38,7 +38,11 @@ from raes_contracts.contracts import (
     ParticipantBehaviorHistoryEventModel,
     ParticipantBoundaryFlowPolicyProfileModel,
     ParticipantConfigurationResultModel,
+    ParticipantControlContextResolver,
+    ParticipantControlEvaluationModel,
     ParticipantControlOccurrenceModel,
+    ParticipantControlSelectionModel,
+    ParticipantControlTeachingProfileModel,
     ParticipantCrossingOccurrenceModel,
     ParticipantEpisodeHistoryEventModel,
     ParticipantEpisodeStateModel,
@@ -59,6 +63,7 @@ from raes_contracts.contracts import (
     ValidationBasisDisclosureDocumentModel,
     WorkflowExecutionStateModel,
     WorkflowHistoryEventModel,
+    validate_participant_control_resolved_context,
     validate_participant_flow_control_resolved_context,
     validate_participant_information_state_resolved_context,
 )
@@ -145,6 +150,9 @@ _MODEL_VALIDATORS = {
 
 
 _STRUCTURAL_ONLY_VALIDATORS = {
+    "participant-control-teaching-profile-v1": ParticipantControlTeachingProfileModel.model_validate,
+    "participant-control-selection-v1": ParticipantControlSelectionModel.model_validate,
+    "participant-control-evaluation-v1": ParticipantControlEvaluationModel.model_validate,
     "backend-augmentation-scope-v1": AugmentationPreparation.model_validate,
     "materialized-scenario-v1": MaterializedScenario.model_validate,
     "backend-materialization-attestation-v1": MaterializationSubmission.model_validate,
@@ -183,6 +191,7 @@ _STRUCTURAL_ONLY_VALIDATORS = {
 
 _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS = frozenset(
     {
+        "participant-control-evaluation-v1",
         "associated-artifact-manifest-v1",
         "external-concept-bindings-v1",
         "semantic-projection-report-v1",
@@ -370,6 +379,28 @@ def _mixed_composition_context_diagnostics(
     return []
 
 
+def _control_context_diagnostics(payload, resolver):
+    contract_name = "participant-control-evaluation-v1"
+    if resolver is None:
+        return [
+            _diagnostic(
+                _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
+                contract_name,
+                "participant control trusted context resolver is required",
+            )
+        ]
+    try:
+        record = ParticipantControlEvaluationModel.model_validate(payload)
+        validate_participant_control_resolved_context(record, resolver)
+    except (TypeError, ValueError):
+        return [
+            _diagnostic(
+                _SEMANTIC_INVALID_DIAGNOSTIC_CODE, contract_name, "participant control trusted context is invalid"
+            )
+        ]
+    return []
+
+
 def validate_contract_payload(
     contract_name: str,
     payload: object,
@@ -377,10 +408,13 @@ def validate_contract_payload(
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None,
     flow_control_context_resolver: ParticipantFlowControlContextResolver | None = None,
     mixed_composition_context: MixedCompositionResolutionContext | None = None,
+    control_context_resolver: ParticipantControlContextResolver | None = None,
 ) -> tuple[Diagnostic, ...]:
     """Validate one payload through its structural and available contextual boundary."""
 
     diagnostics = _validate_payload(contract_name, payload)
+    if not diagnostics and contract_name == "participant-control-evaluation-v1":
+        diagnostics.extend(_control_context_diagnostics(payload, control_context_resolver))
     if not diagnostics and contract_name == "participant-information-state-record-v1":
         diagnostics.extend(_information_state_context_diagnostics(payload, information_state_context_resolver))
     if not diagnostics and contract_name == "participant-flow-control-relation-v1":

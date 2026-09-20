@@ -4,6 +4,16 @@ from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 from ._mixed_composition_exports import MIXED_COMPOSITION_EXPORTS
 
 PUBLIC_EXPORTS = [
+    "ParticipantControlEvaluationModel",
+    "ParticipantControlRequestModel",
+    "ParticipantControlSelectionModel",
+    "ParticipantControlTeachingProfileModel",
+    "load_teaching_influence_profile",
+    "ParticipantControlContextResolver",
+    "ParticipantControlValidationContext",
+    "validate_participant_control_context",
+    "validate_participant_control_resolved_context",
+    "parse_participant_control_evaluation",
     *MIXED_COMPOSITION_EXPORTS,
     "MaterializationArchiveRecord",
     "MaterializationAttestationReferenceModel",
