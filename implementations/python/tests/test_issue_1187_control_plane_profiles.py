@@ -54,10 +54,9 @@ def test_profile_scoped_retry_status_audit_and_cache_coherence(profile, tmp_path
         harness.store.save_snapshot(
             RuntimeSnapshot(metadata={"coherence": "new-cut"}), expected_revision=observed.revision
         )
+        stale_snapshot = RuntimeSnapshot(metadata={"coherence": "stale"})
         with pytest.raises(SnapshotRevisionConflict):
-            harness.store.save_snapshot(
-                RuntimeSnapshot(metadata={"coherence": "stale"}), expected_revision=observed.revision
-            )
+            harness.store.save_snapshot(stale_snapshot, expected_revision=observed.revision)
         assert harness.snapshot_cut() == ({"coherence": "new-cut"}, observed.revision + 1)
         assert harness.status(first) is OperationState.SUCCEEDED
 
@@ -87,12 +86,10 @@ def test_profile_lease_scope_and_restore_keep_receipts_and_claims(profile, tmp_p
         with pytest.raises(RuntimeError, match="exactly one worker"), profile_harness(profile, tmp_path):
             pytest.fail("second owner was admitted")
     for target_name, run in (("other", RUN_SCOPE), ("stub", "run:other")):
+        target = replace(create_stub_target(), name=target_name)
+        store = LocalControlPlaneStore(tmp_path / "store")
         with pytest.raises(RuntimeError, match="scope does not match"):
-            RuntimeControlPlane(
-                replace(create_stub_target(), name=target_name),
-                store=LocalControlPlaneStore(tmp_path / "store"),
-                run_scope=run,
-            )
+            RuntimeControlPlane(target, store=store, run_scope=run)
     backup = tmp_path / "backup.sqlite3"
     maintain_local_control_plane_store(
         operation=LocalStoreMaintenanceOperation.BACKUP,

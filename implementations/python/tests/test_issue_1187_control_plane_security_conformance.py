@@ -52,13 +52,9 @@ def test_security_configuration_rejects_ambiguous_or_empty_identity(settings: di
 def test_empty_bearer_configuration_cannot_authenticate_an_empty_credential() -> None:
     # Construction is the admission boundary: an empty credential must never
     # become a usable configured principal in the HTTP adapter.
+    principal = _identity()
     with pytest.raises(ValueError):
-        security = ControlPlaneSecurityConfig(bearer_tokens={"": _identity()})
-        with TestClient(
-            create_control_plane_app(RuntimeControlPlane(create_stub_target()), security=security)
-        ) as client:
-            response = client.get("/snapshot", headers={"authorization": "Bearer "})
-            assert response.status_code == 401
+        ControlPlaneSecurityConfig(bearer_tokens={"": principal})
 
 
 @pytest.mark.parametrize("method", ["validate", "apply"])
