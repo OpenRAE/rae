@@ -10,6 +10,7 @@ from raes_contracts.planning import PlanScope
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ParticipantBehaviorSpecificationRuntime
 
+from .control_plane_profiles import ControlPlaneProfile
 from .control_plane_store import ControlPlaneStore
 from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
 
@@ -25,6 +26,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     enforce_final_sink_flow_control: bool
     materialization_archive: MaterializationArchive | None
     run_scope: str
+    profile: ControlPlaneProfile | None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -39,8 +41,11 @@ class ControlPlaneConfiguration:
     enforce_final_sink_flow_control: bool = True
     materialization_archive: MaterializationArchive | None = None
     run_scope: str = "run:default"
+    profile: ControlPlaneProfile | None = None
 
     def __post_init__(self) -> None:
+        if self.profile is not None and not isinstance(self.profile, ControlPlaneProfile):
+            raise TypeError("control-plane profile must be a ControlPlaneProfile value")
         if not self.run_scope.startswith("run:"):
             raise ValueError("control-plane run_scope must use the normalized run:<id> form")
         PlanScope(run_id=self.run_scope.removeprefix("run:"))

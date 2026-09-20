@@ -21,6 +21,7 @@ from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationKind, OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
+from raes_runtime.control_plane_profiles import ControlPlaneProfile
 from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPlaneRole, ControlPlaneSecurityConfig
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
@@ -181,14 +182,17 @@ def profile_harness(
     )
     target = witness_target(path / "effects.jsonl", observe=observe, boundary=boundary)
     with ExitStack() as stack:
-        plane = RuntimeControlPlane(target, store=selected_store, run_scope=RUN_SCOPE)
+        core_profile = ControlPlaneProfile.P0 if profile == "P0" else ControlPlaneProfile.P1
+        plane = RuntimeControlPlane(target, store=selected_store, run_scope=RUN_SCOPE, profile=core_profile)
         stack.callback(plane.close)
         client = None
         if profile == "P2":
             security = ControlPlaneSecurityConfig(
                 bearer_tokens={f"synthetic-{key}": value for key, value in identities().items()}
             )
-            client = stack.enter_context(TestClient(create_control_plane_app(plane, security=security)))
+            client = stack.enter_context(
+                TestClient(create_control_plane_app(plane, security=security, profile=ControlPlaneProfile.P2))
+            )
         yield ProfileHarness(profile, plane, selected_store, client)
 
 
