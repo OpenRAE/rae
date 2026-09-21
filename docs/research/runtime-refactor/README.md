@@ -25,7 +25,9 @@ The owner reports recurring agent misunderstanding despite existing ADRs, archit
 2. Define and reconcile those requirements, including how they are maintained.
 3. Only after that work is complete, consider changes to the language, processor, runtime, or other components.
 
-The [requirements-scoping note](requirements-scope.md) records a limited inspection of existing sources and proposes questions for establishing that scope. It is not an accepted requirements inventory. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
+The owner selected **shared product requirements needed for current capability parity** for the first pass. An assessment of the entire RAE requirements catalogue is outside this first pass. The capability baseline and specific requirements to include remain to be established.
+
+The [requirements-scoping note](requirements-scope.md) records this boundary, a limited inspection of existing sources, and proposed questions for refining the scope. It is not an accepted requirements inventory. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
 
 **Purpose and scope clarified by the owner**
 

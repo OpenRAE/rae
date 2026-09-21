@@ -7,7 +7,9 @@ Context: [owner clarifications and exploration status](README.md).
 
 The owner directed requirements scoping first, requirements work second, and consideration of language, processor, runtime, or other changes only afterward. The owner also identified recurring agent confusion and inadequate definition and maintenance of canonical requirements.
 
-This note proposes the scope questions to resolve. It does not select a requirements hierarchy, replace a canonical source, amend an existing requirement, or decide that the entire catalogue needs rewriting. The breadth of the first pass remains open.
+The owner selected **shared product requirements needed for current capability parity** as the scope of the first pass. An assessment of the entire RAE requirements catalogue is outside this first pass.
+
+The specific capability baseline, requirement records to include, and acceptance criteria remain to be established. The selection does not approve the proposed areas below as a complete inventory, select a requirements hierarchy, replace a canonical source, or amend an existing requirement.
 
 **Existing sources inspected**
 
