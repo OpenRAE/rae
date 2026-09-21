@@ -53,7 +53,7 @@ def test_immutable_bundle_index_preserves_concurrent_captures() -> None:
     bundles = copy_bundle(load_bundles, REPO_ROOT)
     assert {manifest["revision"] for manifest, *_rest in bundles} >= {"1.0.0", "1.1.0", "19.0.0"}
     manifest, *_rest = copy_bundle(load_bundle, REPO_ROOT)
-    assert manifest["revision"] == "39.0.0"
+    assert manifest["revision"] == "40.0.0"
 
 
 def test_historical_failures_name_the_revision_specific_documents() -> None:

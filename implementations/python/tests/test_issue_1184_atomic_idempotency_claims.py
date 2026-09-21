@@ -31,6 +31,7 @@ from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPla
 from raes_runtime.control_plane_store import ControlPlaneOperationRecord, InMemoryControlPlaneStore
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_local_codec import encode_payload
+from raes_runtime.control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION
 from raes_runtime.control_plane_store_records import _record_payload
 
 pytestmark = pytest.mark.control_plane_conformance
@@ -379,7 +380,9 @@ def test_v3_store_migration_builds_composite_claims_and_quarantines_opaque_parti
         with sqlite3.connect(database) as connection:
             row = connection.execute("SELECT actor_id, operation_kind, legacy_opaque_claim FROM operations").fetchone()
             assert row == ("operator-a", "participant-control", 1)
-            assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
+            assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
+                LOCAL_OPERATION_SCHEMA_VERSION,
+            )
         conflicting_record = _record(
             "post-migration-retry",
             context=_context(kind=OperationKind.PARTICIPANT_CONTROL),

@@ -399,6 +399,11 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     participant_behavior_history: dict[str, list[ParticipantBehaviorHistoryEventModel]] = Field(default_factory=dict)
     participant_control_history: dict[str, list[ParticipantControlOccurrenceModel]] = Field(default_factory=dict)
     participant_crossing_history: dict[str, list[ParticipantCrossingOccurrenceModel]] = Field(default_factory=dict)
+    # The published participant-control-evaluation-v1 schema is the authority for
+    # each retained record (RuntimeSnapshot validates every one against it); the
+    # snapshot envelope carries them like other linked records rather than
+    # embedding a second normative copy of that contract.
+    participant_control_evaluation_history: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
     mixed_composition_states: dict[str, MixedCompositionRuntimeStateModel] = Field(default_factory=dict)
     mixed_composition_history: dict[str, list[MixedCompositionRuntimeEventModel]] = Field(default_factory=dict)
     information_state_history: dict[str, list[ParticipantInformationStateRecordModel]] = Field(default_factory=dict)

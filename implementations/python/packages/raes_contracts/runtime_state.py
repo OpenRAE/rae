@@ -94,6 +94,7 @@ class RuntimeSnapshot:
     participant_behavior_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_control_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_crossing_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    participant_control_evaluation_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     mixed_composition_states: dict[str, dict[str, Any]] = field(default_factory=dict)
     mixed_composition_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     information_state_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
@@ -117,6 +118,15 @@ class RuntimeSnapshot:
 
     def __post_init__(self) -> None:
         from .mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+        from .participant_control_evaluation_history import (
+            iter_participant_control_evaluation_snapshot_violations,
+        )
+
+        evaluation_violations = iter_participant_control_evaluation_snapshot_violations(
+            self.participant_control_evaluation_history
+        )
+        if evaluation_violations:
+            raise ValueError(evaluation_violations[0][1])
 
         violations = list(
             iter_mixed_runtime_snapshot_violations(self.mixed_composition_states, self.mixed_composition_history)

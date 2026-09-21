@@ -24,6 +24,7 @@ from raes_contracts.contracts.participant_crossing_validation import (
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
+from .participant_control_orchestration import admit_participant_control
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import (
     ParticipantCrossingEvidence,
@@ -144,6 +145,7 @@ def _serialize_participant_view_authorized(
             raise PermissionError(_PROJECTION_NOT_PERMITTED)
 
         sink_decision = _enforce_egress_flow_sink(control_plane, prepared)
+        prepared = _enforce_egress_participant_control(control_plane, prepared)
 
         governed = _governed_egress_view(control_plane, prepared, view, serialization, subject)
         prepared = _with_opacity_egress_observation(
@@ -222,6 +224,22 @@ def _enforce_egress_flow_sink(
         commit_prepared_crossing(control_plane, denied)
         raise PermissionError(_PROJECTION_NOT_PERMITTED)
     return sink_decision
+
+
+def _enforce_egress_participant_control(
+    control_plane: object,
+    prepared: PreparedParticipantCrossing,
+) -> PreparedParticipantCrossing:
+    """Compose modular control; a non-eligible result refuses serialization."""
+
+    admitted, receipt = admit_participant_control(
+        control_plane,
+        prepared,
+        sink_kind=ParticipantFlowSinkKind.PARTICIPANT_OUTPUT,
+    )
+    if receipt is not None:
+        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+    return admitted
 
 
 def _with_flow_sink_permitted_audit(

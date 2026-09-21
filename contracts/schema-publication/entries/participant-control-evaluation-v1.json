@@ -2,9 +2,9 @@
   "contract_id": "participant-control-evaluation-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-evaluation-v1.json",
   "stability": "draft",
-  "content_hash": "d3b2354d3a1b91f2ce1d29a6ab9b52267786aa5d2eeeb0b2cc02126004c0d5c8",
+  "content_hash": "0401ae557f60e18498ab1bd5a9fb2a6b88e8be7998ee5a58dd0aa09c486e6d02",
   "last_change": {
-    "summary": "Publish exact modular evaluation, lifecycle compatibility and retained logical-effect replay claims for issue #1072.",
-    "content_hash": "d3b2354d3a1b91f2ce1d29a6ab9b52267786aa5d2eeeb0b2cc02126004c0d5c8"
+    "summary": "Allow a digest-only exact-cut subject so the live RUN-319 crossing occurrence this context names is expressible for issue #1069.",
+    "content_hash": "0401ae557f60e18498ab1bd5a9fb2a6b88e8be7998ee5a58dd0aa09c486e6d02"
   }
 }

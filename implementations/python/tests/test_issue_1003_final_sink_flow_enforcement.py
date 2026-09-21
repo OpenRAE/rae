@@ -35,6 +35,7 @@ from sem233_flow_sink_fixtures import (
     Sem233FlowSinkResolver,
     deny_resolver,
     permit_resolver,
+    sem233_plane,
 )
 
 _SECRET = "secret flow-sink policy detail must not leak"
@@ -105,7 +106,7 @@ def _no_secret_leak(plane: RuntimeControlPlane, receipt: object) -> bool:
 def test_permitted_ingress_calls_backend_once_and_records_sem233() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(permit_resolver(), target=target)
+    plane = sem233_plane(permit_resolver(), target=target)
 
     receipt = admit(plane, idempotency_key="permit-ingress")
 
@@ -120,7 +121,7 @@ def test_permitted_ingress_calls_backend_once_and_records_sem233() -> None:
 
 
 def test_permitted_egress_returns_view_with_sem233_reference() -> None:
-    plane = action_plane(permit_resolver(), target=_egress_target())
+    plane = sem233_plane(permit_resolver(), target=_egress_target())
 
     view = _status_view(plane, idempotency_key="permit-egress")
 
@@ -161,7 +162,7 @@ def test_permitted_control_ingress_applies_transition_with_sem233_reference() ->
 def test_non_permit_ingress_never_dispatches_backend(toggles: FlowSinkToggles) -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(deny_resolver(toggles), target=target)
+    plane = sem233_plane(deny_resolver(toggles), target=target)
 
     receipt = admit(plane, idempotency_key="deny-ingress")
 
@@ -177,7 +178,7 @@ def test_non_permit_ingress_never_dispatches_backend(toggles: FlowSinkToggles) -
 
 @pytest.mark.parametrize("toggles", _NON_PERMIT_TOGGLES)
 def test_non_permit_egress_raises_and_serializes_nothing(toggles: FlowSinkToggles) -> None:
-    plane = action_plane(deny_resolver(toggles), target=_egress_target())
+    plane = sem233_plane(deny_resolver(toggles), target=_egress_target())
 
     with pytest.raises(PermissionError, match="not permitted"):
         _status_view(plane, idempotency_key="deny-egress")
@@ -224,7 +225,7 @@ def test_permit_bound_to_a_different_sink_kind_is_denied() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
     resolver = deny_resolver(FlowSinkToggles(relation_sink_kind=ParticipantFlowSinkKind.PARTICIPANT_OUTPUT))
-    plane = action_plane(resolver, target=target)
+    plane = sem233_plane(resolver, target=target)
 
     receipt = admit(plane, idempotency_key="wrong-sink-kind")
 
@@ -251,7 +252,7 @@ def test_secure_default_requires_flow_sink_resolver_capability() -> None:
 def test_idempotent_replay_returns_stored_receipt_without_second_backend_call() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(permit_resolver(), target=target)
+    plane = sem233_plane(permit_resolver(), target=target)
 
     first = admit(plane, idempotency_key="replay")
     retry = admit(plane, idempotency_key="replay")
@@ -262,7 +263,7 @@ def test_idempotent_replay_returns_stored_receipt_without_second_backend_call() 
 
 
 def test_replay_after_state_cut_advance_is_rejected() -> None:
-    plane = action_plane(permit_resolver())
+    plane = sem233_plane(permit_resolver())
 
     admit(plane, idempotency_key="cut-bound")
     admit(
@@ -282,10 +283,10 @@ def test_replay_after_state_cut_advance_is_rejected() -> None:
     "make_store", [lambda _p: InMemoryControlPlaneStore(), lambda p: LocalControlPlaneStore(p / "cp")]
 )
 def test_permit_and_denial_hold_across_both_stores(make_store, tmp_path: Path) -> None:
-    permit_plane = action_plane(permit_resolver(), store=make_store(tmp_path / "permit"))
+    permit_plane = sem233_plane(permit_resolver(), store=make_store(tmp_path / "permit"))
     assert admit(permit_plane, idempotency_key="store-permit").accepted is True
 
-    deny_plane = action_plane(
+    deny_plane = sem233_plane(
         deny_resolver(FlowSinkToggles(capability_disposition=Disposition.DENY)),
         store=make_store(tmp_path / "deny"),
     )
@@ -298,7 +299,7 @@ def test_permit_and_denial_hold_across_both_stores(make_store, tmp_path: Path) -
 def test_local_store_restart_revalidates_and_replays_idempotently(tmp_path: Path) -> None:
     store_path = tmp_path / "control-plane"
     resolver = permit_resolver()
-    first = action_plane(resolver, store=LocalControlPlaneStore(store_path))
+    first = sem233_plane(resolver, store=LocalControlPlaneStore(store_path))
     receipt = admit(first, idempotency_key="restart")
     first.close()
 
@@ -342,7 +343,7 @@ class _FailingCommitStore(InMemoryControlPlaneStore):
 def test_commit_before_effect_failing_store_never_dispatches_backend() -> None:
     target = policy_capable_target()
     counter = _instrument_backend(target)
-    plane = action_plane(permit_resolver(), store=_FailingCommitStore(), target=target)
+    plane = sem233_plane(permit_resolver(), store=_FailingCommitStore(), target=target)
 
     with pytest.raises(RuntimeError, match="atomic write failure"):
         admit(plane, idempotency_key="failing")
