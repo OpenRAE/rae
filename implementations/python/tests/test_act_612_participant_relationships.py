@@ -14,7 +14,7 @@ def _payload(kind: str = "coordination") -> dict:
     return {
         "name": "abstract-participant-relationships",
         "entities": {"team-a": {"role": "red"}, "team-b": {"role": "blue"}},
-        "agents": {"alice": {"entity": "team-a"}, "bob": {"entity": "team-b"}},
+        "agents": {"alice": {"affiliations": ["team-a"]}, "bob": {"affiliations": ["team-b"]}},
         "relationships": {
             "work": {
                 "type": "participant",
@@ -191,7 +191,7 @@ def test_unselected_observation_does_not_become_visible() -> None:
 
 def test_refinement_cannot_bind_an_unrelated_behavior() -> None:
     payload = _refined_payload()
-    payload["agents"]["third"] = {"entity": "team-a"}
+    payload["agents"]["third"] = {"affiliations": ["team-a"]}
     payload["behavior_specifications"]["pair"]["participant_refs"] = ["third"]
     with pytest.raises(SDLValidationError, match="behavior_specification_refs.*relationship endpoint"):
         _parse(payload)

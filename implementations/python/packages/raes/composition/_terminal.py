@@ -215,11 +215,10 @@ def _rewrite_objective(
     objective: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
+    for field, section in (("assigned_participant", "agents"), ("owner", "entities")):
+        if objective.get(field):
+            objective[field] = _maybe_rename(str(objective[field]), symbols[section])
     objective["actions"] = [_maybe_rename(name, symbols["action_contracts"]) for name in objective.get("actions", [])]
-    if objective.get("agent"):
-        objective["agent"] = _maybe_rename(str(objective["agent"]), symbols["agents"])
-    if objective.get("entity"):
-        objective["entity"] = _maybe_rename(str(objective["entity"]), symbols["entities"])
     objective["targets"] = [_maybe_rename(name, symbols["named"]) for name in objective.get("targets", [])]
     objective["depends_on"] = [_maybe_rename(name, symbols["objectives"]) for name in objective.get("depends_on", [])]
     success = objective.get("success")

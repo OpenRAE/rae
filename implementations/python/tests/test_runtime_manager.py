@@ -127,7 +127,7 @@ entities:
   blue: {role: blue}
 objectives:
   validate:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   response:
@@ -164,7 +164,7 @@ entities:
   blue: {role: blue}
 objectives:
   validate:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   child:

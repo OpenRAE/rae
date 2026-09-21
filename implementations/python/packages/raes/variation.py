@@ -44,8 +44,8 @@ class ReferenceTargetSlot(str, Enum):
     ACCOUNT_NODE = "accounts.node"
     ACCOUNT_DOMAIN = "accounts.domain_ref"
     IDENTITY_DOMAIN_AUTHORITY_ACCOUNT = "identity_domains.authority_account_ref"
-    OBJECTIVE_AGENT = "objectives.agent"
-    OBJECTIVE_ENTITY = "objectives.entity"
+    OBJECTIVE_ASSIGNMENT = "objectives.assigned_participant"
+    OBJECTIVE_OWNER = "objectives.owner"
 
 
 class CollectionTargetSlot(str, Enum):
@@ -85,8 +85,8 @@ REFERENCE_TARGET_SPECS: dict[ReferenceTargetSlot, tuple[str, str]] = {
     ReferenceTargetSlot.ACCOUNT_NODE: ("accounts", "nodes"),
     ReferenceTargetSlot.ACCOUNT_DOMAIN: ("accounts", "identity_domains"),
     ReferenceTargetSlot.IDENTITY_DOMAIN_AUTHORITY_ACCOUNT: ("identity_domains", "accounts"),
-    ReferenceTargetSlot.OBJECTIVE_AGENT: ("objectives", "agents"),
-    ReferenceTargetSlot.OBJECTIVE_ENTITY: ("objectives", "entities"),
+    ReferenceTargetSlot.OBJECTIVE_ASSIGNMENT: ("objectives", "agents"),
+    ReferenceTargetSlot.OBJECTIVE_OWNER: ("objectives", "entities"),
 }
 
 COLLECTION_TARGET_SPECS: dict[CollectionTargetSlot, tuple[str, str]] = {

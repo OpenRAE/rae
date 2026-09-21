@@ -1,9 +1,9 @@
 {
-  "content_hash": "1947557563bdbb27c3a8e5037bfe5055a68f11ee39684daf0433b5da258f4514",
+  "content_hash": "a7e7827350bce317cc0a5172e05e82d8be4126359ac7a814c315aa1f139d7501",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
-    "content_hash": "1947557563bdbb27c3a8e5037bfe5055a68f11ee39684daf0433b5da258f4514"
+    "content_hash": "a7e7827350bce317cc0a5172e05e82d8be4126359ac7a814c315aa1f139d7501",
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

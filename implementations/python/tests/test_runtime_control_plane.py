@@ -88,7 +88,7 @@ observation_boundaries:
     latency_profile: terminal observation emitted after state transition commit
 agents:
   red-agent:
-    entity: red-team
+    affiliations: [red-team]
     actions: [scan]
     observation_boundaries: [red-view]
 """
@@ -635,7 +635,7 @@ entities:
   blue: {role: blue}
 objectives:
   validate:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   response:

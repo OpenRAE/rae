@@ -79,9 +79,11 @@ def _objective_lines(scenario: Scenario) -> list[str]:
         return []
     lines = ["\n--- Objectives ---"]
     for obj_name, obj in scenario.objectives.items():
-        actor = obj.agent or obj.entity
         deps = f" (depends: {', '.join(obj.depends_on)})" if obj.depends_on else ""
-        lines.append(f"  {obj_name}: actor={actor}{deps}")
+        lines.append(
+            f"  {obj_name}: owner={obj.owner or 'none'}, "
+            f"assigned_participant={obj.assigned_participant or 'none'}{deps}"
+        )
     return lines
 
 

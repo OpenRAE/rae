@@ -215,9 +215,8 @@ def _rewrite_agent(
     agent: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
-    if agent.get("entity"):
-        agent["entity"] = _maybe_rename(str(agent["entity"]), symbols["entities"])
     for field_name, symbol_key in (
+        ("affiliations", "entities"),
         ("starting_accounts", "accounts"),
         ("actions", "action_contracts"),
         ("observation_boundaries", "observation_boundaries"),

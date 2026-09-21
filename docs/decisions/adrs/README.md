@@ -261,3 +261,4 @@ adr-108-modular-participant-control-and-governed-effects
 | [106](adr-106-developer-package-and-artifact-management.md) | Developer Package and Artifact Management | accepted | 2026-09-05 |
 | [107](adr-107-artifact-promotion-and-release-admission.md) | Artifact Promotion and Release Admission | accepted | 2026-09-05 |
 | [108](adr-108-modular-participant-control-and-governed-effects.md) | Modular Participant Control and Governed Effects | accepted | 2026-09-06 |
+| [109](adr-109-participant-identity-and-objective-assignment.md) | Participant Identity, Affiliation, and Objective Assignment | accepted | 2026-09-21 |

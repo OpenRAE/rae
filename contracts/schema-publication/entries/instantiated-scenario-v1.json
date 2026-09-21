@@ -1,9 +1,9 @@
 {
-  "content_hash": "8ae306e641aeb5d1ef6c7066bfea2b2d990d12ca784d5d3c33a01d24e7dbe129",
+  "content_hash": "4f5497916ee307cee3a1d627f59e06c65500554ff2c1b33baf8e4ed86f6e4de7",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
-    "content_hash": "8ae306e641aeb5d1ef6c7066bfea2b2d990d12ca784d5d3c33a01d24e7dbe129"
+    "content_hash": "4f5497916ee307cee3a1d627f59e06c65500554ff2c1b33baf8e4ed86f6e4de7",
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

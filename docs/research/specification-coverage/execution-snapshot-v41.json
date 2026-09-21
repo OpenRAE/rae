@@ -4,14 +4,14 @@
       "artifact_id": "enterprise-participant-sdl",
       "kind": "sdl",
       "path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
-      "sha256": "7d9c2b8222a71c168b1a644d083e3e165047802ca5b5c75e57aa3d3c9a73a530",
+      "sha256": "f7a8897beec243e188ee081975006fad32725f469f267db6e75a1e1cf5727032",
       "validator": "raes parse, semantic, instantiation/admission, and compiler pipeline"
     },
     {
       "artifact_id": "port-range-sdl",
       "kind": "sdl",
       "path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
-      "sha256": "a777f6a7ace95da145f1cce15431b667b47849c32b62aecb96643e2c7b780ed7",
+      "sha256": "0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f",
       "validator": "raes parse, semantic, instantiation/admission, and compiler pipeline"
     },
     {
@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-21T13:22:41.111184+00:00",
+  "captured_at": "2026-09-21T12:49:11.719854+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -149,7 +149,7 @@
       "classification": "directly-expressible",
       "completeness_disposition": "implemented",
       "concept_id": "evaluation-objectives",
-      "rationale": "SDL objectives own actor, target, window, and assertion-based success meaning while measures remain in experiment contracts.",
+      "rationale": "SDL objectives own organization ownership, participant assignment, targets, windows, and assertion-based success; measures remain experiment contracts.",
       "stage_results": [
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
@@ -163,7 +163,7 @@
         {
           "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
           "diagnostic_codes": [],
-          "note": "Actor, targets, assertions, and workflow refs resolved.",
+          "note": "Owner, participant assignment, targets, assertions, and workflow refs resolved.",
           "outcome": "passed",
           "pointer": "/objectives/demonstrate-handoff/success",
           "stage_id": "semantic",
@@ -616,14 +616,14 @@
     {
       "artifact_path": "examples/scenarios/enterprise-participant-evidence-loop.sdl.yaml",
       "baseline_sha256": "54ba1a60220e27a55da9cd2a407d7d3ab836fa54460d0b0c6cad87c2e744ddbb",
-      "rationale": "Replay the retained preregistered artifact against the current evidence-provenance validation implementation.",
-      "retest_sha256": "7d9c2b8222a71c168b1a644d083e3e165047802ca5b5c75e57aa3d3c9a73a530"
+      "rationale": "Migrate participant affiliations and explicit objective assignment, retaining organizational intent and portable action-contract declarations without granting execution authority.",
+      "retest_sha256": "f7a8897beec243e188ee081975006fad32725f469f267db6e75a1e1cf5727032"
     },
     {
       "artifact_path": "examples/scenarios/port-authority-surge-response.sdl.yaml",
       "baseline_sha256": "a27c7a64e0c5c618fadaccafdf1a4e71600170a8b77b983190822b5141f00dec",
-      "rationale": "Replay the retained preregistered artifact against the current evidence-provenance validation implementation.",
-      "retest_sha256": "a777f6a7ace95da145f1cce15431b667b47849c32b62aecb96643e2c7b780ed7"
+      "rationale": "Migrate participant affiliations and explicit objective assignment, retaining organizational intent and portable action-contract declarations without granting execution authority.",
+      "retest_sha256": "0d5497ec946b863e6985284ec487dde7d7f6bf710a985be51401ac0e5e79dc4f"
     },
     {
       "artifact_path": "contracts/fixtures/experiment-core/experiment-task-v1/valid/reference.json",
@@ -647,17 +647,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "80a712b8d3d51209500174a5aeb551b6e59b610793f1ca1d2b344decfd6f7505",
+      "content_sha256": "06d333d4aa19d6164121a92193d36d36ffb5237183eac5a813caf61b759872b7",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "f1c71228beab51c8e55348178a8e37e4ce9c2dd52aefd7f74c5a59ef2425b6e6",
+      "content_sha256": "99b524325ae86553f39e2b7b707fb5a09a7a77901cf6931e448792d94adc048c",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "182ba3dd4797f03e8fe81ac4e99866dccb948a73642b879a2c6c88d28b32654d",
+      "content_sha256": "27facce630304cf2c8a3d3e32a0a128d53575903f993db4bbff109b13939ec56",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -683,17 +683,18 @@
     "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus.",
     "Issue #1189 control-plane profile declarations are covered by their dedicated runtime suite, not promoted to new claims by the retained language corpus.",
     "Issue #1016 mixed-runtime coordination is covered by its dedicated runtime suite. The retained language corpus does not execute mixed providers or establish backend-native realization, multi-controller coordination, IFC, or equivalence.",
-    "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus."
+    "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
+    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "ccf9af047663d013c37437524a82d0b34797dc7e",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1069-v40",
-  "snapshot_revision": "40.0.0",
+  "raes_revision": "a1194a61ca922029a83cb57823e6af57067a56ef",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1338-v41",
+  "snapshot_revision": "41.0.0",
   "source_state": {
-    "base_revision": "ccf9af047663d013c37437524a82d0b34797dc7e",
+    "base_revision": "a1194a61ca922029a83cb57823e6af57067a56ef",
     "checkout_state": "modified",
-    "implementation_digest": "c575182c51a05f42876218f61347e0df5d8f495ee855fcdacf6f42df35e2091e",
+    "implementation_digest": "ec21ef034fd21398756470c3c95650c263cd2abc9461d6669d8d916dd60aba59",
     "profile": "python-reference-source/v2"
   }
 }

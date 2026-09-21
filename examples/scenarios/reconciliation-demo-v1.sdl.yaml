@@ -118,7 +118,7 @@ workflows:
 
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success:
       assertions:
         - health

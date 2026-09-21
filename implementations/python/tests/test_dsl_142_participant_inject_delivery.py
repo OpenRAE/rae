@@ -105,7 +105,7 @@ def _scenario_yaml() -> str:
                 disclosure_rule: disclosures.briefing.v1
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             observation_boundaries: [red-view]
         behavior_specifications:
           red-briefing:
@@ -329,15 +329,15 @@ def _external_direction_yaml() -> str:
             "  red-team:\n    role: red\n  blue-team:\n    role: blue\n",
         )
         .replace(
-            "  red-agent:\n    entity: red-team\n    observation_boundaries: [red-view]\n",
+            "  red-agent:\n    affiliations: [red-team]\n    observation_boundaries: [red-view]\n",
             (
                 "  red-agent:\n"
-                "    entity: red-team\n"
+                "    affiliations: [red-team]\n"
                 "    authority_anchors: [entities.red-team]\n"
                 "    operating_scope: [nodes.web]\n"
                 "    observation_boundaries: [red-view]\n"
                 "  supervisor-agent:\n"
-                "    entity: blue-team\n"
+                "    affiliations: [blue-team]\n"
                 "    authority_anchors: [entities.blue-team]\n"
                 "    operating_scope: [nodes.web]\n"
             ),

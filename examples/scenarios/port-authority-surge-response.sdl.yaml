@@ -909,14 +909,296 @@ relationships:
     type: depends_on
     source: terminal-service
     target: customs-api
+# Abstract action intent; backend realization and authorization remain separate.
+action_contracts:
+  coordinate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Coordinate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Coordinate against the scenario-declared subject set.
+      target_refs:
+      - customs-federates-port
+      - customs-gateway
+      - manifest-db
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  disable:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Disable intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Disable against the scenario-declared subject set.
+      target_refs:
+      - shipping-portal
+      - vendor-jump
+      - yard-hmi
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  inspect:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Inspect intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Inspect against the scenario-declared subject set.
+      target_refs:
+      - backup-vault
+      - camera-analytics
+      - historian-replicates-backup
+      - historian01
+      - infrastructure.yard-ot.acls.allow-yard-control
+      - nodes.crane-plc.services.crane-opcua
+      - nodes.historian01.services.historian-ui
+      - yard-hmi
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  isolate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Isolate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Isolate against the scenario-declared subject set.
+      target_refs:
+      - backup-vault
+      - historian-replicates-backup
+      - historian01
+      - infrastructure.yard-ot.acls.allow-yard-control
+      - nodes.crane-plc.services.crane-opcua
+      - yard-hmi
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  monitor:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Monitor intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Monitor against the scenario-declared subject set.
+      target_refs:
+      - customs-federates-port
+      - customs-gateway
+      - manifest-db
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  phish:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Phish intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Phish against the scenario-declared subject set.
+      target_refs:
+      - cargo-manifests
+      - manifest-db
+      - portal-to-manifest
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  pivot:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Pivot intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Pivot against the scenario-declared subject set.
+      target_refs:
+      - shipping-portal
+      - vendor-jump
+      - yard-hmi
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  recover:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Recover intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Recover against the scenario-declared subject set.
+      target_refs:
+      - shipping-portal
+      - soc01
+      - terminal-ops
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  restore:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Restore intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Restore against the scenario-declared subject set.
+      target_refs:
+      - backup-vault
+      - historian-replicates-backup
+      - historian01
+      - infrastructure.yard-ot.acls.allow-yard-control
+      - nodes.crane-plc.services.crane-opcua
+      - yard-hmi
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  tamper:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Tamper intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Tamper against the scenario-declared subject set.
+      target_refs:
+      - cargo-manifests
+      - manifest-db
+      - portal-to-manifest
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  triage:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Triage intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Triage against the scenario-declared subject set.
+      target_refs:
+      - customs-federates-port
+      - customs-gateway
+      - manifest-db
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  validate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Validate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Validate against the scenario-declared subject set.
+      target_refs:
+      - backup-vault
+      - camera-analytics
+      - historian-replicates-backup
+      - historian01
+      - infrastructure.yard-ot.acls.allow-yard-control
+      - nodes.crane-plc.services.crane-opcua
+      - nodes.historian01.services.historian-ui
+      - yard-hmi
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
 agents:
   red-yard-agent:
-    entity: red-cartel
+    affiliations: [red-cartel]
     actions:
-    - Phish
-    - Tamper
-    - Disable
-    - Pivot
+    - phish
+    - tamper
+    - disable
+    - pivot
     initial_knowledge:
       hosts:
       - shipping-portal
@@ -938,12 +1220,12 @@ agents:
     - yard-ot
     - terminal-it
   blue-yard-agent:
-    entity: port-blue.yard-ops
+    affiliations: [port-blue.yard-ops]
     actions:
-    - Inspect
-    - Isolate
-    - Restore
-    - Validate
+    - inspect
+    - isolate
+    - restore
+    - validate
     starting_accounts:
     - crane-operator
     initial_knowledge:
@@ -966,12 +1248,12 @@ agents:
     - safety-net
     - backup-net
   blue-soc-agent:
-    entity: port-blue.incident-command
+    affiliations: [port-blue.incident-command]
     actions:
-    - Monitor
-    - Triage
-    - Coordinate
-    - Recover
+    - monitor
+    - triage
+    - coordinate
+    - recover
     starting_accounts:
     - soc-analyst
     initial_knowledge:
@@ -996,10 +1278,10 @@ agents:
     - backup-net
 objectives:
   red-corrupt-manifests:
-    agent: red-yard-agent
+    assigned_participant: red-yard-agent
     actions:
-    - Phish
-    - Tamper
+    - phish
+    - tamper
     targets:
     - cargo-manifests
     - manifest-db
@@ -1014,7 +1296,7 @@ objectives:
       - arrival-phase
       - customs-surge-phase
   red-degrade-yard-ops:
-    entity: red-cartel
+    owner: red-cartel
     targets:
     - yard-hmi
     - crane-plc
@@ -1032,11 +1314,11 @@ objectives:
     depends_on:
     - red-corrupt-manifests
   blue-maintain-customs-integrity:
-    agent: blue-soc-agent
+    assigned_participant: blue-soc-agent
     actions:
-    - Monitor
-    - Triage
-    - Coordinate
+    - monitor
+    - triage
+    - coordinate
     targets:
     - customs-gateway
     - manifest-db
@@ -1056,12 +1338,12 @@ objectives:
       steps:
       - yard-recovery.maintain-integrity
   blue-blackstart-yard:
-    agent: blue-yard-agent
+    assigned_participant: blue-yard-agent
     actions:
-    - Inspect
-    - Isolate
-    - Restore
-    - Validate
+    - inspect
+    - isolate
+    - restore
+    - validate
     targets:
     - backup-vault
     - historian01
@@ -1088,10 +1370,10 @@ objectives:
     - blue-maintain-customs-integrity
     - red-degrade-yard-ops
   blue-validate-yard-telemetry:
-    agent: blue-yard-agent
+    assigned_participant: blue-yard-agent
     actions:
-    - Inspect
-    - Validate
+    - inspect
+    - validate
     targets:
     - historian01
     - camera-analytics

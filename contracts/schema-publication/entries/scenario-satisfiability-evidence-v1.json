@@ -1,9 +1,9 @@
 {
-  "content_hash": "63c7413330070f87bd534a815df15eb2a951b73c403732017082ffe2312eebd6",
+  "content_hash": "6c00797e46c551713eca1784f31844d02560a1604ab3347fd1c16a92cd1dc459",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
-    "content_hash": "63c7413330070f87bd534a815df15eb2a951b73c403732017082ffe2312eebd6"
+    "content_hash": "6c00797e46c551713eca1784f31844d02560a1604ab3347fd1c16a92cd1dc459",
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

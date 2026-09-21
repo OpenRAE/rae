@@ -136,13 +136,14 @@ def _attainment_projection(values: list[set[bool]], withheld: bool) -> tuple[Out
     positive = sum(value == {True} for value in values)
     known = sum(bool(value) for value in values)
     knowledge: OutcomeKnowledge = "supported" if known == len(values) else "unknown"
+    attainment: OutcomeAttainment = "undetermined"
     if positive == len(values):
-        return "attained", knowledge
-    if positive:
-        return "partial", knowledge
-    if known == len(values):
-        return "not_attained", knowledge
-    return "undetermined", knowledge
+        attainment = "attained"
+    elif positive:
+        attainment = "partial"
+    elif known == len(values):
+        attainment = "not_attained"
+    return attainment, knowledge
 
 
 def outcome_projection(

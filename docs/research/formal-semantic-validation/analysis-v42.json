@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-218-analysis-v42",
+  "analysis_id": "issue-218-analysis-v41",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,7 +123,7 @@
   ],
   "corpus_revision": "3.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-218-execution-v42",
+  "execution_id": "issue-218-execution-v41",
   "generated_at": "2026-09-20",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",

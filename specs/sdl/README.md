@@ -18,6 +18,10 @@ Python.
 
 ## Authority relationship
 
+The [participant identity contract](participant-identity.md) separates participant
+declaration identity, optional affiliation and role, organizational objective
+ownership, explicit assignment, and realized actor attribution.
+
 Three artifact classes describe the SDL, with distinct authority:
 
 1. **This prose specification (`specs/sdl/`)** is the language-neutral

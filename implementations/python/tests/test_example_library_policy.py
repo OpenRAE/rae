@@ -73,10 +73,10 @@ _VALID_BODY = {
         }
     },
     "entities": {"blue-team": {"role": "blue"}},
-    "agents": {"operator": {"entity": "blue-team"}},
+    "agents": {"operator": {"affiliations": ["blue-team"]}},
     "objectives": {
         "verify-app-health": {
-            "agent": "operator",
+            "assigned_participant": "operator",
             "targets": ["nodes.app.services.https"],
             "success": {"assertions": ["app-healthy"]},
         }

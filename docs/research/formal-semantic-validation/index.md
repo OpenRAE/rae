@@ -325,7 +325,18 @@ participant-control runtime orchestration. Replay retains the prior outcomes
 and claim limits; participant-control orchestration is verified by its own
 runtime tests, not by this language corpus.
 
-Current validation requires explicit release 43.0.0, rejects unsupported future
+Current release 42.0.0 is retained in
+[`bundles/retest-v41.json`](bundles/retest-v41.json), binding
+[`execution-snapshot-v41.json`](execution-snapshot-v41.json) and
+[`analysis-v41.json`](analysis-v41.json) to issue #1338's participant identity
+and objective assignment model. Corpus revision 4 uses explicit, separately
+versioned successors for the two objective fixtures. Their original bytes and
+all historical captures remain unchanged. Fresh replay preserves control
+outcomes and claim limits, recording the positive successor's changed result
+digest; the dangling-reference diagnostic remains identical.
+It establishes no autonomy threshold, authority grant, or realized attribution.
+
+Current validation requires explicit release 45.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -417,14 +428,22 @@ delegation, cooperation, competition, or supervision.
 
 ## Participant-local outcome source replay
 
-Release 42.0.0 records issue #218 in
-[`execution-snapshot-v41.json`](execution-snapshot-v41.json) and
-[`analysis-v41.json`](analysis-v41.json). The retained controls are replayed
+Release 43.0.0 records issue #218 in
+[`execution-snapshot-v42.json`](execution-snapshot-v42.json) and
+[`analysis-v42.json`](analysis-v42.json). The retained controls are replayed
 against the participant-local outcome implementation. Prior outcomes and claim
 limits remain unchanged; ACT-618 behavior is verified by its dedicated runtime
 tests. Earlier captures retain their original bytes.
 
-Current release 43.0.0 records the outcome implementation after maintainability
-refactoring in [`execution-snapshot-v42.json`](execution-snapshot-v42.json) and
-[`analysis-v42.json`](analysis-v42.json). Fresh replay retains the same bounded
+Release 44.0.0 records the outcome implementation after maintainability
+refactoring in [`execution-snapshot-v43.json`](execution-snapshot-v43.json) and
+[`analysis-v43.json`](analysis-v43.json). Fresh replay retains the same bounded
 outcomes and claim limits; it does not add a new semantic claim.
+
+Current release 45.0.0 records the merged participant identity and local
+outcome implementation in [`execution-snapshot-v44.json`](execution-snapshot-v44.json)
+and [`analysis-v44.json`](analysis-v44.json). The two pre-merge issue #218
+captures retain their observations and source identities in v42 and v43; only
+their release numbers, paths, and corresponding digest joins were reconciled
+with the independently published issue #1338 capture. The combined capture
+uses the issue #1338 baseline and preserves the same bounded claim limits.

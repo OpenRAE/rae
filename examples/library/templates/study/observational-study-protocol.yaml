@@ -26,7 +26,7 @@ body:
       role: blue
   agents:
     study-participant:
-      entity: participant-team
+      affiliations: [participant-team]
   propositions:
     study-task-success:
       description: The governed study-task-success observation is true for the addressed scenario subject.
@@ -62,7 +62,7 @@ body:
       loss_disclosure: required
   objectives:
     complete-study-task:
-      agent: study-participant
+      assigned_participant: study-participant
       targets: [nodes.study-target.services.https]
       success:
         assertions: [study-task-success]

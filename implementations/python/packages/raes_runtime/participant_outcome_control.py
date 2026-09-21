@@ -152,7 +152,7 @@ class ParticipantOutcomeControlMixin:
 def _require_declared_rule(
     model: RuntimeModel, participant: ParticipantBehaviorRuntime, rule: ParticipantOutcomeInterpretationRuleRuntime
 ) -> None:
-    role = model.entity_specs.get(participant.entity_name, {}).get("role")
+    role = participant.role
     if not any(
         rule.address in specification.outcome_interpretation_rule_addresses
         and (participant.address in specification.participant_addresses or role in specification.participant_role_refs)

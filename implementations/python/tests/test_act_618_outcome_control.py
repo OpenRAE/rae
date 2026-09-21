@@ -172,7 +172,7 @@ def test_declared_rule_requires_applicable_behavior_specification(binding):
     scenario = local_scenario()
     scenario["entities"]["blue-team"] = {"role": "blue"}
     scenario["agents"]["blue-agent"] = deepcopy(scenario["agents"]["red-agent"])
-    scenario["agents"]["blue-agent"]["entity"] = "blue-team"
+    scenario["agents"]["blue-agent"]["affiliations"] = ["blue-team"]
     specification = scenario["behavior_specifications"]["local-task"]
     if binding == "other-participant":
         specification["participant_refs"] = ["blue-agent"]
@@ -191,8 +191,15 @@ def test_declared_rule_requires_applicable_behavior_specification(binding):
         assert runtime.snapshot.participant_outcome_history == {}
 
 
-def test_role_bound_behavior_specification_admits_its_outcome_rule():
+@pytest.mark.parametrize("role_source", ["affiliation", "explicit", "standalone"])
+def test_role_bound_behavior_specification_admits_its_outcome_rule(role_source):
     scenario = local_scenario()
+    participant = scenario["agents"]["red-agent"]
+    if role_source != "affiliation":
+        participant["role"] = "red"
+        scenario["entities"]["red-team"]["role"] = "blue"
+    if role_source == "standalone":
+        participant["affiliations"] = []
     specification = scenario["behavior_specifications"]["local-task"]
     specification["participant_refs"] = []
     specification["participant_role_refs"] = ["red"]

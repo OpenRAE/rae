@@ -54,7 +54,7 @@ plane (ADR-055/064/069). Declarative `conditions` remain.
 | `outcome_interpretation_rules` | `dict[str, OutcomeInterpretationRule]` | Rules connecting action observations and evidence to scenario-local outcomes | RAES participant model |
 | `behavior_specifications` | `dict[str, ParticipantBehaviorSpecification]` | Versioned aggregates over participant action, observation, outcome, authority, and mode surfaces | RAES ACT-606 |
 | `evidence_requirements` | `dict[str, EvidenceRequirement]` | Portable authored capture obligations, distinct from captured evidence | RAES DSL-124, ADR-066 |
-| `objectives` | `dict[str, Objective]` | Scenario-local objectives binding actors, targets, windows, and success (against observable `conditions`); not EXP task records | CACAO action/target/agent |
+| `objectives` | `dict[str, Objective]` | Scenario-local ownership, assignment, action constraints, targets, windows, and success assertions; not EXP task records | CACAO action/target/agent |
 | `workflows` | `dict[str, Workflow]` | Branching and parallel control graphs over declared objectives | CACAO workflow graph patterns; semantics tightened using Step Functions / Argo / SCXML style control-flow rules |
 | `variables` | `dict[str, Variable]` | Parameterization (types, defaults, substitution) | CACAO playbook_variables |
 | `variation_points` | `dict[str, VariationPoint]` | Named bounded scenario-family domains and typed targets | RAES ADR-084 |
@@ -1939,7 +1939,8 @@ operating scope.
 ```yaml
 agents:
   red-agent:
-    entity: red-team                    # identity + role (via entities.role)
+    affiliations: [red-team]            # optional organization, not identity
+    role: red                          # optional direct role override
     actions: [Scan, Exploit, Escalate]
     starting_accounts: [phished-user]   # references accounts section
     starting_assertions: [beacon-online-before-start]  # precondition assertion
@@ -1968,9 +1969,14 @@ an unbound free-text label that named a reward class running outside participant
 perception. Reward now lives in the experiment/evaluator plane (ADR-055/064/069),
 not as an authored SDL agent field.
 
-`entity` is required and must resolve to the `entities` section; the
-participant's authored identity and role both come from this binding (per
-ADR-020). `initial_knowledge.hosts` references compute node names, `subnets`
+The `agents` map key is participant identity. `affiliations` is optional and
+references distinct flattened `entities` names; shared affiliation never merges
+participants. One declaration may denote a composite autonomous subject without
+listing components. Direct `role` wins; otherwise exactly one affiliation may
+supply its entity role. Zero or multiple affiliations supply no inherited role.
+See [ADR-109](../../decisions/adrs/adr-109-participant-identity-and-objective-assignment.md)
+and the [migration guide](../../migration/participant-identity.md).
+`initial_knowledge.hosts` references compute node names, `subnets`
 references switch-backed infrastructure names, `services` references service
 names declared in `nodes.*.services`, and `accounts` references entries in the
 `accounts` section. `allowed_subnets` follows the same switch-backed
@@ -2276,7 +2282,7 @@ from the authored requirement.
 
 ## Objectives
 
-Declarative experiment semantics that bind actors, targets, timing, and success
+Declarative experiment semantics that bind ownership, assignment, targets, timing, and success
 criteria in the same SDL. Objective success composes invariant or postcondition
 assertions over backend-neutral propositions
 ([ADR-079](../../decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md)).
@@ -2284,8 +2290,9 @@ assertions over backend-neutral propositions
 ```yaml
 objectives:
   red-initial-access:
-    agent: red-agent                   # or: entity: red-team
-    actions: [Scan, Exploit]           # should be declared on the agent
+    owner: red-team                    # organizational responsibility
+    assigned_participant: red-agent    # explicit pursuit assignment
+    actions: [Scan, Exploit]           # global contracts, also available to assignee
     targets:                           # any named scenario elements except variables/objectives/workflows
       - web-server
       - app-to-db
@@ -2302,13 +2309,18 @@ objectives:
       steps: [release-response.validate-release]
 
   blue-reporting:
-    entity: blue-team
+    owner: blue-team                   # valid without a participant assignment
     success:
       assertions: [web-alive-at-completion]
     depends_on: [red-initial-access]
 ```
 
-Every objective must declare exactly one actor: either `agent` or `entity`.
+Every objective must declare `owner`, `assigned_participant`, or both. Ownership
+references an entity; assignment references a participant key. Neither identifies
+who actually acted or implies a beneficiary. Every `actions` entry must name a
+declared action contract, including on unassigned objectives. When assigned,
+the actions must also be available to that participant. Shared affiliation never
+assigns an objective; unassigned organizational intent creates no runtime work.
 `success` is required and must reference at least one declared invariant or
 postcondition assertion. `targets` are optional, but when present they must
 resolve to named scenario elements. Bare target refs work when unambiguous;

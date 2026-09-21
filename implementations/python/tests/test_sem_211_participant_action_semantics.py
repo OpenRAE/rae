@@ -148,7 +148,7 @@ def _scenario_yaml() -> str:
                 latency_profile: terminal observation latency
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             actions: [scan]
             observation_boundaries: [red-view]
         """

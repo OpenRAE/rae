@@ -28,7 +28,7 @@ def _scenario_with_specificity_levels():
             role: red
         agents:
           red-agent:
-            entity: red
+            affiliations: [red]
             description: ${participant_label}
         propositions:
           objective-complete:
@@ -49,7 +49,7 @@ def _scenario_with_specificity_levels():
             polarity: positive
         objectives:
           assess:
-            agent: red-agent
+            assigned_participant: red-agent
             success:
               assertions: [objective-complete]
         """)

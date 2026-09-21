@@ -4,7 +4,7 @@ entities:
     role: blue
 agents:
   autonomous-service:
-    entity: automation-team
+    affiliations: [automation-team]
 behavior_specifications:
   service-publication:
     semantic_version: 1.0.0

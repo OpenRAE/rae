@@ -20,6 +20,7 @@ from .addresses import (
     _assertion_address,
     _event_address,
     _objective_address,
+    _participant_behavior_address,
     _script_address,
     _story_address,
     _workflow_address,
@@ -208,8 +209,11 @@ def _compile_objectives(
         objectives[objective_address] = ObjectiveRuntime(
             address=objective_address,
             name=name,
-            actor_type="agent" if objective.agent else "entity",
-            actor_name=objective.agent or objective.entity,
+            owner_name=objective.owner or "",
+            assigned_participant_name=objective.assigned_participant or "",
+            assigned_participant_address=(
+                _participant_behavior_address(objective.assigned_participant) if objective.assigned_participant else ""
+            ),
             success_addresses=tuple(success_addresses),
             objective_dependencies=objective_dependencies,
             window_story_addresses=window.story_addresses,

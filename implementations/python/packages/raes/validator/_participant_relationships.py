@@ -1,6 +1,5 @@
 """Participant relationship endpoint and refinement agreement checks."""
 
-from ..entities import flatten_entities
 from ..participant_behavior_specification import MixedControlControllerState, MixedControlParticipantOperation
 from ..participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS, ParticipantRelationship
 from ..relationships import Relationship
@@ -149,13 +148,9 @@ class _ParticipantRelationshipsMixin:
         return related
 
     def _participant_relation_endpoint_roles(self, endpoints: set[str]) -> tuple[set[str], bool]:
-        entities = flatten_entities(self._s.entities)
-        roles = {
-            entities[self._s.agents[name].entity].role for name in endpoints if self._s.agents[name].entity in entities
-        }
-        unresolved_role = any(self._is_unresolved_var(self._s.agents[name].entity) for name in endpoints) or any(
-            self._is_unresolved_var(role) for role in roles
-        )
+        participant_roles = self._participant_roles_by_agent()
+        roles = {participant_roles[name] for name in endpoints if name in participant_roles}
+        unresolved_role = any(self._is_unresolved_var(role) for role in roles)
         return roles, unresolved_role
 
     def _participant_relation_behavior_refs(
@@ -184,15 +179,12 @@ class _ParticipantRelationshipsMixin:
         self._participant_relation_objectives(label, refs["objective_refs"], endpoints)
 
     def _participant_relation_objectives(self, label: str, refs: set[str], endpoints: set[str]) -> None:
-        endpoint_entities = {self._s.agents[participant].entity for participant in endpoints}
         for name in refs:
             objective = self._s.objectives[name]
-            if self._is_unresolved_var(objective.agent) or self._is_unresolved_var(objective.entity):
+            if self._is_unresolved_var(objective.assigned_participant):
                 continue
-            if objective.entity and any(self._is_unresolved_var(entity) for entity in endpoint_entities):
-                continue
-            if objective.agent not in endpoints and objective.entity not in endpoint_entities:
-                self._err(f"{label} objective_refs must belong to a relationship endpoint")
+            if objective.assigned_participant not in endpoints:
+                self._err(f"{label} objective_refs must be assigned to a relationship endpoint")
 
     def _participant_relation_unique_named_refs(
         self, label: str, field: str, refs: list[str], index: dict[str, set[str]]
