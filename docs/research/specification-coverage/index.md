@@ -277,14 +277,14 @@ demonstration harness to the current source state. The retained language corpus
 does not execute planner reconciliation; classifications and claim limits
 remain unchanged.
 
-Current release 40.0.0 is retained in
+Release 40.0.0 is retained in
 [`execution-snapshot-v40.json`](execution-snapshot-v40.json) and
 [`analysis-v40.json`](analysis-v40.json). It binds issue #1069's modular
 participant-control runtime orchestration to the current source state. The
 preregistered concept matrix, classifications and missing-concept denominator
 remain unchanged; runtime orchestration is evidenced by its own tests.
 
-Current validation requires release 40.0.0 and rejects duplicate or unsupported
+Current validation requires release 41.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -353,3 +353,12 @@ denominator.
 This retest does not preregister or demonstrate classification-migration
 correctness, nor does it infer ecosystem-wide absence of capabilities from the
 three untested carrier slots.
+
+## Participant-local outcome source replay
+
+Current release 41.0.0 records issue #218 in
+[`execution-snapshot-v41.json`](execution-snapshot-v41.json) and
+[`analysis-v41.json`](analysis-v41.json). The retained controls are replayed
+against the participant-local outcome implementation. Prior outcomes and claim
+limits remain unchanged; ACT-618 behavior is verified by its dedicated runtime
+tests. Earlier captures retain their original bytes.

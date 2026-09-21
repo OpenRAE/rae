@@ -52,3 +52,9 @@ Requirement inventory expansion. Participant behavior needs explicit local outco
 - TESTS → TEST `implementations/python/tests/test_act_618_outcome_definition.py`
 - TESTS → TEST `implementations/python/tests/test_act_618_outcome_state.py`
 - TESTS → TEST `implementations/python/tests/test_act_618_outcome_control.py`
+- TESTS → TEST `implementations/python/tests/test_participant_concurrent_batch_reservations.py`
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py`
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py`
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py`
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/analysis-v41.json`
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v41.json`
