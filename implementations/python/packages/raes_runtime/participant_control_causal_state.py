@@ -136,21 +136,31 @@ def declares_retained_consumption(
     an already claimed effect key.
     """
 
-    declared = {claim.key: claim for claim in context.prior_effect_claims}
-    for key, retained in state.claims.items():
-        current = declared.get(key)
-        if current is None or current.effect_id != retained.effect_id:
-            return False
-        if current.content_digest != retained.content_digest:
-            return False
-    declared_firings = {(item.rule_id, item.rule_revision): set(item.firing_epochs) for item in context.rule_firings}
-    for rule, epochs in state.firings.items():
-        if not epochs <= declared_firings.get(rule, set()):
-            return False
     # Every committed evaluation under this root spent an attempt, whether or
     # not it resolved an effect, so the next one must declare a fresh number.
     # PC-12's ``max_attempts`` then bounds the root, not a single request.
-    return context.effects_consumed >= state.effects_consumed and context.attempt >= state.next_attempt
+    return (
+        _declares_retained_claims(context, state)
+        and _declares_retained_firings(context, state)
+        and context.effects_consumed >= state.effects_consumed
+        and context.attempt >= state.next_attempt
+    )
+
+
+def _declares_retained_claims(context: ParticipantControlContextModel, state: ParticipantControlCausalState) -> bool:
+    declared = {claim.key: claim for claim in context.prior_effect_claims}
+    return all(
+        (current := declared.get(key)) is not None
+        and current.effect_id == retained.effect_id
+        and current.content_digest == retained.content_digest
+        for key, retained in state.claims.items()
+    )
+
+
+def _declares_retained_firings(context: ParticipantControlContextModel, state: ParticipantControlCausalState) -> bool:
+    declared = {(item.rule_id, item.rule_revision): set(item.firing_epochs) for item in context.rule_firings}
+    # A retained epoch the context leaves undeclared is an under-declaration.
+    return all(not (epochs - declared.get(rule, set())) for rule, epochs in state.firings.items())
 
 
 __all__ = (

@@ -163,5 +163,6 @@ def test_a_persisted_record_cannot_misstate_why_composition_failed(misstated):
     assert composition.disposition == "stale"
 
     forged = {**composition.model_dump(mode="json"), "disposition": misstated}
+    misstated_composition = type(composition).model_validate(forged)
     with pytest.raises(ValueError):
-        _revalidated(payload, type(composition).model_validate(forged))
+        _revalidated(payload, misstated_composition)

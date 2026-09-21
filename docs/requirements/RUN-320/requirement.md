@@ -102,3 +102,4 @@ exactly-once effect, or backend equivalence.
 - TESTS → TEST `implementations/python/tests/test_issue_1180_snapshot_revision_cas.py` (Migration reaches the current schema)
 - TESTS → TEST `implementations/python/tests/test_issue_1184_atomic_idempotency_claims.py` (Migration reaches the current schema)
 - TESTS → TEST `implementations/python/tests/test_issue_1186_control_plane_recovery_operations.py` (Migration reaches the current schema)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_cut.py` (Exact-cut binding to the committed crossing and retained consumption)

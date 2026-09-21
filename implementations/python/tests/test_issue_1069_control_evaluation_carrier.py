@@ -43,8 +43,9 @@ def test_with_entries_accepts_and_preserves_the_new_carrier():
 
 
 def test_history_key_must_equal_the_embedded_participant_address():
+    history = {"participants.other": [_evaluation()]}
     with pytest.raises(ValueError, match="participant control evaluation"):
-        RuntimeSnapshot(participant_control_evaluation_history={"participants.other": [_evaluation()]})
+        RuntimeSnapshot(participant_control_evaluation_history=history)
 
 
 def test_history_rejects_a_record_that_is_not_a_published_evaluation():
@@ -53,8 +54,9 @@ def test_history_rejects_a_record_that_is_not_a_published_evaluation():
 
 
 def test_history_rejects_a_duplicate_evaluation_identity():
+    history = {PARTICIPANT: [_evaluation(), _evaluation()]}
     with pytest.raises(ValueError, match="participant control evaluation"):
-        RuntimeSnapshot(participant_control_evaluation_history={PARTICIPANT: [_evaluation(), _evaluation()]})
+        RuntimeSnapshot(participant_control_evaluation_history=history)
 
 
 def test_history_head_resolves_for_the_expected_state_cut():

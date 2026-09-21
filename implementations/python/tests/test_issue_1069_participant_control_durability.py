@@ -106,8 +106,9 @@ def test_a_second_concurrent_owner_cannot_write_the_committed_history(tmp_path: 
     owner = _plane(store=LocalControlPlaneStore(store_path))
     admit(owner, idempotency_key="sole-owner")
 
+    second_store = LocalControlPlaneStore(store_path)
     with pytest.raises(RuntimeError, match="already has a runtime owner"):
-        _plane(store=LocalControlPlaneStore(store_path))
+        _plane(store=second_store)
 
     assert len(_evaluations(owner)) == 1
 
@@ -375,8 +376,9 @@ def test_a_store_newer_than_this_build_is_refused_rather_than_rewritten(tmp_path
     connection.commit()
     connection.close()
 
+    newer_store = LocalControlPlaneStore(store_path)
     with pytest.raises(ValueError, match="unsupported local control-plane database schema"):
-        _plane(store=LocalControlPlaneStore(store_path))
+        _plane(store=newer_store)
 
 
 def test_committed_consumption_is_a_watermark_not_a_claim_count():

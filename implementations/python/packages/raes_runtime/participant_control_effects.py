@@ -23,7 +23,7 @@ append all happen under one held mutation.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from graphlib import TopologicalSorter
 
 from raes_contracts.contracts.participant_control_composition import (
@@ -111,12 +111,7 @@ def dispatch_participant_control_effects(
         history = control_plane._snapshot.participant_control_evaluation_history.get(participant_address, ())
         evaluations = [ParticipantControlEvaluationModel.model_validate(record) for record in history]
         origins = originating_operations(control_plane, participant_address)
-        realized = _realized_keys(evaluations)
-        # One outcome and one claimant per logical effect key. PC-11 allocates
-        # identity once per key, so a later evaluation that re-requests a key
-        # reports the first outcome and can never claim it under another origin.
-        outcomes: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization] = {}
-        claimants: dict[ControlLogicalEffectKeyModel, ControlPlaneOperationRecord | None] = {}
+        drain = _DrainState(realized=_realized_keys(evaluations))
         for evaluation in evaluations:
             phase = admitted_effect_phase(evaluation)
             if phase is None or evaluation.realizations:
@@ -126,13 +121,25 @@ def dispatch_participant_control_effects(
                 control_plane,
                 binding,
                 evaluation,
-                realized,
-                outcomes,
-                claimants,
+                drain,
                 origin=origins.get(evaluation.evaluation_id),
                 phase=phase,
             )
-        return tuple(outcomes.values())
+        return tuple(drain.outcomes.values())
+
+
+@dataclass
+class _DrainState:
+    """One outcome and one claimant per logical effect key, for one drain.
+
+    PC-11 allocates identity once per key, so a later evaluation that
+    re-requests a key reports the first outcome and can never claim it under
+    another origin.
+    """
+
+    realized: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization]
+    outcomes: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization] = field(default_factory=dict)
+    claimants: dict[ControlLogicalEffectKeyModel, ControlPlaneOperationRecord | None] = field(default_factory=dict)
 
 
 def _realized_keys(
@@ -189,27 +196,25 @@ def _dispatch_evaluation(
     control_plane: object,
     binding: object,
     evaluation: ParticipantControlEvaluationModel,
-    realized: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization],
-    outcomes: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization],
-    claimants: dict[ControlLogicalEffectKeyModel, ControlPlaneOperationRecord | None],
+    drain: _DrainState,
     *,
     origin: ControlPlaneOperationRecord | None,
     phase: str,
 ) -> None:
     applied: dict[str, str] = {}
     for request in _ordered_requests(evaluation, phase):
-        if request.key not in claimants:
-            claimants[request.key] = origin
-        if request.key not in outcomes:
-            outcomes[request.key] = realized.get(request.key) or _dispatched(
+        if request.key not in drain.claimants:
+            drain.claimants[request.key] = origin
+        if request.key not in drain.outcomes:
+            drain.outcomes[request.key] = drain.realized.get(request.key) or _dispatched(
                 control_plane,
                 binding,
                 evaluation,
-                claimants[request.key],
+                drain.claimants[request.key],
                 request,
                 applied,
             )
-        applied[request.effect_id] = outcomes[request.key].disposition
+        applied[request.effect_id] = drain.outcomes[request.key].disposition
 
 
 def _dispatched(
@@ -264,15 +269,24 @@ def _effect_outcome(
     """Decide one effect's outcome, and the claim that carries it if any."""
 
     withheld = _withheld_dependent(request, applied)
-    if withheld is not None:
-        return withheld, None
-    if origin is None:
-        # No provable originating operation means no principal to act for.
-        # That is reported, never silently skipped, and nothing is dispatched.
-        return realization(request, _UNSUPPORTED, "unattributed." + request.effect_id), None
-    operation = _effect_operation(control_plane, binding, evaluation, request)
+    operation = None
+    if withheld is None and origin is not None:
+        operation = _effect_operation(control_plane, binding, evaluation, request)
     if operation is None:
-        return realization(request, _UNSUPPORTED, "unsupported." + request.effect_id), None
+        # No provable originating operation means no principal to act for, and
+        # no owner input means no owner: both are reported, never silently
+        # skipped, and nothing is claimed or dispatched.
+        reason = "unattributed." if origin is None else "unsupported."
+        return withheld or realization(request, _UNSUPPORTED, reason + request.effect_id), None
+    return _claimed_outcome(control_plane, origin, request, operation)
+
+
+def _claimed_outcome(
+    control_plane: object,
+    origin: ControlPlaneOperationRecord,
+    request: ControlEffectRequestModel,
+    operation: ParticipantControlEffectOperation,
+) -> tuple[ControlRealizationBindingModel, ControlPlaneOperationRecord | None]:
     claim = claim_effect(control_plane, origin, request)
     if claim is None:
         # The store refused because this claim identity already holds a
@@ -355,29 +369,42 @@ def _binds_request(
     the closed target declares is bound to the owner input before submission.
     """
 
-    target = request.target
     evidence = operation.crossing_evidence
-    if not isinstance(evidence, ParticipantCrossingEvidence) or evidence.audience_scope_ref != context.audience_ref:
+    if not isinstance(evidence, ParticipantCrossingEvidence):
         return False
-    if operation.kind == "inject":
-        view = operation.view
-        return (
-            getattr(view, "participant_address", None) == target.participant_address
-            and getattr(view, "episode_id", None) == target.episode_id
-            and getattr(view, "view_id", None) == target.result_item_ref
-            and getattr(view, "source_snapshot_ref", None) == context.state_cut.cut_ref
-            and getattr(view, "visibility_projection_ref", None) == target.disclosure_ref.ref
-        )
-    if operation.kind == "handoff":
-        intent = operation.intent
-        return (
-            getattr(intent, "kind", None) == "handoff"
-            and getattr(intent, "episode_id", None) == target.episode_id
-            and getattr(intent, "declaration_ref", None) == target.transition.ref
-            and getattr(intent, "expected_state_revision", None) == target.expected_state_revision
-            and getattr(intent, "completion_evidence_ref", None) == target.completion_obligation.ref
-        )
-    return False
+    bound = _OWNER_INPUT_BINDINGS.get(operation.kind)
+    return (
+        bound is not None
+        and evidence.audience_scope_ref == context.audience_ref
+        and all(actual == expected for actual, expected in bound(operation, request.target, context))
+    )
+
+
+def _inject_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> tuple:
+    view = operation.view
+    return (
+        (getattr(view, "participant_address", None), target.participant_address),
+        (getattr(view, "episode_id", None), target.episode_id),
+        (getattr(view, "view_id", None), target.result_item_ref),
+        (getattr(view, "source_snapshot_ref", None), context.state_cut.cut_ref),
+        (getattr(view, "visibility_projection_ref", None), target.disclosure_ref.ref),
+    )
+
+
+def _handoff_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> tuple:
+    del context
+    intent = operation.intent
+    return (
+        (getattr(intent, "kind", None), "handoff"),
+        (getattr(intent, "episode_id", None), target.episode_id),
+        (getattr(intent, "declaration_ref", None), target.transition.ref),
+        (getattr(intent, "expected_state_revision", None), target.expected_state_revision),
+        (getattr(intent, "completion_evidence_ref", None), target.completion_obligation.ref),
+    )
+
+
+# Every coordinate the closed target declares, paired with the owner input's own.
+_OWNER_INPUT_BINDINGS = {"inject": _inject_bindings, "handoff": _handoff_bindings}
 
 
 def _submit(

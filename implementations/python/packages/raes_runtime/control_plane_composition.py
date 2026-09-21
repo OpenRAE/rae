@@ -89,7 +89,23 @@ def require_participant_control_configuration(
         )
 
 
+def compose_participant_boundary(target: object, config: object) -> object | None:
+    """Validate the participant boundary configuration and select its sink adapter.
+
+    One construction-time step: the crossing policy resolver the target needs,
+    the explicitly selected SEM-233 final-sink adapter, and a modular control
+    binding only where it can be enforced.
+    """
+
+    resolver = config.crossing_policy_resolver
+    require_crossing_policy_configuration(target, resolver)
+    flow_sink_resolver = select_final_sink_flow_control_resolver(resolver, config.enforce_final_sink_flow_control)
+    require_participant_control_configuration(target, resolver, config.participant_control)
+    return flow_sink_resolver
+
+
 __all__ = (
+    "compose_participant_boundary",
     "require_crossing_policy_configuration",
     "select_final_sink_flow_control_resolver",
     "require_participant_control_configuration",

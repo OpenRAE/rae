@@ -88,19 +88,7 @@ def commit_participant_control_realization(
     history = snapshot.participant_control_evaluation_history
     if any(record.get("evaluation_id") == transition.evaluation_id for record in history.get(participant_address, ())):
         return
-    carrier = claim
-    if claim.status.state is not OperationState.RUNNING:
-        carrier, state = _linked_carrier(control_plane, claim, transition), OperationState.SUCCEEDED
-    closed = replace(
-        carrier,
-        status=replace(
-            carrier.status,
-            state=state,
-            updated_at=_utc_now(),
-            diagnostics=operation_terminal_diagnostics(state, []),
-            changed_addresses=[participant_address],
-        ),
-    )
+    closed: ControlPlaneOperationRecord = _closed_carrier(control_plane, claim, transition, state, participant_address)
     control_plane._commit_participant_transition(
         expected_history_heads=expected_participant_history_heads(snapshot, participant_address),
         snapshot=snapshot.with_entries(
@@ -112,6 +100,35 @@ def commit_participant_control_realization(
         ),
         record=closed,
         audit_event=_realization_audit(closed, participant_address, transition),
+    )
+
+
+def _closed_carrier(
+    control_plane: object,
+    claim: ControlPlaneOperationRecord,
+    transition: ParticipantControlEvaluationModel,
+    state: OperationState,
+    participant_address: str,
+) -> ControlPlaneOperationRecord:
+    """The terminal record this commit writes: the open claim, or a record linked to it.
+
+    An open claim closes in the effect's own state. A linked record exists only
+    to carry a proven outcome, so recording it is what succeeds.
+    """
+
+    carrier = claim
+    if claim.status.state is not OperationState.RUNNING:
+        carrier = _linked_carrier(control_plane, claim, transition)
+        state = OperationState.SUCCEEDED
+    return replace(
+        carrier,
+        status=replace(
+            carrier.status,
+            state=state,
+            updated_at=_utc_now(),
+            diagnostics=operation_terminal_diagnostics(state, []),
+            changed_addresses=[participant_address],
+        ),
     )
 
 

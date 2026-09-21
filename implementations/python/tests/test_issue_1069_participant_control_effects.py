@@ -925,11 +925,9 @@ def test_a_refused_drain_cannot_suppress_the_effect_for_an_authorized_one():
 
     plane = _plane(control_binding())
     admit(plane, control_identity=_origin(), idempotency_key="effect-poison-attempt")
+    outsider = _principal("operator.green", participant="participant.behavior.blue-agent")
     with pytest.raises(PermissionError):
-        plane.dispatch_participant_control_effects(
-            PARTICIPANT,
-            identity=_principal("operator.green", participant="participant.behavior.blue-agent"),
-        )
+        plane.dispatch_participant_control_effects(PARTICIPANT, identity=outsider)
 
     realizations = _dispatch(plane)
 
@@ -982,7 +980,8 @@ def test_effect_operations_are_attributed_to_the_originating_operation():
     assert recorded.identity == origin.status.context.actor_id
     assert recorded.operation_id == claim.receipt.operation_id
     drained = next(event for event in plane.audit_log() if event.action == "dispatch_participant_control_effects")
-    assert (drained.identity, drained.allowed) == ("operator.drainer", True)
+    assert drained.identity == "operator.drainer"
+    assert drained.allowed is True
 
 
 def test_different_drainers_resolve_one_claim_and_execute_once():
@@ -1103,7 +1102,9 @@ def test_an_effect_with_no_provable_origin_is_reported_and_never_dispatched():
 
     outcome, claim = _effect_outcome(plane, plane._participant_control, evaluation, None, request, {})
 
-    assert (outcome.disposition, outcome.receipt.ref, claim) == ("unsupported", "unattributed.effect-1", None)
+    assert outcome.disposition == "unsupported"
+    assert outcome.receipt.ref == "unattributed.effect-1"
+    assert claim is None
     assert _effect_claims(plane) == []
     assert _deliveries(plane) == set()
 

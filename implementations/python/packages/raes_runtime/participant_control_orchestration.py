@@ -20,8 +20,6 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import cast
 
-from pydantic import ValidationError
-from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_composition import (
     ParticipantControlEvaluationModel,
     ParticipantControlRequestModel,
@@ -36,7 +34,6 @@ from raes_contracts.contracts.participant_control_selection import (
     ControlMechanismBindingModel,
     ControlResultSlotModel,
 )
-from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.runtime_state import OperationReceipt, OperationState, operation_terminal_diagnostics
 
@@ -47,13 +44,14 @@ from .participant_control_binding import (
     ParticipantControlRuntimeBinding,
     fenced_validation_context,
 )
-from .participant_control_causal_state import causal_state_from_history, declares_retained_consumption
+from .participant_control_cut import binds_live_cut, declares_committed_consumption
 from .participant_crossing_commit import commit_prepared_crossing
 from .participant_crossing_mediation import PreparedParticipantCrossing
 from .participant_crossing_state_cut import (
     control_history_head_refs,
     expected_participant_history_heads,
 )
+from .participant_flow_sink import early_crossing_receipt, resolve_flow_sink_denial
 
 _UNRESOLVED = "unresolved"
 
@@ -94,37 +92,55 @@ def resolve_participant_control_outcome(
         return None
     if crossing.decision is None:
         return _unresolved(_UNRESOLVED, "control-unresolved")
+    return _resolved_outcome(control_plane, binding, crossing, sink_kind)
+
+
+def _resolved_outcome(
+    control_plane: object,
+    binding: ParticipantControlRuntimeBinding,
+    crossing: PreparedParticipantCrossing,
+    sink_kind: object,
+) -> ParticipantControlOutcome | None:
     head_refs = control_history_head_refs(control_plane._snapshot, crossing.intent.participant_address)
     resolution = _resolve(control_plane, binding, crossing, sink_kind, head_refs)
-    if resolution is None or isinstance(resolution, ParticipantControlOutcome):
+    if not isinstance(resolution, ParticipantControlResolution):
         return resolution
     request = _revalidated_request(resolution.request)
+    refusal = _request_refusal(control_plane, binding, crossing, request, sink_kind, head_refs)
+    return refusal or _composed_outcome(control_plane, binding, crossing, request, resolution)
+
+
+def _request_refusal(
+    control_plane: object,
+    binding: ParticipantControlRuntimeBinding,
+    crossing: PreparedParticipantCrossing,
+    request: ParticipantControlRequestModel | None,
+    sink_kind: object,
+    head_refs: tuple[str, ...],
+) -> ParticipantControlOutcome | None:
+    """The first admission gate the resolved request fails, or ``None``."""
+
     if request is None:
         return _unresolved(_UNRESOLVED, "control-unresolved")
-    if control_digest(request.selection) != control_digest(binding.selection):
+    gates = (
         # PC-01: a different profile, mechanism, authority or bound is a new
         # admitted binding at an explicit cut, never a resolve-time swap.
-        return _unresolved(_UNRESOLVED, "control-unadmitted-selection")
-    if not _binds_live_cut(request, crossing, sink_kind, head_refs):
-        return _unresolved("stale", "control-stale-cut")
-    if not _declares_committed_consumption(control_plane, request):
+        (
+            _UNRESOLVED,
+            "control-unadmitted-selection",
+            lambda: control_digest(request.selection) == control_digest(binding.selection),
+        ),
+        ("stale", "control-stale-cut", lambda: binds_live_cut(request, crossing, sink_kind, head_refs)),
         # PC-11/PC-12: budgets and logical claims are durable, so a fresh
         # context may not re-spend what this causal root already consumed.
-        return _unresolved("stale", "control-exhausted-or-stale-claims")
-    return _composed_outcome(control_plane, binding, crossing, request, resolution)
-
-
-def _declares_committed_consumption(control_plane: object, request: ParticipantControlRequestModel) -> bool:
-    """Reconcile the admitted context with the consumption already committed."""
-
-    context = request.context
-    history = control_plane._snapshot.participant_control_evaluation_history.get(context.participant_address, ())
-    state = causal_state_from_history(
-        history,
-        run_ref=context.run.ref,
-        trigger_root=context.trigger_root,
+        (
+            "stale",
+            "control-exhausted-or-stale-claims",
+            lambda: declares_committed_consumption(control_plane, request),
+        ),
     )
-    return declares_retained_consumption(context, state)
+    failed = next(((disposition, reason) for disposition, reason, passes in gates if not passes()), None)
+    return None if failed is None else _unresolved(*failed)
 
 
 def _resolve(
@@ -146,11 +162,9 @@ def _resolve(
     except Exception:
         # Fail closed for every resolver failure; its detail never leaks.
         return _unresolved(_UNRESOLVED, "control-unresolved")
-    if resolution is None:
-        return None
-    if not isinstance(resolution, ParticipantControlResolution):
-        return _unresolved(_UNRESOLVED, "control-unresolved")
-    return resolution
+    if resolution is None or isinstance(resolution, ParticipantControlResolution):
+        return resolution
+    return _unresolved(_UNRESOLVED, "control-unresolved")
 
 
 def _revalidated_request(request: object) -> ParticipantControlRequestModel | None:
@@ -162,81 +176,6 @@ def _revalidated_request(request: object) -> ParticipantControlRequestModel | No
         )
     except Exception:
         return None
-
-
-def _binds_live_cut(
-    request: ParticipantControlRequestModel,
-    crossing: PreparedParticipantCrossing,
-    sink_kind: object,
-    head_refs: tuple[str, ...],
-) -> bool:
-    """Require the admitted context to name this exact live crossing cut.
-
-    ``subject_revision`` and ``phase_ref`` are API-424 coordinates the apparatus
-    declares and the request validator binds to its own applicability; the
-    runtime checks only what the incumbent crossing owner independently knows.
-    """
-
-    context, intent = request.context, crossing.intent
-    decision = crossing.decision
-    assert decision is not None
-    occurrence = decision.occurrence
-    return (
-        context.participant_address == intent.participant_address
-        and context.episode_id == intent.episode_id
-        and context.direction == intent.direction.value
-        and context.audience_ref == intent.audience_scope_ref
-        and context.controller_ref == intent.controller_ref
-        and context.sink_ref == getattr(sink_kind, "value", sink_kind)
-        and _names_live_crossing(context, crossing, decision)
-        and context.subject.model_dump() == occurrence.subject.model_dump()
-        and (context.policy.policy_id, context.policy.policy_revision, context.policy.policy_digest)
-        == (occurrence.policy.policy_id, occurrence.policy.policy_revision, occurrence.policy.policy_digest)
-        and tuple(sorted(head.ref for head in context.expected_history_heads)) == tuple(sorted(head_refs))
-    )
-
-
-def _names_live_crossing(
-    context: object,
-    crossing: PreparedParticipantCrossing,
-    decision: ParticipantCrossingOccurrenceModel,
-) -> bool:
-    """Bind the admitted crossing reference to the live decision occurrence.
-
-    API-424 resolves ``context.crossing`` against a crossing record's
-    ``event_id`` and its exact wire-payload digest
-    (``participant_control_resolution._validate_crossing``). Naming the same
-    identity here is what makes the resolver-supplied record and the live
-    occurrence provably the same artifact rather than two that merely agree on
-    their coordinates.
-
-    The digest is taken over the record as the RUN-319 history carrier holds
-    it, because that projection is what a resolver reading committed state can
-    reproduce; digesting the in-memory model instead would make the binding
-    satisfiable only by a resolver that shares this process.
-    """
-
-    if context.crossing.ref != decision.event_id:
-        return False
-    digest = _committed_crossing_digest(crossing, decision)
-    return digest is not None and context.crossing.digest == digest
-
-
-def _committed_crossing_digest(
-    crossing: PreparedParticipantCrossing,
-    decision: ParticipantCrossingOccurrenceModel,
-) -> str | None:
-    """Digest this decision exactly as the committed crossing history holds it."""
-
-    history = crossing.next_snapshot.participant_crossing_history.get(decision.participant_address, ())
-    record = next((item for item in history if item.get("event_id") == decision.event_id), None)
-    if record is None:
-        return None
-    try:
-        committed = ParticipantCrossingOccurrenceModel.model_validate(record)
-    except ValidationError:
-        return None
-    return canonical_json_digest(committed.model_dump(mode="json", exclude_unset=True))
 
 
 def _composed_outcome(
@@ -421,10 +360,7 @@ def _with_appended_evaluation(
     )
 
 
-def control_denied_record(
-    crossing: PreparedParticipantCrossing,
-    outcome: ParticipantControlOutcome,
-) -> ControlPlaneOperationRecord:
+def control_denied_record(crossing: PreparedParticipantCrossing) -> ControlPlaneOperationRecord:
     """Return the rejected operation record for a non-eligible composition."""
 
     diagnostic = Diagnostic(
@@ -460,7 +396,7 @@ def resolve_participant_control_denial(
     denied = with_participant_control_evaluation(crossing, outcome, allowed=False)
     rejected = cast(
         PreparedParticipantCrossing,
-        replace(denied, record=control_denied_record(denied, outcome)),
+        replace(denied, record=control_denied_record(denied)),
     )
     return outcome, commit_prepared_crossing(control_plane, rejected)
 
@@ -484,8 +420,32 @@ def admit_participant_control(
     return with_participant_control_evaluation(crossing, outcome), None
 
 
+def admit_ingress_sinks(
+    control_plane: object,
+    crossing: PreparedParticipantCrossing,
+    *,
+    sink_kind: object,
+    action: str,
+) -> tuple[PreparedParticipantCrossing, object | None, OperationReceipt | None]:
+    """Run one ingress crossing through every governed sink gate, in order.
+
+    A replayed or refused crossing, then the SEM-233 final-sink decision, then
+    modular control. Returns the crossing to commit, the permitted sink
+    decision, and the receipt of whichever gate already settled the operation.
+    """
+
+    receipt = early_crossing_receipt(control_plane, crossing)
+    sink_decision = None
+    if receipt is None:
+        sink_decision, receipt = resolve_flow_sink_denial(control_plane, crossing, sink_kind=sink_kind, action=action)
+    if receipt is None:
+        crossing, receipt = admit_participant_control(control_plane, crossing, sink_kind=sink_kind)
+    return crossing, sink_decision, receipt
+
+
 __all__ = (
     "ParticipantControlOutcome",
+    "admit_ingress_sinks",
     "admit_participant_control",
     "control_denied_record",
     "participant_control_audit_details",

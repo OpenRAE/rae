@@ -281,16 +281,16 @@ not runtime-delivery claims.
 - [x] issue: stale cuts and dishonest capability contextual fixtures → `implementations/python/tests/test_api_424_publication.py:75`.
 - [x] issue: finite JSON ingress, including exponent-overflow rejection → `implementations/python/packages/raes_contracts/json_ingress.py:39`.
 - [x] RUN-320: admitted selection bound to exact operator-created providers, never discovered code → `implementations/python/packages/raes_runtime/participant_control_binding.py:59`.
-- [x] RUN-320: exact-cut resolution, protocol invocation, composition and commit before any effect → `implementations/python/packages/raes_runtime/participant_control_orchestration.py:78`.
+- [x] RUN-320: exact-cut resolution, protocol invocation, composition and commit before any effect → `implementations/python/packages/raes_runtime/participant_control_orchestration.py:76`.
 - [x] RUN-320: append-only evaluation history in the ADR-104 store, across both supported stores → `implementations/python/packages/raes_contracts/participant_control_evaluation_history.py:17`.
 - [x] RUN-320: schema 6 records the evaluation carrier; an older build refuses the store → `implementations/python/packages/raes_runtime/control_plane_store_record_migration.py:164`.
-- [x] RUN-320: governed effect dispatch through incumbent owners, idempotent on the logical key → `implementations/python/packages/raes_runtime/participant_control_effects.py:188`.
-- [x] RUN-320: the owner input is bound to the complete typed target before submission → `implementations/python/packages/raes_runtime/participant_control_effects.py:345`.
+- [x] RUN-320: governed effect dispatch through incumbent owners, idempotent on the logical key → `implementations/python/packages/raes_runtime/participant_control_effects.py:195`.
+- [x] RUN-320: the owner input is bound to the complete typed target before submission → `implementations/python/packages/raes_runtime/participant_control_effects.py:359`.
 - [x] RUN-320: durable per-root attempt consumption, not a per-request bound → `implementations/python/packages/raes_runtime/participant_control_causal_state.py:56`.
-- [x] RUN-320: the drain caller is authorized before any committed state is read → `implementations/python/packages/raes_runtime/participant_control_receipts.py:84`.
-- [x] RUN-320: an effect acts for, and is claimed under, the operation that admitted it → `implementations/python/packages/raes_runtime/participant_control_receipts.py:197`.
-- [x] RUN-320: the effect is submitted to its owner as the originating principal → `implementations/python/packages/raes_runtime/participant_control_receipts.py:138`.
+- [x] RUN-320: the drain caller is authorized before any committed state is read → `implementations/python/packages/raes_runtime/participant_control_receipts.py:85`.
+- [x] RUN-320: an effect acts for, and is claimed under, the operation that admitted it → `implementations/python/packages/raes_runtime/participant_control_receipts.py:199`.
+- [x] RUN-320: the effect is submitted to its owner as the originating principal → `implementations/python/packages/raes_runtime/participant_control_receipts.py:140`.
 - [x] RUN-320: one held mutation spans the drain's scan, claims, submissions and records → `implementations/python/packages/raes_runtime/participant_control_effects.py:92`.
 - [x] RUN-320: a known outcome closes its claim and appends its realization in one commit → `implementations/python/packages/raes_runtime/participant_control_records.py:52`.
 - [x] SEM-235: one definition of what a composition admits serves every consumer → `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py:363`.
-- [x] RUN-320: the implicit SEM-233 resolver hook is replaced by an explicitly selected adapter → `implementations/python/packages/raes_runtime/control_plane_composition.py:35`.
+- [x] RUN-320: the implicit SEM-233 resolver hook is replaced by an explicitly selected adapter → `implementations/python/packages/raes_runtime/control_plane_composition.py:38`.

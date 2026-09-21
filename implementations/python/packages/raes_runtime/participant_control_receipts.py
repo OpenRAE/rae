@@ -63,6 +63,7 @@ _INDETERMINATE = "indeterminate"
 _CARRIER = "participant_control_evaluation_history"
 _TERMINAL_DISPOSITIONS = {OperationState.SUCCEEDED: _APPLIED, OperationState.FAILED: _FAILED}
 _KNOWN_ROLES = frozenset(role.value for role in ControlPlaneRole)
+_ROLE_SCOPE = "role:"
 
 # The incumbent owner of each closed effect kind records its own operation
 # under its own kind: a participant-directed inject through the RUN-319
@@ -106,16 +107,17 @@ def require_drain_authority(control_plane: object, participant_address: str, ide
 
 
 def _drain_refusal(control_plane: object, participant_address: str, identity: object) -> str | None:
+    """The first gate the caller fails, in the order the incumbents apply them."""
+
     if not isinstance(identity, ControlPlaneIdentity):
         return "unauthenticated"
-    if identity.target_name is not None and identity.target_name != control_plane.target_name:
-        return "target-forbidden"
-    if identity.roles.isdisjoint({ControlPlaneRole.BACKEND, ControlPlaneRole.OPERATOR}):
-        return "caller-forbidden"
-    bound = any(
-        binding.participant_address == participant_address for binding in identity.participant_control_subjects
-    ) or any(binding.participant_address == participant_address for binding in identity.participant_audience_subjects)
-    return None if bound else "participant-forbidden"
+    bound_subjects = (*identity.participant_control_subjects, *identity.participant_audience_subjects)
+    gates = (
+        ("target-forbidden", identity.target_name in (None, control_plane.target_name)),
+        ("caller-forbidden", not identity.roles.isdisjoint({ControlPlaneRole.BACKEND, ControlPlaneRole.OPERATOR})),
+        ("participant-forbidden", any(item.participant_address == participant_address for item in bound_subjects)),
+    )
+    return next((reason for reason, passed in gates if not passed), None)
 
 
 def originating_operations(control_plane: object, participant_address: str) -> dict[str, ControlPlaneOperationRecord]:
@@ -155,9 +157,9 @@ def origin_principal(
     control_prefix = f"participant-control:{participant_address}:"
     audience_prefix = f"participant-audience:{participant_address}:"
     roles = frozenset(
-        ControlPlaneRole(scope.removeprefix("role:"))
+        ControlPlaneRole(scope.removeprefix(_ROLE_SCOPE))
         for scope in context.authorization_scope
-        if scope.startswith("role:") and scope.removeprefix("role:") in _KNOWN_ROLES
+        if scope.startswith(_ROLE_SCOPE) and scope.removeprefix(_ROLE_SCOPE) in _KNOWN_ROLES
     )
     return ControlPlaneIdentity(
         identity=context.actor_id,

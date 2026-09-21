@@ -33,40 +33,30 @@ def test_binding_accepts_the_admitted_selection_and_its_exact_providers():
 
 
 def test_binding_rejects_a_provider_set_that_differs_from_the_selection():
+    selection, resolver = _selection(), _resolver()
+    providers = {"unselected": SyntheticControlProvider(instance_id="unselected")}
     with pytest.raises(ValueError, match="participant control providers"):
-        ParticipantControlRuntimeBinding(
-            selection=_selection(),
-            providers={"unselected": SyntheticControlProvider(instance_id="unselected")},
-            resolver=_resolver(),
-        )
+        ParticipantControlRuntimeBinding(selection=selection, providers=providers, resolver=resolver)
 
 
 def test_binding_rejects_a_missing_provider_for_a_selected_instance():
     payload = advisory_monitor_payload()
+    selection, resolver = _selection(payload), _resolver(payload)
+    providers = {INSTANCE: SyntheticControlProvider()}
     with pytest.raises(ValueError, match="participant control providers"):
-        ParticipantControlRuntimeBinding(
-            selection=_selection(payload),
-            providers={INSTANCE: SyntheticControlProvider()},
-            resolver=_resolver(payload),
-        )
+        ParticipantControlRuntimeBinding(selection=selection, providers=providers, resolver=resolver)
 
 
 def test_binding_rejects_a_provider_without_the_published_protocol_method():
+    selection, resolver = _selection(), _resolver()
     with pytest.raises(TypeError, match="participant control provider"):
-        ParticipantControlRuntimeBinding(
-            selection=_selection(),
-            providers={INSTANCE: object()},
-            resolver=_resolver(),
-        )
+        ParticipantControlRuntimeBinding(selection=selection, providers={INSTANCE: object()}, resolver=resolver)
 
 
 def test_binding_rejects_a_resolver_without_the_declared_runtime_protocol():
+    selection, providers = _selection(), {INSTANCE: SyntheticControlProvider()}
     with pytest.raises(TypeError, match="participant control resolver"):
-        ParticipantControlRuntimeBinding(
-            selection=_selection(),
-            providers={INSTANCE: SyntheticControlProvider()},
-            resolver=object(),
-        )
+        ParticipantControlRuntimeBinding(selection=selection, providers=providers, resolver=object())
 
 
 def test_binding_rejects_a_resolver_that_leaves_the_effect_owner_hook_undeclared():
@@ -79,18 +69,17 @@ def test_binding_rejects_a_resolver_that_leaves_the_effect_owner_hook_undeclared
         def validation_context(self, evaluation: object) -> None:
             return None
 
+    selection, providers = _selection(), {INSTANCE: SyntheticControlProvider()}
+    resolver = _WithoutEffectOwner()
     with pytest.raises(TypeError, match="participant control resolver"):
-        ParticipantControlRuntimeBinding(
-            selection=_selection(),
-            providers={INSTANCE: SyntheticControlProvider()},
-            resolver=_WithoutEffectOwner(),
-        )
+        ParticipantControlRuntimeBinding(selection=selection, providers=providers, resolver=resolver)
 
 
 def test_binding_freezes_its_provider_map_against_later_mutation():
     binding = control_binding()
+    late = SyntheticControlProvider(instance_id="late")
     with pytest.raises(TypeError):
-        binding.providers["late"] = SyntheticControlProvider(instance_id="late")
+        binding.providers["late"] = late
 
 
 def test_binding_revalidates_a_selection_mutated_past_its_validators():
@@ -103,12 +92,9 @@ def test_binding_revalidates_a_selection_mutated_past_its_validators():
         }
     )
     assert mutated.bindings[0].protocol_revision == "participant-control-provider/v2"
+    providers, resolver = {INSTANCE: SyntheticControlProvider()}, _resolver()
     with pytest.raises(ValueError, match="protocol_revision"):
-        ParticipantControlRuntimeBinding(
-            selection=mutated,
-            providers={INSTANCE: SyntheticControlProvider()},
-            resolver=_resolver(),
-        )
+        ParticipantControlRuntimeBinding(selection=mutated, providers=providers, resolver=resolver)
 
 
 def test_two_mechanisms_bind_two_published_profiles():

@@ -22,11 +22,7 @@ from raes_contracts.runtime_state import (
 )
 
 from .control_plane_admission import RuntimeAdmissionMixin
-from .control_plane_composition import (
-    require_crossing_policy_configuration,
-    require_participant_control_configuration,
-    select_final_sink_flow_control_resolver,
-)
+from .control_plane_composition import compose_participant_boundary
 from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
@@ -146,15 +142,12 @@ class RuntimeControlPlane(
         declaration, selected_store = _prepare_control_plane_store(config)
         self._profile_declaration = declaration
         self._initialize_runtime_lifecycle()
-        require_crossing_policy_configuration(target, config.crossing_policy_resolver)
-        resolver, enforce_sink = config.crossing_policy_resolver, config.enforce_final_sink_flow_control
-        self._flow_sink_resolver = select_final_sink_flow_control_resolver(resolver, enforce_sink)
-        require_participant_control_configuration(target, resolver, config.participant_control)
+        self._flow_sink_resolver = compose_participant_boundary(target, config)
         self._target = target
         self._target_scope, self._run_scope = target_scope, config.run_scope
         self._mixed_runtime = config.mixed_runtime
         self._materialization_archive = config.materialization_archive
-        self._enforce_final_sink_flow_control = enforce_sink
+        self._enforce_final_sink_flow_control = config.enforce_final_sink_flow_control
         self._store = selected_store
         try:
             self._mutation_authority = RuntimeMutationAuthority()
