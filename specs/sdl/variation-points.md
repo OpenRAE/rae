@@ -83,8 +83,8 @@ required owner kind and candidate kind; authors cannot widen either with data.
 | `accounts.node` | `accounts` | compute `nodes` |
 | `accounts.domain_ref` | `accounts` | `identity_domains` |
 | `identity_domains.authority_account_ref` | `identity_domains` | `accounts` |
-| `objectives.agent` | `objectives` | `agents` |
-| `objectives.entity` | `objectives` | flattened `entities` |
+| `objectives.assigned_participant` | `objectives` | `agents` |
+| `objectives.owner` | `objectives` | flattened `entities` |
 
 ### Collection slots
 

@@ -33,8 +33,9 @@ from collections.abc import Callable, Collection, Mapping
 
 from ..objectives import ObjectiveDependencyRole, ObjectiveWindowAnalysis
 from ._analysis import (
-    _analyze_actor_binding,
+    _analyze_action_constraints,
     _analyze_dependencies,
+    _analyze_objective_relations,
     _analyze_success,
     _analyze_targets,
     _analyze_window,
@@ -44,8 +45,10 @@ from ._analysis import (
     _ordered_unique,
 )
 from ._constants import (
-    OBJECTIVE_ACTOR_DEPENDENCY_ROLES,
+    OBJECTIVE_ACTION_CONSTRAINT_DEPENDENCY_ROLES,
+    OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES,
     OBJECTIVE_DEPENDENCY_DEPENDENCY_ROLES,
+    OBJECTIVE_OWNER_DEPENDENCY_ROLES,
     OBJECTIVE_SUCCESS_DEPENDENCY_ROLES,
     OBJECTIVE_TARGET_DEPENDENCY_ROLES,
     OBJECTIVE_WINDOW_DEPENDENCY_ROLES,
@@ -98,6 +101,7 @@ def analyze_objective_semantics(
     objectives_by_name: Mapping[str, object],
     agents_by_name: Mapping[str, object],
     entity_names: Collection[str],
+    action_contracts: Mapping[str, object],
     assessment_resources: AssessmentResourceCatalog,
     window_resources: WindowResourceCatalog,
     targetable_name_index: Mapping[str, Collection[str]],
@@ -124,8 +128,11 @@ def analyze_objective_semantics(
     window_analyses: dict[str, ObjectiveWindowAnalysis] = {}
 
     for objective_name, objective in objectives_by_name.items():
-        actor_refs, actor_issues = _analyze_actor_binding(
+        relation_refs, relation_issues = _analyze_objective_relations(
             objective_name, objective, agents_by_name, entity_name_set, unresolved
+        )
+        action_refs, action_issues = _analyze_action_constraints(
+            objective_name, objective, action_contracts, unresolved
         )
         target_refs, target_issues = _analyze_targets(objective_name, objective, targetable_name_index, unresolved)
         success_refs, success_issues, resolved_success = _analyze_success(
@@ -138,12 +145,14 @@ def analyze_objective_semantics(
             objective_name, objective, objectives_by_name, unresolved
         )
 
-        references.extend(actor_refs)
+        references.extend(relation_refs)
+        references.extend(action_refs)
         references.extend(target_refs)
         references.extend(success_refs)
         references.extend(window_refs)
         references.extend(dep_refs)
-        issues.extend(actor_issues)
+        issues.extend(relation_issues)
+        issues.extend(action_issues)
         issues.extend(target_issues)
         issues.extend(success_issues)
         issues.extend(window_issues)

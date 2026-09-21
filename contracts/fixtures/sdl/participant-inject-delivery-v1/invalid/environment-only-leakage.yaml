@@ -81,7 +81,7 @@ observation_boundaries:
         visibility_basis: adjudication-only hidden truth
 agents:
   red-agent:
-    entity: red-team
+    affiliations: [red-team]
     observation_boundaries: [red-view]
 behavior_specifications:
   red-briefing:

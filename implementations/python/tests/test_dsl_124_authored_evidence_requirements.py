@@ -84,7 +84,7 @@ def test_dsl_124_evidence_requirements_are_not_objective_targets() -> None:
         + """
     objectives:
       capture-the-trace:
-        entity: blue
+        owner: blue
         targets:
           - evidence_requirements.network-trace
         success:

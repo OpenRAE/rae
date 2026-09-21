@@ -14,7 +14,7 @@ def _declared_authority_yaml(authority: dict[str, object]) -> str:
     payload = yaml.safe_load(_scenario_yaml())
     payload["objectives"] = {
         "benign-probe": {
-            "agent": "participant-agent",
+            "assigned_participant": "participant-agent",
             "actions": ["probe-customer-portal-login"],
             "targets": ["nodes.customer-portal.services.http"],
             "success": {"assertions": ["participant-observation-recorded"]},

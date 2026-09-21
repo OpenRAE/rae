@@ -48,7 +48,7 @@ written with different aliases, including authority and scope references.
 | --- | --- |
 | `source_action_refs` | Declared action contracts available to the source participant. |
 | `target_action_refs` | Declared action contracts available to the target participant. |
-| `objective_refs` | Declared objectives owned by an endpoint participant or its entity. The relation kind states the author's alignment/competition intent; this is not a proof of objective equivalence or opposition. |
+| `objective_refs` | Declared objectives explicitly assigned to an endpoint participant via `assigned_participant`. Ownership or shared affiliation alone is insufficient. The relation kind states the author's alignment/competition intent; this is not a proof of objective equivalence or opposition. |
 | `behavior_specification_refs` | Existing behavior aggregates including at least one endpoint, directly or through its role. Outcome, realization and evidence refinements remain in those aggregates. |
 | `authority_basis_refs` | Existing authority anchors of the source. A relationship cannot create an authority anchor by naming it. |
 | `scope_refs` | Existing operating-scope elements within both endpoints' declared scopes. |

@@ -1,9 +1,9 @@
 {
-  "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
+  "content_hash": "8a53aeb79e4fc86a2b770ad290d805c984cd965f63fb75f834f55a3a0f2e3a2a",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "content_hash": "8a53aeb79e4fc86a2b770ad290d805c984cd965f63fb75f834f55a3a0f2e3a2a",
+    "summary": "Separate optional participant affiliation and effective role from objective ownership and explicit assignment; remove legacy actor fields with an explicit source migration reader (#1338)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

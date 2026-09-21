@@ -152,7 +152,7 @@ probe implementations; propositions and assertions carry portable truth.
 
 | Source | Field | Target |
 |--------|-------|--------|
-| `agents` | entity | `entities` |
+| `agents` | affiliations | `entities` |
 | `agents` | starting accounts | `accounts` |
 | `agents` | interactive-access target / account | `nodes` (compute) / `accounts` |
 | `agents` | subnets / initial-knowledge subnets | switch-backed `infrastructure` |
@@ -164,8 +164,8 @@ probe implementations; propositions and assertions carry portable truth.
 | `observation_boundaries` | view-rule information refs | own observable/hidden/evidence refs |
 | `behavior_specifications` | tool-affordance tool/action/observation refs | `content` / `action_contracts` / `observation_boundaries` |
 | `behavior_specifications` | tool-affordance visibility identity | own nested affordance declaration, classified by each referenced observation boundary |
-| `objectives` | actor | `agents` or flattened `entities` |
-| `objectives` | action | the bound agent's `action_contracts` |
+| `objectives` | assignment / owner (independent) | `agents` / flattened `entities` respectively |
+| `objectives` | action constraint | `action_contracts`; also available to the assigned participant, if any |
 | `objectives` | target | targetable elements (excl. `variables`/`objectives`/`workflows`) |
 | `objectives` | success criteria | `assertions` (invariants/postconditions, [ADR-079](../../docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md)) |
 | `objectives` | window | `stories`/`scripts`/`events`/`workflows` (with closure rules) |
@@ -343,7 +343,7 @@ the source of the row's normative meaning.
 | `relationships.*.proxy_upstream.upstream_service_ref` | `derived:upstream_node_services` | semantic validation | fatal without a resolvable upstream node and service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [proxy relationship validator](../../implementations/python/packages/raes/validator/_relationships_proxy.py) |
 | `relationships.*.domain_join.controller_refs[]` | `nodes` | semantic validation | fatal dangling, ambiguous, or controller outside target domain | [authored domain topology](authored-domain-topology.md) | [domain topology semantics](../../implementations/python/packages/raes/semantics/domain_topology.py) |
 | `relationships.*.shared_service.mutable_state_refs[]` | `persistent_volumes` | semantic validation | fatal dangling or conflicting state ownership | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) | [deployment tenancy semantics](../../implementations/python/packages/raes/semantics/deployment_tenancy.py) |
-| `agents.*.entity` | `entities` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
+| `agents.*.affiliations[]` | `entities` | semantic validation | fatal dangling or ambiguous | [participant identity](participant-identity.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
 | `agents.*.actions[]` | `action_contracts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
 | `agents.*.starting_accounts[]` | `accounts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
 | `agents.*.interactive_access.*.target_ref` | `nodes` | semantic validation | fatal dangling, ambiguous, or non-compute target | [participant semantics](../formal/participant-semantics/README.md) | [participant interactive-access semantics](../../implementations/python/packages/raes/semantics/participant_interactive_access.py) |
@@ -432,9 +432,9 @@ the source of the row's normative meaning.
 | `variation_points.*.precedence[].before` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
 | `variation_points.*.precedence[].after` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
 | `variation_points.*.fixed_positions.*.$key` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `objectives.*.agent` | `agents` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.entity` | `entities` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.actions[]` | `derived:agent_actions` | semantic validation | fatal outside the bound agent action contracts | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
+| `objectives.*.assigned_participant` | `agents` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
+| `objectives.*.owner` | `entities` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
+| `objectives.*.actions[]` | `action_contracts` | semantic validation | fatal undeclared contract or outside assigned participant actions | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
 | `objectives.*.targets[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
 | `objectives.*.success.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
 | `objectives.*.depends_on[]` | `objectives` | semantic validation | fatal dangling, ambiguous, or cyclic | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |

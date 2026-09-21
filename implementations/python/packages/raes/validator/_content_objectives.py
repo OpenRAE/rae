@@ -14,6 +14,7 @@ from ..semantics.objective_semantics import (
 )
 from ..semantics.participant_behavior import (
     ParticipantBehaviorIssue,
+    analyze_participant_affiliations,
     analyze_participant_behavior,
 )
 from ..semantics.participant_interactive_access import analyze_participant_interactive_access
@@ -29,14 +30,15 @@ from ._participant_resource_budget_owners import participant_resource_budget_own
 # the SDL surface has always used. Keyed by issue code so a new code is a new
 # line here rather than a new branch in a growing conditional.
 _OBJECTIVE_ISSUE_RENDERERS = {
-    "objective.actor-agent-undeclared": (
+    "objective.assignment-undeclared": (
         lambda i: f"Objective '{i.objective_name}' references undefined agent '{i.ref}'"
     ),
-    "objective.actor-entity-undeclared": (
-        lambda i: f"Objective '{i.objective_name}' references undefined entity '{i.ref}'"
-    ),
+    "objective.owner-undeclared": (lambda i: f"Objective '{i.objective_name}' references undefined entity '{i.ref}'"),
     "objective.action-not-declared": (
         lambda i: f"Objective '{i.objective_name}' action '{i.ref}' is not declared by agent '{i.actor_name}'"
+    ),
+    "objective.action-contract-undeclared": (
+        lambda i: f"Objective '{i.objective_name}' action '{i.ref}' must reference a declared action_contract"
     ),
     "objective.target-unresolvable": (
         lambda i: f"Objective '{i.objective_name}' target '{i.ref}' does not reference any defined targetable element"
@@ -283,9 +285,13 @@ class _ContentObjectivesMixin:
 
     def _verify_agents(self) -> None:
         flat_entity_names = self._all_entity_names()
+        for issue in analyze_participant_affiliations(
+            agents_by_name=self._s.agents, entity_names=flat_entity_names, is_unresolved=self._is_unresolved_var
+        ).issues:
+            self._err(issue.message)
         service_names = {service.name for node in self._s.nodes.values() for service in node.services if service.name}
         for name, agent in self._s.agents.items():
-            self._verify_agent(name, agent, flat_entity_names, service_names)
+            self._verify_agent(name, agent, service_names)
         for issue in analyze_participant_interactive_access(
             agents_by_name=self._s.agents,
             nodes=self._s.nodes,
@@ -295,10 +301,8 @@ class _ContentObjectivesMixin:
         ):
             self._err(issue.message)
 
-    def _verify_agent(self, name: str, agent: object, flat_entity_names: set[str], service_names: set[str]) -> None:
+    def _verify_agent(self, name: str, agent: object, service_names: set[str]) -> None:
         label = f"Agent '{name}'"
-        if agent.entity and not self._is_unresolved_var(agent.entity) and agent.entity not in flat_entity_names:
-            self._err(f"{label} references undefined entity '{agent.entity}'")
         self._verify_membership_refs(
             agent.starting_accounts,
             self._s.accounts,
@@ -397,11 +401,7 @@ class _ContentObjectivesMixin:
         entities = flatten_entities(self._s.entities)
         roles: dict[str, str] = {}
         for agent_name, agent in self._s.agents.items():
-            if self._is_unresolved_var(agent.entity):
-                roles[agent_name] = agent.entity
-                continue
-            entity = entities.get(agent.entity)
-            role = getattr(entity, "role", None)
+            role = agent.effective_role(entities)
             if role is None:
                 continue
             roles[agent_name] = str(getattr(role, "value", role))
@@ -448,16 +448,12 @@ class _ContentObjectivesMixin:
             self._err(self._format_participant_outcome_issue(issue))
 
     def _verify_objectives(self) -> None:
-        # Declarative-objective semantics — actor binding, target resolution,
-        # success interpretation, windows, and dependency ordering (SEM-207).
-        # The name-level reference graph, ordering/refresh-role model, and
-        # fail-closed issue set live in ``raes.semantics.objective_semantics``;
-        # this pass renders the machine-readable issues it reports as authoring
-        # errors.
+        # The shared analyzer owns relations and dependency semantics (SEM-207).
         analysis = analyze_objective_semantics(
             objectives_by_name=self._s.objectives,
             agents_by_name=self._s.agents,
             entity_names=self._all_entity_names(),
+            action_contracts=self._s.action_contracts,
             assessment_resources=AssessmentResourceCatalog(
                 assertions=self._s.assertions,
             ),

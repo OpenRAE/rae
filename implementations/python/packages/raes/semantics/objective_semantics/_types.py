@@ -17,7 +17,9 @@ from ..objectives import (
 class ObjectiveReferenceKind(str, Enum):
     """Kinds of cross-resource reference an objective carries."""
 
-    ACTOR = "actor"
+    OWNER = "owner"
+    ASSIGNMENT = "assignment"
+    ACTION_CONSTRAINT = "action_constraint"
     TARGET = "target"
     SUCCESS = "success"
     WINDOW = "window"

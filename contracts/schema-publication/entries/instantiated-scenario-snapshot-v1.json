@@ -1,9 +1,9 @@
 {
-  "content_hash": "e8c74a28838f7f3a9fc40ec37f2c476fc6e035873ee21e628b78850c51889763",
+  "content_hash": "737174c57c27fc621999586b64d5373ded43309d60ae44873ee327856180f30f",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "e8c74a28838f7f3a9fc40ec37f2c476fc6e035873ee21e628b78850c51889763",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "content_hash": "737174c57c27fc621999586b64d5373ded43309d60ae44873ee327856180f30f",
+    "summary": "Separate optional participant affiliation and effective role from objective ownership and explicit assignment; remove legacy actor fields with an explicit source migration reader (#1338)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

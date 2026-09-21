@@ -1,0 +1,28 @@
+name: semantic-resolved-objective
+nodes:
+  vm:
+    type: compute
+    os: linux
+    resources: {ram: 1 gib, cpu: 1}
+propositions:
+  ready:
+    description: The governed node has declared ready state.
+    subjects: [nodes.vm]
+    basis: declared_state
+    predicate:
+      kind: boolean
+      property: ready
+      semantic_ref: urn:aces:declared-property:ready
+      operator: equals
+      expected: true
+assertions:
+  ready:
+    proposition: ready
+    role: postcondition
+    polarity: positive
+entities:
+  blue: {role: blue}
+objectives:
+  goal:
+    owner: blue
+    success: {assertions: [ready]}

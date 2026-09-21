@@ -1,9 +1,9 @@
 {
-  "content_hash": "e24dde11b57c1a3fa90ea62c2d9620b4fbcfaa913bf699698d609510a5b4f6a0",
+  "content_hash": "1cb732005bbcd0a0549e2efc9969d554daa3254ed6b2679d956c032423a65e49",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "e24dde11b57c1a3fa90ea62c2d9620b4fbcfaa913bf699698d609510a5b4f6a0",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "content_hash": "1cb732005bbcd0a0549e2efc9969d554daa3254ed6b2679d956c032423a65e49",
+    "summary": "Separate optional participant affiliation and effective role from objective ownership and explicit assignment; remove legacy actor fields with an explicit source migration reader (#1338)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

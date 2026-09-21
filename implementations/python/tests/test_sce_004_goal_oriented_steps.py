@@ -128,7 +128,7 @@ def test_tool_affordance_constraint_must_resolve() -> None:
           restored: {proposition: restored, role: postcondition, polarity: positive}
         objectives:
           restore-service:
-            entity: operator
+            owner: operator
             success: {assertions: [restored]}
         workflows:
           response:
@@ -196,7 +196,7 @@ def _governed_goal_scenario() -> str:
               restored: {proposition: restored, role: postcondition, polarity: positive}
             objectives:
               restore-service:
-                entity: operator
+                owner: operator
                 targets: [entities.operator]
                 success: {assertions: [restored]}
             workflows:

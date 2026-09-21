@@ -125,6 +125,12 @@ _ANALYSIS_RULE_KEYS = {
     "immutability_policy",
 }
 _CORPUS_KEYS = {"corpus_id", "revision", "cases"}
+# Only these explicit successors may replace retained case inputs in corpus v4.
+# Historical releases continue to bind the original bytes and paths.
+PARTICIPANT_IDENTITY_FIXTURE_SUCCESSORS = {
+    f"docs/research/formal-semantic-validation/corpus/{name}.sdl.yaml": f"docs/research/formal-semantic-validation/corpus/{name}-participant-identity-v2.sdl.yaml"
+    for name in ("semantic-valid", "semantic-invalid-dangling-ref")
+}
 _CASE_KEYS = {
     "case_id",
     "claim_class_id",

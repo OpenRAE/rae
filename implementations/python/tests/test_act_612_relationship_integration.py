@@ -181,7 +181,7 @@ def test_endpoint_variable_is_checked_again_after_instantiation() -> None:
 def test_role_based_refinement_defers_variable_entity_until_instantiation() -> None:
     payload = _refined_payload()
     payload["variables"] = {"identity": {"type": "string", "default": "team-a", "allowed_values": ["team-a", "team-b"]}}
-    payload["agents"]["alice"]["entity"] = "${identity}"
+    payload["agents"]["alice"]["affiliations"] = ["${identity}"]
     behavior = payload["behavior_specifications"]["pair"]
     behavior["participant_refs"] = []
     behavior["participant_role_refs"] = ["red"]
@@ -227,7 +227,7 @@ def test_published_schema_enforces_participant_shape(mutation: str) -> None:
 
 def test_coordination_refinement_cannot_point_interaction_at_another_participant() -> None:
     payload = _refined_payload()
-    payload["agents"]["third"] = {"entity": "team-a", "actions": ["bob-action"]}
+    payload["agents"]["third"] = {"affiliations": ["team-a"], "actions": ["bob-action"]}
     payload["action_contracts"]["alice-action"]["interactions"][0]["target"] = "agents.third"
     with pytest.raises(SDLValidationError, match="coordination.*action interaction"):
         _parse(payload)
@@ -272,20 +272,20 @@ def test_objective_refinement_preserves_declared_intent_and_rejects_unrelated_ow
         }
     }
     payload["assertions"] = {"declared": {"proposition": "role-present", "role": "postcondition"}}
-    payload["objectives"] = {"work-goal": {"agent": "alice", "success": {"assertions": ["declared"]}}}
+    payload["objectives"] = {"work-goal": {"assigned_participant": "alice", "success": {"assertions": ["declared"]}}}
     payload["relationships"]["work"]["participant"]["objective_refs"] = ["objectives.work-goal"]
     model = compile_scenario_runtime_model(_parse(payload))
     assert model.relationship_specs["work"]["participant"]["objective_refs"] == ["objectives.work-goal"]
-    payload["agents"]["third"] = {"entity": "team-b"}
-    payload["objectives"]["work-goal"]["agent"] = "third"
+    payload["agents"]["third"] = {"affiliations": ["team-b"]}
+    payload["objectives"]["work-goal"]["assigned_participant"] = "third"
     with pytest.raises(SDLValidationError, match="objective_refs.*relationship endpoint"):
         _parse(payload)
 
 
-def test_objective_entity_refinement_defers_parameterized_participant_entity():
+def test_objective_assignment_refinement_revalidates_parameterized_assignment():
     payload = _payload("cooperation")
-    payload["variables"] = {"identity": {"type": "string", "default": "team-a", "allowed_values": ["team-a", "team-b"]}}
-    payload["agents"]["alice"]["entity"] = "${identity}"
+    payload["variables"] = {"assignee": {"type": "string", "default": "alice", "allowed_values": ["alice", "third"]}}
+    payload["agents"]["third"] = {"affiliations": ["team-a"]}
     payload["propositions"] = {
         "role-present": {
             "description": "The participant entity has a declared role.",
@@ -300,12 +300,14 @@ def test_objective_entity_refinement_defers_parameterized_participant_entity():
         }
     }
     payload["assertions"] = {"declared": {"proposition": "role-present", "role": "postcondition"}}
-    payload["objectives"] = {"work-goal": {"entity": "team-a", "success": {"assertions": ["declared"]}}}
+    payload["objectives"] = {
+        "work-goal": {"owner": "team-a", "assigned_participant": "${assignee}", "success": {"assertions": ["declared"]}}
+    }
     payload["relationships"]["work"]["participant"]["objective_refs"] = ["objectives.work-goal"]
     authored = _parse(payload)
     instantiate_scenario(authored)
     with pytest.raises(SDLInstantiationError, match="objective_refs.*relationship endpoint"):
-        instantiate_scenario(authored, parameters={"identity": "team-b"})
+        instantiate_scenario(authored, parameters={"assignee": "third"})
 
 
 def test_relationship_scope_cannot_widen_selected_control_policy():

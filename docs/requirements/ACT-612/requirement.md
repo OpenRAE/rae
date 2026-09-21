@@ -21,6 +21,8 @@ Requirement inventory expansion. Real exercises and agentic experiments require 
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1338_participant_identity.py` (Relationship objectives follow explicit endpoint assignment)
+
 - IMPLEMENTS → GITHUB_ISSUE `214`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/participant_relationships.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/relationships.py`

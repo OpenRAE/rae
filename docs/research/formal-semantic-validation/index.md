@@ -309,7 +309,7 @@ coordination. The bounded replay does not establish backend-native mixed
 realization, multi-controller coordination, information-flow control, or
 equivalence; the retained claim limits remain unchanged.
 
-Current release 40.0.0 is retained in
+Release 40.0.0 is retained in
 [`bundles/retest-v39.json`](bundles/retest-v39.json), binding
 [`execution-snapshot-v39.json`](execution-snapshot-v39.json) and
 [`analysis-v39.json`](analysis-v39.json) to issue #610's reconciliation
@@ -317,7 +317,18 @@ demonstration harness. Fresh replay retains prior outcomes and claim limits;
 planner reconciliation is verified by its dedicated processor and CLI tests,
 not this corpus.
 
-Current validation requires explicit release 40.0.0, rejects unsupported future
+Current release 41.0.0 is retained in
+[`bundles/retest-v40.json`](bundles/retest-v40.json), binding
+[`execution-snapshot-v40.json`](execution-snapshot-v40.json) and
+[`analysis-v40.json`](analysis-v40.json) to issue #1338's participant identity
+and objective assignment model. Corpus revision 4 uses explicit, separately
+versioned successors for the two objective fixtures. Their original bytes and
+all historical captures remain unchanged. Fresh replay preserves control
+outcomes and claim limits, recording the positive successor's changed result
+digest; the dangling-reference diagnostic remains identical.
+It establishes no autonomy threshold, authority grant, or realized attribution.
+
+Current validation requires explicit release 41.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
