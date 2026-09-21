@@ -17,6 +17,16 @@ The distinctions in this record are deliberate:
 
 No runtime foundation has been selected. Robotics and durable execution remain subjects of exploration. Interest in robotics did not end consideration of the other approaches.
 
+**Requirements-first sequence**
+
+The owner reports recurring agent misunderstanding despite existing ADRs, architectural documents, and diagrams, and inadequate definition and maintenance of canonical requirements. The next work follows this order:
+
+1. Determine the scope of requirements needed for this work.
+2. Define and reconcile those requirements, including how they are maintained.
+3. Only after that work is complete, consider changes to the language, processor, runtime, or other components.
+
+The [requirements-scoping note](requirements-scope.md) records a limited inspection of existing sources and proposes questions for establishing that scope. It is not an accepted requirements inventory. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
+
 **Purpose and scope clarified by the owner**
 
 RAE is for creating and controlling digital worlds for any purpose. This includes creating or recreating environments and governing behaviour within them. CTFs, scientific experiments, DevOps automation, workflow automation, in-world event injection and reaction, and disaster recovery are use cases discussed so far. They do not exhaust or define the product's purposes.
