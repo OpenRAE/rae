@@ -23,10 +23,7 @@ from raes_contracts.runtime_state import (
 )
 
 from .control_plane_admission import RuntimeAdmissionMixin
-from .control_plane_composition import (
-    require_crossing_policy_configuration,
-    require_final_sink_flow_control_configuration,
-)
+from .control_plane_composition import compose_participant_boundary
 from .control_plane_configuration import ControlPlaneConfiguration, ControlPlaneOptions
 from .control_plane_durability import RuntimeDurabilityMixin
 from .control_plane_execution import (
@@ -146,10 +143,7 @@ class RuntimeControlPlane(
         declaration, selected_store = _prepare_control_plane_store(config)
         self._profile_declaration = declaration
         self._initialize_runtime_lifecycle()
-        require_crossing_policy_configuration(target, config.crossing_policy_resolver)
-        require_final_sink_flow_control_configuration(
-            config.crossing_policy_resolver, config.enforce_final_sink_flow_control
-        )
+        self._flow_sink_resolver = compose_participant_boundary(target, config)
         self._target = target
         self._target_scope, self._run_scope = target_scope, config.run_scope
         self._mixed_runtime = config.mixed_runtime
@@ -195,6 +189,7 @@ class RuntimeControlPlane(
         self._behavior_specifications = dict(config.behavior_specifications or {})
         self._crossing_policy_resolver = config.crossing_policy_resolver
         self._information_state_context_resolver = config.information_state_context_resolver
+        self._participant_control = config.participant_control
         self._ephemeral_idempotency_fingerprints: dict[IdempotencyClaimIdentity, str] = {}
         self._participant_control_lock = SubordinateMutationGate(self._mutation_authority)
         self._trusted_runtime_plan_lock = RLock()

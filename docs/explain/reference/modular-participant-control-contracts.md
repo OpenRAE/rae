@@ -137,6 +137,124 @@ withheld. Validation does not prove atomic commit, crash recovery, exactly-once
 execution, current dispatch freshness, provider protection, learning outcomes,
 backend equivalence or noninterference.
 
+## Runtime orchestration (RUN-320)
+
+The reference runtime consumes these contracts; it does not extend them.
+`RuntimeControlPlane(participant_control=...)` binds one admitted
+`ParticipantControlSelectionModel` to exact operator-created provider
+instances and one trusted resolver
+(`raes_runtime.participant_control_binding`). Provider objects are passed in
+already constructed: no scenario field, import path, URL, environment value or
+method probe selects executable code, and the binding is refused unless the
+backend declares `participant_modular_control` support.
+
+At each governed sink — action ingress, control ingress and egress
+serialization — the runtime resolves the admitted request for that exact cut,
+checks it against the live crossing (participant, episode, direction,
+audience, controller, the occurrence's own subject, the committed crossing
+record's event identity and digest, policy revision and every expected history
+head), then invokes each selected provider
+once through `ParticipantControlProvider.resolve` behind the mutation
+authority's re-entry fence. Returned models are rebuilt from their portable
+projection. A provider exception, malformed return or absent slot becomes an
+explicit `failed`/`missing` result: a contributor is never dropped and a
+failure never permits. What a composition *admits* is decided once, by API-424,
+so a rejected proposal — from a conflict, stale cut, unsupported or weakened
+mechanism, or denial — is never promoted into a retained claim or a receipt
+binding by one index while another refuses it.
+
+Composition uses the contract owner's own
+`derive_control_composition`, so the runtime reproduces no blocker, conflict
+or disposition rule. The validated evaluation joins the crossing's atomic
+commit as an append-only `participant_control_evaluation_history` record
+before any backend call or participant disclosure; a non-eligible composition
+commits its refusal instead, with bounded `control_evaluation_id`,
+`control_selection_id` and `control_disposition` audit references.
+
+The admitted context must also carry what its causal root already consumed.
+The runtime folds the committed history for that run and trigger root and
+refuses a context that declares fewer retained claims, firing epochs, consumed
+effects or resolution attempts than the history proves — consumed effects as a
+watermark of what committed contexts declared and newly admitted, not merely a
+count of retained claims — so one root cannot
+re-spend an exhausted budget, re-admit a claimed key at a later cut, or be
+re-resolved without limit by declaring a fresh attempt each time. An
+evaluation spends an attempt whether or not it resolves an effect.
+
+Admitted effects are dispatched separately by
+`dispatch_participant_control_effects`, after the parent committed. An
+eligible composition dispatches its subsequent effects; a composition blocked
+only by required predecessors dispatches exactly those, leaving the parent
+withheld until it is reevaluated at a fresh cut. Within a phase the declared
+`predecessor_effect_ids` graph is the execution order — record order is
+serialization — and a dependent whose predecessor did not apply is withheld
+rather than run. Each effect is a new operation through the incumbent owner of
+its closed target kind: an inject through the governed participant-directed
+delivery crossing, a handoff through the RUN-310 controller transition. The
+owner input must be the effect the request names, not merely one in the same
+scope — the inject's result identity, cut and disclosure, and the handoff's
+declaration, expected state revision and completion obligation are all bound
+before submission. The owner's crossing evidence, which names the audience its
+crossing is decided for, is part of that resolver-supplied input and is bound
+to the admitted cut's audience; the caller that requests a drain supplies
+nothing the owner sees. An owner the resolver cannot supply, or one whose input
+does not bind, is reported `unsupported` with zero dispatch.
+
+Splitting dispatch from the commit does not change whose effect it is. An
+effect acts for the principal of the operation that admitted it — the record
+whose committed transition appended the evaluation, which the ADR-104 store
+already names as that transition's result history head. The drain caller is
+authorized before any committed state is read, exactly as every incumbent
+participant mutation is — an authenticated principal with a mutating role,
+bound to the target and the participant — and may request execution without
+becoming the principal: each effect is submitted to its owner as the originating principal,
+restricted to its bindings for this participant, so a principal can never
+cause an effect it could not perform itself, and an owner's refusal is a fixed
+property of that origin rather than of whoever drains. The principal's scopes
+are those recorded when its operation was admitted: the runtime holds no
+principal registry to re-resolve them, so revoking a principal afterwards does
+not withdraw an effect it already caused — the owner's own policy admission at
+the current cut is the check that still applies.
+
+Before any owner is invoked, the effect is claimed durably under a context that
+retains the originating actor, authorization scope, target and run and names
+that operation as parent. The claim is keyed by the logical effect key `(run,
+trigger root, rule id/revision, slot, firing epoch)` under the origin's actor,
+so every drain resolves the same claim and none can execute an effect twice —
+PC-11 allocates identity once per key, so a later evaluation that re-requests
+a key reports the first outcome and never claims it under another origin — and
+the store's replay validation binds it to the effect's content, so an
+unrelated record under that key is refused rather than read. The whole drain —
+scan, claims, submissions and records — runs under one held mutation. An
+outcome is read from the owner operation the claim submitted, resolved inside
+the owner's own claim scope so another actor's record under the derived key
+never answers: an accepted receipt is admission, not application, so a refused
+owner operation is `failed`. With no owner record, only the owner's own refusal
+of the request is an outcome of the effect; any other error propagates and
+leaves the claim open. Both owners claim write-ahead, so an open claim with no
+owner record is PC-11's durable proof that dispatch never began, and a later
+drain resumes it; anything that may have begun is never repeated. A known outcome is recorded in the same atomic commit that closes the
+claim, as a content-identified realization transition that never rewrites the
+committed evaluation. An uncertain outcome is not recorded: its claim stays
+open, startup recovery classifies it through the incumbent lifecycle, a later
+drain reads the owner record rather than repeating the action, and an
+uncertain prerequisite authorizes no dependent. A claim recovery has already
+terminalized is immutable, so once its owner's record proves the outcome it is
+appended under a record linked to that claim — which the store admits only
+after an operator has resolved the claim through the incumbent recovery
+lifecycle, so a drain never reports an outcome as recorded while that barrier
+stands. A withhold and an unsupported
+owner are likewise recomputed on each drain rather than recorded, so nothing
+that depends on the drain caller is ever persisted as an outcome. The history
+itself is runtime-owned: a backend result may carry it forward but never add,
+drop or edit a record, and the local store's schema 6 records the carrier
+explicitly, so a build that predates it refuses the store instead of rewriting
+it without its retained claims.
+
+The legacy SEM-233 final-sink path is retained but explicitly negotiated:
+`enforce_final_sink_flow_control` selects that adapter once at construction
+instead of discovering a resolver method per sink.
+
 ## Verification map
 
 All paths are repository-relative. These are bounded contract witnesses,
@@ -144,14 +262,14 @@ not runtime-delivery claims.
 
 - [x] API-424: closed, versioned portable selection and public provider protocol → `implementations/python/packages/raes_backend_protocols/protocols.py:33`.
 - [x] API-424: exact profile, mechanism, implementation, configuration, authority and evidence → `implementations/python/packages/raes_contracts/contracts/participant_control_selection.py:35`.
-- [x] API-424: exact apparatus, participant, crossing, policy/cut, history, provider state and causality → `implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py:162`.
+- [x] API-424: exact apparatus, participant, crossing, policy/cut, history, provider state and causality → `implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py:170`.
 - [x] API-424: typed results, all contributors and explicit resolution/composition/realization dispositions → `implementations/python/packages/raes_contracts/contracts/participant_control_results.py:81`.
 - [x] API-424: reuse incumbent carriers, distinguish declaration/installation/effects → `implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py:192`.
 - [x] API-407: unambiguous participant feature support distinct from general realization → `implementations/python/packages/raes_backend_protocols/participant_control_admission.py:12`.
 - [x] API-409: external proposal, approval/denial, direction, intervention, handoff, override and cancellation retain incumbent controller/order/policy/provenance/disposition → `implementations/python/packages/raes_contracts/contracts/participant_control_validation.py:27`.
 - [x] API-423: plain-data ingress/egress, transformation, disclosure, intervention and inject with bounded provenance, without duplicate transport → `implementations/python/packages/raes_contracts/contracts/participant_control_resolution.py:81`.
 - [x] SEM-235: revisioned composition, closed domains, joins, source/propagation/memory/release and world-boundary semantics retain their existing publication → `specs/formal/participant-semantics/modular-participant-control.md:16`.
-- [x] SEM-235: finite selections, mandatory/advisory roles, acyclic dependencies and absence/failure behavior → `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py:92`.
+- [x] SEM-235: finite selections, mandatory/advisory roles, acyclic dependencies and absence/failure behavior → `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py:40`.
 - [x] SEM-235: typed effects, fresh identity, exact causal scope and finite budgets → `implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py:120`.
 - [x] SEM-235: SEM-233 historical meaning retained through its owning validator → `implementations/python/tests/test_api_424_security_profile.py:92`.
 - [x] issue: closed schemas, matching publication and valid/invalid portable fixtures → `implementations/python/tests/test_api_424_publication.py:13`.
@@ -162,3 +280,17 @@ not runtime-delivery claims.
 - [x] issue: downgrade remains disclosed and non-eligible → `implementations/python/tests/test_api_424_composition_boundaries.py:67`.
 - [x] issue: stale cuts and dishonest capability contextual fixtures → `implementations/python/tests/test_api_424_publication.py:75`.
 - [x] issue: finite JSON ingress, including exponent-overflow rejection → `implementations/python/packages/raes_contracts/json_ingress.py:39`.
+- [x] RUN-320: admitted selection bound to exact operator-created providers, never discovered code → `implementations/python/packages/raes_runtime/participant_control_binding.py:59`.
+- [x] RUN-320: exact-cut resolution, protocol invocation, composition and commit before any effect → `implementations/python/packages/raes_runtime/participant_control_orchestration.py:76`.
+- [x] RUN-320: append-only evaluation history in the ADR-104 store, across both supported stores → `implementations/python/packages/raes_contracts/participant_control_evaluation_history.py:17`.
+- [x] RUN-320: schema 6 records the evaluation carrier; an older build refuses the store → `implementations/python/packages/raes_runtime/control_plane_store_record_migration.py:164`.
+- [x] RUN-320: governed effect dispatch through incumbent owners, idempotent on the logical key → `implementations/python/packages/raes_runtime/participant_control_effects.py:195`.
+- [x] RUN-320: the owner input is bound to the complete typed target before submission → `implementations/python/packages/raes_runtime/participant_control_effects.py:359`.
+- [x] RUN-320: durable per-root attempt consumption, not a per-request bound → `implementations/python/packages/raes_runtime/participant_control_causal_state.py:56`.
+- [x] RUN-320: the drain caller is authorized before any committed state is read → `implementations/python/packages/raes_runtime/participant_control_receipts.py:85`.
+- [x] RUN-320: an effect acts for, and is claimed under, the operation that admitted it → `implementations/python/packages/raes_runtime/participant_control_receipts.py:199`.
+- [x] RUN-320: the effect is submitted to its owner as the originating principal → `implementations/python/packages/raes_runtime/participant_control_receipts.py:140`.
+- [x] RUN-320: one held mutation spans the drain's scan, claims, submissions and records → `implementations/python/packages/raes_runtime/participant_control_effects.py:92`.
+- [x] RUN-320: a known outcome closes its claim and appends its realization in one commit → `implementations/python/packages/raes_runtime/participant_control_records.py:52`.
+- [x] SEM-235: one definition of what a composition admits serves every consumer → `implementations/python/packages/raes_contracts/contracts/participant_control_composition.py:363`.
+- [x] RUN-320: the implicit SEM-233 resolver hook is replaced by an explicitly selected adapter → `implementations/python/packages/raes_runtime/control_plane_composition.py:38`.

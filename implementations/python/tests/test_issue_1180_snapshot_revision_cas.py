@@ -28,6 +28,7 @@ from raes_runtime.control_plane_store import (
     SnapshotState,
 )
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
+from raes_runtime.control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION
 
 pytestmark = pytest.mark.control_plane_conformance
 
@@ -414,7 +415,9 @@ def test_local_store_migrates_v2_snapshot_to_revision_zero_without_payload_chang
         revision=0,
     )
     with sqlite3.connect(database_path) as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
+            LOCAL_OPERATION_SCHEMA_VERSION,
+        )
         assert connection.execute("SELECT payload FROM state WHERE key='runtime-snapshot'").fetchone() == (
             payload_before,
         )

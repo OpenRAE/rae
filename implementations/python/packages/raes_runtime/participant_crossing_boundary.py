@@ -27,6 +27,7 @@ from .participant_control_mediation import (
     prepare_participant_control_transition,
     record_participant_control,
 )
+from .participant_control_orchestration import admit_ingress_sinks
 from .participant_crossing_action import (
     ActionIngressExecution,
     action_operation_record,
@@ -54,8 +55,6 @@ from .participant_crossing_records import _expected_history_heads
 from .participant_flow_sink import (
     ParticipantFlowSinkDecision,
     apply_flow_sink_details,
-    early_crossing_receipt,
-    resolve_flow_sink_denial,
 )
 
 
@@ -157,18 +156,14 @@ class ParticipantCrossingControlIngressMixin:
                 idempotency_key=idempotency_key,
                 incumbent_carrier=intent,
             )
-            early = early_crossing_receipt(self, crossing)
-            if early is not None:
-                return early
-
-            sink_decision, sink_receipt = resolve_flow_sink_denial(
+            crossing, sink_decision, settled = admit_ingress_sinks(
                 self,
                 crossing,
                 sink_kind=ParticipantFlowSinkKind.PARTICIPANT_CROSSING,
                 action="record_participant_control",
             )
-            if sink_receipt is not None:
-                return sink_receipt
+            if settled is not None:
+                return settled
 
             governed_intent = _governed_control_intent(self, crossing, intent)
             governed_bound = bind_participant_control_request(
@@ -192,6 +187,9 @@ class ParticipantCrossingControlIngressMixin:
             next_snapshot = transition.next_snapshot.with_entries(
                 dict(transition.next_snapshot.entries),
                 participant_crossing_history=crossing.next_snapshot.participant_crossing_history,
+                # The admitted composition committed with this crossing; the
+                # supervisory transition carries it, never drops it.
+                participant_control_evaluation_history=(crossing.next_snapshot.participant_control_evaluation_history),
             )
             record = replace(
                 transition.record,
@@ -290,17 +288,14 @@ def _prepare_action_effect(
         idempotency_key=execution.idempotency_key,
         incumbent_carrier=request,
     )
-    early = early_crossing_receipt(control_plane, crossing)
-    sink_decision = None
-    if early is None:
-        sink_decision, early = resolve_flow_sink_denial(
-            control_plane,
-            crossing,
-            sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
-            action="record_participant_crossing",
-        )
-    if early is not None:
-        return _PreparedActionEffect(crossing=crossing, early_receipt=early)
+    crossing, sink_decision, settled = admit_ingress_sinks(
+        control_plane,
+        crossing,
+        sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT,
+        action="record_participant_crossing",
+    )
+    if settled is not None:
+        return _PreparedActionEffect(crossing=crossing, early_receipt=settled)
     governed = _governed_action_request(control_plane, crossing, request)
     _require_action_binding(behavior, governed)
     _require_governed_subject(crossing, _action_subject(control_plane, governed))

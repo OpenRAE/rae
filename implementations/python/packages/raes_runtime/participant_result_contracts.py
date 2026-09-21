@@ -19,6 +19,9 @@ from raes_contracts.participant_concurrency import (
     iter_participant_concurrency_snapshot_violations,
     iter_participant_concurrency_transition_violations,
 )
+from raes_contracts.participant_control_evaluation_history import (
+    iter_participant_control_evaluation_transition_violations,
+)
 from raes_contracts.participant_control_history import (
     iter_participant_control_history_snapshot_violations,
     iter_participant_control_history_transition_violations,
@@ -208,6 +211,13 @@ def participant_runtime_history_transition_diagnostics(
             for address, message in iter_participant_crossing_history_transition_violations(
                 previous_snapshot.participant_crossing_history,
                 next_snapshot.participant_crossing_history,
+            )
+        ]
+        + [
+            _failure_diagnostic("runtime.backend-contract-invalid", address, message)
+            for address, message in iter_participant_control_evaluation_transition_violations(
+                previous_snapshot.participant_control_evaluation_history,
+                next_snapshot.participant_control_evaluation_history,
             )
         ]
         + [

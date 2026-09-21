@@ -77,12 +77,19 @@ def require_unique(values: Sequence[Hashable], label: str = "participant control
 
 
 class ControlSubjectReferenceModel(ParticipantCrossingSubjectReferenceModel):
-    """Frozen specialization of the incumbent crossing subject coordinate."""
+    """Frozen specialization of the incumbent crossing subject coordinate.
+
+    The incumbent requires a revision *or* a digest, and a live runtime subject
+    is frequently digest-only. Narrowing ``subject_revision`` to mandatory would
+    make the crossing occurrence this context names inexpressible, so the
+    specialization bounds the coordinate without adding a requirement the owner
+    does not impose.
+    """
 
     model_config = ConfigDict(frozen=True)
     contract_id: ControlRef
     subject_ref: ControlRef
-    subject_revision: ControlRef
+    subject_revision: ControlRef | None = None
     participant_address: ControlRef
     episode_id: ControlRef
 

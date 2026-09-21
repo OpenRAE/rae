@@ -62,3 +62,7 @@ Current admission, retrieval, lifecycle, and persistence surfaces do not yet for
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_opacity_enforcement.py` (RUN-319 participant-opacity crossing enforcement)
 - TESTS → TEST `implementations/python/tests/test_issue_964_participant_opacity_runtime.py` (Issue 964 RUN-319 opacity mediation boundary tests)
 - IMPLEMENTS → GITHUB_ISSUE `964` (Enforce declared participant-opacity profiles in the reference runtime)
+- IMPLEMENTS → GITHUB_ISSUE `1069` (Modular participant control composed inside the incumbent crossing boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_state_cut.py` (Shared state-cut head rendering for both final-sink owners)
+- TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_orchestration.py` (Zero backend call and zero disclosure for every non-eligible composition)
+- TESTS → TEST `implementations/python/tests/participant_crossing_fixtures.py` (Crossing fixtures binding a modular participant-control configuration)

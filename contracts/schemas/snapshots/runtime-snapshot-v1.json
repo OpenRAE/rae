@@ -13361,6 +13361,17 @@
       "title": "Participant Behavior History",
       "type": "object"
     },
+    "participant_control_evaluation_history": {
+      "additionalProperties": {
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "title": "Participant Control Evaluation History",
+      "type": "object"
+    },
     "participant_control_history": {
       "additionalProperties": {
         "items": {

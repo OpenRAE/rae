@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from graphlib import CycleError, TopologicalSorter
 from typing import TYPE_CHECKING
 
@@ -17,7 +17,8 @@ from .participant_control_effects import ControlEffectRequestModel, ControlEffec
 from .participant_control_selection import ControlCausalBoundsModel
 
 if TYPE_CHECKING:
-    from .participant_control_composition import ParticipantControlEvaluationModel
+    from .participant_control_composition import ParticipantControlRequestModel
+    from .participant_control_results import ControlMechanismResultModel, ControlRealizationBindingModel
 
 
 def _effect_subject(target: ControlEffectTarget) -> str:
@@ -157,9 +158,14 @@ def _validate_effect_bounds(
         raise ValueError("effect requests exceed causal budget")
 
 
-def validate_control_effect_composition(document: ParticipantControlEvaluationModel) -> set[str]:
-    effects = {r.payload for r in document.results if isinstance(r.payload, ControlEffectRequestModel)}
-    context = document.request.context
+def control_effect_blockers(
+    request: ParticipantControlRequestModel,
+    results: Sequence[ControlMechanismResultModel],
+    realizations: Sequence[ControlRealizationBindingModel],
+) -> set[str]:
+    """Order-independent effect blockers for a composed or proposed evaluation."""
+    effects = {r.payload for r in results if isinstance(r.payload, ControlEffectRequestModel)}
+    context = request.context
     blockers = set()
     by_id, by_key = defaultdict(set), defaultdict(set)
     for effect in effects:
@@ -173,14 +179,14 @@ def validate_control_effect_composition(document: ParticipantControlEvaluationMo
         blockers.add("effect-conflict")
     ancestors = _effect_ancestors(by_id)
     new_keys = _retained_claims(effects, context, blockers)
-    _validate_effect_bounds(effects, new_keys, context, document.request.selection.bounds)
+    _validate_effect_bounds(effects, new_keys, context, request.selection.bounds)
     # Pairwise checks are symmetric; this ordering does not grant precedence.
     variants = tuple(effects)
     for index, left in enumerate(variants):
         for right in variants[index + 1 :]:
             if _effect_pair_conflicts(left, right, ancestors, context):
                 blockers.add("effect-conflict")
-    require_unique(tuple(r.effect_id for r in document.realizations))
-    if any(r.effect_id not in by_id for r in document.realizations):
+    require_unique(tuple(r.effect_id for r in realizations))
+    if any(r.effect_id not in by_id for r in realizations):
         raise ValueError("realization references an absent requested effect")
     return blockers

@@ -1,9 +1,9 @@
 {
-  "content_hash": "3fdeff245371bf060ad37cb415603d4ffac826b8afff9aeb9a73d4d667479979",
+  "content_hash": "1fcb3bfb7e23cbf9b05b07b46538520d59fb11c0817c28496d73dcbee1947561",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
-    "content_hash": "3fdeff245371bf060ad37cb415603d4ffac826b8afff9aeb9a73d4d667479979"
+    "summary": "Persist participant-local outcome reports for ACT-618 (#218) alongside append-only participant-control evaluation history (#1069).",
+    "content_hash": "1fcb3bfb7e23cbf9b05b07b46538520d59fb11c0817c28496d73dcbee1947561"
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

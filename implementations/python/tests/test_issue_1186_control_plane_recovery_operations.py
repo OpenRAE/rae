@@ -46,6 +46,7 @@ from raes_runtime.control_plane_store_maintenance import (
     LocalStoreMaintenanceOperation,
     maintain_local_control_plane_store,
 )
+from raes_runtime.control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION
 from typer.testing import CliRunner
 
 pytestmark = pytest.mark.control_plane_conformance
@@ -443,7 +444,9 @@ def test_restore_migrates_a_working_copy_without_mutating_the_supplied_backup(tm
 
     assert backup.read_bytes() == predecessor_bytes
     with sqlite3.connect(restored / "control-plane.sqlite3") as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
+            LOCAL_OPERATION_SCHEMA_VERSION,
+        )
 
 
 def test_failed_restore_keeps_the_backup_and_destination_authoritative(tmp_path: Path) -> None:
@@ -909,7 +912,9 @@ def test_valid_schema_v4_audit_history_advances_to_v5(tmp_path: Path) -> None:
     reopened.close()
 
     with sqlite3.connect(database) as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
+            LOCAL_OPERATION_SCHEMA_VERSION,
+        )
 
 
 def test_api_audits_use_immutable_target_scope_instead_of_request_paths() -> None:
