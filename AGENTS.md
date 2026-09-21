@@ -1,6 +1,8 @@
 # RAES SDL Agent Rules
 
-Use the repo policy tooling before and after implementation work.
+Follow `/implement`'s proportionate local verification: run targeted tests and
+checks for the changed behavior. CI owns repository-wide verification,
+completion, and policy suites.
 
 ## Ground Control Context
 
