@@ -7,7 +7,7 @@ Branch: `1348-runtime-architecture-exploration`.
 
 **Status and purpose of this record**
 
-This work supports requirements development through dialogue with the project owner. A [working PRD](prd.md) now records the understanding reached so far and will expand to other areas over time. This exploration record supplies context and links to the initial research. No refactor architecture, backend protocol, or implementation plan has been selected.
+This work diagnoses conceptual problems and their affected dependencies. The owner has replaced PRD development with a precise diagnostic review, on the working premise that conceptual problems can be corrected while retaining the language. The [working diagnosis](diagnosis.md) records source findings, owner clarifications, and unresolved points. This exploration record supplies context and links to the research. No refactor architecture, backend protocol, or implementation plan has been selected.
 
 The distinctions in this record are deliberate:
 
@@ -17,23 +17,25 @@ The distinctions in this record are deliberate:
 
 No runtime foundation has been selected. Robotics and durable execution remain subjects of exploration. Interest in robotics did not end consideration of the other approaches.
 
-**Requirements-first sequence**
+**Current diagnostic scope**
 
-The owner reports recurring agent misunderstanding despite existing ADRs, architectural documents, and diagrams, and inadequate definition and maintenance of canonical requirements. The next work follows this order:
+The owner reports conceptual problems despite existing ADRs, architectural documents, and diagrams, and concerns about canonical requirements. The current task is to diagnose the problems before deciding how changes should be made through the language, processor, runtime, and other components:
 
-1. Determine the scope of requirements needed for this work.
-2. Define and reconcile those requirements, including how they are maintained.
-3. Only after that work is complete, consider changes to the language, processor, runtime, or other components.
+1. Recover intended semantics and lineage, including applicable external language-design sources and sound existing SDL concepts.
+2. Distinguish conceptual defects, implementation violations, incomplete execution connections, and errors in the audit's own interpretation.
+3. Trace dependencies to establish the affected scope. Discuss unclear conceptual points with the owner before resolving them.
 
-The owner has withdrawn parity as the objective and scope criterion. The overriding concerns are **clarity, consistency, language-design quality, and long-term implications**. Requirements work starts with the topics currently under discussion and will expand over time. It is not an assessment of the entire requirements catalogue.
+The owner has withdrawn parity as the objective and scope criterion. The overriding concerns are **clarity, consistency, language-design quality, and long-term implications**. The current discussion concerns environments with optional participant declarations, interaction interfaces, and externally triggered injects. The broader diagnosis remains in progress.
 
-The current focus is the language design of areas affected by conceptual problems identified in the audit. The investigation must determine whether those designs can be corrected, whether whole areas require replacement, or whether the problems extend into shared SDL foundations. Its scope follows the conceptual dependencies; neither point fixes nor a ground-up rebuild are a predetermined outcome. Existing settled semantics must be read before asking further requirements questions.
+Existing settled semantics must be read before asking questions. When owner feedback is needed, ask and end the turn; do not continue research or move to another topic while awaiting an answer.
 
-The [requirements-scoping note](requirements-scope.md) maps the affected areas and records a limited inspection of existing sources. The [working PRD](prd.md) records owner answers and open questions. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
+The earlier [requirements-scoping note](requirements-scope.md) and [PRD draft](prd.md) are retained as historical discussion records. Their process framing is superseded by the working diagnosis. Existing architecture and prior research remain inputs to understanding rather than substitutes for the author's intended semantics.
 
 **Purpose and scope clarified by the owner**
 
 RAE is for creating and controlling digital worlds for any purpose. This includes creating or recreating environments and governing behaviour within them. CTFs, scientific experiments, DevOps automation, workflow automation, in-world event injection and reaction, and disaster recovery are use cases discussed so far. They do not exhaust or define the product's purposes.
+
+SDL expresses and implements author intent without arbitrary authoring obligations. An environment may declare access arrangements and entry points without declaring participants or specifying its future users. Participant-related information is needed only where the authored semantics require it. The owner identifies APTL/TechVault as an example and views a researcher reaching into the world as a possible source of an inject. The [focused diagnosis](diagnosis.md) records these clarifications and checks the existing general and participant-specific paths separately.
 
 RAE's runtime is the shared product runtime that drives LilRAE, BigRAE, and other backends through execution. This role contributes to backend agnosticism. It is a product component alongside SDL and the processor, and may be the only runtime implementation built. It is not merely a reference implementation. The discussion does not establish a separate scenario runtime for each backend.
 

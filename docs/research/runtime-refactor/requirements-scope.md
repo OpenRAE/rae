@@ -5,6 +5,8 @@ Context: [owner clarifications and exploration status](README.md).
 
 **Status**
 
+Historical scoping record. The owner subsequently replaced requirements/PRD development with diagnosis, assuming conceptual problems can be corrected while retaining the language. The [working diagnosis](diagnosis.md) supersedes the process framing below and records the current investigation. The source inspection and initial affected-area map remain inputs to that work.
+
 The owner directed requirements scoping first, requirements work second, and consideration of language, processor, runtime, or other changes only afterward. The owner also identified recurring agent confusion and inadequate definition and maintenance of canonical requirements.
 
 The owner has withdrawn the earlier parity-based scope. The overriding concerns are **clarity, consistency, language-design quality, and long-term implications**. The dialogue now develops a [working PRD](prd.md), focused on current concerns and expanded to other areas over time.

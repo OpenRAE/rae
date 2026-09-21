@@ -1,12 +1,12 @@
-**RAE product requirements — working draft**
+**RAE product requirements — historical draft**
 
 Started: 2026-09-21. Tracking: [issue 1348](https://github.com/OpenRAE/rae/issues/1348).
 
-**Status and method**
+**Superseded process**
 
-This PRD is being developed through dialogue with the project owner. It begins with the topics currently under discussion and will expand to other areas over time. The process is to identify questions, ask the owner, clarify the answers, and record them. The document will be reevaluated and consolidated afterward.
+The owner subsequently rejected the PRD as the instrument for this work and directed diagnosis of the problems and their affected dependencies. The working premise is that conceptual problems can be corrected while retaining the language. The [working diagnosis](diagnosis.md) carries subsequent clarification and investigation. This document retains the earlier dialogue; it is not an active PRD or an adopted requirements baseline.
 
-The statements below record understanding reached so far. Unanswered questions remain open. This draft does not select an architecture, framework, language construct, or backend protocol. Requirements work precedes consideration of changes to the language, processor, runtime, or other components.
+The statements below record the preceding discussion stage. They do not select an architecture, framework, language construct, or backend protocol. Implementation changes remain deferred until the problems and affected scope are better understood.
 
 **Overriding concerns**
 
