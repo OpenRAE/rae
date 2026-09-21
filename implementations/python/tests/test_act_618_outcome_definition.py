@@ -49,8 +49,9 @@ def test_local_definition_compiles_without_downstream_result() -> None:
 def test_local_criteria_require_declared_source_and_effect(field: str, value: str) -> None:
     payload = local_scenario()
     payload["outcome_interpretation_rules"]["scan-evidence-objective"]["local_outcome"]["criteria"][0][field] = value
+    source = yaml.safe_dump(payload)
     with pytest.raises((SDLParseError, SDLValidationError)):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)
 
 
 def test_legacy_rule_still_requires_downstream_target() -> None:

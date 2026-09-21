@@ -273,19 +273,7 @@ def _rewrite_behavior_sections(
     for rule in payload.get("outcome_interpretation_rules", {}).values():
         if isinstance(rule, dict):
             _rewrite_outcome_rule(rule, symbols)
-    for action in payload.get("action_contracts", {}).values():
-        if not isinstance(action, dict):
-            continue
-        for interaction in action.get("interactions", []):
-            if not isinstance(interaction, dict):
-                continue
-            interaction["target"] = _maybe_rename(interaction["target"], symbols["named"])
-            interaction["related_actions"] = [
-                _maybe_rename(ref, symbols["action_contracts"]) for ref in interaction.get("related_actions", [])
-            ]
-            interaction["shared_state_refs"] = [
-                _maybe_rename(ref, symbols["named"]) for ref in interaction.get("shared_state_refs", [])
-            ]
+    _rewrite_action_interactions(payload.get("action_contracts", {}), symbols)
     for behavior_spec in payload.get("behavior_specifications", {}).values():
         if isinstance(behavior_spec, dict):
             _rewrite_behavior_specification(behavior_spec, symbols)
@@ -308,7 +296,27 @@ def _rewrite_outcome_rule(rule: dict[str, Any], symbols: dict[str, dict[str, str
             section = sections.get(binding.get(layer_field))
             if section is not None:
                 binding["ref"] = _maybe_rename(binding["ref"], symbols[section])
-            for refs in ("evidence_refs", "provenance_refs"):
-                if refs in binding:
-                    binding[refs] = [_maybe_rename(ref, symbols["named"]) for ref in binding[refs]]
+            _rewrite_binding_evidence_refs(binding, symbols)
     rule["evidence_refs"] = [_maybe_rename(ref, symbols["named"]) for ref in rule.get("evidence_refs", [])]
+
+
+def _rewrite_action_interactions(actions: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for action in actions.values():
+        if not isinstance(action, dict):
+            continue
+        for interaction in action.get("interactions", []):
+            if not isinstance(interaction, dict):
+                continue
+            interaction["target"] = _maybe_rename(interaction["target"], symbols["named"])
+            interaction["related_actions"] = [
+                _maybe_rename(ref, symbols["action_contracts"]) for ref in interaction.get("related_actions", [])
+            ]
+            interaction["shared_state_refs"] = [
+                _maybe_rename(ref, symbols["named"]) for ref in interaction.get("shared_state_refs", [])
+            ]
+
+
+def _rewrite_binding_evidence_refs(binding: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for refs in ("evidence_refs", "provenance_refs"):
+        if refs in binding:
+            binding[refs] = [_maybe_rename(ref, symbols["named"]) for ref in binding[refs]]

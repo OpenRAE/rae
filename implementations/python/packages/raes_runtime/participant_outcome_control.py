@@ -1,12 +1,16 @@
 """Authorized, revision-bound ACT-618 report production on the existing store."""
 
+from __future__ import annotations
+
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from pydantic import Field, StrictInt
-from raes_contracts.contracts.base import ContractModel, NonEmptyString
+from raes_contracts.contracts.participant_outcomes import ParticipantOutcomeReportV2Model
+from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
+from raes_processor.models import ParticipantBehaviorRuntime, ParticipantOutcomeInterpretationRuleRuntime, RuntimeModel
 
 from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
@@ -16,24 +20,15 @@ from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord, SnapshotRevisionConflict
 from .control_plane_store_history import participant_history_head
 from .participant_control_mediation import _require_participant_binding
-from .participant_outcome_state import produce_participant_outcome
+from .participant_outcome_state import ParticipantOutcomeUpdateRequest, produce_participant_outcome
+
+if TYPE_CHECKING:
+    from .control_plane import RuntimeControlPlane
 
 
-class ParticipantOutcomeUpdateRequest(ContractModel):
-    """An operator requests interpretation of an exact already-recorded state cut."""
-
-    participant_address: NonEmptyString
-    episode_id: NonEmptyString
-    outcome_id: NonEmptyString
-    event_id: NonEmptyString
-    rule_address: NonEmptyString
-    expected_revision: StrictInt = Field(ge=0)
-    expected_snapshot_revision: StrictInt = Field(ge=0)
-    excluded_observation_refs: list[NonEmptyString] = Field(default_factory=list)
-    correction_basis: NonEmptyString | None = None
-
-
-def _authorized_outcome_request(control_plane, request, identity):
+def _authorized_outcome_request(
+    control_plane: RuntimeControlPlane, request: ParticipantOutcomeUpdateRequest, identity: ControlPlaneIdentity
+) -> ParticipantOutcomeInterpretationRuleRuntime:
     if not isinstance(identity, ControlPlaneIdentity) or ControlPlaneRole.OPERATOR not in identity.roles:
         raise PermissionError("participant outcome updates require an authenticated operator")
     if identity.target_name is not None and identity.target_name != control_plane.target_name:
@@ -46,20 +41,16 @@ def _authorized_outcome_request(control_plane, request, identity):
     rule = model.outcome_interpretation_rules.get(request.rule_address)
     if participant is None or rule is None:
         raise ValueError("participant outcome participant or rule binding is invalid")
-    role = model.entity_specs.get(participant.entity_name, {}).get("role")
-    if not any(
-        rule.address in specification.outcome_interpretation_rule_addresses
-        and (participant.address in specification.participant_addresses or role in specification.participant_role_refs)
-        for specification in model.behavior_specifications.values()
-    ):
-        raise ValueError("participant outcome behavior-specification binding is invalid")
-    for layer, ref in zip(rule.source_layers, rule.source_refs, strict=True):
-        if layer == "participant_action_outcome" and ref not in participant.action_contract_addresses:
-            raise ValueError("participant outcome rule action binding is invalid")
+    _require_declared_rule(model, participant, rule)
     return rule
 
 
-def _outcome_operation(request, report, identity, context):
+def _outcome_operation(
+    request: ParticipantOutcomeUpdateRequest,
+    report: ParticipantOutcomeReportV2Model,
+    identity: ControlPlaneIdentity,
+    context: OperationAdmissionContext,
+) -> tuple[ControlPlaneOperationRecord, AuditEvent]:
     operation_id = str(uuid4())
     receipt = OperationReceipt(
         operation_id=operation_id,
@@ -100,7 +91,9 @@ class ParticipantOutcomeControlMixin:
 
     @runtime_owned
     @mutation_entry(OperationKind.PARTICIPANT_CONTROL)
-    def record_participant_outcome(self, request: ParticipantOutcomeUpdateRequest, *, identity: ControlPlaneIdentity):
+    def record_participant_outcome(
+        self, request: ParticipantOutcomeUpdateRequest, *, identity: ControlPlaneIdentity
+    ) -> OperationReceipt:
         if not isinstance(request, ParticipantOutcomeUpdateRequest):
             raise ValueError("participant outcome update requires a typed request")
         # Revalidate model_copy/model_construct carriers at the mutation boundary.
@@ -130,7 +123,7 @@ class ParticipantOutcomeControlMixin:
             report = produce_participant_outcome(
                 self._snapshot,
                 rule,
-                **request.model_dump(exclude={"rule_address", "expected_snapshot_revision"}),
+                request,
                 timestamp=_utc_now(),
                 actor_ref=identity.identity,
                 authorization_scope="role:operator",
@@ -154,3 +147,18 @@ class ParticipantOutcomeControlMixin:
                 audit_event=audit,
             )
             return record.receipt
+
+
+def _require_declared_rule(
+    model: RuntimeModel, participant: ParticipantBehaviorRuntime, rule: ParticipantOutcomeInterpretationRuleRuntime
+) -> None:
+    role = model.entity_specs.get(participant.entity_name, {}).get("role")
+    if not any(
+        rule.address in specification.outcome_interpretation_rule_addresses
+        and (participant.address in specification.participant_addresses or role in specification.participant_role_refs)
+        for specification in model.behavior_specifications.values()
+    ):
+        raise ValueError("participant outcome behavior-specification binding is invalid")
+    for layer, ref in zip(rule.source_layers, rule.source_refs, strict=True):
+        if layer == "participant_action_outcome" and ref not in participant.action_contract_addresses:
+            raise ValueError("participant outcome rule action binding is invalid")

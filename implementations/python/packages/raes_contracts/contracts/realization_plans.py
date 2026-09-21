@@ -480,13 +480,9 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
         for participant_address, records in self.information_state_history.items():
             if any(record.participant_address != participant_address for record in records):
                 raise ValueError("Information-state history map key must equal embedded participant_address")
-        from ..participant_outcome_history import require_outcome_history
+        from ..participant_outcome_history import require_outcome_envelope
 
-        outcome_fields = {"participant_outcome_history", "participant_behavior_history"}
-        outcome_payload = self.model_dump(mode="json", include=outcome_fields)
-        require_outcome_history(
-            outcome_payload["participant_outcome_history"], outcome_payload["participant_behavior_history"]
-        )
+        require_outcome_envelope(self)
         validate_execution_service_budget_projection(
             self.participant_execution_services,
             self.participant_resource_budget_states,

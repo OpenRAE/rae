@@ -46,7 +46,7 @@ def snapshot(*, effect_class="evidence_effect", effects=True):
 
 
 def produce(state, **kwargs):
-    from raes_runtime.participant_outcome_state import produce_participant_outcome
+    from raes_runtime.participant_outcome_state import ParticipantOutcomeUpdateRequest, produce_participant_outcome
 
     fields = dict(
         participant_address=PARTICIPANT_ADDRESS,
@@ -54,11 +54,17 @@ def produce(state, **kwargs):
         outcome_id="local-task",
         event_id="report-1",
         expected_revision=0,
+        rule_address=RULE_ADDRESS,
+        expected_snapshot_revision=0,
+    )
+    return produce_participant_outcome(
+        state,
+        rule(),
+        ParticipantOutcomeUpdateRequest(**(fields | kwargs)),
         timestamp=T0,
         actor_ref="operator",
         authorization_scope="runtime:control",
     )
-    return produce_participant_outcome(state, rule(), **(fields | kwargs))
 
 
 def test_actual_effect_produces_local_attainment_without_downstream_result():
@@ -141,8 +147,9 @@ def test_current_projection_becomes_absent_on_reset_and_preserves_history():
 
 
 def test_stale_predecessor_cannot_overwrite_current_report():
+    state = recorded_snapshot()
     with pytest.raises(ValueError, match="stale"):
-        produce(recorded_snapshot())
+        produce(state)
 
 
 def test_new_observation_cut_makes_previous_report_stale():
@@ -212,7 +219,7 @@ def test_mutated_snapshot_report_is_rejected_at_backend_boundary():
 
 
 def test_partial_attainment_is_separate_from_unknown_knowledge():
-    from raes_runtime.participant_outcome_state import produce_participant_outcome
+    from raes_runtime.participant_outcome_state import ParticipantOutcomeUpdateRequest, produce_participant_outcome
 
     scenario = local_scenario()
     definition = scenario["outcome_interpretation_rules"]["scan-evidence-objective"]["local_outcome"]
@@ -223,11 +230,15 @@ def test_partial_attainment_is_separate_from_unknown_knowledge():
     report = produce_participant_outcome(
         snapshot(),
         compiled,
-        participant_address=PARTICIPANT_ADDRESS,
-        episode_id=EPISODE_ID,
-        outcome_id="local-task",
-        event_id="report-1",
-        expected_revision=0,
+        ParticipantOutcomeUpdateRequest(
+            participant_address=PARTICIPANT_ADDRESS,
+            episode_id=EPISODE_ID,
+            outcome_id="local-task",
+            event_id="report-1",
+            expected_revision=0,
+            rule_address=RULE_ADDRESS,
+            expected_snapshot_revision=0,
+        ),
         timestamp=T0,
         actor_ref="operator",
         authorization_scope="role:operator",

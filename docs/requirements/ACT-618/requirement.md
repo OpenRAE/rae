@@ -58,3 +58,6 @@ Requirement inventory expansion. Participant behavior needs explicit local outco
 - TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py`
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/analysis-v41.json`
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v41.json`
+- IMPLEMENTS → CODE `implementations/python/packages/raes/validator/_participant_outcome_renderers.py`
+- DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/analysis-v42.json`
+- DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v42.json`

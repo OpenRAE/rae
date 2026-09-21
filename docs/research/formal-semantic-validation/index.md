@@ -325,7 +325,7 @@ participant-control runtime orchestration. Replay retains the prior outcomes
 and claim limits; participant-control orchestration is verified by its own
 runtime tests, not by this language corpus.
 
-Current validation requires explicit release 42.0.0, rejects unsupported future
+Current validation requires explicit release 43.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -417,9 +417,14 @@ delegation, cooperation, competition, or supervision.
 
 ## Participant-local outcome source replay
 
-Current release 42.0.0 records issue #218 in
+Release 42.0.0 records issue #218 in
 [`execution-snapshot-v41.json`](execution-snapshot-v41.json) and
 [`analysis-v41.json`](analysis-v41.json). The retained controls are replayed
 against the participant-local outcome implementation. Prior outcomes and claim
 limits remain unchanged; ACT-618 behavior is verified by its dedicated runtime
 tests. Earlier captures retain their original bytes.
+
+Current release 43.0.0 records the outcome implementation after maintainability
+refactoring in [`execution-snapshot-v42.json`](execution-snapshot-v42.json) and
+[`analysis-v42.json`](analysis-v42.json). Fresh replay retains the same bounded
+outcomes and claim limits; it does not add a new semantic claim.

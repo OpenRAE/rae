@@ -54,6 +54,10 @@ class ParticipantOutcomeReportV2Model(ParticipantRuntimeBaseEnvelopeModel):
             raise ValueError("conflicting or withheld evidence cannot establish attainment")
         if (self.revision == 1) != (self.predecessor_event_ref is None):
             raise ValueError("outcome revision requires the exact predecessor")
+        self._require_correction_shape()
+        return self
+
+    def _require_correction_shape(self) -> None:
         refs = [ref.observation_point for ref in self.observation_refs]
         if len(set(refs)) != len(refs) or len(set(self.excluded_observation_refs)) != len(
             self.excluded_observation_refs
@@ -63,7 +67,6 @@ class ParticipantOutcomeReportV2Model(ParticipantRuntimeBaseEnvelopeModel):
             raise ValueError("outcome correction references must resolve in its history cut")
         if self.excluded_observation_refs and self.correction_basis is None:
             raise ValueError("outcome corrections require an explicit basis")
-        return self
 
 
 def decode_participant_outcome_report(

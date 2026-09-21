@@ -5,14 +5,14 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 from raes.participant_local_outcome import OutcomeAttainment, OutcomeKnowledge
 from raes.participant_outcome_semantics import OutcomeInterpretationRule
 
 from .addressing import render_compiled_address
 from .canonical import canonical_json_digest
 from .contracts.participant_outcomes import ParticipantOutcomeObservationRefModel, ParticipantOutcomeReportV2Model
-from .contracts.participant_runtime import ParticipantBehaviorHistoryEventModel
+from .contracts.participant_runtime import ParticipantActionEffectResultModel, ParticipantBehaviorHistoryEventModel
 
 if TYPE_CHECKING:
     from .runtime_state import RuntimeSnapshot
@@ -52,20 +52,10 @@ def outcome_observations(
             raise ValueError("outcome observation participant binding is invalid")
         if raw.get("episode_id") != episode_id or raw.get("event_type") != "observation_emitted":
             continue
-        try:
-            event = ParticipantBehaviorHistoryEventModel.model_validate(raw)
-        except (ValueError, TypeError):
-            raise ValueError("outcome observation contract is invalid") from None
+        event = _bound_outcome_observation(raw, participant_address, episode_id)
         action = event.action_result
         if action is None:
             continue
-        if (
-            action.participant_address,
-            action.episode_id,
-            action.action_instance_id,
-            action.action_contract_address,
-        ) != (participant_address, episode_id, event.action_instance_id, event.action_contract_address):
-            raise ValueError("outcome observation action binding is invalid")
         if action.observation_point in seen:
             raise ValueError("outcome observation identity is duplicated")
         seen.add(action.observation_point)
@@ -82,6 +72,79 @@ def outcome_observations(
     return observations
 
 
+def _bound_outcome_observation(
+    raw: Mapping[str, Any], participant: str, episode: str
+) -> ParticipantBehaviorHistoryEventModel:
+    try:
+        event = ParticipantBehaviorHistoryEventModel.model_validate(raw)
+    except (ValueError, TypeError):
+        raise ValueError("outcome observation contract is invalid") from None
+    action = event.action_result
+    if action is not None and (
+        action.participant_address,
+        action.episode_id,
+        action.action_instance_id,
+        action.action_contract_address,
+    ) != (participant, episode, event.action_instance_id, event.action_contract_address):
+        raise ValueError("outcome observation action binding is invalid")
+    return event
+
+
+def _criterion_evidence(
+    action_ref: str,
+    evidence_refs: set[str],
+    effect_id: str,
+    observations: OutcomeObservations,
+    excluded: set[str],
+) -> tuple[set[bool], set[str], bool]:
+    values: set[bool] = set()
+    evidence: set[str] = set()
+    withheld = False
+    for event, ref in observations:
+        action = event.action_result
+        if ref.observation_point in excluded or action.action_contract_address != action_ref:
+            continue
+        if action.status == "withheld":
+            withheld = True
+            continue
+        observed, refs = _effect_evidence(action.effects, effect_id, evidence_refs)
+        values.update(observed)
+        evidence.update(refs)
+    return values, evidence, withheld
+
+
+def _effect_evidence(
+    effects: Sequence[ParticipantActionEffectResultModel], effect_id: str, admitted: set[str]
+) -> tuple[set[bool], set[str]]:
+    values: set[bool] = set()
+    evidence: set[str] = set()
+    for effect in effects:
+        if effect.effect_id != effect_id:
+            continue
+        refs = set(effect.evidence_refs) & admitted
+        if refs and effect.effect_class != "unknown_effect":
+            evidence.update(refs)
+            values.add(effect.effect_class != "no_effect")
+    return values, evidence
+
+
+def _attainment_projection(values: list[set[bool]], withheld: bool) -> tuple[OutcomeAttainment, OutcomeKnowledge]:
+    if any(len(value) > 1 for value in values):
+        return "undetermined", "conflicting"
+    if withheld:
+        return "undetermined", "withheld"
+    positive = sum(value == {True} for value in values)
+    known = sum(bool(value) for value in values)
+    knowledge: OutcomeKnowledge = "supported" if known == len(values) else "unknown"
+    if positive == len(values):
+        return "attained", knowledge
+    if positive:
+        return "partial", knowledge
+    if known == len(values):
+        return "not_attained", knowledge
+    return "undetermined", knowledge
+
+
 def outcome_projection(
     rule: OutcomeInterpretationRule,
     observations: OutcomeObservations,
@@ -93,46 +156,21 @@ def outcome_projection(
         raise ValueError("outcome rule has no local definition")
     sources = {source.source_id: source for source in rule.source_bindings}
     values = []
-    evidence = set()
+    evidence: set[str] = set()
     withheld = False
     for criterion in local.criteria:
         source = sources[criterion.source_id]
-        outcomes = set()
-        for event, ref in observations:
-            action = event.action_result
-            if ref.observation_point in excluded or action.action_contract_address != render_compiled_address(
-                "participant", "action-contract", source.ref
-            ):
-                continue
-            if action.status == "withheld":
-                withheld = True
-                continue
-            for effect in action.effects:
-                if effect.effect_id != criterion.effect_id:
-                    continue
-                refs = set(effect.evidence_refs) & set(source.evidence_refs)
-                if not refs or effect.effect_class == "unknown_effect":
-                    continue
-                evidence.update(refs)
-                outcomes.add(effect.effect_class != "no_effect")
-        values.append(outcomes)
-    if any(len(value) > 1 for value in values):
-        attainment, knowledge = "undetermined", "conflicting"
-    elif withheld:
-        attainment, knowledge = "undetermined", "withheld"
-    else:
-        positive = sum(value == {True} for value in values)
-        known = sum(bool(value) for value in values)
-        knowledge = "supported" if known == len(values) else "unknown"
-        attainment = (
-            "attained"
-            if positive == len(values)
-            else "partial"
-            if positive
-            else "not_attained"
-            if known == len(values)
-            else "undetermined"
+        observed, refs, hidden = _criterion_evidence(
+            render_compiled_address("participant", "action-contract", source.ref),
+            set(source.evidence_refs),
+            criterion.effect_id,
+            observations,
+            excluded,
         )
+        values.append(observed)
+        evidence.update(refs)
+        withheld = withheld or hidden
+    attainment, knowledge = _attainment_projection(values, withheld)
     return attainment, knowledge, sorted(evidence)
 
 
@@ -156,20 +194,7 @@ def require_outcome_history(history: OutcomeHistory, behavior_history: OutcomeHi
             key = (report.episode_id, report.outcome_id)
             previous = heads.get(key)
             require_outcome_predecessor(report, previous)
-            events = behavior_history.get(participant, [])[: report.behavior_history_length]
-            if (
-                len(events) != report.behavior_history_length
-                or outcome_history_digest(events) != report.behavior_history_digest
-            ):
-                raise ValueError("outcome history observation cut is invalid")
-            if canonical_json_digest(report.rule_spec.model_dump(mode="json")) != report.rule_digest:
-                raise ValueError("outcome history rule digest is invalid")
-            observations = outcome_observations(events, participant, report.episode_id)
-            if [ref for _, ref in observations] != report.observation_refs:
-                raise ValueError("outcome history observation references are invalid")
-            projected = outcome_projection(report.rule_spec, observations, set(report.excluded_observation_refs))
-            if projected != (report.attainment, report.knowledge, report.evidence_refs):
-                raise ValueError("outcome history state disagrees with evidence")
+            _require_report_replay(report, behavior_history.get(participant, []))
             heads[key] = report
 
 
@@ -214,3 +239,27 @@ def iter_outcome_transition_violations(
         require_outcome_history_transition(previous, following)
     except (TypeError, ValueError):
         yield "runtime.snapshot.participant-outcome-history", "Participant outcome history must remain append-only."
+
+
+def _require_report_replay(report: ParticipantOutcomeReportV2Model, history: Sequence[Mapping[str, Any]]) -> None:
+    events = history[: report.behavior_history_length]
+    if (
+        len(events) != report.behavior_history_length
+        or outcome_history_digest(events) != report.behavior_history_digest
+    ):
+        raise ValueError("outcome history observation cut is invalid")
+    if canonical_json_digest(report.rule_spec.model_dump(mode="json")) != report.rule_digest:
+        raise ValueError("outcome history rule digest is invalid")
+    observations = outcome_observations(events, report.participant_address, report.episode_id)
+    if [ref for _, ref in observations] != report.observation_refs:
+        raise ValueError("outcome history observation references are invalid")
+    projected = outcome_projection(report.rule_spec, observations, set(report.excluded_observation_refs))
+    if projected != (report.attainment, report.knowledge, report.evidence_refs):
+        raise ValueError("outcome history state disagrees with evidence")
+
+
+def require_outcome_envelope(envelope: BaseModel) -> None:
+    """Normalize wire model defaults once before deterministic history replay."""
+    fields = {"participant_outcome_history", "participant_behavior_history"}
+    payload = envelope.model_dump(mode="json", include=fields)
+    require_outcome_history(payload["participant_outcome_history"], payload["participant_behavior_history"])

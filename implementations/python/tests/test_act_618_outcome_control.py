@@ -65,8 +65,9 @@ def test_control_plane_commits_report_and_audit_atomically_and_retries_once():
 )
 def test_outcome_write_requires_operator_target_and_participant_authority(principal):
     with control_plane() as runtime:
+        update = request()
         with pytest.raises(PermissionError):
-            runtime.record_participant_outcome(request(), identity=principal)
+            runtime.record_participant_outcome(update, identity=principal)
         assert runtime.snapshot.participant_outcome_history == {}
 
 
@@ -74,15 +75,17 @@ def test_changed_retry_is_rejected():
     with control_plane() as runtime:
         runtime.record_participant_outcome(request(), identity=identity())
         changed = request().model_copy(update={"outcome_id": "different"})
+        principal = identity()
         with pytest.raises(ValueError, match="retry"):
-            runtime.record_participant_outcome(changed, identity=identity())
+            runtime.record_participant_outcome(changed, identity=principal)
 
 
 def test_stale_snapshot_revision_cannot_commit():
     with control_plane() as runtime:
         changed = request().model_copy(update={"expected_snapshot_revision": 9})
+        principal = identity()
         with pytest.raises(ValueError, match="revision"):
-            runtime.record_participant_outcome(changed, identity=identity())
+            runtime.record_participant_outcome(changed, identity=principal)
         assert runtime.snapshot.participant_outcome_history == {}
 
 
@@ -125,18 +128,19 @@ def test_failed_store_commit_never_publishes_outcome_state(monkeypatch):
             raise OSError("simulated store failure")
 
         monkeypatch.setattr(store, "commit_participant_transition", fail)
+        update, principal = request(), identity()
         with pytest.raises(OSError):
-            runtime.record_participant_outcome(request(), identity=identity())
+            runtime.record_participant_outcome(update, identity=principal)
         assert store.load_snapshot().participant_outcome_history == {}
         assert not any(event.action == "record_participant_outcome" for event in store.read_audit())
 
 
 def test_wrong_rule_binding_cannot_add_a_report():
     with control_plane() as runtime:
+        update = request().model_copy(update={"rule_address": "private:unknown"})
+        principal = identity()
         with pytest.raises(ValueError, match="binding"):
-            runtime.record_participant_outcome(
-                request().model_copy(update={"rule_address": "private:unknown"}), identity=identity()
-            )
+            runtime.record_participant_outcome(update, identity=principal)
         assert runtime.snapshot.participant_outcome_history == {}
 
 
@@ -181,8 +185,9 @@ def test_declared_rule_requires_applicable_behavior_specification(binding):
     with RuntimeControlPlane(
         create_stub_target(), participant_outcome_model=model, initial_snapshot=snapshot()
     ) as runtime:
+        update, principal = request(), identity()
         with pytest.raises(ValueError, match="binding"):
-            runtime.record_participant_outcome(request(), identity=identity())
+            runtime.record_participant_outcome(update, identity=principal)
         assert runtime.snapshot.participant_outcome_history == {}
 
 

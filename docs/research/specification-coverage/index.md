@@ -284,7 +284,7 @@ participant-control runtime orchestration to the current source state. The
 preregistered concept matrix, classifications and missing-concept denominator
 remain unchanged; runtime orchestration is evidenced by its own tests.
 
-Current validation requires release 41.0.0 and rejects duplicate or unsupported
+Current validation requires release 42.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -356,9 +356,14 @@ three untested carrier slots.
 
 ## Participant-local outcome source replay
 
-Current release 41.0.0 records issue #218 in
+Release 41.0.0 records issue #218 in
 [`execution-snapshot-v41.json`](execution-snapshot-v41.json) and
 [`analysis-v41.json`](analysis-v41.json). The retained controls are replayed
 against the participant-local outcome implementation. Prior outcomes and claim
 limits remain unchanged; ACT-618 behavior is verified by its dedicated runtime
 tests. Earlier captures retain their original bytes.
+
+Current release 42.0.0 records the outcome implementation after maintainability
+refactoring in [`execution-snapshot-v42.json`](execution-snapshot-v42.json) and
+[`analysis-v42.json`](analysis-v42.json). Fresh replay retains the same bounded
+outcomes and claim limits; it does not add a new semantic claim.
