@@ -11,6 +11,11 @@ from tools.formal_semantic_validation._baseline import _validate_baseline_drift
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._corpus import _validate_corpus
 from tools.formal_semantic_validation._protocol import _validate_protocol
+from tools.formal_semantic_validation._release_revisions import (
+    _HISTORICAL_RETEST_REVISIONS,
+    _SOURCE_BOUND_RETEST_REVISIONS,
+    _SUPPORTED_RETEST_REVISIONS,
+)
 from tools.formal_semantic_validation._retest import (
     _RetestScope,
     _validate_retest_snapshot,
@@ -215,54 +220,6 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                     )
                 )
     return failures
-
-
-_HISTORICAL_RETEST_REVISIONS = frozenset(
-    {
-        "3.0.0",
-        "4.0.0",
-        "5.0.0",
-        "6.0.0",
-        "7.0.0",
-        "8.0.0",
-        "9.0.0",
-        "10.0.0",
-        "11.0.0",
-        "12.0.0",
-        "13.0.0",
-        "14.0.0",
-        "15.0.0",
-        "16.0.0",
-        "17.0.0",
-        "18.0.0",
-        "19.0.0",
-        "20.0.0",
-        "21.0.0",
-        "22.0.0",
-        "23.0.0",
-        "24.0.0",
-        "25.0.0",
-        "26.0.0",
-        "27.0.0",
-        "28.0.0",
-        "29.0.0",
-        "30.0.0",
-        "31.0.0",
-        "32.0.0",
-        "33.0.0",
-        "34.0.0",
-        "35.0.0",
-        "36.0.0",
-        "37.0.0",
-        "38.0.0",
-        "39.0.0",
-        "40.0.0",
-        "41.0.0",
-    }
-)
-
-_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"42.0.0"}
-_SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}
 
 
 def validate_retest_bundle(
