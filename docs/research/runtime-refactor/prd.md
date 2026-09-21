@@ -27,6 +27,10 @@ RAE is for creating and controlling digital worlds for any purpose. This include
 
 CTFs, experiments, DevOps automation, workflow automation, in-world event injection and reaction, and disaster recovery are use cases discussed so far. They do not exhaust the product's purposes.
 
+**Author intent and the world boundary**
+
+The researcher or author determines what constitutes the world for their use case and expresses that intent in SDL. This choice is exogenous to the language. The language exists to let them express intent, not restrict intent.
+
 **Product and backend boundaries established so far**
 
 | Topic | Recorded understanding |
@@ -41,7 +45,7 @@ These statements do not constitute a complete responsibility model or backend re
 
 **Conceptual distinctions requiring definition**
 
-The owner identified conflation of participants with researchers, authors, and auditors, and conflation of in-world and out-of-world concerns. These examples are not an exhaustive list. Definitions of those roles and boundaries, including whether and how roles can overlap, have not yet been established in this dialogue.
+The owner identified conflation of participants with researchers, authors, and auditors, and conflation of in-world and out-of-world concerns. These examples are not an exhaustive list. The author determines the world boundary through the intent expressed in SDL. A role model and associated permissions have not been defined in this dialogue.
 
 **Durability and author choice**
 
@@ -69,7 +73,11 @@ Owner answer: agents conflate participants with researchers, authors, and audito
 
 Disposition: record the named conceptual distinctions without treating agent behaviour as a system requirement or asking the owner to inventory misunderstandings. Continue with questions about RAE's concepts and required behaviour directly.
 
-Next question, unanswered: what determines whether an entity or activity is part of an authored world?
+Question: what determines whether an entity or activity is part of an authored world?
+
+Owner answer: the author wrote it in SDL. It is whatever the researcher or author wants it to be for their use case. That choice is exogenous to the language; the language exists to let them express intent, not restrict intent.
+
+Next question, unanswered: when an author lists services without stating whether the list is exhaustive, does that require those services to exist, require that only those services exist, or require further specification?
 
 **Supporting records**
 
