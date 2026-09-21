@@ -130,3 +130,32 @@ def test_aliased_objectives_keep_independent_author_decisions():
     assert result.succeeded
     assert result.output.objectives["goal"].assigned_participant == "one"
     assert result.output.objectives["second"].assigned_participant == "two"
+
+
+@pytest.mark.parametrize("section", ["agents", "objectives", "variation_points"])
+def test_invalid_relation_sections_refuse_before_decision_resolution(section):
+    payload = _legacy()
+    payload[section] = []
+    result = _migrate(payload)
+    assert result.output is None
+    assert result.report.diagnostics[0].code == "participant-migration.source-invalid"
+
+
+@pytest.mark.parametrize(
+    ("payload", "code"),
+    [([], "source-invalid"), ({"materialization_provenance": {}}, "source-unsupported")],
+)
+def test_unsupported_source_shapes_refuse_atomically(payload, code):
+    result = _migrate(payload)
+    assert result.output is None
+    assert result.report.target_digest is None
+    assert result.report.diagnostics[0].code == f"participant-migration.{code}"
+
+
+def test_missing_decision_diagnostic_uses_first_sorted_declaration_pointer():
+    payload = _legacy()
+    payload["objectives"]["earlier"] = dict(payload["objectives"]["goal"])
+    result = _migrate(payload)
+    assert result.output is None
+    assert result.report.diagnostics[0].code == "participant-migration.decision-required"
+    assert result.report.diagnostics[0].address == "/objectives/earlier"

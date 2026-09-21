@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import yaml
 from pydantic import Field
 from raes_contracts.canonical import canonical_json_digest
@@ -36,7 +38,7 @@ def _pointer(section: str, name: str) -> str:
     return f"/{section}/" + name.replace("~", "~0").replace("/", "~1")
 
 
-def _legacy_objectives(payload: dict) -> dict[str, dict]:
+def _legacy_objectives(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {
         _pointer("objectives", name): objective
         for name, objective in payload.get("objectives", {}).items()
@@ -44,7 +46,7 @@ def _legacy_objectives(payload: dict) -> dict[str, dict]:
     }
 
 
-def _migrate_agent(agent: dict) -> str | None:
+def _migrate_agent(agent: dict[str, Any]) -> str | None:
     if {"affiliations", "role"}.intersection(agent):
         return "conflicting-fields"
     if not isinstance(agent["entity"], str) or not agent["entity"]:
@@ -53,7 +55,7 @@ def _migrate_agent(agent: dict) -> str | None:
     return None
 
 
-def _migrate_objective(objective: dict, assignment: str | None) -> str | None:
+def _migrate_objective(objective: dict[str, Any], assignment: str | None) -> str | None:
     if {"owner", "assigned_participant"}.intersection(objective) or {"agent", "entity"}.issubset(objective):
         return "conflicting-fields"
     field = "agent" if "agent" in objective else "entity"
@@ -66,13 +68,17 @@ def _migrate_objective(objective: dict, assignment: str | None) -> str | None:
     return None
 
 
-def _migrate_relations(payload: dict, decisions: dict[str, str | None]) -> tuple[str | None, str]:
+def _detach_declarations(payload: dict[str, Any]) -> None:
     # YAML aliases share Python objects; decisions belong to declaration keys,
     # not to alias identity. Detach each mapping before changing relation fields.
     for section in ("agents", "objectives"):
         payload[section] = {
             name: dict(value) if isinstance(value, dict) else value for name, value in payload.get(section, {}).items()
         }
+
+
+def _migrate_relations(payload: dict[str, Any], decisions: dict[str, str | None]) -> tuple[str | None, str]:
+    _detach_declarations(payload)
     for name, agent in payload.get("agents", {}).items():
         if not isinstance(agent, dict) or "entity" not in agent:
             continue
@@ -88,7 +94,7 @@ def _migrate_relations(payload: dict, decisions: dict[str, str | None]) -> tuple
     return None, ""
 
 
-def _migrate_variation_slots(points: dict) -> None:
+def _migrate_variation_slots(points: dict[str, Any]) -> None:
     for point in points.values():
         if not isinstance(point, dict) or not isinstance(point.get("target"), dict):
             continue
@@ -99,7 +105,7 @@ def _migrate_variation_slots(points: dict) -> None:
             target["slot"] = "objectives.owner"
 
 
-def _unresolved_field(declaration: dict, fields: tuple[str, ...]) -> str | None:
+def _unresolved_field(declaration: dict[str, Any], fields: tuple[str, ...]) -> str | None:
     for field in fields:
         value = declaration.get(field)
         if any(is_variable_ref(item) for item in (value if isinstance(value, list) else [value])):
@@ -107,7 +113,7 @@ def _unresolved_field(declaration: dict, fields: tuple[str, ...]) -> str | None:
     return None
 
 
-def _unresolved_relation_pointer(payload: dict) -> str | None:
+def _unresolved_relation_pointer(payload: dict[str, Any]) -> str | None:
     for section, fields in (
         ("agents", ("affiliations", "role", "actions")),
         ("objectives", ("owner", "assigned_participant", "actions")),
@@ -118,25 +124,40 @@ def _unresolved_relation_pointer(payload: dict) -> str | None:
     return None
 
 
-def _adopt(payload: object, context: ParticipantIdentityMigrationContext | None, source_digest: str):
-    if not isinstance(payload, dict):
-        return None, "source-invalid", ""
+def _source_issue(payload: dict[str, Any]) -> tuple[str | None, str]:
     if payload.get("imports") or "materialization_provenance" in payload:
-        return None, "source-unsupported", "/imports" if payload.get("imports") else "/materialization_provenance"
+        return "source-unsupported", "/imports" if payload.get("imports") else "/materialization_provenance"
     if any(not isinstance(payload.get(section, {}), dict) for section in ("agents", "objectives", "variation_points")):
-        return None, "source-invalid", ""
+        return "source-invalid", ""
+    return None, ""
+
+
+def _decision_issue(
+    payload: dict[str, Any], context: ParticipantIdentityMigrationContext | None, source_digest: str
+) -> tuple[str | None, str]:
     if context is not None and context.source_digest != source_digest:
-        return None, "source-mismatch", "/context/source_digest"
+        return "source-mismatch", "/context/source_digest"
     decisions = context.entity_objectives if context else {}
     required = _legacy_objectives(payload)
     missing = required.keys() - decisions.keys()
     if missing:
-        return None, "decision-required", sorted(missing)[0]
-    if decisions.keys() - required.keys():
-        return None, "decision-mismatch", "/context/entity_objectives"
-    code, pointer = _migrate_relations(payload, decisions)
+        return "decision-required", min(missing)
+    code = "decision-mismatch" if decisions.keys() - required.keys() else None
+    return code, "/context/entity_objectives" if code else ""
+
+
+def _adopt(
+    payload: object, context: ParticipantIdentityMigrationContext | None, source_digest: str
+) -> tuple[dict[str, Any] | None, str | None, str]:
+    if not isinstance(payload, dict):
+        return None, "source-invalid", ""
+    code, pointer = _source_issue(payload)
+    if code is None:
+        code, pointer = _decision_issue(payload, context, source_digest)
+    if code is None:
+        code, pointer = _migrate_relations(payload, context.entity_objectives if context else {})
     if code is None and (unresolved_pointer := _unresolved_relation_pointer(payload)):
-        return None, "unresolved-reference", unresolved_pointer
+        code, pointer = "unresolved-reference", unresolved_pointer
     return payload if code is None else None, code, pointer
 
 

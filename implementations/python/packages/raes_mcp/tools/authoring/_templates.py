@@ -327,7 +327,10 @@ action_contracts:
     preconditions:
       - {precondition_id: authorized, precondition_class: authority, description: independently authorized action}
     effects:
-      - {effect_id: intent, effect_class: intended_effect, description: declared action intent, target_refs: [nodes.web-server]}
+      - effect_id: intent
+        effect_class: intended_effect
+        description: declared action intent
+        target_refs: [nodes.web-server]
     failure_classes: [authority_denied, unknown]
   exploit: *abstract-action
 

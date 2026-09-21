@@ -9,6 +9,7 @@ from ..entities import flatten_entities
 from ..semantics.objective_semantics import (
     AssessmentResourceCatalog,
     ObjectiveIssue,
+    ObjectiveRelationCatalog,
     WindowResourceCatalog,
     analyze_objective_semantics,
 )
@@ -451,9 +452,11 @@ class _ContentObjectivesMixin:
         # The shared analyzer owns relations and dependency semantics (SEM-207).
         analysis = analyze_objective_semantics(
             objectives_by_name=self._s.objectives,
-            agents_by_name=self._s.agents,
-            entity_names=self._all_entity_names(),
-            action_contracts=self._s.action_contracts,
+            relation_resources=ObjectiveRelationCatalog(
+                agents=self._s.agents,
+                entity_names=self._all_entity_names(),
+                action_contracts=self._s.action_contracts,
+            ),
             assessment_resources=AssessmentResourceCatalog(
                 assertions=self._s.assertions,
             ),

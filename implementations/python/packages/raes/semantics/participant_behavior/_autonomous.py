@@ -162,7 +162,7 @@ def _autonomous_non_evaluated_issues(
     return issues
 
 
-def _autonomous_declared_authority_issues(
+def _autonomous_objective_authority_issues(
     context: _AutonomousExecutionReferenceContext,
 ) -> list[ParticipantBehaviorIssue]:
     authority = context.policy.evaluation_authority
@@ -185,6 +185,14 @@ def _autonomous_declared_authority_issues(
                 issues.append(
                     _autonomous_issue(context, "participant.autonomous-objective-not-assigned", objective_ref)
                 )
+    return issues
+
+
+def _autonomous_declared_authority_issues(
+    context: _AutonomousExecutionReferenceContext,
+) -> list[ParticipantBehaviorIssue]:
+    authority = context.policy.evaluation_authority
+    issues = _autonomous_objective_authority_issues(context)
     unsupported_authority_refs = (
         ("proof_producer_refs", authority.proof_producer_refs),
         ("score_authority_refs", authority.score_authority_refs),

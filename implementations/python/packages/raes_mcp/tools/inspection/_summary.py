@@ -81,7 +81,8 @@ def _objective_lines(scenario: Scenario) -> list[str]:
     for obj_name, obj in scenario.objectives.items():
         deps = f" (depends: {', '.join(obj.depends_on)})" if obj.depends_on else ""
         lines.append(
-            f"  {obj_name}: owner={obj.owner or 'none'}, assigned_participant={obj.assigned_participant or 'none'}{deps}"
+            f"  {obj_name}: owner={obj.owner or 'none'}, "
+            f"assigned_participant={obj.assigned_participant or 'none'}{deps}"
         )
     return lines
 

@@ -19,6 +19,7 @@ from raes.semantics.objective_semantics import (
     OBJECTIVE_WINDOW_DEPENDENCY_ROLES,
     AssessmentResourceCatalog,
     ObjectiveReferenceKind,
+    ObjectiveRelationCatalog,
     WindowResourceCatalog,
     analyze_objective_semantics,
     partition_objective_dependencies,
@@ -454,9 +455,11 @@ def _analyze(objectives, **overrides):
     sections = {key: overrides.pop(key, default) for key, default in section_defaults.items()}
     kwargs: dict = {
         "objectives_by_name": objectives,
-        "agents_by_name": {},
-        "entity_names": set(),
-        "action_contracts": {"Scan": object(), "Persist": object()},
+        "relation_resources": ObjectiveRelationCatalog(
+            agents=overrides.pop("agents_by_name", {}),
+            entity_names=overrides.pop("entity_names", set()),
+            action_contracts=overrides.pop("action_contracts", {"Scan": object(), "Persist": object()}),
+        ),
         "assessment_resources": AssessmentResourceCatalog(
             assertions=sections["assertions_by_name"],
         ),

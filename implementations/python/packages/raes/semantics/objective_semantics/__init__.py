@@ -58,6 +58,7 @@ from ._types import (
     ObjectiveIssue,
     ObjectiveReference,
     ObjectiveReferenceKind,
+    ObjectiveRelationCatalog,
     ObjectiveResourceDependencies,
     ObjectiveSemanticAnalysis,
     WindowResourceCatalog,
@@ -99,9 +100,7 @@ def partition_objective_dependencies(
 def analyze_objective_semantics(
     *,
     objectives_by_name: Mapping[str, object],
-    agents_by_name: Mapping[str, object],
-    entity_names: Collection[str],
-    action_contracts: Mapping[str, object],
+    relation_resources: ObjectiveRelationCatalog,
     assessment_resources: AssessmentResourceCatalog,
     window_resources: WindowResourceCatalog,
     targetable_name_index: Mapping[str, Collection[str]],
@@ -109,8 +108,8 @@ def analyze_objective_semantics(
 ) -> ObjectiveSemanticAnalysis:
     """Resolve the objective reference graph and derive its shared semantics.
 
-    Inputs are the name-keyed objective and agent maps, the entity name set,
-    the bundled assessment-pipeline and timeline resource catalogs, and the
+    Inputs are the name-keyed objective map, bundled relation declarations,
+    assessment-pipeline and timeline resource catalogs, and the
     targetable named-reference index; ``is_unresolved`` (default: never) lets a
     caller skip references that are still ``${var}`` placeholders. Returns the
     normalized references, the per-objective ordering/refresh dependency names,
@@ -121,7 +120,7 @@ def analyze_objective_semantics(
     """
 
     unresolved = is_unresolved or _never_unresolved
-    entity_name_set = set(entity_names)
+    entity_name_set = set(relation_resources.entity_names)
     references: list[ObjectiveReference] = []
     issues: list[ObjectiveIssue] = []
     dependencies: list[ObjectiveResourceDependencies] = []
@@ -129,10 +128,10 @@ def analyze_objective_semantics(
 
     for objective_name, objective in objectives_by_name.items():
         relation_refs, relation_issues = _analyze_objective_relations(
-            objective_name, objective, agents_by_name, entity_name_set, unresolved
+            objective_name, objective, relation_resources.agents, entity_name_set, unresolved
         )
         action_refs, action_issues = _analyze_action_constraints(
-            objective_name, objective, action_contracts, unresolved
+            objective_name, objective, relation_resources.action_contracts, unresolved
         )
         target_refs, target_issues = _analyze_targets(objective_name, objective, targetable_name_index, unresolved)
         success_refs, success_issues, resolved_success = _analyze_success(
