@@ -1,9 +1,9 @@
 {
-  "content_hash": "dbb5733840b4d2adc9b0b565eff24f0c0314d2d6e3df9f0252e75793652bc3b5",
+  "content_hash": "8d375d90344a822aeaa126e5b66faaf6358c40462505dab4d8dcbe5c2c107343",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "dbb5733840b4d2adc9b0b565eff24f0c0314d2d6e3df9f0252e75793652bc3b5",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "content_hash": "8d375d90344a822aeaa126e5b66faaf6358c40462505dab4d8dcbe5c2c107343",
+    "summary": "Separate optional participant affiliation and effective role from objective ownership and explicit assignment; remove legacy actor fields with an explicit source migration reader (#1338)."
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

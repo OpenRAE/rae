@@ -710,7 +710,7 @@ class TestVerifyAgents:
     def test_undefined_entity(self):
         s = _make_scenario(
             nodes={"vm": {"type": "compute", "resources": {"ram": "1 gib", "cpu": 1}}},
-            agents={"a1": {"entity": "ghost-team", "actions": ["scan"]}},
+            agents={"a1": {"affiliations": ["ghost-team"], "actions": ["scan"]}},
         )
         errors = _validate(s)
         assert any("undefined entity" in e for e in errors)
@@ -719,7 +719,7 @@ class TestVerifyAgents:
         s = _make_scenario(
             nodes={"vm": {"type": "compute", "resources": {"ram": "1 gib", "cpu": 1}}},
             entities={"red": {"role": "red"}},
-            agents={"a1": {"entity": "red", "starting_accounts": ["ghost-acct"]}},
+            agents={"a1": {"affiliations": ["red"], "starting_accounts": ["ghost-acct"]}},
         )
         errors = _validate(s)
         assert any("not in accounts" in e for e in errors)
@@ -728,7 +728,7 @@ class TestVerifyAgents:
         s = _make_scenario(
             nodes={"vm": {"type": "compute", "resources": {"ram": "1 gib", "cpu": 1}}},
             entities={"red": {"role": "red"}},
-            agents={"a1": {"entity": "red", "allowed_subnets": ["ghost-net"]}},
+            agents={"a1": {"affiliations": ["red"], "allowed_subnets": ["ghost-net"]}},
         )
         errors = _validate(s)
         assert any("not in infrastructure" in e for e in errors)
@@ -739,7 +739,7 @@ class TestVerifyAgents:
             entities={"red": {"role": "red"}},
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "initial_knowledge": {"hosts": ["ghost-host"]},
                 }
             },
@@ -759,7 +759,7 @@ class TestVerifyAgents:
             entities={"red": {"role": "red"}},
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "initial_knowledge": {"services": ["ghost-service"]},
                 }
             },
@@ -774,7 +774,7 @@ class TestVerifyAgents:
             accounts={"known-user": {"username": "user", "node": "vm"}},
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "initial_knowledge": {"accounts": ["ghost-account"]},
                 }
             },
@@ -796,7 +796,7 @@ class TestVerifyAgents:
                 "vm": {"count": 1, "links": ["net"]},
             },
             entities={"red": {"role": "red"}},
-            agents={"a1": {"entity": "red", "allowed_subnets": ["vm"]}},
+            agents={"a1": {"affiliations": ["red"], "allowed_subnets": ["vm"]}},
         )
         errors = _validate(s)
         assert any("allowed_subnet 'vm' must reference a switch/network entry" in e for e in errors)
@@ -815,7 +815,7 @@ class TestVerifyAgents:
                 "vm": {"count": 1, "links": ["net"]},
             },
             entities={"red": {"role": "red"}},
-            agents={"a1": {"entity": "red", "initial_knowledge": {"subnets": ["vm"]}}},
+            agents={"a1": {"affiliations": ["red"], "initial_knowledge": {"subnets": ["vm"]}}},
         )
         errors = _validate(s)
         assert any("initial_knowledge subnet 'vm' must reference a switch/network entry" in e for e in errors)
@@ -830,7 +830,7 @@ class TestVerifyAgents:
                 }
             },
             entities={"red": {"role": "red"}},
-            agents={"a1": {"entity": "red", "initial_knowledge": {"hosts": ["net"]}}},
+            agents={"a1": {"affiliations": ["red"], "initial_knowledge": {"hosts": ["net"]}}},
         )
         errors = _validate(s)
         assert any("initial_knowledge host 'net' must reference a compute node" in e for e in errors)
@@ -850,7 +850,7 @@ class TestVerifyAgents:
             accounts={"hacker": {"username": "h4x", "node": "vm"}},
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "actions": ["scan", "exploit"],
                     "starting_accounts": ["hacker"],
                     "allowed_subnets": ["net"],
@@ -873,7 +873,7 @@ class TestAgentParticipantFraming:
     Verifies semantic validation for the three framing fields that don't
     already exist on Agent: ``starting_assertions``, ``authority_anchors``,
     ``operating_scope``. Identity and role are already covered by the
-    pre-existing ``Agent.entity`` and ``Entity.role`` bindings; the
+    participant declaration, affiliation, and effective-role bindings; the
     ``TestVerifyAgents`` cases above cover those.
     """
 
@@ -929,7 +929,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "starting_assertions": ["ghost-condition"],
                 },
             },
@@ -942,7 +942,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "starting_assertions": ["beacon-online"],
                 },
             },
@@ -957,7 +957,7 @@ class TestAgentParticipantFraming:
             **kwargs,
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "starting_assertions": ["${beacon_ref}"],
                 },
             },
@@ -970,7 +970,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "starting_assertions": ["assertions.beacon-online"],
                 },
             },
@@ -983,7 +983,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "starting_assertions": ["assertions.ghost"],
                 },
             },
@@ -996,7 +996,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "authority_anchors": ["ghost-anchor"],
                 },
             },
@@ -1011,7 +1011,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "authority_anchors": ["red"],
                 },
             },
@@ -1024,7 +1024,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "authority_anchors": ["red-controls-vm"],
                 },
             },
@@ -1039,7 +1039,7 @@ class TestAgentParticipantFraming:
             **kwargs,
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "authority_anchors": ["${authority_ref}"],
                 },
             },
@@ -1052,7 +1052,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["ghost-scope"],
                 },
             },
@@ -1067,7 +1067,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["net"],
                 },
             },
@@ -1082,7 +1082,7 @@ class TestAgentParticipantFraming:
             **kwargs,
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["flag"],
                 },
             },
@@ -1099,7 +1099,7 @@ class TestAgentParticipantFraming:
             **kwargs,
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["${scope_ref}"],
                 },
             },
@@ -1113,7 +1113,7 @@ class TestAgentParticipantFraming:
             accounts={"phished": {"username": "u", "node": "vm"}},
             agents={
                 "red-agent": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "starting_accounts": ["phished"],
                     "starting_assertions": ["beacon-online"],
                     "authority_anchors": ["red", "red-controls-vm"],
@@ -1132,7 +1132,7 @@ class TestAgentParticipantFraming:
             **kwargs,
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["ssh"],
                 },
             },
@@ -1153,7 +1153,7 @@ class TestAgentParticipantFraming:
             **kwargs,
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["docs", "playbook"],
                 },
             },
@@ -1166,7 +1166,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["beacon-online"],
                 },
             },
@@ -1181,7 +1181,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["red-controls-vm"],
                 },
             },
@@ -1198,7 +1198,7 @@ class TestAgentParticipantFraming:
             accounts={"phished": {"username": "u", "node": "vm"}},
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["phished"],
                 },
             },
@@ -1216,7 +1216,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["nodes.net"],
                 },
             },
@@ -1234,7 +1234,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["infrastructure.vm"],
                 },
             },
@@ -1249,7 +1249,7 @@ class TestAgentParticipantFraming:
             **self._base_scenario_kwargs(),
             agents={
                 "a1": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "operating_scope": ["nodes.vm", "infrastructure.net"],
                 },
             },
@@ -1278,7 +1278,7 @@ class TestVerifyObjectives:
             },
             "agents": {
                 "red-agent": {
-                    "entity": "red",
+                    "affiliations": ["red"],
                     "actions": ["Scan", "Exploit"],
                 },
             },
@@ -1323,7 +1323,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "ghost-agent",
+                    "assigned_participant": "ghost-agent",
                     "success": {"assertions": ["exercise-passed"]},
                 },
             },
@@ -1336,7 +1336,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "entity": "ghost-team",
+                    "owner": "ghost-team",
                     "success": {"assertions": ["exercise-passed"]},
                 },
             },
@@ -1349,7 +1349,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "actions": ["Persist"],
                     "success": {"assertions": ["exercise-passed"]},
                 },
@@ -1363,7 +1363,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "targets": ["ghost-target"],
                     "success": {"assertions": ["exercise-passed"]},
                 },
@@ -1379,7 +1379,7 @@ class TestVerifyObjectives:
             **kwargs,
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "targets": ["web"],
                     "success": {"assertions": ["exercise-passed"]},
                 },
@@ -1395,7 +1395,7 @@ class TestVerifyObjectives:
             **kwargs,
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "targets": ["nodes.web", "infrastructure.net"],
                     "success": {"assertions": ["exercise-passed"]},
                 },
@@ -1421,7 +1421,7 @@ class TestVerifyObjectives:
             **kwargs,
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "targets": [
                         "nodes.web.services.web-https",
                         "infrastructure.net.acls.allow-admin",
@@ -1445,7 +1445,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "success": {"assertions": ["ghost-condition"]},
                 },
             },
@@ -1460,7 +1460,7 @@ class TestVerifyObjectives:
             **kwargs,
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "success": {"assertions": ["exercise-passed"]},
                     "window": {
                         "scripts": ["main-timeline"],
@@ -1477,12 +1477,12 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "success": {"assertions": ["exercise-passed"]},
                     "depends_on": ["obj-2"],
                 },
                 "obj-2": {
-                    "entity": "blue",
+                    "owner": "blue",
                     "success": {"assertions": ["exercise-passed"]},
                     "depends_on": ["obj-1"],
                 },
@@ -1496,7 +1496,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "success": {"assertions": ["exercise-passed"]},
                     "depends_on": ["ghost-objective"],
                 },
@@ -1510,7 +1510,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "success": {"assertions": ["exercise-passed"]},
                     "window": {"steps": ["response.validate"]},
                 },
@@ -1524,7 +1524,7 @@ class TestVerifyObjectives:
             **self._base_kwargs(),
             objectives={
                 "obj-1": {
-                    "agent": "red-agent",
+                    "assigned_participant": "red-agent",
                     "success": {"assertions": ["exercise-passed"]},
                     "window": {
                         "workflows": ["response"],
@@ -1561,12 +1561,17 @@ class TestVerifyObjectives:
         assert any("is not part of the referenced workflows" in e for e in errors)
 
     def test_valid_objective(self):
+        from test_issue_1338_participant_identity import _action
+
+        base = self._base_kwargs()
+        base["agents"]["red-agent"]["actions"] = ["scan", "exploit"]
         s = _make_scenario(
-            **self._base_kwargs(),
+            **base,
+            action_contracts={"scan": _action(), "exploit": _action()},
             objectives={
                 "recon": {
-                    "agent": "red-agent",
-                    "actions": ["Scan"],
+                    "assigned_participant": "red-agent",
+                    "actions": ["scan"],
                     "targets": ["web"],
                     "success": {"assertions": ["exercise-passed"]},
                     "window": {
@@ -1576,7 +1581,7 @@ class TestVerifyObjectives:
                     },
                 },
                 "report": {
-                    "entity": "blue",
+                    "owner": "blue",
                     "success": {"assertions": ["exercise-passed"]},
                     "depends_on": ["recon"],
                 },
@@ -1616,11 +1621,11 @@ class TestVerifyWorkflows:
             },
             "objectives": {
                 "validate-release": {
-                    "entity": "blue",
+                    "owner": "blue",
                     "success": {"assertions": ["exercise-passed"]},
                 },
                 "rollback-edge": {
-                    "entity": "blue",
+                    "owner": "blue",
                     "success": {"assertions": ["exercise-passed"]},
                 },
             },
@@ -2648,7 +2653,7 @@ class TestVerifyVariables:
             },
             agents={
                 "a1": {
-                    "entity": "${entity_name}",
+                    "affiliations": ["${entity_name}"],
                     "starting_accounts": ["${account_name}"],
                     "allowed_subnets": ["${subnet_name}"],
                     "initial_knowledge": {
@@ -2661,7 +2666,7 @@ class TestVerifyVariables:
             },
             objectives={
                 "obj": {
-                    "agent": "a1",
+                    "assigned_participant": "a1",
                     "targets": ["${objective_target}"],
                     "success": {"assertions": ["check"]},
                 }

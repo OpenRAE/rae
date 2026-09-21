@@ -22,7 +22,7 @@ adrs:
         summary: "Replace native vulnerability and classification sections with generic external concept bindings, preserving native execution semantics, explicit migration, and ordinary participant disclosure."
   - id: ADR-002
     path: docs/decisions/adrs/adr-002-declarative-sdl-objectives.md
-    pin: 70db360e393dd0a02b0bed7aaa668a68ed6961eda0f9246905a536b9c6cba82c
+    pin: 9dc73c75d1977822b58b0ce98bf57f2caf7d4fa5c226427f6c4afd0fe9ad08a3
     amendments:
       - date: 2026-07-05
         ref: "#682"
@@ -30,6 +30,9 @@ adrs:
       - date: 2026-07-12
         ref: "#725"
         summary: "Per ADR-079, corrected the condition/proposition conflation: objective success composes assertions over typed propositions; conditions are probe realizations only."
+      - date: 2026-09-21
+        ref: "#1338"
+        summary: "Per ADR-109, separate organizational ownership and participant assignment, require declared action contracts, and retain realized-attribution boundaries."
   - id: ADR-003
     path: docs/decisions/adrs/adr-003-workflows-targetable-subobjects-and-enum-variables.md
     pin: 0039bea0de4e4d5d08ccf300a7fb7516a0ea01977f38f1e2e111409a13e108df
@@ -110,11 +113,14 @@ adrs:
         summary: "Removed changelog.d/ from the non-normative roots after release-please replaced the towncrier workflow (GOV-901)."
   - id: ADR-020
     path: docs/decisions/adrs/adr-020-declarative-participant-framing-boundaries.md
-    pin: 4a5d146fc0ffd6da97af94e9f2d257a893de0ab7f63c709339d27f33178609d0
+    pin: 37dd453a0c96fe454d5ee2a4a1b9a9e46171a8322d84105d34f42507deb7a8e2
     amendments:
       - date: 2026-06-13
         ref: "#484"
         summary: "Recorded acceptance of the implemented participant framing authoring surface."
+      - date: 2026-09-21
+        ref: "#1338"
+        summary: "Per ADR-109, separate declaration identity from optional affiliations and define direct-first, single-affiliation role resolution."
   - id: ADR-021
     path: docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md
     pin: 3e6053efd262abdbc37c8804bb066466b4c968dc647bfc605c16b563f6639642
@@ -608,3 +614,10 @@ adrs:
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
     pin: d734bb660e153dc6d97c1cbdc5d1079cc837d77d5874da84bd8e8d788c7edf80
+  - id: ADR-109
+    path: docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md
+    pin: 859172f6b8791577059a3215af639210e86267455c8a059f71168e621c0f9c61
+    amendments:
+      - date: 2026-09-21
+        ref: "#1338"
+        summary: "Editorial: use the explicit classification-waiver declaration required by the assurance policy gate."

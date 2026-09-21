@@ -1,6 +1,19 @@
 ledger: per-change-fm-classification
 policy_ref: specs/formal/assurance-policy.yaml
 entries:
+  - adr: ADR-109
+    surface: Participant identity, affiliation, and objective assignment
+    fm_level: FM2
+    delivered_artifacts:
+      - kind: invariant_list
+        path: specs/sdl/participant-identity.md
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_1338_participant_identity.py
+      - kind: typed_ir_or_contract_coverage
+        path: implementations/python/tests/test_issue_1338_participant_identity.py
+      - kind: property_based_or_differential_tests
+        path: implementations/python/tests/test_issue_1338_identity_stages.py
+    waived_artifacts: []
   - adr: ADR-023
     surface: Container image build provenance surface
     fm_level: FM1

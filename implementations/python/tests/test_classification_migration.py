@@ -457,7 +457,7 @@ nodes:
           routes: [{route_id: upload, path: /upload, methods: [GET]}]
 features: {service: {type: service}}
 entities: {team: {role: red, entities: {member: {role: red}}}}
-agents: {operator: {entity: team}}
+agents: {operator: {affiliations: [team]}}
 behavior_specifications: {behavior: {semantic_version: 1.0.0, participant_refs: [operator], action_contract_refs: [inspect]}}
 action_contracts:
   inspect:

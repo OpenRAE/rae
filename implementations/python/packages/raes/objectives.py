@@ -1,7 +1,7 @@
 """Declarative experiment objectives for the SDL.
 
 Objectives bind together:
-- who acts (`agent` or `entity`)
+- organizational ownership (`owner`) and participant assignment (`assigned_participant`)
 - what they are trying to affect (`targets`, `actions`)
 - when it matters (`window`)
 - how success is interpreted (`success`)
@@ -11,7 +11,7 @@ The SDL carries experiment semantics; concrete evaluation mechanics live
 in runtime adapters.
 """
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from ._base import SDLModel, parse_enum_or_var
 from .propositions import TruthCompositionMode
@@ -73,20 +73,38 @@ class ObjectiveWindow(SDLModel):
 class Objective(SDLModel):
     """A declarative experiment objective."""
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "anyOf": [
+                {"required": [field], "properties": {field: {"type": "string", "minLength": 1}}}
+                for field in ("owner", "assigned_participant")
+            ]
+        }
+    )
+
     name: str = ""
     description: str = ""
-    agent: str = ""
-    entity: str = ""
+    owner: str | None = Field(default=None, min_length=1)
+    assigned_participant: str | None = Field(default=None, min_length=1)
     actions: list[str] = Field(default_factory=list)
     targets: list[str] = Field(default_factory=list)
     success: ObjectiveSuccess
     window: ObjectiveWindow | None = None
     depends_on: list[str] = Field(default_factory=list)
 
+    @model_validator(mode="before")
+    @classmethod
+    def reject_legacy_actor_binding(cls, value: object) -> object:
+        if isinstance(value, dict) and {"agent", "entity"}.intersection(value):
+            raise ValueError(
+                "objective.agent/entity were replaced by assigned_participant/owner; "
+                "use migrate_participant_identity with an explicit organizational-objective decision "
+                "(docs/migration/participant-identity.md)"
+            )
+        return value
+
     @model_validator(mode="after")
-    def validate_actor_binding(self) -> "Objective":
-        has_agent = bool(self.agent)
-        has_entity = bool(self.entity)
-        if has_agent == has_entity:
-            raise ValueError("Objective must declare exactly one of 'agent' or 'entity'")
+    def validate_relation_binding(self) -> "Objective":
+        if not self.owner and not self.assigned_participant:
+            raise ValueError("Objective requires 'owner' or 'assigned_participant' (both are permitted)")
         return self

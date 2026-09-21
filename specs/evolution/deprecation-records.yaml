@@ -35,6 +35,17 @@ adr_refs:
 spec: specs/evolution/versioning-deprecation-and-migration.md
 
 records:
+  - id: sdl-participant-identity-relations
+    surface_class: sdl-scenario-module
+    identifier: "Agent.entity; Objective.agent and Objective.entity; objectives.agent/entity variation slots"
+    status: removed
+    first_notice: "Issue #1338 and proposed ADR-109 participant identity/assignment contract"
+    replacement: "Optional affiliations and role; objective owner and assigned_participant; matching variation slots"
+    migration_reference: "docs/migration/participant-identity.md; specs/sdl/participant-identity.md"
+    notice_window: "Removal eligibility is explicit deterministic migration with source-digest-bound organizational decisions, atomic refusal tests, and canonical schema/compiler exclusion. The explicit pre-1338 source reader remains supported indefinitely until a separately reviewed notice establishes its removal window."
+    verification_evidence: "test_issue_1338_identity_migration.py and test_issue_1338_participant_identity.py cover explicit decisions, stale-context refusal, preservation, closed canonical shape, and separate compiler projections."
+    removal_record: "Issue #1338 satisfies the named contract-and-migrator eligibility rule. SDL fields are removed, not schema artifacts; affected draft schema lineages retain updated last_change records."
+
   - id: sdl-domain-classification-fields
     surface_class: sdl-scenario-module
     identifier: "vulnerabilities declarations and node/feature/entity associations; application-route vulnerability_refs; offensive_behavior_refs, ai_offensive_behavior_refs and defensive_behavior_refs; action external_mappings; entity categories"

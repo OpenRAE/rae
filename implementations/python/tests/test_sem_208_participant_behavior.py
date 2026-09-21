@@ -222,7 +222,7 @@ def _scenario_yaml(*, actions: str = "[scan]", boundaries: str = "[red-view]") -
                 latency_profile: terminal observation latency
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             actions: {actions}
             observation_boundaries: {boundaries}
         """
@@ -354,7 +354,7 @@ def _act607_authority_scope_scenario_yaml() -> str:
             latency_profile: immediate
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             actions: [scan]
             starting_accounts: [operator]
             initial_knowledge:
@@ -441,7 +441,7 @@ def _act607_typed_ref_collision_scenario_yaml() -> str:
             source: file:///tmp/http.txt
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             starting_accounts: [operator]
             initial_knowledge:
               hosts: [web]
@@ -849,7 +849,7 @@ def test_sem219_role_scoped_affordance_enforces_each_matching_participant(
         (
             "    observation_boundaries: [red-view]\n"
             "  red-observer:\n"
-            "    entity: red-team\n"
+            "    affiliations: [red-team]\n"
             f"    actions: {actions}\n"
             f"    observation_boundaries: {boundaries}\n\n"
             "behavior_specifications:\n"
@@ -1094,7 +1094,7 @@ def test_behavior_specification_refs_are_namespaced_during_module_composition(tm
                 role: red
             agents:
               red-agent:
-                entity: red-team
+                affiliations: [red-team]
                 actions: [scan]
                 observation_boundaries: [red-view]
             content:
@@ -1518,7 +1518,7 @@ def test_compiler_maps_participant_behavior_to_runtime_addresses():
 
     binding = model.participant_behaviors[PARTICIPANT_ADDRESS]
     assert binding.participant_name == "red-agent"
-    assert binding.entity_name == "red-team"
+    assert binding.affiliation_names == ("red-team",)
     assert binding.action_contract_addresses == (ACTION_ADDRESS,)
     assert binding.observation_boundary_addresses == (OBSERVATION_ADDRESS,)
     assert binding.interpretation_mode == "role-neutral-projection"

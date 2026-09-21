@@ -27,7 +27,12 @@ from tools.sdl_catalog_parity._paths import (
 )
 
 EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
-    "agents.*.entity": ("entities", _SEMANTIC, _DANGLING, _PARTICIPANT_VALIDATOR),
+    "agents.*.affiliations[]": (
+        "entities",
+        _SEMANTIC,
+        _DANGLING,
+        _PARTICIPANT_VALIDATOR,
+    ),
     "agents.*.actions[]": (
         "action_contracts",
         _SEMANTIC,

@@ -522,7 +522,7 @@ outcome_interpretation_rules:
 
 agents:
   participant-agent:
-    entity: enterprise-participant
+    affiliations: [enterprise-participant]
     description: >
       Authored participant whose concrete coding-agent runner is selected by
       downstream participant implementation provenance.
@@ -658,7 +658,7 @@ objectives:
   # experiment/evaluator plane (experiment-* contracts) per ADR-073. The SDL
   # objective asserts only observable success via conditions.
   demonstrate-handoff:
-    agent: participant-agent
+    assigned_participant: participant-agent
     actions: [probe-customer-portal-login]
     targets:
       - nodes.customer-portal.services.http

@@ -45,12 +45,15 @@ request shape, backend manifest metadata, or participant episode state.
 
 The language-level model must keep these concerns distinct:
 
-- **Identity**: the participant's authored scenario identity or alignment,
-  anchored to declared `entities` and the shared `identities` concept family.
-  This is not an OS account username, API caller identity, or apparatus name.
-- **Role**: the participant's scenario role or exercise alignment. Reuse
-  `entities.role` and related authored role structure where that is sufficient;
-  do not confuse it with node-local login role mappings.
+- **Identity**: the `agents` declaration key identifies one author-designated
+  autonomous subject, possibly composite, independently of organizational
+  affiliation. This is not an OS account username, API caller identity, or
+  apparatus name. No measured autonomy threshold or component inventory is
+  required (ADR-109).
+- **Role**: the participant's explicit exercise role, or the entity role from
+  exactly one affiliation when no direct role is supplied. Zero or multiple
+  affiliations imply no inherited role. Do not confuse role with node-local
+  login mappings or authority.
 - **Starting conditions**: declared initial state, access, knowledge, or
   precondition references. Reuse `starting_accounts`, `initial_knowledge`,
   `conditions`, and named SDL references rather than embedding executable
@@ -113,10 +116,10 @@ identifiers, not variables.
 
 The ACT-601 implementation pins the following authoring shape on `agents.*`:
 
-- identity — `entity` (existing) anchored to the declared `entities`
-  hierarchy.
-- role — `entities.<entity>.role` (existing) reached through the
-  participant's `entity` binding.
+- identity — the `agents` map key; optional `affiliations` reference distinct
+  declared entities without defining identity or implying assignment.
+- role — optional participant `role`, overriding the role inherited from
+  exactly one affiliation. All consumers use the same resolver (ADR-109).
 - starting conditions — `starting_conditions` (new), a list of bare or
   qualified references into the scenario's `conditions` section. Combined
   with the existing `starting_accounts` and `initial_knowledge`.
@@ -128,8 +131,10 @@ The ACT-601 implementation pins the following authoring shape on `agents.*`:
   `content` items. The legacy `allowed_subnets` field stays restricted to
   switch-backed infrastructure.
 
-Each new field accepts `${var}` placeholders, defaults to an empty list,
-and is rejected when undeclared by the parser's closed-world model. The
+Relation-list fields accept `${var}` elements and default to an empty list;
+the optional role accepts a whole-field variable and defaults to absent.
+Participant identity keys are never variables. Unknown fields are rejected by
+the parser's closed-world model. The
 generated SDL JSON Schema and `docs/explain/sdl/sections.md` carry the
 field names; the `agents` section heading remains the publishing surface.
 
@@ -177,3 +182,4 @@ field names; the `agents` section heading remains the publishing surface.
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-06-13 | #484 | Recorded acceptance of the implemented participant framing authoring surface. |
+| 2026-09-21 | #1338 | Per [ADR-109](adr-109-participant-identity-and-objective-assignment.md), separate declaration identity from optional affiliations and give effective role one direct-first, single-affiliation fallback rule. |

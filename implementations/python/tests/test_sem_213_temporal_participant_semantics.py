@@ -162,7 +162,7 @@ def _scenario_yaml() -> str:
                 limitations: [serialized order is disclosed as realized order, not simultaneity]
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             actions: [scan]
             observation_boundaries: [red-view]
         observation_boundaries:

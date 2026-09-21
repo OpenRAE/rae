@@ -9,9 +9,11 @@ this note is the working summary.
 
 A declarative *objective* binds, in one place:
 
-- an **actor** — exactly one of an authored `agent` or an authored `entity` —
-  that owns the objective. An agent objective may name `actions`, which must be
-  declared by that agent;
+- an organizational **owner** and/or an **assigned participant**, using `owner`
+  (entity) and `assigned_participant` (agent). These are independent relations,
+  not realized actor attribution or beneficiary identity. Every `actions` entry
+  must name a declared action contract; when assigned, it must also be available
+  to that participant;
 - zero or more **targets**, resolved through the targetable named-reference
   index (bare or section-qualified; objectives, workflows, and variables are not
   targetable);
@@ -40,11 +42,11 @@ targetable named-reference index (and an optional `is_unresolved` predicate so
 `${var}` placeholders are skipped and re-checked after instantiation), it
 returns an `ObjectiveSemanticAnalysis`:
 
-- `references` — normalized `ObjectiveReference` edges (actor, target, success,
+- `references` — normalized `ObjectiveReference` edges (owner, assignment, action constraint, target, success,
   window, dependency), each carrying its `dependency_roles` and a `namespace_path`
   slot used by module/import expansion;
 - `issues` — machine-readable consistency problems, per objective in the order
-  actor, action, target, success, window, dependency, then a single global
+  assignment, owner, action, target, success, window, dependency, then a single global
   `objective.dependency-cycle` issue when the `depends_on` graph cycles. Callers
   translate the codes into their own envelope (the validator renders them as
   authoring-error strings via `_OBJECTIVE_ISSUE_RENDERERS`; the compiler emits
@@ -64,7 +66,7 @@ name-level reference graph that is meaningful before binding resolution.
 Success references and `depends_on` edges carry **both** roles — the objective
 is evaluated *after* its inputs (ordering) and re-evaluated *when* an input
 changes (refresh). Window edges carry **only** refresh; they impose no
-execution-order constraint. Actor and target references are normalized for
+execution-order constraint. Owner, assignment, action-constraint, and target references are normalized for
 fail-closed validation and propagated through the analyzer's IR, but they carry
 an **empty** role tuple today: the compiler does not compile actor or target
 identity into runtime ordering or refresh dependencies, and advertising a role
@@ -75,7 +77,8 @@ in lockstep.
 
 That single fact lives in `partition_objective_dependencies` plus the
 `OBJECTIVE_SUCCESS_DEPENDENCY_ROLES` / `OBJECTIVE_DEPENDENCY_DEPENDENCY_ROLES` /
-`OBJECTIVE_ACTOR_DEPENDENCY_ROLES` / `OBJECTIVE_TARGET_DEPENDENCY_ROLES` /
+`OBJECTIVE_OWNER_DEPENDENCY_ROLES` / `OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES` /
+`OBJECTIVE_ACTION_CONSTRAINT_DEPENDENCY_ROLES` / `OBJECTIVE_TARGET_DEPENDENCY_ROLES` /
 `OBJECTIVE_WINDOW_DEPENDENCY_ROLES` constants — each category is gated by its
 own constant so a role change to one category lands in exactly one
 place. The validator, the compiler's `ObjectiveRuntime` ordering/refresh

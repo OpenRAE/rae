@@ -56,8 +56,9 @@ from .time_model import CompiledTimeModel
 class ObjectiveRuntime(ResolvedResource):
     """Resolved objective node."""
 
-    actor_type: str = ""
-    actor_name: str = ""
+    owner_name: str = ""
+    assigned_participant_name: str = ""
+    assigned_participant_address: str = ""
     success_addresses: tuple[str, ...] = ()
     objective_dependencies: tuple[str, ...] = ()
     window_story_addresses: tuple[str, ...] = ()

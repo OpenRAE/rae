@@ -1,0 +1,7 @@
+name: semantic-dangling-assertion
+entities:
+  blue: {role: blue}
+objectives:
+  goal:
+    owner: blue
+    success: {assertions: [missing-assertion]}
