@@ -1,9 +1,9 @@
 {
-  "content_hash": "096e0d4c4dca8d2917cc1ab60c495e29d9d629c7f680f89085db780b313aa66e",
+  "content_hash": "897dd67ac4f31292753ad75a17035418fffd437035509f9a1334eaeb4041c442",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "096e0d4c4dca8d2917cc1ab60c495e29d9d629c7f680f89085db780b313aa66e",
-    "summary": "Persist typed append-only mixed-composition phase, decision, delivery, observation, weakening, and failure facts (#1016)."
+    "content_hash": "897dd67ac4f31292753ad75a17035418fffd437035509f9a1334eaeb4041c442",
+    "summary": "Persist the append-only API-424 participant-control evaluation history committed before any effect (#1069)."
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

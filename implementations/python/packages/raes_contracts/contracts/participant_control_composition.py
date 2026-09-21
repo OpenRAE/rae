@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from graphlib import TopologicalSorter
 from typing import Annotated, Literal, Self
 
@@ -10,8 +11,14 @@ from pydantic import ConfigDict, Field, model_validator
 from .._canonical import canonical_json_digest
 from ..json_ingress import parse_bounded_json_object
 from .base import ContractModel
-from .participant_control_coordinates import ControlRef, ParticipantControlContextModel, require_unique
-from .participant_control_effect_composition import validate_control_effect_composition
+from .participant_control_coordinates import (
+    ControlArtifactReferenceModel,
+    ControlRef,
+    ParticipantControlContextModel,
+    require_unique,
+)
+from .participant_control_effect_composition import control_effect_blockers
+from .participant_control_effects import ControlEffectRequestModel
 from .participant_control_results import (
     ControlCompositionModel,
     ControlEffectiveSupportModel,
@@ -126,32 +133,38 @@ def _validate_ifc_result(
         raise ValueError("teaching propagation must cover every admitted input")
 
 
-def _result_index(document: ParticipantControlEvaluationModel) -> dict[str, ControlMechanismResultModel]:
-    results = {result.slot_id: result for result in document.results}
-    require_unique(tuple(result.slot_id for result in document.results))
-    require_unique(tuple(result.result_id for result in document.results))
-    if results.keys() != {slot.slot_id for slot in document.request.selection.slots}:
+def contributing_result_ids(results: Sequence[ControlMechanismResultModel]) -> tuple[str, ...]:
+    """Canonical contributor order; serialization only, never a precedence."""
+    return tuple(result.result_id for result in sorted(results, key=lambda r: (r.instance_id, r.slot_id)))
+
+
+def _result_index(
+    selection: ParticipantControlSelectionModel,
+    results: Sequence[ControlMechanismResultModel],
+) -> dict[str, ControlMechanismResultModel]:
+    index = {result.slot_id: result for result in results}
+    require_unique(tuple(result.slot_id for result in results))
+    require_unique(tuple(result.result_id for result in results))
+    if index.keys() != {slot.slot_id for slot in selection.slots}:
         raise ValueError("every selected slot requires an explicit result or absence record")
-    expected_contributors = tuple(
-        result.result_id for result in sorted(document.results, key=lambda r: (r.instance_id, r.slot_id))
-    )
-    if document.composition.contributing_result_ids != expected_contributors:
-        raise ValueError("composition must preserve every contributor in canonical order")
-    return results
+    return index
 
 
-def _validate_results(document: ParticipantControlEvaluationModel) -> set[str]:
-    selection = document.request.selection
-    context_digest = control_digest(document.request.context)
+def _result_blockers(
+    request: ParticipantControlRequestModel,
+    results: Sequence[ControlMechanismResultModel],
+) -> set[str]:
+    selection = request.selection
+    context_digest = control_digest(request.context)
     bindings = {binding.instance_id: binding for binding in selection.bindings}
     slots = {slot.slot_id: slot for slot in selection.slots}
-    results = _result_index(document)
-    for slot_id, result in results.items():
+    index = _result_index(selection, results)
+    for slot_id, result in index.items():
         slot = slots[slot_id]
         binding = bindings[slot.instance_id]
         _validate_result_binding(result, slot, binding, context_digest)
-        _validate_ifc_result(result, binding, document.request.context)
-    return _mandatory_blockers(selection, results)
+        _validate_ifc_result(result, binding, request.context)
+    return _mandatory_blockers(selection, index)
 
 
 def _mandatory_blockers(
@@ -172,31 +185,214 @@ def _mandatory_blockers(
     return blockers
 
 
-def _validate_support(document: ParticipantControlEvaluationModel) -> set[str]:
-    bindings = document.request.selection.bindings
-    support = {item.instance_id: item for item in document.support}
-    require_unique(tuple(item.instance_id for item in document.support))
-    if support.keys() != {binding.instance_id for binding in bindings}:
+# MPC-06 consequences, strongest first. This renders one exact reason for a
+# composition that already blocks; it never selects a winner among mechanisms.
+_DISPOSITION_PRECEDENCE = ("conflict", "stale", "unsupported", "weakened", "deny", "withhold", "failed")
+_UNSATISFIED_STATUS = {
+    "stale": "stale",
+    "unsupported": "unsupported",
+    "weakened": "weakened",
+    "failed": "failed",
+    "missing": "failed",
+    "unknown": "failed",
+}
+
+
+def _result_cause(result: ControlMechanismResultModel) -> str | None:
+    if result.status != "resolved":
+        return _UNSATISFIED_STATUS[result.status]
+    payload = result.payload
+    if payload is None or payload.kind != "decision" or payload.disposition == "permit":
+        return None
+    # A mandatory abstain is unsatisfied, never implicit permission.
+    return payload.disposition if payload.disposition in {"deny", "withhold"} else "failed"
+
+
+def _support_cause(item: ControlEffectiveSupportModel) -> str:
+    if item.effective_level == "unsupported":
+        return "unsupported"
+    if item.status != "resolved":
+        return _UNSATISFIED_STATUS[item.status]
+    return "weakened"
+
+
+def _slot_causes(
+    selection: ParticipantControlSelectionModel,
+    results: dict[str, ControlMechanismResultModel],
+    slot_id: str,
+) -> set[str]:
+    """Collect the exact unsatisfied reasons in one slot's dependency closure."""
+    slots = {slot.slot_id: slot for slot in selection.slots}
+    causes: set[str] = set()
+    pending, seen = [slot_id], set()
+    while pending:
+        current = pending.pop()
+        if current in seen:
+            continue
+        seen.add(current)
+        cause = _result_cause(results[current])
+        if cause is not None:
+            causes.add(cause)
+        pending.extend(dependency.slot_id for dependency in slots[current].dependencies)
+    return causes
+
+
+def _composition_disposition(
+    request: ParticipantControlRequestModel,
+    results: Sequence[ControlMechanismResultModel],
+    support: Sequence[ControlEffectiveSupportModel],
+    blockers: set[str],
+    incumbent_gate_disposition: str,
+) -> str:
+    if not blockers:
+        return "eligible"
+    indexed = {result.slot_id: result for result in results}
+    supported = {item.instance_id: item for item in support}
+    causes: set[str] = set()
+    for blocker in blockers:
+        prefix, _, identity = blocker.partition(":")
+        if prefix in {"slot", "dependency"}:
+            causes |= _slot_causes(request.selection, indexed, identity)
+        elif prefix == "support":
+            causes.add(_support_cause(supported[identity]))
+        elif prefix == "predecessor":
+            # A required predecessor withholds its parent until it is realized.
+            causes.add("withhold")
+        elif blocker == "effect-conflict":
+            causes.add("conflict")
+        elif blocker == "incumbent-gates":
+            causes.add(_UNSATISFIED_STATUS.get(incumbent_gate_disposition, incumbent_gate_disposition))
+    return next((item for item in _DISPOSITION_PRECEDENCE if item in causes), "failed")
+
+
+def _support_blockers(
+    request: ParticipantControlRequestModel,
+    support: Sequence[ControlEffectiveSupportModel],
+) -> set[str]:
+    bindings = request.selection.bindings
+    index = {item.instance_id: item for item in support}
+    require_unique(tuple(item.instance_id for item in support))
+    if index.keys() != {binding.instance_id for binding in bindings}:
         raise ValueError("support must cover every selected instance exactly")
     blockers = set()
-    for item in document.support:
-        if item.context_digest != control_digest(document.request.context):
+    for item in support:
+        if item.context_digest != control_digest(request.context):
             raise ValueError("effective support is bound to a different context")
         if item.status != "resolved" or item.effective_level != "exact":
             blockers.add("support:" + item.instance_id)
     return blockers
 
 
-def validate_evaluation_structure(document: ParticipantControlEvaluationModel) -> None:
-    blockers = _validate_results(document) | _validate_support(document) | validate_control_effect_composition(document)
-    if document.composition.incumbent_gate_disposition != "permit":
+def _evaluation_blockers(
+    request: ParticipantControlRequestModel,
+    results: Sequence[ControlMechanismResultModel],
+    support: Sequence[ControlEffectiveSupportModel],
+    realizations: Sequence[ControlRealizationBindingModel],
+    incumbent_gate_disposition: str,
+) -> set[str]:
+    blockers = (
+        _result_blockers(request, results)
+        | _support_blockers(request, support)
+        | control_effect_blockers(request, results, realizations)
+    )
+    if incumbent_gate_disposition != "permit":
         blockers.add("incumbent-gates")
+    return blockers
+
+
+def derive_control_composition(
+    request: ParticipantControlRequestModel,
+    results: Sequence[ControlMechanismResultModel],
+    support: Sequence[ControlEffectiveSupportModel],
+    realizations: Sequence[ControlRealizationBindingModel] = (),
+    *,
+    incumbent_gate_disposition: str,
+    incumbent_gate_evidence: ControlArtifactReferenceModel,
+) -> ControlCompositionModel:
+    """Derive the exact MPC-05/MPC-06 composition for one resolved evaluation.
+
+    This is the only supported way to build a ``ControlCompositionModel``: it
+    reuses the same blocker accounting ``validate_evaluation_structure`` checks,
+    so no consumer reproduces slot, dependency, support, effect-conflict or
+    disposition logic of its own. It composes recorded results; it neither
+    resolves a provider nor authorizes an effect.
+    """
+    blockers = _evaluation_blockers(request, results, support, realizations, incumbent_gate_disposition)
+    return ControlCompositionModel(
+        rule_revision="sem-235/rev1",
+        disposition=_composition_disposition(request, results, support, blockers, incumbent_gate_disposition),
+        blockers=tuple(sorted(blockers)),
+        contributing_result_ids=contributing_result_ids(results),
+        incumbent_gate_disposition=incumbent_gate_disposition,
+        incumbent_gate_evidence=incumbent_gate_evidence,
+    )
+
+
+def validate_evaluation_structure(document: ParticipantControlEvaluationModel) -> None:
+    blockers = _evaluation_blockers(
+        document.request,
+        document.results,
+        document.support,
+        document.realizations,
+        document.composition.incumbent_gate_disposition,
+    )
+    if document.composition.contributing_result_ids != contributing_result_ids(document.results):
+        raise ValueError("composition must preserve every contributor in canonical order")
     if tuple(sorted(blockers)) != document.composition.blockers:
         raise ValueError("composition must retain exactly every blocking reason")
-    if (document.composition.disposition == "eligible") != (not blockers):
-        raise ValueError("composition eligibility disagrees with mandatory obligations")
-    if "effect-conflict" in blockers and document.composition.disposition != "conflict":
-        raise ValueError("incompatible effects require conflict disposition")
+    # The disposition is the canonical cause of the blockers, not merely their
+    # presence: a stale mandatory result recorded as ``deny`` would misstate
+    # why composition failed. A parsed or persisted record carries the same
+    # guarantee as one derived at runtime.
+    canonical = _composition_disposition(
+        document.request,
+        document.results,
+        document.support,
+        blockers,
+        document.composition.incumbent_gate_disposition,
+    )
+    if document.composition.disposition != canonical:
+        raise ValueError("composition disposition must be the canonical cause of its blockers")
+
+
+PREDECESSOR_BLOCKER_PREFIX = "predecessor:"
+SUBSEQUENT_PHASE = "subsequent"
+REQUIRED_PREDECESSOR_PHASE = "required-predecessor"
+
+
+def admitted_effect_phase(document: ParticipantControlEvaluationModel) -> str | None:
+    """Return the effect phase this composition admits, or ``None`` for none.
+
+    PC-09: an eligible composition admits its subsequent effects. A composition
+    blocked only by required predecessors admits exactly those predecessors,
+    after which its parent is reevaluated at a fresh cut. Any other blocker —
+    a conflict, a stale cut, an unsupported or weakened mechanism, a denial —
+    admits nothing, so a requested effect from such an evaluation is a rejected
+    proposal and never an intent. One definition serves every consumer, so a
+    rejected proposal cannot be admitted by one index and refused by another.
+    """
+
+    blockers = set(document.composition.blockers)
+    if not blockers:
+        return SUBSEQUENT_PHASE
+    if all(blocker.startswith(PREDECESSOR_BLOCKER_PREFIX) for blocker in blockers):
+        return REQUIRED_PREDECESSOR_PHASE
+    return None
+
+
+def admitted_effect_requests(
+    document: ParticipantControlEvaluationModel,
+) -> tuple[ControlEffectRequestModel, ...]:
+    """Every effect request this composition actually admits, in record order."""
+
+    phase = admitted_effect_phase(document)
+    if phase is None:
+        return ()
+    return tuple(
+        result.payload
+        for result in document.results
+        if isinstance(result.payload, ControlEffectRequestModel) and result.payload.phase == phase
+    )
 
 
 def parse_participant_control_evaluation(source: str | bytes) -> ParticipantControlEvaluationModel:

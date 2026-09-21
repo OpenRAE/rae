@@ -17,6 +17,7 @@ _PROTECTED_SCHEDULER_SNAPSHOT_FIELDS = (
     "materialization_attestations",
     "mixed_composition_states",
     "mixed_composition_history",
+    "participant_control_evaluation_history",
     "participant_autonomous_execution_states",
     "participant_execution_services",
 )

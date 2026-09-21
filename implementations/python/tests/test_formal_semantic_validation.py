@@ -120,6 +120,7 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
         "39.0.0",
         "40.0.0",
         "41.0.0",
+        "42.0.0",
     ]
     assert all(validate_release_bundle(REPO_ROOT, release) == [] for release in releases)
 
@@ -128,10 +129,10 @@ def test_atomic_release_index_validates_every_historical_bundle() -> None:
 def test_current_retest_bundle_is_coherent_and_clean() -> None:
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, REPO_ROOT)
 
-    assert release.manifest["revision"] == "41.0.0"
+    assert release.manifest["revision"] == "42.0.0"
     assert protocol["revision"] == "2.0.0"
     assert corpus["revision"] == "4.0.0"
-    assert snapshot["baseline"]["release_revision"] == "40.0.0"
+    assert snapshot["baseline"]["release_revision"] == "41.0.0"
     assert {item["case_id"] for item in snapshot["deviations"]} == {"semantic-resolved-objective"}
     assert all(item["changed_fields"] == ["result_digest"] for item in snapshot["deviations"])
     assert validate_retest_bundle(REPO_ROOT, release, protocol, corpus, snapshot, analysis) == []

@@ -13,6 +13,7 @@ from raes_processor.models import ParticipantBehaviorSpecificationRuntime
 from .control_plane_profiles import ControlPlaneProfile
 from .control_plane_store import ControlPlaneStore
 from .mixed_runtime import MixedRuntimeBinding
+from .participant_control_binding import ParticipantControlRuntimeBinding
 from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
 
 
@@ -24,6 +25,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     behavior_specifications: Mapping[str, ParticipantBehaviorSpecificationRuntime] | None
     crossing_policy_resolver: ParticipantCrossingPolicyResolver | None
     information_state_context_resolver: ParticipantInformationStateContextResolver | None
+    participant_control: ParticipantControlRuntimeBinding | None
     enforce_final_sink_flow_control: bool
     materialization_archive: MaterializationArchive | None
     run_scope: str
@@ -40,6 +42,7 @@ class ControlPlaneConfiguration:
     behavior_specifications: Mapping[str, ParticipantBehaviorSpecificationRuntime] | None = None
     crossing_policy_resolver: ParticipantCrossingPolicyResolver | None = None
     information_state_context_resolver: ParticipantInformationStateContextResolver | None = None
+    participant_control: ParticipantControlRuntimeBinding | None = None
     enforce_final_sink_flow_control: bool = True
     materialization_archive: MaterializationArchive | None = None
     run_scope: str = "run:default"

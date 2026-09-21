@@ -508,6 +508,7 @@ def action_plane(
     target: object | None = None,
     store: object | None = None,
     enforce_final_sink_flow_control: bool = False,
+    participant_control: object | None = None,
 ) -> RuntimeControlPlane:
     # Legacy API-423-only fixtures pass a resolver without the SEM-233 final-sink
     # hook, so enforcement is opted out here by default. Tests exercising SEM-233
@@ -518,6 +519,7 @@ def action_plane(
         crossing_policy_resolver=resolver,
         store=store,
         enforce_final_sink_flow_control=enforce_final_sink_flow_control,
+        participant_control=participant_control,
     )
     plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1")
     return plane

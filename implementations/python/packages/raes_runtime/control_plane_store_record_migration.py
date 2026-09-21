@@ -19,7 +19,13 @@ from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .control_plane_store_records import _record_from_payload, _record_payload
 
 _MIGRATION_ID = "local-operation-record/v1-to-v2"
-LOCAL_OPERATION_SCHEMA_VERSION = "5"
+# Schema 6 is the first to carry the RUN-320 participant control evaluation
+# history. A build that predates it refuses a schema-6 store rather than
+# re-serializing its snapshot without that carrier, which is what keeps a
+# retained modular claim from being silently erased by a downgrade round-trip.
+LOCAL_OPERATION_SCHEMA_VERSION = "6"
+_CONTROL_EVALUATION_CARRIER = "participant_control_evaluation_history"
+_SNAPSHOT_KEY = "runtime-snapshot"
 _OPERATION_KINDS = {
     RuntimeDomain.PROVISIONING: OperationKind.PROVISIONING,
     RuntimeDomain.ORCHESTRATION: OperationKind.ORCHESTRATION,
@@ -140,14 +146,44 @@ def migrate_sqlite_schema(
             decode_payload=decode_payload,
             encode_payload=encode_payload,
         )
-    elif row is None or row[0] not in {"4", LOCAL_OPERATION_SCHEMA_VERSION}:
+    elif row is None or row[0] not in {"4", "5", LOCAL_OPERATION_SCHEMA_VERSION}:
         raise ValueError("unsupported local control-plane database schema")
     _ensure_idempotency_claim_index(connection)
     if row is not None and row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
+        _initialize_control_evaluation_carrier(
+            connection,
+            decode_payload=decode_payload,
+            encode_payload=encode_payload,
+        )
         connection.execute(
             "UPDATE metadata SET value=? WHERE key='schema-version'",
             (LOCAL_OPERATION_SCHEMA_VERSION,),
         )
+
+
+def _initialize_control_evaluation_carrier(
+    connection: sqlite3.Connection,
+    *,
+    decode_payload: Callable[..., dict[str, Any]],
+    encode_payload: Callable[[dict[str, Any]], tuple[str, str]],
+) -> None:
+    """Record the evaluation carrier a pre-schema-6 snapshot never wrote.
+
+    No build below schema 6 can have written a modular control evaluation, so a
+    predecessor snapshot's missing carrier is authoritatively empty rather than
+    unknown. Writing it explicitly at the upgrade makes that authority durable:
+    after this step every openable store carries it, and an older build can no
+    longer open the store to drop it.
+    """
+
+    row = connection.execute("SELECT payload, digest FROM state WHERE key=?", (_SNAPSHOT_KEY,)).fetchone()
+    if row is None:
+        return
+    payload = decode_payload(row[0], row[1], kind="runtime snapshot")
+    if _CONTROL_EVALUATION_CARRIER in payload:
+        return
+    encoded, digest = encode_payload({**payload, _CONTROL_EVALUATION_CARRIER: {}})
+    connection.execute("UPDATE state SET payload=?, digest=? WHERE key=?", (encoded, digest, _SNAPSHOT_KEY))
 
 
 def _add_snapshot_revision_column(connection: sqlite3.Connection) -> None:
