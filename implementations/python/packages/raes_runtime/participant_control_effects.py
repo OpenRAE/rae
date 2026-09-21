@@ -380,7 +380,11 @@ def _binds_request(
     )
 
 
-def _inject_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> tuple:
+# Pairs of (the owner input's coordinate, the admitted target's coordinate).
+_Bindings = tuple[tuple[object, object], ...]
+
+
+def _inject_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> _Bindings:
     view = operation.view
     return (
         (getattr(view, "participant_address", None), target.participant_address),
@@ -391,7 +395,7 @@ def _inject_bindings(operation: ParticipantControlEffectOperation, target: objec
     )
 
 
-def _handoff_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> tuple:
+def _handoff_bindings(operation: ParticipantControlEffectOperation, target: object, context: object) -> _Bindings:
     del context
     intent = operation.intent
     return (

@@ -1024,7 +1024,8 @@ def test_concurrent_drains_never_both_observe_an_effect_as_unrealized():
         thread.join(timeout=30)
 
     assert errors == []
-    assert len(results) == 2 and results[0] == results[1]
+    assert len(results) == 2
+    assert results[0] == results[1]
     assert [item.disposition for item in results[0]] == ["applied"]
     assert len(_deliveries(plane)) == 1
     assert len(_effect_claims(plane)) == 1

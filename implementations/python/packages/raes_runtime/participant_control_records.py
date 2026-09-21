@@ -22,6 +22,7 @@ is recognised instead of appended twice.
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import cast
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
@@ -120,14 +121,17 @@ def _closed_carrier(
     if claim.status.state is not OperationState.RUNNING:
         carrier = _linked_carrier(control_plane, claim, transition)
         state = OperationState.SUCCEEDED
-    return replace(
-        carrier,
-        status=replace(
-            carrier.status,
-            state=state,
-            updated_at=_utc_now(),
-            diagnostics=operation_terminal_diagnostics(state, []),
-            changed_addresses=[participant_address],
+    return cast(
+        ControlPlaneOperationRecord,
+        replace(
+            carrier,
+            status=replace(
+                carrier.status,
+                state=state,
+                updated_at=_utc_now(),
+                diagnostics=operation_terminal_diagnostics(state, []),
+                changed_addresses=[participant_address],
+            ),
         ),
     )
 
