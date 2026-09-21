@@ -173,8 +173,7 @@ def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     for key, value in sorted(schema.items()):
         if key == "$defs":
             definitions = ",\n".join(
-                f"    {json.dumps(label)}: {compact(body)}"
-                for label, body in sorted(value.items())
+                f"    {json.dumps(label)}: {compact(body)}" for label, body in sorted(value.items())
             )
             members.append(f'  "$defs": {{\n{definitions}\n  }}')
         else:
