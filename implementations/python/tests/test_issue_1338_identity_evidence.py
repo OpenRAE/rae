@@ -38,6 +38,7 @@ def test_historical_fixture_bytes_are_preserved_with_explicit_successors(name):
     assert payload["objectives"]["goal"]["owner"] == "blue"
     assert "entity" not in payload["objectives"]["goal"]
     if name == "semantic-valid":
+        assert payload["propositions"]["ready"]["predicate"]["semantic_ref"] == "urn:raes:declared-property:ready"
         assert parse_sdl_file(successor).objectives["goal"].assigned_participant is None
 
 

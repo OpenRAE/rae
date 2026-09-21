@@ -47,7 +47,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "b9c247d333752716ac919c9b718da924291659f2994c3805a66947862c6a6579"
+      "content_sha256": "43f2f5009663a65fd82537b0f9bc80f76647a1ffd00e04b1eefd356216e8ad6f"
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
@@ -110,7 +110,7 @@
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
       "occurrences": 3,
-      "content_sha256": "9f7df79534d402a5a20743d7d33150d54315b60779f355d245110cf527f13b6e"
+      "content_sha256": "d01d21a33b0a96349d7f8e2b125f744a8a1496279090995e08c0e02adc04fe4c"
     },
     {
       "path": "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "e4bb88cab8c00bac16b8658736721c7eba3a818df9fd4476fea81a3a87d58588"
+      "content_sha256": "5961fdee25c979c6337032ed01356e43a224d5d6852bf6fbcabe1bd76f5eb5e5"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
@@ -1783,7 +1783,7 @@
       "record_class": "lifecycle-record",
       "rationale": "Preserves the exact retired distribution identifier in its governed deprecation and removal record.",
       "occurrences": 2,
-      "content_sha256": "bdd60f63dc5e79eda516e7d37ab8a5d81dde50498d11c48a914f0710e5ebf42c"
+      "content_sha256": "7c9e576186229320cd5b96f463adfffb6a7b6958bc75d69f5c50e362ce6c09fc"
     }
   ]
 }

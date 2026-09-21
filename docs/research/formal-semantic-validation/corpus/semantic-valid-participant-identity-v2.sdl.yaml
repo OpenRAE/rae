@@ -12,7 +12,7 @@ propositions:
     predicate:
       kind: boolean
       property: ready
-      semantic_ref: urn:aces:declared-property:ready
+      semantic_ref: urn:raes:declared-property:ready
       operator: equals
       expected: true
 assertions:

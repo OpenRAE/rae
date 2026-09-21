@@ -5,7 +5,7 @@
     "release_revision": "40.0.0",
     "release_sha256": "078d75e03ff6cb9add7a52502f4fd8aad70aa89cb9c920bf5aab79ce74706904"
   },
-  "captured_at": "2026-09-21T04:19:09.278654+00:00",
+  "captured_at": "2026-09-21T05:27:49.146307+00:00",
   "commands": [
     {
       "argv": [
@@ -105,7 +105,7 @@
       "retest": {
         "actual_outcome": "accepted",
         "diagnostic_kind": null,
-        "result_digest": "87cd4bf2c0f77ca489516e275187bebbac1487820e11710731f0f70980c88a20"
+        "result_digest": "652288785dc09095955ed3649f6407d616fb7c4d4f4188df4ed513ccb7537e0b"
       }
     }
   ],
@@ -175,7 +175,7 @@
         "This is a positive control for one objective-reference slice."
       ],
       "replayable": true,
-      "result_digest": "87cd4bf2c0f77ca489516e275187bebbac1487820e11710731f0f70980c88a20",
+      "result_digest": "652288785dc09095955ed3649f6407d616fb7c4d4f4188df4ed513ccb7537e0b",
       "source_digest": null
     },
     {
@@ -656,9 +656,9 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "c4ab3ad71df9ec17113319bf6aa6c7a6b629f724",
+  "raes_revision": "aaa678562e76e6de1fe5c32f0705abdded0eb376",
   "source_state": {
-    "base_revision": "c4ab3ad71df9ec17113319bf6aa6c7a6b629f724",
+    "base_revision": "aaa678562e76e6de1fe5c32f0705abdded0eb376",
     "checkout_state": "modified",
     "implementation_digest": "3b61817aceb2f338c3f3d1947a5d6226b9b4b4ab03e0bae80c8893337e119376",
     "profile": "python-reference-source/v2"
