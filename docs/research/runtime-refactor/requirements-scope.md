@@ -7,9 +7,9 @@ Context: [owner clarifications and exploration status](README.md).
 
 The owner directed requirements scoping first, requirements work second, and consideration of language, processor, runtime, or other changes only afterward. The owner also identified recurring agent confusion and inadequate definition and maintenance of canonical requirements.
 
-The owner selected **shared product requirements needed for current capability parity** as the scope of the first pass. An assessment of the entire RAE requirements catalogue is outside this first pass.
+The owner has withdrawn the earlier parity-based scope. The overriding concerns are **clarity, consistency, language-design quality, and long-term implications**. The dialogue now develops a [working PRD](prd.md), focused on current concerns and expanded to other areas over time.
 
-The specific capability baseline, requirement records to include, and acceptance criteria remain to be established. The selection does not approve the proposed areas below as a complete inventory, select a requirements hierarchy, replace a canonical source, or amend an existing requirement.
+The specific requirement records to include and acceptance criteria remain to be established. The proposed areas below are questions, not a complete accepted inventory. No requirements hierarchy, canonical-source replacement, or amendment to an existing requirement has been selected.
 
 **Existing sources inspected**
 
@@ -31,11 +31,12 @@ The following areas are proposed for discussion, not accepted coverage decisions
 
 | Area | Question to settle before drafting requirements |
 | --- | --- |
-| Product purpose and parity | Which present capabilities and user outcomes must the refactor preserve? What baseline defines effective parity, and what is deferred? |
+| Product purpose and current concerns | Which aspects of the product's purpose need clarification now, and what understanding must the requirements establish? |
 | Concepts and responsibilities | Which shared terms and responsibility boundaries must be understood consistently across RAE, authors, and backends? Which existing definitions need reconciliation? |
 | Required behaviour and author choice | What requirements are needed for creating or recreating environments, governing behaviour, and expressing failure and continuation choices? Which decisions belong to the author? |
 | Runtime/backend interaction | What requirements establish backend ability, willingness, and contextual refusal without assigning concrete backend accountability upstream? |
-| Quality and compatibility | What does sound, modular, durable, safe, and secure mean for the present scope? Which compatibility obligations are part of parity, and which stronger guarantees are deferred? |
+| Design quality and long-term implications | What do clarity, consistency, and language-design quality require? Which long-term consequences matter, and what compatibility or evolution obligations follow? |
+| Foundation qualities | What does sound, modular, durable, safe, and secure mean for the areas under discussion? |
 | Canonical requirements and maintenance | Where does each authoritative requirement live; who resolves ambiguity; how are its status, rationale, changes, and relationships to architecture kept current? |
 
 These questions cross current component boundaries. They do not yet assign requirements to packages, prescribe language constructs or protocols, or select runtime mechanisms.
@@ -50,4 +51,4 @@ An agreed scope could identify:
 - The canonical recording and maintenance approach for the resulting requirements.
 - What must be resolved before the requirements work is considered sufficient to begin design.
 
-This proposed result is a scope record, not the requirements themselves or a PRD. No canonical requirement or accepted ADR was changed in this inspection.
+This note remains a source inspection and set of scoping questions. Answers are being recorded in the working PRD. No canonical requirement or accepted ADR was changed in this inspection.

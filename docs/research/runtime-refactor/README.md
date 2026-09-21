@@ -7,7 +7,7 @@ Branch: `1348-runtime-architecture-exploration`.
 
 **Status and purpose of this record**
 
-This work gathers the knowledge and understanding needed before a PRD can be defined. It records the initial research and the project owner's clarifications from the discussion on 2026-09-21. It does not establish a refactor specification, architecture decision, backend protocol, or implementation plan.
+This work supports requirements development through dialogue with the project owner. A [working PRD](prd.md) now records the understanding reached so far and will expand to other areas over time. This exploration record supplies context and links to the initial research. No refactor architecture, backend protocol, or implementation plan has been selected.
 
 The distinctions in this record are deliberate:
 
@@ -25,9 +25,9 @@ The owner reports recurring agent misunderstanding despite existing ADRs, archit
 2. Define and reconcile those requirements, including how they are maintained.
 3. Only after that work is complete, consider changes to the language, processor, runtime, or other components.
 
-The owner selected **shared product requirements needed for current capability parity** for the first pass. An assessment of the entire RAE requirements catalogue is outside this first pass. The capability baseline and specific requirements to include remain to be established.
+The owner has withdrawn parity as the objective and scope criterion. The overriding concerns are **clarity, consistency, language-design quality, and long-term implications**. Requirements work starts with the topics currently under discussion and will expand over time. It is not an assessment of the entire requirements catalogue.
 
-The [requirements-scoping note](requirements-scope.md) records this boundary, a limited inspection of existing sources, and proposed questions for refining the scope. It is not an accepted requirements inventory. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
+The [requirements-scoping note](requirements-scope.md) records a limited inspection of existing sources and proposed questions. The [working PRD](prd.md) records owner answers and open questions. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
 
 **Purpose and scope clarified by the owner**
 
@@ -37,7 +37,7 @@ RAE's runtime is the shared product runtime that drives LilRAE, BigRAE, and othe
 
 [OpenRAE/hub#3](https://github.com/OpenRAE/hub/issues/3) provides ecosystem context, including LilRAE's local realization responsibilities and BigRAE's organizational responsibilities. The owner's explicit shared-runtime clarification corrects the earlier audit interpretation that those product boundaries required independent scenario orchestration in each backend.
 
-The immediate objective is effective parity with current capabilities on a sound, modular, durable, safe, and secure foundation. The capability inventory, comparison revision, acceptance criteria, and meanings of those qualities have not yet been specified for the refactor.
+The owner previously requested a sound, modular, durable, safe, and secure foundation. The latest clarification establishes clarity, consistency, language-design quality, and long-term implications as the overriding concerns. Detailed requirements and acceptance criteria remain to be developed.
 
 Substantial design work precedes implementation changes. This issue starts that exploration; it does not authorize execution of the audit's proposed repair sequence.
 
@@ -49,7 +49,7 @@ The record therefore does not impose automatic resumption, automatic retries, or
 
 **OT scope and timing**
 
-The owner identified all three forms of operational technology (OT) use: simulation/emulation, hardware-in-the-loop, and operational systems. The later clarification establishes sequencing: reaching physical OT in a lab or operational system, including disaster-recovery use, is a future direction. Effective parity is the present objective.
+The owner identified all three forms of operational technology (OT) use: simulation/emulation, hardware-in-the-loop, and operational systems. The later clarification establishes sequencing: reaching physical OT in a lab or operational system, including disaster-recovery use, is a future direction.
 
 A CTF does not require the overhead of operational-OT protections merely because the platform may eventually support physical OT. An OT simulation does not inherit the care required by an operational system. No common OT protection level, safety certification target, hard timing guarantee, or implementation profile has been agreed.
 
@@ -71,7 +71,7 @@ The allocation of concrete responsibility to backends does not change the agreed
 
 **Questions still open**
 
-- What is the concrete capability baseline for effective parity?
+- What do clarity, consistency, language-design quality, and long-term implications require of RAE?
 - What distinctions and lifecycle semantics are needed for authored failure handling, resumption, and a new trial?
 - What must a backend declare, what can be established before execution, and what can only be decided in context?
 - How is a contextual backend refusal communicated, and what does it mean for the ongoing execution?

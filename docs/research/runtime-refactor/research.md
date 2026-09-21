@@ -97,4 +97,4 @@ The reviewed sources describe reusable mechanisms and specific limits. They do n
 
 The earlier suggestion to separate durable orchestration, reactive behaviour, and deadline-bound execution was a possible direction raised during discussion. It has not been accepted as the architecture. The same applies to proposed capability profiles, retry ownership rules, detailed refusal states, and physical safety boundaries.
 
-The current record supports continued investigation. Framework selection and a PRD remain ahead of this work.
+The current record supports continued investigation. A [working PRD](prd.md) is now being developed through dialogue; this research has not selected a framework or established its requirements.
