@@ -21,6 +21,14 @@ Current capability parity has been withdrawn as the objective and scope criterio
 
 The owner reports recurring agent misunderstanding despite existing ADRs, architectural documents, and diagrams. This is context for the requirements work; agent confusion is not a property of RAE. The definition and maintenance of canonical requirements are concerns to address.
 
+**Current focus**
+
+The current focus is the language design of areas affected by the conceptual problems identified in the milestone-67 audit. The owner wants to understand whether those designs can be corrected, whether entire areas require replacement, or whether the problems extend into shared SDL foundations. The extent of the required remedy is unresolved.
+
+The review must therefore examine affected concepts and their relationships, including their expression in requirements, ADRs, semantics, contracts, and implementation. An individual defect is evidence about a design; fixing it does not establish that the design is sound. A ground-up rebuild has not been requested.
+
+Existing settled SDL semantics must be read before asking the owner questions. Questions should address unresolved requirements in the affected areas. The scope can expand where the investigation establishes a relevant conceptual dependency or contradiction. Parity does not determine that boundary.
+
 **Product purpose**
 
 RAE is for creating and controlling digital worlds for any purpose. This includes creating or recreating environments and governing behaviour within them.
@@ -43,9 +51,9 @@ The researcher or author determines what constitutes the world for their use cas
 
 These statements do not constitute a complete responsibility model or backend requirements set.
 
-**Conceptual distinctions requiring definition**
+**Conceptual distinctions under review**
 
-The owner identified conflation of participants with researchers, authors, and auditors, and conflation of in-world and out-of-world concerns. These examples are not an exhaustive list. The author determines the world boundary through the intent expressed in SDL. A role model and associated permissions have not been defined in this dialogue.
+The owner identified conflation of participants with researchers, authors, and auditors, and conflation of in-world and out-of-world concerns. These examples are not an exhaustive list. The author determines the world boundary through the intent expressed in SDL. Existing definitions must be examined for consistency and adequacy in the affected designs; their absence from this dialogue does not mean that the language lacks them.
 
 **Durability and author choice**
 
@@ -77,7 +85,13 @@ Question: what determines whether an entity or activity is part of an authored w
 
 Owner answer: the author wrote it in SDL. It is whatever the researcher or author wants it to be for their use case. That choice is exogenous to the language; the language exists to let them express intent, not restrict intent.
 
-Next question, unanswered: when an author lists services without stating whether the list is exhaustive, does that require those services to exist, require that only those services exist, or require further specification?
+Question: when an author lists services without stating whether the list is exhaustive, does that require those services to exist, require that only those services exist, or require further specification?
+
+Owner answer: existing open/closed and exact semantics cover this. Read the SDL and documentation rather than asking basic questions already settled there.
+
+Disposition: the question is withdrawn. Relevant existing sources include [augmentation scope](../../../specs/sdl/augmentation-scope.md) and [recursive realization constraints](../../../specs/sdl/recursive-realization-constraints.md). Their distinct notions of augmentation, closure, exact values, and delegation must not be collapsed into a new generic omission question.
+
+Owner scope correction: this is about language design in the areas affected by the audit's conceptual problems. Point fixes may be insufficient. The investigation must establish whether correction, replacement of affected areas, or broader foundational change is required. It must not presume that the whole SDL needs rebuilding or that individual fixes will suffice.
 
 **Supporting records**
 

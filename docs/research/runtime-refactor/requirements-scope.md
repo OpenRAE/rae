@@ -1,4 +1,4 @@
-**Requirements scope: initial questions and source inspection**
+**Requirements scope: affected language designs and their dependencies**
 
 Recorded: 2026-09-21. Tracking: [issue 1348](https://github.com/OpenRAE/rae/issues/1348).
 Context: [owner clarifications and exploration status](README.md).
@@ -9,11 +9,13 @@ The owner directed requirements scoping first, requirements work second, and con
 
 The owner has withdrawn the earlier parity-based scope. The overriding concerns are **clarity, consistency, language-design quality, and long-term implications**. The dialogue now develops a [working PRD](prd.md), focused on current concerns and expanded to other areas over time.
 
-The specific requirement records to include and acceptance criteria remain to be established. The proposed areas below are questions, not a complete accepted inventory. No requirements hierarchy, canonical-source replacement, or amendment to an existing requirement has been selected.
+The current focus is the language design of areas affected by conceptual problems identified in the milestone-67 audit. The owner wants to determine whether the designs can be corrected, whether entire areas need replacement, or whether the problems extend into shared SDL foundations. The remedy's extent is a question to investigate. A defect list alone does not establish the appropriate design boundary.
+
+The investigation below implements that scope clarification. Its preliminary assessments are review judgments, separate from the owner's requirements recorded in the PRD. No replacement design or amendment to a canonical requirement has been selected.
 
 **Existing sources inspected**
 
-Inspection was limited to selected foundational requirements, requirement-governance documentation, and architecture entry points at branch base `f92f3a297408f54a409e0220136a2d1790786c23`. It was not a requirements-quality audit of the full catalogue.
+Inspection covers selected requirements, governance documentation, architecture entry points, and the semantic sources cited below at branch base `f92f3a297408f54a409e0220136a2d1790786c23`. It is not a requirements-quality audit of the full catalogue. The original audit examined an earlier revision; its runtime counterexamples have not been rerun here.
 
 | Source | Observation relevant to scoping |
 | --- | --- |
@@ -25,30 +27,36 @@ Inspection was limited to selected foundational requirements, requirement-govern
 
 These observations do not establish the cause of every agent misunderstanding or the maintenance state of every requirement. They support investigating how product intent, requirements, decisions, and implemented behaviour are distinguished and connected.
 
-**Proposed scope questions**
+**Affected areas: initial investigation map**
 
-The following areas are proposed for discussion, not accepted coverage decisions.
+Finding identifiers refer to the [audit](../participant-control-audit/audit-2026-09-21.md). These areas may overlap; their boundaries remain subject to dependency tracing.
 
-| Area | Question to settle before drafting requirements |
+| Design area | Evidence and question for the review |
 | --- | --- |
-| Product purpose and current concerns | Which aspects of the product's purpose need clarification now, and what understanding must the requirements establish? |
-| Concepts and responsibilities | Which shared terms and responsibility boundaries must be understood consistently across RAE, authors, and backends? Which existing definitions need reconciliation? |
-| Required behaviour and author choice | What requirements are needed for creating or recreating environments, governing behaviour, and expressing failure and continuation choices? Which decisions belong to the author? |
-| Runtime/backend interaction | What requirements establish backend ability, willingness, and contextual refusal without assigning concrete backend accountability upstream? |
-| Design quality and long-term implications | What do clarity, consistency, and language-design quality require? Which long-term consequences matter, and what compatibility or evolution obligations follow? |
-| Foundation qualities | What does sound, modular, durable, safe, and secure mean for the areas under discussion? |
-| Canonical requirements and maintenance | Where does each authoritative requirement live; who resolves ambiguity; how are its status, rationale, changes, and relationships to architecture kept current? |
+| Participant, controller, and supervisory authority | F02 challenges the requirement that a controller be an agent or `self`. [ACT-607 and ACT-617](../../../specs/formal/participant-behavior-model/README.md) explicitly distinguish participant authority from control-plane authorization. Determine whether mixed-control correctly models an in-world relationship but lacks a separate supervisory relationship, or whether its controller concept is itself inadequate. Treating every supervisor as a participant is not an assumed remedy. |
+| Authored control policy and execution occurrences | F03 concerns the policy model itself. ACT-617 calls it an authored state graph, but transitions fix expected/resulting state revisions and effective order. Determine what reusable control behaviour must express and whether the existing policy/occurrence distinction can support it. Trace the consequences through compilation, API-409, and runtime history. |
+| Modular decisions, dependencies, and effects | F07–F10 concern obligation coverage, advisory results, provider dataflow, and effect composition. [MPC-01, MPC-05, and MPC-06](../../../specs/formal/participant-semantics/modular-participant-control.md) already require distinctions violated by several audited paths. F08 additionally exposes a target/phase contradiction in accepted effect plans. Determine whether the composition model is coherent and sufficiently specified before classifying the failures as implementation repairs or reasons to replace it. |
+| Information-flow domains and extension | F11 questions portable policy expressiveness and hardcoded profile support. MPC-04 defines a general domain contract while preserving a small security profile. Determine which limitations belong to that profile, which arise from its publication/extension mechanism, and whether they compromise the shared information-flow model. Broader profile requirements have not been established in this dialogue. |
+| Authored effects, realization, and evidence | F04 and F12–F15 question what cancellation, injection, routing, delivery, observation, and success records actually establish. MPC-09–MPC-11 already distinguish several of these stages. Trace each affected concept across declaration, occurrence, shared-runtime execution, backend response, and evidence to locate missing or contradictory obligations. Include contextual backend refusal where it affects these meanings. |
 
-These questions cross current component boundaries. They do not yet assign requirements to packages, prescribe language constructs or protocols, or select runtime mechanisms.
+F05, F06, and F16 supply additional API, authorization, and operational evidence. They may expose shared design dependencies, but do not by themselves establish that SDL concepts require replacement.
 
-**Proposed result of the scoping work**
+**Shared foundations and existing corrections**
 
-An agreed scope could identify:
+The initial inspection does not establish that the problems pervade the SDL. ACT-607 explicitly separates starting access, authority, observation, backend capability, and API authorization. MPC-08–MPC-11 distinguish authorization, approval, execution, delivery, and observation. These are concrete distinctions to evaluate for consistency across consumers; their presence does not certify the surrounding designs or implementations.
 
-- The requirement areas included now and those deferred, with the reason for each boundary.
-- The existing records and other sources to examine for those areas.
-- Known ambiguities, inconsistencies, missing statements, and questions requiring an owner decision.
-- The canonical recording and maintenance approach for the resulting requirements.
-- What must be resolved before the requirements work is considered sufficient to begin design.
+[Participant identity, affiliation, and objective assignment](../../../specs/sdl/participant-identity.md), adopted by ADR-109, is already on this branch's base. It distinguishes authored participant identity from control-plane identity and separates affiliation, assignment, and authority. This correction must be accounted for when reassessing F02; the remaining agent-only controller restriction does not justify treating the whole identity model as unchanged since the audit.
 
-This note remains a source inspection and set of scoping questions. Answers are being recorded in the working PRD. No canonical requirement or accepted ADR was changed in this inspection.
+[Augmentation scope](../../../specs/sdl/augmentation-scope.md) and [recursive realization constraints](../../../specs/sdl/recursive-realization-constraints.md) already define relevant open/closed, exact-value, presence, and delegation semantics. The earlier generic omission question is withdrawn. These semantics are dependencies to read and preserve or challenge with specific evidence, not unanswered basics to ask the owner again.
+
+**Review method and required result**
+
+For each affected area:
+
+1. Recover its intended requirements and distinguish them from architectural choices, semantic rules, and implementation behaviour.
+2. Identify conceptual contradictions, missing requirements, and implementation violations separately. Reassess the audit's interpretations as well as the code.
+3. Trace shared concepts and dependent consumers until the evidence supports a boundary for the problem. Expand the scope when that tracing identifies a shared defect.
+4. Ask the owner only about unresolved intent or requirements that affect the design judgment, then record the answer in the PRD.
+5. Assess whether the area permits a coherent correction, requires replacement, or depends on broader foundational changes. Explain the evidence, affected surfaces, and remaining uncertainty.
+
+The result should support a decision about the scale of design work. It must also identify which requirement records need reconciliation and how their authority and maintenance should be resolved before component changes begin. No whole-language viability judgment, replacement decision, or implementation estimate is established by this initial map.

@@ -27,7 +27,9 @@ The owner reports recurring agent misunderstanding despite existing ADRs, archit
 
 The owner has withdrawn parity as the objective and scope criterion. The overriding concerns are **clarity, consistency, language-design quality, and long-term implications**. Requirements work starts with the topics currently under discussion and will expand over time. It is not an assessment of the entire requirements catalogue.
 
-The [requirements-scoping note](requirements-scope.md) records a limited inspection of existing sources and proposed questions. The [working PRD](prd.md) records owner answers and open questions. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
+The current focus is the language design of areas affected by conceptual problems identified in the audit. The investigation must determine whether those designs can be corrected, whether whole areas require replacement, or whether the problems extend into shared SDL foundations. Its scope follows the conceptual dependencies; neither point fixes nor a ground-up rebuild are a predetermined outcome. Existing settled semantics must be read before asking further requirements questions.
+
+The [requirements-scoping note](requirements-scope.md) maps the affected areas and records a limited inspection of existing sources. The [working PRD](prd.md) records owner answers and open questions. Existing architecture and prior research are inputs to understanding; they do not settle the requirements by themselves.
 
 **Purpose and scope clarified by the owner**
 
