@@ -124,7 +124,7 @@ observation_boundaries:
     realized_view_disclosure: Only the declared response and evidence references.
 agents:
   participant-agent:
-    entity: enterprise-participant
+    affiliations: [enterprise-participant]
     actions:
     - probe-customer-portal-login
     observation_boundaries:

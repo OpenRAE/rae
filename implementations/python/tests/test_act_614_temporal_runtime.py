@@ -87,7 +87,7 @@ def test_deadline_evidence_cannot_escape_its_bound_context(mutation: str) -> Non
 def test_concurrent_dispatch_obeys_the_same_temporal_gate(late: bool) -> None:
     payload = _bound_deadline_payload()
     payload["entities"]["second"] = dict(payload["entities"]["enterprise-participant"])
-    payload["agents"]["second"] = {**payload["agents"]["participant-agent"], "entity": "second"}
+    payload["agents"]["second"] = {**payload["agents"]["participant-agent"], "affiliations": ["second"]}
     spec = payload["behavior_specifications"]["participant-behavior"]
     spec["participant_refs"].append("second")
     spec["autonomous_execution"]["max_in_flight"] = 2

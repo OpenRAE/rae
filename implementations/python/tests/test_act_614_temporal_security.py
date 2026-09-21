@@ -96,7 +96,10 @@ def test_backend_cannot_mutate_authoritative_temporal_request(phase: str, mutati
     payload["temporal_constraints"]["finish-by-five"]["end"]["tick"] = deadline
     if profile == "concurrent":
         payload["entities"]["second"] = deepcopy(payload["entities"]["enterprise-participant"])
-        payload["agents"]["second"] = {**deepcopy(payload["agents"]["participant-agent"]), "entity": "second"}
+        payload["agents"]["second"] = {
+            **deepcopy(payload["agents"]["participant-agent"]),
+            "affiliations": ["second"],
+        }
         spec = payload["behavior_specifications"]["participant-behavior"]
         spec["participant_refs"].append("second")
         spec["autonomous_execution"]["max_in_flight"] = 2
