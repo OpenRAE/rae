@@ -1,6 +1,7 @@
 """Typed participant temporal semantics (SEM-213)."""
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
 
@@ -165,6 +166,27 @@ _CADENCE_CONSTRAINED_POINTS = frozenset(
 )
 
 
+class ParticipantSharedTimeBinding(SDLModel):
+    """Explicit shared-time binding; legacy descriptive references stay opaque."""
+
+    profile: Literal["participant-shared-time/v1"]
+    clock_ref: str = Field(min_length=1)
+    constraint_ref: str = Field(min_length=1)
+    event_point: Literal["start", "end", "observed", "effective"]
+    evidence_mode: Literal["event", "continuous"]
+    condition_precondition_id: str | None = Field(default=None, min_length=1, exclude_if=lambda value: value is None)
+    observation_boundary_ref: str | None = Field(default=None, min_length=1, exclude_if=lambda value: value is None)
+
+    @model_validator(mode="after")
+    def _validate_evidence_requirements(self):
+        if self.evidence_mode == "continuous":
+            if self.condition_precondition_id is None or self.observation_boundary_ref is None:
+                raise ValueError("continuous dwell requires a condition_precondition_id and observation_boundary_ref")
+        elif self.condition_precondition_id is not None or self.observation_boundary_ref is not None:
+            raise ValueError("event evidence does not use condition coverage fields")
+        return self
+
+
 class ParticipantTemporalContract(SDLModel):
     """Typed SEM-213 temporal contract for a participant action."""
 
@@ -181,6 +203,9 @@ class ParticipantTemporalContract(SDLModel):
     randomization_basis: str | None = None
     ordering_basis: str
     backend_disclosure_refs: list[str] = Field(default_factory=list)
+    shared_time_binding: ParticipantSharedTimeBinding | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @field_validator(
         "temporal_id",
@@ -256,7 +281,10 @@ class ParticipantTemporalContract(SDLModel):
                 raise ValueError("deadline temporal contracts require at least two event_points")
             if ParticipantTemporalEventPoint.DEADLINE not in event_points:
                 raise ValueError("deadline temporal contracts require a deadline event_point")
-            if not (event_points & _DEADLINE_OUTCOME_POINTS):
+            allowed_outcomes = _DEADLINE_OUTCOME_POINTS
+            if self.shared_time_binding is not None:
+                allowed_outcomes = allowed_outcomes | {ParticipantTemporalEventPoint.START}
+            if not (event_points & allowed_outcomes):
                 raise ValueError("deadline temporal contracts require end, observed, or effective event_points")
         if self.temporal_kind == ParticipantTemporalContractKind.DWELL:
             if len(self.event_points) < 2:
@@ -269,6 +297,20 @@ class ParticipantTemporalContract(SDLModel):
             raise ValueError("cadence temporal contracts require submit, start, observed, or effective event_points")
         if self.temporal_kind == ParticipantTemporalContractKind.LATENCY and len(self.event_points) < 2:
             raise ValueError("latency temporal contracts require at least two event_points")
+        if self.shared_time_binding is not None:
+            binding = self.shared_time_binding
+            if self.temporal_kind == ParticipantTemporalContractKind.DEADLINE:
+                if binding.evidence_mode != "event" or binding.event_point not in {
+                    point.value for point in event_points
+                }:
+                    raise ValueError("bound deadline requires event evidence for a declared event_point")
+            elif self.temporal_kind == ParticipantTemporalContractKind.DWELL:
+                if binding.evidence_mode == "event" or binding.event_point != "start":
+                    raise ValueError("bound dwell requires condition coverage before action start")
+                if binding.event_point not in {point.value for point in event_points}:
+                    raise ValueError("bound dwell requires a declared event_point")
+            else:
+                raise ValueError("participant-shared-time/v1 binds deadline or dwell contracts")
         return self
 
 

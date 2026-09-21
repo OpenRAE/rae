@@ -21,6 +21,8 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_act_614_temporal_admission.py` (Optional capabilities, exact temporal offers and conditional conformance)
+
 - IMPLEMENTS → GITHUB_ISSUE `1072` (Modular provider declaration and effective support bindings)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/participant_control_admission.py` (Exact manifest adapter to incumbent feature support admission)
 - TESTS → TEST `implementations/python/tests/test_api_424_capability_admission.py` (Dishonest and unimplemented modular support rejection)

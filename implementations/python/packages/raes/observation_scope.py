@@ -36,7 +36,10 @@ def observation_reference_scope(
     declaration = index.declaration_for(address)
     if declaration is None:
         raise ValueError(f"observation declaration '{address}' is not indexed")
-    tokens = declaration.model_path.split(".")
+    # A composed declaration key contains dots; they are not path separators.
+    tokens = list(declaration.model_tokens)
+    if not tokens:
+        raise ValueError(f"observation declaration '{address}' has no structural path")
     profile = _declaration_collection_profile(tokens)
     if profile is not None:
         tokens = tokens[:-1]

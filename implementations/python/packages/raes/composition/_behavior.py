@@ -240,6 +240,40 @@ def _rewrite_agent_sections(
             _rewrite_agent(agent, symbols)
 
 
+def _rewrite_autonomous_execution(
+    policy: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    """Rewrite scenario-owned references, not candidate or external identities."""
+
+    for field_name, section in (
+        ("clock_ref", "clocks"),
+        ("progression_policy_ref", "time_progression_policies"),
+        ("observation_boundary_ref", "observation_boundaries"),
+    ):
+        if policy.get(field_name):
+            policy[field_name] = _rewrite_section_ref(policy[field_name], section, symbols[section])
+    for field_name, section in (
+        ("action_order", "action_contracts"),
+        ("temporal_constraint_refs", "temporal_constraints"),
+        ("work_window_refs", "temporal_constraints"),
+        ("pause_window_refs", "temporal_constraints"),
+    ):
+        if field_name in policy:
+            policy[field_name] = [_rewrite_section_ref(ref, section, symbols[section]) for ref in policy[field_name]]
+    for candidate in policy.get("action_candidates", {}).values():
+        if isinstance(candidate, dict) and candidate.get("action_ref"):
+            candidate["action_ref"] = _rewrite_section_ref(
+                candidate["action_ref"], "action_contracts", symbols["action_contracts"]
+            )
+    authority = policy.get("evaluation_authority")
+    if isinstance(authority, dict) and "objective_refs" in authority:
+        authority["objective_refs"] = [
+            _rewrite_section_ref(ref, "objectives", symbols["objectives"]) for ref in authority["objective_refs"]
+        ]
+    _rewrite_participant_resource_budget(policy.get("resource_budget"), symbols)
+
+
 def _rewrite_behavior_specification(
     behavior_spec: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
@@ -256,7 +290,7 @@ def _rewrite_behavior_specification(
         ]
     autonomous_execution = behavior_spec.get("autonomous_execution")
     if isinstance(autonomous_execution, dict):
-        _rewrite_participant_resource_budget(autonomous_execution.get("resource_budget"), symbols)
+        _rewrite_autonomous_execution(autonomous_execution, symbols)
     _rewrite_mixed_control(behavior_spec.get("mixed_control"), symbols)
     for binding in behavior_spec.get("tool_affordances", {}).values():
         if isinstance(binding, dict):
@@ -273,6 +307,26 @@ def _rewrite_behavior_sections(
     for action in payload.get("action_contracts", {}).values():
         if not isinstance(action, dict):
             continue
+        for temporal in action.get("temporal_contracts", []):
+            binding = temporal.get("shared_time_binding") if isinstance(temporal, dict) else None
+            if isinstance(binding, dict):
+                for field, section in (
+                    ("clock_ref", "clocks"),
+                    ("constraint_ref", "temporal_constraints"),
+                    ("observation_boundary_ref", "observation_boundaries"),
+                ):
+                    if field in binding:
+                        binding[field] = _rewrite_section_ref(binding[field], section, symbols[section])
+        for field_name, reference_fields in (
+            ("preconditions", ("support_refs", "evidence_refs")),
+            ("effects", ("target_refs", "evidence_refs")),
+        ):
+            for item in action.get(field_name, []):
+                if not isinstance(item, dict):
+                    continue
+                for reference_field in reference_fields:
+                    if reference_field in item:
+                        item[reference_field] = [_maybe_rename(ref, symbols["named"]) for ref in item[reference_field]]
         for interaction in action.get("interactions", []):
             if not isinstance(interaction, dict):
                 continue

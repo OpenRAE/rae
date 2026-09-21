@@ -1,9 +1,9 @@
 {
-  "content_hash": "e8c74a28838f7f3a9fc40ec37f2c476fc6e035873ee21e628b78850c51889763",
+  "content_hash": "316b3144d67342c523d1e0900b2a597e7de20510d916a5d51aebe9c8ad56c63d",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "e8c74a28838f7f3a9fc40ec37f2c476fc6e035873ee21e628b78850c51889763",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
+    "content_hash": "316b3144d67342c523d1e0900b2a597e7de20510d916a5d51aebe9c8ad56c63d"
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

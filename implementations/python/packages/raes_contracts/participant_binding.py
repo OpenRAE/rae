@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from typing import Protocol, cast
 
@@ -22,6 +22,7 @@ from .contracts import (
     ParticipantTemporalRuntimeContextModel,
 )
 from .contracts.participant_resource_budgets import ParticipantResourceMeasurementRequirementModel
+from .contracts.participant_temporal import ParticipantTemporalEvidenceModel
 from .participant_action_arguments import (
     ParticipantActionArgumentScalar,
     ParticipantActionArgumentValue,
@@ -42,6 +43,7 @@ from .participant_binding_events import (
     participant_implementation_actor_provenance,
 )
 from .participant_native_execution import ParticipantNativeActionExecution
+from .participant_temporal import temporal_evidence_scope_violations
 from .runtime_state import ApplyResult
 
 
@@ -101,6 +103,7 @@ class ParticipantActionAdmissionRequest:
     execution_scope_ref: str | None = None
     execution_generation: int | None = None
     resource_measurement_requirements: tuple[ParticipantResourceMeasurementRequirementModel, ...] = ()
+    temporal_evidence: tuple[ParticipantTemporalEvidenceModel, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_admission_request_basics(self)
@@ -156,6 +159,10 @@ def _validate_admission_request_selection_and_execution(request: ParticipantActi
 
 
 def _validate_and_normalize_admission_request_contexts(request: ParticipantActionAdmissionRequest) -> None:
+    if not isinstance(request.temporal_evidence, tuple) or any(
+        not isinstance(item, ParticipantTemporalEvidenceModel) for item in request.temporal_evidence
+    ):
+        raise TypeError("temporal_evidence must contain typed temporal evidence")
     if any(not isinstance(item, ParticipantTemporalRuntimeContextModel) for item in request.temporal_contexts):
         raise TypeError("temporal_contexts entries must be ParticipantTemporalRuntimeContextModel")
     if len({item.temporal_contract_id for item in request.temporal_contexts}) != len(request.temporal_contexts):
@@ -188,7 +195,19 @@ def participant_action_admission_request_violations(request: ParticipantActionAd
         *_implementation_selection_violations(request),
         *_exposure_policy_violations(request),
         *_action_result_violations(request),
+        *_temporal_evidence_violations(request, request.temporal_evidence),
+        *_temporal_evidence_violations(
+            request, request.action_result.temporal_evidence if request.action_result else ()
+        ),
     )
+
+
+def _temporal_evidence_violations(
+    request: ParticipantActionAdmissionRequest,
+    proofs: Sequence[ParticipantTemporalEvidenceModel],
+) -> tuple[str, ...]:
+    contexts = [item.shared_time for item in request.temporal_contexts if item.shared_time is not None]
+    return temporal_evidence_scope_violations(contexts, proofs, request.observation_boundary_address)
 
 
 def bind_participant_decision_surface_selection(
@@ -374,7 +393,11 @@ def _exposure_policy_violations(request: ParticipantActionAdmissionRequest) -> t
     violations: list[str] = []
     policy = request.implementation_selection.exposure_policy
     action_result_evidence_refs = _action_result_evidence_refs(request.action_result)
-    observation_evidence_refs = set(request.evidence_refs) | action_result_evidence_refs
+    observation_evidence_refs = (
+        set(request.evidence_refs)
+        | action_result_evidence_refs
+        | {ref for proof in request.temporal_evidence for ref in proof.evidence_refs}
+    )
     emitted_refs = set(request.visible_refs) | set(request.disclosed_refs) | observation_evidence_refs
     withheld_refs = sorted(emitted_refs & set(policy.withheld_refs))
     if withheld_refs:

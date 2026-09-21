@@ -5,6 +5,7 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 
 from ipaddress import ip_address, ip_network
 
+from .._identifiers import QualifiedName
 from ..architectures import architectures_compatible
 from ..infrastructure import SimpleProperties
 from ..nodes import MAX_NODE_NAME_LENGTH, NodeType
@@ -17,7 +18,7 @@ class _NodesInfraNetworkMixin:
 
     def _verify_nodes(self) -> None:
         for name, node in self._s.nodes.items():
-            if len(name) > MAX_NODE_NAME_LENGTH:
+            if len(QualifiedName.parse(name).parts[-1]) > MAX_NODE_NAME_LENGTH:
                 self._err(f"Node '{name}' name exceeds 35 characters")
             self._verify_node_ref_role_map(name, node, node.features, self._s.features, kind="feature")
             self._verify_node_ref_role_map(name, node, node.conditions, self._s.conditions, kind="condition")

@@ -3,14 +3,35 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import BeforeValidator, Field, field_validator, model_validator
 
-from ._base import SDLModel
+from ._base import SDLModel, WholeFieldVariableReference, parse_int_or_var
 from ._identifiers import PortableIdentifier
 from .participant_action_semantics import ParticipantFailureClass
 from .participant_resource_budgets import ParticipantResourceBudgetPolicy
+
+_AttemptLimit = Annotated[
+    Annotated[int, Field(ge=1, le=1_000_000)] | WholeFieldVariableReference,
+    BeforeValidator(parse_int_or_var),
+]
+_ConcurrencyLimit = Annotated[
+    Annotated[int, Field(ge=1, le=1024)] | WholeFieldVariableReference,
+    BeforeValidator(parse_int_or_var),
+]
+_PositiveActivityQuantity = Annotated[
+    Annotated[int, Field(ge=1, le=1_000_000_000)] | WholeFieldVariableReference,
+    BeforeValidator(parse_int_or_var),
+]
+_RetryCount = Annotated[
+    Annotated[int, Field(ge=0, le=1024)] | WholeFieldVariableReference,
+    BeforeValidator(parse_int_or_var),
+]
+_CooldownTicks = Annotated[
+    Annotated[int, Field(ge=0, le=1_000_000_000)] | WholeFieldVariableReference,
+    BeforeValidator(parse_int_or_var),
+]
 
 
 class ParticipantExecutionFailurePolicy(str, Enum):
@@ -76,8 +97,8 @@ class ParticipantAutonomousExecutionPolicyV1(SDLModel):
     action_order: list[str] = Field(min_length=1)
     observation_boundary_ref: str = Field(min_length=1)
     selection_strategy: Literal["ordered_cycle"] = "ordered_cycle"
-    max_action_attempts: int = Field(ge=1, le=1_000_000)
-    max_in_flight: int = Field(default=1, ge=1, le=1024)
+    max_action_attempts: _AttemptLimit
+    max_in_flight: _ConcurrencyLimit = 1
     failure_policy: ParticipantExecutionFailurePolicy = ParticipantExecutionFailurePolicy.STOP
     evaluation_authority: ParticipantEvaluationAuthority
 
@@ -94,12 +115,16 @@ class ParticipantAutonomousExecutionPolicyV1(SDLModel):
 class ParticipantActivityTiming(SDLModel):
     """Inclusive bounded interval for the next occurrence on the shared clock."""
 
-    minimum_ticks: int = Field(ge=1, le=1_000_000_000)
-    maximum_ticks: int = Field(ge=1, le=1_000_000_000)
+    minimum_ticks: _PositiveActivityQuantity
+    maximum_ticks: _PositiveActivityQuantity
 
     @model_validator(mode="after")
     def _validate_bounds(self) -> ParticipantActivityTiming:
-        if self.maximum_ticks < self.minimum_ticks:
+        if (
+            isinstance(self.minimum_ticks, int)
+            and isinstance(self.maximum_ticks, int)
+            and self.maximum_ticks < self.minimum_ticks
+        ):
             raise ValueError("activity timing maximum_ticks must be greater than or equal to minimum_ticks")
         return self
 
@@ -108,11 +133,11 @@ class ParticipantActivityActionCandidate(SDLModel):
     """Stable weighted action candidate and its bounded recovery policy."""
 
     action_ref: str = Field(min_length=1)
-    weight: int = Field(ge=1, le=1_000_000_000)
+    weight: _PositiveActivityQuantity
     depends_on: list[PortableIdentifier] = Field(default_factory=list, max_length=1024)
     retryable_failure_classes: list[ParticipantFailureClass] = Field(default_factory=list, max_length=32)
-    max_retries: int = Field(default=0, ge=0, le=1024)
-    cooldown_ticks: int = Field(default=0, ge=0, le=1_000_000_000)
+    max_retries: _RetryCount = 0
+    cooldown_ticks: _CooldownTicks = 0
 
     @field_validator("depends_on", "retryable_failure_classes")
     @classmethod
@@ -123,7 +148,7 @@ class ParticipantActivityActionCandidate(SDLModel):
 
     @model_validator(mode="after")
     def _validate_retry_policy(self) -> ParticipantActivityActionCandidate:
-        if bool(self.retryable_failure_classes) != bool(self.max_retries):
+        if isinstance(self.max_retries, int) and bool(self.retryable_failure_classes) != bool(self.max_retries):
             raise ValueError("activity candidate retryable failure classes and max_retries must be declared together")
         return self
 
@@ -147,10 +172,10 @@ class ParticipantAutonomousExecutionPolicyV2(SDLModel):
         min_length=1,
         max_length=1024,
     )
-    max_occurrences: int = Field(ge=1, le=1_000_000)
-    max_action_attempts: int = Field(ge=1, le=1_000_000)
-    max_burst_size: int = Field(default=1, ge=1, le=1024)
-    max_in_flight: int = Field(default=1, ge=1, le=1024)
+    max_occurrences: _AttemptLimit
+    max_action_attempts: _AttemptLimit
+    max_burst_size: _ConcurrencyLimit = 1
+    max_in_flight: _ConcurrencyLimit = 1
     failure_policy: ParticipantExecutionFailurePolicy = ParticipantExecutionFailurePolicy.STOP
     evaluation_authority: ParticipantEvaluationAuthority
 
@@ -194,9 +219,17 @@ class ParticipantAutonomousExecutionPolicyV2(SDLModel):
             visit(str(candidate_id))
         if all(dependencies.values()):
             raise ValueError("activity candidate dependency graph must admit an initial candidate")
-        if self.max_occurrences > self.max_action_attempts:
+        if (
+            isinstance(self.max_occurrences, int)
+            and isinstance(self.max_action_attempts, int)
+            and self.max_occurrences > self.max_action_attempts
+        ):
             raise ValueError("activity max_occurrences cannot exceed max_action_attempts")
-        if self.max_burst_size > self.max_occurrences:
+        if (
+            isinstance(self.max_burst_size, int)
+            and isinstance(self.max_occurrences, int)
+            and self.max_burst_size > self.max_occurrences
+        ):
             raise ValueError("activity max_burst_size cannot exceed max_occurrences")
         return self
 
@@ -219,7 +252,7 @@ class ParticipantAutonomousExecutionPolicyV3(ParticipantAutonomousExecutionPolic
             raise ValueError(
                 "participant-autonomous-execution/v3 requires exactly one participant-owned concurrent_actions budget"
             )
-        if participant_concurrency[0].limit != self.max_in_flight:
+        if isinstance(self.max_in_flight, int) and participant_concurrency[0].limit != self.max_in_flight:
             raise ValueError("participant concurrent_actions budget limit must equal max_in_flight")
         return self
 

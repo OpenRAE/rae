@@ -42,21 +42,30 @@ class AutonomousExecutionPolicy(ResourceGovernedPolicy, Protocol):
     max_occurrences: int
     max_burst_size: int
     execution_bindings: tuple[object, ...]
+    timing_minimum_ticks: int
+    timing_maximum_ticks: int
+    action_candidate_dependencies: tuple[tuple[str, ...], ...]
+    action_candidate_cooldown_ticks: tuple[int, ...]
 
 
-_V2_ACTIVITY_FEATURES = frozenset(
-    {
-        "work-windows",
-        "timing-variation",
-        "weighted-selection",
-        "dependencies",
-        "bounded-retries",
-        "cooldowns",
-        "limited-bursts",
-        "occurrence-provenance",
-    }
-)
 _V2_RANDOM_STREAM_PROFILE = "blake3-xof-participant-v1"
+
+
+def _required_activity_features(policy: AutonomousExecutionPolicy) -> set[str]:
+    """Derive required support from the request, not a richest-profile bundle."""
+
+    features = {"work-windows", "weighted-selection", "occurrence-provenance"}
+    if policy.timing_minimum_ticks != policy.timing_maximum_ticks:
+        features.add("timing-variation")
+    if any(policy.action_candidate_dependencies):
+        features.add("dependencies")
+    if any(policy.action_candidate_max_retries):
+        features.add("bounded-retries")
+    if any(policy.action_candidate_cooldown_ticks):
+        features.add("cooldowns")
+    if policy.max_burst_size > 1:
+        features.add("limited-bursts")
+    return features
 
 
 def participant_runtime_capability_contract_gaps(manifest: BackendManifest) -> tuple[str, ...]:
@@ -109,7 +118,7 @@ def _autonomous_limit_gaps(
         ),
         (
             "retries per occurrence",
-            max((max(policy.action_candidate_max_retries, default=0) or 1) for policy in policies),
+            max(max(policy.action_candidate_max_retries, default=0) for policy in policies),
             capability.max_autonomous_retries_per_occurrence,
         ),
         (
@@ -121,6 +130,13 @@ def _autonomous_limit_gaps(
     for label, required, supported in limits:
         if supported is None or required > supported:
             gaps.append(f"autonomous {label} require {required}, backend limit is {supported}")
+    required_concurrency = max(policy.max_in_flight for policy in policies)
+    if required_concurrency > 1 and not capability.supports_bounded_concurrency:
+        gaps.append("autonomous in-flight actions require bounded concurrency support")
+    if capability.max_concurrent_actions is None or required_concurrency > capability.max_concurrent_actions:
+        gaps.append(
+            f"autonomous in-flight actions require {required_concurrency}, backend concurrent-action limit is {capability.max_concurrent_actions}"
+        )
     return gaps
 
 
@@ -160,11 +176,14 @@ def _unsupported_autonomous_value_gaps(
         for label, required, supported in requirements
         if (unsupported := sorted(required - supported))
     ]
-    if any(
-        policy.profile in {"participant-autonomous-execution/v2", "participant-autonomous-execution/v3"}
+    activity_policies = tuple(
+        policy
         for policy in policies
-    ):
-        missing_features = sorted(_V2_ACTIVITY_FEATURES - capability.supported_autonomous_activity_features)
+        if policy.profile in {"participant-autonomous-execution/v2", "participant-autonomous-execution/v3"}
+    )
+    if activity_policies:
+        required_features = set().union(*(_required_activity_features(policy) for policy in activity_policies))
+        missing_features = sorted(required_features - capability.supported_autonomous_activity_features)
         if missing_features:
             gaps.append(f"unsupported autonomous activity features: {', '.join(missing_features)}")
         if _V2_RANDOM_STREAM_PROFILE not in capability.supported_autonomous_random_stream_profiles:
@@ -180,6 +199,11 @@ def _autonomous_execution_binding_gaps(
     declared = tuple(capability.execution_bindings)
     for policy in policies:
         for required in policy.execution_bindings:
+            required_digests = {
+                binding.contract_digest
+                for binding in getattr(policy, "temporal_bindings", ())
+                if binding.action_contract_address == required.action_contract_address
+            }
             matching = [
                 binding
                 for binding in declared
@@ -192,12 +216,13 @@ def _autonomous_execution_binding_gaps(
                 if set(binding.target_addresses) == set(required.target_addresses)
                 and binding.max_action_attempts >= required.max_action_attempts
                 and binding.max_in_flight >= required.max_in_flight
+                and required_digests.issubset(binding.temporal_contract_digests)
             ]
             if exact:
                 continue
             required_targets = ", ".join(required.target_addresses)
             gaps.append(
-                "unsupported autonomous execution binding for "
+                "unsupported autonomous execution binding or temporal guarantee for "
                 f"{required.action_contract_address} targets: {required_targets}"
             )
     return gaps
@@ -231,6 +256,28 @@ def _autonomous_reset_gaps(
     return ["autonomous clock reset requires coordinated participant reset support"]
 
 
+def _autonomous_temporal_binding_gaps(
+    policies: tuple[AutonomousExecutionPolicy, ...],
+    time_model: object | None,
+) -> list[str]:
+    """A constraint-kind claim cannot substitute for an action/event binding."""
+
+    constraints = {constraint.address: constraint for constraint in getattr(time_model, "constraints", ())}
+    gaps: list[str] = []
+    for policy in policies:
+        bindings = getattr(policy, "temporal_bindings", ())
+        bound_constraints = {binding.constraint_address for binding in bindings}
+        if policy.profile != "participant-autonomous-execution/v1":
+            continue
+        for address in policy.temporal_constraint_addresses:
+            constraint = constraints.get(address)
+            if constraint is not None and constraint.kind != "cadence" and address not in bound_constraints:
+                gaps.append(
+                    f"autonomous {constraint.kind} constraint {address} requires an explicit action temporal binding"
+                )
+    return gaps
+
+
 def participant_autonomous_execution_capability_gaps(
     manifest: BackendManifest,
     policies: Iterable[AutonomousExecutionPolicy],
@@ -254,6 +301,7 @@ def participant_autonomous_execution_capability_gaps(
         )
         gaps.extend(participant_resource_budget_gaps(manifest, capability, normalized_policies))
         gaps.extend(_autonomous_reset_gaps(manifest, normalized_policies, time_model))
+        gaps.extend(_autonomous_temporal_binding_gaps(normalized_policies, time_model))
     return tuple(gaps)
 
 

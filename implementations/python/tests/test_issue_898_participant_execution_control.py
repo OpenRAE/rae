@@ -776,6 +776,7 @@ def test_control_plane_exposes_authenticated_generation_bound_execution_control(
     initial_snapshot = RuntimeSnapshot(participant_execution_services={scope: _service_state().model_dump(mode="json")})
     target = replace(
         create_stub_target(),
+        manifest=_autonomous_manifest(_compiled()[0]),
         participant_runtime=_NativeParticipantRuntime(),
     )
     control_plane = RuntimeControlPlane(target, initial_snapshot=initial_snapshot)
@@ -840,6 +841,7 @@ def test_control_plane_rejects_synthetic_lifecycle_readback(report_change) -> No
     snapshot = RuntimeSnapshot(participant_execution_services={scope: _service_state().model_dump(mode="json")})
     target = replace(
         create_stub_target(),
+        manifest=_autonomous_manifest(_compiled()[0]),
         participant_runtime=_SyntheticControlRuntime(),
     )
     control_plane = RuntimeControlPlane(target, initial_snapshot=snapshot)

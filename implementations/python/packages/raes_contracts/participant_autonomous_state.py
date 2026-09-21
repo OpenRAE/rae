@@ -206,6 +206,9 @@ def require_participant_autonomous_runtime_snapshot(snapshot: object) -> None:
     if violation is not None:
         address, message = violation
         raise ValueError(f"{address}: {message}")
+    from .participant_temporal import require_participant_temporal_history
+
+    require_participant_temporal_history(snapshot)
 
 
 __all__ = (

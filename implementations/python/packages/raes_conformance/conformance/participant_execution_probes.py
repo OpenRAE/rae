@@ -34,16 +34,17 @@ def _participant_execution_probe_snapshot(
     if capability is None or not capability.supports_autonomous_execution:
         return RuntimeSnapshot()
     scope = "participant.autonomous-execution.conformance"
+    needs_start = "start" in capability.supported_execution_control_actions
     state = ParticipantExecutionServiceStateModel(
         execution_scope_ref=scope,
         policy_address=scope,
-        desired_lifecycle="stopped",
-        observed_lifecycle="stopped",
+        desired_lifecycle="stopped" if needs_start else "running",
+        observed_lifecycle="stopped" if needs_start else "running",
         generation=0,
         observed_generation=0,
         health="healthy",
-        readiness="not_ready",
-        accepting_new_work=False,
+        readiness="not_ready" if needs_start else "ready",
+        accepting_new_work=not needs_start,
         draining=False,
         quiescent=True,
         resources_released=False,
@@ -137,6 +138,7 @@ def _participant_execution_action_case(
     capability = target.manifest.participant_runtime
     diagnostics: list[Diagnostic] = []
     evidence_refs: tuple[str, ...] = ()
+    action_count = 1
     if runtime is None or capability is None or not capability.execution_bindings:
         diagnostics.append(
             _diagnostic(
@@ -148,10 +150,16 @@ def _participant_execution_action_case(
     else:
         binding = capability.execution_bindings[0]
         evidence_refs = binding.evidence_refs
+        action_count = min(
+            2 if capability.supports_bounded_concurrency else 1,
+            capability.max_concurrent_actions or 1,
+            capability.max_autonomous_participants or 1,
+            binding.max_in_flight,
+        )
         participants = (
             "participant.conformance",
             "participant.conformance-2",
-        )
+        )[:action_count]
         temporal_contexts = (
             ParticipantTemporalRuntimeContextModel(
                 temporal_contract_id="time.constraint.conformance",
@@ -163,7 +171,8 @@ def _participant_execution_action_case(
             ),
         )
         try:
-            control_plane.initialize_participant_episode(participants[1])
+            if action_count > 1:
+                control_plane.initialize_participant_episode(participants[1])
             requests = []
             for ordinal, participant_address in enumerate(participants):
                 request = runtime.bind_autonomous_action(
@@ -187,10 +196,10 @@ def _participant_execution_action_case(
                         execution_generation=0,
                     )
                 )
-            results = runtime.admit_actions_concurrently(
-                tuple(requests),
-                control_plane.snapshot,
-                2,
+            results = (
+                runtime.admit_actions_concurrently(tuple(requests), control_plane.snapshot, action_count)
+                if action_count > 1
+                else (runtime.admit_action(requests[0], control_plane.snapshot),)
             )
         except Exception as exc:
             diagnostics.append(
@@ -201,7 +210,7 @@ def _participant_execution_action_case(
                 )
             )
         else:
-            if len(results) != 2 or any(
+            if len(results) != action_count or any(
                 not result.success
                 or result.action_result is None
                 or not result.snapshot.participant_behavior_history.get(request.participant_address)
@@ -212,7 +221,7 @@ def _participant_execution_action_case(
                         "conformance.participant-execution-action-inert",
                         f"runtime.participant-execution.{scope}",
                         (
-                            "Declared bounded execution did not produce two "
+                            "Declared bounded execution did not produce the required "
                             "typed native outcomes with behavior evidence."
                         ),
                     )
@@ -223,8 +232,8 @@ def _participant_execution_action_case(
         valid=True,
         passed=not diagnostics,
         diagnostics=tuple(diagnostics),
-        expected_operations=("admit-action", "admit-action"),
-        accounted_operations=(("admit-action", "admit-action") if not diagnostics else ()),
+        expected_operations=("admit-action",) * action_count,
+        accounted_operations=(("admit-action",) * action_count if not diagnostics else ()),
         evidence_refs=evidence_refs,
     )
 
@@ -236,60 +245,78 @@ def _drive_participant_execution_probe(
     """Conditionally prove autonomous action execution and lifecycle behavior."""
 
     scope = "participant.autonomous-execution.conformance"
-    cases = [
-        _participant_execution_operation_case(
-            control_plane,
-            scope=scope,
-            action="start",
-            generation=0,
-        ),
-        _participant_execution_action_case(
-            target,
-            control_plane,
-            scope=scope,
-        ),
-    ]
-    for action in ("pause", "resume"):
+    capability = target.manifest.participant_runtime
+    if capability is None or not capability.supports_autonomous_execution:
+        return []
+    controls = capability.supported_execution_control_actions
+    cases = []
+    if "start" in controls:
+        cases.append(_participant_execution_operation_case(control_plane, scope=scope, action="start", generation=0))
+    cases.append(_participant_execution_action_case(target, control_plane, scope=scope))
+    if controls != {"start", "pause", "resume", "drain", "reset", "teardown"}:
+        cases.extend(_isolated_control_cases(target, control_plane.snapshot, scope, controls - {"start"}))
+        return cases
+    actions = ["pause", "resume", "drain", "reset"]
+    if "reset" in controls:
+        actions.append("drain")
+    actions.append("teardown")
+    for action in actions:
+        if action not in controls:
+            continue
+        state = ParticipantExecutionServiceStateModel.model_validate(
+            control_plane.snapshot.participant_execution_services[scope]
+        )
         cases.append(
             _participant_execution_operation_case(
                 control_plane,
                 scope=scope,
                 action=action,
-                generation=0,
+                generation=state.generation,
+                timeout_seconds=1 if action == "drain" else None,
             )
         )
-    cases.append(
-        _participant_execution_operation_case(
-            control_plane,
-            scope=scope,
-            action="drain",
-            generation=0,
-            timeout_seconds=1,
-        )
-    )
-    cases.append(
-        _participant_execution_operation_case(
-            control_plane,
-            scope=scope,
-            action="reset",
-            generation=0,
-        )
-    )
-    cases.append(
-        _participant_execution_operation_case(
-            control_plane,
-            scope=scope,
-            action="drain",
-            generation=1,
-            timeout_seconds=1,
-        )
-    )
-    cases.append(
-        _participant_execution_operation_case(
-            control_plane,
-            scope=scope,
-            action="teardown",
-            generation=1,
-        )
-    )
     return cases
+
+
+def _isolated_control_cases(target, snapshot, scope, controls):
+    """Supply each protocol probe's precondition without calling unclaimed controls.
+
+    These are controlled protocol fixtures, not evidence of native lifecycle
+    fidelity or a required backend control-plane architecture.
+    """
+
+    initial_states = {
+        "pause": "running",
+        "resume": "paused",
+        "drain": "running",
+        "reset": "quiescent",
+        "teardown": "quiescent",
+    }
+    for action, lifecycle in initial_states.items():
+        if action not in controls:
+            continue
+        state = ParticipantExecutionServiceStateModel.model_validate(snapshot.participant_execution_services[scope])
+        state = state.model_copy(
+            update={
+                "desired_lifecycle": lifecycle,
+                "observed_lifecycle": lifecycle,
+                "readiness": "ready" if lifecycle == "running" else "not_ready",
+                "accepting_new_work": lifecycle == "running",
+                "quiescent": True,
+                "draining": False,
+            }
+        )
+        fixture = snapshot.with_entries(
+            dict(snapshot.entries), participant_execution_services={scope: state.model_dump(mode="json")}
+        )
+        isolated = RuntimeControlPlane(target, initial_snapshot=fixture)
+        try:
+            yield _participant_execution_operation_case(
+                isolated,
+                scope=scope,
+                action=action,
+                generation=state.generation,
+                timeout_seconds=1 if action == "drain" else None,
+            )
+        finally:
+            isolated.close()

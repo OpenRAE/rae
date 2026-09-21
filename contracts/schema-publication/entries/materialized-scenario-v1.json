@@ -1,9 +1,9 @@
 {
-  "content_hash": "dbb5733840b4d2adc9b0b565eff24f0c0314d2d6e3df9f0252e75793652bc3b5",
+  "content_hash": "b0e233eecbf5ad2599bc83fd64b486889cd9fb41238d3c3b70c21110cacbc5d6",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "dbb5733840b4d2adc9b0b565eff24f0c0314d2d6e3df9f0252e75793652bc3b5",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
+    "content_hash": "b0e233eecbf5ad2599bc83fd64b486889cd9fb41238d3c3b70c21110cacbc5d6"
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

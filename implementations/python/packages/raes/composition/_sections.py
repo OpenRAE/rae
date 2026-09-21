@@ -232,6 +232,8 @@ def _rewrite_observation_boundaries(
             ]
         for field_name in ("view_rules", "view_transitions"):
             for item in boundary.get(field_name, []):
+                if isinstance(item, dict) and "evidence_refs" in item:
+                    item["evidence_refs"] = [_maybe_rename(ref, symbols["named"]) for ref in item["evidence_refs"]]
                 if isinstance(item, dict) and isinstance(item.get("information_ref"), str):
                     information_ref = item["information_ref"]
                     item["information_ref"] = tool_affordance_refs.get(

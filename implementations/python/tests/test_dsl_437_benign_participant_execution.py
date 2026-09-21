@@ -954,24 +954,24 @@ def test_backend_admission_requires_exact_v2_activity_and_random_profile_support
 
     gaps = participant_autonomous_execution_capability_gaps(unsupported, policies, runtime_model.time_model)
     assert "unsupported autonomous random-stream profiles: blake3-xof-participant-v1" in gaps
-    missing_dependency_support = replace(
+    missing_cooldown_support = replace(
         manifest,
         capabilities=replace(
             manifest.capabilities,
             participant_runtime=replace(
                 manifest.participant_runtime,
                 supported_autonomous_activity_features=(
-                    manifest.participant_runtime.supported_autonomous_activity_features - {"dependencies"}
+                    manifest.participant_runtime.supported_autonomous_activity_features - {"cooldowns"}
                 ),
             ),
         ),
     )
     gaps = participant_autonomous_execution_capability_gaps(
-        missing_dependency_support,
+        missing_cooldown_support,
         policies,
         runtime_model.time_model,
     )
-    assert "unsupported autonomous activity features: dependencies" in gaps
+    assert "unsupported autonomous activity features: cooldowns" in gaps
 
 
 def test_planner_enforces_required_participant_features_and_exact_targets() -> None:
@@ -1955,15 +1955,14 @@ def test_semantics_rejects_unreachable_stepped_cadence() -> None:
         parse_sdl(scenario_yaml)
 
 
-def test_semantics_rejects_externally_paced_autonomous_clock_without_driver() -> None:
+def test_valid_externally_paced_policy_is_rejected_by_reference_runtime_admission() -> None:
     payload = yaml.safe_load(_scenario_yaml())
     progression = payload["time_progression_policies"]["scenario-progression"]
     progression["advancement_mode"] = "externally_paced"
     progression.pop("step_ticks")
     scenario_yaml = yaml.safe_dump(payload, sort_keys=False)
 
-    with pytest.raises(SDLValidationError, match="has no portable runtime transition driver"):
-        parse_sdl(scenario_yaml)
+    _assert_reference_driver_admission_rejects(parse_sdl(scenario_yaml))
 
 
 def test_semantics_rejects_negative_autonomous_cadence_start() -> None:
@@ -1975,7 +1974,7 @@ def test_semantics_rejects_negative_autonomous_cadence_start() -> None:
         parse_sdl(scenario_yaml)
 
 
-def test_semantics_rejects_backend_authority_for_wall_paced_autonomous_clock() -> None:
+def test_valid_backend_wall_clock_is_rejected_by_reference_runtime_admission() -> None:
     payload = yaml.safe_load(_scenario_yaml())
     progression = payload["time_progression_policies"]["scenario-progression"]
     progression["advancement_mode"] = "real_time"
@@ -1984,8 +1983,19 @@ def test_semantics_rejects_backend_authority_for_wall_paced_autonomous_clock() -
     payload["clocks"]["scenario-clock"]["authority_ref"] = "backend.clock"
     scenario_yaml = yaml.safe_dump(payload, sort_keys=False)
 
-    with pytest.raises(SDLValidationError, match="must use runtime authority"):
-        parse_sdl(scenario_yaml)
+    _assert_reference_driver_admission_rejects(parse_sdl(scenario_yaml))
+
+
+def _assert_reference_driver_admission_rejects(scenario) -> None:
+    model = compile_runtime_model(scenario)
+    native = _NativeParticipantRuntime()
+    manager = RuntimeManager(
+        replace(create_stub_target(), manifest=_autonomous_manifest(model), participant_runtime=native)
+    )
+    execution_plan = manager.plan(scenario)
+    assert any(d.code == "runtime.participant-clock-driver-unsupported" for d in execution_plan.diagnostics)
+    assert not manager.apply(execution_plan).success
+    assert native.native_actions == []
 
 
 def test_runtime_manager_automatically_drives_wall_paced_participant_clock() -> None:
@@ -2379,11 +2389,13 @@ def test_scheduler_rejects_an_unselected_participant_implementation() -> None:
             )
 
     participant_runtime = WrongBindingRuntime()
-    with pytest.raises(ValueError, match="does not match the autonomous execution policy"):
-        scheduler.run_due(
-            [policy],
-            runtime_model.time_model,
-            participant_runtime,
-            snapshot,
-        )
+    result = scheduler.run_due(
+        [policy],
+        runtime_model.time_model,
+        participant_runtime,
+        snapshot,
+    )
+    assert not result.success
+    assert result.snapshot == snapshot
+    assert any(d.code == "runtime.participant-autonomous-binding-invalid" for d in result.diagnostics)
     assert participant_runtime.native_actions == []

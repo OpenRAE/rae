@@ -423,6 +423,9 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     @model_validator(mode="after")
     def _validate_entry_addresses(self) -> RuntimeSnapshotEnvelopeModel:
         from ..mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+        from ..participant_temporal import require_participant_temporal_history
+
+        require_participant_temporal_history(self)
 
         if list(
             iter_mixed_runtime_snapshot_violations(

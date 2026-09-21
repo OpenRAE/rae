@@ -181,6 +181,15 @@ def _compile_participant_behaviors(
             operating_scope_refs=operating_scope_refs,
             operating_scope_addresses=operating_scope_addresses,
             action_contract_addresses=tuple(action_addresses),
+            temporally_bound_action_addresses=tuple(
+                _action_contract_address(action_name)
+                for action_name in dict.fromkeys(agent.actions)
+                if action_name in scenario.action_contracts
+                and any(
+                    temporal.shared_time_binding is not None
+                    for temporal in scenario.action_contracts[action_name].temporal_contracts
+                )
+            ),
             observation_boundary_addresses=tuple(observation_addresses),
             interactive_access=tuple(interactive_access),
             refresh_dependencies=dependency_addresses,

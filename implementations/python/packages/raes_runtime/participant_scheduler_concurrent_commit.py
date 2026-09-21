@@ -18,6 +18,7 @@ from .participant_scheduler_concurrent_state import (
     _stage_concurrent_action_snapshot,
     _with_concurrent_scheduler_updates,
 )
+from .participant_temporal import assess_temporal_result
 
 if TYPE_CHECKING:
     from .participant_scheduler_types import SchedulerRunState, _DueActionContext
@@ -119,6 +120,7 @@ def _commit_valid_concurrent_result(
 ) -> bool:
     from .participant_scheduler_operations import _next_action_state
 
+    result = assess_temporal_result(request, result, run.working)
     try:
         run.working = _stage_concurrent_action_snapshot(base, run.working, result.snapshot)
     except (Exception, CancelledError):  # NOSONAR - backend snapshot merge is a trust boundary

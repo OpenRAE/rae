@@ -1,0 +1,223 @@
+nodes:
+  customer-portal:
+    type: compute
+    source:
+      name: customer-portal-app
+      version: reference
+    resources:
+      ram: 1 GiB
+      cpu: 1
+    services:
+    - name: http
+      port: 8080
+      protocol: tcp
+infrastructure:
+  customer-portal:
+    count: 1
+entities:
+  enterprise-participant:
+    role: green
+content:
+  participant-observation:
+    type: dataset
+    target: customer-portal
+    description: Action and timing evidence.
+    items:
+    - name: response
+      description: Bounded action observation.
+action_contracts:
+  probe-customer-portal-login:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    behavioral_granularity: atomic
+    procedure_basis: bounded HTTP login probe through participant runtime
+    realization_profile: backend-declared
+    fidelity_claim: Declares an HTTP probe, not a native implementation or fidelity
+      claim.
+    preconditions:
+    - precondition_id: participant-authorized
+      precondition_class: authority
+      description: The participant is authorized to probe the customer portal login
+        endpoint.
+      support_refs:
+      - agents.participant-agent
+      - nodes.customer-portal.services.http
+    - precondition_id: portal-present
+      precondition_class: target
+      description: The DMZ customer portal exists inside the enterprise slice.
+      support_refs:
+      - nodes.customer-portal.services.http
+    - precondition_id: runtime-binding-available
+      precondition_class: realization
+      description: 'A downstream participant implementation/runtime binding can perform
+        the declared probe without changing SDL semantics.
+
+        '
+      support_refs:
+      - participant-implementation-manifest:participant-agent
+    effects:
+    - effect_id: portal-reachability-observed
+      effect_class: intended_effect
+      description: The participant obtains a bounded reachability observation.
+      target_refs:
+      - nodes.customer-portal.services.http
+    - effect_id: terminal-observation-emitted
+      effect_class: observation_effect
+      description: Runtime emits a terminal participant observation envelope.
+      evidence_refs:
+      - content.participant-observation
+    state_transition_effects:
+    - participant customer-portal knowledge expands
+    observation_expectations:
+    - terminal customer portal observation
+    evidence_expectations:
+    - action outcome and bound timing evidence
+    failure_classes:
+    - precondition_unsatisfied
+    - target_unavailable
+    - unsupported_action
+    - authority_denied
+    - unsafe_withheld
+    - partial_success
+    - backend_error
+    - unknown
+    temporal_contracts:
+    - temporal_id: finish
+      temporal_kind: deadline
+      time_domain: simulation_time
+      clock_authority: scenario-clock
+      event_points:
+      - end
+      - deadline
+      description: Bounded action deadline.
+      duration_ref: finish-by-five
+      reset_boundary: fresh-segment
+      replay_boundary: fresh-evidence
+      ordering_basis: shared-superdense-time
+      backend_disclosure_refs:
+      - timing
+      shared_time_binding:
+        profile: participant-shared-time/v1
+        clock_ref: scenario-clock
+        constraint_ref: finish-by-five
+        event_point: end
+        evidence_mode: event
+    backend_timing_disclosures:
+    - disclosure_id: timing
+      disclosure_kind: synchronization
+      support_mode: exact
+      description: Admission requires exact bound-event evidence from the selected
+        backend.
+      affected_temporal_ids:
+      - finish
+observation_boundaries:
+  participant-view:
+    projection_basis: Declared HTTP target and bounded response.
+    observable_refs:
+    - nodes.customer-portal.services.http
+    evidence_refs:
+    - content.participant-observation
+    redaction_policy: No backend-private data.
+    latency_profile: terminal action observation
+    observer_effects:
+    - HTTP request may create service logs
+    realized_view_disclosure: Only the declared response and evidence references.
+agents:
+  participant-agent:
+    entity: enterprise-participant
+    actions:
+    - probe-customer-portal-login
+    observation_boundaries:
+    - participant-view
+behavior_specifications:
+  participant-behavior:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    participant_refs:
+    - participant-agent
+    participant_role_refs:
+    - green
+    action_contract_refs:
+    - probe-customer-portal-login
+    observation_boundary_refs:
+    - participant-view
+    outcome_interpretation_rule_refs: []
+    authority_scope_refs: []
+    behavior_mode: autonomous
+    realization_profile_ref: participant-implementation-manifest:participant-agent
+    backend_feature_support_refs:
+    - action_contracts
+    - autonomous_execution
+    - behavior_history
+    - observation_boundaries
+    - temporal_contracts
+    evidence_contract_refs:
+    - participant-behavior-history-event-stream-v1
+    extension_policy: governed-extension
+    autonomous_execution:
+      participant_implementation_ref: participant-implementation-manifests.green-worker.v1
+      clock_ref: scenario-clock
+      progression_policy_ref: scenario-progression
+      temporal_constraint_refs:
+      - green-cadence
+      action_order:
+      - probe-customer-portal-login
+      observation_boundary_ref: participant-view
+      selection_strategy: ordered_cycle
+      max_action_attempts: ${attempts}
+      max_in_flight: 1
+      failure_policy: stop
+      evaluation_authority:
+        mode: none
+time_domains:
+  scenario:
+    kind: simulated
+    tick_period_seconds:
+      numerator: 1
+      denominator: 1
+    epoch: scenario_start
+    visibility: participant_visible
+    description: Exact shared scenario time for benign participant actions.
+clocks:
+  scenario-clock:
+    time_domain_ref: scenario
+    authority_kind: runtime
+    authority_ref: runtime.time-coordinator
+    monotonicity: non_decreasing
+    supports_pause: true
+    supports_reset: true
+    description: Authoritative shared scenario clock.
+time_progression_policies:
+  scenario-progression:
+    clock_ref: scenario-clock
+    advancement_mode: stepped
+    synchronization_mode: barrier
+    step_ticks: 10
+    reset_behavior: new_segment_zero
+    replay_behavior: restore_recorded_advances
+    description: Deterministic stepped progression.
+temporal_constraints:
+  green-cadence:
+    constraint_kind: cadence
+    clock_ref: scenario-clock
+    subject_refs:
+    - nodes.customer-portal
+    start:
+      tick: 0
+    cadence_ticks: 10
+    description: One benign participant action every ten ticks.
+  finish-by-five:
+    constraint_kind: deadline
+    clock_ref: scenario-clock
+    subject_refs:
+    - action_contracts.probe-customer-portal-login
+    end:
+      tick: 5
+    description: The selected action event must occur no later than tick five.
+name: user-deadline
+description: Portable bounded temporal profile; native realization requires matching
+  manifest claims and evidence.
+variables:
+  attempts:
+    type: integer
+    default: 1

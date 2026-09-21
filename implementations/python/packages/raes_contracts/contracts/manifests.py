@@ -90,15 +90,12 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
 
     name: NonEmptyString
     supported_participant_roles: list[NonEmptyString] = Field(
-        min_length=1,
         json_schema_extra={"uniqueItems": True},
     )
     supported_behavior_features: list[NonEmptyString] = Field(
-        min_length=1,
         json_schema_extra={"uniqueItems": True},
     )
     supported_interaction_features: list[NonEmptyString] = Field(
-        min_length=1,
         json_schema_extra={"uniqueItems": True},
     )
     feature_support: list[ParticipantFeatureSupportModel] = Field(default_factory=list)
@@ -146,7 +143,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
     max_autonomous_action_attempts: int | None = Field(default=None, ge=1)
     max_autonomous_in_flight: int | None = Field(default=None, ge=1)
     max_autonomous_occurrences: int | None = Field(default=None, ge=1)
-    max_autonomous_retries_per_occurrence: int | None = Field(default=None, ge=1)
+    max_autonomous_retries_per_occurrence: int | None = Field(default=None, ge=0)
     max_autonomous_burst_size: int | None = Field(default=None, ge=1)
     execution_bindings: list[ParticipantExecutionBindingModel] = Field(default_factory=list)
     supports_execution_control: bool = False
@@ -155,7 +152,7 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
     )
     supports_bounded_concurrency: bool = False
     max_execution_services: int | None = Field(default=None, ge=1)
-    max_concurrent_actions: int | None = Field(default=None, ge=2)
+    max_concurrent_actions: int | None = Field(default=None, ge=1)
     resource_budgets: ParticipantResourceBudgetCapabilitiesModel | None = None
     constraints: dict[str, str] = Field(default_factory=dict)
 
@@ -258,9 +255,6 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             and self.supported_autonomous_policy_profiles
             and all(value is not None for value in self._autonomous_limits())
             and self.execution_bindings
-            and self.supports_execution_control
-            and self.supports_bounded_concurrency
-            and self.max_execution_services is not None
             and self.max_concurrent_actions is not None
         )
 
@@ -289,10 +283,14 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
     def _validate_execution_control(self) -> None:
         if not self.supports_autonomous_execution:
             return
-        required_actions = {"start", "pause", "resume", "drain", "reset", "teardown"}
-        missing = required_actions - set(self.supported_execution_control_actions)
-        if missing:
-            raise ValueError("execution control is missing required actions: " + ", ".join(sorted(missing)))
+        if self.supports_execution_control != bool(self.supported_execution_control_actions):
+            raise ValueError("execution control support flag and supported actions must agree")
+        if self.supports_execution_control and self.max_execution_services is None:
+            raise ValueError("execution control requires positive max_execution_services")
+        if self.supports_bounded_concurrency and (
+            self.max_concurrent_actions is None or self.max_concurrent_actions < 2
+        ):
+            raise ValueError("bounded concurrency requires max_concurrent_actions of at least 2")
         binding_ids = [binding.binding_id for binding in self.execution_bindings]
         _validate_unique_string_values("execution_bindings", binding_ids)
         supported_actions = set(self.supported_autonomous_action_contracts)

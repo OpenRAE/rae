@@ -27,6 +27,7 @@ def participant_execution_capability_payload(
                 max_in_flight=binding.max_in_flight,
                 timeout_seconds=binding.timeout_seconds,
                 max_retries=binding.max_retries,
+                temporal_contract_digests=binding.temporal_contract_digests,
             )
             for binding in capability.execution_bindings
         ],
@@ -59,6 +60,7 @@ def participant_execution_capability_kwargs(model: object) -> dict[str, object]:
                 max_in_flight=binding.max_in_flight,
                 timeout_seconds=binding.timeout_seconds,
                 max_retries=binding.max_retries,
+                temporal_contract_digests=tuple(binding.temporal_contract_digests),
             )
             for binding in model.execution_bindings
         ),

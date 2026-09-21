@@ -1,9 +1,9 @@
 {
-  "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
+  "content_hash": "2f5871c0eb96ddab9606ee3fdd74f25e1e0863e789d0f693dad498b4950f5553",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
+    "content_hash": "2f5871c0eb96ddab9606ee3fdd74f25e1e0863e789d0f693dad498b4950f5553"
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

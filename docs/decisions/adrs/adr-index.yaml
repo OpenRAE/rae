@@ -503,8 +503,11 @@ adrs:
     pin: c2a0e6ac9fb87aa10fbb571b0f70efe0b99520b806f6ffe706f1556b0ec7e84b
   - id: ADR-092
     path: docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md
-    pin: 3ef5777be2b8d10e7b1e1a8ff55dc999bc7254210aa8800b317c9f87165e3fea
+    pin: 53c3e77d830859eaf873454da7177cdcc94d302a9456d8a5568eebc33dc6329e
     amendments:
+      - date: 2026-09-21
+        ref: "#216"
+        summary: "Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules."
       - date: 2026-07-24
         ref: "#861"
         summary: "Required exact action provenance and capability-specific atomic participant batching."

@@ -21,6 +21,7 @@ from ..semantics.participant_outcome import (
     ParticipantOutcomeIssue,
     analyze_participant_outcome_interpretations,
 )
+from ..semantics.participant_temporal_bindings import participant_temporal_binding_errors
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
 
@@ -363,6 +364,8 @@ class _ContentObjectivesMixin:
                 self._err(f"{label} initial_knowledge host '{host}' must reference a compute node")
 
     def _verify_participant_behavior(self) -> None:
+        for error in participant_temporal_binding_errors(self._s):
+            self._err(error)
         analysis = analyze_participant_behavior(
             agents_by_name=self._s.agents,
             action_contracts=self._s.action_contracts,

@@ -11010,6 +11010,92 @@
       "title": "ParticipantResourceResetMode",
       "type": "string"
     },
+    "ParticipantSharedTimeBinding": {
+      "additionalProperties": false,
+      "description": "Explicit shared-time binding; legacy descriptive references stay opaque.",
+      "properties": {
+        "clock_ref": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Clock Ref",
+          "type": "string"
+        },
+        "condition_precondition_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Condition Precondition Id"
+        },
+        "constraint_ref": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Constraint Ref",
+          "type": "string"
+        },
+        "event_point": {
+          "enum": [
+            "start",
+            "end",
+            "observed",
+            "effective"
+          ],
+          "title": "Event Point",
+          "type": "string"
+        },
+        "evidence_mode": {
+          "enum": [
+            "event",
+            "continuous"
+          ],
+          "title": "Evidence Mode",
+          "type": "string"
+        },
+        "observation_boundary_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Boundary Ref"
+        },
+        "profile": {
+          "const": "participant-shared-time/v1",
+          "title": "Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "clock_ref",
+        "constraint_ref",
+        "event_point",
+        "evidence_mode"
+      ],
+      "title": "ParticipantSharedTimeBinding",
+      "type": "object"
+    },
     "ParticipantTemporalContract": {
       "additionalProperties": false,
       "description": "Typed SEM-213 temporal contract for a participant action.",
@@ -11112,6 +11198,17 @@
           ],
           "default": null,
           "title": "Reset Boundary"
+        },
+        "shared_time_binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantSharedTimeBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "temporal_id": {
           "not": {
@@ -31859,6 +31956,18 @@
       ],
       "level": "error",
       "validator": "raes.validator.SemanticValidator._verify_service_materialization"
+    },
+    {
+      "description": "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+      "id": "participant-shared-time-source-bindings",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes.semantics.participant_temporal_bindings.participant_temporal_binding_errors"
     }
   ],
   "x-raes-semantic-profile": {

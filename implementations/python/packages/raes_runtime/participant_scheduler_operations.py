@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import replace
+from hashlib import sha256
 from typing import cast
 
 from raes_contracts.contracts import (
@@ -10,6 +12,7 @@ from raes_contracts.contracts import (
     ParticipantTemporalRuntimeContextModel,
 )
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -40,6 +43,7 @@ from .participant_scheduler_resources import (
 )
 from .participant_scheduler_time import cadence_missed_result, clock_coordinate, participant_time_domain
 from .participant_scheduler_types import SchedulerRunState, _DueActionContext
+from .participant_temporal import assess_temporal_result, temporal_guarantees_met, temporal_pre_dispatch_result
 
 
 def _bound_action_request(
@@ -64,6 +68,10 @@ def _bound_action_request(
     else:
         action_instance_id = f"{policy.address}:{context.participant_address}:{state.attempted_actions}"
     segment, _ = clock_coordinate(working, policy.clock_address)
+    service_payload = working.participant_execution_services.get(policy.address)
+    if service_payload is None:
+        raise ValueError("autonomous participant action requires execution-service state")
+    service = ParticipantExecutionServiceStateModel.model_validate(service_payload)
     temporal_contexts = tuple(
         ParticipantTemporalRuntimeContextModel(
             temporal_contract_id=constraint_address,
@@ -75,15 +83,52 @@ def _bound_action_request(
         )
         for constraint_address in policy.temporal_constraint_addresses
     )
+    bindings = tuple(
+        binding for binding in policy.temporal_bindings if binding.action_contract_address == action_address
+    )
+    if bindings:
+        identity = f"{action_instance_id}:episode={state.episode_id}:segment={segment}:generation={service.generation}"
+        action_instance_id = "participant-action-" + sha256(identity.encode()).hexdigest()
+        clock = working.time_model_state.clocks[policy.clock_address]
+        temporal_contexts = tuple(
+            ParticipantTemporalRuntimeContextModel(
+                temporal_contract_id=binding.temporal_id,
+                time_domain=binding.time_domain,
+                clock_authority=binding.clock_authority,
+                event_points=list(binding.event_points),
+                observation_point=f"shared-time:{action_instance_id}:{policy.clock_address}:segment={segment},tick={clock.coordinate.tick},microstep={clock.coordinate.microstep}",
+                backend_disclosure_refs=list(binding.backend_disclosure_refs),
+                reset_boundary=binding.reset_boundary,
+                replay_boundary=binding.replay_boundary,
+                shared_time=ParticipantTemporalExecutionContextModel(
+                    binding=binding,
+                    participant_address=context.participant_address,
+                    episode_id=state.episode_id,
+                    action_instance_id=action_instance_id,
+                    execution_scope_ref=policy.address,
+                    execution_generation=service.generation,
+                    submitted_at=clock.coordinate,
+                    clock_sequence=clock.sequence,
+                    bound_start=binding.start.model_copy(update={"segment": segment})
+                    if binding.start is not None
+                    else None,
+                    bound_end=binding.end.model_copy(update={"segment": segment}),
+                ),
+            )
+            for binding in bindings
+        )
     request = context.participant_runtime.bind_autonomous_action(
         context.participant_address,
         action_address,
         policy.observation_boundary_address,
         policy.participant_implementation_ref,
         action_instance_id,
-        temporal_contexts,
-        working,
+        deepcopy(temporal_contexts),
+        deepcopy(working),
     )
+    # A backend may retain or mutate its arguments and returned request. Keep
+    # the post-call validation authority private, including nested contracts.
+    request = deepcopy(request)
     if request.implementation_selection.manifest_ref != policy.participant_implementation_ref:
         raise ValueError("participant implementation selection does not match the autonomous execution policy")
     matching_bindings = tuple(
@@ -91,10 +136,6 @@ def _bound_action_request(
     )
     if len(matching_bindings) != 1:
         raise ValueError("autonomous participant action must resolve exactly one execution binding")
-    service_payload = working.participant_execution_services.get(policy.address)
-    if service_payload is None:
-        raise ValueError("autonomous participant action requires execution-service state")
-    service = ParticipantExecutionServiceStateModel.model_validate(service_payload)
     return cast(
         ParticipantActionAdmissionRequest,
         replace(
@@ -104,6 +145,9 @@ def _bound_action_request(
             observation_boundary_address=policy.observation_boundary_address,
             action_instance_id=action_instance_id,
             temporal_contexts=temporal_contexts,
+            observation_boundary_evidence_refs=(
+                policy.observation_boundary_evidence_refs if bindings else request.observation_boundary_evidence_refs
+            ),
             action_result=None,
             post_state_digest=None,
             requires_terminal_outcome=True,
@@ -113,6 +157,26 @@ def _bound_action_request(
             resource_measurement_requirements=measurement_requirements(policy),
         ),
     )
+
+
+def _try_bound_action_request(
+    context: _DueActionContext,
+    state: ParticipantAutonomousExecutionStateModel,
+    run: SchedulerRunState,
+) -> ParticipantActionAdmissionRequest | None:
+    try:
+        return _bound_action_request(context, run.working, state)
+    except (TypeError, ValueError):
+        run.diagnostics.append(
+            Diagnostic(
+                code="runtime.participant-autonomous-binding-invalid",
+                domain="participant",
+                address=context.participant_address,
+                message="Backend action binding does not match the compiled execution and observation context.",
+            )
+        )
+        run.failure = ApplyResult(success=False, snapshot=run.working, diagnostics=run.diagnostics)
+        return None
 
 
 def _record_protocol_result(
@@ -172,9 +236,14 @@ def _run_one_due_action(
     state: ParticipantAutonomousExecutionStateModel,
     run: SchedulerRunState,
 ) -> ParticipantAutonomousExecutionStateModel:
-    request = _bound_action_request(context, run.working, state)
+    request = _try_bound_action_request(context, state, run)
+    if request is None:
+        return state
     predecessor = run.working
-    result = context.participant_runtime.admit_action(request, predecessor)
+    result = temporal_pre_dispatch_result(request, predecessor)
+    dispatched = result is None
+    if result is None:
+        result = deepcopy(context.participant_runtime.admit_action(deepcopy(request), deepcopy(predecessor)))
     stale_completion = participant_generation_commit_diagnostic(request, run.working)
     if stale_completion is not None:
         run.diagnostics.append(stale_completion)
@@ -191,6 +260,8 @@ def _run_one_due_action(
         episode_id=state.episode_id,
         predecessor=predecessor,
     )
+    if protocol_violation is None and dispatched:
+        result = assess_temporal_result(request, result, run.working)
     protocol_failure = _record_protocol_result(run, context, predecessor, result, protocol_violation)
     action_succeeded = bool(
         not protocol_failure
@@ -230,19 +301,37 @@ def _run_one_activity_action(
     state: ParticipantAutonomousExecutionStateModel,
     run: SchedulerRunState,
 ) -> ParticipantAutonomousExecutionStateModel:
-    request = _bound_action_request(context, run.working, state)
-    if not reserve_activity_resources(context, request, run):
+    request = _try_bound_action_request(context, state, run)
+    if request is None:
         return state
     predecessor = run.working
-    result = context.participant_runtime.admit_action(request, predecessor)
+    result = temporal_pre_dispatch_result(request, predecessor)
+    dispatched = result is None
+    if dispatched:
+        if not reserve_activity_resources(context, request, run):
+            return state
+        predecessor = run.working
+        result = deepcopy(context.participant_runtime.admit_action(deepcopy(request), deepcopy(predecessor)))
+    stale_completion = participant_generation_commit_diagnostic(request, run.working)
+    if stale_completion is not None:
+        run.diagnostics.append(stale_completion)
+        run.failure = ApplyResult(
+            success=False,
+            snapshot=run.working,
+            diagnostics=run.diagnostics,
+            changed_addresses=list(dict.fromkeys(run.changed)),
+        )
+        return state
     protocol_violation = autonomous_action_result_violation(
         request,
         result,
         episode_id=state.episode_id,
         predecessor=predecessor,
     )
+    if protocol_violation is None and dispatched:
+        result = assess_temporal_result(request, result, run.working)
     protocol_failure = _record_protocol_result(run, context, predecessor, result, protocol_violation)
-    if not commit_activity_resources(
+    if dispatched and not commit_activity_resources(
         context,
         request,
         result,
@@ -258,6 +347,8 @@ def _run_one_activity_action(
         "value",
         getattr(action_result, "failure_class", None),
     )
+    if not protocol_failure and not temporal_guarantees_met(request, result):
+        failure_value = None
     if not protocol_failure:
         annotate_activity_history(
             run,

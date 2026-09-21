@@ -9,6 +9,7 @@ from raes.participant_attribution_semantics import (
     ParticipantAttributionCandidateKind,
 )
 from raes.participant_behavior import ParticipantInteractionClass
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
 from raes_contracts.participant_behavior import (
     ParticipantActionResultStatus,
     ParticipantAdmissionDisposition,
@@ -82,6 +83,7 @@ class ParticipantBehaviorHistoryEvent:
     attribution_edges: tuple[ParticipantAttributionEdge, ...] = ()
     outcome_interpretations: tuple[ParticipantOutcomeInterpretationRecord, ...] = ()
     temporal_contexts: tuple[ParticipantTemporalRuntimeContext, ...] = ()
+    temporal_assessments: tuple[ParticipantTemporalAssessmentModel, ...] = ()
     details: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -136,6 +138,10 @@ class ParticipantBehaviorHistoryEvent:
                 payload.get("outcome_interpretations", ())
             ),
             temporal_contexts=_participant_temporal_contexts_from_payload(payload.get("temporal_contexts", ())),
+            temporal_assessments=tuple(
+                ParticipantTemporalAssessmentModel.model_validate(item)
+                for item in payload.get("temporal_assessments", ())
+            ),
             details=_participant_behavior_details_from_payload(payload.get("details", {})),
         )
 
@@ -166,6 +172,16 @@ class ParticipantBehaviorHistoryEvent:
             "attribution_edges": [edge.to_payload() for edge in self.attribution_edges],
             "outcome_interpretations": [record.to_payload() for record in self.outcome_interpretations],
             "temporal_contexts": [context.to_payload() for context in self.temporal_contexts],
+            **(
+                {
+                    "temporal_assessments": [
+                        item.model_dump(mode="json", exclude_none=True, exclude_defaults=True)
+                        for item in self.temporal_assessments
+                    ]
+                }
+                if self.temporal_assessments
+                else {}
+            ),
             "details": dict(self.details),
         }
 
@@ -309,6 +325,10 @@ class ParticipantBehaviorHistoryEvent:
             raise ValueError("participant outcome interpretations are only allowed on observation_emitted events")
 
     def _validate_temporal_context_types(self) -> None:
+        if not isinstance(self.temporal_assessments, tuple) or any(
+            not isinstance(item, ParticipantTemporalAssessmentModel) for item in self.temporal_assessments
+        ):
+            raise TypeError("temporal_assessments must contain typed temporal assessments")
         if not isinstance(self.temporal_contexts, tuple):
             raise TypeError("temporal_contexts must be a tuple")
         if any(not isinstance(context, ParticipantTemporalRuntimeContext) for context in self.temporal_contexts):

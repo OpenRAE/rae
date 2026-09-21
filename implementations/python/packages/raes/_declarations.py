@@ -29,6 +29,7 @@ class Declaration:
     source: str | None = None
     referenceable: bool = False
     targetable: bool = False
+    model_tokens: tuple[str, ...] = ()
 
 
 class DeclarationIndex:
@@ -131,7 +132,7 @@ def _add(
     *,
     kind: str,
     address_parts: tuple[str, ...],
-    model_path: str,
+    model_path: tuple[str, ...],
     aliases: Iterable[str] = (),
     referenceable: bool = False,
     targetable: bool = False,
@@ -140,7 +141,8 @@ def _add(
         Declaration(
             kind=kind,
             address=_address(*address_parts),
-            model_path=model_path,
+            model_path=".".join(model_path),
+            model_tokens=model_path,
             referenceable=referenceable,
             targetable=targetable,
         ),
@@ -153,7 +155,7 @@ def _add_entities(
     entities: dict[str, Entity],
     *,
     address_prefix: tuple[str, ...],
-    model_prefix: str,
+    model_prefix: tuple[str, ...],
 ) -> None:
     for name, entity in entities.items():
         parts = _qualified_parts(name) if not address_prefix else (name,)
@@ -163,7 +165,7 @@ def _add_entities(
             index,
             kind="entity",
             address_parts=("entities", *entity_parts),
-            model_path=f"{model_prefix}.{name}",
+            model_path=(*model_prefix, name),
             aliases=(relative_name,),
             referenceable=True,
             targetable=True,
@@ -172,7 +174,7 @@ def _add_entities(
             index,
             entity.entities,
             address_prefix=entity_parts,
-            model_prefix=f"{model_prefix}.{name}.entities",
+            model_prefix=(*model_prefix, name, "entities"),
         )
 
 
@@ -181,7 +183,7 @@ def _add_runtime_children(
     owner: object,
     *,
     address_prefix: tuple[str, ...],
-    model_prefix: str,
+    model_prefix: tuple[str, ...],
     children: tuple[RuntimeReferenceChild, ...],
 ) -> None:
     for child_spec in children:
@@ -192,7 +194,7 @@ def _add_runtime_children(
                 index,
                 kind=f"runtime-{child_spec.collection_name}",
                 address_parts=child_parts,
-                model_path=(f"{model_prefix}.{child_spec.collection_name}.{position}.{child_spec.id_field}"),
+                model_path=(*model_prefix, child_spec.collection_name, str(position), child_spec.id_field),
                 referenceable=True,
                 targetable=True,
             )
@@ -200,7 +202,7 @@ def _add_runtime_children(
                 index,
                 child,
                 address_prefix=child_parts,
-                model_prefix=f"{model_prefix}.{child_spec.collection_name}.{position}",
+                model_prefix=(*model_prefix, child_spec.collection_name, str(position)),
                 children=child_spec.children,
             )
 
@@ -212,7 +214,7 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
             index,
             kind="node",
             address_parts=("nodes", *node_parts),
-            model_path=f"nodes.{node_name}",
+            model_path=("nodes", node_name),
             aliases=(node_name,),
             referenceable=True,
             targetable=True,
@@ -222,7 +224,7 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
                 index,
                 kind="node-role",
                 address_parts=("nodes", *node_parts, "roles", role_name),
-                model_path=f"nodes.{node_name}.roles.{role_name}",
+                model_path=("nodes", node_name, "roles", role_name),
             )
         for position, service in enumerate(node.services):
             if service.name:
@@ -230,7 +232,7 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
                     index,
                     kind="service",
                     address_parts=("nodes", *node_parts, "services", service.name),
-                    model_path=f"nodes.{node_name}.services.{position}.name",
+                    model_path=("nodes", node_name, "services", str(position), "name"),
                     referenceable=True,
                     targetable=True,
                 )
@@ -251,7 +253,7 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
                     index,
                     kind=f"runtime-{family.collection_name}",
                     address_parts=runtime_parts,
-                    model_path=(f"nodes.{node_name}.runtime.{family.collection_name}.{position}.{family.id_field}"),
+                    model_path=("nodes", node_name, "runtime", family.collection_name, str(position), family.id_field),
                     referenceable=True,
                     targetable=True,
                 )
@@ -259,7 +261,7 @@ def _add_node_declarations(index: DeclarationIndex, scenario: ScenarioContent) -
                     index,
                     item,
                     address_prefix=runtime_parts,
-                    model_prefix=f"nodes.{node_name}.runtime.{family.collection_name}.{position}",
+                    model_prefix=("nodes", node_name, "runtime", family.collection_name, str(position)),
                     children=family.child_refs,
                 )
 
@@ -310,7 +312,7 @@ def _add_section_declarations(index: DeclarationIndex, scenario: ScenarioContent
                 index,
                 kind=section_name,
                 address_parts=(section_name, *_qualified_parts(name)),
-                model_path=f"{section_name}.{name}",
+                model_path=(section_name, name),
                 aliases=(name,),
                 referenceable=referenceable,
                 targetable=referenceable and is_targetable_section(section_name),
@@ -330,7 +332,7 @@ def _add_tool_affordance_declarations(index: DeclarationIndex, scenario: Scenari
                     "tool_affordances",
                     affordance_id,
                 ),
-                model_path=(f"behavior_specifications.{spec_name}.tool_affordances.{affordance_id}"),
+                model_path=("behavior_specifications", spec_name, "tool_affordances", affordance_id),
                 referenceable=True,
             )
 
@@ -351,7 +353,7 @@ def _add_participant_inject_delivery_declarations(
                     "participant_inject_deliveries",
                     binding_id,
                 ),
-                model_path=(f"behavior_specifications.{spec_name}.participant_inject_deliveries.{binding_id}"),
+                model_path=("behavior_specifications", spec_name, "participant_inject_deliveries", binding_id),
                 referenceable=True,
                 targetable=True,
             )
@@ -363,7 +365,7 @@ def _add_variable_declarations(index: DeclarationIndex, scenario: ScenarioConten
             index,
             kind="variable",
             address_parts=("variables", name),
-            model_path=f"variables.{name}",
+            model_path=("variables", name),
             aliases=(name,),
             referenceable=True,
         )
@@ -376,7 +378,7 @@ def _add_infrastructure_declarations(index: DeclarationIndex, scenario: Scenario
             index,
             kind="infrastructure",
             address_parts=("infrastructure", *parts),
-            model_path=f"infrastructure.{name}",
+            model_path=("infrastructure", name),
             referenceable=True,
             targetable=True,
         )
@@ -386,7 +388,7 @@ def _add_infrastructure_declarations(index: DeclarationIndex, scenario: Scenario
                     index,
                     kind="infrastructure-acl",
                     address_parts=("infrastructure", *parts, "acls", acl.name),
-                    model_path=f"infrastructure.{name}.acls.{position}.name",
+                    model_path=("infrastructure", name, "acls", str(position), "name"),
                     referenceable=True,
                     targetable=True,
                 )
@@ -399,7 +401,7 @@ def _add_content_declarations(index: DeclarationIndex, scenario: ScenarioContent
             index,
             kind="content",
             address_parts=("content", *parts),
-            model_path=f"content.{name}",
+            model_path=("content", name),
             aliases=(name,),
             referenceable=True,
             targetable=True,
@@ -409,7 +411,7 @@ def _add_content_declarations(index: DeclarationIndex, scenario: ScenarioContent
                 index,
                 kind="content-item",
                 address_parts=("content", *parts, "items", item.name),
-                model_path=f"content.{name}.items.{position}.name",
+                model_path=("content", name, "items", str(position), "name"),
                 aliases=(item.name,),
                 referenceable=True,
                 targetable=True,
@@ -423,7 +425,7 @@ def _add_workflow_declarations(index: DeclarationIndex, scenario: ScenarioConten
             index,
             kind="workflow",
             address_parts=("workflows", *parts),
-            model_path=f"workflows.{name}",
+            model_path=("workflows", name),
             aliases=(name,),
             referenceable=True,
         )
@@ -432,7 +434,7 @@ def _add_workflow_declarations(index: DeclarationIndex, scenario: ScenarioConten
                 index,
                 kind="workflow-step",
                 address_parts=("workflows", *parts, "steps", step_name),
-                model_path=f"workflows.{name}.steps.{step_name}",
+                model_path=("workflows", name, "steps", step_name),
                 aliases=(f"{name}.{step_name}",),
             )
 
@@ -443,7 +445,7 @@ def _add_forwarding_agent_declarations(index: DeclarationIndex, scenario: Scenar
             index,
             kind="forwarding-agent",
             address_parts=("forwarding_agents", *_qualified_parts(agent.forwarding_agent_id)),
-            model_path=f"forwarding_agents.{position}.forwarding_agent_id",
+            model_path=("forwarding_agents", str(position), "forwarding_agent_id"),
             referenceable=True,
             targetable=True,
         )
@@ -457,7 +459,7 @@ def _add_variation_member_declarations(index: DeclarationIndex, scenario: Scenar
                 index,
                 kind=f"variation-{container[:-1]}",
                 address_parts=("variation_points", *_qualified_parts(point_name), container, member_name),
-                model_path=f"variation_points.{point_name}.{container}.{member_name}",
+                model_path=("variation_points", point_name, container, member_name),
                 aliases=(f"{point_name}.{member_name}",),
                 referenceable=True,
             )
@@ -475,7 +477,7 @@ def build_declaration_index(
         index,
         kind="scenario",
         address_parts=("scenario", scenario.name),
-        model_path="name",
+        model_path=("name",),
     )
 
     _add_section_declarations(index, scenario)
@@ -484,7 +486,7 @@ def build_declaration_index(
     _add_variable_declarations(index, scenario)
     _add_node_declarations(index, scenario)
     _add_infrastructure_declarations(index, scenario)
-    _add_entities(index, scenario.entities, address_prefix=(), model_prefix="entities")
+    _add_entities(index, scenario.entities, address_prefix=(), model_prefix=("entities",))
     _add_content_declarations(index, scenario)
     _add_workflow_declarations(index, scenario)
     _add_forwarding_agent_declarations(index, scenario)

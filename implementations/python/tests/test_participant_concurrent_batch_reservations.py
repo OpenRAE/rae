@@ -167,6 +167,7 @@ def _stub_request_binding(monkeypatch: pytest.MonkeyPatch) -> None:
         lambda context, working, state: SimpleNamespace(
             participant_address=context.participant_address,
             execution_scope_ref=None,
+            temporal_contexts=(),
             action_instance_id=f"{context.participant_address}:attempt-{state.attempted_actions}",
         ),
     )
@@ -1273,8 +1274,12 @@ def test_snapshot_ownership_exhaustively_classifies_every_runtime_field():
     }
 
     assert classified == {field.name for field in dataclass_fields(RuntimeSnapshot)}
+    assert len(classified) == len(_BACKEND_MAPPING_FIELDS) + len(_BACKEND_VALUE_FIELDS) + len(
+        _PROTECTED_SCHEDULER_FIELDS
+    )
     actual_protected_fields = _PROTECTED_SCHEDULER_FIELDS
     assert actual_protected_fields == {
+        "time_model_state",
         "materialization_attestations",
         "mixed_composition_history",
         "mixed_composition_states",
