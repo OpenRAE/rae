@@ -74,6 +74,7 @@ from raes_runtime.control_plane_store_compatibility import (
     adapt_control_plane_store,
 )
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
+from raes_runtime.control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION
 from raes_runtime.control_plane_store_records import _record_payload
 from raes_runtime.control_plane_store_snapshots import (
     _require_complete_runtime_snapshot_fields,
@@ -1089,7 +1090,9 @@ def test_local_store_migrates_v1_sqlite_operations_and_disposes_denials(tmp_path
     assert denial_audit.allowed is False
     assert denial_audit.reason == "legacy-denied-operation-disposed"
     with migrated._connection() as connection:
-        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == ("5",)
+        assert connection.execute("SELECT value FROM metadata WHERE key='schema-version'").fetchone() == (
+            LOCAL_OPERATION_SCHEMA_VERSION,
+        )
 
 
 def test_local_store_rejects_non_wal_before_schema_or_legacy_migration(

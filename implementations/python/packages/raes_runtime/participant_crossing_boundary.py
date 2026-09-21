@@ -27,6 +27,7 @@ from .participant_control_mediation import (
     prepare_participant_control_transition,
     record_participant_control,
 )
+from .participant_control_orchestration import admit_participant_control
 from .participant_crossing_action import (
     ActionIngressExecution,
     action_operation_record,
@@ -170,6 +171,12 @@ class ParticipantCrossingControlIngressMixin:
             if sink_receipt is not None:
                 return sink_receipt
 
+            crossing, control_receipt = admit_participant_control(
+                self, crossing, sink_kind=ParticipantFlowSinkKind.PARTICIPANT_CROSSING
+            )
+            if control_receipt is not None:
+                return control_receipt
+
             governed_intent = _governed_control_intent(self, crossing, intent)
             governed_bound = bind_participant_control_request(
                 self,
@@ -192,6 +199,9 @@ class ParticipantCrossingControlIngressMixin:
             next_snapshot = transition.next_snapshot.with_entries(
                 dict(transition.next_snapshot.entries),
                 participant_crossing_history=crossing.next_snapshot.participant_crossing_history,
+                # The admitted composition committed with this crossing; the
+                # supervisory transition carries it, never drops it.
+                participant_control_evaluation_history=(crossing.next_snapshot.participant_control_evaluation_history),
             )
             record = replace(
                 transition.record,
@@ -301,6 +311,11 @@ def _prepare_action_effect(
         )
     if early is not None:
         return _PreparedActionEffect(crossing=crossing, early_receipt=early)
+    crossing, control_receipt = admit_participant_control(
+        control_plane, crossing, sink_kind=ParticipantFlowSinkKind.ACTION_ARGUMENT
+    )
+    if control_receipt is not None:
+        return _PreparedActionEffect(crossing=crossing, early_receipt=control_receipt)
     governed = _governed_action_request(control_plane, crossing, request)
     _require_action_binding(behavior, governed)
     _require_governed_subject(crossing, _action_subject(control_plane, governed))

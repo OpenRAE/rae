@@ -39,3 +39,7 @@ Issue #794 clarifies that behavior mode is not controller state and that supervi
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_targets.py` (RUN-310 control target resolution)
 - TESTS → TEST `implementations/python/tests/test_run_310_supervisory_lifecycle.py` (RUN-310 supervisory lifecycle tests)
 - IMPLEMENTS → GITHUB_ISSUE `255` (Intervention, Handoff, And Supervisory Lifecycle (RUN-310))
+- IMPLEMENTS → GITHUB_ISSUE `1069` (Controller handoff dispatched as a separately admitted control effect)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_effects.py` (Admitted effects routed to their incumbent lifecycle owners)
+- TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_effects.py` (Governed handoff effect with idempotent replay)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Runtime entry point for separately admitted effect dispatch)

@@ -17,8 +17,14 @@ They own the rules. Follow them if this guide seems to differ.
 
 For backend authors, the
 [modular provider contract reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/modular-participant-control-contracts.md)
-describes closed profile selections, typed results and requested effects.
-Publishing these contracts does not install a provider or execute its requests.
+describes closed profile selections, typed results and requested effects, and
+how the reference runtime orchestrates them. Publishing these contracts does
+not install a provider or execute its requests. The runtime invokes only
+providers an operator constructed and bound to the admitted selection, commits
+the composed decision before any backend effect or delivery, and dispatches an
+admitted effect only through the RAES operation that already owns it. An
+effect acts for the principal whose operation admitted it, never for the caller
+that later requests its dispatch.
 
 | Plane | What it contains | What it does not imply |
 | --- | --- | --- |

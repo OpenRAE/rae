@@ -1685,7 +1685,7 @@
           ]
         }
       ],
-      "description": "Frozen specialization of the incumbent crossing subject coordinate.",
+      "description": "Frozen specialization of the incumbent crossing subject coordinate.\n\nThe incumbent requires a revision *or* a digest, and a live runtime subject\nis frequently digest-only. Narrowing ``subject_revision`` to mandatory would\nmake the crossing occurrence this context names inexpressible, so the\nspecialization bounds the coordinate without adding a requirement the owner\ndoes not impose.",
       "properties": {
         "contract_id": {
           "maxLength": 256,
@@ -1733,18 +1733,25 @@
           "type": "string"
         },
         "subject_revision": {
-          "maxLength": 256,
-          "minLength": 1,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
-          "title": "Subject Revision",
-          "type": "string"
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Revision"
         }
       },
       "required": [
         "subject_kind",
         "contract_id",
         "subject_ref",
-        "subject_revision",
         "participant_address",
         "episode_id"
       ],

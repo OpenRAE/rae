@@ -23,6 +23,10 @@ from .participant_control_diagnostics import (
     _participant_binding_address,
     _participant_binding_diagnostic,
 )
+from .participant_control_effects import (
+    ParticipantControlEffectRealization,
+    dispatch_participant_control_effects,
+)
 from .participant_control_intents import (
     ParticipantApprovalControlIntent,
     ParticipantCancellationControlIntent,
@@ -236,6 +240,24 @@ class ParticipantControlMixin(
     ParticipantDecisionSurfaceV2ControlMixin,
 ):
     """Participant runtime methods for the shared runtime control plane."""
+
+    @runtime_owned
+    def dispatch_participant_control_effects(
+        self,
+        participant_address: str,
+        *,
+        identity: object,
+    ) -> tuple[ParticipantControlEffectRealization, ...]:
+        """Dispatch the committed, unrealized API-424 effect claims for one participant.
+
+        PC-11 keeps a subsequent effect independent of its parent: the parent
+        already committed its authorized intent, and each effect is admitted
+        here as its own operation through its incumbent owner. The call is
+        idempotent on the logical effect key, so a replay returns the retained
+        receipt instead of repeating an external action.
+        """
+
+        return dispatch_participant_control_effects(self, participant_address, identity=identity)
 
     @runtime_owned
     @mutation_entry(OperationKind.PARTICIPANT_ACTION)
