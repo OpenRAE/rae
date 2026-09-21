@@ -616,4 +616,8 @@ adrs:
     pin: d734bb660e153dc6d97c1cbdc5d1079cc837d77d5874da84bd8e8d788c7edf80
   - id: ADR-109
     path: docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md
-    pin: 09f9aefebf44b74857730b9f29ecc3acaea5724d83bb3b2527e7c1762a5a1af3
+    pin: 859172f6b8791577059a3215af639210e86267455c8a059f71168e621c0f9c61
+    amendments:
+      - date: 2026-09-21
+        ref: "#1338"
+        summary: "Editorial: use the explicit classification-waiver declaration required by the assurance policy gate."

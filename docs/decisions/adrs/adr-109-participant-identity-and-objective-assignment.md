@@ -15,7 +15,7 @@ Classification: FM2
 Required artifacts: the [normative contract and clause matrix](../../../specs/sdl/participant-identity.md),
 closed published SDL schemas, cross-stage differential tests, and the
 [explicit migration guide](../../migration/participant-identity.md).
-No artifacts are waived.
+Waivers: none.
 
 ## Context
 
@@ -81,3 +81,9 @@ parsing, schema shape, role resolution, action constraints, imports, variable
 instantiation, editor navigation, compilation, authority, and migration.
 Existing episode/history contracts remain authoritative for realized action
 coordinates. A declaration of intent alone never constitutes evidence of action.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-09-21 | #1338 | Editorial: use the explicit classification-waiver declaration required by the assurance policy gate. |
