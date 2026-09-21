@@ -33,6 +33,7 @@ def participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str
         "participant_crossing_history": snapshot.participant_crossing_history,
         "mixed_composition_history": snapshot.mixed_composition_history,
         "information_state_history": snapshot.information_state_history,
+        "participant_outcome_history": snapshot.participant_outcome_history,
     }
     history = histories.get(history_name)
     if not separator or not participant_address or history is None:

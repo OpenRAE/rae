@@ -72,6 +72,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-resource-budget-state-v1",
             "participant-resource-budget-event-v1",
             "participant-outcome-report-v1",
+            "participant-outcome-report-v2",
             "runtime-fact-binding-plane-v1",
         },
         "participant-runtime",
@@ -172,7 +173,8 @@ def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     for key, value in sorted(schema.items()):
         if key == "$defs":
             definitions = ",\n".join(
-                f"    {json.dumps(label)}: {compact(body)}" for label, body in sorted(value.items())
+                f"    {json.dumps(label)}: {compact(body)}"
+                for label, body in sorted(value.items())
             )
             members.append(f'  "$defs": {{\n{definitions}\n  }}')
         else:

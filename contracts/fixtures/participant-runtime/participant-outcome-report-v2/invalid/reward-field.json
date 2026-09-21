@@ -1,0 +1,125 @@
+{
+  "event_id": "report-1",
+  "schema_name": "raes.participant_runtime.outcome_report",
+  "schema_version": "2.0.0",
+  "event_type": "participant_outcome_report",
+  "extension_policy": "closed",
+  "event_classification": null,
+  "source_status": null,
+  "participant_address": "participant.behavior.red-agent",
+  "episode_id": "episode-1",
+  "sequence_number": null,
+  "occurred_at": "2026-05-21T09:00:00Z",
+  "recorded_at": "2026-05-21T09:00:00Z",
+  "ingested_at": "2026-05-21T09:00:00Z",
+  "clock_authority": "control-plane",
+  "temporal_context": null,
+  "ordering_basis": "control_plane_order",
+  "logical_order_ref": null,
+  "predecessor_event_refs": [],
+  "actor_ref": "operator",
+  "producer_ref": "runtime:participant-outcome",
+  "source_system_ref": null,
+  "source_record_ref": null,
+  "source_raw_ref": null,
+  "source_pipeline": null,
+  "raw_data_integrity": null,
+  "confidence": null,
+  "provenance_refs": [],
+  "evidence_refs": [
+    "evidence.scan-output"
+  ],
+  "marking_definition_refs": [],
+  "object_marking_refs": [],
+  "markings": [],
+  "granular_markings": {},
+  "redaction_policy_ref": null,
+  "authorization_scope": "runtime:control",
+  "outcome_id": "local-task",
+  "interpretation_rule_ref": "participant.outcome-interpretation-rule.scan-evidence-objective",
+  "rule_digest": "sha256:898d3994be1b244379c66ccf2357864700b833ce2f69edaa71b7bd3d638a15fe",
+  "rule_spec": {
+    "semantic_version": "2.0.0",
+    "participant_scope": "participant_local",
+    "observation_point_basis": "terminal participant observation event",
+    "interpretation_basis": "explicit SEM-215 mapping from local scan evidence to objective/evaluation meaning",
+    "source_bindings": [
+      {
+        "source_id": "local-action",
+        "source_layer": "participant_action_outcome",
+        "ref": "scan",
+        "interpretation_role": "local action status input",
+        "evidence_refs": [
+          "evidence.scan-output"
+        ],
+        "provenance_refs": [],
+        "diagnostics": []
+      },
+      {
+        "source_id": "alert-evidence",
+        "source_layer": "evidence_claim",
+        "ref": "evidence.alert",
+        "interpretation_role": "alert evidence input",
+        "evidence_refs": [
+          "evidence.alert"
+        ],
+        "provenance_refs": [],
+        "diagnostics": []
+      },
+      {
+        "source_id": "scaffold",
+        "source_layer": "scaffold_variant",
+        "ref": "scaffold.standard",
+        "interpretation_role": "benchmark context input",
+        "evidence_refs": [],
+        "provenance_refs": [
+          "provenance.scaffold.standard"
+        ],
+        "diagnostics": []
+      }
+    ],
+    "target_bindings": [],
+    "local_outcome": {
+      "model_version": "1.0.0",
+      "category": "task_completion",
+      "criterion_basis": "The declared task requires independently evidenced effects.",
+      "criteria": [
+        {
+          "criterion_id": "scan",
+          "source_id": "local-action",
+          "effect_id": "scan-evidence"
+        }
+      ],
+      "conflict_policy": "retain_until_explicit_correction",
+      "freshness_policy": "exact_observation_cut",
+      "episode_policy": "reset_without_transfer"
+    },
+    "evidence_refs": [
+      "evidence.alert"
+    ],
+    "limitations": [
+      "local scan result is not objective success by itself",
+      "reward remains a derived assessment signal"
+    ],
+    "diagnostics": []
+  },
+  "revision": 1,
+  "predecessor_event_ref": null,
+  "behavior_history_length": 3,
+  "behavior_history_digest": "sha256:c15c5a6f4eed769e460c5f4ae94b824fb177cb3cf5357d2e73c31a0d045d0a36",
+  "observation_refs": [
+    {
+      "action_instance_id": "scan-0001",
+      "observation_point": "episode-step:scan-0001:terminal-observation",
+      "content_digest": "sha256:690ecc18d601214a201d3210362030faf8495720d812270cb67925471d57f8c1"
+    }
+  ],
+  "excluded_observation_refs": [],
+  "correction_basis": null,
+  "category": "task_completion",
+  "attainment": "attained",
+  "knowledge": "supported",
+  "freshness": "current_at_recorded_cut",
+  "state_relationships": [],
+  "reward": 1
+}

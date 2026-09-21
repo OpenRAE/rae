@@ -97,6 +97,7 @@ class RuntimeSnapshot:
     mixed_composition_states: dict[str, dict[str, Any]] = field(default_factory=dict)
     mixed_composition_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     information_state_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    participant_outcome_history: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     participant_autonomous_execution_states: dict[str, dict[str, Any]] = field(default_factory=dict)
     participant_execution_services: dict[str, dict[str, Any]] = field(default_factory=dict)
     participant_resource_budget_states: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -117,6 +118,9 @@ class RuntimeSnapshot:
 
     def __post_init__(self) -> None:
         from .mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+        from .participant_outcome_history import require_outcome_history
+
+        require_outcome_history(self.participant_outcome_history, self.participant_behavior_history)
 
         violations = list(
             iter_mixed_runtime_snapshot_violations(self.mixed_composition_states, self.mixed_composition_history)

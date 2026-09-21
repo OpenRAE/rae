@@ -1,9 +1,9 @@
 {
-  "content_hash": "fcf51e4488f2e1ff9a6a67e0d71ce2de19072ddead19fcdaf1f9e3479fc3c28a",
+  "content_hash": "8ae306e641aeb5d1ef6c7066bfea2b2d990d12ca784d5d3c33a01d24e7dbe129",
   "contract_id": "instantiated-scenario-v1",
   "last_change": {
-    "content_hash": "fcf51e4488f2e1ff9a6a67e0d71ce2de19072ddead19fcdaf1f9e3479fc3c28a",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
+    "content_hash": "8ae306e641aeb5d1ef6c7066bfea2b2d990d12ca784d5d3c33a01d24e7dbe129"
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-v1.json",
   "stability": "draft"

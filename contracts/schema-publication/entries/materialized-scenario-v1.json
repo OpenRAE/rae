@@ -1,9 +1,9 @@
 {
-  "content_hash": "dbb5733840b4d2adc9b0b565eff24f0c0314d2d6e3df9f0252e75793652bc3b5",
+  "content_hash": "a0a54f6c92b793d6d6c9d5e4f46da6a06b9ebf63f2e1facb9d05680360fdb7c1",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "dbb5733840b4d2adc9b0b565eff24f0c0314d2d6e3df9f0252e75793652bc3b5",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
+    "content_hash": "a0a54f6c92b793d6d6c9d5e4f46da6a06b9ebf63f2e1facb9d05680360fdb7c1"
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

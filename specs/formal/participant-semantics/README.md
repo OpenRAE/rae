@@ -1,5 +1,8 @@
 # Participant Semantics Formal Design
 
+The [ACT-618 local outcome extension](local-outcomes.md) defines role-neutral
+categories and evolving participant-local state within the SEM-215 family.
+
 This document is the issue #71 formal design artifact for:
 
 - `SEM-208` - Participant Behavior Semantics

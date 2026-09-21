@@ -1,9 +1,9 @@
 {
-  "content_hash": "e24dde11b57c1a3fa90ea62c2d9620b4fbcfaa913bf699698d609510a5b4f6a0",
+  "content_hash": "63c7413330070f87bd534a815df15eb2a951b73c403732017082ffe2312eebd6",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "e24dde11b57c1a3fa90ea62c2d9620b4fbcfaa913bf699698d609510a5b4f6a0",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
+    "content_hash": "63c7413330070f87bd534a815df15eb2a951b73c403732017082ffe2312eebd6"
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

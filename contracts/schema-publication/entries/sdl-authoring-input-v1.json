@@ -1,9 +1,9 @@
 {
-  "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
+  "content_hash": "1947557563bdbb27c3a8e5037bfe5055a68f11ee39684daf0433b5da258f4514",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "0418c610812b2ba7a2f57348ccf9a0dc5981d4b2a77c1d1c5077ce0c86497455",
-    "summary": "Preserve bounded, case-sensitive HTTP wire-method identity while retaining legacy built-in aliases (#1298)."
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
+    "content_hash": "1947557563bdbb27c3a8e5037bfe5055a68f11ee39684daf0433b5da258f4514"
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

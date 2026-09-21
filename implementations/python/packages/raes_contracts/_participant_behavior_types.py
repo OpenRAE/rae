@@ -101,6 +101,7 @@ _RESERVED_RUNTIME_STATE_KEYS = frozenset(
         "participant_episode_history",
         "participant_behavior_history",
         "information_state_history",
+        "participant_outcome_history",
         "shared_state_records",
         "shared_state_history",
     }

@@ -1,9 +1,9 @@
 {
-  "content_hash": "096e0d4c4dca8d2917cc1ab60c495e29d9d629c7f680f89085db780b313aa66e",
+  "content_hash": "3fdeff245371bf060ad37cb415603d4ffac826b8afff9aeb9a73d4d667479979",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "096e0d4c4dca8d2917cc1ab60c495e29d9d629c7f680f89085db780b313aa66e",
-    "summary": "Persist typed append-only mixed-composition phase, decision, delivery, observation, weakening, and failure facts (#1016)."
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
+    "content_hash": "3fdeff245371bf060ad37cb415603d4ffac826b8afff9aeb9a73d4d667479979"
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

@@ -215,6 +215,7 @@ def _rewrite_objective(
     objective: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
+    objective["actions"] = [_maybe_rename(name, symbols["action_contracts"]) for name in objective.get("actions", [])]
     if objective.get("agent"):
         objective["agent"] = _maybe_rename(str(objective["agent"]), symbols["agents"])
     if objective.get("entity"):

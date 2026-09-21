@@ -233,6 +233,11 @@ _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS = {
 }
 
 _PARTICIPANT_OUTCOME_ISSUE_RENDERERS = {
+    "participant.outcome.local-effect-unbound": (
+        lambda i: (
+            f"Outcome interpretation rule '{i.rule_name}' criterion '{i.binding_id}' references undefined effect '{i.ref}'"
+        )
+    ),
     "participant.outcome.source-action-unbound": (
         lambda i: f"Outcome interpretation rule '{i.rule_name}' source '{i.ref}' references undefined action contract"
     ),

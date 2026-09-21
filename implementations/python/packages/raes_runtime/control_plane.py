@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from copy import deepcopy
 from threading import RLock
 from typing import TypeVar, Unpack
 
@@ -187,6 +188,7 @@ class RuntimeControlPlane(
             )
 
     def _restore_persisted_state(self, config: ControlPlaneConfiguration) -> None:
+        self._participant_outcome_model = deepcopy(config.participant_outcome_model)
         self._snapshot_state = self._store.load_snapshot_state()
         self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
         require_operation_record_scopes(self._operations, target_scope=self._target_scope, run_scope=self._run_scope)
