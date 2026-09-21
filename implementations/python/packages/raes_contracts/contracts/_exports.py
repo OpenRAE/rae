@@ -344,6 +344,7 @@ PUBLIC_EXPORTS = [
     "ParticipantObservationStochasticContextModel",
     "ParticipantOutcomeInterpretationRecordModel",
     "ParticipantOutcomeReportModel",
+    "ParticipantOutcomeReportV2Model",
     "ParticipantOutcomeReportSourceModel",
     "ParticipantOutcomeReportStateRelationshipModel",
     "ParticipantOutcomeSourceRecordModel",

@@ -90,6 +90,11 @@ def _snapshot_result_updates(
             "information_state_history",
             snapshot.information_state_history,
         ),
+        "participant_outcome_history": _history_update(
+            updates,
+            "participant_outcome_history",
+            snapshot.participant_outcome_history,
+        ),
     }
 
 
@@ -197,6 +202,7 @@ _SNAPSHOT_UPDATE_KEYS = {
     "mixed_composition_states",
     "mixed_composition_history",
     "information_state_history",
+    "participant_outcome_history",
     "participant_autonomous_execution_states",
     "participant_execution_services",
     "participant_resource_budget_states",

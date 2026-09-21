@@ -1,9 +1,9 @@
 {
-  "content_hash": "737174c57c27fc621999586b64d5373ded43309d60ae44873ee327856180f30f",
+  "content_hash": "6be7b5076626048387cbfb5da8e6b13b3878e22746ca69186e6d339c472ac9aa",
   "contract_id": "instantiated-scenario-snapshot-v1",
   "last_change": {
-    "content_hash": "737174c57c27fc621999586b64d5373ded43309d60ae44873ee327856180f30f",
-    "summary": "Separate optional participant affiliation and effective role from objective ownership and explicit assignment; remove legacy actor fields with an explicit source migration reader (#1338)."
+    "content_hash": "6be7b5076626048387cbfb5da8e6b13b3878e22746ca69186e6d339c472ac9aa",
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
   },
   "schema_path": "contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
   "stability": "draft"

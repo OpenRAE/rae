@@ -44,6 +44,7 @@ from .participant_crossing_boundary import (
 )
 from .participant_decision_surface_control_v2 import ParticipantDecisionSurfaceV2ControlMixin
 from .participant_episode_control import ParticipantEpisodeControlMixin
+from .participant_outcome_control import ParticipantOutcomeControlMixin
 from .participant_submission_options import ParticipantSubmissionOptions, submit_bound_participant_action
 
 
@@ -235,6 +236,7 @@ def _bind_participant_decision_surface(
 
 
 class ParticipantControlMixin(
+    ParticipantOutcomeControlMixin,
     ParticipantEpisodeControlMixin,
     ParticipantCrossingControlIngressMixin,
     ParticipantDecisionSurfaceV2ControlMixin,

@@ -269,7 +269,38 @@ def _rewrite_behavior_sections(
     payload: dict[str, Any],
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
-    for action in payload.get("action_contracts", {}).values():
+    for rule in payload.get("outcome_interpretation_rules", {}).values():
+        if isinstance(rule, dict):
+            _rewrite_outcome_rule(rule, symbols)
+    _rewrite_action_interactions(payload.get("action_contracts", {}), symbols)
+    for behavior_spec in payload.get("behavior_specifications", {}).values():
+        if isinstance(behavior_spec, dict):
+            _rewrite_behavior_specification(behavior_spec, symbols)
+    for requirement in payload.get("evidence_requirements", {}).values():
+        if isinstance(requirement, dict):
+            _rewrite_evidence_requirement(requirement, symbols)
+
+
+def _rewrite_outcome_rule(rule: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    """Preserve rule-local criterion IDs while rewriting cross-section sources."""
+    sections = {
+        "participant_action_outcome": "action_contracts",
+        "objective_result": "objectives",
+        "workflow_result": "workflows",
+    }
+    for field, layer_field in (("source_bindings", "source_layer"), ("target_bindings", "target_layer")):
+        for binding in rule.get(field, []):
+            if not isinstance(binding, dict):
+                continue
+            section = sections.get(binding.get(layer_field))
+            if section is not None:
+                binding["ref"] = _maybe_rename(binding["ref"], symbols[section])
+            _rewrite_binding_evidence_refs(binding, symbols)
+    rule["evidence_refs"] = [_maybe_rename(ref, symbols["named"]) for ref in rule.get("evidence_refs", [])]
+
+
+def _rewrite_action_interactions(actions: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for action in actions.values():
         if not isinstance(action, dict):
             continue
         for interaction in action.get("interactions", []):
@@ -282,9 +313,9 @@ def _rewrite_behavior_sections(
             interaction["shared_state_refs"] = [
                 _maybe_rename(ref, symbols["named"]) for ref in interaction.get("shared_state_refs", [])
             ]
-    for behavior_spec in payload.get("behavior_specifications", {}).values():
-        if isinstance(behavior_spec, dict):
-            _rewrite_behavior_specification(behavior_spec, symbols)
-    for requirement in payload.get("evidence_requirements", {}).values():
-        if isinstance(requirement, dict):
-            _rewrite_evidence_requirement(requirement, symbols)
+
+
+def _rewrite_binding_evidence_refs(binding: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for refs in ("evidence_refs", "provenance_refs"):
+        if refs in binding:
+            binding[refs] = [_maybe_rename(ref, symbols["named"]) for ref in binding[refs]]

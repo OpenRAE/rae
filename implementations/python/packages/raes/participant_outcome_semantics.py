@@ -2,9 +2,12 @@
 
 from enum import Enum
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema
 
 from ._base import SDLModel
+from .participant_local_outcome import LocalOutcomeDefinition
 
 
 class OutcomeInterpretationSourceLayer(str, Enum):
@@ -145,10 +148,23 @@ class OutcomeInterpretationRule(SDLModel):
     observation_point_basis: str
     interpretation_basis: str
     source_bindings: list[OutcomeInterpretationSourceBinding] = Field(min_length=1)
-    target_bindings: list[OutcomeInterpretationTargetBinding] = Field(min_length=1)
+    target_bindings: list[OutcomeInterpretationTargetBinding]
+    local_outcome: LocalOutcomeDefinition | None = None
     evidence_refs: list[str] = Field(min_length=1)
     limitations: list[str] = Field(min_length=1)
     diagnostics: list[str] = Field(default_factory=list)
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        result = handler.resolve_ref_schema(handler(schema))
+        result.setdefault("allOf", []).append(
+            {
+                "if": {"required": ["local_outcome"], "properties": {"local_outcome": {"type": "object"}}},
+                "then": {"properties": {"semantic_version": {"const": "2.0.0"}}},
+                "else": {"properties": {"target_bindings": {"minItems": 1}}},
+            }
+        )
+        return result
 
     @field_validator(
         "semantic_version",
@@ -185,6 +201,16 @@ class OutcomeInterpretationRule(SDLModel):
 
     @model_validator(mode="after")
     def _validate_unique_bindings(self) -> "OutcomeInterpretationRule":
+        if self.local_outcome is None and not self.target_bindings:
+            raise ValueError("legacy outcome rules require target_bindings")
+        if self.local_outcome is not None:
+            if self.semantic_version != "2.0.0":
+                raise ValueError("local outcome definitions require semantic_version 2.0.0")
+            sources = {source.source_id: source for source in self.source_bindings}
+            for criterion in self.local_outcome.criteria:
+                source = sources.get(criterion.source_id)
+                if source is None or source.source_layer != OutcomeInterpretationSourceLayer.PARTICIPANT_ACTION_OUTCOME:
+                    raise ValueError("local outcome criteria require a declared participant action source")
         source_ids = [source.source_id for source in self.source_bindings]
         if len(set(source_ids)) != len(source_ids):
             raise ValueError("outcome interpretation source_id values must be unique")

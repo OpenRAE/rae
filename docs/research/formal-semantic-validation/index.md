@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 42.0.0, rejects unsupported future
+Current validation requires explicit release 45.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -425,3 +425,25 @@ source digest; [`analysis-v25.json`](analysis-v25.json) retains the protocol’s
 bounded classifications and claim limits. Prior captures retain their exact
 bytes. These retained controls do not establish realized coordination,
 delegation, cooperation, competition, or supervision.
+
+## Participant-local outcome source replay
+
+Release 43.0.0 records issue #218 in
+[`execution-snapshot-v42.json`](execution-snapshot-v42.json) and
+[`analysis-v42.json`](analysis-v42.json). The retained controls are replayed
+against the participant-local outcome implementation. Prior outcomes and claim
+limits remain unchanged; ACT-618 behavior is verified by its dedicated runtime
+tests. Earlier captures retain their original bytes.
+
+Release 44.0.0 records the outcome implementation after maintainability
+refactoring in [`execution-snapshot-v43.json`](execution-snapshot-v43.json) and
+[`analysis-v43.json`](analysis-v43.json). Fresh replay retains the same bounded
+outcomes and claim limits; it does not add a new semantic claim.
+
+Current release 45.0.0 records the merged participant identity and local
+outcome implementation in [`execution-snapshot-v44.json`](execution-snapshot-v44.json)
+and [`analysis-v44.json`](analysis-v44.json). The two pre-merge issue #218
+captures retain their observations and source identities in v42 and v43; only
+their release numbers, paths, and corresponding digest joins were reconciled
+with the independently published issue #1338 capture. The combined capture
+uses the issue #1338 baseline and preserves the same bounded claim limits.

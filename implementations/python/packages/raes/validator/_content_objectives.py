@@ -24,6 +24,7 @@ from ..semantics.participant_outcome import (
     analyze_participant_outcome_interpretations,
 )
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
+from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
 from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
 
 # Renders an objective-semantics issue (machine-readable code from
@@ -232,24 +233,6 @@ _PARTICIPANT_BEHAVIOR_ISSUE_RENDERERS = {
             f"Behavior specification '{i.spec_name}' tool affordance '{i.action_name}' reference '{i.ref}' "
             f"must be explicitly classified by observation boundary '{i.boundary_name}'"
         )
-    ),
-}
-
-_PARTICIPANT_OUTCOME_ISSUE_RENDERERS = {
-    "participant.outcome.source-action-unbound": (
-        lambda i: f"Outcome interpretation rule '{i.rule_name}' source '{i.ref}' references undefined action contract"
-    ),
-    "participant.outcome.source-objective-unbound": (
-        lambda i: f"Outcome interpretation rule '{i.rule_name}' source '{i.ref}' references undefined objective"
-    ),
-    "participant.outcome.source-workflow-unbound": (
-        lambda i: f"Outcome interpretation rule '{i.rule_name}' source '{i.ref}' references undefined workflow"
-    ),
-    "participant.outcome.target-objective-unbound": (
-        lambda i: f"Outcome interpretation rule '{i.rule_name}' target '{i.ref}' references undefined objective"
-    ),
-    "participant.outcome.target-workflow-unbound": (
-        lambda i: f"Outcome interpretation rule '{i.rule_name}' target '{i.ref}' references undefined workflow"
     ),
 }
 
@@ -488,7 +471,7 @@ class _ContentObjectivesMixin:
 
     @staticmethod
     def _format_participant_outcome_issue(issue: ParticipantOutcomeIssue) -> str:
-        renderer = _PARTICIPANT_OUTCOME_ISSUE_RENDERERS.get(issue.code)
+        renderer = PARTICIPANT_OUTCOME_ISSUE_RENDERERS.get(issue.code)
         if renderer is None:
             raise AssertionError(f"unhandled participant-outcome issue code: {issue.code}")
         return renderer(issue)

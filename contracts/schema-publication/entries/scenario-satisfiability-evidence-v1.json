@@ -1,9 +1,9 @@
 {
-  "content_hash": "1cb732005bbcd0a0549e2efc9969d554daa3254ed6b2679d956c032423a65e49",
+  "content_hash": "6c00797e46c551713eca1784f31844d02560a1604ab3347fd1c16a92cd1dc459",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "1cb732005bbcd0a0549e2efc9969d554daa3254ed6b2679d956c032423a65e49",
-    "summary": "Separate optional participant affiliation and effective role from objective ownership and explicit assignment; remove legacy actor fields with an explicit source migration reader (#1338)."
+    "content_hash": "6c00797e46c551713eca1784f31844d02560a1604ab3347fd1c16a92cd1dc459",
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

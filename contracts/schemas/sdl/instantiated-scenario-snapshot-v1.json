@@ -7095,6 +7095,108 @@
       "title": "KernelBoundary",
       "type": "string"
     },
+    "LocalOutcomeCriterion": {
+      "additionalProperties": false,
+      "description": "An explicitly declared realized effect, never an action status shortcut.",
+      "properties": {
+        "criterion_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Criterion Id",
+          "type": "string"
+        },
+        "effect_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "source_id",
+        "effect_id"
+      ],
+      "title": "LocalOutcomeCriterion",
+      "type": "object"
+    },
+    "LocalOutcomeDefinition": {
+      "additionalProperties": false,
+      "description": "All criteria must be evidenced; contradictory observations need correction.",
+      "properties": {
+        "category": {
+          "enum": [
+            "task_completion",
+            "effect_realization"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "conflict_policy": {
+          "const": "retain_until_explicit_correction",
+          "title": "Conflict Policy",
+          "type": "string"
+        },
+        "criteria": {
+          "items": {
+            "$ref": "#/$defs/LocalOutcomeCriterion"
+          },
+          "minItems": 1,
+          "title": "Criteria",
+          "type": "array"
+        },
+        "criterion_basis": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Criterion Basis",
+          "type": "string"
+        },
+        "episode_policy": {
+          "const": "reset_without_transfer",
+          "title": "Episode Policy",
+          "type": "string"
+        },
+        "freshness_policy": {
+          "const": "exact_observation_cut",
+          "title": "Freshness Policy",
+          "type": "string"
+        },
+        "model_version": {
+          "const": "1.0.0",
+          "title": "Model Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_version",
+        "category",
+        "criterion_basis",
+        "criteria",
+        "conflict_policy",
+        "freshness_policy",
+        "episode_policy"
+      ],
+      "title": "LocalOutcomeDefinition",
+      "type": "object"
+    },
     "MixedControlAuthorityStatus": {
       "description": "Authored authority state for one controller binding.",
       "enum": [
@@ -8800,6 +8902,34 @@
     },
     "OutcomeInterpretationRule": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "target_bindings": {
+                "minItems": 1
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "local_outcome": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "local_outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "semantic_version": {
+                "const": "2.0.0"
+              }
+            }
+          }
+        }
+      ],
       "description": "Explicit SEM-215 rule relating participant-local outcomes to meaning layers.",
       "properties": {
         "diagnostics": {
@@ -8841,6 +8971,17 @@
           "title": "Limitations",
           "type": "array"
         },
+        "local_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LocalOutcomeDefinition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "observation_point_basis": {
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
@@ -8870,7 +9011,6 @@
           "items": {
             "$ref": "#/$defs/OutcomeInterpretationTargetBinding"
           },
-          "minItems": 1,
           "title": "Target Bindings",
           "type": "array"
         }

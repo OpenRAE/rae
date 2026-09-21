@@ -39,6 +39,7 @@ SNAPSHOT_CARRIER_OWNERS = {
     "mixed_composition_states": "runtime",
     "mixed_composition_history": "runtime",
     "information_state_history": "participant",
+    "participant_outcome_history": "control_plane",
     "participant_autonomous_execution_states": "participant",
     "participant_execution_services": "participant",
     "participant_resource_budget_states": "runtime",

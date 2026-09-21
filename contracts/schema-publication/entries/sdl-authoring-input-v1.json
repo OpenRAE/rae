@@ -1,9 +1,9 @@
 {
-  "content_hash": "8a53aeb79e4fc86a2b770ad290d805c984cd965f63fb75f834f55a3a0f2e3a2a",
+  "content_hash": "a7e7827350bce317cc0a5172e05e82d8be4126359ac7a814c315aa1f139d7501",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "8a53aeb79e4fc86a2b770ad290d805c984cd965f63fb75f834f55a3a0f2e3a2a",
-    "summary": "Separate optional participant affiliation and effective role from objective ownership and explicit assignment; remove legacy actor fields with an explicit source migration reader (#1338)."
+    "content_hash": "a7e7827350bce317cc0a5172e05e82d8be4126359ac7a814c315aa1f139d7501",
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

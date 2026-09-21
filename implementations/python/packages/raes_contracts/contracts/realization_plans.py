@@ -46,6 +46,7 @@ from .participant_envelopes import (
 )
 from .participant_execution import ParticipantExecutionServiceStateModel
 from .participant_information_state import ParticipantInformationStateRecordModel
+from .participant_outcomes import ParticipantOutcomeReportV2Model
 from .participant_resource_budgets import (
     ParticipantResourceBudgetEventModel,
     ParticipantResourceBudgetStateModel,
@@ -407,6 +408,7 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
     mixed_composition_states: dict[str, MixedCompositionRuntimeStateModel] = Field(default_factory=dict)
     mixed_composition_history: dict[str, list[MixedCompositionRuntimeEventModel]] = Field(default_factory=dict)
     information_state_history: dict[str, list[ParticipantInformationStateRecordModel]] = Field(default_factory=dict)
+    participant_outcome_history: dict[str, list[ParticipantOutcomeReportV2Model]] = Field(default_factory=dict)
     participant_autonomous_execution_states: dict[str, ParticipantAutonomousExecutionStateModel] = Field(
         default_factory=dict
     )
@@ -478,6 +480,9 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
         for participant_address, records in self.information_state_history.items():
             if any(record.participant_address != participant_address for record in records):
                 raise ValueError("Information-state history map key must equal embedded participant_address")
+        from ..participant_outcome_history import require_outcome_envelope
+
+        require_outcome_envelope(self)
         validate_execution_service_budget_projection(
             self.participant_execution_services,
             self.participant_resource_budget_states,

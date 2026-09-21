@@ -1,9 +1,9 @@
 {
-  "content_hash": "897dd67ac4f31292753ad75a17035418fffd437035509f9a1334eaeb4041c442",
+  "content_hash": "1fcb3bfb7e23cbf9b05b07b46538520d59fb11c0817c28496d73dcbee1947561",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "content_hash": "897dd67ac4f31292753ad75a17035418fffd437035509f9a1334eaeb4041c442",
-    "summary": "Persist the append-only API-424 participant-control evaluation history committed before any effect (#1069)."
+    "summary": "Persist participant-local outcome reports for ACT-618 (#218) alongside append-only participant-control evaluation history (#1069).",
+    "content_hash": "1fcb3bfb7e23cbf9b05b07b46538520d59fb11c0817c28496d73dcbee1947561"
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

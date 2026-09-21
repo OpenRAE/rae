@@ -1,5 +1,8 @@
 # Control participant input and output
 
+For task/effect attainment independent of evaluation and reward, see
+[participant-local outcome reporting](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/participant-local-outcomes.md).
+
 Use participant control to set three things. Set what may cross a participant
 boundary. Set who may direct the participant. Set what proof a run retains.
 This guide explains the shipped RAES model. It serves five reader roles. It

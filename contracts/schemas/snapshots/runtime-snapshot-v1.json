@@ -1288,6 +1288,96 @@
       "type": "string"
     },
     "JsonValue": {},
+    "LocalOutcomeCriterion": {
+      "additionalProperties": false,
+      "description": "An explicitly declared realized effect, never an action status shortcut.",
+      "properties": {
+        "criterion_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Criterion Id",
+          "type": "string"
+        },
+        "effect_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "source_id",
+        "effect_id"
+      ],
+      "title": "LocalOutcomeCriterion",
+      "type": "object"
+    },
+    "LocalOutcomeDefinition": {
+      "additionalProperties": false,
+      "description": "All criteria must be evidenced; contradictory observations need correction.",
+      "properties": {
+        "category": {
+          "enum": [
+            "task_completion",
+            "effect_realization"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "conflict_policy": {
+          "const": "retain_until_explicit_correction",
+          "title": "Conflict Policy",
+          "type": "string"
+        },
+        "criteria": {
+          "items": {
+            "$ref": "#/$defs/LocalOutcomeCriterion"
+          },
+          "minItems": 1,
+          "title": "Criteria",
+          "type": "array"
+        },
+        "criterion_basis": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Criterion Basis",
+          "type": "string"
+        },
+        "episode_policy": {
+          "const": "reset_without_transfer",
+          "title": "Episode Policy",
+          "type": "string"
+        },
+        "freshness_policy": {
+          "const": "exact_observation_cut",
+          "title": "Freshness Policy",
+          "type": "string"
+        },
+        "model_version": {
+          "const": "1.0.0",
+          "title": "Model Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_version",
+        "category",
+        "criterion_basis",
+        "criteria",
+        "conflict_policy",
+        "freshness_policy",
+        "episode_policy"
+      ],
+      "title": "LocalOutcomeDefinition",
+      "type": "object"
+    },
     "MaterializationArchiveRecord": {
       "additionalProperties": false,
       "description": "Published protected bytes and their distinct semantic identity.",
@@ -1750,6 +1840,174 @@
       "title": "ObservedOperatingSystemIdentityModel",
       "type": "object"
     },
+    "OutcomeInterpretationParticipantScope": {
+      "description": "Allowed participant scope for SEM-215 interpretation rules.",
+      "enum": [
+        "participant_local"
+      ],
+      "title": "OutcomeInterpretationParticipantScope",
+      "type": "string"
+    },
+    "OutcomeInterpretationRule": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "target_bindings": {
+                "minItems": 1
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "local_outcome": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "local_outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "semantic_version": {
+                "const": "2.0.0"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Explicit SEM-215 rule relating participant-local outcomes to meaning layers.",
+      "properties": {
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "interpretation_basis": {
+          "title": "Interpretation Basis",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "local_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LocalOutcomeDefinition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "observation_point_basis": {
+          "title": "Observation Point Basis",
+          "type": "string"
+        },
+        "participant_scope": {
+          "$ref": "#/$defs/OutcomeInterpretationParticipantScope"
+        },
+        "semantic_version": {
+          "title": "Semantic Version",
+          "type": "string"
+        },
+        "source_bindings": {
+          "items": {
+            "$ref": "#/$defs/OutcomeInterpretationSourceBinding"
+          },
+          "minItems": 1,
+          "title": "Source Bindings",
+          "type": "array"
+        },
+        "target_bindings": {
+          "items": {
+            "$ref": "#/$defs/OutcomeInterpretationTargetBinding"
+          },
+          "title": "Target Bindings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "semantic_version",
+        "participant_scope",
+        "observation_point_basis",
+        "interpretation_basis",
+        "source_bindings",
+        "target_bindings",
+        "evidence_refs",
+        "limitations"
+      ],
+      "title": "OutcomeInterpretationRule",
+      "type": "object"
+    },
+    "OutcomeInterpretationSourceBinding": {
+      "additionalProperties": false,
+      "description": "Declared input to a participant outcome interpretation rule.",
+      "properties": {
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "interpretation_role": {
+          "title": "Interpretation Role",
+          "type": "string"
+        },
+        "provenance_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_layer": {
+          "$ref": "#/$defs/OutcomeInterpretationSourceLayer"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_layer",
+        "ref",
+        "interpretation_role"
+      ],
+      "title": "OutcomeInterpretationSourceBinding",
+      "type": "object"
+    },
     "OutcomeInterpretationSourceLayer": {
       "description": "Semantic layers that may feed a SEM-215 interpretation rule.",
       "enum": [
@@ -1770,6 +2028,68 @@
       ],
       "title": "OutcomeInterpretationSourceLayer",
       "type": "string"
+    },
+    "OutcomeInterpretationTargetBinding": {
+      "additionalProperties": false,
+      "description": "Declared output relation from a participant outcome interpretation rule.",
+      "properties": {
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Diagnostics",
+          "type": "array"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "governance_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Governance Ref"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "relation": {
+          "title": "Relation",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_layer": {
+          "$ref": "#/$defs/OutcomeInterpretationTargetLayer"
+        }
+      },
+      "required": [
+        "target_id",
+        "target_layer",
+        "ref",
+        "relation"
+      ],
+      "title": "OutcomeInterpretationTargetBinding",
+      "type": "object"
     },
     "OutcomeInterpretationTargetLayer": {
       "description": "Semantic layers a SEM-215 interpretation rule may explicitly produce.",
@@ -8322,6 +8642,538 @@
       "title": "ParticipantOutcomeInterpretationRecordModel",
       "type": "object"
     },
+    "ParticipantOutcomeObservationRefModel": {
+      "additionalProperties": false,
+      "description": "An exact, immutable observation in the participant behavior history.",
+      "properties": {
+        "action_instance_id": {
+          "minLength": 1,
+          "title": "Action Instance Id",
+          "type": "string"
+        },
+        "content_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "observation_point": {
+          "minLength": 1,
+          "title": "Observation Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_instance_id",
+        "observation_point",
+        "content_digest"
+      ],
+      "title": "ParticipantOutcomeObservationRefModel",
+      "type": "object"
+    },
+    "ParticipantOutcomeReportStateRelationshipModel": {
+      "additionalProperties": false,
+      "description": "Declared relationship between an outcome report and downstream state.",
+      "properties": {
+        "relationship_basis": {
+          "enum": [
+            "declared",
+            "interpretation_rule"
+          ],
+          "title": "Relationship Basis",
+          "type": "string"
+        },
+        "relationship_kind": {
+          "enum": [
+            "scenario_state",
+            "workflow_state",
+            "objective_window",
+            "evaluation_input"
+          ],
+          "title": "Relationship Kind",
+          "type": "string"
+        },
+        "target_ref": {
+          "minLength": 1,
+          "title": "Target Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relationship_kind",
+        "target_ref",
+        "relationship_basis"
+      ],
+      "title": "ParticipantOutcomeReportStateRelationshipModel",
+      "type": "object"
+    },
+    "ParticipantOutcomeReportV2Model": {
+      "additionalProperties": false,
+      "description": "Local state at an exact history cut; v1 records are never upgraded implicitly.",
+      "properties": {
+        "actor_ref": {
+          "minLength": 1,
+          "title": "Actor Ref",
+          "type": "string"
+        },
+        "attainment": {
+          "enum": [
+            "undetermined",
+            "not_attained",
+            "partial",
+            "attained"
+          ],
+          "title": "Attainment",
+          "type": "string"
+        },
+        "authorization_scope": {
+          "minLength": 1,
+          "title": "Authorization Scope",
+          "type": "string"
+        },
+        "behavior_history_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Behavior History Digest",
+          "type": "string"
+        },
+        "behavior_history_length": {
+          "minimum": 0,
+          "title": "Behavior History Length",
+          "type": "integer"
+        },
+        "category": {
+          "enum": [
+            "task_completion",
+            "effect_realization"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "clock_authority": {
+          "minLength": 1,
+          "title": "Clock Authority",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "correction_basis": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Correction Basis"
+        },
+        "episode_id": {
+          "minLength": 1,
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "event_classification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EventClassificationModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "event_id": {
+          "minLength": 1,
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_type": {
+          "const": "participant_outcome_report",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "excluded_observation_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Excluded Observation Refs",
+          "type": "array"
+        },
+        "extension_policy": {
+          "minLength": 1,
+          "title": "Extension Policy",
+          "type": "string"
+        },
+        "freshness": {
+          "const": "current_at_recorded_cut",
+          "title": "Freshness",
+          "type": "string"
+        },
+        "granular_markings": {
+          "additionalProperties": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Granular Markings",
+          "type": "object"
+        },
+        "ingested_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Ingested At",
+          "type": "string"
+        },
+        "interpretation_rule_ref": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Interpretation Rule Ref",
+          "type": "string"
+        },
+        "knowledge": {
+          "enum": [
+            "unknown",
+            "supported",
+            "conflicting",
+            "withheld"
+          ],
+          "title": "Knowledge",
+          "type": "string"
+        },
+        "logical_order_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logical Order Ref"
+        },
+        "marking_definition_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Marking Definition Refs",
+          "type": "array"
+        },
+        "markings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Markings",
+          "type": "array"
+        },
+        "object_marking_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Object Marking Refs",
+          "type": "array"
+        },
+        "observation_refs": {
+          "items": {
+            "$ref": "#/$defs/ParticipantOutcomeObservationRefModel"
+          },
+          "title": "Observation Refs",
+          "type": "array"
+        },
+        "occurred_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "ordering_basis": {
+          "enum": [
+            "total_order",
+            "partial_order",
+            "simultaneous",
+            "serialized_backend_order",
+            "simulation_tick",
+            "control_plane_order",
+            "logical_clock",
+            "vector_clock",
+            "wall_clock_only",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "Ordering Basis",
+          "type": "string"
+        },
+        "outcome_id": {
+          "minLength": 1,
+          "title": "Outcome Id",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "predecessor_event_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Predecessor Event Ref"
+        },
+        "predecessor_event_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Predecessor Event Refs",
+          "type": "array"
+        },
+        "producer_ref": {
+          "minLength": 1,
+          "title": "Producer Ref",
+          "type": "string"
+        },
+        "provenance_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "raw_data_integrity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawDataIntegrityModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "redaction_policy_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction Policy Ref"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "rule_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Rule Digest",
+          "type": "string"
+        },
+        "rule_spec": {
+          "$ref": "#/$defs/OutcomeInterpretationRule"
+        },
+        "schema_name": {
+          "const": "raes.participant_runtime.outcome_report",
+          "title": "Schema Name",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "2.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence_number": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sequence Number"
+        },
+        "source_pipeline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcePipelineModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_raw_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Raw Ref"
+        },
+        "source_record_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Record Ref"
+        },
+        "source_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceStatusModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_system_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source System Ref"
+        },
+        "state_relationships": {
+          "items": {
+            "$ref": "#/$defs/ParticipantOutcomeReportStateRelationshipModel"
+          },
+          "title": "State Relationships",
+          "type": "array"
+        },
+        "temporal_context": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temporal Context"
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_name",
+        "schema_version",
+        "event_type",
+        "extension_policy",
+        "participant_address",
+        "episode_id",
+        "occurred_at",
+        "recorded_at",
+        "ingested_at",
+        "clock_authority",
+        "ordering_basis",
+        "actor_ref",
+        "producer_ref",
+        "authorization_scope",
+        "outcome_id",
+        "interpretation_rule_ref",
+        "rule_digest",
+        "rule_spec",
+        "revision",
+        "predecessor_event_ref",
+        "behavior_history_length",
+        "behavior_history_digest",
+        "observation_refs",
+        "category",
+        "attainment",
+        "knowledge",
+        "freshness"
+      ],
+      "title": "ParticipantOutcomeReportV2Model",
+      "type": "object"
+    },
     "ParticipantOutcomeSourceRecordModel": {
       "additionalProperties": false,
       "properties": {
@@ -12573,6 +13425,16 @@
         "$ref": "#/$defs/ParticipantExecutionServiceStateModel"
       },
       "title": "Participant Execution Services",
+      "type": "object"
+    },
+    "participant_outcome_history": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/ParticipantOutcomeReportV2Model"
+        },
+        "type": "array"
+      },
+      "title": "Participant Outcome History",
       "type": "object"
     },
     "participant_resource_budget_events": {

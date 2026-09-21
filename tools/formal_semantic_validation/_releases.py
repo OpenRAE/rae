@@ -159,7 +159,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "42.0.0",
+                replay_current=manifest.get("revision") == "45.0.0",
             )
         )
     else:
@@ -244,7 +244,7 @@ def validate_retest_bundle(
         return [
             _failure(
                 "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 41.0.0 can use integrated historical validation",
+                "only releases 3.0.0 through 44.0.0 can use integrated historical validation",
                 snapshot_path,
             )
         ]
@@ -286,10 +286,13 @@ def validate_retest_bundle(
             "39.0.0",
             "40.0.0",
             "41.0.0",
+            "42.0.0",
+            "43.0.0",
+            "44.0.0",
         }
         else "2.0.0"
     )
-    if release_revision == "42.0.0":
+    if release_revision in {"42.0.0", "45.0.0"}:
         expected_corpus_revision = "4.0.0"
     if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
         failures.append(
@@ -392,6 +395,10 @@ def _current_retest_source_failures(
         "40.0.0": "39.0.0",
         "41.0.0": "40.0.0",
         "42.0.0": "41.0.0",
+        # Parallel issue-218 captures retain their original pre-identity baseline.
+        "43.0.0": "41.0.0",
+        "44.0.0": "43.0.0",
+        "45.0.0": "42.0.0",
     }[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(

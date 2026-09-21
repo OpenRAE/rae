@@ -102,7 +102,7 @@ def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
         max_bytes=_MAX_FILE_BYTES,
     )
     current_path = current_release_path(records)
-    if dict(records)[current_path].get("revision") != "41.0.0" or {record.get("revision") for _, record in records} != {
+    if dict(records)[current_path].get("revision") != "44.0.0" or {record.get("revision") for _, record in records} != {
         "1.0.0",
         "1.1.0",
         "2.0.0",
@@ -145,8 +145,11 @@ def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
         "39.0.0",
         "40.0.0",
         "41.0.0",
+        "42.0.0",
+        "43.0.0",
+        "44.0.0",
     }:
-        raise ValueError("coverage evidence requires the explicit current 41.0.0 release and supported history")
+        raise ValueError("coverage evidence requires the explicit current 44.0.0 release and supported history")
     return records
 
 
