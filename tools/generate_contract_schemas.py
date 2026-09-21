@@ -72,6 +72,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-resource-budget-state-v1",
             "participant-resource-budget-event-v1",
             "participant-outcome-report-v1",
+            "participant-outcome-report-v2",
             "runtime-fact-binding-plane-v1",
         },
         "participant-runtime",

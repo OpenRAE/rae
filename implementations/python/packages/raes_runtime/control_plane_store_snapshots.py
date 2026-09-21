@@ -141,6 +141,10 @@ def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
             participant_address: list(events)
             for participant_address, events in snapshot.participant_crossing_history.items()
         },
+        "participant_control_evaluation_history": {
+            participant_address: list(records)
+            for participant_address, records in snapshot.participant_control_evaluation_history.items()
+        },
         "mixed_composition_states": dict(snapshot.mixed_composition_states),
         "mixed_composition_history": {
             run_id: list(events) for run_id, events in snapshot.mixed_composition_history.items()
@@ -148,6 +152,9 @@ def _snapshot_payload(snapshot: RuntimeSnapshot) -> dict[str, Any]:
         "information_state_history": {
             participant_address: list(records)
             for participant_address, records in snapshot.information_state_history.items()
+        },
+        "participant_outcome_history": {
+            address: list(records) for address, records in snapshot.participant_outcome_history.items()
         },
         "participant_autonomous_execution_states": dict(snapshot.participant_autonomous_execution_states),
         "participant_execution_services": dict(snapshot.participant_execution_services),
@@ -266,6 +273,10 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
             participant_address: list(events)
             for participant_address, events in payload.get("participant_crossing_history", {}).items()
         },
+        "participant_control_evaluation_history": {
+            participant_address: list(records)
+            for participant_address, records in payload.get("participant_control_evaluation_history", {}).items()
+        },
         "mixed_composition_states": dict(payload.get("mixed_composition_states", {})),
         "mixed_composition_history": {
             run_id: list(events) for run_id, events in payload.get("mixed_composition_history", {}).items()
@@ -273,6 +284,9 @@ def _snapshot_from_payload(payload: dict[str, Any]) -> RuntimeSnapshot:
         "information_state_history": {
             participant_address: list(records)
             for participant_address, records in payload.get("information_state_history", {}).items()
+        },
+        "participant_outcome_history": {
+            address: list(records) for address, records in payload.get("participant_outcome_history", {}).items()
         },
         "participant_autonomous_execution_states": dict(payload.get("participant_autonomous_execution_states", {})),
         "participant_execution_services": dict(payload.get("participant_execution_services", {})),

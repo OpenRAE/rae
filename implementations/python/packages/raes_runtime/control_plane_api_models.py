@@ -236,6 +236,7 @@ def _snapshot_model(envelope: RuntimeSnapshotEnvelope) -> RuntimeSnapshotEnvelop
         "participant_behavior_history": dict(snapshot.participant_behavior_history),
         "participant_control_history": dict(snapshot.participant_control_history),
         "participant_crossing_history": dict(snapshot.participant_crossing_history),
+        "participant_control_evaluation_history": dict(snapshot.participant_control_evaluation_history),
         "information_state_history": dict(snapshot.information_state_history),
         "participant_autonomous_execution_states": dict(snapshot.participant_autonomous_execution_states),
         "participant_execution_services": dict(snapshot.participant_execution_services),

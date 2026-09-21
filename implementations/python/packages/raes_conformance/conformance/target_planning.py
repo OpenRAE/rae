@@ -42,7 +42,7 @@ DEFAULT_TARGET_CONFORMANCE_SCENARIO = dedent(
         role: postcondition
     objectives:
       validate:
-        entity: blue
+        owner: blue
         success: {assertions: [health]}
     workflows:
       response:

@@ -343,7 +343,7 @@ events:
     assertions: [service-observed]
 objectives:
   restore-service:
-    entity: blue
+    owner: blue
     targets: [nodes.web]
     success:
       assertions: [{success_assertion}]

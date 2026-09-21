@@ -39,8 +39,10 @@ Add a first-class `objectives` section to the SDL for declarative experiment sem
 
 Each objective may declare:
 
-- exactly one actor: `agent` or `entity`
-- optional `actions`
+- optional organizational `owner` and optional `assigned_participant`, with
+  at least one required and both permitted (ADR-109)
+- optional `actions` referencing declared action contracts; assigned objectives
+  additionally constrain actions to their participant's declared action set
 - optional `targets`
 - required `success` criteria composing declared invariant or postcondition
   assertions over backend-neutral propositions (ADR-079)
@@ -49,7 +51,7 @@ Each objective may declare:
 
 This section is intentionally declarative. It expresses:
 
-- who is acting
+- who owns the objective and which participant, if any, is assigned to pursue it
 - what they are trying to affect
 - when the objective matters
 - how success should be interpreted
@@ -60,8 +62,10 @@ objective meaning. Legacy `conditions` carry probe implementation mechanics;
 they are not propositions and cannot be referenced as objective success.
 
 It also does **not** identify the concrete participant implementation that will
-realize an authored `agent` or `entity` role in a given run. That remains a
-separate apparatus and provenance concern.
+realize an authored participant role in a given run. Ownership without
+assignment remains organizational intent, not runtime work. Neither relation
+identifies the actor of an observed event, grants authority, or identifies a
+beneficiary. Realization remains a separate apparatus and provenance concern.
 
 ### Relationship to ADR-001
 
@@ -74,7 +78,7 @@ This ADR refines ADR-001's SDL boundary by making declarative objectives part of
 - The SDL now captures experiment meaning more completely, not just topology and scoring fragments.
 - Agent definitions, orchestration, scoring, and objectives can be authored and reviewed together in one specification surface.
 - The runtime boundary is cleaner: the SDL defines semantics, while runtime adapters define how those semantics are checked.
-- Authored actor/target/success meaning remains distinct from concrete
+- Authored owner/assignment/target/success meaning remains distinct from concrete
   participant implementations and apparatus choices.
 - Objective dependencies can be validated structurally as an acyclic ordering graph.
 
@@ -99,3 +103,4 @@ This ADR refines ADR-001's SDL boundary by making declarative objectives part of
 |------|-----------|---------|
 | 2026-07-05 | #682 | Per [ADR-073](adr-073-scoring-reward-language-scope.md), narrowed the objective-success clause: `objectives.success` references observable state (`conditions`) only. The OCR scoring pipeline (`metrics` / `evaluations` / `tlos` / `goals`) this ADR preserved was removed from the SDL; graded scoring and reward now live in the experiment/evaluator plane (ADR-055/064/069). |
 | 2026-07-12 | #725 | Per [ADR-079](adr-079-backend-neutral-proposition-and-truth-semantics.md), corrected the condition/proposition conflation: objective success now composes invariant or postcondition assertions over typed propositions; executable conditions are probe realizations only. |
+| 2026-09-21 | #1338 | Per [ADR-109](adr-109-participant-identity-and-objective-assignment.md), replace exclusive actor binding with independent organizational ownership and participant assignment; require declared action contracts and preserve realized-attribution boundaries. |

@@ -55,6 +55,7 @@ from raes_contracts.contracts import (
     ParticipantInformationStateRecordModel,
     ParticipantLifecycleEventModel,
     ParticipantObservationEnvelopeModel,
+    ParticipantOutcomeReportV2Model,
     ParticipantSharedStateRecordModel,
     ProvisioningPlanModel,
     RuntimeFactBindingPlaneModel,
@@ -130,6 +131,7 @@ _MODEL_VALIDATORS = {
     "participant-execution-service-state-v1": ParticipantExecutionServiceStateModel.model_validate,
     "participant-lifecycle-event-v1": ParticipantLifecycleEventModel.model_validate,
     "participant-observation-envelope-v1": ParticipantObservationEnvelopeModel.model_validate,
+    "participant-outcome-report-v2": ParticipantOutcomeReportV2Model.model_validate,
     "participant-information-state-record-v1": ParticipantInformationStateRecordModel.model_validate,
     "participant-information-reconstruction-profile-v1": (
         ParticipantInformationReconstructionProfileModel.model_validate
@@ -191,6 +193,7 @@ _STRUCTURAL_ONLY_VALIDATORS = {
 
 _SEMANTIC_CONTEXT_REQUIRED_CONTRACTS = frozenset(
     {
+        "participant-outcome-report-v2",
         "participant-control-evaluation-v1",
         "associated-artifact-manifest-v1",
         "external-concept-bindings-v1",

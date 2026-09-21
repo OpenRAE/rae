@@ -11,8 +11,10 @@ from ..objectives import (
     analyze_objective_window,
 )
 from ._constants import (
-    OBJECTIVE_ACTOR_DEPENDENCY_ROLES,
+    OBJECTIVE_ACTION_CONSTRAINT_DEPENDENCY_ROLES,
+    OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES,
     OBJECTIVE_DEPENDENCY_DEPENDENCY_ROLES,
+    OBJECTIVE_OWNER_DEPENDENCY_ROLES,
     OBJECTIVE_SUCCESS_DEPENDENCY_ROLES,
     OBJECTIVE_TARGET_DEPENDENCY_ROLES,
     OBJECTIVE_WINDOW_DEPENDENCY_ROLES,
@@ -86,17 +88,17 @@ def _check_agent(
     agents_by_name: Mapping[str, object],
     unresolved: Callable[[object], bool],
 ) -> tuple[list[ObjectiveReference], list[ObjectiveIssue]]:
-    name = getattr(objective, "agent", "") or ""
+    name = getattr(objective, "assigned_participant", "") or ""
     if not name or unresolved(name):
         return [], []
     if name not in agents_by_name:
-        return [], [ObjectiveIssue(code="objective.actor-agent-undeclared", objective_name=objective_name, ref=name)]
+        return [], [ObjectiveIssue(code="objective.assignment-undeclared", objective_name=objective_name, ref=name)]
     ref = ObjectiveReference(
         raw=name,
         canonical_name=name,
-        reference_kind=ObjectiveReferenceKind.ACTOR,
+        reference_kind=ObjectiveReferenceKind.ASSIGNMENT,
         source_name=objective_name,
-        dependency_roles=OBJECTIVE_ACTOR_DEPENDENCY_ROLES,
+        dependency_roles=OBJECTIVE_ASSIGNMENT_DEPENDENCY_ROLES,
     )
     return [ref], _check_agent_actions(objective_name, objective, name, agents_by_name[name], unresolved)
 
@@ -107,22 +109,22 @@ def _check_entity(
     entity_name_set: set[str],
     unresolved: Callable[[object], bool],
 ) -> tuple[list[ObjectiveReference], list[ObjectiveIssue]]:
-    name = getattr(objective, "entity", "") or ""
+    name = getattr(objective, "owner", "") or ""
     if not name or unresolved(name):
         return [], []
     if name not in entity_name_set:
-        return [], [ObjectiveIssue(code="objective.actor-entity-undeclared", objective_name=objective_name, ref=name)]
+        return [], [ObjectiveIssue(code="objective.owner-undeclared", objective_name=objective_name, ref=name)]
     ref = ObjectiveReference(
         raw=name,
         canonical_name=f"entities.{name}",
-        reference_kind=ObjectiveReferenceKind.ACTOR,
+        reference_kind=ObjectiveReferenceKind.OWNER,
         source_name=objective_name,
-        dependency_roles=OBJECTIVE_ACTOR_DEPENDENCY_ROLES,
+        dependency_roles=OBJECTIVE_OWNER_DEPENDENCY_ROLES,
     )
     return [ref], []
 
 
-def _analyze_actor_binding(
+def _analyze_objective_relations(
     objective_name: str,
     objective: object,
     agents_by_name: Mapping[str, object],
@@ -132,6 +134,34 @@ def _analyze_actor_binding(
     agent_refs, agent_issues = _check_agent(objective_name, objective, agents_by_name, unresolved)
     entity_refs, entity_issues = _check_entity(objective_name, objective, entity_name_set, unresolved)
     return [*agent_refs, *entity_refs], [*agent_issues, *entity_issues]
+
+
+def _analyze_action_constraints(
+    objective_name: str,
+    objective: object,
+    action_contracts: Mapping[str, object],
+    unresolved: Callable[[object], bool],
+) -> tuple[list[ObjectiveReference], list[ObjectiveIssue]]:
+    references: list[ObjectiveReference] = []
+    issues: list[ObjectiveIssue] = []
+    for action in dict.fromkeys(getattr(objective, "actions", []) or []):
+        if unresolved(action):
+            continue
+        if action not in action_contracts:
+            issues.append(
+                ObjectiveIssue(code="objective.action-contract-undeclared", objective_name=objective_name, ref=action)
+            )
+        else:
+            references.append(
+                ObjectiveReference(
+                    raw=action,
+                    canonical_name=f"action_contracts.{action}",
+                    reference_kind=ObjectiveReferenceKind.ACTION_CONSTRAINT,
+                    source_name=objective_name,
+                    dependency_roles=OBJECTIVE_ACTION_CONSTRAINT_DEPENDENCY_ROLES,
+                )
+            )
+    return references, issues
 
 
 def _analyze_targets(

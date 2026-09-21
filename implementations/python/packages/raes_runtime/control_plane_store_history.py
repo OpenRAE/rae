@@ -7,6 +7,8 @@ import json
 
 from raes_contracts.runtime_state import RuntimeSnapshot
 
+from .participant_crossing_state_cut import history_record_identity
+
 
 def require_expected_control_head(
     snapshot: RuntimeSnapshot,
@@ -31,8 +33,10 @@ def participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str
         "participant_behavior_history": snapshot.participant_behavior_history,
         "participant_control_history": snapshot.participant_control_history,
         "participant_crossing_history": snapshot.participant_crossing_history,
+        "participant_control_evaluation_history": snapshot.participant_control_evaluation_history,
         "mixed_composition_history": snapshot.mixed_composition_history,
         "information_state_history": snapshot.information_state_history,
+        "participant_outcome_history": snapshot.participant_outcome_history,
     }
     history = histories.get(history_name)
     if not separator or not participant_address or history is None:
@@ -40,9 +44,9 @@ def participant_history_head(snapshot: RuntimeSnapshot, history_key: str) -> str
     events = history.get(participant_address, ())
     if not events:
         return None
-    event_id = events[-1].get("event_id")
-    if isinstance(event_id, str) and event_id:
-        return event_id
+    identity = history_record_identity(events[-1])
+    if identity is not None:
+        return identity
     encoded = json.dumps(events[-1], sort_keys=True, separators=(",", ":"), default=str).encode()
     return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
 

@@ -1,9 +1,9 @@
 {
-  "content_hash": "363e0f4c8d68053919efa4427ba76627cdf49119a97825fb5dd9a68a722ff27a",
+  "content_hash": "61cce2dd5c4e9a964c5354083e1d417a47897ff62e82887bbcb3e7af5aedff48",
   "contract_id": "runtime-snapshot-v1",
   "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "363e0f4c8d68053919efa4427ba76627cdf49119a97825fb5dd9a68a722ff27a"
+    "summary": "Persist participant-local outcomes alongside bounded shared-time execution state.",
+    "content_hash": "61cce2dd5c4e9a964c5354083e1d417a47897ff62e82887bbcb3e7af5aedff48"
   },
   "schema_path": "contracts/schemas/snapshots/runtime-snapshot-v1.json",
   "stability": "draft"

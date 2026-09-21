@@ -6,7 +6,7 @@ This note defines the shared semantic boundary for `SEM-207`.
 
 Objective semantics are declarative SDL meaning. They answer:
 
-- which declared actor owns the objective
+- which organization owns the objective and which participant is assigned to pursue it
 - which declared scenario elements the objective names as targets
 - which invariant and postcondition assertions define success
 - which window bounds when the objective matters
@@ -39,13 +39,14 @@ The implementation must build on these existing authorities:
 
 ## Required Semantics
 
-Actor binding:
+Ownership and assignment ([participant contract](../../sdl/participant-identity.md)):
 
-- an objective has exactly one actor binding: `agent` or `entity`
-- `agent` resolves only to the SDL `agents` section
-- `entity` resolves only to flattened SDL entities
-- an actor binding is not a participant implementation binding
-- agent action checks reuse the declaring agent's `actions` list
+- an objective has `owner`, `assigned_participant`, or both
+- `assigned_participant` resolves only to the SDL `agents` section
+- `owner` resolves only to flattened SDL entities
+- ownership is not assignment, beneficiary identity, or realized actor attribution
+- every action resolves to a declared action contract, including when unassigned
+- assigned objectives additionally constrain actions to the participant's `actions`
 
 Target resolution:
 
@@ -88,7 +89,7 @@ Dependency roles (which references propagate through the planner):
 
 - success and `depends_on` references carry both ordering and refresh roles
 - window references carry only refresh
-- actor and target references are normalized for fail-closed validation but
+- owner, assignment, action-constraint, and target references are normalized for fail-closed validation but
   carry no runtime dependency role today: the compiler does not propagate
   ordering or refresh through actor or target identity, so the analyzer must
   not advertise a role that the planner will never see. A future change that
@@ -170,7 +171,7 @@ Avoid:
   `OBJECTIVE_*_DEPENDENCY_ROLES`)
 - objective-window analysis (reused, not re-implemented):
   `implementations/python/packages/raes/semantics/objectives.py`
-- authoring models (closed Pydantic shape; `agent` xor `entity`; non-empty
+- authoring models (closed shape; owner and/or assignment; non-empty
   `success`): `implementations/python/packages/raes/objectives.py`
 - semantic validation:
   `implementations/python/packages/raes/validator/` (`_verify_objectives`,

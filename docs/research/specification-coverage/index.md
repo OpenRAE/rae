@@ -270,14 +270,29 @@ coordination to the current source state without treating the retained language
 corpus as mixed-provider execution, backend-native realization,
 interoperability, information-flow, or equivalence evidence.
 
-Current release 39.0.0 is retained in
+Release 39.0.0 is retained in
 [`execution-snapshot-v39.json`](execution-snapshot-v39.json) and
 [`analysis-v39.json`](analysis-v39.json). It binds issue #610's reconciliation
 demonstration harness to the current source state. The retained language corpus
 does not execute planner reconciliation; classifications and claim limits
 remain unchanged.
 
-Current validation requires release 39.0.0 and rejects duplicate or unsupported
+Release 40.0.0 is retained in
+[`execution-snapshot-v40.json`](execution-snapshot-v40.json) and
+[`analysis-v40.json`](analysis-v40.json). It binds issue #1069's modular
+participant-control runtime orchestration to the current source state. The
+preregistered concept matrix, classifications and missing-concept denominator
+remain unchanged; runtime orchestration is evidenced by its own tests.
+
+Current release 41.0.0 is retained in
+[`execution-snapshot-v41.json`](execution-snapshot-v41.json) and
+[`analysis-v41.json`](analysis-v41.json). It replays the migrated participant
+and objective declarations, including explicit abstract action contracts in
+the port scenario. Historical captures and archived example bytes are retained.
+The matrix classifications and untested concepts are unchanged; no execution
+authority, successful action, or live backend fidelity is inferred.
+
+Current validation requires release 44.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -346,3 +361,25 @@ denominator.
 This retest does not preregister or demonstrate classification-migration
 correctness, nor does it infer ecosystem-wide absence of capabilities from the
 three untested carrier slots.
+
+## Participant-local outcome source replay
+
+Release 42.0.0 records issue #218 in
+[`execution-snapshot-v42.json`](execution-snapshot-v42.json) and
+[`analysis-v42.json`](analysis-v42.json). The retained controls are replayed
+against the participant-local outcome implementation. Prior outcomes and claim
+limits remain unchanged; ACT-618 behavior is verified by its dedicated runtime
+tests. Earlier captures retain their original bytes.
+
+Release 43.0.0 records the outcome implementation after maintainability
+refactoring in [`execution-snapshot-v43.json`](execution-snapshot-v43.json) and
+[`analysis-v43.json`](analysis-v43.json). Fresh replay retains the same bounded
+outcomes and claim limits; it does not add a new semantic claim.
+
+Current release 44.0.0 records the merged participant identity and local
+outcome implementation in [`execution-snapshot-v44.json`](execution-snapshot-v44.json)
+and [`analysis-v44.json`](analysis-v44.json). The two pre-merge issue #218
+captures retain their observations and source identities in v42 and v43; only
+their release numbers, paths, and corresponding digest joins were reconciled
+with the independently published issue #1338 capture. The combined capture
+uses the issue #1338 baseline and preserves the same bounded claim limits.

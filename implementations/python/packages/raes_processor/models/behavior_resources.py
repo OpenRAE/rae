@@ -74,7 +74,8 @@ class ParticipantBehaviorRuntime(ResolvedResource):
     """Compiled role-neutral participant behavior binding."""
 
     participant_name: str = ""
-    entity_name: str = ""
+    affiliation_names: tuple[str, ...] = ()
+    role: str = ""
     starting_account_refs: tuple[str, ...] = ()
     starting_account_addresses: tuple[str, ...] = ()
     initial_knowledge_addresses: tuple[str, ...] = ()

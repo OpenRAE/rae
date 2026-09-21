@@ -280,7 +280,7 @@ def test_module_exports_are_enforced_for_importers(tmp_path: Path):
           blue: {role: blue}
         objectives:
           check:
-            entity: blue
+            owner: blue
             success:
               assertions: [shared.health]
         """,

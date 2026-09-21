@@ -126,7 +126,7 @@ def _autonomous_non_evaluated_issues(
                 )
             )
         has_objective = any(
-            getattr(objective, "agent", None) == participant_name
+            getattr(objective, "assigned_participant", None) == participant_name
             for objective in context.references.objectives.values()
         )
         if has_objective:
@@ -152,7 +152,7 @@ def _autonomous_non_evaluated_issues(
     return issues
 
 
-def _autonomous_declared_authority_issues(
+def _autonomous_objective_authority_issues(
     context: _AutonomousExecutionReferenceContext,
 ) -> list[ParticipantBehaviorIssue]:
     authority = context.policy.evaluation_authority
@@ -169,6 +169,20 @@ def _autonomous_declared_authority_issues(
                     objective_ref,
                 )
             )
+        else:
+            assignment = getattr(context.references.objectives[objective_name], "assigned_participant", None)
+            if not context.is_unresolved(assignment) and assignment not in context.participants:
+                issues.append(
+                    _autonomous_issue(context, "participant.autonomous-objective-not-assigned", objective_ref)
+                )
+    return issues
+
+
+def _autonomous_declared_authority_issues(
+    context: _AutonomousExecutionReferenceContext,
+) -> list[ParticipantBehaviorIssue]:
+    authority = context.policy.evaluation_authority
+    issues = _autonomous_objective_authority_issues(context)
     unsupported_authority_refs = (
         ("proof_producer_refs", authority.proof_producer_refs),
         ("score_authority_refs", authority.score_authority_refs),

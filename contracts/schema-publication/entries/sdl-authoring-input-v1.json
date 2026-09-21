@@ -1,9 +1,9 @@
 {
-  "content_hash": "2f5871c0eb96ddab9606ee3fdd74f25e1e0863e789d0f693dad498b4950f5553",
+  "content_hash": "ec16ef507c579c16f81e499965255e1ac013f2826bc0b975f1413ce79cb70b74",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "2f5871c0eb96ddab9606ee3fdd74f25e1e0863e789d0f693dad498b4950f5553"
+    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
+    "content_hash": "ec16ef507c579c16f81e499965255e1ac013f2826bc0b975f1413ce79cb70b74"
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

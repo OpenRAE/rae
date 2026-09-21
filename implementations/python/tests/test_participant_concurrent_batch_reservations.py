@@ -1284,7 +1284,9 @@ def test_snapshot_ownership_exhaustively_classifies_every_runtime_field():
         "mixed_composition_history",
         "mixed_composition_states",
         "participant_autonomous_execution_states",
+        "participant_control_evaluation_history",
         "participant_execution_services",
+        "participant_outcome_history",
     }
 
 

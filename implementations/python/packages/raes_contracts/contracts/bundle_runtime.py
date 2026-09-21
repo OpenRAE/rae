@@ -30,6 +30,7 @@ from .participant_execution import (
 from .participant_flow_control import ParticipantFlowControlRelationModel
 from .participant_information_state import ParticipantInformationStateRecordModel
 from .participant_observation import ParticipantObservationEnvelopeModel
+from .participant_outcomes import ParticipantOutcomeReportV2Model
 from .participant_resource_budgets import (
     ParticipantResourceBudgetEventModel,
     ParticipantResourceBudgetPolicyModel,
@@ -113,6 +114,7 @@ def _runtime_schema_bundle() -> dict[str, dict[str, Any]]:
         "participant-crossing-occurrence-v1": ParticipantCrossingOccurrenceModel.model_json_schema(),
         "participant-flow-control-relation-v1": ParticipantFlowControlRelationModel.model_json_schema(),
         "participant-outcome-report-v1": ParticipantOutcomeReportModel.model_json_schema(),
+        "participant-outcome-report-v2": ParticipantOutcomeReportV2Model.model_json_schema(),
         "participant-status-view-v1": ParticipantStatusViewModel.model_json_schema(),
         "participant-history-view-v1": ParticipantHistoryViewModel.model_json_schema(),
         "participant-context-view-v1": ParticipantContextViewModel.model_json_schema(),

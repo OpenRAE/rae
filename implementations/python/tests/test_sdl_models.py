@@ -2293,22 +2293,19 @@ class TestObjectiveSuccess:
 
 
 class TestObjective:
-    def test_requires_exactly_one_actor_binding(self):
-        with pytest.raises(ValidationError, match="exactly one"):
+    def test_requires_ownership_or_assignment(self):
+        with pytest.raises(ValidationError, match="requires 'owner' or 'assigned_participant'"):
             Objective(
                 success={"assertions": ["c1"]},
             )
 
-        with pytest.raises(ValidationError, match="exactly one"):
-            Objective(
-                agent="red-agent",
-                entity="red-team",
-                success={"assertions": ["c1"]},
-            )
+        objective = Objective(assigned_participant="red-agent", owner="red-team", success={"assertions": ["c1"]})
+        assert objective.owner == "red-team"
+        assert objective.assigned_participant == "red-agent"
 
     def test_valid_agent_objective(self):
         objective = Objective(
-            agent="red-agent",
+            assigned_participant="red-agent",
             actions=["Scan"],
             targets=["web-server"],
             success={"assertions": ["initial-access"]},
@@ -2320,17 +2317,17 @@ class TestObjective:
             },
             depends_on=["recon"],
         )
-        assert objective.agent == "red-agent"
+        assert objective.assigned_participant == "red-agent"
         assert objective.success.assertions == ["initial-access"]
         assert isinstance(objective.window, ObjectiveWindow)
         assert objective.window.steps == ["response-flow.validate"]
 
     def test_valid_entity_objective(self):
         objective = Objective(
-            entity="blue-team",
+            owner="blue-team",
             success={"assertions": ["report-quality"]},
         )
-        assert objective.entity == "blue-team"
+        assert objective.owner == "blue-team"
 
 
 # ---------------------------------------------------------------------------
@@ -2887,12 +2884,12 @@ class TestRelationship:
 
 class TestAgent:
     def test_basic_agent(self):
-        a = Agent(entity="red-team", actions=["Scan", "Exploit"])
+        a = Agent(affiliations=["red-team"], actions=["Scan", "Exploit"])
         assert len(a.actions) == 2
 
     def test_agent_with_starting_accounts(self):
         a = Agent(
-            entity="red-team",
+            affiliations=["red-team"],
             starting_accounts=["phished-user"],
             allowed_subnets=["user-net"],
         )
@@ -2900,7 +2897,7 @@ class TestAgent:
 
     def test_agent_with_initial_knowledge(self):
         a = Agent(
-            entity="blue-team",
+            affiliations=["blue-team"],
             initial_knowledge=InitialKnowledge(
                 hosts=["defender", "server1"],
                 subnets=["enterprise-net"],
@@ -2915,37 +2912,38 @@ class TestAgent:
         assert ik.services == []
         assert ik.accounts == []
 
-    def test_requires_entity(self):
-        with pytest.raises(ValidationError, match="Agent requires 'entity'"):
-            Agent(actions=["Scan"])
+    def test_affiliation_is_optional(self):
+        participant = Agent(actions=["Scan"])
+        assert participant.affiliations == []
+        assert participant.role is None
 
     def test_default_framing_lists_are_empty(self):
-        a = Agent(entity="red-team")
+        a = Agent(affiliations=["red-team"])
         assert a.starting_assertions == []
         assert a.authority_anchors == []
         assert a.operating_scope == []
 
     def test_starting_assertions_field(self):
-        a = Agent(entity="red-team", starting_assertions=["beacon-online", "vpn-up"])
+        a = Agent(affiliations=["red-team"], starting_assertions=["beacon-online", "vpn-up"])
         assert a.starting_assertions == ["beacon-online", "vpn-up"]
 
     def test_authority_anchors_field(self):
         a = Agent(
-            entity="red-team",
+            affiliations=["red-team"],
             authority_anchors=["red-team", "trusts-blue-domain"],
         )
         assert a.authority_anchors == ["red-team", "trusts-blue-domain"]
 
     def test_operating_scope_field(self):
         a = Agent(
-            entity="red-team",
+            affiliations=["red-team"],
             operating_scope=["corp-net", "dmz-net"],
         )
         assert a.operating_scope == ["corp-net", "dmz-net"]
 
     def test_framing_fields_accept_variable_placeholders(self):
         a = Agent(
-            entity="red-team",
+            affiliations=["red-team"],
             starting_assertions=["${beacon_condition}"],
             authority_anchors=["${authority_ref}"],
             operating_scope=["${scope_ref}"],
@@ -2956,7 +2954,7 @@ class TestAgent:
 
     def test_unknown_field_rejected(self):
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
-            Agent(entity="red-team", unknown_field=["x"])
+            Agent(affiliations=["red-team"], unknown_field=["x"])
 
 
 class TestVariable:

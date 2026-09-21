@@ -62,6 +62,18 @@ _NON_PERMIT_ORDER = (
 )
 
 
+def sem233_plane(resolver, **options):
+    """Build a plane that explicitly selects the legacy SEM-233 final-sink path.
+
+    RUN-320 removed method-presence discovery (PC-15), so a SEM-233 fixture
+    states that selection instead of relying on the resolver exposing a hook.
+    """
+
+    from participant_crossing_fixtures import action_plane
+
+    return action_plane(resolver, enforce_final_sink_flow_control=True, **options)
+
+
 @dataclass(frozen=True)
 class FlowSinkToggles:
     """Deterministic toggles that force one non-permit final-sink outcome."""

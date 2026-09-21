@@ -824,7 +824,7 @@ stories:
 
 objectives:
   crimsonia-disrupt-scada:
-    entity: crimsonia-red
+    owner: crimsonia-red
     targets: [hmi-controls-power, hmi-controls-water, hmi-server]
     success:
       assertions: [scada-hmi-disrupted]
@@ -834,7 +834,7 @@ objectives:
       events: [disruption-wave]
 
   berylia-maintain-operations:
-    entity: berylia-blue.ot-team
+    owner: berylia-blue.ot-team
     targets: [hmi-server, plc-power, plc-water]
     success:
       assertions: [scada-hmi-responsive]

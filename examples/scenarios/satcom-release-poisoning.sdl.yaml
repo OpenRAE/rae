@@ -972,14 +972,288 @@ relationships:
     properties:
       protocol: ssh
       port: '22'
+# Abstract action intent; backend realization and authorization remain separate.
+action_contracts:
+  abuse-support:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared AbuseSupport intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt AbuseSupport against the scenario-declared subject set.
+      target_refs:
+      - ci-runner
+      - git-forge
+      - support-bastion
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  exploit:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Exploit intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Exploit against the scenario-declared subject set.
+      target_refs:
+      - ci-runner
+      - forge-auths-ci
+      - support-bastion
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  inspect:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Inspect intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Inspect against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  isolate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Isolate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Isolate against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  promote:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Promote intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Promote against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - git-forge
+      - signing-hsm
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  push-artifact:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared PushArtifact intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt PushArtifact against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - ci-publishes-registry
+      - release-manifest
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  restore:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Restore intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Restore against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  review:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Review intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Review against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - registry-relies-signing
+      - signing-hsm
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  revoke:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Revoke intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Revoke against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - infrastructure.build-net.acls.allow-engineering-release
+      - nodes.artifact-registry.services.registry-api
+      - registry-relies-signing
+      - release-manifest
+      - signing-hsm
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  rollback:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Rollback intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Rollback against the scenario-declared subject set.
+      target_refs:
+      - artifact-registry
+      - infrastructure.build-net.acls.allow-engineering-release
+      - nodes.artifact-registry.services.registry-api
+      - release-manifest
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  steal-token:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared StealToken intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt StealToken against the scenario-declared subject set.
+      target_refs:
+      - ci-runner
+      - forge-auths-ci
+      - support-bastion
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
+  validate:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: Scenario-declared Validate intent
+    realization_profile: abstract
+    fidelity_claim: Portable intent only; no backend procedure, successful effect, or authority is asserted.
+    preconditions:
+    - precondition_id: authorized
+      precondition_class: authority
+      description: Independent authorization is required before any realization.
+    effects:
+    - effect_id: intended
+      effect_class: intended_effect
+      description: Attempt Validate against the scenario-declared subject set.
+      target_refs:
+      - control-api
+      - edge-gateway-east
+      - telemetry-broker
+      - telemetry-replicates-analytics
+    failure_classes:
+    - authority_denied
+    - target_unavailable
+    - unknown
 agents:
   red-build-agent:
-    entity: red-supply-chain
+    affiliations: [red-supply-chain]
     actions:
-    - Exploit
-    - StealToken
-    - PushArtifact
-    - AbuseSupport
+    - exploit
+    - steal-token
+    - push-artifact
+    - abuse-support
     initial_knowledge:
       hosts:
       - git-forge
@@ -1001,12 +1275,12 @@ agents:
     - federation-net
     - control-net
   blue-release-agent:
-    entity: platform-blue.release-engineering
+    affiliations: [platform-blue.release-engineering]
     actions:
-    - Review
-    - Promote
-    - Revoke
-    - Rollback
+    - review
+    - promote
+    - revoke
+    - rollback
     starting_accounts:
     - release-engineer
     - registry-bot
@@ -1030,12 +1304,12 @@ agents:
     - build-net
     - control-net
   blue-sre-agent:
-    entity: platform-blue.sre
+    affiliations: [platform-blue.sre]
     actions:
-    - Inspect
-    - Isolate
-    - Restore
-    - Validate
+    - inspect
+    - isolate
+    - restore
+    - validate
     starting_accounts:
     - satops
     initial_knowledge:
@@ -1062,10 +1336,10 @@ agents:
     - security-net
 objectives:
   red-compromise-build:
-    agent: red-build-agent
+    assigned_participant: red-build-agent
     actions:
-    - Exploit
-    - StealToken
+    - exploit
+    - steal-token
     targets:
     - ci-runner
     - support-bastion
@@ -1079,9 +1353,9 @@ objectives:
       scripts:
       - release-prep
   red-poison-release:
-    agent: red-build-agent
+    assigned_participant: red-build-agent
     actions:
-    - PushArtifact
+    - push-artifact
     targets:
     - release-manifest
     - artifact-registry
@@ -1099,7 +1373,7 @@ objectives:
     depends_on:
     - red-compromise-build
   red-reach-edge:
-    entity: red-supply-chain
+    owner: red-supply-chain
     targets:
     - edge-gateway-east
     - control-manages-east
@@ -1116,10 +1390,10 @@ objectives:
     depends_on:
     - red-poison-release
   blue-validate-release:
-    agent: blue-release-agent
+    assigned_participant: blue-release-agent
     actions:
-    - Review
-    - Revoke
+    - review
+    - revoke
     targets:
     - artifact-registry
     - signing-hsm
@@ -1138,10 +1412,10 @@ objectives:
       steps:
       - release-response.validate-release
   blue-revoke-artifact:
-    agent: blue-release-agent
+    assigned_participant: blue-release-agent
     actions:
-    - Revoke
-    - Rollback
+    - revoke
+    - rollback
     targets:
     - release-manifest
     - artifact-registry
@@ -1164,12 +1438,12 @@ objectives:
     depends_on:
     - blue-validate-release
   blue-preserve-service:
-    agent: blue-sre-agent
+    assigned_participant: blue-sre-agent
     actions:
-    - Inspect
-    - Isolate
-    - Restore
-    - Validate
+    - inspect
+    - isolate
+    - restore
+    - validate
     targets:
     - control-api
     - edge-gateway-east

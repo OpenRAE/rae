@@ -44,7 +44,7 @@ body:
       role: blue
   agents:
     run-operator:
-      entity: operator-team
+      affiliations: [operator-team]
   propositions:
     telemetry-ready:
       description: The governed telemetry-ready observation is true for the addressed scenario subject.
@@ -84,7 +84,7 @@ body:
       loss_disclosure: required
   objectives:
     observe-run-telemetry:
-      agent: run-operator
+      assigned_participant: run-operator
       targets: [nodes.service.services.https]
       success:
         assertions: [telemetry-ready]

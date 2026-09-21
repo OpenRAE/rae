@@ -23,6 +23,10 @@ _CONTROL_KINDS = frozenset(
 )
 _CROSSING_DISPOSITIONS = frozenset({"permit", "deny", "transform", "withhold", "unsupported"})
 _FLOW_DISPOSITIONS = frozenset({"permit", "deny", "unsupported", "stale", "unresolved"})
+# API-424 composition dispositions plus the runtime's own unresolved class.
+_CONTROL_COMPOSITION_DISPOSITIONS = frozenset(
+    {"eligible", "deny", "withhold", "unsupported", "stale", "failed", "weakened", "conflict", "unresolved"}
+)
 _CROSSING_DETAIL_KEYS = frozenset(
     {
         "episode_id",
@@ -34,12 +38,17 @@ _CROSSING_DETAIL_KEYS = frozenset(
         "flow_relation_document_id",
         "flow_relation_document_revision",
         "flow_final_disposition",
+        "control_evaluation_id",
+        "control_selection_id",
+        "control_disposition",
     }
 )
 _COMPOSED_CROSSING_DETAIL_KEYS = frozenset(
     {"crossing_decision_id", "crossing_decision_cut_ref", "crossing_disposition"}
 )
 _CONTROL_DETAIL_KEYS = frozenset({"episode_id", "kind", "event_id"})
+# RUN-320 records one realization transition per dispatched effect batch.
+_CONTROL_REALIZATION_DETAIL_KEYS = frozenset({"control_evaluation_id", "control_selection_id", "control_disposition"})
 _IDENTIFIER_KEYS = frozenset(
     {
         "episode_id",
@@ -52,17 +61,23 @@ _IDENTIFIER_KEYS = frozenset(
         "flow_sink_decision_id",
         "flow_relation_document_id",
         "flow_relation_document_revision",
+        "control_evaluation_id",
+        "control_selection_id",
     }
 )
 _OPTIONAL_FLOW_IDENTIFIERS = frozenset(
     {"flow_sink_decision_id", "flow_relation_document_id", "flow_relation_document_revision"}
 )
+# An unresolved composition never resolved an evaluation or a selection to name.
+_OPTIONAL_CONTROL_IDENTIFIERS = frozenset({"control_evaluation_id", "control_selection_id"})
 _DEFAULT_DETAIL_KEYS = frozenset({"count"})
 _ADMISSION_DETAIL_KEYS = frozenset({"diagnostic_codes", "diagnostics_truncated"})
 _TERMINAL_DETAIL_KEYS = frozenset({"state"})
 _DETAIL_KEYS_BY_ACTION = {
     "legacy_operation_admission": frozenset({"migration"}),
     "record_participant_control": _CONTROL_DETAIL_KEYS | _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "record_participant_control_realization": _CONTROL_REALIZATION_DETAIL_KEYS,
+    "dispatch_participant_control_effects": frozenset(),
     "record_participant_crossing": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
     "authorize_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
     "admit_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
@@ -73,6 +88,7 @@ _ENUM_DOMAINS = {
     "disposition": _CROSSING_DISPOSITIONS,
     "crossing_disposition": _CROSSING_DISPOSITIONS,
     "flow_final_disposition": _FLOW_DISPOSITIONS,
+    "control_disposition": _CONTROL_COMPOSITION_DISPOSITIONS,
     "migration": frozenset({"local-operation-record/v1-to-v2"}),
 }
 
@@ -137,6 +153,12 @@ def _valid_optional_flow_identifier(value: object, details: Mapping[object, obje
     )
 
 
+def _valid_optional_control_identifier(value: object, details: Mapping[object, object]) -> bool:
+    return _valid_identifier(value, details) or (
+        value == "" and details.get("control_disposition") in _CONTROL_COMPOSITION_DISPOSITIONS - {"eligible"}
+    )
+
+
 def _valid_enum(value: object, _details: Mapping[object, object], *, allowed: frozenset[str]) -> bool:
     return isinstance(value, str) and value in allowed
 
@@ -159,8 +181,9 @@ def _valid_count(value: object, _details: Mapping[object, object]) -> bool:
 
 
 _DETAIL_VALIDATORS = {
-    **dict.fromkeys(_IDENTIFIER_KEYS - _OPTIONAL_FLOW_IDENTIFIERS, _valid_identifier),
+    **dict.fromkeys(_IDENTIFIER_KEYS - _OPTIONAL_FLOW_IDENTIFIERS - _OPTIONAL_CONTROL_IDENTIFIERS, _valid_identifier),
     **dict.fromkeys(_OPTIONAL_FLOW_IDENTIFIERS, _valid_optional_flow_identifier),
+    **dict.fromkeys(_OPTIONAL_CONTROL_IDENTIFIERS, _valid_optional_control_identifier),
     **{key: partial(_valid_enum, allowed=allowed) for key, allowed in _ENUM_DOMAINS.items()},
     "diagnostic_codes": _valid_diagnostic_codes,
     "diagnostics_truncated": _valid_boolean,

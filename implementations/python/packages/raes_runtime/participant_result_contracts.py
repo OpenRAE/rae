@@ -19,6 +19,9 @@ from raes_contracts.participant_concurrency import (
     iter_participant_concurrency_snapshot_violations,
     iter_participant_concurrency_transition_violations,
 )
+from raes_contracts.participant_control_evaluation_history import (
+    iter_participant_control_evaluation_transition_violations,
+)
 from raes_contracts.participant_control_history import (
     iter_participant_control_history_snapshot_violations,
     iter_participant_control_history_transition_violations,
@@ -32,6 +35,10 @@ from raes_contracts.participant_episode_closure import iter_participant_episode_
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_history_transition_violations,
     iter_participant_information_state_snapshot_violations,
+)
+from raes_contracts.participant_outcome_history import (
+    iter_outcome_snapshot_violations,
+    iter_outcome_transition_violations,
 )
 from raes_contracts.participant_shared_state import (
     iter_participant_shared_state_history_transition_violations,
@@ -104,6 +111,7 @@ def participant_runtime_state_contract_diagnostics(
     """
 
     violations = [
+        *iter_outcome_snapshot_violations(snapshot),
         *iter_participant_episode_snapshot_violations(
             snapshot.participant_episode_results,
             snapshot.participant_episode_history,
@@ -162,6 +170,12 @@ def participant_runtime_history_transition_diagnostics(
     return (
         [
             _failure_diagnostic("runtime.backend-contract-invalid", address, message)
+            for address, message in iter_outcome_transition_violations(
+                previous_snapshot.participant_outcome_history, next_snapshot.participant_outcome_history
+            )
+        ]
+        + [
+            _failure_diagnostic("runtime.backend-contract-invalid", address, message)
             for address, message in iter_participant_runtime_history_transition_violations(
                 previous_snapshot.participant_episode_history,
                 next_snapshot.participant_episode_history,
@@ -197,6 +211,13 @@ def participant_runtime_history_transition_diagnostics(
             for address, message in iter_participant_crossing_history_transition_violations(
                 previous_snapshot.participant_crossing_history,
                 next_snapshot.participant_crossing_history,
+            )
+        ]
+        + [
+            _failure_diagnostic("runtime.backend-contract-invalid", address, message)
+            for address, message in iter_participant_control_evaluation_transition_violations(
+                previous_snapshot.participant_control_evaluation_history,
+                next_snapshot.participant_control_evaluation_history,
             )
         ]
         + [

@@ -311,11 +311,11 @@ entities:
   blue: {role: blue}
 objectives:
   first:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     depends_on: [second]
   second:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     depends_on: [first]
 """),
@@ -351,7 +351,7 @@ entities:
   blue: {role: blue}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 """)
         )
@@ -383,7 +383,7 @@ entities:
   blue: {role: blue}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 """,
             snapshot,
@@ -480,7 +480,7 @@ entities:
   blue: {role: blue}
 objectives:
   check:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 events:
   kickoff: {assertions: [pre-health], injects: [mail]}
@@ -564,7 +564,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   defend:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   flow:
@@ -604,7 +604,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   defend:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   flow:
@@ -651,7 +651,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   defend:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   flow:
@@ -699,10 +699,10 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   left:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
   right:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 workflows:
   flow:
@@ -771,7 +771,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 entities:
   blue: {role: blue}
@@ -813,7 +813,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 entities:
   blue: {role: blue}
@@ -904,7 +904,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     window:
       workflows: [flow]
@@ -960,7 +960,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     window:
       scripts: [timeline]
@@ -1156,7 +1156,7 @@ assertions:
   pre-health: {proposition: health, role: precondition, polarity: positive}
 objectives:
   defend:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 entities:
   blue: {role: blue}
@@ -1785,7 +1785,7 @@ injects:
   mail: {source: inbox}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
 entities:
   blue: {role: blue}

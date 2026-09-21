@@ -643,7 +643,7 @@ def _two_green_participant_scenario(*, max_in_flight: int = 2):
     }
     payload["agents"]["participant-agent-2"] = {
         **payload["agents"]["participant-agent"],
-        "entity": "enterprise-participant-2",
+        "affiliations": ["enterprise-participant-2"],
         "description": "Second ordinary green participant.",
     }
     specification = payload["behavior_specifications"]["participant-behavior"]

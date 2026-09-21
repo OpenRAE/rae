@@ -316,6 +316,7 @@ from .participant_occurrences import (
     validate_participant_control_occurrence_context,
     validate_participant_crossing_occurrence_context,
 )
+from .participant_outcomes import ParticipantOutcomeReportV2Model
 from .participant_runtime import (
     ParticipantActionEffectResultModel,
     ParticipantActionPreconditionResultModel,

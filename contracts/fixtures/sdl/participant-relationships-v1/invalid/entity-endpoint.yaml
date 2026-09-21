@@ -6,9 +6,9 @@ entities:
     role: blue
 agents:
   alice:
-    entity: team-a
+    affiliations: [team-a]
   bob:
-    entity: team-b
+    affiliations: [team-b]
 relationships:
   work:
     type: participant

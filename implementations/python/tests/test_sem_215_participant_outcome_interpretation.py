@@ -85,7 +85,7 @@ def _scenario_yaml() -> str:
           exfil-detected: {proposition: exfil-detected, role: postcondition, polarity: positive}
         objectives:
           exfil-objective:
-            agent: red-agent
+            assigned_participant: red-agent
             actions: [scan]
             targets: [nodes.web.services.http]
             success:
@@ -149,7 +149,7 @@ def _scenario_yaml() -> str:
                 evidence_refs: [evidence.alert]
         agents:
           red-agent:
-            entity: red-team
+            affiliations: [red-team]
             actions: [scan]
             observation_boundaries: [red-view]
         outcome_interpretation_rules:

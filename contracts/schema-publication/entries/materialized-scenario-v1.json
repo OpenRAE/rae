@@ -1,9 +1,9 @@
 {
-  "content_hash": "b0e233eecbf5ad2599bc83fd64b486889cd9fb41238d3c3b70c21110cacbc5d6",
+  "content_hash": "85332d604fc72bd0813e711b99bc94d59d9432fed465ed80936b3d25bff0a92c",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "b0e233eecbf5ad2599bc83fd64b486889cd9fb41238d3c3b70c21110cacbc5d6"
+    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
+    "content_hash": "85332d604fc72bd0813e711b99bc94d59d9432fed465ed80936b3d25bff0a92c"
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

@@ -72,7 +72,7 @@ stories:
   main: {scripts: [timeline]}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     window:
       stories: [main]
@@ -128,7 +128,7 @@ entities:
   blue: {role: blue}
 objectives:
   initial:
-    entity: blue
+    owner: blue
     success: {assertions: [health]}
     window:
       workflows: [flow]
@@ -181,7 +181,7 @@ entities:
   blue: {role: blue}
 objectives:
   base:
-    entity: blue
+    owner: blue
     success: {assertions: [missing-assertion]}
     depends_on: [missing-objective]
 """)
@@ -231,10 +231,10 @@ entities:
   blue: {role: blue}
 objectives:
   base:
-    entity: blue
+    owner: blue
     success: {assertions: [ready]}
   dependent:
-    entity: blue
+    owner: blue
     success: {assertions: [gate]}
     depends_on: [base]
 """)

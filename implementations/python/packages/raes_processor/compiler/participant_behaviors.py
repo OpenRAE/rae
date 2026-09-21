@@ -2,7 +2,9 @@
 
 from collections.abc import Callable, Mapping
 
+from raes.entities import flatten_entities
 from raes.scenario import InstantiatedScenario
+from raes.semantics.participant_behavior import select_participants
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 from ..models import (
@@ -93,6 +95,7 @@ def _compile_participant_behaviors(
 ) -> dict[str, ParticipantBehaviorRuntime]:
     participant_behaviors: dict[str, ParticipantBehaviorRuntime] = {}
     addressable_ref_index = _runtime_addressable_ref_index(scenario)
+    entities = flatten_entities(scenario.entities)
     for name, agent in scenario.agents.items():
         action_addresses = _participant_action_addresses(
             scenario,
@@ -170,7 +173,8 @@ def _compile_participant_behaviors(
             address=_participant_behavior_address(name),
             name=name,
             participant_name=name,
-            entity_name=agent.entity,
+            affiliation_names=tuple(agent.affiliations),
+            role=agent.effective_role(entities) or "",
             starting_account_refs=starting_account_refs,
             starting_account_addresses=starting_account_addresses,
             initial_knowledge_addresses=initial_knowledge_addresses,
@@ -231,11 +235,13 @@ def _compile_behavior_specifications(
 ) -> dict[str, ParticipantBehaviorSpecificationRuntime]:
     behavior_specifications: dict[str, ParticipantBehaviorSpecificationRuntime] = {}
     addressable_ref_index = _runtime_addressable_ref_index(scenario)
+    entities = flatten_entities(scenario.entities)
+    roles = {name: agent.effective_role(entities) for name, agent in scenario.agents.items()}
     for name, behavior_spec in scenario.behavior_specifications.items():
         address = _behavior_specification_address(name)
         spec = _dump(behavior_spec)
         participant_addresses = _resolve_behavior_spec_refs(
-            refs=list(behavior_spec.participant_refs),
+            refs=sorted(select_participants(behavior_spec, set(scenario.agents), roles)),
             declared=scenario.agents,
             address_for_ref=_participant_behavior_address,
             owner_address=address,

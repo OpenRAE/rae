@@ -81,7 +81,7 @@ observation_boundaries:
         disclosure_rule: disclosures.briefing.v1
 agents:
   red-agent:
-    entity: red-team
+    affiliations: [red-team]
     observation_boundaries: [red-view]
 behavior_specifications:
   red-briefing:

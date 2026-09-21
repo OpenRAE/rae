@@ -1,0 +1,10 @@
+{
+  "contract_id": "participant-outcome-report-v2",
+  "schema_path": "contracts/schemas/participant-runtime/participant-outcome-report-v2.json",
+  "stability": "draft",
+  "content_hash": "b0a945973dd02e06afd8bcc57f3eb7aa12d1884456ab795b1586aa9972078a80",
+  "last_change": {
+    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218); preserve legacy reports and rule interpretation.",
+    "content_hash": "b0a945973dd02e06afd8bcc57f3eb7aa12d1884456ab795b1586aa9972078a80"
+  }
+}

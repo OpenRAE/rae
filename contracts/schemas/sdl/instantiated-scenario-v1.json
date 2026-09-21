@@ -434,7 +434,7 @@
     },
     "Agent": {
       "additionalProperties": false,
-      "description": "A role-neutral participant in the scenario.\n\nAgents reference existing scenario elements:\n\n- ``entity`` links to the entities section (team/role) and supplies\n  identity and role per ADR-020\n- ``starting_accounts`` links to the accounts section\n- ``allowed_subnets`` links to infrastructure entries\n- ``initial_knowledge`` references nodes and infrastructure\n- ``starting_assertions`` links to precondition assertions, giving the\n  authoring surface a declarative hook for participant-relevant starting\n  state without equating a probe implementation with truth (ACT-601)\n- ``authority_anchors`` links to declared SDL elements (entities,\n  relationships, content, etc.) that anchor what the participant is\n  allowed or expected to do in scenario meaning (ACT-601, ADR-020)\n- ``operating_scope`` links to targetable named scenario elements\n  (subnets, hosts, services, content) defining where the participant\n  may act or observe (ACT-601, ADR-020)\n- ``observation_boundaries`` links to declared participant observation\n  boundaries that define participant-specific projections of world and\n  evidence state (SEM-208)\n- ``interactive_access`` declares the compute-node/channel pairs that may be offered\n  to this participant, without inferring a listener, locator, credential,\n  operating scope, action authority, or successful realization (DSL-117)\n\nPer ADR-073 the CybORG-inherited ``reward_calculator`` label was removed;\nit was an unbound, unvalidated string and graded reward lives in the\nexperiment/evaluator plane (ADR-055/064/069).",
+      "description": "A role-neutral participant in the scenario.\n\nAgents reference existing scenario elements:\n\n- ``affiliations`` links to entities without conferring identity or authority\n- ``role`` explicitly selects an exercise role, overriding inherited role\n- ``starting_accounts`` links to the accounts section\n- ``allowed_subnets`` links to infrastructure entries\n- ``initial_knowledge`` references nodes and infrastructure\n- ``starting_assertions`` links to precondition assertions, giving the\n  authoring surface a declarative hook for participant-relevant starting\n  state without equating a probe implementation with truth (ACT-601)\n- ``authority_anchors`` links to declared SDL elements (entities,\n  relationships, content, etc.) that anchor what the participant is\n  allowed or expected to do in scenario meaning (ACT-601, ADR-020)\n- ``operating_scope`` links to targetable named scenario elements\n  (subnets, hosts, services, content) defining where the participant\n  may act or observe (ACT-601, ADR-020)\n- ``observation_boundaries`` links to declared participant observation\n  boundaries that define participant-specific projections of world and\n  evidence state (SEM-208)\n- ``interactive_access`` declares the compute-node/channel pairs that may be offered\n  to this participant, without inferring a listener, locator, credential,\n  operating scope, action authority, or successful realization (DSL-117)\n\nPer ADR-073 the CybORG-inherited ``reward_calculator`` label was removed;\nit was an unbound, unvalidated string and graded reward lives in the\nexperiment/evaluator plane (ADR-055/064/069).",
       "properties": {
         "actions": {
           "items": {
@@ -444,6 +444,16 @@
             "type": "string"
           },
           "title": "Actions",
+          "type": "array"
+        },
+        "affiliations": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Affiliations",
           "type": "array"
         },
         "allowed_subnets": {
@@ -472,14 +482,6 @@
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
           "title": "Description",
-          "type": "string"
-        },
-        "entity": {
-          "default": "",
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Entity",
           "type": "string"
         },
         "initial_knowledge": {
@@ -529,6 +531,18 @@
           },
           "title": "Operating Scope",
           "type": "array"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExerciseRole"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role"
         },
         "starting_accounts": {
           "items": {
@@ -6428,6 +6442,108 @@
       "title": "KernelBoundary",
       "type": "string"
     },
+    "LocalOutcomeCriterion": {
+      "additionalProperties": false,
+      "description": "An explicitly declared realized effect, never an action status shortcut.",
+      "properties": {
+        "criterion_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Criterion Id",
+          "type": "string"
+        },
+        "effect_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "source_id",
+        "effect_id"
+      ],
+      "title": "LocalOutcomeCriterion",
+      "type": "object"
+    },
+    "LocalOutcomeDefinition": {
+      "additionalProperties": false,
+      "description": "All criteria must be evidenced; contradictory observations need correction.",
+      "properties": {
+        "category": {
+          "enum": [
+            "task_completion",
+            "effect_realization"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "conflict_policy": {
+          "const": "retain_until_explicit_correction",
+          "title": "Conflict Policy",
+          "type": "string"
+        },
+        "criteria": {
+          "items": {
+            "$ref": "#/$defs/LocalOutcomeCriterion"
+          },
+          "minItems": 1,
+          "title": "Criteria",
+          "type": "array"
+        },
+        "criterion_basis": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Criterion Basis",
+          "type": "string"
+        },
+        "episode_policy": {
+          "const": "reset_without_transfer",
+          "title": "Episode Policy",
+          "type": "string"
+        },
+        "freshness_policy": {
+          "const": "exact_observation_cut",
+          "title": "Freshness Policy",
+          "type": "string"
+        },
+        "model_version": {
+          "const": "1.0.0",
+          "title": "Model Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_version",
+        "category",
+        "criterion_basis",
+        "criteria",
+        "conflict_policy",
+        "freshness_policy",
+        "episode_policy"
+      ],
+      "title": "LocalOutcomeDefinition",
+      "type": "object"
+    },
     "MixedControlAuthorityStatus": {
       "description": "Authored authority state for one controller binding.",
       "enum": [
@@ -7276,6 +7392,36 @@
     },
     "Objective": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "owner": {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            }
+          },
+          "required": [
+            "owner"
+          ]
+        },
+        {
+          "properties": {
+            "assigned_participant": {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            }
+          },
+          "required": [
+            "assigned_participant"
+          ]
+        }
+      ],
       "description": "A declarative experiment objective.",
       "properties": {
         "actions": {
@@ -7288,13 +7434,21 @@
           "title": "Actions",
           "type": "array"
         },
-        "agent": {
-          "default": "",
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Agent",
-          "type": "string"
+        "assigned_participant": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assigned Participant"
         },
         "depends_on": {
           "items": {
@@ -7314,14 +7468,6 @@
           "title": "Description",
           "type": "string"
         },
-        "entity": {
-          "default": "",
-          "not": {
-            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
-          },
-          "title": "Entity",
-          "type": "string"
-        },
         "name": {
           "default": "",
           "not": {
@@ -7329,6 +7475,22 @@
           },
           "title": "Name",
           "type": "string"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
         },
         "success": {
           "$ref": "#/$defs/ObjectiveSuccess"
@@ -8087,6 +8249,34 @@
     },
     "OutcomeInterpretationRule": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "target_bindings": {
+                "minItems": 1
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "local_outcome": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "local_outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "semantic_version": {
+                "const": "2.0.0"
+              }
+            }
+          }
+        }
+      ],
       "description": "Explicit SEM-215 rule relating participant-local outcomes to meaning layers.",
       "properties": {
         "diagnostics": {
@@ -8128,6 +8318,17 @@
           "title": "Limitations",
           "type": "array"
         },
+        "local_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LocalOutcomeDefinition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "observation_point_basis": {
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
@@ -8157,7 +8358,6 @@
           "items": {
             "$ref": "#/$defs/OutcomeInterpretationTargetBinding"
           },
-          "minItems": 1,
           "title": "Target Bindings",
           "type": "array"
         }
