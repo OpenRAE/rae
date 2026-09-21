@@ -16,12 +16,9 @@ from raes_contracts.contracts.participant_temporal import ParticipantTemporalExe
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
-from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
 from .participant_action_validation import autonomous_action_result_violation
 from .participant_activity import (
-    ParticipantActivityRandomControl,
-    activity_control_for,
     next_activity_timing,
     select_activity_candidate,
 )
@@ -36,6 +33,7 @@ from .participant_scheduler_activity_state import (
 )
 from .participant_scheduler_concurrency import run_policy_due_concurrently
 from .participant_scheduler_concurrent_commit import participant_generation_commit_diagnostic
+from .participant_scheduler_due import participant_due_context, run_legacy_participant_due
 from .participant_scheduler_resources import (
     commit_activity_resources,
     measurement_requirements,
@@ -457,53 +455,6 @@ def _run_participant_activity_due(
         state = _run_one_activity_action(context, state, run)
 
 
-def participant_due_context(
-    policy: ParticipantAutonomousExecutionRuntime,
-    time_model: CompiledTimeModel,
-    participant_runtime: object,
-    participant_address: str,
-    current_tick: int,
-    cadence_ticks: int,
-    activity_controls: dict[str, ParticipantActivityRandomControl] | None = None,
-) -> _DueActionContext:
-    key = f"{policy.address}.state.{participant_address}"
-    return _DueActionContext(
-        policy=policy,
-        time_model=time_model,
-        participant_runtime=participant_runtime,
-        participant_address=participant_address,
-        key=key,
-        current_tick=current_tick,
-        cadence_ticks=cadence_ticks,
-        activity_control=activity_control_for(policy, activity_controls or {}),
-    )
-
-
-def _legacy_action_is_due(
-    context: _DueActionContext,
-    state: ParticipantAutonomousExecutionStateModel,
-    run: SchedulerRunState,
-) -> bool:
-    return all(
-        (
-            state.lifecycle_state == "running",
-            state.next_tick == context.current_tick,
-            state.attempted_actions < context.policy.max_action_attempts,
-            state.in_flight == 0,
-            run.failure is None,
-        )
-    )
-
-
-def _run_legacy_participant_due(
-    context: _DueActionContext,
-    state: ParticipantAutonomousExecutionStateModel,
-    run: SchedulerRunState,
-) -> None:
-    while _legacy_action_is_due(context, state, run):
-        state = _run_one_due_action(context, state, run)
-
-
 def run_participant_due(
     context: _DueActionContext,
     run: SchedulerRunState,
@@ -521,7 +472,7 @@ def run_participant_due(
     }:
         _run_participant_activity_due(context, state, run)
     else:
-        _run_legacy_participant_due(context, state, run)
+        run_legacy_participant_due(context, state, run, _run_one_due_action)
 
 
 __all__ = [

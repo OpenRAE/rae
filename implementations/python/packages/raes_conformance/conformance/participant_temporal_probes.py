@@ -5,18 +5,17 @@ from collections.abc import Iterable
 from raes_contracts.contracts import ExperimentStochasticControlModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
 from raes_contracts.participant_temporal import require_participant_temporal_history
-from raes_runtime.manager import RuntimeManager
-from raes_runtime.registry import RuntimeTarget
+from raes_runtime.registry import RuntimeTarget, participant_temporal_probe_manager
 
 from .diagnostics import _diagnostic, sanitized_failure_message
 from .report import ConformanceCaseResult
 
 
-def _stop_probe_clock_driver(manager: RuntimeManager | None) -> bool:
+def _stop_probe_clock_driver(manager: object | None) -> bool:
     if manager is None:
         return True
     try:
-        return manager._stop_participant_clock_driver()
+        return manager._stop_participant_clock_driver()  # type: ignore[attr-defined]
     except Exception:  # NOSONAR - shutdown must report failure without leaking exception payloads
         return False
 
@@ -41,7 +40,7 @@ def participant_temporal_scenario_case(
     manager = None
     driver_stopped = True
     try:
-        manager = RuntimeManager(target, stochastic_controls=stochastic_controls)
+        manager = participant_temporal_probe_manager(target, stochastic_controls=stochastic_controls)
         plan = manager.plan(scenario)
         required = {
             binding.contract_digest

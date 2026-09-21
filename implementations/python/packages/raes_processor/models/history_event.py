@@ -29,7 +29,7 @@ from .behavior_resources import (
     _optional_payload_string,
     _participant_observation_status_from_payload,
 )
-from .history_event_grounding import _event_attribution_grounded_refs, _optional_enum_value
+from .history_event_grounding import _event_attribution_grounded_refs
 from .history_event_payloads import (
     _participant_action_result_from_payload,
     _participant_admission_disposition_from_payload,
@@ -43,6 +43,7 @@ from .history_event_payloads import (
     _participant_phase_realization_from_payload,
     _participant_temporal_contexts_from_payload,
 )
+from .history_event_serialization import participant_history_event_payload
 from .outcome import ParticipantOutcomeInterpretationRecord, _participant_outcome_interpretation_records_from_payload
 from .resources import _PARTICIPANT_ACTION_CONTRACT_PREFIX, _PARTICIPANT_OBSERVATION_BOUNDARY_PREFIX
 from .temporal import ParticipantTemporalRuntimeContext
@@ -146,44 +147,7 @@ class ParticipantBehaviorHistoryEvent:
         )
 
     def to_payload(self) -> dict[str, Any]:
-        return {
-            "event_type": self.event_type.value,
-            "timestamp": self.timestamp,
-            "participant_address": self.participant_address,
-            "episode_id": self.episode_id,
-            "action_instance_id": self.action_instance_id,
-            "action_contract_address": self.action_contract_address,
-            "observation_boundary_address": self.observation_boundary_address,
-            "observation_status": _optional_enum_value(self.observation_status),
-            "actor_provenance": self.actor_provenance,
-            "lifecycle_phase": _optional_enum_value(self.lifecycle_phase),
-            "phase_realization": _optional_enum_value(self.phase_realization),
-            "admission_disposition": _optional_enum_value(self.admission_disposition),
-            "operation_ref": self.operation_ref,
-            "operation_state": _optional_enum_value(self.operation_state),
-            "state_transition_kind": self.state_transition_kind,
-            "post_state_digest": self.post_state_digest,
-            "joint_action_set_id": self.joint_action_set_id,
-            "realized_order": self.realized_order,
-            "interaction_class": _optional_enum_value(self.interaction_class),
-            "interaction_ref": self.interaction_ref,
-            "shared_state_refs": list(self.shared_state_refs),
-            "action_result": self.action_result.to_payload() if self.action_result is not None else None,
-            "attribution_edges": [edge.to_payload() for edge in self.attribution_edges],
-            "outcome_interpretations": [record.to_payload() for record in self.outcome_interpretations],
-            "temporal_contexts": [context.to_payload() for context in self.temporal_contexts],
-            **(
-                {
-                    "temporal_assessments": [
-                        item.model_dump(mode="json", exclude_none=True, exclude_defaults=True)
-                        for item in self.temporal_assessments
-                    ]
-                }
-                if self.temporal_assessments
-                else {}
-            ),
-            "details": dict(self.details),
-        }
+        return participant_history_event_payload(self)
 
     def __post_init__(self) -> None:
         self._validate_common_fields()

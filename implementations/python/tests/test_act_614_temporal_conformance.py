@@ -48,7 +48,11 @@ def test_temporal_probe_joins_its_clock_driver_on_every_exit(monkeypatch, mode, 
     def reject_snapshot(_snapshot):
         raise ValueError("fixture validation failure")
 
-    monkeypatch.setattr(probes, "RuntimeManager", ObservedManager)
+    monkeypatch.setattr(
+        probes,
+        "participant_temporal_probe_manager",
+        lambda target, *, stochastic_controls=(): ObservedManager(target, stochastic_controls=stochastic_controls),
+    )
     if failure_stage == "validation":
         monkeypatch.setattr(probes, "require_participant_temporal_history", reject_snapshot)
     scenario, target = _wall_paced_target(mode)
@@ -88,7 +92,11 @@ def test_temporal_probe_reports_unsuccessful_driver_shutdown(monkeypatch, raises
                 return False
             return stopped
 
-    monkeypatch.setattr(probes, "RuntimeManager", StopFailureManager)
+    monkeypatch.setattr(
+        probes,
+        "participant_temporal_probe_manager",
+        lambda target, *, stochastic_controls=(): StopFailureManager(target, stochastic_controls=stochastic_controls),
+    )
     scenario, target = _wall_paced_target("real_time")
     try:
         case = probes.participant_temporal_scenario_case(target, scenario)

@@ -9,7 +9,6 @@ from typing import Protocol, cast
 from . import participant_binding_validation as _binding_validation
 from .contracts import (
     ParticipantActionResultModel,
-    ParticipantBehaviorHistoryEventModel,
     ParticipantDecisionSurfaceActionEntryModel,
     ParticipantDecisionSurfaceCandidateSetFormModel,
     ParticipantDecisionSurfaceConstrainedFormModel,
@@ -18,7 +17,6 @@ from .contracts import (
     ParticipantDecisionSurfaceSelectionModel,
     ParticipantImplementationManifestModel,
     ParticipantImplementationSelectionModel,
-    ParticipantObservationDetailsModel,
     ParticipantTemporalRuntimeContextModel,
 )
 from .contracts.participant_resource_budgets import ParticipantResourceMeasurementRequirementModel
@@ -28,13 +26,6 @@ from .participant_action_arguments import (
     ParticipantActionArgumentValue,
     ParticipantValidatedActionSelection,
 )
-from .participant_behavior import (
-    ParticipantAdmissionDisposition,
-    ParticipantBehaviorHistoryEventType,
-    ParticipantObservationStatus,
-    ParticipantPhaseRealization,
-    ParticipantRuntimeLifecyclePhase,
-)
 from .participant_binding_events import (
     action_result_evidence_refs as _action_result_evidence_refs,
 )
@@ -42,6 +33,7 @@ from .participant_binding_events import (
     participant_behavior_event_payload,
     participant_implementation_actor_provenance,
 )
+from .participant_binding_history import participant_action_binding_events
 from .participant_native_execution import ParticipantNativeActionExecution
 from .participant_temporal import temporal_evidence_scope_violations
 from .runtime_state import ApplyResult
@@ -441,66 +433,6 @@ def _action_result_violations(request: ParticipantActionAdmissionRequest) -> tup
     if observation_points and action_result.observation_point not in observation_points:
         violations.append("action_result observation_point must match a bound temporal runtime context")
     return tuple(violations)
-
-
-def participant_action_binding_events(
-    request: ParticipantActionAdmissionRequest,
-    *,
-    episode_id: str,
-    timestamp: str,
-    post_state_digest: str,
-) -> tuple[ParticipantBehaviorHistoryEventModel, ...]:
-    """Build the portable behavior-history events for an admitted action."""
-
-    actor_provenance = participant_implementation_actor_provenance(request.implementation_selection)
-    return (
-        ParticipantBehaviorHistoryEventModel(
-            event_type=ParticipantBehaviorHistoryEventType.ACTION_ATTEMPTED,
-            timestamp=timestamp,
-            participant_address=request.participant_address,
-            episode_id=episode_id,
-            action_instance_id=request.action_instance_id,
-            action_contract_address=request.action_contract_address,
-            actor_provenance=actor_provenance,
-            lifecycle_phase=ParticipantRuntimeLifecyclePhase.SELECTION_OR_ADMISSION,
-            phase_realization=ParticipantPhaseRealization.RUNTIME_MEDIATED,
-            admission_disposition=ParticipantAdmissionDisposition.ADMITTED,
-            temporal_contexts=list(request.temporal_contexts),
-        ),
-        ParticipantBehaviorHistoryEventModel(
-            event_type=ParticipantBehaviorHistoryEventType.STATE_TRANSITION_RECORDED,
-            timestamp=timestamp,
-            participant_address=request.participant_address,
-            episode_id=episode_id,
-            action_instance_id=request.action_instance_id,
-            action_contract_address=request.action_contract_address,
-            lifecycle_phase=ParticipantRuntimeLifecyclePhase.STATE_UPDATE_COMMIT,
-            phase_realization=ParticipantPhaseRealization.RUNTIME_MEDIATED,
-            state_transition_kind=request.state_transition_kind,
-            post_state_digest=post_state_digest,
-            temporal_contexts=list(request.temporal_contexts),
-        ),
-        ParticipantBehaviorHistoryEventModel(
-            event_type=ParticipantBehaviorHistoryEventType.OBSERVATION_EMITTED,
-            timestamp=timestamp,
-            participant_address=request.participant_address,
-            episode_id=episode_id,
-            action_instance_id=request.action_instance_id,
-            action_contract_address=request.action_contract_address,
-            observation_boundary_address=request.observation_boundary_address,
-            observation_status=ParticipantObservationStatus.TERMINAL,
-            lifecycle_phase=ParticipantRuntimeLifecyclePhase.OBSERVATION_EMISSION,
-            phase_realization=ParticipantPhaseRealization.RUNTIME_MEDIATED,
-            post_state_digest=post_state_digest,
-            action_result=request.action_result,
-            temporal_contexts=list(request.temporal_contexts),
-            details=ParticipantObservationDetailsModel(
-                visible_refs=list(request.visible_refs),
-                disclosed_refs=list(request.disclosed_refs),
-                evidence_refs=list(request.evidence_refs),
-            ),
-        ),
-    )
 
 
 __all__ = (
