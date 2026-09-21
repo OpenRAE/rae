@@ -19,7 +19,7 @@ The owner identified four overriding concerns:
 
 Current capability parity has been withdrawn as the objective and scope criterion. No parity baseline is being established. The specific requirements and evaluation criteria for the four concerns have yet to be articulated. Compatibility and migration obligations have not been decided.
 
-The owner reports recurring agent misunderstanding despite existing ADRs, architectural documents, and diagrams. The definition and maintenance of canonical requirements are also concerns to address.
+The owner reports recurring agent misunderstanding despite existing ADRs, architectural documents, and diagrams. This is context for the requirements work; agent confusion is not a property of RAE. The definition and maintenance of canonical requirements are concerns to address.
 
 **Product purpose**
 
@@ -38,6 +38,10 @@ CTFs, experiments, DevOps automation, workflow automation, in-world event inject
 | Contextual refusal | A backend may refuse an operation as the scenario develops, even when it initially appeared to fall within its manifest and the scenario. The runtime/backend interaction needs a seam for this refusal. Its protocol and consequences remain undefined. |
 
 These statements do not constitute a complete responsibility model or backend requirements set.
+
+**Conceptual distinctions requiring definition**
+
+The owner identified conflation of participants with researchers, authors, and auditors, and conflation of in-world and out-of-world concerns. These examples are not an exhaustive list. Definitions of those roles and boundaries, including whether and how roles can overlap, have not yet been established in this dialogue.
 
 **Durability and author choice**
 
@@ -59,7 +63,13 @@ Owner answer: parity is distorting the discussion and is to be dropped. The over
 
 Disposition: the parity question is withdrawn. Its earlier scope selection is superseded. The answer does not select a compatibility policy or authorize implementation changes.
 
-Next question, unanswered: beyond the runtime/backend boundary already clarified, which recurring misunderstandings should the requirements eliminate, and what should the correct understanding be?
+Question: beyond the runtime/backend boundary already clarified, which recurring misunderstandings should the requirements eliminate, and what should the correct understanding be?
+
+Owner answer: agents conflate participants with researchers, authors, and auditors, and conflate in-world and out-of-world concerns. These are examples, not an exhaustive list. Agent confusion is not a property of the system; the owner questioned the relevance of asking about it.
+
+Disposition: record the named conceptual distinctions without treating agent behaviour as a system requirement or asking the owner to inventory misunderstandings. Continue with questions about RAE's concepts and required behaviour directly.
+
+Next question, unanswered: what determines whether an entity or activity is part of an authored world?
 
 **Supporting records**
 
