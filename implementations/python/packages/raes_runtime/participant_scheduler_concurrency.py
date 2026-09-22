@@ -191,13 +191,13 @@ def _bind_concurrent_policy_requests(
 ) -> list[ParticipantActionAdmissionRequest] | None:
     """Bind the same-tick due set once against one isolated predecessor."""
 
-    from .participant_scheduler_binding import bound_action_request
+    from .participant_scheduler_operations import _bound_action_request
 
     pre_policy = run.working
     try:
         binding_snapshot = deepcopy(pre_policy)
         requests = [
-            bound_action_request(context, binding_snapshot, state)
+            _bound_action_request(context, binding_snapshot, state)
             for context, state in zip(contexts, states, strict=True)
         ]
         if binding_snapshot != pre_policy:

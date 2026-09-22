@@ -31,6 +31,10 @@ from .participant_scheduler_time import cadence_missed_result
 from .participant_scheduler_types import SchedulerRunState, _DueActionContext
 from .participant_temporal import assess_temporal_result, temporal_guarantees_met, temporal_pre_dispatch_result
 
+# Preserve the scheduler's existing test and integration seam while the
+# implementation lives in the focused binding module.
+_bound_action_request = bound_action_request
+
 
 def _try_bound_action_request(
     context: _DueActionContext,
@@ -38,7 +42,7 @@ def _try_bound_action_request(
     run: SchedulerRunState,
 ) -> ParticipantActionAdmissionRequest | None:
     try:
-        return bound_action_request(context, run.working, state)
+        return _bound_action_request(context, run.working, state)
     except (TypeError, ValueError):
         run.diagnostics.append(
             Diagnostic(

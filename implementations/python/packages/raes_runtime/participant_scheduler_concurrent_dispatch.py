@@ -114,12 +114,12 @@ def _bind_concurrent_batch_requests(
     binding_snapshot: RuntimeSnapshot,
     pre_batch: RuntimeSnapshot,
 ) -> tuple[ParticipantActionAdmissionRequest, ...] | None:
-    from .participant_scheduler_binding import bound_action_request
+    from .participant_scheduler_operations import _bound_action_request
 
     requests = None
     try:
         requests = tuple(
-            bound_action_request(context, binding_snapshot, state)
+            _bound_action_request(context, binding_snapshot, state)
             for context, state in zip(batch.contexts, batch.states, strict=True)
         )
     except (Exception, CancelledError):  # NOSONAR - backend binding is a trust boundary
