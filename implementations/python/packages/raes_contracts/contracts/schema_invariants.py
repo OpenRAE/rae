@@ -224,7 +224,7 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
             "participant-shared-time-binding-shape",
             (
                 "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, "
-                "a condition and an observation boundary. Bounds are segment-relative, and the selected event is "
+                "a condition and an observation boundary. Bounds are segment-relative and the selected event is "
                 "declared."
             ),
             validator="raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel",
@@ -236,7 +236,8 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
             "participant-shared-time-history-consistency",
             (
                 "Temporal contexts must remain identical across an attempt; terminal assessments must match their "
-                "evidence and authoritative clock history. Every proof must match an exact bound context and boundary, "
+                "evidence and authoritative clock history. Every proof must match an exact bound context and "
+                "observation boundary, "
                 "without duplicates or extra proofs."
             ),
             validator="raes_contracts.participant_temporal.require_participant_temporal_history",
