@@ -182,28 +182,44 @@ def _require_temporal_history(
     attempts = {}
     completed = set()
     for raw in history:
-        if isinstance(raw, ParticipantBehaviorHistoryEventModel):
-            raw = raw.model_dump(mode="json")
-        key = (raw.get("episode_id"), raw.get("action_instance_id"))
-        explicit = raw.get("temporal_assessments") or any(
-            item.get("shared_time") for item in raw.get("temporal_contexts", ())
-        )
-        if key not in attempts and not explicit:
+        record = _temporal_history_record(raw, attempts, ParticipantBehaviorHistoryEventModel)
+        if record is None:
             continue
-        event = ParticipantBehaviorHistoryEventModel.model_validate(raw)
-        if event.participant_address != participant:
-            raise ValueError("temporal history is stored under another participant")
-        if event.event_type == "action_attempted":
-            if key in attempts:
-                raise ValueError("temporal action attempt identity is reused")
-            attempts[key] = event
-        _require_temporal_event(event, attempts.get(key), clocks)
-        if event.event_type == "observation_emitted":
-            if key in completed:
-                raise ValueError("temporal attempt has multiple terminal observations")
-            completed.add(key)
+        _record_temporal_history_event(record, participant, attempts, completed, clocks)
     if completed != set(attempts):
         raise ValueError("temporal action attempt has no terminal assessment")
+
+
+def _temporal_history_record(
+    raw: object, attempts: Mapping[object, object], model: object
+) -> tuple[object, object] | None:
+    record = raw.model_dump(mode="json") if isinstance(raw, model) else raw
+    key = (record.get("episode_id"), record.get("action_instance_id"))
+    explicit = record.get("temporal_assessments") or any(
+        item.get("shared_time") for item in record.get("temporal_contexts", ())
+    )
+    return (key, model.model_validate(record)) if key in attempts or explicit else None
+
+
+def _record_temporal_history_event(
+    record: tuple[object, object],
+    participant: str,
+    attempts: dict[object, object],
+    completed: set[object],
+    clocks: Mapping[str, RuntimeClockStateModel],
+) -> None:
+    key, event = record
+    if event.participant_address != participant:
+        raise ValueError("temporal history is stored under another participant")
+    if event.event_type == "action_attempted":
+        if key in attempts:
+            raise ValueError("temporal action attempt identity is reused")
+        attempts[key] = event
+    _require_temporal_event(event, attempts.get(key), clocks)
+    if event.event_type == "observation_emitted":
+        if key in completed:
+            raise ValueError("temporal attempt has multiple terminal observations")
+        completed.add(key)
 
 
 def require_participant_temporal_history(snapshot: object) -> None:

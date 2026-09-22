@@ -77,7 +77,8 @@ def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagno
                     domain="participant",
                     address=action.address,
                     message=(
-                        "The reference runtime enforces explicit shared-time action bindings through autonomous policies; "
+                        "The reference runtime enforces explicit shared-time action bindings through autonomous "
+                        "policies; "
                         "this manual action requires another execution driver."
                     ),
                 )

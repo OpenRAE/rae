@@ -33,7 +33,8 @@ def test_temporal_probe_joins_its_clock_driver_on_every_exit(monkeypatch, mode, 
             result = super().apply(plan)
             assert result.success
             driver = self._participant_clock_driver
-            assert driver is not None and driver.active
+            assert driver is not None
+            assert driver.active
             drivers.append(driver)
             threads.append(driver._thread)
             if failure_stage == "apply":

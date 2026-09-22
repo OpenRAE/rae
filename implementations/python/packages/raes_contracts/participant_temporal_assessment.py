@@ -37,15 +37,29 @@ def _temporal_evidence_scope_violation(
 ) -> str | None:
     seen: set[str] = set()
     for proof in proofs:
-        if proof.context not in contexts:
-            return "temporal evidence must match an exact bound request context"
-        temporal_id = proof.context.binding.temporal_id
-        if temporal_id in seen:
-            return "temporal evidence must not duplicate a bound guarantee"
-        seen.add(temporal_id)
-        if proof.observation_boundary_address != observation_boundary:
-            return "temporal evidence must use the authorized observation boundary"
+        violation = _proof_scope_violation(proof, contexts, seen, observation_boundary)
+        if violation is not None:
+            return violation
     return None
+
+
+def _proof_scope_violation(
+    proof: ParticipantTemporalEvidenceModel,
+    contexts: Sequence[ParticipantTemporalExecutionContextModel],
+    seen: set[str],
+    observation_boundary: str,
+) -> str | None:
+    temporal_id = proof.context.binding.temporal_id
+    if proof.context not in contexts:
+        violation = "temporal evidence must match an exact bound request context"
+    elif temporal_id in seen:
+        violation = "temporal evidence must not duplicate a bound guarantee"
+    elif proof.observation_boundary_address != observation_boundary:
+        violation = "temporal evidence must use the authorized observation boundary"
+    else:
+        seen.add(temporal_id)
+        violation = None
+    return violation
 
 
 def deadline_result(
@@ -57,14 +71,16 @@ def deadline_result(
 ) -> TemporalResult:
     """Assess a deadline using one event proof from the authoritative clock."""
 
-    if native_execution == "not_dispatched":
-        return _undispatched_deadline_result(context)
     proof = proofs[0] if len(proofs) == 1 else None
-    if proof is None or not _valid_deadline_proof(context, proof, boundary, clock):
-        return "indeterminate", "Missing or invalid evidence for the bound action event and shared-time context."
-    if coordinate_key(proof.coordinate) <= coordinate_key(context.bound_end):
-        return "met", "The selected action event is evidenced at or before the authored deadline."
-    return "missed", "The selected action event is evidenced after the authored deadline."
+    if native_execution == "not_dispatched":
+        result = _undispatched_deadline_result(context)
+    elif proof is None or not _valid_deadline_proof(context, proof, boundary, clock):
+        result = ("indeterminate", "Missing or invalid evidence for the bound action event and shared-time context.")
+    elif coordinate_key(proof.coordinate) <= coordinate_key(context.bound_end):
+        result = ("met", "The selected action event is evidenced at or before the authored deadline.")
+    else:
+        result = ("missed", "The selected action event is evidenced after the authored deadline.")
+    return result
 
 
 def _undispatched_deadline_result(context: ParticipantTemporalExecutionContextModel) -> TemporalResult:
@@ -148,14 +164,17 @@ def _dwell_coverage_result(
 ) -> TemporalResult | None:
     position = start
     holds = True
+    valid = bool(proof.coverage)
     for interval in proof.coverage:
         left, right = coordinate_key(interval.start), coordinate_key(interval.end)
         if left != position or not left < right <= end or left[0] != right[0]:
-            return None
-        position = right
-        holds = holds and interval.condition_holds
-    if not proof.coverage or position != end:
-        return None
-    if holds:
-        return "met", "Continuous coverage attests the condition throughout the authored interval."
-    return "missed", "The condition did not hold throughout the authored interval."
+            valid = False
+        else:
+            position = right
+            holds = holds and interval.condition_holds
+    valid = valid and position == end
+    return (
+        ("met", "Continuous coverage attests the condition throughout the authored interval.")
+        if valid and holds
+        else (("missed", "The condition did not hold throughout the authored interval.") if valid else None)
+    )

@@ -23,20 +23,21 @@ def _binding_errors(
     action_name: str,
     temporal: object,
     binding: ParticipantSharedTimeBinding,
-) -> Iterator[str]:
+) -> tuple[str, ...]:
     label = f"Action '{action_name}' temporal binding '{temporal.temporal_id}'"
     clock_name = _resolve_section_ref(binding.clock_ref, "clocks", scenario.clocks)
     constraint_name = _resolve_section_ref(
         binding.constraint_ref, "temporal_constraints", scenario.temporal_constraints
     )
-    yield from _binding_reference_errors(label, binding, clock_name, constraint_name)
+    errors = list(_binding_reference_errors(label, binding, clock_name, constraint_name))
     if clock_name is None or constraint_name is None:
-        return
+        return tuple(errors)
     constraint = scenario.temporal_constraints[constraint_name]
-    yield from _shared_clock_errors(scenario, temporal, action_name, clock_name, constraint, label)
+    errors.extend(_shared_clock_errors(scenario, temporal, action_name, clock_name, constraint, label))
     if temporal.temporal_kind.value == "dwell":
-        yield from _dwell_binding_errors(scenario, action_name, binding, constraint, label)
-    yield from _policy_clock_errors(scenario, action_name, clock_name, label)
+        errors.extend(_dwell_binding_errors(scenario, action_name, binding, constraint, label))
+    errors.extend(_policy_clock_errors(scenario, action_name, clock_name, label))
+    return tuple(errors)
 
 
 def _binding_reference_errors(
@@ -58,18 +59,20 @@ def _shared_clock_errors(
     clock_name: str,
     constraint: object,
     label: str,
-) -> Iterator[str]:
+) -> tuple[str, ...]:
+    errors: list[str] = []
     if constraint.clock_ref != clock_name:
-        yield f"{label} constraint uses another clock"
+        errors.append(f"{label} constraint uses another clock")
     clock = scenario.clocks[clock_name]
     domain_name = _resolve_section_ref(clock.time_domain_ref, "time_domains", scenario.time_domains)
     if domain_name is not None and temporal.time_domain.value != _clock_domain(scenario, domain_name):
-        yield f"{label} time domain contradicts its shared clock declaration"
+        errors.append(f"{label} time domain contradicts its shared clock declaration")
     expected_kind = "deadline" if temporal.temporal_kind.value == "deadline" else "window"
     if constraint.constraint_kind.value != expected_kind:
-        yield f"{label} requires a {expected_kind} constraint"
+        errors.append(f"{label} requires a {expected_kind} constraint")
     if not _constraint_has_subject(constraint.subject_refs, action_name):
-        yield f"{label} constraint must name the bound action as a subject"
+        errors.append(f"{label} constraint must name the bound action as a subject")
+    return tuple(errors)
 
 
 def _clock_domain(scenario: ScenarioContent, domain_name: str) -> str:
@@ -92,21 +95,23 @@ def _dwell_binding_errors(
     binding: ParticipantSharedTimeBinding,
     constraint: object,
     label: str,
-) -> Iterator[str]:
+) -> tuple[str, ...]:
+    errors: list[str] = []
     action = scenario.action_contracts[action_name]
     if binding.condition_precondition_id not in {item.precondition_id for item in action.preconditions}:
-        yield f"{label} condition_precondition_id must name a precondition of the bound action"
+        errors.append(f"{label} condition_precondition_id must name a precondition of the bound action")
     boundary = _resolve_section_ref(
         binding.observation_boundary_ref,
         "observation_boundaries",
         scenario.observation_boundaries,
     )
     if boundary is None and not is_variable_ref(binding.observation_boundary_ref):
-        yield f"{label} observation_boundary_ref is not declared"
+        errors.append(f"{label} observation_boundary_ref is not declared")
     if boundary is not None:
-        yield from _dwell_observation_errors(scenario, action_name, binding, boundary, label)
+        errors.extend(_dwell_observation_errors(scenario, action_name, binding, boundary, label))
     if _invalid_dwell_interval(constraint):
-        yield f"{label} dwell requires a nonempty interval within one clock segment"
+        errors.append(f"{label} dwell requires a nonempty interval within one clock segment")
+    return tuple(errors)
 
 
 def _invalid_dwell_interval(constraint: object) -> bool:

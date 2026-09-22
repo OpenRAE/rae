@@ -216,31 +216,20 @@ def _run_one_activity_action(
     run: SchedulerRunState,
 ) -> ParticipantAutonomousExecutionStateModel:
     request = _try_bound_action_request(context, state, run)
-    if request is None:
-        return state
-    admission = _admit_activity_action(context, request, run)
-    if admission is None:
-        return state
-    result, dispatched, predecessor = admission
-    if _record_stale_completion(request, run):
-        return state
-    protocol_violation = autonomous_action_result_violation(
-        request,
-        result,
-        episode_id=state.episode_id,
-        predecessor=predecessor,
-    )
-    result = _assess_dispatched_temporal_result(request, result, run.working, protocol_violation, dispatched)
-    protocol_failure = _record_protocol_result(run, context, predecessor, result, protocol_violation)
-    if dispatched and not commit_activity_resources(
-        context,
-        request,
-        result,
-        protocol_failure=protocol_failure,
-        run=run,
-    ):
-        return state
-    return _finish_activity_action(context, state, run, request, result, protocol_failure)
+    admission = _admit_activity_action(context, request, run) if request is not None else None
+    if admission is not None and not _record_stale_completion(request, run):
+        result, dispatched, predecessor = admission
+        protocol_violation = autonomous_action_result_violation(
+            request, result, episode_id=state.episode_id, predecessor=predecessor
+        )
+        result = _assess_dispatched_temporal_result(request, result, run.working, protocol_violation, dispatched)
+        protocol_failure = _record_protocol_result(run, context, predecessor, result, protocol_violation)
+        resources_committed = not dispatched or commit_activity_resources(
+            context, request, result, protocol_failure=protocol_failure, run=run
+        )
+        if resources_committed:
+            return _finish_activity_action(context, state, run, request, result, protocol_failure)
+    return state
 
 
 def _admit_activity_action(
