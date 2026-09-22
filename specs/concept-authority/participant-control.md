@@ -4,6 +4,14 @@ Placement revision: `participant-control-concepts/rev1`, for
 [`sem-235/rev1`](../formal/participant-semantics/modular-participant-control.md).
 Authority: ADR-012, ADR-108, GOV-917–922 and SEM-235.
 
+The #1352 [applicability/evaluation amendment](../formal/participant-semantics/control-applicability-and-evaluation.md)
+uses these same concept families. The complete apparatus remains an
+`apparatus-declarations` binding; exact-cut coverage, predecessor results and
+decisions are `provenance-and-evidence`; required/effective support belongs to
+`realization-and-disclosure`. Parent decisions and separately admitted effect
+occurrences keep distinct identities. No new family or wire vocabulary is
+introduced, and revision-1 concept placement keeps its historical scope.
+
 The canonical [concept-family catalog](../../contracts/concept-authority/concept-families-v1.json)
 continues to own family identities. This publication maps semantic terms to
 existing families and owners; it creates no catalog family, reference model,
