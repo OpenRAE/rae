@@ -256,6 +256,13 @@ relation's resolved point.
 
 ## 6. Machine-checkable reference-edge index
 
+[External inject occurrences](external-injects.md) add a semantic runtime join
+from an admitted authored binding to exact target/run, source/input, occurrence
+and outcome identities. Optional participant delivery joins that exact
+occurrence/result and, for direction/intervention, its accepted control
+application. These are versioned adoption obligations, not new source fields
+or permission to weaken the legacy reference rows below.
+
 Mixed-control and participant-inject rows in this index describe the current
 fixed-coordinate SDL fields. The
 [reusable semantic amendment](../formal/participant-semantics/reusable-mixed-control.md)

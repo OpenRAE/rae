@@ -120,6 +120,14 @@ they occupy different positions in the document.
 
 ## Narrative chain
 
+[External inject triggering](external-injects.md) defines the accepted
+occurrence/admission/outcome amendment for existing inject authoring. An
+environment and ordinary injects need no declared participants. Plan
+installation, queued status and participant delivery do not prove world-effect
+execution. This semantic decision introduces no parser fields or wire schema;
+its [compatibility contract](../../docs/explain/sdl/external-inject-compatibility.md)
+governs explicit executable adoption.
+
 One reference chain runs through the catalog and is called out because its
 ordering is normative (resolution and failure semantics in
 [`references.md`](references.md)):

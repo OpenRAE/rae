@@ -53,6 +53,49 @@ def test_pull_request_cannot_acquire_publishing_permissions(tmp_path: Path, work
     assert "tooling-action-permissions" in _check(tmp_path, workflow)
 
 
+def _finalization_workflow() -> dict:
+    root = Path(__file__).resolve().parents[3]
+    return yaml.safe_load((root / ".github/workflows/ground-control-phase-e.yml").read_text())
+
+
+def test_merged_issue_finalization_has_a_valid_credential_boundary(tmp_path: Path) -> None:
+    assert _check(tmp_path, _finalization_workflow()) == set()
+    assert _finalization_workflow()["permissions"]["issues"] == "read"
+
+
+@pytest.mark.parametrize("permission", ["contents", "pull-requests", "id-token"])
+def test_merged_issue_finalization_cannot_gain_other_writes(tmp_path: Path, permission: str) -> None:
+    workflow = _finalization_workflow()
+    workflow["jobs"]["finalize"]["permissions"][permission] = "write"
+    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+
+
+@pytest.mark.parametrize("guard", [None, "always()", "github.event_name == 'pull_request'"])
+def test_issue_writes_require_the_exact_merged_guard(tmp_path: Path, guard: str | None) -> None:
+    workflow = _finalization_workflow()
+    workflow["jobs"]["finalize"]["if"] = guard
+    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+
+
+@pytest.mark.parametrize("event", ["pull_request_target", "workflow_call", "push"])
+def test_issue_finalization_cannot_add_an_unchecked_trigger(tmp_path: Path, event: str) -> None:
+    workflow = _finalization_workflow()
+    workflow[True][event] = {}
+    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+
+
+def test_issue_finalization_requires_closed_pull_requests(tmp_path: Path) -> None:
+    workflow = _finalization_workflow()
+    workflow[True]["pull_request"]["types"] = ["opened", "closed"]
+    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+
+
+def test_issue_finalization_does_not_allow_repository_secrets(tmp_path: Path) -> None:
+    workflow = _finalization_workflow()
+    workflow["jobs"]["finalize"]["env"] = {"TOKEN": "${{ secrets.TOKEN }}"}
+    assert "tooling-action-credentials" in _check(tmp_path, workflow)
+
+
 @pytest.mark.parametrize("secret", ["${{ secrets.TOKEN }}", "${{ secrets['TOKEN'] }}", "${{ toJSON(secrets) }}"])
 def test_pull_request_secret_exposure_is_rejected(tmp_path: Path, workflow: dict, secret: str) -> None:
     workflow["jobs"]["test"]["steps"][1]["env"] = {"TOKEN": secret}

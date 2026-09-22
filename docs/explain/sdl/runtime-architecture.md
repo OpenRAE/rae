@@ -125,6 +125,15 @@ It separates reusable definitions from bound runtime instances:
 - `nodes` + `infrastructure` -> deployable network/node resources
 - orchestration and objective sections -> resolved runtime programs and graph nodes
 
+These compiled declarations and installed plans do not establish live inject
+execution. [ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
+defines the accepted [external occurrence contract](../../../specs/sdl/external-injects.md):
+the shared runtime admits and drives an exact authored binding, and the backend
+supplies per-target effect evidence. Participant disclosure, delivery and
+observation remain separately authorized facts. Current bound/queued receipts
+retain their original meaning; executable support requires the coordinated
+[adoption boundary](external-inject-compatibility.md).
+
 The output is a `RuntimeModel` with canonical addresses for every runtime-owned
 object.
 

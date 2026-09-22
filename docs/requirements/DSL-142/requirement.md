@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-07-15T05:45:06.862070Z
-updated_at: 2026-09-22T01:33:58.710054Z
+updated_at: 2026-09-22T05:55:00Z
 ---
 
 # DSL-142 — Participant-Directed Inject Binding And Delivery
@@ -27,6 +27,15 @@ effects, renewed authority or proof of delivery/observation. General injects,
 disclosure-only bindings and authenticated principals shall not thereby become
 participant controllers. Legacy bindings retain their original interpretation.
 
+When composed with an externally triggered world effect, participant delivery
+shall join its exact occurrence and produced result, independently of world
+admission and execution evidence. Delivery reservation and retries shall not
+re-execute the effect or infer observation. An applied world effect shall remain
+applied after delivery failure; required delivery shall withhold composed
+success and dependent progress until independently evidenced. A schedule-free
+external occurrence shall require an explicitly supported versioned delivery
+join, without fabricating or relaxing legacy narrative anchors.
+
 ## Rationale
 
 DSL-111 models orchestration injects and timelines but does not define participant addressees, governed disclosure, delivery receipts, or the boundary between environment effects and participant input.
@@ -45,7 +54,24 @@ the legacy fixed-coordinate form; the new bounded tests evidence a design
 projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
+[ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
+and [EI-05](../../../specs/sdl/external-injects.md#ei-05--optional-participant-composition)
+add #1353's world-effect/delivery composition boundary. They preserve ADR-110's
+exact accepted-control join and independent policies. The
+[external-inject compatibility contract](../../explain/sdl/external-inject-compatibility.md)
+governs adoption; the amendment and its bounded witnesses do not certify live
+backend execution, delivery or observation.
+
 ## Traceability
+
+- IMPLEMENTS → SPEC `specs/sdl/external-injects.md` (Exact world-occurrence/result delivery join; not runtime conformance)
+- IMPLEMENTS → GITHUB_ISSUE `1353` (External world-effect and participant-delivery semantic boundary)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md` (Accepted-on-merge execution decision)
+- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/external-inject-compatibility.md` (Versioned unscheduled joins and preserved historical meaning)
+- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/external-inject-cases.md` (Independent effect, delivery and observation outcomes)
+- TESTS → TEST `implementations/python/tests/test_issue_1353_external_inject_design.py` (Bounded delivery reservation/composition projection; not delivery realization)
+- TESTS → TEST `implementations/python/tests/test_issue_1313_workflow_policy.py` (Merged delivery finalizer permission boundary)
+- TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Merged delivery finalizer job token scope and event classification)
 
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/reusable-mixed-control.md` (Exact control-application/delivery semantic amendment; not runtime conformance)
 - IMPLEMENTS → GITHUB_ISSUE `1351` (Semantic decision and canonical requirement amendment)

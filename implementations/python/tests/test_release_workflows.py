@@ -1013,6 +1013,7 @@ def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
 # or release-bookkeeping boundary. Any other job or workflow stays read-only.
 _REVIEWED_JOB_WRITE_SCOPES = {
     ("docs.yml", "deploy"): {"pages", "id-token"},
+    ("ground-control-phase-e.yml", "finalize"): {"issues"},
     ("release-please.yml", "release-please"): {"contents", "pull-requests"},
     ("release-please.yml", "resolve-release"): {"contents"},
     # Signing holds an OIDC and attestation identity only. It has no `contents`
@@ -1078,6 +1079,10 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
             triggers = dict.fromkeys(triggers)
         for event in ("push", "pull_request"):
             if event not in triggers:
+                continue
+            if path.name == "ground-control-phase-e.yml":
+                assert event == "pull_request"
+                assert triggers[event]["types"] == ["closed"]
                 continue
             config = triggers[event] or {}
             if path.name == "bootstrap-qualification.yml":
