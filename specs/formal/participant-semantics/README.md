@@ -1,5 +1,10 @@
 # Participant Semantics Formal Design
 
+Issue #1352 and ADR-111 publish the
+[control applicability and evaluation amendment](control-applicability-and-evaluation.md)
+for SEM-235/API-424. Its bounded model tests the semantic decision; the linked
+migration contract preserves the published v1 and runtime-adoption boundary.
+
 The [ACT-618 local outcome extension](local-outcomes.md) defines role-neutral
 categories and evolving participant-local state within the SEM-215 family.
 

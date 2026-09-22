@@ -13,6 +13,12 @@ publication correspondence in the same order. Profile revision, semantic
 publication, wire-contract version and implementation support are independent.
 Terms here do not introduce wire fields or a callable provider protocol.
 
+Issue #1352 publishes the separately identified
+[applicability and evaluation amendment](control-applicability-and-evaluation.md),
+clarifying MPC-01–03 and MPC-05–11. Use its CA-01–CA-09 relations for the revised
+interpretation. The clauses below retain the original `sem-235/rev1` publication
+and evidence scope; historical evaluations are not reinterpreted by this link.
+
 ## MPC-01 — Selection and identity
 
 An admitted composition B is a finite set of profile-instance bindings and a

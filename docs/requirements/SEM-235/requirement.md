@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 4
 created_at: 2026-09-06T00:00:00Z
-updated_at: 2026-09-20T00:00:00Z
+updated_at: 2026-09-22T00:00:00Z
 ---
 
 # SEM-235 — Modular Participant Control and Extensible Dynamic IFC Semantics
@@ -27,6 +27,17 @@ admission, idempotency and finite causal budgets. SEM-233's published security
 domain and historical meaning shall remain intact; backend integrity outside
 the declared world shall remain a realization responsibility.
 
+Composition shall distinguish the admitted apparatus from profile obligations,
+exact-cut applicable invocations, proven inapplicability and unresolved
+coverage. It shall evaluate a finite typed dependency graph with immutable
+predecessor results, explicit shared-state scope and atomic state/decision/
+intent commit. Mandatory input closure shall be satisfied without granting
+advisory content veto authority. Optional failure shall remain isolated, and
+bounded support shall satisfy the admitted requirement's coverage and
+constraints. Parent deny/withhold shall retain the same meaning in every phase;
+prerequisites and independent or success-dependent consequences shall have
+separate target, authority, outcome and ordering relations under CA-01–CA-09.
+
 ## Rationale
 
 SEM-230 supplies participant-relative flow and SEM-233 supplies its security
@@ -42,7 +53,29 @@ this semantic fulfillment, authoritative when the delivery PR merges.
 Downstream contracts, runtime, conformance and realization have separate
 owners; semantic publication is not their implementation.
 
+## Semantic amendment and evidence boundary
+
+[ADR-111](../../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
+and [CA-01–CA-09](../../../specs/formal/participant-semantics/control-applicability-and-evaluation.md)
+define the #1352 amendment, `participant-control-applicability/rev1`.
+ACTIVE records the accepted semantic contract, authoritative on merge; it
+does not assert executable adoption of the amendment. Existing implementation
+and evidence links retain their original revision-1 scope. The new finite
+model supplies bounded design evidence. Producers and historical readers must
+satisfy the [migration contract](../../migration/control-applicability-and-evaluation.md)
+before claiming the amended semantics.
+
 ## Traceability
+
+- IMPLEMENTS → GITHUB_ISSUE `1352` (Applicability, dependency and effect semantic amendment)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/control-applicability-and-evaluation.md` (CA-01–CA-09 semantic contract; not runtime adoption)
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/adrs/adr-111-control-applicability-and-effect-decisions.md` (Accepted-on-merge decision)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1352-control-applicability-preflight.md` (Architecture guardrails)
+- DOCUMENTS → DOCUMENTATION `docs/research/control-applicability/cases.md` (Worked cases, clause map and evidence limits)
+- DOCUMENTS → DOCUMENTATION `docs/migration/control-applicability-and-evaluation.md` (Historical interpretation and adoption obligations)
+- TESTS → TEST `implementations/python/tests/control_applicability_model.py` (Finite applicability/evaluation oracle, reusing revision-1 typed satisfaction)
+- TESTS → TEST `implementations/python/tests/test_issue_1352_control_applicability.py` (Bounded semantic counterexamples)
+- TESTS → TEST `implementations/python/tests/test_issue_1352_governance.py` (Real ownership and requirement-scope consumer)
 
 - DOCUMENTS → GITHUB_ISSUE `1072` (API-424 consumes the existing semantic publication without changing its fulfillment boundary)
 - DOCUMENTS → DOCUMENTATION `docs/explain/reference/modular-participant-control-contracts.md` (Published contract correspondence and nonclaims)

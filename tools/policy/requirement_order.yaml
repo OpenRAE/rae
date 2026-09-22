@@ -606,6 +606,18 @@ ownership:
     - specs/sdl/materialization-attestation.md
     - specs/sdl/observability-and-evidence.md
   modular-control-semantics:
+    # Issue #1352 semantic-design publication; no expanded runtime ownership.
+    - docs/decisions/adrs/README.md
+    - docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
+    - docs/decisions/adrs/adr-111-control-applicability-and-effect-decisions.md
+    - docs/decisions/adrs/adr-index.yaml
+    - docs/decisions/issue-1352-control-applicability-preflight.md
+    - docs/governance/requirement-scopes/1352.json
+    - docs/research/control-applicability/cases.md
+    - implementations/python/tests/control_applicability_model.py
+    - implementations/python/tests/test_issue_1352_control_applicability.py
+    - implementations/python/tests/test_issue_1352_governance.py
+    - specs/formal/participant-semantics/control-applicability-and-evaluation.md
     # SEM-235 owns semantic publication and finite witnesses (#1070).
     # Contracts, providers and runtime implementations have separate phases.
     - specs/formal/participant-semantics/modular-participant-control.md
@@ -692,6 +704,9 @@ ownership:
     - tools/formal_semantic_validation/_retest.py
     - tools/policy/requirement_order.yaml
   modular-control-contracts:
+    # Issue #1352 semantic-design publication; no expanded runtime ownership.
+    - docs/migration/control-applicability-and-evaluation.md
+    - implementations/python/tests/test_issue_1352_governance.py
     # API-424 also owns the public composition derivation RUN-320 consumes, and
     # the exact-cut coordinates its portable validator resolves (#1069).
     - implementations/python/packages/raes_contracts/contracts/participant_control_composition.py
