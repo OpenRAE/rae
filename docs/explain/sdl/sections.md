@@ -35,7 +35,7 @@ plane (ADR-055/064/069). Declarative `conditions` remain.
 | `conditions` | `dict[str, Condition]` | Declarative health/readiness checks (command+interval or library source) |
 | `entities` | `dict[str, Entity]` | Teams, organizations, people (recursive, with exercise roles) |
 | `injects` | `dict[str, Inject]` | Actions between entities during exercises |
-| `events` | `dict[str, Event]` | Triggered actions combining conditions + injects |
+| `events` | `dict[str, Event]` | Triggered actions combining precondition assertions and injects |
 | `scripts` | `dict[str, Script]` | Timed event sequences with human-readable durations |
 | `stories` | `dict[str, Story]` | Top-level exercise orchestration grouping scripts |
 
@@ -1605,12 +1605,20 @@ Nested entities are referenced via dot-notation: `blue-team.alice`.
 
 ## Orchestration: Injects, Events, Scripts, Stories
 
+Entity endpoints are optional but must be paired when present; they do not
+declare participants or select physical execution targets. Ordinary injects
+and events need no participant or script/story. The accepted
+[external-trigger semantics](../../../specs/sdl/external-injects.md) bind fresh
+occurrences to admitted realizations and outcome evidence. They preserve this
+authoring syntax and distinguish world effects from optional participant
+delivery; see the [worked cases](external-inject-cases.md).
+
 ```yaml
 injects:
   phishing-email:
     source: phishing-pkg
-    from-entity: red-team
-    to-entities: [blue-team]
+    from_entity: red-team
+    to_entities: [blue-team]
 
 events:
   attack-wave:
@@ -1619,8 +1627,8 @@ events:
 
 scripts:
   main-timeline:
-    start-time: 5 min                  # OCR units: y, mon, w, d, h, m/min, s/sec, ms, us, ns
-    end-time: 2 hour
+    start_time: 5 min                  # OCR units: y, mon, w, d, h, m/min, s/sec, ms, us, ns
+    end_time: 2 hour
     speed: 1.0
     events:
       attack-wave: 30 min

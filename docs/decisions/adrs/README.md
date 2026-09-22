@@ -263,3 +263,4 @@ adr-108-modular-participant-control-and-governed-effects
 | [108](adr-108-modular-participant-control-and-governed-effects.md) | Modular Participant Control and Governed Effects | accepted | 2026-09-06 |
 | [109](adr-109-participant-identity-and-objective-assignment.md) | Participant Identity, Affiliation, and Objective Assignment | accepted | 2026-09-21 |
 | [110](adr-110-reusable-mixed-control-policies-and-occurrences.md) | Reusable Mixed-Control Policies and Occurrences | accepted | 2026-09-22 |
+| [111](adr-111-external-inject-triggering-and-execution.md) | External Inject Triggering and Execution | accepted | 2026-09-22 |
