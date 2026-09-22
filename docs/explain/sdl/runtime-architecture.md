@@ -61,6 +61,16 @@ here come from mature workflow and distributed-runtime systems:
 
 ## Package Boundary
 
+RAE is the shared product runtime driving the backends; backend ownership of
+concrete realization does not imply a separate scenario runtime per backend.
+The [operation supervision decision](../../decisions/issue-1348-operation-lifecycle.md)
+defines how authored guarantees, contextual refusal, cancellation and recovery
+compose. It preserves the current profile matrix while explicitly identifying
+implementation gaps: current external calls and drain are not generally bounded,
+and durability does not imply interruption or resumability. Operational budgets
+remain independent of authored semantic clocks; future physical-OT protections
+are selected only when the authored requirements demand them.
+
 ```text
 raes                -> parse + instantiate + SDL-language semantics
 raes_processor          -> compile + plan + support/contract semantics

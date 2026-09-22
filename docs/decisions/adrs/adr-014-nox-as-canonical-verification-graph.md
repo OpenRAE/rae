@@ -17,12 +17,11 @@ secret scanning (gitleaks), formatter/linter (ruff), file-hygiene gates
 (trailing whitespace, EOF newline, large-file detection, merge-conflict
 markers, private-key detection), Sphinx documentation builds, and
 property-based fuzz tests. Each gate has its own native invocation. The
-same gates need to run in three places:
+gates need shared implementations with different scopes in three places:
 
 1. **Local pre-commit hooks** — fast, scoped to staged files.
-2. **Local pre-push hooks** — slower, full-repo validation before push.
-3. **CI (`ci.yml`)** — the same set as pre-push, plus coverage upload
-   and SonarCloud.
+2. **Local pre-push hooks** — targeted feedback for changed files and tests.
+3. **CI (`ci.yml`)** — full regression, coverage upload, and SonarCloud.
 
 Before this ADR, the only mechanism to keep these three invocations in
 agreement was discipline: hand-maintained command lists in
@@ -58,21 +57,26 @@ sessions are:
 - `policy` — Conftest self-verify, repo policy, requirement governance
 - `lint` — ruff format + check, project and tooling
 - `contracts` — generated-schema drift, JSON-artifact validation
-- `tests` — pytest with coverage
-- `fuzz` — pytest with `-m fuzz`
+- `tests` — full pytest with coverage, CI/CD only
+- `fuzz` — full pytest with `-m fuzz`, CI/CD only
 - `python-compatibility` — exact-interpreter tests plus clean distribution
   build, installation, import, and CLI checks for one supported CPython release
 - `docs` — sphinx-build (added by AUT-805)
-- `verify` — composes hygiene + policy + lint + contracts + tests + docs
+- `verify` — full hygiene + policy + lint + contracts + tests + docs, CI/CD only
 - `hook-pre-commit` — staged-file hygiene + policy + scoped lint +
-  conditional contracts + directly changed test modules (the full regression
-  sweep remains mandatory at pre-push and completion)
-- `hook-pre-push` — full hygiene + policy + lint + contracts + tests +
-  fuzz
+  conditional contracts + directly changed test modules
+- `verify-fast-feedback` — local default: hygiene + policy + changed-file lint
+  + directly changed test modules; advisory, not the merge gate
+- `verify-changed`, `hook-pre-push`, and `verify-completion` — the same targeted
+  feedback path, with no fallback to full test suites
 
-`verify` is the canonical single-interpreter "passed locally" state. CI invokes
+`verify` is the canonical single-interpreter full CI gate. CI invokes
 `nox -s verify`; the pre-push hook invokes `nox -s hook-pre-push`; the
-pre-commit hook invokes `nox -s hook-pre-commit`. CI additionally invokes
+pre-commit hook invokes `nox -s hook-pre-commit`. Local verification uses
+explicit affected test modules or cases only. Missing targeted selection means
+recording that limitation and deferring full testing to CI/CD, never launching
+the full suite locally. This applies to implementation, review repair,
+synchronization, and completion. CI additionally invokes
 `python-compatibility` once for every supported CPython feature release because
 a single local interpreter cannot establish the distribution's cross-version
 support claim. All invocations resolve through the same per-gate helpers (`_run_hygiene`,
@@ -81,8 +85,9 @@ support claim. All invocations resolve through the same per-gate helpers (`_run_
 
 Ground Control invokes pre-commit against the staged set. It does not add
 `--all-files`: that flag expands the hook input to every repository path,
-defeats staged change classification, and duplicates the full regression work
-that the pre-push and completion boundaries already run.
+defeats staged change classification, and expands the local hygiene boundary
+unnecessarily. Full regression remains required in CI/CD before merge; passing
+targeted local checks does not establish that result.
 
 ### 2. `.pre-commit-config.yaml` is a thin trigger layer, not a parallel definition
 
@@ -113,15 +118,15 @@ exposes:
 
 ```yaml
 workflow:
-  test_command:       nox -s verify   # full canonical gate
-  completion_command: nox -s verify
+  test_command:       nox -s verify-fast-feedback   # targeted local feedback
+  completion_command: nox -s verify-fast-feedback
   lint_command:       nox -s lint
   format_command:     nox -s hygiene
 ```
 
-The `/implement` skill consumes those values verbatim; ground-control
-agents and CI agree on what "verified" means by reading the same
-`.ground-control.yaml`.
+The `/implement` skill consumes those values verbatim. Local completion means
+targeted feedback is complete, not that the full CI gate passed. Ground Control
+must separately observe required CI and Sonar results before PR readiness.
 
 ### 4. Per-session venvs via uv
 
@@ -164,14 +169,13 @@ that pins the uv version we use elsewhere. Selected.
 
 ### Positive
 
-- A single source of truth: a failure on a contributor's machine
-  reproduces in CI verbatim, and vice versa.
+- A single source of truth for each gate: local feedback and full CI reuse the
+  same helpers, while explicitly reporting their different verification scopes.
 - The verification surface is discoverable via `nox -l`; new
   contributors do not have to search across YAML files to learn what
   "verified" requires.
-- Pre-commit and CI cannot drift apart on what a "passed" state
-  means, because both invocations resolve through the same `_run_*`
-  helpers.
+- Local success cannot be mistaken for full regression success: the former is
+  targeted feedback, while CI/CD owns full-suite completion and merge gating.
 - Adding a new gate changes one canonical graph: its session registration stays
   in `noxfile.py`, while its implementation and composition are each defined
   once in `tools/nox_support/`. CI and pre-commit pick it up automatically
@@ -187,6 +191,8 @@ that pins the uv version we use elsewhere. Selected.
   and by the principle that the names describe what they verify
   (`hygiene`, `policy`, `lint`, `contracts`, `tests`, `fuzz`, `docs`,
   `verify`).
+- Targeted local feedback can miss regressions outside the selected modules;
+  required full CI suites, not a local full-suite fallback, cover that risk.
 - nox session startup is not free. Mitigated by
   `nox.options.reuse_existing_virtualenvs = True` and by the uv-backed
   install path, which is fast on a warm cache.
@@ -222,8 +228,12 @@ pre-commit-driven gate; `pulsar` is a pnpm monorepo and uses pnpm
 workspaces; `shifter` has no top-level runner and documents its
 absence). nox is the right answer for this repository specifically
 because the verification surface is broad, polyglot at the gate level
-(Python + OPA + gitleaks + Sphinx), and consumed identically from
-local hooks, CI, and ground-control automation.
+(Python + OPA + gitleaks + Sphinx), and shared by local hooks, CI, and
+ground-control automation with explicit targeted-local/full-CI scopes.
+
+The #1348 amendment supersedes the local full-regression obligations recorded
+by #963 and the local `verify` recommendation in #1134. Their entries below
+remain historical records, not current instructions to run full suites locally.
 
 ## Amendments
 
@@ -232,3 +242,4 @@ local hooks, CI, and ground-control automation.
 | 2026-07-31 | #963 | Replaced the serial `verify` composition with six isolated, CPU-budgeted concurrent nox lanes, primed shared policy tooling before cold-cache lanes, batched JSON artifacts by shared schema with bounded concurrency, combined unit and integration coverage deterministically, scoped pre-commit to staged changes and directly changed tests without duplicating the mandatory full pre-push/completion regression, and separated network-dependent external-link validation into dedicated docs CI. Ground Control's completion half omits policy because its mechanically enforced policy half runs immediately afterward; direct `verify` and CI retain policy. |
 | 2026-08-14 | #1134 | Added a required CI matrix that runs the canonical `python-compatibility` session for each supported CPython feature release while retaining `verify` as the reproducible single-interpreter local gate. |
 | 2026-09-03 | #1164 | Split private nox configuration, runner, lane, and graph helpers into the acyclic `tools/nox_support/` package while retaining root `noxfile.py` as the sole public session registry, preserving one canonical graph, and keeping both surfaces in coverage and static analysis. |
+| 2026-09-22 | #1348 | Restricted local defaults, pre-push, changed verification, and completion to targeted feedback; reserved full test suites for CI/CD, superseding earlier local full-regression obligations while preserving required CI and Sonar gates. |

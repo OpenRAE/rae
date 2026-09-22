@@ -17,7 +17,7 @@
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned Ground Control and SonarCloud project designations without treating them as current RAES product identity.",
       "occurrences": 2,
-      "content_sha256": "bb13bb2ac2f99ac69712678cc76e8b2a6e5bbd416746d8d6fe872449846e20fa"
+      "content_sha256": "d0310fda7659a7b3ebd4834727adb1d20c5a522ef90ad13b13c51ce1d0763928"
     },
     {
       "path": "sonar-project.properties",
@@ -495,7 +495,7 @@
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
       "occurrences": 4,
-      "content_sha256": "047923d4941780933093423afdbf6d381cc747e1eaf8b6acf549a888a640c2a0"
+      "content_sha256": "f552c1b17be587b1e1f5f6398c04d011c06476e4eaa36c0558defecae1611dab"
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",

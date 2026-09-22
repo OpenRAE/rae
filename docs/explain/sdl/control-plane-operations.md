@@ -32,6 +32,12 @@ to persist a planner-denial audit
 keeps the intended forbidden response and emits only a stable error log label;
 operators should investigate that label as an audit availability failure.
 
+The [operation supervision decision](../../decisions/issue-1348-operation-lifecycle.md)
+defines the required separation between stopping admission, requesting backend
+interruption and establishing cessation. It is design authority: the current
+runtime retains its mutation permit across external calls and can drain without
+a bound. Do not infer bounded shutdown or checkpoint resumption from P1/P2.
+
 ## Classify Recovery Before Acting
 
 Inspect the operation through the authenticated status API and use only its
@@ -39,7 +45,7 @@ durable terminal state and recovery diagnostic:
 
 | Durable result | Meaning | Operator action |
 | --- | --- | --- |
-| `FAILED` or `CANCELLED` with `runtime.control-plane.recovery-effect-absent` | The admitted effect is known absent. | If the effect is still wanted, submit ordinary new work with a fresh idempotency key. Preserve the original operation. |
+| `FAILED` or `CANCELLED` with `runtime.control-plane.recovery-effect-absent` | The admitted effect was observed absent. That observation alone cannot rule out a surviving external worker. | Establish cessation and apply the authored retry/attempt policy before submitting new work with a fresh key. Preserve the original operation. |
 | `SUCCEEDED` with `runtime.control-plane.recovery-effect-applied` | Neutral observation established and validated the effect. | Treat the committed snapshot and operation as authoritative. Do not repeat the effect. |
 | `INDETERMINATE` with `runtime.control-plane.recovery-effect-unobservable` | The effect could not be established. New effects for the target/run remain quarantined. | Use backend-specific inspection, then create a separately authorized linked resolution operation. Never rewrite the parent or reuse its idempotency key. |
 
@@ -48,6 +54,14 @@ not evidence of an effect. The parent operation, its claim, timestamps,
 commitment, diagnostics, and audit history remain immutable. Administrative
 resolution uses the existing `INDETERMINATE_RESOLUTION` child operation and an
 operator identity bound to the exact target.
+
+Administrative `ACCEPT_CURRENT_SNAPSHOT` resolution acknowledges a selected
+portable state; it does not prove backend cessation, verified cleanup or
+permission to repeat effects. A fresh idempotency key or different store/run
+identity cannot supply those facts. Required cleanup and clean-state evidence
+remain governed by SCE-007; a new trial requires its own admitted allocation.
+Keep externally uncertain resources isolated until the applicable guarantees
+are established, even when an administrative receipt reports success.
 
 ## Health and Startup
 
@@ -81,6 +95,13 @@ Construction failure is pre-readiness failure. Do not put a partially
 initialized control plane behind a ready HTTP listener.
 
 ## Stop and Drain
+
+Stopping admission does not interrupt work already executing. Current drain can
+wait indefinitely on a backend or observer. The supervision design requires
+bounded interruption/observation/drain stages, but this runbook does not claim
+they are implemented. If the embedder terminates a process, record that loss and
+reconcile external effects before reuse; local process exit or lease release
+does not stop a remote job. Never force a second writer into the live store.
 
 Before P1 maintenance or a deployment change:
 

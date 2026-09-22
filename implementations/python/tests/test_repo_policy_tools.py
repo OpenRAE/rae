@@ -174,7 +174,7 @@ def test_noxfile_owns_session_registration_and_nox_configuration() -> None:
     noxfile_tree = ast.parse(noxfile_source)
     assert 'nox.options.default_venv_backend = "none"' in noxfile_source
     assert "nox.options.reuse_existing_virtualenvs = True" in noxfile_source
-    assert 'nox.options.sessions = ["verify"]' in noxfile_source
+    assert 'nox.options.sessions = ["verify-fast-feedback"]' in noxfile_source
     for module_name in NOX_SUPPORT_MODULES:
         support_source = (REPO_ROOT / "tools" / "nox_support" / f"{module_name}.py").read_text(encoding="utf-8")
         assert "@nox.session" not in support_source
@@ -578,51 +578,34 @@ def test_parallel_graph_executes_success_and_reports_all_failures(
     )
 
 
-def test_change_selected_graph_routes_plans_and_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
-    class FakeSession:
-        def __init__(self) -> None:
-            self.messages: list[str] = []
-
-        def log(self, message: str) -> None:
-            self.messages.append(message)
-
-    session = FakeSession()
+def test_local_changed_graph_never_selects_the_full_suite(monkeypatch: pytest.MonkeyPatch) -> None:
+    session = types.SimpleNamespace(log=lambda _message: None)
     reporter = ImmediateReporter()
-    calls: list[str] = []
-    plan = types.SimpleNamespace(contracts=False, regression=False, fuzz=False, docs=False, reason="prose")
-    monkeypatch.setattr(nox_graph, "collect_git_changes", lambda *_args: [types.SimpleNamespace(path="README.md")])
-    monkeypatch.setattr(nox_graph, "plan_for_changes", lambda _changes: plan)
-    monkeypatch.setattr(nox_graph, "_requirement_aware_policy_args", lambda *args: list(args))
-    for name in ("_run_hygiene", "_run_policy", "_run_lint", "_run_contracts", "_run_tests", "_run_fuzz", "_run_docs"):
-        monkeypatch.setattr(nox_graph, name, lambda *_args, _name=name, **_kwargs: calls.append(_name))
-
-    nox_graph._run_changed_verification(session, reporter, ["--base-rev", "base"])
-    assert calls == ["_run_hygiene", "_run_policy", "_run_lint"]
-    assert {name for name, _reason in reporter.skips} == {
-        "contracts / governed artifact graph",
-        "tests / pytest",
-        "tests / pytest fuzz",
-        "docs / sphinx-build",
-    }
-
-    plan.contracts = plan.regression = plan.fuzz = plan.docs = True
-    calls.clear()
+    calls: list[object] = []
+    monkeypatch.setattr(nox_graph, "_run_fast_feedback", lambda *args: calls.append(args))
     monkeypatch.setattr(
-        nox_graph,
-        "_changed_base_rev",
-        lambda _posargs: (_ for _ in ()).throw(RuntimeError("no upstream")),
+        nox_graph, "_run_parallel_verification", lambda *_args, **_kwargs: pytest.fail("full local suite")
     )
-    nox_graph._run_changed_verification(session, ImmediateReporter(), [])
-    assert calls == [
-        "_run_hygiene",
-        "_run_policy",
-        "_run_lint",
-        "_run_contracts",
-        "_run_tests",
-        "_run_fuzz",
-        "_run_docs",
-    ]
-    assert any("failed closed" in message for message in session.messages)
+    monkeypatch.setattr(nox_graph, "collect_git_changes", lambda *_args: [])
+    for name in ("_run_hygiene", "_run_policy", "_run_lint", "_run_contracts"):
+        monkeypatch.setattr(nox_graph, name, lambda *_args, **_kwargs: None, raising=False)
+    monkeypatch.setattr(
+        nox_graph, "_run_tests", lambda *_args, **_kwargs: pytest.fail("full local suite"), raising=False
+    )
+    nox_graph._run_changed_verification(session, reporter, ["--base-rev", "base"])
+    assert calls == [(session, reporter, ["--base-rev", "base"])]
+
+
+def test_completion_uses_targeted_feedback(monkeypatch: pytest.MonkeyPatch) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    calls: list[object] = []
+    monkeypatch.setattr(noxfile, "SessionReporter", lambda *_args: types.SimpleNamespace(summary=lambda: None))
+    monkeypatch.setattr(noxfile, "_run_fast_feedback", lambda *args: calls.append(args[-1]))
+    monkeypatch.setattr(
+        noxfile, "_run_parallel_verification", lambda *_args, **_kwargs: pytest.fail("full local suite")
+    )
+    noxfile.verify_completion(types.SimpleNamespace(posargs=["--base-rev", "base"]))
+    assert calls == [["--base-rev", "base"]]
 
 
 def test_graph_base_revision_and_cpu_fallbacks(monkeypatch: pytest.MonkeyPatch) -> None:

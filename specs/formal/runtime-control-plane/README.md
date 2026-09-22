@@ -3,6 +3,12 @@
 Status: design authority for ADR-104; no executable profile guarantee is
 claimed until the corresponding implementation issue lands with tests.
 
+The [supervision supplement](supervision.md) defines issue #1348's admission,
+execution-reservation, cancellation, deadline and subsequent-work semantics.
+Its evidence rules refine this model without adding persisted states. The
+supplement is design authority; bounded abstract tests do not demonstrate a
+runtime implementation of those extensions.
+
 ## Scope
 
 This FM3 artifact defines the abstract operation lifecycle and the safety,
@@ -24,7 +30,9 @@ ephemeral exact fingerprint binds credential-bearing input for in-process
 idempotency collision detection; that fingerprint never enters the operation
 store, receipts, statuses, diagnostics, or audit records. After restart its
 proof is intentionally unavailable, so a credential-bearing retry under an
-already-durable idempotency key fails closed and the caller must use a new key.
+already-durable idempotency key fails closed. Status retrieval remains separate;
+a new key is necessary for new effect work but never sufficient authorization
+to repeat it or bypass unresolved effects.
 
 ## Abstract states and transitions
 
@@ -76,7 +84,8 @@ use the shared model's safe JSON-Pointer address shape.
 
 `SUCCEEDED`, `FAILED`, `CANCELLED`, and `INDETERMINATE` are terminal.
 Implementations may combine `admit/claim` and `start` into one durable
-transaction, but `RUNNING` must be authoritative before backend invocation.
+transaction, but `RUNNING` must be authoritative before backend invocation
+(crash-persistent in P1/P2; in-process ordering only in P0).
 `RUNNING` reaches `CANCELLED` only when the effect is known absent or the
 backend contract proves cancellation; an unobservable cancellation is
 `INDETERMINATE`. No terminal state transitions to another state. In particular,
@@ -90,8 +99,8 @@ The abstract operations are:
 | `deny` | admission or authorization fails before claim | append one bounded, value-free denial audit; create no operation or idempotency claim | none |
 | `claim` | actor is authorized for `S`, kind, and referenced subjects; scoped idempotency claim absent | create immutable claim and non-terminal operation | none |
 | `start` | operation is `ACCEPTED` and owned by the mutation authority | transition to `RUNNING` | none |
-| `invoke` | operation is durably `RUNNING` | none; no store transaction is held | backend may apply, reject, or become unobservable |
-| `cancel` | actor is authorized and operation is `ACCEPTED`, or operation is `RUNNING` with the effect proven absent or cancelled | preserve the snapshot revision and write `CANCELLED` plus actor-bound audit together | none; any backend cancellation or observation precedes this transition |
+| `invoke` | operation is authoritatively `RUNNING` under its selected profile | none; no store transaction is held | backend may apply, reject, or become unobservable |
+| `cancel` | actor is authorized and operation is `ACCEPTED`, or operation is `RUNNING` with the effect proven absent or cancelled | write `CANCELLED` plus actor-bound audit together; preserve the snapshot revision when unchanged, otherwise atomically commit validated residual state | none; any backend cancellation or observation precedes this transition |
 | `commit` | expected snapshot revision matches and operation is `RUNNING` | write snapshot revision, one terminal operation, and actor-bound audit together | none |
 | `reconcile` | operation is non-terminal after restart | classify observed effect and perform one terminal commit | observation only; never replay |
 | `resolve` | original is terminal `INDETERMINATE` and actor is authorized | create a linked operation and audit; preserve original | explicit operator/embedder action only |
@@ -99,11 +108,19 @@ The abstract operations are:
 
 Reconciliation classification is closed:
 
-- effect known absent → `FAILED` or `CANCELLED`, according to the admitted
+- effect known absent with cessation established → `FAILED` or `CANCELLED`, according to the admitted
   operation contract;
-- effect observed and semantically valid → `SUCCEEDED` with the observed
+- complete effect observed and all admitted requirements satisfied → `SUCCEEDED` with the observed
   snapshot;
+- known partial/nonconforming effects and established cessation → `FAILED`,
+  or `CANCELLED` when its contract is established, with validated residual state;
 - effect cannot be established → `INDETERMINATE`.
+
+These are semantic classifications, not new recovery wire-enum values. When
+the current carriers cannot establish partial effects or cessation, the design
+requires indeterminacy. A validated no-op can satisfy the complete operation
+contract without a physical mutation. A rejected snapshot preserves the trusted
+predecessor without proving absence of external effects.
 
 ## Invariants
 
@@ -113,7 +130,8 @@ Reconciliation classification is closed:
    one mutation authority. P1/P2 acquire the owner lease before inspection,
    migration, cache load, reconciliation, or admission.
 3. **Write-ahead invariant.** A backend is invoked only after its operation is
-   durably `RUNNING` and bound to immutable actor and request context.
+   authoritatively `RUNNING` (durably in P1/P2) and bound to immutable actor and
+   request context.
 4. **Terminal atomicity invariant.** Snapshot revision, terminal operation, and
    actor-bound audit become visible together or not at all.
 5. **Revision invariant.** Every snapshot mutation uses compare-and-swap

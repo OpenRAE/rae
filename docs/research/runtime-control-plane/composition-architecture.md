@@ -10,6 +10,11 @@ boundaries, and failure and recovery behavior. Nothing here is claimable
 before its implementation work package (see the
 [implementation program](implementation-program.md)) lands with tests.
 
+The [issue #1348 decision](../../decisions/issue-1348-operation-lifecycle.md)
+and [formal supplement](../../../specs/formal/runtime-control-plane/supervision.md)
+refine supervision and recovery. RAE remains the shared product runtime driving
+backends; profiled control-plane storage is one component of that runtime.
+
 ## 1. Position in the RAES stack
 
 SDL authoring and the processor produce compiled plans; backends realize
@@ -112,6 +117,13 @@ Nothing replays automatically. Host loss and network partition reduce to
 process loss at P0–P2 because ownership is single-process; the partition
 cases that require distributed reasoning are exactly the P3 nonclaim.
 
+For the supervision design, every external callback, including recovery
+observation, consumes a bounded operational budget. An absent-effect observation
+is conclusive only when no late effect remains possible. Known partial effects
+require validated residual state; missing carrier support or unproved cessation
+requires indeterminacy. Store acknowledgement loss instead uses atomic readback
+and poisoned readiness. Neither case authorizes another invocation.
+
 Request cancellation does not cancel a worker thread or prove that a backend
 effect stopped. A client-side timeout or broken connection leaves the durable
 operation authoritative; the caller retries with the same scoped idempotency
@@ -121,11 +133,23 @@ completes. An indeterminate terminal record is immutable; deliberate operator
 resolution creates a linked operation and audit event rather than rewriting
 history.
 
+Credential-bearing retries after restart still fail closed when the existing
+ephemeral exact-input proof is unavailable; authorized status retrieval remains
+separate. A fresh key does not authorize repeated work. Administrative snapshot
+acceptance cannot establish cessation or discharge evidence required for reuse.
+Workflow retry and SCE-007 attempt policy govern repeated work; resumption needs
+an admitted continuation boundary, and a new trial needs its own allocation.
+
 ## 7. Concurrency control
 
 - **In-process**: one control-plane mutation authority serializes every
   mutation path within the owner. Path-local locks and the HTTP adapter lock
   are subordinate safeguards, not separate consistency domains.
+  The supervision design separates short state commits from retained execution
+  reservations so a blocked external call cannot monopolize supervisory access.
+  Current code still retains its logical permit across those calls; the design
+  is not evidence of deployed bounded interruption. Conflicting effects stay
+  excluded until cessation and reconciliation are established.
 - **Cross-process**: the store lease (CP-5) admits exactly one owner; a
   second process fails closed at admission rather than corrupting state.
 - **Optimistic safety net**: snapshot commits carry a revision and commit
