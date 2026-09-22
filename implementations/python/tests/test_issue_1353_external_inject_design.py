@@ -327,7 +327,8 @@ events:
     assert not model.agent_specs
     assert not model.participant_behaviors
     assert not model.participant_inject_deliveries
-    assert not model.scripts and not model.stories
+    assert not model.scripts
+    assert not model.stories
     assert model.events["orchestration.event.gate"].inject_addresses == ("orchestration.inject.release",)
 
 
