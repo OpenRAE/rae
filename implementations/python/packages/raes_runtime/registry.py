@@ -481,3 +481,11 @@ class BackendRegistry:
 
     def is_registered(self, name: str) -> bool:
         return name in self._descriptors
+
+
+def participant_temporal_probe_manager(target: object, *, stochastic_controls: object = ()) -> object:
+    """Create the runtime facade used by the finite temporal conformance probe."""
+
+    from .manager import RuntimeManager
+
+    return RuntimeManager(target, stochastic_controls=stochastic_controls)

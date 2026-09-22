@@ -26,20 +26,7 @@ def _autonomous_progression_issues(
 ) -> list[ParticipantBehaviorIssue]:
     policy = context.policy
     progression_mode = getattr(getattr(bindings.progression, "advancement_mode", None), "value", "")
-    clock_authority = getattr(getattr(bindings.clock, "authority_kind", None), "value", "")
     issues: list[ParticipantBehaviorIssue] = []
-    if progression_mode == "externally_paced":
-        issues.append(
-            _autonomous_issue(
-                context,
-                "participant.autonomous-progression-driver-unsupported",
-                policy.progression_policy_ref,
-            )
-        )
-    if progression_mode in {"real_time", "dilated"} and clock_authority != "runtime":
-        issues.append(
-            _autonomous_issue(context, "participant.autonomous-clock-authority-unsupported", policy.clock_ref)
-        )
     if bindings.cadence_count == 1 and bindings.cadence is not None:
         start = getattr(bindings.cadence, "start", None)
         start_tick = getattr(start, "tick", 0) if start is not None else 0
@@ -61,7 +48,10 @@ def _activity_timing_unreachable(
 ) -> bool:
     minimum_ticks = policy.timing.minimum_ticks
     maximum_ticks = policy.timing.maximum_ticks
-    return not (isinstance(step_ticks, int) and not minimum_ticks % step_ticks and not maximum_ticks % step_ticks)
+    # Source variables are checked again on the admitted instantiated scenario.
+    return isinstance(step_ticks, int) and any(
+        isinstance(bound, int) and bound % step_ticks for bound in (minimum_ticks, maximum_ticks)
+    )
 
 
 def _cadence_unreachable(bindings: _AutonomousTimeBindings, step_ticks: object) -> bool:

@@ -1,9 +1,9 @@
 {
-  "content_hash": "6c00797e46c551713eca1784f31844d02560a1604ab3347fd1c16a92cd1dc459",
+  "content_hash": "765e81765467f2e29b52bee8cd6daabe284c1542665c4f634c47b632b37fedb4",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "6c00797e46c551713eca1784f31844d02560a1604ab3347fd1c16a92cd1dc459",
-    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
+    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
+    "content_hash": "765e81765467f2e29b52bee8cd6daabe284c1542665c4f634c47b632b37fedb4"
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

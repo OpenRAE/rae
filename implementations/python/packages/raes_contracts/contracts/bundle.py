@@ -80,6 +80,7 @@ from .schema_invariants import (
     _add_raes_invariant,
     _attach_experiment_datetime_invariants,
     _attach_initial_service_state_invariants,
+    _attach_participant_temporal_invariants,
     _attach_raes_semantic_profile,
     _attach_stateful_resource_invariants,
 )
@@ -445,6 +446,7 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
         _attach_experiment_datetime_invariants(contract_id, json_schema)
         _attach_stateful_resource_invariants(contract_id, json_schema)
         _attach_initial_service_state_invariants(contract_id, json_schema)
+        _attach_participant_temporal_invariants(contract_id, json_schema)
         _attach_json_schema_metadata(contract_id, json_schema)
         _attach_compiled_address_map_constraints(contract_id, json_schema)
         _attach_plan_identity_constraints(contract_id, json_schema)

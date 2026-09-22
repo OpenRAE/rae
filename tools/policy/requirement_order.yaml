@@ -972,6 +972,7 @@ ownership:
     - docs/explain/reference
     - docs/explain/sdl
     - docs/requirements
+    - docs/migration
     - docs/research/specification-coverage
     - docs/research/formal-semantic-validation
     - specs/formal
@@ -980,6 +981,7 @@ ownership:
     - implementations/python/packages/raes_processor
     - implementations/python/packages/raes_contracts
     - implementations/python/packages/raes_backend_protocols
+    - implementations/python/packages/raes_conformance
     - implementations/python/packages/raes_runtime
     - implementations/python/tests
     - tools/policy/requirement_order.yaml

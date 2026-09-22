@@ -302,6 +302,14 @@
           ],
           "title": "Status",
           "type": "string"
+        },
+        "temporal_evidence": {
+          "items": {
+            "$ref": "#/$defs/ParticipantTemporalEvidenceModel"
+          },
+          "maxItems": 256,
+          "title": "Temporal Evidence",
+          "type": "array"
         }
       },
       "required": [
@@ -968,6 +976,13 @@
           "default": null,
           "title": "State Transition Kind"
         },
+        "temporal_assessments": {
+          "items": {
+            "$ref": "#/$defs/ParticipantTemporalAssessmentModel"
+          },
+          "title": "Temporal Assessments",
+          "type": "array"
+        },
         "temporal_contexts": {
           "items": {
             "$ref": "#/$defs/ParticipantTemporalRuntimeContextModel"
@@ -1517,6 +1532,262 @@
         }
       ]
     },
+    "ParticipantTemporalAssessmentModel": {
+      "additionalProperties": false,
+      "description": "Portable guarantee result, independent of the native action outcome.",
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/ParticipantTemporalExecutionContextModel"
+        },
+        "evaluation_sequence": {
+          "minimum": 0,
+          "title": "Evaluation Sequence",
+          "type": "integer"
+        },
+        "evidence": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ParticipantTemporalEvidenceModel"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "native_execution": {
+          "enum": [
+            "not_dispatched",
+            "reported"
+          ],
+          "title": "Native Execution",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "met",
+            "missed",
+            "indeterminate"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "context",
+        "status",
+        "native_execution",
+        "evaluation_sequence",
+        "reason"
+      ],
+      "title": "ParticipantTemporalAssessmentModel",
+      "type": "object"
+    },
+    "ParticipantTemporalBindingModel": {
+      "additionalProperties": false,
+      "description": "One action-local guarantee and its resolved shared-clock constraint.",
+      "properties": {
+        "action_contract_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Action Contract Address",
+          "type": "string"
+        },
+        "backend_disclosure_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Backend Disclosure Refs",
+          "type": "array"
+        },
+        "clock_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Clock Address",
+          "type": "string"
+        },
+        "clock_authority": {
+          "minLength": 1,
+          "title": "Clock Authority",
+          "type": "string"
+        },
+        "condition_precondition_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Condition Precondition Id"
+        },
+        "constraint_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Constraint Address",
+          "type": "string"
+        },
+        "contract_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Contract Digest",
+          "type": "string"
+        },
+        "end": {
+          "$ref": "#/$defs/TimeCoordinateModel"
+        },
+        "event_point": {
+          "enum": [
+            "start",
+            "end",
+            "observed",
+            "effective"
+          ],
+          "title": "Event Point",
+          "type": "string"
+        },
+        "event_points": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Event Points",
+          "type": "array"
+        },
+        "evidence_mode": {
+          "enum": [
+            "event",
+            "continuous"
+          ],
+          "title": "Evidence Mode",
+          "type": "string"
+        },
+        "observation_boundary_address": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 3,
+              "not": {
+                "pattern": "[^a-z0-9_.-]"
+              },
+              "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Boundary Address"
+        },
+        "profile": {
+          "const": "participant-shared-time/v1",
+          "default": "participant-shared-time/v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "replay_boundary": {
+          "minLength": 1,
+          "title": "Replay Boundary",
+          "type": "string"
+        },
+        "reset_boundary": {
+          "minLength": 1,
+          "title": "Reset Boundary",
+          "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeCoordinateModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "temporal_id": {
+          "minLength": 1,
+          "title": "Temporal Id",
+          "type": "string"
+        },
+        "temporal_kind": {
+          "enum": [
+            "deadline",
+            "dwell"
+          ],
+          "title": "Temporal Kind",
+          "type": "string"
+        },
+        "time_domain": {
+          "minLength": 1,
+          "title": "Time Domain",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_contract_address",
+        "temporal_id",
+        "temporal_kind",
+        "clock_address",
+        "constraint_address",
+        "event_point",
+        "evidence_mode",
+        "end",
+        "contract_digest",
+        "time_domain",
+        "clock_authority",
+        "event_points",
+        "reset_boundary",
+        "replay_boundary"
+      ],
+      "title": "ParticipantTemporalBindingModel",
+      "type": "object"
+    },
+    "ParticipantTemporalCoverageModel": {
+      "additionalProperties": false,
+      "description": "An attested condition over a half-open interval, not two samples.",
+      "properties": {
+        "condition_holds": {
+          "title": "Condition Holds",
+          "type": "boolean"
+        },
+        "end": {
+          "$ref": "#/$defs/TimeCoordinateModel"
+        },
+        "start": {
+          "$ref": "#/$defs/TimeCoordinateModel"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "condition_holds"
+      ],
+      "title": "ParticipantTemporalCoverageModel",
+      "type": "object"
+    },
     "ParticipantTemporalEventPoint": {
       "description": "Named participant event points used by temporal contracts.",
       "enum": [
@@ -1533,6 +1804,182 @@
       ],
       "title": "ParticipantTemporalEventPoint",
       "type": "string"
+    },
+    "ParticipantTemporalEvidenceModel": {
+      "additionalProperties": false,
+      "description": "A backend's observation of the selected event on the bound shared clock.",
+      "properties": {
+        "condition_precondition_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Condition Precondition Id"
+        },
+        "context": {
+          "$ref": "#/$defs/ParticipantTemporalExecutionContextModel"
+        },
+        "coordinate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeCoordinateModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coverage": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ParticipantTemporalCoverageModel"
+          },
+          "maxItems": 4096,
+          "title": "Coverage",
+          "type": "array"
+        },
+        "event_point": {
+          "anyOf": [
+            {
+              "enum": [
+                "start",
+                "end",
+                "observed",
+                "effective"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Point"
+        },
+        "evidence_mode": {
+          "default": "event",
+          "enum": [
+            "event",
+            "continuous",
+            "sampled"
+          ],
+          "title": "Evidence Mode",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "observation_boundary_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Observation Boundary Address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "context",
+        "observation_boundary_address",
+        "evidence_refs"
+      ],
+      "title": "ParticipantTemporalEvidenceModel",
+      "type": "object"
+    },
+    "ParticipantTemporalExecutionContextModel": {
+      "additionalProperties": false,
+      "description": "Runtime-owned identity of one bound guarantee evaluation.",
+      "properties": {
+        "action_instance_id": {
+          "minLength": 1,
+          "title": "Action Instance Id",
+          "type": "string"
+        },
+        "binding": {
+          "$ref": "#/$defs/ParticipantTemporalBindingModel"
+        },
+        "bound_end": {
+          "$ref": "#/$defs/TimeCoordinateModel"
+        },
+        "bound_start": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeCoordinateModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "clock_sequence": {
+          "minimum": 0,
+          "title": "Clock Sequence",
+          "type": "integer"
+        },
+        "episode_id": {
+          "minLength": 1,
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "execution_generation": {
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "execution_scope_ref": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Execution Scope Ref",
+          "type": "string"
+        },
+        "participant_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Participant Address",
+          "type": "string"
+        },
+        "submitted_at": {
+          "$ref": "#/$defs/TimeCoordinateModel"
+        }
+      },
+      "required": [
+        "binding",
+        "participant_address",
+        "episode_id",
+        "action_instance_id",
+        "execution_scope_ref",
+        "execution_generation",
+        "submitted_at",
+        "clock_sequence",
+        "bound_end"
+      ],
+      "title": "ParticipantTemporalExecutionContextModel",
+      "type": "object"
     },
     "ParticipantTemporalRuntimeContextModel": {
       "additionalProperties": false,
@@ -1589,6 +2036,17 @@
           "default": null,
           "title": "Reset Boundary"
         },
+        "shared_time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantTemporalExecutionContextModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "temporal_contract_id": {
           "minLength": 1,
           "title": "Temporal Contract Id",
@@ -1619,6 +2077,33 @@
       ],
       "title": "ParticipantTimeDomain",
       "type": "string"
+    },
+    "TimeCoordinateModel": {
+      "additionalProperties": false,
+      "description": "Exact superdense coordinate within one discontinuity segment.",
+      "properties": {
+        "microstep": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Microstep",
+          "type": "integer"
+        },
+        "segment": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Segment",
+          "type": "integer"
+        },
+        "tick": {
+          "title": "Tick",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tick"
+      ],
+      "title": "TimeCoordinateModel",
+      "type": "object"
     }
   },
   "$id": "https://openrae.github.io/rae/schemas/participant-history-view-v1.json",
@@ -1755,6 +2240,20 @@
   ],
   "title": "ParticipantHistoryViewModel",
   "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, a condition and an observation boundary. Bounds are segment-relative and the selected event is declared.",
+      "id": "participant-shared-time-binding-shape",
+      "inputs": [
+        {
+          "contract_id": "participant-history-view-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel"
+    }
+  ],
   "x-raes-semantic-profile": {
     "contract_id": "participant-history-view-v1",
     "entry_schema_contract_id": "raes-semantic-invariants-v1",

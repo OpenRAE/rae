@@ -38,10 +38,17 @@ class ParticipantEpisodeControlMixin:
     ) -> OperationReceipt:
         participant_runtime = self._target.participant_runtime
         method = getattr(participant_runtime, "control_execution", None)
-        if participant_runtime is None or not callable(method):
+        capability = self._target.manifest.participant_runtime
+        if (
+            capability is None
+            or not capability.supports_execution_control
+            or request.action not in capability.supported_execution_control_actions
+            or participant_runtime is None
+            or not callable(method)
+        ):
             return self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
-                message="Participant runtime does not expose portable execution control.",
+                message="Selected backend does not declare this participant execution-control operation.",
                 idempotency_key=idempotency_key,
                 request_fingerprint=request_fingerprint,
                 identity=identity,

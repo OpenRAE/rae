@@ -1747,6 +1747,17 @@
           "title": "Target Addresses",
           "type": "array"
         },
+        "temporal_contract_digests": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Temporal Contract Digests",
+          "type": "array"
+        },
         "timeout_seconds": {
           "minimum": 1,
           "title": "Timeout Seconds",
@@ -2398,7 +2409,7 @@
         "max_autonomous_retries_per_occurrence": {
           "anyOf": [
             {
-              "minimum": 1,
+              "minimum": 0,
               "type": "integer"
             },
             {
@@ -2411,7 +2422,7 @@
         "max_concurrent_actions": {
           "anyOf": [
             {
-              "minimum": 2,
+              "minimum": 1,
               "type": "integer"
             },
             {
@@ -2534,7 +2545,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Supported Behavior Features",
           "type": "array",
           "uniqueItems": true
@@ -2560,7 +2570,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Supported Interaction Features",
           "type": "array",
           "uniqueItems": true
@@ -2570,7 +2579,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "minItems": 1,
           "title": "Supported Participant Roles",
           "type": "array",
           "uniqueItems": true

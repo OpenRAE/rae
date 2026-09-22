@@ -7967,11 +7967,23 @@
           "type": "string"
         },
         "cooldown_ticks": {
+          "anyOf": [
+            {
+              "maximum": 1000000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
           "default": 0,
-          "maximum": 1000000000,
-          "minimum": 0,
-          "title": "Cooldown Ticks",
-          "type": "integer"
+          "title": "Cooldown Ticks"
         },
         "depends_on": {
           "items": {
@@ -7988,11 +8000,23 @@
           "type": "array"
         },
         "max_retries": {
+          "anyOf": [
+            {
+              "maximum": 1024,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
           "default": 0,
-          "maximum": 1024,
-          "minimum": 0,
-          "title": "Max Retries",
-          "type": "integer"
+          "title": "Max Retries"
         },
         "retryable_failure_classes": {
           "items": {
@@ -8003,10 +8027,22 @@
           "type": "array"
         },
         "weight": {
-          "maximum": 1000000000,
-          "minimum": 1,
-          "title": "Weight",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Weight"
         }
       },
       "required": [
@@ -8021,16 +8057,40 @@
       "description": "Inclusive bounded interval for the next occurrence on the shared clock.",
       "properties": {
         "maximum_ticks": {
-          "maximum": 1000000000,
-          "minimum": 1,
-          "title": "Maximum Ticks",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Maximum Ticks"
         },
         "minimum_ticks": {
-          "maximum": 1000000000,
-          "minimum": 1,
-          "title": "Minimum Ticks",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Minimum Ticks"
         }
       },
       "required": [
@@ -8065,17 +8125,41 @@
           "default": "stop"
         },
         "max_action_attempts": {
-          "maximum": 1000000,
-          "minimum": 1,
-          "title": "Max Action Attempts",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Max Action Attempts"
         },
         "max_in_flight": {
+          "anyOf": [
+            {
+              "maximum": 1024,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
           "default": 1,
-          "maximum": 1024,
-          "minimum": 1,
-          "title": "Max In Flight",
-          "type": "integer"
+          "title": "Max In Flight"
         },
         "observation_boundary_ref": {
           "minLength": 1,
@@ -8169,30 +8253,78 @@
           "default": "stop"
         },
         "max_action_attempts": {
-          "maximum": 1000000,
-          "minimum": 1,
-          "title": "Max Action Attempts",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Max Action Attempts"
         },
         "max_burst_size": {
+          "anyOf": [
+            {
+              "maximum": 1024,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
           "default": 1,
-          "maximum": 1024,
-          "minimum": 1,
-          "title": "Max Burst Size",
-          "type": "integer"
+          "title": "Max Burst Size"
         },
         "max_in_flight": {
+          "anyOf": [
+            {
+              "maximum": 1024,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
           "default": 1,
-          "maximum": 1024,
-          "minimum": 1,
-          "title": "Max In Flight",
-          "type": "integer"
+          "title": "Max In Flight"
         },
         "max_occurrences": {
-          "maximum": 1000000,
-          "minimum": 1,
-          "title": "Max Occurrences",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Max Occurrences"
         },
         "observation_boundary_ref": {
           "minLength": 1,
@@ -8316,30 +8448,78 @@
           "default": "stop"
         },
         "max_action_attempts": {
-          "maximum": 1000000,
-          "minimum": 1,
-          "title": "Max Action Attempts",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Max Action Attempts"
         },
         "max_burst_size": {
+          "anyOf": [
+            {
+              "maximum": 1024,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
           "default": 1,
-          "maximum": 1024,
-          "minimum": 1,
-          "title": "Max Burst Size",
-          "type": "integer"
+          "title": "Max Burst Size"
         },
         "max_in_flight": {
+          "anyOf": [
+            {
+              "maximum": 1024,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
           "default": 1,
-          "maximum": 1024,
-          "minimum": 1,
-          "title": "Max In Flight",
-          "type": "integer"
+          "title": "Max In Flight"
         },
         "max_occurrences": {
-          "maximum": 1000000,
-          "minimum": 1,
-          "title": "Max Occurrences",
-          "type": "integer"
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Max Occurrences"
         },
         "observation_boundary_ref": {
           "minLength": 1,
@@ -9712,6 +9892,80 @@
       "title": "ParticipantResourceResetMode",
       "type": "string"
     },
+    "ParticipantSharedTimeBinding": {
+      "additionalProperties": false,
+      "description": "Explicit shared-time binding; legacy descriptive references stay opaque.",
+      "properties": {
+        "clock_ref": {
+          "minLength": 1,
+          "title": "Clock Ref",
+          "type": "string"
+        },
+        "condition_precondition_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Condition Precondition Id"
+        },
+        "constraint_ref": {
+          "minLength": 1,
+          "title": "Constraint Ref",
+          "type": "string"
+        },
+        "event_point": {
+          "enum": [
+            "start",
+            "end",
+            "observed",
+            "effective"
+          ],
+          "title": "Event Point",
+          "type": "string"
+        },
+        "evidence_mode": {
+          "enum": [
+            "event",
+            "continuous"
+          ],
+          "title": "Evidence Mode",
+          "type": "string"
+        },
+        "observation_boundary_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Boundary Ref"
+        },
+        "profile": {
+          "const": "participant-shared-time/v1",
+          "title": "Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile",
+        "clock_ref",
+        "constraint_ref",
+        "event_point",
+        "evidence_mode"
+      ],
+      "title": "ParticipantSharedTimeBinding",
+      "type": "object"
+    },
     "ParticipantTemporalContract": {
       "additionalProperties": false,
       "description": "Typed SEM-213 temporal contract for a participant action.",
@@ -9790,6 +10044,17 @@
           ],
           "default": null,
           "title": "Reset Boundary"
+        },
+        "shared_time_binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantSharedTimeBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "temporal_id": {
           "title": "Temporal Id",
@@ -27197,6 +27462,18 @@
       ],
       "level": "error",
       "validator": "raes.validator.SemanticValidator._verify_service_materialization"
+    },
+    {
+      "description": "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+      "id": "participant-shared-time-source-bindings",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes.semantics.participant_temporal_bindings.participant_temporal_binding_errors"
     }
   ],
   "x-raes-semantic-profile": {

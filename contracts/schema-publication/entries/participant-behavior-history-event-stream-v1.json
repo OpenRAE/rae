@@ -2,9 +2,9 @@
   "contract_id": "participant-behavior-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/participant-behavior-history-event-stream-v1.json",
   "stability": "draft",
-  "content_hash": "31023f0a93a796df740630188c8547b656225cadc0e88ac2de4fc1a001718338",
+  "content_hash": "6601d330f1dc4a7e11a1828bef9da515b64a40539827289a1c7deee4c90b003d",
   "last_change": {
-    "summary": "Preserve pinned private resource-measure coordinates alongside the six built-in kinds in portable quantities, accounting and history for issue #1208.",
-    "content_hash": "31023f0a93a796df740630188c8547b656225cadc0e88ac2de4fc1a001718338"
+    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
+    "content_hash": "6601d330f1dc4a7e11a1828bef9da515b64a40539827289a1c7deee4c90b003d"
   }
 }

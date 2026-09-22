@@ -6,6 +6,7 @@ from typing import Any
 
 from raes.semantics.workflow import WorkflowStepSemanticContract
 from raes_backend_protocols.capabilities import WorkflowFeature, WorkflowStatePredicateFeature
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalBindingModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.participant_behavior import ParticipantObservationStatus
 from raes_contracts.versions import WORKFLOW_STATE_SCHEMA_VERSION
@@ -85,6 +86,7 @@ class ParticipantBehaviorRuntime(ResolvedResource):
     operating_scope_refs: tuple[str, ...] = ()
     operating_scope_addresses: tuple[str, ...] = ()
     action_contract_addresses: tuple[str, ...] = ()
+    temporally_bound_action_addresses: tuple[str, ...] = ()
     observation_boundary_addresses: tuple[str, ...] = ()
     interactive_access: tuple[ParticipantInteractiveAccessRuntime, ...] = ()
     interpretation_mode: str = "role-neutral-projection"
@@ -123,6 +125,7 @@ class ParticipantAutonomousExecutionRuntime(ResolvedResource):
     target_addresses: tuple[str, ...] = ()
     execution_bindings: tuple[ParticipantExecutionBindingRuntime, ...] = ()
     observation_boundary_address: str = ""
+    observation_boundary_evidence_refs: tuple[str, ...] = ()
     selection_strategy: str = ""
     max_action_attempts: int = 0
     max_in_flight: int = 0
@@ -151,6 +154,7 @@ class ParticipantAutonomousExecutionRuntime(ResolvedResource):
     resource_owners: tuple[ParticipantResourceOwnerRuntime, ...] = ()
     resource_demands: tuple[ParticipantResourceDemandRuntime, ...] = ()
     resource_fairness: ParticipantResourceFairnessRuntime = field(default_factory=ParticipantResourceFairnessRuntime)
+    temporal_bindings: tuple[ParticipantTemporalBindingModel, ...] = ()
 
 
 @dataclass(frozen=True)

@@ -67,8 +67,10 @@ non-negative, and stepped cadence points must be reachable from `step_ticks`.
 RuntimeManager owns automatic wall pacing for real-time and dilated policies
 only when the clock declares runtime authority. It rechecks clock state after
 every wait and does not relinquish an active driver thread during lifecycle
-replacement. Externally paced autonomous policies fail closed until ACES
-defines a portable backend transition-notification contract.
+replacement. Externally paced and backend-owned wall-paced policies remain
+valid SDL. The reference runtime rejects their execution at admission because
+it has no corresponding transition driver. This limitation does not prescribe
+another backend's scheduling architecture.
 
 The scheduler adds no private clock, timestamp authority, or causality claim.
 Every admitted action carries all bound temporal contexts into append-only
@@ -180,8 +182,8 @@ implementation, constraints, evidence, timeout/retry policy, and finite
 attempt/in-flight bounds. Separate action and target sets are discovery
 indexes; they do not authorize their Cartesian product.
 
-The participant runtime exposes `participant-execution-control/v1` lifecycle
-requests for `start`, `pause`, `resume`, bounded `drain`, `reset`, and
+When claimed, `participant-execution-control/v1` exposes lifecycle
+requests for `start`, `pause`, `resume`, bounded `drain`, `reset`, or
 `teardown`. Requests carry the expected execution generation. Reset increments
 that generation; work admitted under a stale generation is rejected before
 native execution, and a native completion whose generation changed is
@@ -206,12 +208,50 @@ Shared-clock pause/resume controls execution admission, shared-clock reset
 advances the generation, and loss of wall pacing degrades and pauses the
 execution service with an explicit deviation/evidence reference.
 
-Manifest support requires the complete lifecycle action set, exact execution
-bindings, and a concurrent capacity of at least two. Runtime-target
-registration requires executable binding, lifecycle/readback, and bounded
-batch methods. Conditional live conformance drives two native actions and the
-full lifecycle; a declaration with methods but no typed outcome or lifecycle
-evidence does not pass.
+There is no universal backend feature baseline. Syntax and semantic validity
+are independent of backend support. Admission rejects an insufficient
+scenario/backend pairing, not the scenario or backend. Exact execution
+bindings are required when autonomous execution is claimed; lifecycle controls
+and concurrency are independent, optional capabilities. Serial execution may
+have capacity one and no native lifecycle controls. Registration and conformance
+require only the protocols corresponding to claimed capabilities. Conformance
+probes each claimed control from its documented precondition; it does not call
+unclaimed controls to set up another probe. Declarations alone do not prove
+native execution, lifecycle effects, or temporal realization.
+
+### 9. Bind bounded temporal guarantees explicitly
+
+`participant-shared-time/v1` binds an action-local deadline or dwell contract
+to an existing shared clock and constraint. It does not reinterpret legacy
+`duration_ref`, `window_ref`, or clock-description strings. Existing autonomous
+v1/v2/v3 policy meanings and unextended policy digests remain unchanged.
+
+A deadline names one event: start, completion (`end`), observation, or effect.
+The selected event must occur no later than the declared superdense coordinate.
+Submission is not completion evidence. A dwell requires continuous evidence
+that a named action precondition held throughout a nonempty half-open window
+before dispatch. Its observation boundary and condition are explicit; elapsed
+time, cooldowns, gaps, or endpoint samples do not establish continuous coverage.
+
+One backend execution-binding offer must cover the whole requested temporal
+combination by exact contract digests. The processor never combines incompatible
+offers or weakens evidence requirements. These bounds describe this profile,
+not the maximum behavior a backend may offer through other admitted semantics.
+
+The runtime rejects an already-impossible deadline or unproven dwell before
+native dispatch. After execution it records the native outcome separately from
+each guarantee's `met`, `missed`, or `indeterminate` assessment. A missed or
+indeterminate guarantee does not authorize retry, cancellation, or rollback.
+Native effects may remain even when portable completion is rejected.
+
+Bounds are interpreted within each current shared-clock segment. Reset/replay
+creates a fresh action identity, episode, segment, and execution generation;
+old evidence cannot satisfy the new occurrence. A pause crossing a dwell
+interval invalidates that interval's coverage. Typed contexts, evidence,
+assessments, and shared-clock history survive persistence and are checked on
+readback. Failed due work does not rewind a successful clock transition or erase
+consumed attempts. No second clock, continuous-monitoring service, or general
+long-running action engine is introduced.
 
 ## Consequences
 
@@ -251,3 +291,4 @@ evidence does not pass.
 | 2026-07-26 | #897 | Kept v1 stable and governed richer within-run timing, weighted selection, lifecycle state, and provenance as a versioned autonomous-execution profile. |
 | 2026-07-26 | #898 | Added exact native action-to-target bindings, bounded concurrent execution, generation-fenced lifecycle control, typed service readback, and conditional live conformance. |
 | 2026-08-01 | #213 | Identified the existing autonomous-participant policy and execution path as the implementation of ACT-605 baseline behavior profiles. |
+| 2026-09-21 | #216 | Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules. |

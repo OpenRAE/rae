@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from raes.participant_behavior import ParticipantEffectClass, ParticipantFailureClass, ParticipantPreconditionClass
+from raes_contracts.contracts.participant_resource_budgets import ParticipantResourceMeasurementModel
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalEvidenceModel
 from raes_contracts.participant_behavior import ParticipantActionPreconditionStatus, ParticipantActionResultStatus
 
 from .behavior_resources import (
@@ -254,6 +256,8 @@ class ParticipantActionResult:
     observations: tuple[str, ...] = ()
     evidence_refs: tuple[str, ...] = ()
     diagnostics: tuple[str, ...] = ()
+    temporal_evidence: tuple[ParticipantTemporalEvidenceModel, ...] = ()
+    resource_measurements: tuple[ParticipantResourceMeasurementModel, ...] = ()
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantActionResult":
@@ -268,6 +272,13 @@ class ParticipantActionResult:
         _ensure_iterable_of_item_payloads(effects_raw, "effects must be a list of participant action effect results")
         return cls(
             status=_coerce_action_result_status(status_raw),
+            temporal_evidence=tuple(
+                ParticipantTemporalEvidenceModel.model_validate(item) for item in payload.get("temporal_evidence", ())
+            ),
+            resource_measurements=tuple(
+                ParticipantResourceMeasurementModel.model_validate(item)
+                for item in payload.get("resource_measurements", ())
+            ),
             participant_address=str(payload.get("participant_address")),
             episode_id=str(payload.get("episode_id")),
             action_instance_id=str(payload.get("action_instance_id")),
@@ -284,6 +295,21 @@ class ParticipantActionResult:
     def to_payload(self) -> dict[str, Any]:
         return {
             "status": self.status.value,
+            **(
+                {
+                    "temporal_evidence": [
+                        item.model_dump(mode="json", exclude_none=True, exclude_defaults=True)
+                        for item in self.temporal_evidence
+                    ]
+                }
+                if self.temporal_evidence
+                else {}
+            ),
+            **(
+                {"resource_measurements": [item.model_dump(mode="json") for item in self.resource_measurements]}
+                if self.resource_measurements
+                else {}
+            ),
             "participant_address": self.participant_address,
             "episode_id": self.episode_id,
             "action_instance_id": self.action_instance_id,
@@ -306,6 +332,16 @@ class ParticipantActionResult:
         self._validate_fail_closed()
 
     def _validate_identity_fields(self) -> None:
+        if not isinstance(self.resource_measurements, tuple) or any(
+            not isinstance(item, ParticipantResourceMeasurementModel) for item in self.resource_measurements
+        ):
+            raise TypeError("resource_measurements must contain typed resource measurements")
+        if len({item.budget_state_ref for item in self.resource_measurements}) != len(self.resource_measurements):
+            raise ValueError("resource measurements require unique budget state refs")
+        if not isinstance(self.temporal_evidence, tuple) or any(
+            not isinstance(item, ParticipantTemporalEvidenceModel) for item in self.temporal_evidence
+        ):
+            raise TypeError("temporal_evidence must contain typed temporal evidence")
         if not isinstance(self.status, ParticipantActionResultStatus):
             raise TypeError("status must be a ParticipantActionResultStatus")
         _validate_required_string(

@@ -22,6 +22,7 @@ from .participant_scheduler_concurrent_state import (
     _available_concurrent_capacity,
     _materialize_concurrent_snapshot,
 )
+from .participant_temporal import temporal_pre_dispatch_assessments
 
 if TYPE_CHECKING:
     from raes_processor.models import ParticipantExecutionBindingRuntime
@@ -289,6 +290,12 @@ def _execute_capacity_bounded_batches(batch: _ConcurrentBatch) -> int:
             limit=min(available, len(batch.contexts) - offset),
         )
         if batch_size < 2:
+            break
+        if any(
+            temporal_pre_dispatch_assessments(request, batch.run.working)
+            for request in requests[offset : offset + batch_size]
+        ):
+            # The serial path records each rejected attempt without native dispatch.
             break
         _execute_concurrent_batch(_concurrent_batch_chunk(batch, requests, offset=offset, size=batch_size))
         offset += batch_size

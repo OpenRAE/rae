@@ -24,6 +24,8 @@ def action_result_evidence_refs(action_result: ParticipantActionResultModel | No
         evidence_refs.update(precondition.evidence_refs)
     for effect in action_result.effects:
         evidence_refs.update(effect.evidence_refs)
+    for proof in action_result.temporal_evidence:
+        evidence_refs.update(proof.evidence_refs)
     return evidence_refs
 
 
