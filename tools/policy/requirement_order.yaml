@@ -369,6 +369,8 @@ ownership:
     - implementations/python/tests
     - CHANGELOG.md
   sdl-language:
+    # Issue #1353 installs the delivery finalizer needed to close its requirements.
+    - .github/workflows/ground-control-phase-e.yml
     - contracts/concept-authority
     - contracts/fixtures/backend-manifest
     - contracts/fixtures/concept-authority
@@ -414,6 +416,8 @@ ownership:
     - specs/formal/sdl-phases
     - specs/sdl
     - tools/check_sdl_catalog_parity.py
+    # Issue #1353 restricts the delivery finalizer to merged-PR issue writes.
+    - tools/tooling_artifact_policy_actions.py
     - tools/policy/requirement_order.yaml
     - CHANGELOG.md
   api400-core:
