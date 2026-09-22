@@ -2,7 +2,8 @@
 
 from collections.abc import Callable, Mapping
 
-from raes.entities import flatten_entities
+from raes.agents import Agent
+from raes.entities import Entity, flatten_entities
 from raes.scenario import InstantiatedScenario
 from raes.semantics.participant_behavior import select_participants
 from raes_contracts.domain_profiles import DomainProfileBindingModel
@@ -97,109 +98,124 @@ def _compile_participant_behaviors(
     addressable_ref_index = _runtime_addressable_ref_index(scenario)
     entities = flatten_entities(scenario.entities)
     for name, agent in scenario.agents.items():
-        action_addresses = _participant_action_addresses(
+        participant_behaviors[_participant_behavior_address(name)] = _compile_participant_behavior(
             scenario,
-            participant_name=name,
-            action_names=list(agent.actions),
-            diagnostics=diagnostics,
+            name,
+            agent,
+            addressable_ref_index,
+            entities,
+            diagnostics,
         )
-        observation_addresses = _participant_observation_addresses(
-            scenario,
-            participant_name=name,
-            boundary_names=list(agent.observation_boundaries),
-            diagnostics=diagnostics,
-        )
-        starting_account_refs = tuple(agent.starting_accounts)
-        starting_account_addresses = _account_addresses_for_refs(scenario, list(agent.starting_accounts))
-        initial_knowledge_addresses = _initial_knowledge_addresses(
-            scenario,
-            agent.initial_knowledge,
-        )
-        starting_assertion_refs = tuple(agent.starting_assertions)
-        starting_assertion_addresses = tuple(_assertion_address(ref) for ref in agent.starting_assertions)
-        authority_anchor_refs = tuple(agent.authority_anchors)
-        authority_anchor_addresses = _runtime_addresses_for_refs(
-            list(agent.authority_anchors),
-            addressable_ref_index=addressable_ref_index,
-        )
-        operating_scope_refs = tuple(agent.operating_scope)
-        operating_scope_addresses = _runtime_addresses_for_refs(
-            list(agent.operating_scope),
-            addressable_ref_index=addressable_ref_index,
-        )
-        interactive_access: list[ParticipantInteractiveAccessRuntime] = []
-        interactive_access_addresses: list[str] = []
-        for access_id, access in sorted(agent.interactive_access.items()):
-            target_addresses = _runtime_addresses_for_refs(
-                [access.target_ref],
-                addressable_ref_index=addressable_ref_index,
-            )
-            account_addresses = _runtime_addresses_for_refs(
-                [access.account_ref] if access.account_ref else [],
-                addressable_ref_index=addressable_ref_index,
-            )
-            target_address = target_addresses[0]
-            account_address = account_addresses[0] if account_addresses else ""
-            channel = (
-                access.channel
-                if isinstance(access.channel, DomainProfileBindingModel)
-                else str(getattr(access.channel, "value", access.channel))
-            )
-            interactive_access.append(
-                ParticipantInteractiveAccessRuntime(
-                    access_id=access_id,
-                    target_ref=access.target_ref,
-                    target_address=target_address,
-                    channel=channel,
-                    account_ref=access.account_ref or "",
-                    account_address=account_address,
-                )
-            )
-            interactive_access_addresses.extend(target_addresses)
-            interactive_access_addresses.extend(account_addresses)
-        dependency_addresses = _dedupe(
-            [
-                *action_addresses,
-                *observation_addresses,
-                *starting_account_addresses,
-                *initial_knowledge_addresses,
-                *starting_assertion_addresses,
-                *authority_anchor_addresses,
-                *operating_scope_addresses,
-                *interactive_access_addresses,
-            ]
-        )
-        participant_behaviors[_participant_behavior_address(name)] = ParticipantBehaviorRuntime(
-            address=_participant_behavior_address(name),
-            name=name,
-            participant_name=name,
-            affiliation_names=tuple(agent.affiliations),
-            role=agent.effective_role(entities) or "",
-            starting_account_refs=starting_account_refs,
-            starting_account_addresses=starting_account_addresses,
-            initial_knowledge_addresses=initial_knowledge_addresses,
-            starting_assertion_refs=starting_assertion_refs,
-            starting_assertion_addresses=starting_assertion_addresses,
-            authority_anchor_refs=authority_anchor_refs,
-            authority_anchor_addresses=authority_anchor_addresses,
-            operating_scope_refs=operating_scope_refs,
-            operating_scope_addresses=operating_scope_addresses,
-            action_contract_addresses=tuple(action_addresses),
-            temporally_bound_action_addresses=tuple(
-                _action_contract_address(action_name)
-                for action_name in dict.fromkeys(agent.actions)
-                if action_name in scenario.action_contracts
-                and any(
-                    temporal.shared_time_binding is not None
-                    for temporal in scenario.action_contracts[action_name].temporal_contracts
-                )
-            ),
-            observation_boundary_addresses=tuple(observation_addresses),
-            interactive_access=tuple(interactive_access),
-            refresh_dependencies=dependency_addresses,
-            spec={"agent": _dump(agent), "interpretation_mode": "role-neutral-projection"},
-        )
+
     return participant_behaviors
+
+
+def _compile_participant_behavior(
+    scenario: InstantiatedScenario,
+    name: str,
+    agent: Agent,
+    addressable_ref_index: Mapping[str, str],
+    entities: Mapping[str, Entity],
+    diagnostics: list[Diagnostic],
+) -> ParticipantBehaviorRuntime:
+    action_addresses = _participant_action_addresses(
+        scenario,
+        participant_name=name,
+        action_names=list(agent.actions),
+        diagnostics=diagnostics,
+    )
+    observation_addresses = _participant_observation_addresses(
+        scenario,
+        participant_name=name,
+        boundary_names=list(agent.observation_boundaries),
+        diagnostics=diagnostics,
+    )
+    interactive_access, interactive_access_addresses = _participant_interactive_access(agent, addressable_ref_index)
+    starting_account_refs = tuple(agent.starting_accounts)
+    starting_account_addresses = _account_addresses_for_refs(scenario, list(agent.starting_accounts))
+    initial_knowledge_addresses = _initial_knowledge_addresses(scenario, agent.initial_knowledge)
+    starting_assertion_refs = tuple(agent.starting_assertions)
+    starting_assertion_addresses = tuple(_assertion_address(ref) for ref in agent.starting_assertions)
+    authority_anchor_refs = tuple(agent.authority_anchors)
+    authority_anchor_addresses = _runtime_addresses_for_refs(
+        list(agent.authority_anchors), addressable_ref_index=addressable_ref_index
+    )
+    operating_scope_refs = tuple(agent.operating_scope)
+    operating_scope_addresses = _runtime_addresses_for_refs(
+        list(agent.operating_scope), addressable_ref_index=addressable_ref_index
+    )
+    dependency_addresses = _dedupe(
+        [
+            *action_addresses,
+            *observation_addresses,
+            *starting_account_addresses,
+            *initial_knowledge_addresses,
+            *starting_assertion_addresses,
+            *authority_anchor_addresses,
+            *operating_scope_addresses,
+            *interactive_access_addresses,
+        ]
+    )
+    return ParticipantBehaviorRuntime(
+        address=_participant_behavior_address(name),
+        name=name,
+        participant_name=name,
+        affiliation_names=tuple(agent.affiliations),
+        role=agent.effective_role(entities) or "",
+        starting_account_refs=starting_account_refs,
+        starting_account_addresses=starting_account_addresses,
+        initial_knowledge_addresses=initial_knowledge_addresses,
+        starting_assertion_refs=starting_assertion_refs,
+        starting_assertion_addresses=starting_assertion_addresses,
+        authority_anchor_refs=authority_anchor_refs,
+        authority_anchor_addresses=authority_anchor_addresses,
+        operating_scope_refs=operating_scope_refs,
+        operating_scope_addresses=operating_scope_addresses,
+        action_contract_addresses=tuple(action_addresses),
+        temporally_bound_action_addresses=tuple(
+            _action_contract_address(action_name)
+            for action_name in dict.fromkeys(agent.actions)
+            if action_name in scenario.action_contracts
+            and any(
+                temporal.shared_time_binding is not None
+                for temporal in scenario.action_contracts[action_name].temporal_contracts
+            )
+        ),
+        observation_boundary_addresses=tuple(observation_addresses),
+        interactive_access=tuple(interactive_access),
+        refresh_dependencies=dependency_addresses,
+        spec={"agent": _dump(agent), "interpretation_mode": "role-neutral-projection"},
+    )
+
+
+def _participant_interactive_access(
+    agent: Agent, addressable_ref_index: Mapping[str, str]
+) -> tuple[list[ParticipantInteractiveAccessRuntime], list[str]]:
+    interactive_access: list[ParticipantInteractiveAccessRuntime] = []
+    addresses: list[str] = []
+    for access_id, access in sorted(agent.interactive_access.items()):
+        target_addresses = _runtime_addresses_for_refs([access.target_ref], addressable_ref_index=addressable_ref_index)
+        account_addresses = _runtime_addresses_for_refs(
+            [access.account_ref] if access.account_ref else [], addressable_ref_index=addressable_ref_index
+        )
+        channel = (
+            access.channel
+            if isinstance(access.channel, DomainProfileBindingModel)
+            else str(getattr(access.channel, "value", access.channel))
+        )
+        interactive_access.append(
+            ParticipantInteractiveAccessRuntime(
+                access_id=access_id,
+                target_ref=access.target_ref,
+                target_address=target_addresses[0],
+                channel=channel,
+                account_ref=access.account_ref or "",
+                account_address=account_addresses[0] if account_addresses else "",
+            )
+        )
+        addresses.extend(target_addresses)
+        addresses.extend(account_addresses)
+    return interactive_access, addresses
 
 
 def _resolve_behavior_spec_refs(

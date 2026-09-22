@@ -178,7 +178,7 @@ class ParticipantSharedTimeBinding(SDLModel):
     observation_boundary_ref: str | None = Field(default=None, min_length=1, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
-    def _validate_evidence_requirements(self):
+    def _validate_evidence_requirements(self) -> "ParticipantSharedTimeBinding":
         if self.evidence_mode == "continuous":
             if self.condition_precondition_id is None or self.observation_boundary_ref is None:
                 raise ValueError("continuous dwell requires a condition_precondition_id and observation_boundary_ref")

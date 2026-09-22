@@ -135,7 +135,8 @@ def _autonomous_limit_gaps(
         gaps.append("autonomous in-flight actions require bounded concurrency support")
     if capability.max_concurrent_actions is None or required_concurrency > capability.max_concurrent_actions:
         gaps.append(
-            f"autonomous in-flight actions require {required_concurrency}, backend concurrent-action limit is {capability.max_concurrent_actions}"
+            f"autonomous in-flight actions require {required_concurrency}, backend concurrent-action "
+            f"limit is {capability.max_concurrent_actions}"
         )
     return gaps
 
@@ -204,20 +205,8 @@ def _autonomous_execution_binding_gaps(
                 for binding in getattr(policy, "temporal_bindings", ())
                 if binding.action_contract_address == required.action_contract_address
             }
-            matching = [
-                binding
-                for binding in declared
-                if binding.action_contract_address == required.action_contract_address
-                and binding.participant_implementation_ref == required.participant_implementation_ref
-            ]
-            exact = [
-                binding
-                for binding in matching
-                if set(binding.target_addresses) == set(required.target_addresses)
-                and binding.max_action_attempts >= required.max_action_attempts
-                and binding.max_in_flight >= required.max_in_flight
-                and required_digests.issubset(binding.temporal_contract_digests)
-            ]
+            matching = [binding for binding in declared if _binding_identity_matches(binding, required)]
+            exact = [binding for binding in matching if _binding_capacity_matches(binding, required, required_digests)]
             if exact:
                 continue
             required_targets = ", ".join(required.target_addresses)
@@ -226,6 +215,22 @@ def _autonomous_execution_binding_gaps(
                 f"{required.action_contract_address} targets: {required_targets}"
             )
     return gaps
+
+
+def _binding_identity_matches(binding: object, required: object) -> bool:
+    return (
+        binding.action_contract_address == required.action_contract_address
+        and binding.participant_implementation_ref == required.participant_implementation_ref
+    )
+
+
+def _binding_capacity_matches(binding: object, required: object, required_digests: set[str]) -> bool:
+    return (
+        set(binding.target_addresses) == set(required.target_addresses)
+        and binding.max_action_attempts >= required.max_action_attempts
+        and binding.max_in_flight >= required.max_in_flight
+        and required_digests.issubset(binding.temporal_contract_digests)
+    )
 
 
 def _requires_coordinated_reset(

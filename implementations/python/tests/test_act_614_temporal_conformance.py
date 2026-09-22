@@ -64,7 +64,8 @@ def test_temporal_probe_joins_its_clock_driver_on_every_exit(monkeypatch, mode, 
         )
         assert case.passed is (failure_stage is None)
         assert len(target.participant_runtime.native_actions) == 1
-        assert drivers and all(not driver.active for driver in drivers)
+        assert drivers
+        assert all(not driver.active for driver in drivers)
         assert all(not thread.is_alive() for thread in threads)
     finally:
         for driver in drivers:

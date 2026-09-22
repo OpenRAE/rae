@@ -31,8 +31,9 @@ def test_bound_dwell_requires_its_selected_event_to_be_declared() -> None:
     payload = _bound_dwell_payload()
     temporal = payload["action_contracts"]["probe-customer-portal-login"]["temporal_contracts"][0]
     temporal["event_points"] = ["window_open", "window_close"]
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLParseError, match="declared event_point"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize("source", [_scenario_yaml, _activity_policy_yaml, _budget_policy_yaml])
@@ -180,8 +181,9 @@ def test_numeric_binding_rechecks_cross_field_constraints(source, path, invalid)
 def test_numeric_parameter_must_be_declared() -> None:
     payload = yaml.safe_load(_activity_policy_yaml())
     payload["behavior_specifications"]["participant-behavior"]["autonomous_execution"]["max_occurrences"] = "${missing}"
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLValidationError):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize("event", ["start", "end", "observed", "effective"])
@@ -206,8 +208,9 @@ def test_explicit_deadline_binding_compiles_action_event_and_shared_coordinate(e
 def test_shared_constraint_keeps_existing_clock_reference_syntax() -> None:
     payload = _bound_deadline_payload()
     payload["temporal_constraints"]["finish-by-five"]["clock_ref"] = "clocks.scenario-clock"
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLValidationError, match="does not reference a declared clock"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize("kind", ["user-deadline", "automation-dwell"])
@@ -283,8 +286,9 @@ def test_explicit_temporal_bindings_follow_private_module_imports(tmp_path: Path
 def test_bound_temporal_domain_cannot_contradict_the_selected_shared_clock() -> None:
     payload = _bound_deadline_payload()
     payload["action_contracts"]["probe-customer-portal-login"]["temporal_contracts"][0]["time_domain"] = "episode_step"
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLValidationError, match="time domain"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize("mutation", ["start", "condition", "mode"])
@@ -332,5 +336,6 @@ def test_temporal_bindings_reject_invalid_references_before_backend_selection(mu
         payload["clocks"]["other-clock"] = dict(payload["clocks"]["scenario-clock"])
         constraint["clock_ref"] = "other-clock"
         binding["clock_ref"] = "other-clock"
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLValidationError, match="temporal binding"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)

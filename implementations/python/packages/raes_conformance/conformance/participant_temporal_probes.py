@@ -41,31 +41,11 @@ def participant_temporal_scenario_case(
     driver_stopped = True
     try:
         manager = participant_temporal_probe_manager(target, stochastic_controls=stochastic_controls)
-        plan = manager.plan(scenario)
-        required = {
-            binding.contract_digest
-            for spec in plan.model.behavior_specifications.values()
-            if spec.autonomous_execution is not None
-            for binding in spec.autonomous_execution.temporal_bindings
-        }
-        if not required:
-            raise ValueError("Temporal conformance requires a fixture with explicit shared-time bindings.")
-        result = manager.apply(plan)
-        for clock, ticks in clock_advances:
-            if not result.success:
-                break
-            result = manager.advance_time(clock, ticks=ticks)
-        diagnostics.extend(result.diagnostics)
-        require_participant_temporal_history(result.snapshot)
-        assessments = [
-            ParticipantTemporalAssessmentModel.model_validate(item)
-            for history in result.snapshot.participant_behavior_history.values()
-            for event in history
-            for item in event.get("temporal_assessments", ())
-        ]
-        observed = {item.context.binding.contract_digest for item in assessments}
-        if not result.success or observed != required or any(item.status != "met" for item in assessments):
-            raise ValueError("The fixture did not establish every admitted temporal guarantee.")
+        diagnostics, assessments = _run_temporal_probe(
+            manager,
+            scenario,
+            clock_advances,
+        )
     except (TypeError, ValueError) as exc:
         diagnostics.append(
             _diagnostic(
@@ -81,7 +61,10 @@ def participant_temporal_scenario_case(
             _diagnostic(
                 "conformance.participant-clock-driver-stop-failed",
                 "participant.temporal",
-                "Probe clock driver shutdown was not confirmed; wait for in-flight work to quiesce before native cleanup.",
+                (
+                    "Probe clock driver shutdown was not confirmed; wait for in-flight work to quiesce before "
+                    "native cleanup."
+                ),
             )
         )
     passed = not any(item.is_error for item in diagnostics)
@@ -104,6 +87,66 @@ def participant_temporal_scenario_case(
             "unclaimed backend features",
         ),
         limitations=(
-            "Probe stops its local clock driver. Caller owns native target setup and cleanup; execution basis defaults to fixture-only.",
+            (
+                "Probe stops its local clock driver. Caller owns native target setup and cleanup; "
+                "execution basis defaults to fixture-only."
+            ),
         ),
     )
+
+
+def _run_temporal_probe(
+    manager: object,
+    scenario: object,
+    clock_advances: tuple[tuple[str, int], ...],
+) -> tuple[list[object], list[ParticipantTemporalAssessmentModel]]:
+    plan = manager.plan(scenario)
+    required = _required_temporal_contract_digests(plan)
+    if not required:
+        raise ValueError("Temporal conformance requires a fixture with explicit shared-time bindings.")
+    result = _apply_temporal_probe_plan(manager, plan, clock_advances)
+    require_participant_temporal_history(result.snapshot)
+    assessments = _temporal_assessments(result.snapshot)
+    _require_admitted_guarantees(result.success, required, assessments)
+    return list(result.diagnostics), assessments
+
+
+def _required_temporal_contract_digests(plan: object) -> set[str]:
+    return {
+        binding.contract_digest
+        for spec in plan.model.behavior_specifications.values()  # type: ignore[attr-defined]
+        if spec.autonomous_execution is not None
+        for binding in spec.autonomous_execution.temporal_bindings
+    }
+
+
+def _apply_temporal_probe_plan(
+    manager: object,
+    plan: object,
+    clock_advances: tuple[tuple[str, int], ...],
+) -> object:
+    result = manager.apply(plan)  # type: ignore[attr-defined]
+    for clock, ticks in clock_advances:
+        if not result.success:
+            break
+        result = manager.advance_time(clock, ticks=ticks)  # type: ignore[attr-defined]
+    return result
+
+
+def _temporal_assessments(snapshot: object) -> list[ParticipantTemporalAssessmentModel]:
+    return [
+        ParticipantTemporalAssessmentModel.model_validate(item)
+        for history in snapshot.participant_behavior_history.values()  # type: ignore[attr-defined]
+        for event in history
+        for item in event.get("temporal_assessments", ())
+    ]
+
+
+def _require_admitted_guarantees(
+    success: bool,
+    required: set[str],
+    assessments: list[ParticipantTemporalAssessmentModel],
+) -> None:
+    observed = {item.context.binding.contract_digest for item in assessments}
+    if not success or observed != required or any(item.status != "met" for item in assessments):
+        raise ValueError("The fixture did not establish every admitted temporal guarantee.")

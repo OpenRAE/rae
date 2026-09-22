@@ -1,6 +1,6 @@
 """Backend-independent reference validity for explicit shared-time bindings."""
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 
 from .._base import is_variable_ref
 from ..participant_temporal_semantics import ParticipantSharedTimeBinding
@@ -14,58 +14,105 @@ def participant_temporal_binding_errors(scenario: ScenarioContent) -> Iterator[s
     for action_name, action in scenario.action_contracts.items():
         for temporal in action.temporal_contracts:
             binding = temporal.shared_time_binding
-            if binding is None:
-                continue
-            label = f"Action '{action_name}' temporal binding '{temporal.temporal_id}'"
-            clock_name = _resolve_section_ref(binding.clock_ref, "clocks", scenario.clocks)
-            constraint_name = _resolve_section_ref(
-                binding.constraint_ref, "temporal_constraints", scenario.temporal_constraints
-            )
-            if clock_name is None and not is_variable_ref(binding.clock_ref):
-                yield f"{label} clock_ref is not declared"
-            if constraint_name is None and not is_variable_ref(binding.constraint_ref):
-                yield f"{label} constraint_ref is not declared"
-            if clock_name is None or constraint_name is None:
-                continue
-            constraint = scenario.temporal_constraints[constraint_name]
-            if constraint.clock_ref != clock_name:
-                yield f"{label} constraint uses another clock"
-            clock = scenario.clocks[clock_name]
-            domain_name = _resolve_section_ref(clock.time_domain_ref, "time_domains", scenario.time_domains)
-            if domain_name is not None:
-                expected_domain = {
-                    "simulated": "simulation_time",
-                    "wall_clock": "wall_clock_time",
-                    "logical": "scenario_time",
-                    "monotonic": "scenario_time",
-                    "external": "backend_time",
-                }[scenario.time_domains[domain_name].kind.value]
-                if temporal.time_domain.value != expected_domain:
-                    yield f"{label} time domain contradicts its shared clock declaration"
-            expected_kind = "deadline" if temporal.temporal_kind.value == "deadline" else "window"
-            if constraint.constraint_kind.value != expected_kind:
-                yield f"{label} requires a {expected_kind} constraint"
-            if (
-                action_name not in constraint.subject_refs
-                and f"action_contracts.{action_name}" not in constraint.subject_refs
-            ):
-                yield f"{label} constraint must name the bound action as a subject"
-            if temporal.temporal_kind.value == "dwell":
-                if binding.condition_precondition_id not in {item.precondition_id for item in action.preconditions}:
-                    yield f"{label} condition_precondition_id must name a precondition of the bound action"
-                boundary = _resolve_section_ref(
-                    binding.observation_boundary_ref, "observation_boundaries", scenario.observation_boundaries
-                )
-                if boundary is None and not is_variable_ref(binding.observation_boundary_ref):
-                    yield f"{label} observation_boundary_ref is not declared"
-                if boundary is not None:
-                    yield from _dwell_observation_errors(scenario, action_name, binding, boundary, label)
-                if constraint.start is not None and constraint.end is not None:
-                    start = (constraint.start.tick, constraint.start.microstep)
-                    end = (constraint.end.tick, constraint.end.microstep)
-                    if start >= end:
-                        yield f"{label} dwell requires a nonempty interval within one clock segment"
-            yield from _policy_clock_errors(scenario, action_name, clock_name, label)
+            if binding is not None:
+                yield from _binding_errors(scenario, action_name, temporal, binding)
+
+
+def _binding_errors(
+    scenario: ScenarioContent,
+    action_name: str,
+    temporal: object,
+    binding: ParticipantSharedTimeBinding,
+) -> Iterator[str]:
+    label = f"Action '{action_name}' temporal binding '{temporal.temporal_id}'"
+    clock_name = _resolve_section_ref(binding.clock_ref, "clocks", scenario.clocks)
+    constraint_name = _resolve_section_ref(
+        binding.constraint_ref, "temporal_constraints", scenario.temporal_constraints
+    )
+    yield from _binding_reference_errors(label, binding, clock_name, constraint_name)
+    if clock_name is None or constraint_name is None:
+        return
+    constraint = scenario.temporal_constraints[constraint_name]
+    yield from _shared_clock_errors(scenario, temporal, action_name, clock_name, constraint, label)
+    if temporal.temporal_kind.value == "dwell":
+        yield from _dwell_binding_errors(scenario, action_name, binding, constraint, label)
+    yield from _policy_clock_errors(scenario, action_name, clock_name, label)
+
+
+def _binding_reference_errors(
+    label: str,
+    binding: ParticipantSharedTimeBinding,
+    clock_name: str | None,
+    constraint_name: str | None,
+) -> Iterator[str]:
+    if clock_name is None and not is_variable_ref(binding.clock_ref):
+        yield f"{label} clock_ref is not declared"
+    if constraint_name is None and not is_variable_ref(binding.constraint_ref):
+        yield f"{label} constraint_ref is not declared"
+
+
+def _shared_clock_errors(
+    scenario: ScenarioContent,
+    temporal: object,
+    action_name: str,
+    clock_name: str,
+    constraint: object,
+    label: str,
+) -> Iterator[str]:
+    if constraint.clock_ref != clock_name:
+        yield f"{label} constraint uses another clock"
+    clock = scenario.clocks[clock_name]
+    domain_name = _resolve_section_ref(clock.time_domain_ref, "time_domains", scenario.time_domains)
+    if domain_name is not None and temporal.time_domain.value != _clock_domain(scenario, domain_name):
+        yield f"{label} time domain contradicts its shared clock declaration"
+    expected_kind = "deadline" if temporal.temporal_kind.value == "deadline" else "window"
+    if constraint.constraint_kind.value != expected_kind:
+        yield f"{label} requires a {expected_kind} constraint"
+    if not _constraint_has_subject(constraint.subject_refs, action_name):
+        yield f"{label} constraint must name the bound action as a subject"
+
+
+def _clock_domain(scenario: ScenarioContent, domain_name: str) -> str:
+    return {
+        "simulated": "simulation_time",
+        "wall_clock": "wall_clock_time",
+        "logical": "scenario_time",
+        "monotonic": "scenario_time",
+        "external": "backend_time",
+    }[scenario.time_domains[domain_name].kind.value]
+
+
+def _constraint_has_subject(subject_refs: Sequence[str], action_name: str) -> bool:
+    return action_name in subject_refs or f"action_contracts.{action_name}" in subject_refs
+
+
+def _dwell_binding_errors(
+    scenario: ScenarioContent,
+    action_name: str,
+    binding: ParticipantSharedTimeBinding,
+    constraint: object,
+    label: str,
+) -> Iterator[str]:
+    action = scenario.action_contracts[action_name]
+    if binding.condition_precondition_id not in {item.precondition_id for item in action.preconditions}:
+        yield f"{label} condition_precondition_id must name a precondition of the bound action"
+    boundary = _resolve_section_ref(
+        binding.observation_boundary_ref,
+        "observation_boundaries",
+        scenario.observation_boundaries,
+    )
+    if boundary is None and not is_variable_ref(binding.observation_boundary_ref):
+        yield f"{label} observation_boundary_ref is not declared"
+    if boundary is not None:
+        yield from _dwell_observation_errors(scenario, action_name, binding, boundary, label)
+    if _invalid_dwell_interval(constraint):
+        yield f"{label} dwell requires a nonempty interval within one clock segment"
+
+
+def _invalid_dwell_interval(constraint: object) -> bool:
+    if constraint.start is None or constraint.end is None:
+        return False
+    return (constraint.start.tick, constraint.start.microstep) >= (constraint.end.tick, constraint.end.microstep)
 
 
 def _dwell_observation_errors(
@@ -98,11 +145,18 @@ def _dwell_observation_errors(
     yield from _dwell_boundary_ownership_errors(scenario, action_name, boundary_name, label)
 
 
-def _resolved_names(refs, section, declarations) -> set[str | None]:
+def _resolved_names(refs: Iterable[str], section: str, declarations: Mapping[str, object]) -> set[str | None]:
     return {_resolve_section_ref(ref, section, declarations) for ref in refs}
 
 
 def _dwell_boundary_ownership_errors(
+    scenario: ScenarioContent, action_name: str, boundary_name: str, label: str
+) -> Iterator[str]:
+    yield from _agent_boundary_ownership_errors(scenario, action_name, boundary_name, label)
+    yield from _behavior_boundary_ownership_errors(scenario, action_name, boundary_name, label)
+
+
+def _agent_boundary_ownership_errors(
     scenario: ScenarioContent, action_name: str, boundary_name: str, label: str
 ) -> Iterator[str]:
     for participant_name, agent in scenario.agents.items():
@@ -112,6 +166,11 @@ def _dwell_boundary_ownership_errors(
             )
             if boundary_name not in authorized:
                 yield f"{label} observation boundary is outside participant '{participant_name}'"
+
+
+def _behavior_boundary_ownership_errors(
+    scenario: ScenarioContent, action_name: str, boundary_name: str, label: str
+) -> Iterator[str]:
     for spec in scenario.behavior_specifications.values():
         if action_name not in _resolved_names(spec.action_contract_refs, "action_contracts", scenario.action_contracts):
             continue
@@ -121,13 +180,17 @@ def _dwell_boundary_ownership_errors(
         if boundary_name not in authorized:
             yield f"{label} observation boundary is outside its behavior specification"
         if spec.autonomous_execution is not None:
-            selected = _resolve_section_ref(
-                spec.autonomous_execution.observation_boundary_ref,
-                "observation_boundaries",
-                scenario.observation_boundaries,
-            )
+            selected = _autonomous_boundary_name(scenario, spec.autonomous_execution)
             if selected is not None and selected != boundary_name:
                 yield f"{label} must use its autonomous policy's observation boundary"
+
+
+def _autonomous_boundary_name(scenario: ScenarioContent, policy: object) -> str | None:
+    return _resolve_section_ref(
+        policy.observation_boundary_ref,
+        "observation_boundaries",
+        scenario.observation_boundaries,
+    )
 
 
 def _policy_clock_errors(

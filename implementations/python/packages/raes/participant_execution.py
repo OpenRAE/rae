@@ -194,31 +194,12 @@ class ParticipantAutonomousExecutionPolicyV2(SDLModel):
         dependencies = {
             candidate_id: set(candidate.depends_on) for candidate_id, candidate in self.action_candidates.items()
         }
-        unknown = sorted(
-            dependency for values in dependencies.values() for dependency in values if dependency not in candidate_ids
-        )
+        unknown = _unknown_candidate_dependencies(dependencies, candidate_ids)
         if unknown:
             raise ValueError(
                 "activity candidate dependencies must resolve to declared candidates: " + ", ".join(unknown)
             )
-        visiting: set[str] = set()
-        visited: set[str] = set()
-
-        def visit(candidate_id: str) -> None:
-            if candidate_id in visiting:
-                raise ValueError("activity candidate dependency graph must be acyclic")
-            if candidate_id in visited:
-                return
-            visiting.add(candidate_id)
-            for dependency in dependencies[candidate_id]:
-                visit(str(dependency))
-            visiting.remove(candidate_id)
-            visited.add(candidate_id)
-
-        for candidate_id in self.action_candidates:
-            visit(str(candidate_id))
-        if all(dependencies.values()):
-            raise ValueError("activity candidate dependency graph must admit an initial candidate")
+        _validate_candidate_dependencies(dependencies)
         if (
             isinstance(self.max_occurrences, int)
             and isinstance(self.max_action_attempts, int)
@@ -232,6 +213,37 @@ class ParticipantAutonomousExecutionPolicyV2(SDLModel):
         ):
             raise ValueError("activity max_burst_size cannot exceed max_occurrences")
         return self
+
+
+def _unknown_candidate_dependencies(dependencies: dict[str, set[str]], candidate_ids: set[str]) -> list[str]:
+    return sorted(
+        dependency for values in dependencies.values() for dependency in values if dependency not in candidate_ids
+    )
+
+
+def _validate_candidate_dependencies(dependencies: dict[str, set[str]]) -> None:
+    _require_acyclic_candidate_dependencies(dependencies)
+    if all(dependencies.values()):
+        raise ValueError("activity candidate dependency graph must admit an initial candidate")
+
+
+def _require_acyclic_candidate_dependencies(dependencies: dict[str, set[str]]) -> None:
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(candidate_id: str) -> None:
+        if candidate_id in visiting:
+            raise ValueError("activity candidate dependency graph must be acyclic")
+        if candidate_id in visited:
+            return
+        visiting.add(candidate_id)
+        for dependency in dependencies[candidate_id]:
+            visit(str(dependency))
+        visiting.remove(candidate_id)
+        visited.add(candidate_id)
+
+    for candidate_id in dependencies:
+        visit(candidate_id)
 
 
 class ParticipantAutonomousExecutionPolicyV3(ParticipantAutonomousExecutionPolicyV2):

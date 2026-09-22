@@ -63,7 +63,10 @@ def submit_bound_participant_action(
     ):
         return control_plane._reject_submission(
             domain=RuntimeDomain.PARTICIPANT,
-            message="Explicit shared-time action bindings require the reference autonomous driver; manual submission cannot bypass its temporal admission and evidence checks.",
+            message=(
+                "Explicit shared-time action bindings require the reference autonomous driver; manual submission "
+                "cannot bypass its temporal admission and evidence checks."
+            ),
             idempotency_key=options.idempotency_key,
             request_fingerprint=options.request_fingerprint,
             identity=options.identity,

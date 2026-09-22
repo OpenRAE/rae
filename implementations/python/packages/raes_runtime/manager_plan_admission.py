@@ -61,7 +61,10 @@ def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagno
                     code="runtime.participant-clock-driver-unsupported",
                     domain="participant",
                     address=policy.address,
-                    message="This valid clock policy requires a transition driver unavailable in the reference runtime; it is not a backend-wide semantic requirement.",
+                    message=(
+                        "This valid clock policy requires a transition driver unavailable in the reference runtime; "
+                        "it is not a backend-wide semantic requirement."
+                    ),
                 )
             )
     for action in model.action_contracts.values():
@@ -73,7 +76,10 @@ def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagno
                     code="runtime.participant-temporal-driver-unsupported",
                     domain="participant",
                     address=action.address,
-                    message="The reference runtime enforces explicit shared-time action bindings through autonomous policies; this manual action requires another execution driver.",
+                    message=(
+                        "The reference runtime enforces explicit shared-time action bindings through autonomous policies; "
+                        "this manual action requires another execution driver."
+                    ),
                 )
             )
     return diagnostics

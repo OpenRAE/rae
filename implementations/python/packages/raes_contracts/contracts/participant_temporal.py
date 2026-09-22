@@ -35,27 +35,36 @@ class ParticipantTemporalBindingModel(ContractModel):
     @model_validator(mode="after")
     def _validate_guarantee_shape(self) -> "ParticipantTemporalBindingModel":
         if self.temporal_kind == "dwell":
-            if (
-                self.start is None
-                or self.condition_precondition_id is None
-                or self.observation_boundary_address is None
-            ):
-                raise ValueError("dwell requires a start, condition precondition, and observation boundary")
-            if self.evidence_mode != "continuous" or self.event_point != "start":
-                raise ValueError("dwell requires continuous coverage before action start")
-            if (self.start.tick, self.start.microstep) >= (self.end.tick, self.end.microstep):
-                raise ValueError("dwell requires a nonempty interval")
-        elif (
+            self._validate_dwell_shape()
+        else:
+            self._validate_deadline_shape()
+        self._validate_event_point()
+        self._validate_relative_coordinates()
+        return self
+
+    def _validate_dwell_shape(self) -> None:
+        if self.start is None or self.condition_precondition_id is None or self.observation_boundary_address is None:
+            raise ValueError("dwell requires a start, condition precondition, and observation boundary")
+        if self.evidence_mode != "continuous" or self.event_point != "start":
+            raise ValueError("dwell requires continuous coverage before action start")
+        if (self.start.tick, self.start.microstep) >= (self.end.tick, self.end.microstep):
+            raise ValueError("dwell requires a nonempty interval")
+
+    def _validate_deadline_shape(self) -> None:
+        if (
             self.evidence_mode != "event"
             or self.condition_precondition_id is not None
             or self.observation_boundary_address is not None
         ):
             raise ValueError("deadline requires event evidence without condition coverage fields")
+
+    def _validate_event_point(self) -> None:
         if self.event_point not in self.event_points:
             raise ValueError("temporal binding event must be declared by the action contract")
+
+    def _validate_relative_coordinates(self) -> None:
         if self.end.segment != 0 or (self.start is not None and self.start.segment != 0):
             raise ValueError("temporal declaration coordinates are relative to the current clock segment")
-        return self
 
 
 class ParticipantTemporalExecutionContextModel(ContractModel):

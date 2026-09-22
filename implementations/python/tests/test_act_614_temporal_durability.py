@@ -21,6 +21,12 @@ from raes_processor.compiler import compile_runtime_model
 from raes_runtime.manager import RuntimeManager
 
 
+def _validate_snapshot_envelope(payload: dict[str, object]) -> object:
+    from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
+
+    return RuntimeSnapshotEnvelopeModel.model_validate(payload)
+
+
 def test_history_view_returns_completed_temporal_assessments() -> None:
     from implementations.python.tests.test_runtime_control_plane_api import _test_security
     from raes_runtime.control_plane import RuntimeControlPlane
@@ -131,13 +137,9 @@ def test_durable_restore_rejects_inconsistent_temporal_assessment(mutation: str,
         ] += 1
     else:
         assessment["context"]["clock_sequence"] = 999
+    validator = _snapshot_from_payload if surface == "store" else _validate_snapshot_envelope
     with pytest.raises(ValueError, match="temporal"):
-        if surface == "store":
-            _snapshot_from_payload(payload)
-        else:
-            from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
-
-            RuntimeSnapshotEnvelopeModel.model_validate(payload)
+        validator(payload)
 
 
 def test_pre_dispatch_rejection_survives_semantic_history_projection() -> None:

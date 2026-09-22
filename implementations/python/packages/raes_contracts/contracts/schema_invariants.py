@@ -210,7 +210,11 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
         _add_raes_invariant(
             json_schema,
             "participant-shared-time-source-bindings",
-            "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+            (
+                "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. "
+                "Dwell conditions require authorized observation boundaries and observable support and evidence. "
+                "Numeric parameters are revalidated after binding."
+            ),
             validator="raes.semantics.participant_temporal_bindings.participant_temporal_binding_errors",
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
@@ -218,7 +222,10 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
         _add_raes_invariant(
             json_schema,
             "participant-shared-time-binding-shape",
-            "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, a condition and an observation boundary. Bounds are segment-relative and the selected event is declared.",
+            (
+                "Deadline bindings require event evidence; dwell requires continuous coverage of a nonempty interval, "
+                "a condition and an observation boundary. Bounds are segment-relative and the selected event is declared."
+            ),
             validator="raes_contracts.contracts.participant_temporal.ParticipantTemporalBindingModel",
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
@@ -226,7 +233,11 @@ def _attach_participant_temporal_invariants(contract_id: str, json_schema: dict[
         _add_raes_invariant(
             json_schema,
             "participant-shared-time-history-consistency",
-            "Temporal contexts must remain identical across an attempt; terminal assessments must match their evidence and authoritative clock history. Every proof must match an exact bound context and observation boundary, without duplicates or extra proofs.",
+            (
+                "Temporal contexts must remain identical across an attempt; terminal assessments must match their evidence "
+                "and authoritative clock history. Every proof must match an exact bound context and observation boundary, "
+                "without duplicates or extra proofs."
+            ),
             validator="raes_contracts.participant_temporal.require_participant_temporal_history",
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )

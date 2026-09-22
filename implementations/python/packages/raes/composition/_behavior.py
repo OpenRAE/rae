@@ -337,29 +337,55 @@ def _rewrite_action_interactions(actions: dict[str, Any], symbols: dict[str, dic
     for action in actions.values():
         if not isinstance(action, dict):
             continue
-        for temporal in action.get("temporal_contracts", []):
-            binding = temporal.get("shared_time_binding") if isinstance(temporal, dict) else None
-            if isinstance(binding, dict):
-                for field, section in (
-                    ("clock_ref", "clocks"),
-                    ("constraint_ref", "temporal_constraints"),
-                    ("observation_boundary_ref", "observation_boundaries"),
-                ):
-                    if field in binding:
-                        binding[field] = _rewrite_section_ref(binding[field], section, symbols[section])
-        for field_name, reference_fields in (
-            ("preconditions", ("support_refs", "evidence_refs")),
-            ("effects", ("target_refs", "evidence_refs")),
-        ):
-            for item in action.get(field_name, []):
-                if not isinstance(item, dict):
-                    continue
-                for reference_field in reference_fields:
-                    if reference_field in item:
-                        item[reference_field] = [_maybe_rename(ref, symbols["named"]) for ref in item[reference_field]]
-        for interaction in action.get("interactions", []):
-            if not isinstance(interaction, dict):
-                continue
+        _rewrite_temporal_contract_bindings(action, symbols)
+        _rewrite_action_evidence_references(action, symbols)
+        _rewrite_action_interaction_references(action, symbols)
+
+
+def _rewrite_temporal_contract_bindings(action: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for temporal in action.get("temporal_contracts", []):
+        binding = temporal.get("shared_time_binding") if isinstance(temporal, dict) else None
+        if isinstance(binding, dict):
+            _rewrite_temporal_binding_references(binding, symbols)
+
+
+def _rewrite_temporal_binding_references(
+    binding: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]
+) -> None:
+    for field, section in (
+        ("clock_ref", "clocks"),
+        ("constraint_ref", "temporal_constraints"),
+        ("observation_boundary_ref", "observation_boundaries"),
+    ):
+        if field in binding:
+            binding[field] = _rewrite_section_ref(binding[field], section, symbols[section])
+
+
+def _rewrite_action_evidence_references(action: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]) -> None:
+    for field_name, reference_fields in (
+        ("preconditions", ("support_refs", "evidence_refs")),
+        ("effects", ("target_refs", "evidence_refs")),
+    ):
+        for item in action.get(field_name, []):
+            if isinstance(item, dict):
+                _rewrite_named_references(item, reference_fields, symbols)
+
+
+def _rewrite_named_references(
+    item: dict[str, Any],
+    reference_fields: tuple[str, ...],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    for reference_field in reference_fields:
+        if reference_field in item:
+            item[reference_field] = [_maybe_rename(ref, symbols["named"]) for ref in item[reference_field]]
+
+
+def _rewrite_action_interaction_references(
+    action: dict[str, Any], symbols: dict[str, dict[str, str] | set[str]]
+) -> None:
+    for interaction in action.get("interactions", []):
+        if isinstance(interaction, dict):
             interaction["target"] = _maybe_rename(interaction["target"], symbols["named"])
             interaction["related_actions"] = [
                 _maybe_rename(ref, symbols["action_contracts"]) for ref in interaction.get("related_actions", [])

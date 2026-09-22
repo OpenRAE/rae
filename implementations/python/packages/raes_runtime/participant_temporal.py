@@ -2,10 +2,15 @@
 
 from dataclasses import replace
 from datetime import UTC, datetime
+from typing import Literal, cast
 
 from raes_backend_protocols.participant_action_commit import participant_binding_post_state_digest
 from raes_contracts.contracts import ParticipantActionResultModel, ParticipantBehaviorHistoryEventModel
-from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
+from raes_contracts.contracts.participant_temporal import (
+    ParticipantTemporalAssessmentModel,
+    ParticipantTemporalEvidenceModel,
+    ParticipantTemporalExecutionContextModel,
+)
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_behavior import ParticipantAdmissionDisposition
 from raes_contracts.participant_binding import (
@@ -46,7 +51,9 @@ def temporal_guarantee_diagnostic(request: ParticipantActionAdmissionRequest) ->
         code="runtime.participant-temporal-guarantee-unsatisfied",
         domain="participant",
         address=request.participant_address,
-        message="The authored temporal guarantee is not satisfied; this does not imply native cancellation or rollback.",
+        message=(
+            "The authored temporal guarantee is not satisfied; this does not imply native cancellation or rollback."
+        ),
     )
 
 
@@ -140,15 +147,27 @@ def assess_temporal_result(
     history[-1] = participant_behavior_event_payload(terminal.model_copy(update={"temporal_assessments": assessments}))
     histories[request.participant_address] = history
     satisfied = all(assessment.status == "met" for assessment in assessments)
-    return replace(
-        result,
-        success=result.success and satisfied,
-        snapshot=result.snapshot.with_entries(dict(result.snapshot.entries), participant_behavior_history=histories),
-        diagnostics=[*result.diagnostics, *(() if satisfied else (temporal_guarantee_diagnostic(request),))],
+    return cast(
+        ParticipantActionApplyResult,
+        replace(
+            result,
+            success=result.success and satisfied,
+            snapshot=result.snapshot.with_entries(
+                dict(result.snapshot.entries), participant_behavior_history=histories
+            ),
+            diagnostics=[*result.diagnostics, *(() if satisfied else (temporal_guarantee_diagnostic(request),))],
+        ),
     )
 
 
-def _assess_context(context, request, snapshot, evidence, *, native_execution):
+def _assess_context(
+    context: ParticipantTemporalExecutionContextModel,
+    request: ParticipantActionAdmissionRequest,
+    snapshot: RuntimeSnapshot,
+    evidence: tuple[ParticipantTemporalEvidenceModel, ...],
+    *,
+    native_execution: Literal["not_dispatched", "reported"],
+) -> ParticipantTemporalAssessmentModel:
     return assess_temporal_guarantee(
         context,
         evidence,

@@ -162,5 +162,6 @@ def test_dwell_requires_authorized_observation_of_its_condition(mutation: str) -
         condition["support_refs"] = ["content.evaluator-notes"]
     else:
         condition["evidence_refs"] = ["content.evaluator-notes"]
+    source = yaml.safe_dump(payload)
     with pytest.raises(SDLValidationError, match="temporal binding"):
-        parse_sdl(yaml.safe_dump(payload))
+        parse_sdl(source)

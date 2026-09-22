@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import replace
+from collections.abc import Iterator
+from dataclasses import dataclass, replace
 
 from raes_contracts.contracts import (
     ParticipantTemporalRuntimeContextModel,
@@ -139,7 +140,8 @@ def _participant_execution_action_case(
     diagnostics: list[Diagnostic] = []
     evidence_refs: tuple[str, ...] = ()
     action_count = 1
-    if runtime is None or capability is None or not capability.execution_bindings:
+    setup = _participant_execution_action_setup(runtime, capability)
+    if setup is None:
         diagnostics.append(
             _diagnostic(
                 "conformance.participant-execution-binding-missing",
@@ -148,59 +150,11 @@ def _participant_execution_action_case(
             )
         )
     else:
-        binding = capability.execution_bindings[0]
-        evidence_refs = binding.evidence_refs
-        action_count = min(
-            2 if capability.supports_bounded_concurrency else 1,
-            capability.max_concurrent_actions or 1,
-            capability.max_autonomous_participants or 1,
-            binding.max_in_flight,
-        )
-        participants = (
-            "participant.conformance",
-            "participant.conformance-2",
-        )[:action_count]
-        temporal_contexts = (
-            ParticipantTemporalRuntimeContextModel(
-                temporal_contract_id="time.constraint.conformance",
-                time_domain="scenario_time",
-                clock_authority="time.clock.conformance",
-                event_points=["submit", "start", "end", "observed"],
-                observation_point="time.clock.conformance@segment=0,tick=0",
-                reset_boundary="time.clock.conformance:segment=0",
-            ),
-        )
+        action_count = setup.action_count
+        evidence_refs = setup.binding.evidence_refs
         try:
-            if action_count > 1:
-                control_plane.initialize_participant_episode(participants[1])
-            requests = []
-            for ordinal, participant_address in enumerate(participants):
-                request = runtime.bind_autonomous_action(
-                    participant_address,
-                    binding.action_contract_address,
-                    next(iter(capability.supported_autonomous_observation_boundaries)),
-                    binding.participant_implementation_ref,
-                    f"participant-execution-conformance-{ordinal}",
-                    temporal_contexts,
-                    control_plane.snapshot,
-                )
-                requests.append(
-                    replace(
-                        request,
-                        participant_address=participant_address,
-                        action_contract_address=binding.action_contract_address,
-                        action_instance_id=(f"participant-execution-conformance-{ordinal}"),
-                        requires_terminal_outcome=True,
-                        target_addresses=binding.target_addresses,
-                        execution_scope_ref=scope,
-                        execution_generation=0,
-                    )
-                )
-            results = (
-                runtime.admit_actions_concurrently(tuple(requests), control_plane.snapshot, action_count)
-                if action_count > 1
-                else (runtime.admit_action(requests[0], control_plane.snapshot),)
-            )
+            requests = _participant_execution_requests(setup, control_plane, scope)
+            results = _admit_participant_execution_requests(setup, requests, control_plane)
         except Exception as exc:
             diagnostics.append(
                 _diagnostic(
@@ -210,12 +164,7 @@ def _participant_execution_action_case(
                 )
             )
         else:
-            if len(results) != action_count or any(
-                not result.success
-                or result.action_result is None
-                or not result.snapshot.participant_behavior_history.get(request.participant_address)
-                for request, result in zip(requests, results, strict=True)
-            ):
+            if _participant_execution_results_are_inert(requests, results, action_count):
                 diagnostics.append(
                     _diagnostic(
                         "conformance.participant-execution-action-inert",
@@ -235,6 +184,119 @@ def _participant_execution_action_case(
         expected_operations=("admit-action",) * action_count,
         accounted_operations=(("admit-action",) * action_count if not diagnostics else ()),
         evidence_refs=evidence_refs,
+    )
+
+
+@dataclass(frozen=True)
+class _ParticipantExecutionActionSetup:
+    runtime: object
+    capability: object
+    binding: object
+    action_count: int
+    participants: tuple[str, ...]
+    temporal_contexts: tuple[ParticipantTemporalRuntimeContextModel, ...]
+
+
+def _participant_execution_action_setup(
+    runtime: object | None,
+    capability: object | None,
+) -> _ParticipantExecutionActionSetup | None:
+    if runtime is None or capability is None or not capability.execution_bindings:
+        return None
+    binding = capability.execution_bindings[0]
+    action_count = min(
+        2 if capability.supports_bounded_concurrency else 1,
+        capability.max_concurrent_actions or 1,
+        capability.max_autonomous_participants or 1,
+        binding.max_in_flight,
+    )
+    return _ParticipantExecutionActionSetup(
+        runtime=runtime,
+        capability=capability,
+        binding=binding,
+        action_count=action_count,
+        participants=("participant.conformance", "participant.conformance-2")[:action_count],
+        temporal_contexts=_participant_execution_temporal_contexts(),
+    )
+
+
+def _participant_execution_temporal_contexts() -> tuple[ParticipantTemporalRuntimeContextModel, ...]:
+    return (
+        ParticipantTemporalRuntimeContextModel(
+            temporal_contract_id="time.constraint.conformance",
+            time_domain="scenario_time",
+            clock_authority="time.clock.conformance",
+            event_points=["submit", "start", "end", "observed"],
+            observation_point="time.clock.conformance@segment=0,tick=0",
+            reset_boundary="time.clock.conformance:segment=0",
+        ),
+    )
+
+
+def _participant_execution_requests(
+    setup: _ParticipantExecutionActionSetup,
+    control_plane: RuntimeControlPlane,
+    scope: str,
+) -> list[object]:
+    if setup.action_count > 1:
+        control_plane.initialize_participant_episode(setup.participants[1])
+    boundary = next(iter(setup.capability.supported_autonomous_observation_boundaries))
+    return [
+        _participant_execution_request(setup, control_plane, scope, participant_address, ordinal, boundary)
+        for ordinal, participant_address in enumerate(setup.participants)
+    ]
+
+
+def _participant_execution_request(
+    setup: _ParticipantExecutionActionSetup,
+    control_plane: RuntimeControlPlane,
+    scope: str,
+    participant_address: str,
+    ordinal: int,
+    boundary: str,
+) -> object:
+    action_instance_id = f"participant-execution-conformance-{ordinal}"
+    request = setup.runtime.bind_autonomous_action(
+        participant_address,
+        setup.binding.action_contract_address,
+        boundary,
+        setup.binding.participant_implementation_ref,
+        action_instance_id,
+        setup.temporal_contexts,
+        control_plane.snapshot,
+    )
+    return replace(
+        request,
+        participant_address=participant_address,
+        action_contract_address=setup.binding.action_contract_address,
+        action_instance_id=action_instance_id,
+        requires_terminal_outcome=True,
+        target_addresses=setup.binding.target_addresses,
+        execution_scope_ref=scope,
+        execution_generation=0,
+    )
+
+
+def _admit_participant_execution_requests(
+    setup: _ParticipantExecutionActionSetup,
+    requests: list[object],
+    control_plane: RuntimeControlPlane,
+) -> tuple[object, ...]:
+    if setup.action_count > 1:
+        return setup.runtime.admit_actions_concurrently(tuple(requests), control_plane.snapshot, setup.action_count)
+    return (setup.runtime.admit_action(requests[0], control_plane.snapshot),)
+
+
+def _participant_execution_results_are_inert(
+    requests: list[object],
+    results: tuple[object, ...],
+    action_count: int,
+) -> bool:
+    return len(results) != action_count or any(
+        not result.success
+        or result.action_result is None
+        or not result.snapshot.participant_behavior_history.get(request.participant_address)
+        for request, result in zip(requests, results, strict=True)
     )
 
 
@@ -278,7 +340,12 @@ def _drive_participant_execution_probe(
     return cases
 
 
-def _isolated_control_cases(target, snapshot, scope, controls):
+def _isolated_control_cases(
+    target: RuntimeTarget,
+    snapshot: RuntimeSnapshot,
+    scope: str,
+    controls: set[str],
+) -> Iterator[ConformanceCaseResult]:
     """Supply each protocol probe's precondition without calling unclaimed controls.
 
     These are controlled protocol fixtures, not evidence of native lifecycle

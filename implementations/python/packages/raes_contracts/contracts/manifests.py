@@ -283,6 +283,10 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
     def _validate_execution_control(self) -> None:
         if not self.supports_autonomous_execution:
             return
+        self._validate_execution_control_configuration()
+        self._validate_execution_bindings()
+
+    def _validate_execution_control_configuration(self) -> None:
         if self.supports_execution_control != bool(self.supported_execution_control_actions):
             raise ValueError("execution control support flag and supported actions must agree")
         if self.supports_execution_control and self.max_execution_services is None:
@@ -291,6 +295,8 @@ class ParticipantRuntimeCapabilitiesModel(ContractModel):
             self.max_concurrent_actions is None or self.max_concurrent_actions < 2
         ):
             raise ValueError("bounded concurrency requires max_concurrent_actions of at least 2")
+
+    def _validate_execution_bindings(self) -> None:
         binding_ids = [binding.binding_id for binding in self.execution_bindings]
         _validate_unique_string_values("execution_bindings", binding_ids)
         supported_actions = set(self.supported_autonomous_action_contracts)

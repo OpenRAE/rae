@@ -225,21 +225,45 @@ def _rewrite_observation_boundaries(
     for boundary in payload.get("observation_boundaries", {}).values():
         if not isinstance(boundary, dict):
             continue
-        for field_name in ("observable_refs", "hidden_refs", "evidence_refs"):
-            boundary[field_name] = [
-                tool_affordance_refs.get(ref, _maybe_rename(ref, symbols["named"]))
-                for ref in boundary.get(field_name, [])
-            ]
-        for field_name in ("view_rules", "view_transitions"):
-            for item in boundary.get(field_name, []):
-                if isinstance(item, dict) and "evidence_refs" in item:
-                    item["evidence_refs"] = [_maybe_rename(ref, symbols["named"]) for ref in item["evidence_refs"]]
-                if isinstance(item, dict) and isinstance(item.get("information_ref"), str):
-                    information_ref = item["information_ref"]
-                    item["information_ref"] = tool_affordance_refs.get(
-                        information_ref,
-                        _maybe_rename(information_ref, symbols["named"]),
-                    )
+        _rewrite_boundary_reference_fields(boundary, symbols, tool_affordance_refs)
+        _rewrite_boundary_view_items(boundary, symbols, tool_affordance_refs)
+
+
+def _rewrite_boundary_reference_fields(
+    boundary: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+    tool_affordance_refs: Mapping[str, str],
+) -> None:
+    for field_name in ("observable_refs", "hidden_refs", "evidence_refs"):
+        boundary[field_name] = [
+            tool_affordance_refs.get(ref, _maybe_rename(ref, symbols["named"])) for ref in boundary.get(field_name, [])
+        ]
+
+
+def _rewrite_boundary_view_items(
+    boundary: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+    tool_affordance_refs: Mapping[str, str],
+) -> None:
+    for field_name in ("view_rules", "view_transitions"):
+        for item in boundary.get(field_name, []):
+            if isinstance(item, dict):
+                _rewrite_boundary_view_item(item, symbols, tool_affordance_refs)
+
+
+def _rewrite_boundary_view_item(
+    item: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+    tool_affordance_refs: Mapping[str, str],
+) -> None:
+    if "evidence_refs" in item:
+        item["evidence_refs"] = [_maybe_rename(ref, symbols["named"]) for ref in item["evidence_refs"]]
+    information_ref = item.get("information_ref")
+    if isinstance(information_ref, str):
+        item["information_ref"] = tool_affordance_refs.get(
+            information_ref,
+            _maybe_rename(information_ref, symbols["named"]),
+        )
 
 
 def _rewrite_service_materialization(
