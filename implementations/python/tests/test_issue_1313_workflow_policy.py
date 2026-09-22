@@ -60,12 +60,13 @@ def _finalization_workflow() -> dict:
 
 def test_merged_issue_finalization_has_a_valid_credential_boundary(tmp_path: Path) -> None:
     assert _check(tmp_path, _finalization_workflow()) == set()
+    assert _finalization_workflow()["permissions"]["issues"] == "read"
 
 
 @pytest.mark.parametrize("permission", ["contents", "pull-requests", "id-token"])
 def test_merged_issue_finalization_cannot_gain_other_writes(tmp_path: Path, permission: str) -> None:
     workflow = _finalization_workflow()
-    workflow["permissions"][permission] = "write"
+    workflow["jobs"]["finalize"]["permissions"][permission] = "write"
     assert "tooling-action-permissions" in _check(tmp_path, workflow)
 
 

@@ -54,7 +54,7 @@ the legacy fixed-coordinate form; the new bounded tests evidence a design
 projection. Executable adoption and historical readers must meet the
 [migration contract](../../migration/reusable-mixed-control.md).
 
-[ADR-111](../../decisions/adrs/adr-111-external-inject-triggering-and-execution.md)
+[ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 and [EI-05](../../../specs/sdl/external-injects.md#ei-05--optional-participant-composition)
 add #1353's world-effect/delivery composition boundary. They preserve ADR-110's
 exact accepted-control join and independent policies. The
@@ -66,10 +66,12 @@ backend execution, delivery or observation.
 
 - IMPLEMENTS → SPEC `specs/sdl/external-injects.md` (Exact world-occurrence/result delivery join; not runtime conformance)
 - IMPLEMENTS → GITHUB_ISSUE `1353` (External world-effect and participant-delivery semantic boundary)
-- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-111-external-inject-triggering-and-execution.md` (Accepted-on-merge execution decision)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md` (Accepted-on-merge execution decision)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/external-inject-compatibility.md` (Versioned unscheduled joins and preserved historical meaning)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/external-inject-cases.md` (Independent effect, delivery and observation outcomes)
 - TESTS → TEST `implementations/python/tests/test_issue_1353_external_inject_design.py` (Bounded delivery reservation/composition projection; not delivery realization)
+- TESTS → TEST `implementations/python/tests/test_issue_1313_workflow_policy.py` (Merged delivery finalizer permission boundary)
+- TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Merged delivery finalizer job token scope and event classification)
 
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/reusable-mixed-control.md` (Exact control-application/delivery semantic amendment; not runtime conformance)
 - IMPLEMENTS → GITHUB_ISSUE `1351` (Semantic decision and canonical requirement amendment)

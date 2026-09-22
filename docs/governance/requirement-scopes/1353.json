@@ -15,7 +15,7 @@
       "DSL-111",
       "DSL-142"
     ],
-    "docs/decisions/adrs/adr-111-external-inject-triggering-and-execution.md": [
+    "docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md": [
       "DSL-111",
       "DSL-142"
     ],
@@ -62,6 +62,10 @@
       "DSL-142"
     ],
     "implementations/python/tests/test_issue_1353_external_inject_design.py": [
+      "DSL-111",
+      "DSL-142"
+    ],
+    "implementations/python/tests/test_release_workflows.py": [
       "DSL-111",
       "DSL-142"
     ],

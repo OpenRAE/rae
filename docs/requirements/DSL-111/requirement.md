@@ -36,7 +36,7 @@ not establish that an inject occurred in the world.
 
 ## Semantic amendment and evidence boundary
 
-[ADR-111](../../decisions/adrs/adr-111-external-inject-triggering-and-execution.md)
+[ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 and [EI-01–EI-06](../../../specs/sdl/external-injects.md) define the amendment.
 ACTIVE records the accepted contract; it does not certify executable adoption.
 Existing model/compiler evidence covers legacy narrative authoring. The new
@@ -47,10 +47,12 @@ by the [compatibility contract](../../explain/sdl/external-inject-compatibility.
 
 - IMPLEMENTS → SPEC `specs/sdl/external-injects.md` (External occurrence semantic amendment; not runtime conformance)
 - IMPLEMENTS → GITHUB_ISSUE `1353` (Accepted external-trigger design and canonical requirement amendment)
-- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-111-external-inject-triggering-and-execution.md` (Accepted-on-merge execution decision)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md` (Accepted-on-merge execution decision)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/external-inject-compatibility.md` (Producer, reader and evidence compatibility)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/external-inject-cases.md` (Worked occurrences, outcomes and bounded claims)
 - TESTS → TEST `implementations/python/tests/test_issue_1353_external_inject_design.py` (Bounded claim/lifecycle model and actual no-participant compiler witness; not backend execution)
+- TESTS → TEST `implementations/python/tests/test_issue_1313_workflow_policy.py` (Merged delivery finalizer permission boundary)
+- TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Merged delivery finalizer job token scope and event classification)
 
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (SDL sections reference for entities, injects, events, scripts, and stories)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/validation.md` (Validation rules for entity references and orchestration timeline integrity)

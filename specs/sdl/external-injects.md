@@ -1,7 +1,7 @@
 # External inject triggering and execution
 
 Semantic decision: external-inject-occurrence/rev1, under
-[ADR-111](../../docs/decisions/adrs/adr-111-external-inject-triggering-and-execution.md).
+[ADR-112](../../docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md).
 This is the normative DSL-111/DSL-142 amendment, not a wire schema, endpoint or
 claim that the current runtime/backend executes these rules.
 

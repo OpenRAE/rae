@@ -622,7 +622,11 @@ adrs:
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
-    pin: d734bb660e153dc6d97c1cbdc5d1079cc837d77d5874da84bd8e8d788c7edf80
+    pin: 7df063f96f2732f10ba7a6129ea21ad40caa7fb5dfd2f3bbd9f9245cf05b3fff
+    amendments:
+      - date: 2026-09-22
+        ref: "#1352"
+        summary: "Clarify applicability, dependency invocation, support and phase-independent parent decisions through ADR-111."
   - id: ADR-109
     path: docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md
     pin: 859172f6b8791577059a3215af639210e86267455c8a059f71168e621c0f9c61
@@ -634,5 +638,8 @@ adrs:
     path: docs/decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md
     pin: 7ea0cfbdb340b8ff8956dd51f9f7f670d9b1e7017599b50d963aa81e554be13f
   - id: ADR-111
-    path: docs/decisions/adrs/adr-111-external-inject-triggering-and-execution.md
-    pin: 5fd4b6045aab04442feee9d9becfcf682c35152d21a03ca578bc92ba71702174
+    path: docs/decisions/adrs/adr-111-control-applicability-and-effect-decisions.md
+    pin: 74b4ca642fd9b9ed2ca10e2910f89d27859b393d16101c2bf261c826ffe2009e
+  - id: ADR-112
+    path: docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md
+    pin: 65e54addfb3a2dba74941f3c8030dec8c7a39661cc5aebb456e59c03af120ea3

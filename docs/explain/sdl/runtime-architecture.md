@@ -126,7 +126,7 @@ It separates reusable definitions from bound runtime instances:
 - orchestration and objective sections -> resolved runtime programs and graph nodes
 
 These compiled declarations and installed plans do not establish live inject
-execution. [ADR-111](../../decisions/adrs/adr-111-external-inject-triggering-and-execution.md)
+execution. [ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 defines the accepted [external occurrence contract](../../../specs/sdl/external-injects.md):
 the shared runtime admits and drives an exact authored binding, and the backend
 supplies per-target effect evidence. Participant disclosure, delivery and

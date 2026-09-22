@@ -1,6 +1,6 @@
 # External inject compatibility and adoption
 
-[ADR-111](../../decisions/adrs/adr-111-external-inject-triggering-and-execution.md)
+[ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 and [EI-01–EI-06](../../../specs/sdl/external-injects.md) publish
 external-inject-occurrence/rev1. This identifier names a semantic decision;
 it is not an installed schema, transport method or backend capability.

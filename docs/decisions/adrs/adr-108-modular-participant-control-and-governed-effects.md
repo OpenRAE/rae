@@ -55,6 +55,31 @@ They do not all have information-flow labels.
 
 ## Decision
 
+### Amendment: exact-cut applicability and effect decisions (#1352)
+
+[ADR-111](adr-111-control-applicability-and-effect-decisions.md) and
+[CA-01–CA-09](../../../specs/formal/participant-semantics/control-applicability-and-evaluation.md)
+clarify sections 2, 4 and 6 under a separate semantic identity. The complete
+apparatus is distinct from its applicable slot/provider subset and required
+profile coverage. Dependencies govern typed predecessor inputs and invocation,
+including repeated stages of one provider, with explicit shared-state scope.
+Required advice availability does not grant advice veto authority; optional
+failure stays isolated and bounded support must meet the admitted constraints.
+
+Parent permit/deny/withhold are decisions before scheduling. Their meaning
+cannot change with effect phase. Required predecessors, success-dependent
+consequences and independent consequences retain separate targets, authority
+and outcome prerequisites; the combined parent/effect graph must be acyclic.
+Decision, accepted state changes, authorized intents and budgets share one
+atomic commit. A denied parent may have an independently authorized audit,
+without acquiring permission to execute.
+
+The original revision-1 publication and evidence keep their historical scope.
+The [migration contract](../../migration/control-applicability-and-evaluation.md)
+requires explicit revised interpretation and preserves old decisions, keys,
+receipts and consumption. This amendment publishes no new wire reader or
+runtime implementation and retains SEM-233 and the declared-world boundary.
+
 ### 1. Establish the declared-world boundary
 
 RAES owns the declared participants, observations, actions, controllers,
@@ -223,3 +248,9 @@ and multi-operation recovery. Complete mediation depends on backend
 instrumentation and the admitted world's observation coverage. This ADR proves
 neither universal noninterference nor controllability, robustness, liveness,
 backend equivalence, or protection of opaque internals and undeclared channels.
+
+## Amendments
+
+| Date | Reference | Change |
+| --- | --- | --- |
+| 2026-09-22 | #1352 | Clarify apparatus versus applicability, obligation coverage, typed dependency invocation, optional failure, required strength, atomic state and phase-independent parent decisions through ADR-111. |
