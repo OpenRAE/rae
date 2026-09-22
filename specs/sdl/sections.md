@@ -141,6 +141,16 @@ evidence must be covered by the named evidence requirements. An inject without
 that binding remains ordinary orchestration input; `injects.*.environment`
 never implies participant delivery.
 
+This field-level description is the currently published fixed-coordinate form.
+[ADR-110's normative amendment](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)
+separates reusable edge constraints from exact control-application/delivery
+joins, uses acting-source authority, independently pins control/disclosure
+policies and keeps order distinct from shared time. It preserves ordinary
+injects and disclosure-only bindings. The
+[migration contract](../../docs/migration/reusable-mixed-control.md) defines
+explicit adoption and retains the old form's historical interpretation; the
+amendment does not introduce parser fields by this prose alone.
+
 `propositions` state typed claims; `assertions` use them as preconditions,
 invariants, or postconditions. Objective success composes invariant or
 postcondition assertions, while events and workflow predicates reference

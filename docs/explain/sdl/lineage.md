@@ -905,6 +905,15 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   noninterference, or opacity from this design. Runtime realization and
   backend conformance remain separate axes; noninterference and opacity
   require their own profile-matching preservation theorem.
+- Issue #1351 and ADR-110 define the
+  [reusable mixed-control amendment](../../../specs/formal/participant-semantics/reusable-mixed-control.md)
+  across ACT-617/API-409/RUN-310/DSL-142, with a
+  [producer/reader migration contract](../../migration/reusable-mixed-control.md)
+  and [bounded design evidence](../../research/reusable-mixed-control/cases.md).
+  The delivery descriptions for those four requirements below identify the
+  existing fixed-coordinate implementation. Their schemas/tests do not prove
+  reusable occurrence support. The amendment reuses existing workflow, time
+  and participant-control distinctions; it adds no external derivation claim.
 - ACT-617 applies the already adopted SEM-230/ADR-085 control and ordering
   lineage to authored mixed-control behavior without introducing another
   external derivation. The exact RAES mapping is

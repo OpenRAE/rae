@@ -582,9 +582,22 @@ The source and conformance contract is specified in
 
 ## ACT-617 - Mixed-Control Participant Operation
 
+Issue #1351 and ADR-110 amend the normative policy/application distinction in
+[`mixed-control-policy-occurrence/rev1`](../participant-semantics/reusable-mixed-control.md).
+MC-01–MC-09 define reusable permissions, explicit finite scripts, exact
+occurrences, source-controller authority, validity, replay and directed-delivery
+joins. The [migration contract](../../../docs/migration/reusable-mixed-control.md)
+preserves historical meaning and states the required reader boundary.
+
+### Legacy fixed-coordinate form
+
+The following describes the currently published SDL/compiler form and its
+retained historical interpretation. It is not evidence of executable adoption
+of the reusable amendment.
+
 A behavior specification in `mixed-control` mode carries one explicit
 `mixed_control` policy for one of its `participant_refs`. The policy is a
-closed authored state graph, not a runtime decision history:
+closed authored graph with fixed occurrence coordinates, not a runtime decision history:
 
 ```text
 MixedControl =

@@ -6,7 +6,7 @@ type: INTERFACE
 priority: SHOULD
 wave: 3
 created_at: 2026-04-03T06:16:04.587331Z
-updated_at: 2026-07-25T16:22:35.566014Z
+updated_at: 2026-09-22T01:33:58.710054Z
 ---
 
 # API-409 — Participant External Input And Intervention Contracts
@@ -15,11 +15,42 @@ updated_at: 2026-07-25T16:22:35.566014Z
 
 The ecosystem shall define portable plain-data contracts for external action proposals, approvals or denials, directions, interventions, handoffs, overrides, and cancellations where mixed-control participant modes are supported, preserving controller and authority identity, order, policy revision, provenance, evidence, and explicit disposition.
 
+Occurrence contracts shall bind a pinned reusable permission to exact
+participant/episode, source-controller authority, state and target revisions,
+admitted order, evaluated validity and occurrence-specific evidence. Proposal
+identities shall not be policy-edge identities. Targets shall be available and
+eligible at the evaluated cut: direction permits declared proposal/action/control
+targets and intervention permits action/control/attempt targets. Rejected
+attempts shall distinguish attempted coordinates from observed state and shall
+neither assert valid application nor authorize state advancement. Historical
+reference, authorizing eligibility and accepted-state advancement shall remain
+separate, including conflicting decisions and immutable replay meaning.
+
 ## Rationale
 
 Issue #794 found that mixed-control input needs more than an undifferentiated external-input envelope: approval, direction, intervention, handoff, override, cancellation, admission, and execution are separate facts.
 
+Issue #1351 separates reusable declarations from exact occurrence context and
+reconciles target sets, rejected attempts and historical-reader semantics.
+
+## Semantic amendment and evidence boundary
+
+[ADR-110](../../decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md)
+and [MC-01–MC-09](../../../specs/formal/participant-semantics/reusable-mixed-control.md)
+define the #1351 amendment. ACTIVE records the accepted contract, not proof
+that every amended clause is implemented. Existing code/schema links evidence
+the legacy fixed-coordinate form; the new bounded tests evidence a design
+projection. Executable adoption and historical readers must meet the
+[migration contract](../../migration/reusable-mixed-control.md).
+
 ## Traceability
+
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/reusable-mixed-control.md` (Exact occurrence/target/rejection semantic amendment; not runtime conformance)
+- IMPLEMENTS → GITHUB_ISSUE `1351` (Semantic decision and canonical requirement amendment)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md` (Accepted-on-merge policy/occurrence decision)
+- DOCUMENTS → DOCUMENTATION `docs/migration/reusable-mixed-control.md` (Producer/reader and historical-meaning rules)
+- DOCUMENTS → DOCUMENTATION `docs/research/reusable-mixed-control/cases.md` (Worked cycles and bounded evidence claims)
+- TESTS → TEST `implementations/python/tests/test_issue_1351_mixed_control_design.py` (Bounded abstract-model falsification; not production realization)
 
 - IMPLEMENTS → GITHUB_ISSUE `1072` (Typed modular requests referencing incumbent control authorities)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control.py` (Owning external control occurrence alternatives)

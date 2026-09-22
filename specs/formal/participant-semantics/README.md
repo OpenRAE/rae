@@ -3,6 +3,12 @@
 The [ACT-618 local outcome extension](local-outcomes.md) defines role-neutral
 categories and evolving participant-local state within the SEM-215 family.
 
+Issue #1351 and ADR-110 publish the
+[reusable mixed-control policy/occurrence contract](reusable-mixed-control.md)
+for ACT-617, API-409, RUN-310 and DSL-142. Its finite model is design evidence;
+the contract states the fixed-coordinate implementation and historical-reader
+boundary explicitly.
+
 This document is the issue #71 formal design artifact for:
 
 - `SEM-208` - Participant Behavior Semantics

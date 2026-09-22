@@ -630,3 +630,6 @@ adrs:
       - date: 2026-09-21
         ref: "#1338"
         summary: "Editorial: use the explicit classification-waiver declaration required by the assurance policy gate."
+  - id: ADR-110
+    path: docs/decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md
+    pin: 7ea0cfbdb340b8ff8956dd51f9f7f670d9b1e7017599b50d963aa81e554be13f
