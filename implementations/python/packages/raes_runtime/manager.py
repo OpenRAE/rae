@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.augmentation_preparation import AugmentationPreparation
@@ -27,7 +27,7 @@ from .backend_observation_calls import _apply_runtime_plan_with_observation, _Ru
 from .diagnostics import _failure_diagnostic, _has_error_diagnostic
 from .manager_augmentation import prepare_execution_augmentation
 from .manager_destroy import _DestroyPhaseMixin
-from .manager_plan_admission import runtime_plan_precondition_diagnostics
+from .manager_plan_admission import reference_participant_driver_diagnostics, runtime_plan_precondition_diagnostics
 from .participant_activity import resolve_participant_activity_controls
 from .participant_execution_control import RuntimeParticipantExecutionMixin
 from .participant_information_state_validation import require_participant_information_state_snapshot
@@ -114,13 +114,16 @@ class RuntimeManager(_DestroyPhaseMixin, RuntimeParticipantExecutionMixin, Runti
             run_id=run_scope.run_id if run_scope is not None else None,
             instantiation_id=run_scope.instantiation_id if run_scope is not None else None,
         )
-        return plan(
+        execution_plan = plan(
             model,
             self._target.manifest,
             effective_snapshot,
             scope=scope,
             artifact_availability=artifact_availability,
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
+        )
+        return replace(
+            execution_plan, diagnostics=[*execution_plan.diagnostics, *reference_participant_driver_diagnostics(model)]
         )
 
     def apply(self, execution_plan: ExecutionPlan) -> ApplyResult:

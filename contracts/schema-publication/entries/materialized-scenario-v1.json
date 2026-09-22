@@ -1,9 +1,9 @@
 {
-  "content_hash": "7eaf4b09b185a7715c159c0026577d09c31fe4e831d61afcab8ede843bb19293",
+  "content_hash": "85332d604fc72bd0813e711b99bc94d59d9432fed465ed80936b3d25bff0a92c",
   "contract_id": "materialized-scenario-v1",
   "last_change": {
-    "content_hash": "7eaf4b09b185a7715c159c0026577d09c31fe4e831d61afcab8ede843bb19293",
-    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
+    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
+    "content_hash": "85332d604fc72bd0813e711b99bc94d59d9432fed465ed80936b3d25bff0a92c"
   },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"

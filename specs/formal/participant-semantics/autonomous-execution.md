@@ -32,9 +32,9 @@ the participant and parent behavior specification. \(G_P\) and every member of
 \(T_P\) use \(C_P\). Exactly one member of \(T_P\) is a cadence constraint.
 Cadence starts must be non-negative. For stepped progression, its start and
 period must be integer multiples of `step_ticks`; unreachable cadence points
-are invalid. Externally paced
-autonomous policies are rejected until a portable backend-to-runtime transition
-driver exists. Runtime-owned wall pacing drives `real_time` and `dilated`
+are invalid. Externally paced policies remain valid SDL; reference-runtime
+admission rejects them until its transition driver supports them.
+Runtime-owned wall pacing drives `real_time` and `dilated`
 policies only when the bound clock declares runtime authority. Backend,
 system, and external clock authorities are never advanced by the participant
 driver. Stepped and event-driven clocks advance only through shared-time
@@ -100,6 +100,65 @@ service and budget readback cannot become independent authorities.
 V1 and v2 limits compile into the same canonical demand representation with
 `legacy_maximum` provenance. They do not acquire v3 capacity, fairness,
 isolation, or runtime-accounting requirements.
+
+## Bounded Action Guarantees (ACT-614)
+
+An action temporal contract opts into `participant-shared-time/v1` through
+`shared_time_binding`. Legacy temporal descriptions retain their meaning;
+cadence, waiting and cooldown never imply a deadline or continuous dwell.
+The binding selects a declared clock and a constraint naming that action.
+The selected event must appear in the action's declared event points. An
+autonomous policy and its bound actions use the same shared clock.
+
+- A deadline selects `start`, `end` (completion), `observed`, or `effective`.
+  The selected event coordinate must be at or before the inclusive deadline.
+  Submission after that bound is rejected before native dispatch. Submission
+  before it does not prove completion or effects occurred on time.
+- Dwell selects an action precondition, observation boundary and nonempty
+  half-open window `[start, end)`. Before dispatch, evidence must cover that
+  entire interval continuously with the condition true. Samples, gaps,
+  overlapping coverage and intervals crossing a pause are insufficient.
+  The boundary must belong to the behavior and each bound participant, and
+  match the autonomous policy's observation boundary. Condition support must
+  be observable there; condition evidence must be declared there.
+
+Coordinates are ordered by segment, tick, then microstep. Authored bounds are
+relative to the current shared-clock segment. Each attempt binds its action,
+participant, episode, segment, execution generation and clock-history cut.
+Reset/replay creates a new attempt identity and requires new evidence; stale
+completions cannot commit into the new generation. Pause stops admission and
+does not certify continuous dwell while the clock is frozen.
+
+Compilation hashes the resolved guarantee, clock, time domain and constraint;
+dwell also covers its condition and observation declaration. One manifest
+execution offer must cover the action/target/implementation combination,
+requested limits and all its temporal digests. Unrelated offers cannot be
+combined to infer support. Empty, partial and rich support declarations are
+valid; insufficiency rejects only the requested pairing.
+
+Runtime assessments are `met`, `missed` or `indeterminate`, separate from
+native action status and effects. Missing, mismatched or insufficient proof
+cannot produce `met`. An unsatisfied guarantee stops automatic retries; it
+does not establish cancellation or rollback. A failed guarantee after a
+shared-time advance does not erase that advance or committed native history.
+Durable and API readback validate context continuity, clock cuts and evidence
+against the assessment. Reference tests establish protocol behavior, not
+native application fidelity or continuous-monitoring implementation.
+
+Every proof must match an exact runtime-issued context and its authorized
+observation boundary. Duplicate or foreign proofs and unauthorized evidence
+references fail protocol validation before history commit. Backend callbacks
+receive detached request graphs; they cannot alter the runtime's validation
+authority. Manual admission uses compiled temporal requirements, not backend
+capability claims, to prevent bypass of the reference temporal driver.
+
+A pre-dispatch rejection records a temporal applicability precondition
+`shared-time:<temporal_id>` and `precondition_unsatisfied`; it reports no
+native effects. Its assessment explicitly records `not_dispatched`.
+
+The reference execution path supports these bindings through autonomous
+v1/v2/v3 policies. It rejects unbound manual execution at runtime admission;
+this is not an SDL restriction or a required backend architecture.
 
 ## Non-Evaluated Authority Invariant
 
@@ -349,17 +408,19 @@ feature set. A reset-capable policy additionally requires the coordinated
 participant-reset capability and runtime method. Runtime state, typed native
 action outcome, history, and backend evidence establish what occurred.
 
-Autonomous admission also requires all six execution-control actions,
-`supports_bounded_concurrency`, positive execution-service capacity, and
-`max_concurrent_actions \ge 2`. Conditional live conformance executes two
-native actions and the lifecycle sequence. Schema-valid declarations without
-typed native outcomes, operation accounting, service readback, or transition
-evidence fail conformance.
+Autonomous admission does not require native lifecycle controls or concurrency.
+Require concurrency only when the policy requests more than one in-flight
+action. Each lifecycle request requires that exact claimed operation.
+Conditional conformance exercises only claimed capabilities, with valid
+preconditions supplied independently for partial control sets. Claims without
+the corresponding typed outcomes and evidence fail conformance.
 
 V2 additionally requires exact admission of:
 
 - `participant-autonomous-execution/v2`;
-- all governed activity features;
+- work windows, weighted selection, occurrence provenance, and any additional
+  activity features actually requested (variation, dependencies, retries,
+  cooldowns, or bursts);
 - `weighted`;
 - `blake3-xof-participant-v1`;
 - shared-time `window`; and

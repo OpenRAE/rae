@@ -1,9 +1,9 @@
 {
-  "content_hash": "a7e7827350bce317cc0a5172e05e82d8be4126359ac7a814c315aa1f139d7501",
+  "content_hash": "ec16ef507c579c16f81e499965255e1ac013f2826bc0b975f1413ce79cb70b74",
   "contract_id": "sdl-authoring-input-v1",
   "last_change": {
-    "content_hash": "a7e7827350bce317cc0a5172e05e82d8be4126359ac7a814c315aa1f139d7501",
-    "summary": "Add versioned participant-local outcome definitions and replayable outcome reports for ACT-618 (#218), alongside participant identity and objective assignment (#1338)."
+    "summary": "Add participant-local outcomes and identity assignment alongside opt-in bounded shared-time guarantees.",
+    "content_hash": "ec16ef507c579c16f81e499965255e1ac013f2826bc0b975f1413ce79cb70b74"
   },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"

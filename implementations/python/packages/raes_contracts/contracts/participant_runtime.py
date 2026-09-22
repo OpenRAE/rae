@@ -37,6 +37,11 @@ from ..participant_behavior import (
 from ..versions import PARTICIPANT_EPISODE_STATE_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString
 from .participant_resource_budgets import ParticipantResourceMeasurementModel
+from .participant_temporal import (
+    ParticipantTemporalAssessmentModel,
+    ParticipantTemporalEvidenceModel,
+    ParticipantTemporalExecutionContextModel,
+)
 from .random_stream import ParticipantStreamAddressModel
 
 _AUTONOMOUS_EXECUTION_V1 = "participant-autonomous-execution/v1"
@@ -107,6 +112,9 @@ class ParticipantActionResultModel(ContractModel):
     failure_class: ParticipantFailureClass | None = None
     observations: list[NonEmptyString] = Field(default_factory=list)
     resource_measurements: list[ParticipantResourceMeasurementModel] = Field(default_factory=list)
+    temporal_evidence: list[ParticipantTemporalEvidenceModel] = Field(
+        default_factory=list, max_length=256, exclude_if=lambda value: not value
+    )
     evidence_refs: list[NonEmptyString] = Field(default_factory=list)
     diagnostics: list[NonEmptyString] = Field(default_factory=list)
 
@@ -127,6 +135,9 @@ class ParticipantTemporalRuntimeContextModel(ContractModel):
     backend_disclosure_refs: list[NonEmptyString] = Field(default_factory=list)
     reset_boundary: NonEmptyString | None = None
     replay_boundary: NonEmptyString | None = None
+    shared_time: ParticipantTemporalExecutionContextModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class ParticipantAttributionCandidateModel(ContractModel):
@@ -249,6 +260,9 @@ class ParticipantBehaviorHistoryEventModel(ContractModel):
     attribution_edges: list[ParticipantAttributionEdgeModel] = Field(default_factory=list)
     outcome_interpretations: list[ParticipantOutcomeInterpretationRecordModel] = Field(default_factory=list)
     temporal_contexts: list[ParticipantTemporalRuntimeContextModel] = Field(default_factory=list)
+    temporal_assessments: list[ParticipantTemporalAssessmentModel] = Field(
+        default_factory=list, exclude_if=lambda value: not value
+    )
     activity_provenance: ParticipantActivityOccurrenceProvenanceModel | None = None
     details: ParticipantObservationDetailsModel = Field(default_factory=ParticipantObservationDetailsModel)
 

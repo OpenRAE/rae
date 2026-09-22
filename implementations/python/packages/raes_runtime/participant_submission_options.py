@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationReceipt
 from raes_processor.models import ParticipantBehaviorRuntime
 
@@ -57,6 +58,20 @@ def submit_bound_participant_action(
     request: ParticipantActionAdmissionRequest,
     options: ParticipantSubmissionOptions,
 ) -> OperationReceipt:
+    if any(context.shared_time is not None for context in request.temporal_contexts) or (
+        request.action_contract_address in participant_behavior.temporally_bound_action_addresses
+    ):
+        return control_plane._reject_submission(
+            domain=RuntimeDomain.PARTICIPANT,
+            message=(
+                "Explicit shared-time action bindings require the reference autonomous driver; manual submission "
+                "cannot bypass its temporal admission and evidence checks."
+            ),
+            idempotency_key=options.idempotency_key,
+            request_fingerprint=options.request_fingerprint,
+            identity=options.identity,
+            request={"operation": "participant-action", "participant_address": request.participant_address},
+        )
     if getattr(control_plane, "_crossing_policy_resolver", None) is not None:
         participant_runtime = control_plane._target.participant_runtime
         return execute_action_ingress_crossing(

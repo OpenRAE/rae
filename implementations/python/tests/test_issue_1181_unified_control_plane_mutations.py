@@ -779,9 +779,19 @@ def test_accepted_participant_execution_entry_reaches_the_shared_authority() -> 
         def control_execution(self, *_args: object) -> object:
             raise AssertionError("the admission probe must stop before backend execution")
 
-    target = create_stub_target()
+    from implementations.python.tests.test_dsl_437_benign_participant_execution import (
+        _autonomous_manifest,
+        _compiled,
+        _NativeParticipantRuntime,
+    )
+
+    runtime_model, _policy = _compiled()
     control_plane = RuntimeControlPlane(
-        replace(target, participant_runtime=ExecutionControlRuntime(target.participant_runtime)),  # type: ignore[arg-type]
+        replace(
+            create_stub_target(),
+            manifest=_autonomous_manifest(runtime_model),
+            participant_runtime=ExecutionControlRuntime(_NativeParticipantRuntime()),  # type: ignore[arg-type]
+        )
     )
     request = ParticipantExecutionControlRequestModel(
         execution_scope_ref="participant.execution.issue-1181",

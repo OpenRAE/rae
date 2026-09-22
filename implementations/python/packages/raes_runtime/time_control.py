@@ -245,6 +245,15 @@ class RuntimeTimeControlMixin:
         sync = getattr(self, "_sync_participant_execution_clock", None)
         sync_result = sync(method_name, str(args[0])) if sync is not None else None
         if sync_result is not None and not sync_result.success:
+            if method_name in {"advance", "jump", "resume"}:
+                # Due work may already have native effects. Preserve the consumed
+                # attempt and its evidence; portable rewind is not native rollback.
+                return ApplyResult(
+                    success=False,
+                    snapshot=sync_result.snapshot,
+                    diagnostics=[*result.diagnostics, *sync_result.diagnostics],
+                    changed_addresses=list(dict.fromkeys([*result.changed_addresses, *sync_result.changed_addresses])),
+                )
             self._snapshot = predecessor
             return ApplyResult(
                 success=False,

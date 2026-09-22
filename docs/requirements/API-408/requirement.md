@@ -6,7 +6,7 @@ type: INTERFACE
 priority: SHOULD
 wave: 2
 created_at: 2026-04-03T06:16:04.481738Z
-updated_at: 2026-06-21T06:15:21.734239Z
+updated_at: 2026-09-21T00:00:00Z
 ---
 
 # API-408 — Participant Observation And Retrieval Contracts
@@ -29,3 +29,4 @@ Requirement inventory expansion. Participant execution must be observable throug
 - TESTS → TEST `implementations/python/tests/test_participant_backend_contracts.py` (Participant retrieval-view fixture and schema tests)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane.py` (Runtime participant retrieval projection tests)
 - TESTS → TEST `implementations/python/tests/test_runtime_control_plane_api.py` (HTTP participant retrieval route tests)
+- TESTS → TEST `implementations/python/tests/test_act_614_temporal_durability.py` (Temporal assessments through history retrieval and durable readback)
