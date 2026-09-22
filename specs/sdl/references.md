@@ -256,6 +256,15 @@ relation's resolved point.
 
 ## 6. Machine-checkable reference-edge index
 
+Mixed-control and participant-inject rows in this index describe the current
+fixed-coordinate SDL fields. The
+[reusable semantic amendment](../formal/participant-semantics/reusable-mixed-control.md)
+requires a separate permission reference and exact occurrence-context join,
+acting-source controller authority, independent control/disclosure policy pins
+and typed order/time coordinates. These are adopted only through the explicit
+[producer/reader boundary](../../docs/migration/reusable-mixed-control.md), not
+by reinterpreting these existing reference rows or accepting undeclared fields.
+
 This index gives every cross-section or cross-declaration authoring reference a
 stable candidate-domain token. Registered node-runtime inventories and their
 local child edges remain governed by the family index in
