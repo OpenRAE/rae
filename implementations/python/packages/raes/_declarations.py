@@ -491,7 +491,6 @@ def build_declaration_index(
     _add_workflow_declarations(index, scenario)
     _add_forwarding_agent_declarations(index, scenario)
     _add_variation_member_declarations(index, scenario)
-
     if raise_on_collision:
         index.raise_for_collisions()
     return index

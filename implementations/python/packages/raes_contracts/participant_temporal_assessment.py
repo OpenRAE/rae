@@ -173,8 +173,10 @@ def _dwell_coverage_result(
             position = right
             holds = holds and interval.condition_holds
     valid = valid and position == end
+    if not valid:
+        return None
     return (
         ("met", "Continuous coverage attests the condition throughout the authored interval.")
-        if valid and holds
-        else (("missed", "The condition did not hold throughout the authored interval.") if valid else None)
+        if holds
+        else ("missed", "The condition did not hold throughout the authored interval.")
     )
