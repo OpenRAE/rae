@@ -20,12 +20,10 @@ from operation_supervision_model import (
 
 @pytest.mark.parametrize("supported,willing", [(False, True), (True, False), (False, False)])
 def test_required_guarantee_rejected_before_claim(supported: bool, willing: bool) -> None:
+    required = frozenset({"interrupt"})
+    capabilities = required if supported else frozenset()
     with pytest.raises(ValueError, match="admission"):
-        admit(
-            required=frozenset({"interrupt"}),
-            supported=frozenset({"interrupt"}) if supported else frozenset(),
-            willing=willing,
-        )
+        admit(required=required, supported=capabilities, willing=willing)
 
 
 def test_stopping_admission_does_not_interrupt_running_work() -> None:
@@ -35,8 +33,9 @@ def test_stopping_admission_does_not_interrupt_running_work() -> None:
     assert stopped.invocations == 1
     assert not stopped.quiescent
     assert stopped.cancel == "none"
+    admission_closed = stop_admission(admit())
     with pytest.raises(ValueError, match="admission"):
-        start(stop_admission(admit()))
+        start(admission_closed)
 
 
 def test_pre_dispatch_cancellation_wins_without_backend_invocation() -> None:
@@ -115,8 +114,9 @@ def test_completion_cancel_race_commits_only_one_terminal_result() -> None:
     running = start(admit())
     completed = settle(running, Evidence("complete", True, satisfies=True))
     assert supervise(completed, actor="operator") == completed
+    absent_after_terminal = Evidence("absent", True)
     with pytest.raises(ValueError, match="terminal"):
-        settle(completed, Evidence("absent", True), cancelled=True)
+        settle(completed, absent_after_terminal, cancelled=True)
     requested = supervise(running, actor="operator", reply="accepted")
     # An accepted request does not make an already-completed effect disappear.
     result = settle(requested, Evidence("complete", True, satisfies=True))
@@ -128,8 +128,9 @@ def test_duplicate_cancel_and_late_completion_do_not_reinvoke_or_rewrite() -> No
     requested = supervise(start(admit()), actor="operator")
     assert supervise(requested, actor="operator") == requested
     terminal = settle(requested, Evidence("unknown", False))
+    completed_after_terminal = Evidence("complete", True, satisfies=True)
     with pytest.raises(ValueError, match="terminal"):
-        settle(terminal, Evidence("complete", True, satisfies=True))
+        settle(terminal, completed_after_terminal)
     assert terminal.invocations == 1
     assert terminal.state == "INDETERMINATE"
     assert terminal.quarantined
@@ -137,8 +138,9 @@ def test_duplicate_cancel_and_late_completion_do_not_reinvoke_or_rewrite() -> No
 
 def test_stale_revision_cannot_publish_or_authorize_another_invocation() -> None:
     running = start(admit())
+    completed = Evidence("complete", True, satisfies=True)
     with pytest.raises(ValueError, match="revision"):
-        settle(running, Evidence("complete", True, satisfies=True), expected_revision=99)
+        settle(running, completed, expected_revision=99)
     assert running.invocations == 1
     assert running.state == "RUNNING"
 
@@ -240,9 +242,13 @@ def test_bounded_outcome_space_never_confuses_uncertainty_with_success_or_cancel
 
 
 def test_invalid_model_inputs_are_not_positive_evidence() -> None:
+    invented_effect = Evidence("invented", True)
+    running = start(admit())
     with pytest.raises(ValueError):
-        settle(start(admit()), Evidence("invented", True))
+        settle(running, invented_effect)
+    running = start(admit())
     with pytest.raises(ValueError):
-        supervise(start(admit()), actor="operator", reply="done")
+        supervise(running, actor="operator", reply="done")
+    terminal = replace(Operation(), state="FAILED")
     with pytest.raises(ValueError):
-        start(replace(Operation(), state="FAILED"))
+        start(terminal)
