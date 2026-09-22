@@ -16,7 +16,7 @@ import nox
 
 nox.options.default_venv_backend = "none"
 nox.options.reuse_existing_virtualenvs = True
-nox.options.sessions = ["verify"]
+nox.options.sessions = ["verify-fast-feedback"]
 
 REPO_ROOT = Path(__file__).resolve().parent
 import sys
@@ -283,7 +283,7 @@ def hook_pre_commit(session: nox.Session) -> None:
         elif _paths_trigger(changed, FULL_TEST_TRIGGER_PREFIXES):
             reporter.skip(
                 "tests / pytest",
-                "no directly changed test module; full regression runs at pre-push and completion",
+                "no directly changed test module; select relevant tests explicitly; full regression runs in CI/CD",
             )
         elif _paths_trigger(changed, TOOLING_TEST_TRIGGER_PREFIXES):
             reporter.run(
@@ -323,7 +323,7 @@ def verify_fast_feedback(session: nox.Session) -> None:
 
 @nox.session(name="verify-changed")
 def verify_changed(session: nox.Session) -> None:
-    """Run the fail-closed local gate selected from changes since the upstream ref."""
+    """Run targeted local feedback from the branch diff; never fall back to the full suite."""
 
     reporter = SessionReporter(session, "verify-changed")
     try:
@@ -457,6 +457,7 @@ def verify_coverage_reduce(session: nox.Session) -> None:
 
 @nox.session
 def verify(session: nox.Session) -> None:
+    """Full verification graph for CI/CD; local work uses targeted feedback."""
     reporter = SessionReporter(session, "verify")
     try:
         _run_parallel_verification(session, reporter, include_policy=True)
@@ -466,10 +467,10 @@ def verify(session: nox.Session) -> None:
 
 @nox.session(name="verify-completion")
 def verify_completion(session: nox.Session) -> None:
-    """Run the completion graph whose Ground Control pair runs policy next."""
+    """Run targeted local completion feedback; full completion verification belongs to CI/CD."""
 
     reporter = SessionReporter(session, "verify-completion")
     try:
-        _run_parallel_verification(session, reporter, include_policy=False)
+        _run_fast_feedback(session, reporter, list(session.posargs))
     finally:
         reporter.summary()

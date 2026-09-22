@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-20T00:00:00.000000Z
+updated_at: 2026-09-22T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -41,6 +41,11 @@ claims, exclusive owner-lease admission, strict persisted carriers, and startup
 classification without automatic effect replay. The corresponding runtime
 guarantee identifiers are `durable-state`, `retained-idempotency`,
 `lease-admission`, and `startup-reconciliation`.
+
+Durability and a retained idempotency claim shall not authorize another
+invocation, continuation, termination or new trial. Such choices remain governed
+by admitted authored requirements and the existing workflow, time and trial
+authorities; an unsupported or refused required guarantee shall not be weakened.
 
 ### API-404-C3 — Served transport control
 
@@ -78,7 +83,33 @@ identity, crash-persistent local control, and authenticated served admission.
 ADR-104 and the FM3 model define the architecture; landed code and automated
 tests provide implementation evidence.
 
+## Supervision interpretation and fulfillment boundary
+
+The [ADR-104 supervision supplement](../../../specs/formal/runtime-control-plane/supervision.md)
+defines the design interpretation adopted by issue #1348. C1's single authority
+serializes state mutation; it does not require holding the supervision permit
+through external execution. Cancellation request, backend acceptance/refusal,
+established cessation, terminal operation outcome and independent cleanup are
+distinct. Atomic state publication and local CAS do not prove external fencing.
+C2's startup classification never supplies implicit replay or resumption.
+C3's bounded authenticated admission also constrains the designed supervisory
+path. C4's nonclaims remain applicable, including unavailable P3.
+
+The existing profile matrix is unchanged. API-404 remains ACTIVE for those
+implemented clauses; the supplement and its finite model establish design
+semantics only. They do not certify that current runtime calls or shutdown are
+bounded, that backend effects can be interrupted, or that a general continuation
+carrier exists. The [decision](../../decisions/issue-1348-operation-lifecycle.md)
+identifies those implementation gaps and the retained canonical requirements.
+
 ## Traceability
+
+- DOCUMENTS → GITHUB_ISSUE `1348` (Operation supervision decision; no new executable profile claim)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1348-operation-lifecycle-preflight.md` (Supervision architecture guardrails)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1348-operation-lifecycle.md` (Decision, requirement dispositions and implementation boundaries)
+- IMPLEMENTS → SPEC `specs/formal/runtime-control-plane/supervision.md` (Design interpretation of operation supervision and authored recovery choices)
+- TESTS → TEST `implementations/python/tests/operation_supervision_model.py` (Finite abstract model; no runtime conformance claim)
+- TESTS → TEST `implementations/python/tests/test_issue_1348_operation_supervision.py` (Bounded supervision and recovery counterexamples)
 
 - DOCUMENTS → GITHUB_ISSUE `8` (API-404: Secure, Durable, And Idempotent Control-Plane Semantics)
 - DOCUMENTS → GITHUB_ISSUE `1151` (design(runtime): define the runtime control-plane architecture)
