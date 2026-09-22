@@ -31,24 +31,16 @@ def _condition(value: object) -> str:
 def _secret_expressions(value: object) -> set[str]:
     expressions: set[str] = set()
     if isinstance(value, str):
-        expressions = (
-            {value} if "${{" in value and _SECRET.search(value) is not None else set()
-        )
+        expressions = {value} if "${{" in value and _SECRET.search(value) is not None else set()
     elif isinstance(value, Mapping):
-        expressions = set().union(
-            *(_secret_expressions(child) for child in value.values())
-        )
+        expressions = set().union(*(_secret_expressions(child) for child in value.values()))
     elif isinstance(value, list):
         expressions = set().union(*(_secret_expressions(child) for child in value))
     return expressions
 
 
-def _sonar_boundary(
-    path: str, name: str, job: Mapping[str, Any], workflows: Mapping[str, Any]
-) -> bool:
-    target = as_mapping(as_mapping(workflows.get(_CANONICAL)).get("jobs")).get(
-        "sonar", {}
-    )
+def _sonar_boundary(path: str, name: str, job: Mapping[str, Any], workflows: Mapping[str, Any]) -> bool:
+    target = as_mapping(as_mapping(workflows.get(_CANONICAL)).get("jobs")).get("sonar", {})
     guarded = _condition(as_mapping(target).get("if")) == _condition(_SONAR_GUARD)
     if path == _CANONICAL and name == "sonar":
         return guarded and _secret_expressions(job) == {"${{ secrets.sonar_token }}"}
@@ -62,9 +54,7 @@ def _sonar_boundary(
     )
 
 
-def _pin_failures(
-    path: str, step: Mapping[str, Any], workflows: Mapping[str, Any]
-) -> list[PolicyFailure]:
+def _pin_failures(path: str, step: Mapping[str, Any], workflows: Mapping[str, Any]) -> list[PolicyFailure]:
     uses = step.get("uses")
     if uses is None:
         return []
@@ -76,15 +66,7 @@ def _pin_failures(
         valid = _IMAGE_PIN.fullmatch(uses.removeprefix("docker://")) is not None
     else:
         valid = _ACTION_PIN.fullmatch(uses) is not None
-    failures = (
-        []
-        if valid
-        else [
-            failure(
-                "tooling-action-pin", "action must use an immutable source pin", path
-            )
-        ]
-    )
+    failures = [] if valid else [failure("tooling-action-pin", "action must use an immutable source pin", path)]
     if isinstance(uses, str) and uses.startswith("actions/checkout@"):
         if as_mapping(step.get("with")).get("persist-credentials") is not False:
             failures.append(
@@ -100,11 +82,7 @@ def _pin_failures(
 def _supplied_contract_invalid(supplied: object, declared: Mapping[str, Any]) -> bool:
     if not isinstance(supplied, Mapping):
         return True
-    required = {
-        name
-        for name, definition in declared.items()
-        if as_mapping(definition).get("required") is True
-    }
+    required = {name for name, definition in declared.items() if as_mapping(definition).get("required") is True}
     return bool(set(supplied) - set(declared) or required - set(supplied))
 
 
@@ -116,9 +94,7 @@ def _target_contract_invalid(target: Mapping[str, Any], job: Mapping[str, Any]) 
         return True
     call = as_mapping(triggers["workflow_call"])
     return any(
-        _supplied_contract_invalid(
-            job.get(supplied_key, {}), as_mapping(call.get(declared_key))
-        )
+        _supplied_contract_invalid(job.get(supplied_key, {}), as_mapping(call.get(declared_key)))
         for supplied_key, declared_key in (("with", "inputs"), ("secrets", "secrets"))
     )
 
@@ -145,8 +121,7 @@ def _permission_failures(
 ) -> list[PolicyFailure]:
     failures = []
     if not isinstance(permissions, Mapping) or any(
-        level not in {"read", "write", "none"}
-        for level in as_mapping(permissions).values()
+        level not in {"read", "write", "none"} for level in as_mapping(permissions).values()
     ):
         failures.append(
             failure(
@@ -156,8 +131,7 @@ def _permission_failures(
             )
         )
     elif untrusted and any(
-        level == "write" and not (merged_issue_boundary and scope == "issues")
-        for scope, level in permissions.items()
+        level == "write" and not (merged_issue_boundary and scope == "issues") for scope, level in permissions.items()
     ):
         failures.append(
             failure(
@@ -180,9 +154,7 @@ def _credential_failures(
 ) -> list[PolicyFailure]:
     failures = []
     workflow_secrets = _secret_expressions(workflow.get("env"))
-    exposed = workflow_secrets or (
-        _secret_expressions(job) and not _sonar_boundary(path, name, job, workflows)
-    )
+    exposed = workflow_secrets or (_secret_expressions(job) and not _sonar_boundary(path, name, job, workflows))
     if untrusted and exposed:
         failures.append(
             failure(
@@ -205,21 +177,13 @@ def _credential_failures(
 def _container_pin_failures(path: str, container: object) -> list[PolicyFailure]:
     if container is None:
         return []
-    image = (
-        container
-        if isinstance(container, str)
-        else as_mapping(container).get("image", "")
-    )
+    image = container if isinstance(container, str) else as_mapping(container).get("image", "")
     if not isinstance(image, str) or not _IMAGE_PIN.fullmatch(image):
-        return [
-            failure("tooling-action-pin", "container image must use a digest", path)
-        ]
+        return [failure("tooling-action-pin", "container image must use a digest", path)]
     return []
 
 
-def _job_input_failures(
-    path: str, job: Mapping[str, Any], workflows: Mapping[str, Any]
-) -> list[PolicyFailure]:
+def _job_input_failures(path: str, job: Mapping[str, Any], workflows: Mapping[str, Any]) -> list[PolicyFailure]:
     failures = _pin_failures(path, job, workflows)
     uses = job.get("uses")
     if isinstance(uses, str) and uses.startswith("./"):
@@ -250,9 +214,7 @@ def action_failures(
     for path, workflow in workflows.items():
         triggers = workflow.get("on", workflow.get(True, {}))
         events = set(triggers) if isinstance(triggers, (Mapping, list)) else {triggers}
-        untrusted = bool(
-            events & {"pull_request", "pull_request_target", "workflow_call"}
-        )
+        untrusted = bool(events & {"pull_request", "pull_request_target", "workflow_call"})
         if not isinstance(workflow.get("permissions"), Mapping):
             failures.append(
                 failure(
@@ -265,8 +227,7 @@ def action_failures(
             job = as_mapping(value)
             permissions = job.get("permissions", workflow.get("permissions"))
             protected = (
-                "pull_request_target" not in events
-                and _condition(job.get("if")) == "github.ref == 'refs/heads/main'"
+                "pull_request_target" not in events and _condition(job.get("if")) == "github.ref == 'refs/heads/main'"
             )
             failures.extend(
                 _permission_failures(
