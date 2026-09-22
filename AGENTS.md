@@ -2,6 +2,13 @@
 
 Use the repo policy tooling before and after implementation work.
 
+Run only targeted tests locally. Full test, integration, fuzz and completion
+suites run in CI/CD only, including after synchronization or reviewer fixes.
+Use explicit relevant pytest modules/cases or `verify-fast-feedback`; missing
+change classification is never permission to run the full suite locally.
+The default nox, `verify-changed`, pre-push and `verify-completion` paths provide
+targeted feedback. `verify` and full-suite lane commands are CI/CD entry points.
+
 ## Ground Control Context
 
 This repo's Ground Control project id, workflow commands, and plan

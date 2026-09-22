@@ -73,7 +73,7 @@ adrs:
         summary: "Superseded §6's no-SDL-episode-syntax non-goal for the joint episode+budget design (SEM-222/DSL-120/ACT-623, #122): DSL-120/ACT-623 add an authored episode-structure surface (init, turn structure, terminal/truncation conditions, reset policy) as intent compiling to the existing ParticipantEpisode* contracts; runtime identity, state/reason/action separation, and the schema-first boundary are unchanged."
   - id: ADR-014
     path: docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md
-    pin: 8cb99985ba00ec762412018872579560847f4f638e9bce36a718feaf07e02b82
+    pin: cecb6398e55a03fd5ec20c3768a1fe09b5c5fba302e878af0b19b4aa0f3d5afa
     amendments:
       - date: 2026-07-31
         ref: "#963"
@@ -84,6 +84,9 @@ adrs:
       - date: 2026-09-03
         ref: "#1164"
         summary: Split private nox helpers into an acyclic support package while retaining root noxfile.py as the sole public session registry and preserving coverage and static analysis.
+      - date: 2026-09-22
+        ref: "#1348"
+        summary: Restricted local defaults, pre-push, changed verification, and completion to targeted feedback; reserved full test suites for CI/CD, superseding earlier local full-regression obligations while preserving required CI and Sonar gates.
   - id: ADR-015
     path: docs/decisions/adrs/adr-015-sdl-processor-layering-and-source-file-size-cap.md
     pin: bc5038164e535c4d506962e27cee07e720f5c8a77cb17d018dedb3dba927936f
@@ -576,7 +579,7 @@ adrs:
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: 3add4adc0f82ce2837b737bb0d9d3e04cdd7df7fe5b921d294d703ce90c915b9
+    pin: 51c31488ec6c704a371833c8ce8c468df5976bb2fc0ca0ff5fa3e6fde77bad1f
     amendments:
       - date: 2026-09-03
         ref: "#1151"
@@ -587,6 +590,9 @@ adrs:
       - date: 2026-09-20
         ref: "#1189"
         summary: "Made profile declarations runtime-owned composition metadata, separated provider facts from guarantees, and fixed P2 and recovery-observation boundaries."
+      - date: 2026-09-22
+        ref: "#1348"
+        summary: "Defined shared-runtime supervision, effect reservations, evidence-based settlement and authored recovery choices while preserving profile and implementation nonclaims."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
     pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e

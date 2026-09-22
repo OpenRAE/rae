@@ -160,15 +160,16 @@ Run the change-aware local gate while iterating:
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-changed
 ```
 
-It selects from status-aware changes against the branch's upstream ref and
-fails closed to the full local gate when classification is uncertain. The
-lane is opt-in, not a commit or push hook. It does not weaken `verify`, which
-remains the unconditional pull-request gate.
+It runs changed-file checks and directly changed test modules against the
+branch's upstream ref. Uncertain classification never triggers a full local
+suite. Select relevant test modules or cases explicitly for source-only changes.
+Full test, integration, fuzz and completion suites run in CI/CD only. The
+unconditional `verify` graph remains a CI/CD entry point.
 
 Useful narrower sessions:
 
 ```shell
-uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s tests
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_runtime_models.py -q
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -l
 ```
