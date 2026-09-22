@@ -7,6 +7,9 @@ These encode the hard rules previously in `AGENTS.md` prose.
   run targeted tests and checks for the changed behavior locally. CI owns
   repository-wide verification, completion, and policy suites. Preserve the
   mandatory pre-publish hook, review, CI, SonarCloud, and readiness gates.
+- Local test and completion commands MUST remain targeted. Never select a full
+  test, integration or fuzz suite locally, even on unknown changes, source edits,
+  base synchronization or review repairs. Full verification is CI/CD only.
 - Plans MUST set `RAES_REQUIREMENT_UID` when the branch name does not
   already contain a UID such as `GOV-918`.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,

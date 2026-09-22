@@ -17,15 +17,18 @@ or unverified. It cannot run the proof lane; continuous integration does.
 
 ## Run verification
 
-The full pull-request gate is:
+Full test suites run in CI/CD only. Its full pull-request gate is:
 
 ```shell
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
 ```
 
-Use `verify-changed` while you work. It selects a fail-closed subset from the
-branch diff. Unknown, source, deleted, renamed, contract, and configuration
-changes run the full graph.
+Use `verify-fast-feedback` (also the default nox session) or `verify-changed`
+while you work. These run changed-file checks and directly changed test modules.
+Source, deleted, renamed, contract, configuration and unknown changes never
+trigger a full local suite. Select additional relevant pytest modules or cases
+explicitly when a changed test module does not cover the changed behavior.
+`verify-completion` uses the same targeted path; full completion runs in CI/CD.
 
 The docs session checks the curated source boundary, the RAES Vale style,
 warning-strict Sphinx HTML, generated route and search inventories, and links:
@@ -73,14 +76,10 @@ The advisory `fast-feedback` job gives early static/lint/policy and directly
 changed-test signal on pull requests. It is never a merge gate; the full-suite
 shards remain authoritative.
 
-To reproduce a failed CI shard locally, export the four values the failing job
-logged and re-run the same session:
+To reproduce a failure locally, select its reported module or test case:
 
 ```shell
-RAES_SHARD_COUNT=4 RAES_SHARD_INDEX=<index> \
-  RAES_VERIFY_COVERAGE_FILE="$PWD/.coverage.shard-<index>" \
-  RAES_SHARD_MANIFEST="$PWD/shard-<index>.json" \
-  uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify-shard
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_runtime_models.py -q
 ```
 
 Measure feedback latency for a cohort of runs with
