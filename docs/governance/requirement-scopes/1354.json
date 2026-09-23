@@ -1,0 +1,78 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 1354,
+  "primary_requirement_uid": "SEM-235",
+  "requirement_uids": [
+    "SEM-235",
+    "SEM-233"
+  ],
+  "bindings": {
+    "docs/decisions/adrs/README.md": [
+      "SEM-235"
+    ],
+    "docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md": [
+      "SEM-233"
+    ],
+    "docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md": [
+      "SEM-235"
+    ],
+    "docs/decisions/adrs/adr-113-ifc-profile-variability-and-publication.md": [
+      "SEM-235"
+    ],
+    "docs/decisions/adrs/adr-index.yaml": [
+      "SEM-235"
+    ],
+    "docs/decisions/issue-1354-ifc-profile-variability-preflight.md": [
+      "SEM-235"
+    ],
+    "docs/explain/reference/modular-participant-control-contracts.md": [
+      "SEM-235"
+    ],
+    "docs/governance/requirement-scopes/1354.json": [
+      "SEM-235"
+    ],
+    "docs/migration/ifc-profile-variability.md": [
+      "SEM-235"
+    ],
+    "docs/requirements/SEM-233/requirement.md": [
+      "SEM-233"
+    ],
+    "docs/requirements/SEM-235/requirement.md": [
+      "SEM-235"
+    ],
+    "docs/research/ifc-profile-variability/cases.md": [
+      "SEM-235"
+    ],
+    "implementations/python/tests/ifc_profile_variability_model.py": [
+      "SEM-235",
+      "SEM-233"
+    ],
+    "implementations/python/tests/test_issue_1354_governance.py": [
+      "SEM-235",
+      "SEM-233"
+    ],
+    "implementations/python/tests/test_issue_1354_ifc_profile_variability.py": [
+      "SEM-235",
+      "SEM-233"
+    ],
+    "specs/formal/participant-semantics/README.md": [
+      "SEM-235"
+    ],
+    "specs/formal/participant-semantics/adversarial-flow-control.md": [
+      "SEM-233"
+    ],
+    "specs/formal/participant-semantics/ifc-profile-variability.md": [
+      "SEM-235",
+      "SEM-233"
+    ],
+    "specs/formal/participant-semantics/modular-participant-control.md": [
+      "SEM-235"
+    ],
+    "tools/policy/historical_identity_records.json": [
+      "SEM-235"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "SEM-235"
+    ]
+  }
+}

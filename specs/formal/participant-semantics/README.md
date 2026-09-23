@@ -1,5 +1,11 @@
 # Participant Semantics Formal Design
 
+Issue #1354 and ADR-113 publish [IFC profile variability and publication](ifc-profile-variability.md).
+The amendment separates authored requirements, exact profile expressibility
+and evidenced realization, preserving this document's original revision and
+implementation boundary. It adds no registered owner-aware profile or runtime
+support; its migration contract governs future adoption.
+
 Issue #1352 and ADR-111 publish the
 [control applicability and evaluation amendment](control-applicability-and-evaluation.md)
 for SEM-235/API-424. Its bounded model tests the semantic decision; the linked

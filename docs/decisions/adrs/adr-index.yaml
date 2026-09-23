@@ -566,11 +566,14 @@ adrs:
     pin: b7e17e58fc01e8f07a972ee5abc65e6a8470e2a6d51c2480334a3777df079e98
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
-    pin: 7d613beae8ae50e3232a07be1eedd5db422f252a728f34597d0c5dac65086164
+    pin: f2482abc411d1ac00e22e97310a979e8c4f0e5d2536a970636dda6db9e0d4016
     amendments:
       - date: 2026-09-06
         ref: "#1068"
         summary: "Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal."
+      - date: 2026-09-23
+        ref: "#1354"
+        summary: "Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-113."
   - id: ADR-102
     path: docs/decisions/adrs/adr-102-mixed-cross-backend-participant-control.md
     pin: cfcb0f5b7291b47fe6ff6096bb18dd9063b83ee5d4f7f6a9cafbdd06f21bf716
@@ -622,11 +625,14 @@ adrs:
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
-    pin: 7df063f96f2732f10ba7a6129ea21ad40caa7fb5dfd2f3bbd9f9245cf05b3fff
+    pin: 590dbfba1b7e47b0f46271f38af4e2c56bb82d1265d193dbee6e532928e0a833
     amendments:
       - date: 2026-09-22
         ref: "#1352"
         summary: "Clarify applicability, dependency invocation, support and phase-independent parent decisions through ADR-111."
+      - date: 2026-09-23
+        ref: "#1354"
+        summary: "Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-113."
   - id: ADR-109
     path: docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md
     pin: 859172f6b8791577059a3215af639210e86267455c8a059f71168e621c0f9c61
@@ -643,3 +649,6 @@ adrs:
   - id: ADR-112
     path: docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md
     pin: 65e54addfb3a2dba74941f3c8030dec8c7a39661cc5aebb456e59c03af120ea3
+  - id: ADR-113
+    path: docs/decisions/adrs/adr-113-ifc-profile-variability-and-publication.md
+    pin: d5597eaad5df23dd012904fdd2454b13d051ee90c983bcc694342d21ba3e36b2

@@ -265,3 +265,4 @@ adr-108-modular-participant-control-and-governed-effects
 | [110](adr-110-reusable-mixed-control-policies-and-occurrences.md) | Reusable Mixed-Control Policies and Occurrences | accepted | 2026-09-22 |
 | [111](adr-111-control-applicability-and-effect-decisions.md) | Control Applicability and Effect Decisions | accepted | 2026-09-22 |
 | [112](adr-112-external-inject-triggering-and-execution.md) | External Inject Triggering and Execution | accepted | 2026-09-22 |
+| [113](adr-113-ifc-profile-variability-and-publication.md) | IFC Profile Variability and Publication | accepted | 2026-09-23 |

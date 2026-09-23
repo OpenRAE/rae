@@ -55,6 +55,23 @@ They do not all have information-flow labels.
 
 ## Decision
 
+### Amendment: IFC profile variability and publication (#1354)
+
+[ADR-113](adr-113-ifc-profile-variability-and-publication.md) and
+[IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
+separate authored owner/guarantee requirements, published profile meaning and
+backend realization. Governed finite publication remains the extension route;
+no new owner syntax, policy interpreter or plugin facility is introduced.
+Independent obligations, conservative propagation, per-obligation release
+authority and immutable provenance remain mandatory. CA-04 governs admission;
+losing an admitted guarantee blocks the affected release. The published v1
+vocabulary and non-exact-support rejection remain unchanged.
+
+The amendment's [migration contract](../../migration/ifc-profile-variability.md)
+preserves historical profile/release interpretation and requires explicit
+consumer support before owner-aware or revised bounded-support claims. This
+semantic publication does not implement those consumers or certify a backend.
+
 ### Amendment: exact-cut applicability and effect decisions (#1352)
 
 [ADR-111](adr-111-control-applicability-and-effect-decisions.md) and
@@ -254,3 +271,4 @@ backend equivalence, or protection of opaque internals and undeclared channels.
 | Date | Reference | Change |
 | --- | --- | --- |
 | 2026-09-22 | #1352 | Clarify apparatus versus applicability, obligation coverage, typed dependency invocation, optional failure, required strength, atomic state and phase-independent parent decisions through ADR-111. |
+| 2026-09-23 | #1354 | Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-113. |

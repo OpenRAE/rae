@@ -614,6 +614,19 @@ ownership:
     - specs/sdl/materialization-attestation.md
     - specs/sdl/observability-and-evidence.md
   modular-control-semantics:
+    # Issue #1354 semantic publication and bounded evidence.
+    - docs/decisions/adrs/adr-113-ifc-profile-variability-and-publication.md
+    - docs/decisions/issue-1354-ifc-profile-variability-preflight.md
+    - docs/explain/reference/modular-participant-control-contracts.md
+    - docs/governance/requirement-scopes/1354.json
+    - docs/migration/ifc-profile-variability.md
+    - docs/research/ifc-profile-variability/cases.md
+    - implementations/python/tests/ifc_profile_variability_model.py
+    - implementations/python/tests/test_issue_1354_governance.py
+    - implementations/python/tests/test_issue_1354_ifc_profile_variability.py
+    - specs/formal/participant-semantics/ifc-profile-variability.md
+    - tools/policy/historical_identity_records.json
+    - tools/policy/requirement_order.yaml
     # Issue #1352 semantic-design publication; no expanded runtime ownership.
     - docs/decisions/adrs/README.md
     - docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
@@ -963,6 +976,9 @@ ownership:
     - implementations/python/packages/raes_runtime/participant_submission_options.py
     - implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py
   semantics-expansion:
+    # Issue #1354 semantic publication; formal specs/tests already belong here.
+    - docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
+    - docs/requirements/SEM-233/requirement.md
     - contracts/schemas/sdl
     # Shared description semantics and existing evidence lifecycle owners (SEM-218).
     - contracts/schemas/experiment-core/experiment-evidence-record-v1.json
