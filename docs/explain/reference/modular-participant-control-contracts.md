@@ -7,6 +7,39 @@ The architectural authority is ADR-108 at
 merged at `65ca8e41`. These contracts implement neither provider installation
 nor effect dispatch. RUN-320 remains the orchestration owner.
 
+## Applicability and dependency amendment (#1352)
+
+[ADR-111](../../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
+and [CA-01–CA-09](../../../specs/formal/participant-semantics/control-applicability-and-evaluation.md)
+define revised coverage, predecessor-input, state and parent/effect meaning.
+The v1 boundary documented below does not implement that amendment. In
+particular, its whole-selection applicability check cannot express disjoint
+sink subsets of one apparatus; profile presence alone does not prove required
+slot coverage; provider/v1 carries no fresh predecessor results; optional
+failures can block composition; and phase handling can mark a subsequent
+parent-targeted denial eligible. The existing verification map is bounded
+legacy evidence, not proof that those gaps are repaired.
+
+The amendment keeps the full admitted apparatus, records coverage at each cut,
+evaluates typed slot/stage dependencies, isolates genuinely optional failure,
+and separates unscheduled parent decisions from independently authorized
+effects. Its [worked cases](../../research/control-applicability/cases.md) and
+[migration contract](../../migration/control-applicability-and-evaluation.md)
+define the required interpretation and adoption checks. Existing schemas,
+provider/v1 and retained history keep their original meaning.
+
+## IFC variability amendment (#1354)
+
+[ADR-114](../../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
+and [IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
+define authored/profile/backend separation, per-obligation owner release and
+requirement-relative support. The exact present support table identifies the
+fixed security vocabulary, closed modular profile/fact union and current
+non-exact-support rejection. This amendment registers no profile and changes
+none of those consumers. Follow the
+[migration contract](../../migration/ifc-profile-variability.md) before claiming
+owner-aware interpretation or revised bounded-support adoption.
+
 ## Published boundaries
 
 | Contract | Meaning |

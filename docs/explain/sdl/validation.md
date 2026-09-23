@@ -27,8 +27,8 @@ RAES validators and is not claimed compatible with the OCR implementation.
 | `verify_features` | Dependency references exist. **Dependency cycle detection** via topological sort. |
 | `verify_conditions` | (Structural: command+interval XOR source — enforced by Pydantic) |
 | `verify_entities` | Event references on entities (including nested) exist. |
-| `verify_injects` | from-entity and to-entities reference existing (possibly nested) entities. |
-| `verify_events` | Condition and inject references exist. |
+| `verify_injects` | Paired `from_entity` and `to_entities`, when supplied, reference existing (possibly nested) entities. |
+| `verify_events` | Precondition assertion and inject references resolve. |
 | `verify_scripts` | Event references exist. Event times within script start/end bounds. |
 | `verify_stories` | Script references exist. |
 | `verify_roles` | Entity references in node roles resolve to flattened entity names. |
@@ -38,7 +38,9 @@ The former scoring-pipeline passes (`verify_metrics`, `verify_evaluations`,
 check) were removed with the `metrics`/`evaluations`/`tlos`/`goals` sections by
 [ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md). There is
 no longer a "references undefined metric/evaluation/TLO/goal" validation error;
-`conditions` remain the observable-state surface objective success references.
+`conditions` declare executable probes, while objective success references
+invariant/postcondition assertions over propositions. Event preconditions use
+precondition assertions; declaring a probe does not establish its truth.
 
 ### Extension passes
 
@@ -71,7 +73,7 @@ validation passes. See the [migration guide](../../migration/external-classifica
 | `verify_agents` | Entity references resolve. Starting accounts and initial-knowledge accounts exist in accounts section. Allowed subnets and initial-knowledge subnets must resolve to switch-backed infrastructure entries. Initial-knowledge hosts must resolve to compute nodes. Initial-knowledge services exist in `nodes.*.services[].name`. Interactive-access targets resolve to compute nodes; optional accounts resolve to the same compute node and participant starting accounts; concrete target/channel pairs are unique per participant. |
 | `verify_participant_behavior` | Agent action refs resolve to declared action contracts, observation-boundary refs resolve to declared boundaries, interaction refs resolve to declared actions or targetable state, and boundary view rules/transitions resolve to declared observable, hidden, or evidence refs. |
 | `verify_objectives` | Independent `owner` (entity) and `assigned_participant` (agent) references resolve, with at least one required. Actions always resolve to global action contracts and, when assigned, must also be available to that participant. Targets resolve to named scenario elements, including qualified service/ACL refs and section-qualified top-level refs. Ambiguous bare refs are rejected with qualified alternatives. Success criteria resolve to declared invariant/postcondition assertions. Optional windows share normalized analysis over stories/scripts/events/workflows/workflow-steps and fail closed on dangling or out-of-window refs. Objective dependencies must resolve and stay acyclic. |
-| `verify_workflows` | Workflow `start` and every referenced step must exist. `objective`/`retry` steps must reference declared objectives. Predicate refs must resolve to declared `conditions`/`objectives` (the scoring surfaces were removed per [ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md)), and step-state refs must resolve to prior executable steps whose state is guaranteed to be known before the predicate runs. Workflow graphs must be acyclic and fully reachable from `start`. Parallel joins must be explicit barriers, every explicit branch path must converge on the declared join, branch-local state remains scoped until the join, and post-join predicates may inspect only branch steps guaranteed on every path within their branch before the join. |
+| `verify_workflows` | Workflow `start` and every referenced step must exist. `objective`/`retry` steps must reference declared objectives. Predicate refs must resolve to declared precondition `assertions`/`objectives` (the scoring surfaces were removed per [ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md)), and step-state refs must resolve to prior executable steps whose state is guaranteed to be known before the predicate runs. Workflow graphs must be acyclic and fully reachable from `start`. Parallel joins must be explicit barriers, every explicit branch path must converge on the declared join, branch-local state remains scoped until the join, and post-join predicates may inspect only branch steps guaranteed on every path within their branch before the join. |
 | `verify_participant_outcomes` | Outcome interpretation source and target refs resolve for action contracts, objectives, and workflows. The SEM-215 `reward_signal` / `evaluation_result` interpretation layers remain a governed interpretation relation but no longer bind to any SDL `evaluations` section ([ADR-073](../../decisions/adrs/adr-073-scoring-reward-language-scope.md)); runtime conformance grounds emitted interpretation records in action results, event evidence, and participant episode history. |
 | `verify_variables` | Checks that full-value `${var}` placeholders and embedded `${var}` tokens reference declared variables. Structural validation of variable declaration names, typed defaults, and `allowed_values` still happens in the model/schema layer. |
 

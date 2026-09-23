@@ -1,0 +1,56 @@
+{
+  "schema": "rae.execution-experiment-cleanup/v1",
+  "profile": "catalyst-dev",
+  "region": "us-east-2",
+  "stack_name": "rae-1350-experiments-20260923",
+  "stack_status": "DELETE_COMPLETE",
+  "instance_launch_utc": "2026-09-23T02:21:38Z",
+  "stack_deletion_complete_utc": "2026-09-23T02:35:03Z",
+  "resources": {
+    "instance": "i-077968adda5c8517e",
+    "volume": "vol-08169e8000d3189a1",
+    "network_interface": "eni-09ff348f1eb4762f3",
+    "subnet": "subnet-0adc6d31269ad61d1",
+    "security_group": "sg-00d6cb6b32a857e89",
+    "role": "rae-1350-experiments-20260923-Role-jooMOFJuHj2R",
+    "instance_profile": "rae-1350-experiments-20260923-Profile-aDzafOad5qOF"
+  },
+  "verification": {
+    "instance": [
+      "terminated"
+    ],
+    "volume": [],
+    "interface": [],
+    "subnet": [],
+    "security_group": [],
+    "role": {
+      "result": "NoSuchEntity",
+      "exit_code": 254
+    },
+    "profile": {
+      "result": "NoSuchEntity",
+      "exit_code": 254
+    },
+    "default_subnets": [
+      {
+        "Id": "subnet-08827c5dbc4520d4c",
+        "Cidr": "172.31.0.0/20"
+      },
+      {
+        "Id": "subnet-0ebdef2813812d8df",
+        "Cidr": "172.31.16.0/20"
+      },
+      {
+        "Id": "subnet-00684b34f43fec00c",
+        "Cidr": "172.31.32.0/20"
+      }
+    ]
+  },
+  "notes": [
+    "Verified with direct EC2 and IAM reads after CloudFormation DELETE_COMPLETE.",
+    "Three original default VPC subnets remain unchanged.",
+    "Root disk and ENI deleted; public address was auto-assigned, no EIP allocation.",
+    "CloudFormation and SSM retain service history records; no live experiment resources remain.",
+    "Local experiment sources, evidence, and private lifecycle records retained."
+  ]
+}

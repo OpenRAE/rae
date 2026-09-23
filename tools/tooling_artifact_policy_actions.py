@@ -99,14 +99,47 @@ def _target_contract_invalid(target: Mapping[str, Any], job: Mapping[str, Any]) 
     )
 
 
-def _permission_failures(path: str, permissions: object, *, untrusted: bool) -> list[PolicyFailure]:
+def _merged_issue_boundary(triggers: object, job: Mapping[str, Any]) -> bool:
+    """Allow issue finalization after merge or an explicit maintainer dispatch."""
+
+    events = as_mapping(triggers)
+    return bool(
+        "pull_request" in events
+        and set(events) <= {"pull_request", "workflow_dispatch"}
+        and as_mapping(events["pull_request"]).get("types") == ["closed"]
+        and _condition(job.get("if"))
+        == "github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true"
+    )
+
+
+def _permission_failures(
+    path: str,
+    permissions: object,
+    *,
+    untrusted: bool,
+    merged_issue_boundary: bool = False,
+) -> list[PolicyFailure]:
     failures = []
     if not isinstance(permissions, Mapping) or any(
         level not in {"read", "write", "none"} for level in as_mapping(permissions).values()
     ):
-        failures.append(failure("tooling-action-permissions", "job permissions must be explicit and scoped", path))
-    elif untrusted and "write" in permissions.values():
-        failures.append(failure("tooling-action-permissions", "PR jobs cannot hold publishing permissions", path))
+        failures.append(
+            failure(
+                "tooling-action-permissions",
+                "job permissions must be explicit and scoped",
+                path,
+            )
+        )
+    elif untrusted and any(
+        level == "write" and not (merged_issue_boundary and scope == "issues") for scope, level in permissions.items()
+    ):
+        failures.append(
+            failure(
+                "tooling-action-permissions",
+                "PR jobs cannot hold publishing permissions",
+                path,
+            )
+        )
     return failures
 
 
@@ -124,10 +157,20 @@ def _credential_failures(
     exposed = workflow_secrets or (_secret_expressions(job) and not _sonar_boundary(path, name, job, workflows))
     if untrusted and exposed:
         failures.append(
-            failure("tooling-action-credentials", "PR job exposes a credential outside its reviewed boundary", path)
+            failure(
+                "tooling-action-credentials",
+                "PR job exposes a credential outside its reviewed boundary",
+                path,
+            )
         )
     if job.get("secrets") == "inherit":
-        failures.append(failure("tooling-action-credentials", "reusable workflows must name supplied secrets", path))
+        failures.append(
+            failure(
+                "tooling-action-credentials",
+                "reusable workflows must name supplied secrets",
+                path,
+            )
+        )
     return failures
 
 
@@ -146,7 +189,11 @@ def _job_input_failures(path: str, job: Mapping[str, Any], workflows: Mapping[st
     if isinstance(uses, str) and uses.startswith("./"):
         if _target_contract_invalid(as_mapping(workflows.get(uses[2:])), job):
             failures.append(
-                failure("tooling-reusable-workflow", "reusable call differs from its declared contract", path)
+                failure(
+                    "tooling-reusable-workflow",
+                    "reusable call differs from its declared contract",
+                    path,
+                )
             )
     for step in as_list(job.get("steps")):
         failures.extend(_pin_failures(path, as_mapping(step), workflows))
@@ -182,9 +229,23 @@ def action_failures(
             protected = (
                 "pull_request_target" not in events and _condition(job.get("if")) == "github.ref == 'refs/heads/main'"
             )
-            failures.extend(_permission_failures(path, permissions, untrusted=untrusted and not protected))
             failures.extend(
-                _credential_failures(path, str(name), job, workflow, workflows, untrusted=untrusted and not protected)
+                _permission_failures(
+                    path,
+                    permissions,
+                    untrusted=untrusted and not protected,
+                    merged_issue_boundary=_merged_issue_boundary(triggers, job),
+                )
+            )
+            failures.extend(
+                _credential_failures(
+                    path,
+                    str(name),
+                    job,
+                    workflow,
+                    workflows,
+                    untrusted=untrusted and not protected,
+                )
             )
             failures.extend(_job_input_failures(path, job, workflows))
     return failures

@@ -6,7 +6,7 @@ type: INTERFACE
 priority: MUST
 wave: 4
 created_at: 2026-09-06T00:00:00Z
-updated_at: 2026-09-20T00:00:00Z
+updated_at: 2026-09-22T00:00:00Z
 ---
 
 # API-424 — Participant-Control Provider, Composition and Effect Contracts
@@ -26,6 +26,19 @@ selection, open label/effect/metadata maps and backend-private state shall not
 be portable request authority. Backend declarations and effective support shall
 remain distinct from installed providers and realized effects.
 
+Revised contracts shall bind the complete admitted apparatus separately from
+exact-cut obligation coverage and applicable invocations; represent proven
+inapplicability and unresolved coverage explicitly; and carry typed immutable
+predecessor results into identified slot/stage invocations. Results shall bind
+those inputs and scoped state versions. Contracts shall distinguish false
+triggers from missing mandatory results, required input closure from advisory
+decision authority, and required support constraints from declared strength.
+Parent decisions, effect targets, execution prerequisites and independent
+consequences shall be separate, with deny/withhold invariant across phases.
+Version/protocol negotiation and historical readers shall preserve original
+decisions, claims, identities and consumed budgets under CA-01–CA-09 and the
+migration contract below.
+
 ## Rationale
 
 API-409/423 own incumbent operations and API-407/420 own capability/manifests.
@@ -38,10 +51,28 @@ SEM-233 resolver hook. This is a protocol boundary, not a plugin host.
 #1072 publishes the closed selection, evaluation and teaching-profile schemas,
 publication records, structural provider protocol, valid/invalid and contextual
 fixtures, and trusted-context validators against #1070's sem-235/rev1.
-ACTIVE is proposed in this delivery diff and becomes authoritative on merge.
+ACTIVE records that revision-1 publication.
 Contract validity does not install a provider or execute an effect.
 
+## Contract amendment and evidence boundary
+
+[ADR-111](../../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
+and [CA-01–CA-09](../../../specs/formal/participant-semantics/control-applicability-and-evaluation.md)
+define the #1352 contract amendment. ACTIVE records the accepted contract,
+not proof that the new clauses are implemented in the published v1 schemas or
+provider/v1. Existing code, schema and test links retain their original scope;
+the new model is bounded design evidence. The
+[migration contract](../../migration/control-applicability-and-evaluation.md)
+requires explicit coordinated producer/protocol/reader adoption and preserves
+legacy history without inventing new coverage or realization evidence.
+
 ## Traceability
+- IMPLEMENTS → GITHUB_ISSUE `1352` (Provider-input, applicability and effect contract decision)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/control-applicability-and-evaluation.md` (Required revised contract meaning; not new schema publication)
+- IMPLEMENTS → DOCUMENTATION `docs/migration/control-applicability-and-evaluation.md` (Producer/reader and retained-history contract)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/adrs/adr-111-control-applicability-and-effect-decisions.md` (Accepted-on-merge decision)
+- DOCUMENTS → DOCUMENTATION `docs/research/control-applicability/cases.md` (Worked cases and evidence limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1352_governance.py` (Real ownership and scope consumer)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/analysis-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/bundles/retest-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/execution-snapshot-v37.json` (Public-facade preservation and retained evidence after validator refactoring)
