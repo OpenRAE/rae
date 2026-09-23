@@ -1,12 +1,22 @@
 """The retained DBOS fixture exception must not hide other credentials."""
 
+import hashlib
 import json
 import subprocess
 from pathlib import Path
 
-from tools.gitleaks_tool import ensure_gitleaks
+import pytest
 
 
+def test_retained_experiment_sources_match_recorded_hashes() -> None:
+    research = Path(__file__).resolve().parents[3] / "docs/research/execution-architecture"
+    evidence = json.loads((research / "evidence.json").read_text(encoding="utf-8"))
+    for record in evidence["source_sha256"]:
+        expected, filename = record.split(maxsplit=1)
+        assert hashlib.sha256((research / "experiments" / filename).read_bytes()).hexdigest() == expected, filename
+
+
+@pytest.mark.integration
 def test_dbos_fixture_exception_preserves_secret_detection(tmp_path: Path) -> None:
     repo = Path(__file__).resolve().parents[3]
     scan = tmp_path / "scan"
@@ -24,9 +34,29 @@ def test_dbos_fixture_exception_preserves_secret_detection(tmp_path: Path) -> No
     elsewhere = scan / "other.py"
     elsewhere.write_text(known_fixture, encoding="utf-8")
     report = tmp_path / "report.json"
+    # The installer belongs to the frozen tooling closure, not the runtime's
+    # Python compatibility environment. Use the existing external-tool boundary.
+    installed = subprocess.run(
+        [
+            "uv",
+            "run",
+            "--project",
+            str(repo / "implementations/tooling/python"),
+            "--frozen",
+            "--no-default-groups",
+            "python",
+            "-c",
+            "from tools.gitleaks_tool import ensure_gitleaks; print(ensure_gitleaks())",
+        ],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=90,
+    )
     result = subprocess.run(
         [
-            str(ensure_gitleaks(repo)),
+            installed.stdout.strip(),
             "dir",
             "--config",
             str(repo / ".gitleaks.toml"),

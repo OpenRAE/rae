@@ -109,7 +109,7 @@ identifies those implementation gaps and the retained canonical requirements.
 - DOCUMENTS → DOCUMENTATION `docs/research/execution-architecture/execution-protocol.md` (Ledger/engine reconciliation, scoped worker authorization and conservative ownership recovery design)
 - DOCUMENTS → DOCUMENTATION `docs/research/execution-architecture/authored-retry-policy.md` (Contextual author failure/retry policy, scoped defaults and fresh-trial distinctions; public support requires implementation)
 - DOCUMENTS → DOCUMENTATION `docs/research/execution-architecture/experiment-report.md` (Bounded mechanism observations, not distributed conformance evidence)
-- TESTS → TEST `implementations/python/tests/test_issue_1350_fixture_secret_scan.py` (Design-evidence publication check: exact synthetic fixture exception preserves detection of other values, paths and rules; no runtime conformance claim)
+- TESTS → TEST `implementations/python/tests/test_issue_1350_fixture_secret_scan.py` (Design-evidence publication checks: retained experiment source hashes match their record, and the exact synthetic fixture exception preserves detection of other values, paths and rules through the real-scanner integration lane; no runtime conformance claim)
 
 - DOCUMENTS → GITHUB_ISSUE `1348` (Operation supervision decision; no new executable profile claim)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1348-operation-lifecycle-preflight.md` (Supervision architecture guardrails)
