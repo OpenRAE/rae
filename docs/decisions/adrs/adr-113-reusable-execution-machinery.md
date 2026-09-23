@@ -10,13 +10,17 @@ accepted
 
 ## Classification
 
-Classification: FM3. This is the architecture selection for issue #1350, under
+Classification: FM3
+
+Required artifacts: the architecture selection for issue #1350, under
 [ADR-104](adr-104-runtime-control-plane-architecture.md) and the
 [#1348 supervision semantics](../../../specs/formal/runtime-control-plane/supervision.md).
 The existing abstract supervision model supplies the semantic invariants;
 the [bounded experiments](../../research/execution-architecture/experiment-report.md)
-supply mechanism observations and counterexamples. Neither establishes a
-distributed refinement proof or production conformance. This decision selects
+supply mechanism observations and counterexamples.
+
+Waivers: neither evidence set establishes a distributed refinement proof or
+production conformance. This decision selects
 components and integration rules; it adds no runtime dependency, published
 carrier, selectable profile or executable guarantee. P3 remains unavailable.
 

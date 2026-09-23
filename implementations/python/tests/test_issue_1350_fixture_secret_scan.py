@@ -26,11 +26,23 @@ def test_dbos_fixture_exception_preserves_secret_detection(tmp_path: Path) -> No
     report = tmp_path / "report.json"
     result = subprocess.run(
         [
-            str(ensure_gitleaks(repo)), "dir", "--config", str(repo / ".gitleaks.toml"),
-            "--no-banner", "--redact", "--log-level", "error", "--report-format", "json",
-            "--report-path", str(report), str(scan),
+            str(ensure_gitleaks(repo)),
+            "dir",
+            "--config",
+            str(repo / ".gitleaks.toml"),
+            "--no-banner",
+            "--redact",
+            "--log-level",
+            "error",
+            "--report-format",
+            "json",
+            "--report-path",
+            str(report),
+            str(scan),
         ],
-        capture_output=True, check=False, timeout=30,
+        capture_output=True,
+        check=False,
+        timeout=30,
     )
     assert result.returncode == 1
     findings = json.loads(report.read_text(encoding="utf-8"))
