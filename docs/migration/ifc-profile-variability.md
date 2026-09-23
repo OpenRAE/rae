@@ -1,6 +1,6 @@
 # IFC profile variability migration
 
-This is the adoption contract for [ADR-113](../decisions/adrs/adr-113-ifc-profile-variability-and-publication.md)
+This is the adoption contract for [ADR-114](../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
 and [IFC-01–IFC-07](../../specs/formal/participant-semantics/ifc-profile-variability.md).
 It publishes no converter, schema, profile artifact or deprecation window.
 

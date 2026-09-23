@@ -1,6 +1,6 @@
 # SEM-233 And ASR-536 Adversarial Participant Flow Control
 
-Issue #1354 and ADR-113 publish [IFC profile variability and publication](ifc-profile-variability.md).
+Issue #1354 and ADR-114 publish [IFC profile variability and publication](ifc-profile-variability.md).
 The amendment separates authored requirements, exact profile expressibility
 and evidenced realization, preserving this document's original revision and
 implementation boundary. It adds no registered owner-aware profile or runtime

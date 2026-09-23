@@ -32,7 +32,7 @@ SEM-230 and the current action, control, crossing, and runtime authorities defin
 
 ## IFC publication amendment and evidence boundary
 
-[ADR-113](../../decisions/adrs/adr-113-ifc-profile-variability-and-publication.md)
+[ADR-114](../../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
 and [IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
 publish the #1354 semantic amendment, authoritative on merge. Existing ACTIVE
 status and implementation/test links retain their original fulfillment scope.
@@ -45,7 +45,7 @@ met before claiming those meanings across contracts, live state or history.
 
 - IMPLEMENTS → GITHUB_ISSUE `1354` (IFC variability semantic decision; no runtime adoption)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/ifc-profile-variability.md` (IFC-01–IFC-07 semantic publication)
-- IMPLEMENTS → ADR `docs/decisions/adrs/adr-113-ifc-profile-variability-and-publication.md` (Accepted-on-merge publication decision)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-114-ifc-profile-variability-and-publication.md` (Accepted-on-merge publication decision)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1354-ifc-profile-variability-preflight.md` (Architecture constraints and current support limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/ifc-profile-variability/cases.md` (Worked cases and bounded evidence)
 - IMPLEMENTS → DOCUMENTATION `docs/migration/ifc-profile-variability.md` (Interpretation, conversion and adoption obligations)

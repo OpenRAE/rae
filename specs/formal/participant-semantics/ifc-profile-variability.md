@@ -1,7 +1,7 @@
 # IFC profile variability and publication
 
 Semantic amendment: `ifc-profile-variability/rev1`, owned by SEM-233 and
-SEM-235, issue #1354 and [ADR-113](../../../docs/decisions/adrs/adr-113-ifc-profile-variability-and-publication.md).
+SEM-235, issue #1354 and [ADR-114](../../../docs/decisions/adrs/adr-114-ifc-profile-variability-and-publication.md).
 This defines publication and support obligations. It registers no new portable
 profile, authoring syntax, provider protocol or runtime behavior. The original
 `sem-233/rev1`, `sem-235/rev1` and their published artifacts retain their meaning.

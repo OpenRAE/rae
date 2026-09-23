@@ -57,7 +57,7 @@ They do not all have information-flow labels.
 
 ### Amendment: IFC profile variability and publication (#1354)
 
-[ADR-113](adr-113-ifc-profile-variability-and-publication.md) and
+[ADR-114](adr-114-ifc-profile-variability-and-publication.md) and
 [IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
 separate authored owner/guarantee requirements, published profile meaning and
 backend realization. Governed finite publication remains the extension route;
@@ -271,4 +271,5 @@ backend equivalence, or protection of opaque internals and undeclared channels.
 | Date | Reference | Change |
 | --- | --- | --- |
 | 2026-09-22 | #1352 | Clarify apparatus versus applicability, obligation coverage, typed dependency invocation, optional failure, required strength, atomic state and phase-independent parent decisions through ADR-111. |
-| 2026-09-23 | #1354 | Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-113. |
+| 2026-09-23 | #1354 | Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-114. |
+| 2026-09-24 | #1383 | Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged. |

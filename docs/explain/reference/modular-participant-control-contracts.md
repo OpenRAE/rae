@@ -30,7 +30,7 @@ provider/v1 and retained history keep their original meaning.
 
 ## IFC variability amendment (#1354)
 
-[ADR-113](../../decisions/adrs/adr-113-ifc-profile-variability-and-publication.md)
+[ADR-114](../../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
 and [IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
 define authored/profile/backend separation, per-obligation owner release and
 requirement-relative support. The exact present support table identifies the

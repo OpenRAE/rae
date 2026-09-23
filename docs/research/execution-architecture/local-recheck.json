@@ -1,0 +1,702 @@
+{
+  "schema": "rae.execution-experiment-local-recheck/v1",
+  "date": "2026-09-23",
+  "python": "3.14.4",
+  "platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.39",
+  "packages": {
+    "anyio": "4.15.1",
+    "dbos": "3.0.0",
+    "temporalio": "1.33.0",
+    "simpy": "4.1.2"
+  },
+  "commands": [
+    {
+      "args": [
+        "-m",
+        "unittest",
+        "test_witness",
+        "-v"
+      ],
+      "returncode": 0
+    },
+    {
+      "args": [
+        "probe_workers.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "args": [
+        "probe_simpy.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "args": [
+        "probe_dbos.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "args": [
+        "probe_temporal.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "args": [
+        "probe_publication.py"
+      ],
+      "returncode": 0
+    }
+  ],
+  "source_sha256": {
+    "probe_temporal.py": "7b12c63f91a0a138553acd7c2f5bad4b0016804581e68eba19caf0604a746517",
+    "temporal_worker.py": "56529d06d2a23fc4c6d4d20968744e6805a71b45c46b61009277609886f44592",
+    "test_witness.py": "d6613b18a645861fd6b7322e1650a62b237b6be5e64d9a93f00aae02abd7ac69",
+    "witness.py": "26c63959b52ea4c6f4e77902a9a18acf0ba97304dd91f7a9ff6feac4571ce51f",
+    "dbos_worker.py": "113dbc62df2be37924b124ee2c2abdaea7e0ea35a15d8beb5c928d5e49aaca2c",
+    "probe_dbos.py": "0533b361058deb1813d8e364b04eef27ab35aa692b0474eae9e98cf814adbc68",
+    "probe_ray.py": "982ed3fe873176f5a4ba3b0c30d8d9c823fdd593af62e6e643f17fac7d1dee9f",
+    "probe_simpy.py": "9335ab9b9129ddb6cea683a0e94cc35c3ca7d3a868216fe80c9fac617ba30861",
+    "probe_ros.py": "46f1409a772f007a4dcf788c77821ed870cc80f74e5ee5d75f7c6bee555e2c1b",
+    "probe_workers.py": "85e03d1d1f43e560e67dc5eba57fb80a016391ebdd4dc83cc9354d78988dc788",
+    "probe_publication.py": "d874b4c6ba98e7999ee1cbcfc3379917ac70a3cae9f527f873ef16737acc6b61"
+  },
+  "results": {
+    "dbos-r2-guarded-worker": {
+      "result": "indeterminate-no-second-invocation",
+      "status": "SUCCESS"
+    },
+    "dbos": {
+      "unguarded": {
+        "worker_crash_exit": 73,
+        "after_crash": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240221.53309358
+            ],
+            [
+              "effect",
+              11240221.533158053
+            ]
+          ],
+          "caller_pids": [
+            3450563
+          ]
+        },
+        "after_recovery": {
+          "requests": 2,
+          "effects": 2,
+          "events": [
+            [
+              "request",
+              11240221.53309358
+            ],
+            [
+              "effect",
+              11240221.533158053
+            ],
+            [
+              "request",
+              11240223.071707277
+            ],
+            [
+              "effect",
+              11240223.071775736
+            ]
+          ],
+          "caller_pids": [
+            3450563,
+            3450599
+          ]
+        },
+        "worker": {
+          "result": "effect-returned",
+          "status": "SUCCESS"
+        }
+      },
+      "guarded": {
+        "worker_crash_exit": 73,
+        "after_crash": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240226.248305984
+            ],
+            [
+              "effect",
+              11240226.248369824
+            ]
+          ],
+          "caller_pids": [
+            3450654
+          ]
+        },
+        "after_recovery": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240226.248305984
+            ],
+            [
+              "effect",
+              11240226.248369824
+            ]
+          ],
+          "caller_pids": [
+            3450654
+          ]
+        },
+        "worker": {
+          "result": "indeterminate-no-second-invocation",
+          "status": "SUCCESS"
+        }
+      },
+      "cancellation": {
+        "at_cancel": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11240231.077331567
+            ]
+          ],
+          "caller_pids": [
+            3451565
+          ]
+        },
+        "status_after_cancel": "CANCELLED",
+        "later": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240231.077331567
+            ],
+            [
+              "effect",
+              11240231.87742288
+            ]
+          ],
+          "caller_pids": [
+            3451565
+          ]
+        },
+        "following_step_executed": false
+      }
+    },
+    "anyio": {
+      "thread": {
+        "at_cancel": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11240216.585383965
+            ]
+          ],
+          "caller_pids": [
+            3450452
+          ]
+        },
+        "local_cancel_return_seconds": 0.0007227752357721329,
+        "after_local_cancel": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11240216.585383965
+            ]
+          ],
+          "caller_pids": [
+            3450452
+          ]
+        },
+        "caller_process_alive_after_cancel": true,
+        "later": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240216.585383965
+            ],
+            [
+              "effect",
+              11240217.28547216
+            ]
+          ],
+          "caller_pids": [
+            3450452
+          ]
+        }
+      },
+      "process": {
+        "at_cancel": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11240217.595452571
+            ]
+          ],
+          "caller_pids": [
+            3450470
+          ]
+        },
+        "local_cancel_return_seconds": 0.00459783710539341,
+        "after_local_cancel": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11240217.595452571
+            ]
+          ],
+          "caller_pids": [
+            3450470
+          ]
+        },
+        "caller_process_alive_after_cancel": false,
+        "later": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240217.595452571
+            ],
+            [
+              "effect",
+              11240218.29551064
+            ]
+          ],
+          "caller_pids": [
+            3450470
+          ]
+        }
+      },
+      "saturation": {
+        "shared_capacity_control_expired": true,
+        "separate_capacity_status": "status",
+        "witness_at_separate_status": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11240218.505874995
+            ]
+          ],
+          "caller_pids": [
+            3450452
+          ]
+        }
+      }
+    },
+    "temporal": {
+      "temporal-crash-2": {
+        "worker_crash_exit": 73,
+        "after_crash": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240235.445636837
+            ],
+            [
+              "effect",
+              11240235.445696658
+            ]
+          ],
+          "caller_pids": [
+            3452296
+          ]
+        },
+        "after_recovery": {
+          "requests": 2,
+          "effects": 2,
+          "events": [
+            [
+              "request",
+              11240235.445636837
+            ],
+            [
+              "effect",
+              11240235.445696658
+            ],
+            [
+              "request",
+              11240238.451852543
+            ],
+            [
+              "effect",
+              11240238.451910865
+            ]
+          ],
+          "caller_pids": [
+            3452296,
+            3452363
+          ]
+        },
+        "result": "effect-returned"
+      },
+      "temporal-crash-1": {
+        "worker_crash_exit": 73,
+        "after_crash": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240248.785291463
+            ],
+            [
+              "effect",
+              11240248.785349553
+            ]
+          ],
+          "caller_pids": [
+            3452980
+          ]
+        },
+        "after_recovery": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240248.785291463
+            ],
+            [
+              "effect",
+              11240248.785349553
+            ]
+          ],
+          "caller_pids": [
+            3452980
+          ]
+        },
+        "error_type": "WorkflowFailureError"
+      },
+      "temporal-cancel-uncooperative": {
+        "at_cancel": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11240261.121049624
+            ]
+          ],
+          "caller_pids": [
+            3453487
+          ]
+        },
+        "later": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11240261.121049624
+            ],
+            [
+              "effect",
+              11240261.921132945
+            ]
+          ],
+          "caller_pids": [
+            3453487
+          ]
+        },
+        "settlement_seconds": 0.8042703829705715,
+        "workflow_status": "COMPLETED",
+        "result": "effect-returned"
+      },
+      "temporal-cancel-cooperative": {
+        "at_cancel": {
+          "requests": 0,
+          "effects": 0,
+          "events": [],
+          "caller_pids": []
+        },
+        "later": {
+          "requests": 0,
+          "effects": 0,
+          "events": [],
+          "caller_pids": []
+        },
+        "settlement_seconds": 0.05188502557575703,
+        "workflow_status": "CANCELED",
+        "error_type": "WorkflowFailureError"
+      }
+    },
+    "simpy": {
+      "paused_virtual_time": 0,
+      "apparatus_elapsed_seconds": 0.10007679834961891,
+      "interrupt_trace": [
+        [
+          "interrupted",
+          0
+        ]
+      ],
+      "blocking_callback_holds_step": true
+    },
+    "dbos-r2-cancel-worker": {
+      "at_cancel": {
+        "requests": 1,
+        "effects": 0,
+        "events": [
+          [
+            "request",
+            11240231.077331567
+          ]
+        ],
+        "caller_pids": [
+          3451565
+        ]
+      },
+      "status_after_cancel": "CANCELLED",
+      "later": {
+        "requests": 1,
+        "effects": 1,
+        "events": [
+          [
+            "request",
+            11240231.077331567
+          ],
+          [
+            "effect",
+            11240231.87742288
+          ]
+        ],
+        "caller_pids": [
+          3451565
+        ]
+      },
+      "following_step_executed": false
+    },
+    "publication": {
+      "race": [
+        {
+          "requested": "CANCELLED",
+          "won": true
+        },
+        {
+          "requested": "SUCCEEDED",
+          "won": false
+        }
+      ],
+      "terminal": [
+        "CANCELLED",
+        1
+      ],
+      "audit": [
+        [
+          "CANCELLED"
+        ]
+      ],
+      "lost_ack_readback": [
+        "SUCCEEDED",
+        1
+      ],
+      "scope": "SQLite toy transaction boundary; no external fencing claim"
+    },
+    "dbos-r2-unguarded-worker": {
+      "result": "effect-returned",
+      "status": "SUCCESS"
+    }
+  },
+  "temporal_environment": {
+    "cli": "1.9.1",
+    "server": "1.32.0",
+    "persistence": "in-memory",
+    "loss_boundary": "worker process only",
+    "workflow_runner": "UnsandboxedWorkflowRunner"
+  },
+  "verified_temporal_followup": {
+    "command": "timeout 150 python verify_temporal.py",
+    "returncode": 0,
+    "python": "3.14.4",
+    "packages": {
+      "anyio": "4.15.1",
+      "dbos": "3.0.0",
+      "temporalio": "1.33.0",
+      "simpy": "4.1.2"
+    },
+    "temporal_environment": {
+      "cli": "1.9.1",
+      "server": "1.32.0",
+      "persistence": "in-memory",
+      "loss_boundary": "worker process only",
+      "workflow_runner": "UnsandboxedWorkflowRunner"
+    },
+    "source_sha256": {
+      "witness.py": "26c63959b52ea4c6f4e77902a9a18acf0ba97304dd91f7a9ff6feac4571ce51f",
+      "temporal_worker.py": "56529d06d2a23fc4c6d4d20968744e6805a71b45c46b61009277609886f44592",
+      "probe_temporal.py": "7b12c63f91a0a138553acd7c2f5bad4b0016804581e68eba19caf0604a746517",
+      "verify_temporal.py": "628ca0bd7ca28930d46ed1475d5ac38e379e0839df2c2727c5e34bdb5938ba14",
+      "test_temporal_verification.py": "813620aad181c67b2491e849020ee4f9cc41804386140d29bb4a0e6dc6ef212c"
+    },
+    "negative_control_tests": {
+      "test_module": "test_temporal_verification",
+      "passed": 4,
+      "before_fix": "Effect-only verification incorrectly accepted all four injected timeouts and a cooperative completion without cancellation."
+    },
+    "results": {
+      "temporal-crash-2": {
+        "worker_crash_exit": 73,
+        "after_crash": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11241669.679975357
+            ],
+            [
+              "effect",
+              11241669.680008808
+            ]
+          ],
+          "caller_pids": [
+            3495544
+          ]
+        },
+        "after_recovery": {
+          "requests": 2,
+          "effects": 2,
+          "events": [
+            [
+              "request",
+              11241669.679975357
+            ],
+            [
+              "effect",
+              11241669.680008808
+            ],
+            [
+              "request",
+              11241672.686307032
+            ],
+            [
+              "effect",
+              11241672.686372045
+            ]
+          ],
+          "caller_pids": [
+            3495544,
+            3495599
+          ]
+        },
+        "result": "effect-returned"
+      },
+      "temporal-crash-1": {
+        "worker_crash_exit": 73,
+        "after_crash": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11241682.999058144
+            ],
+            [
+              "effect",
+              11241682.999115843
+            ]
+          ],
+          "caller_pids": [
+            3495768
+          ]
+        },
+        "after_recovery": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11241682.999058144
+            ],
+            [
+              "effect",
+              11241682.999115843
+            ]
+          ],
+          "caller_pids": [
+            3495768
+          ]
+        },
+        "error_type": "WorkflowFailureError"
+      },
+      "temporal-cancel-uncooperative": {
+        "at_cancel": {
+          "requests": 1,
+          "effects": 0,
+          "events": [
+            [
+              "request",
+              11241695.3042283
+            ]
+          ],
+          "caller_pids": [
+            3496116
+          ]
+        },
+        "later": {
+          "requests": 1,
+          "effects": 1,
+          "events": [
+            [
+              "request",
+              11241695.3042283
+            ],
+            [
+              "effect",
+              11241696.10431067
+            ]
+          ],
+          "caller_pids": [
+            3496116
+          ]
+        },
+        "settlement_seconds": 0.8040521163493395,
+        "workflow_status": "COMPLETED",
+        "result": "effect-returned"
+      },
+      "temporal-cancel-cooperative": {
+        "at_cancel": {
+          "requests": 0,
+          "effects": 0,
+          "events": [],
+          "caller_pids": []
+        },
+        "later": {
+          "requests": 0,
+          "effects": 0,
+          "events": [],
+          "caller_pids": []
+        },
+        "settlement_seconds": 0.07258031889796257,
+        "workflow_status": "CANCELED",
+        "error_type": "WorkflowFailureError"
+      }
+    }
+  }
+}

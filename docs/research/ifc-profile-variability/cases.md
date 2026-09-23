@@ -1,6 +1,6 @@
 # IFC profile variability: cases and evidence
 
-This is the bounded evidence record for [ADR-113](../../decisions/adrs/adr-113-ifc-profile-variability-and-publication.md)
+This is the bounded evidence record for [ADR-114](../../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
 and [IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md).
 The examples use synthetic owners and references, not proposed SDL syntax or
 new registered profile artifacts.
@@ -78,7 +78,7 @@ grant cases exposed the missing grant binding before its repair.
 | Issue: authored/profile/backend distinctions and owner-qualified cases | IFC-01–02; owner encoding, audience intersection and selective release tests. |
 | Issue: unsupported expression/realization and admitted strength versus weakening | IFC-04–05 and support tests; CA-04 remains the canonical satisfaction relation. |
 | Issue: conservative propagation, independent coordinates, release authority and provenance | IFC-02–03; scoped grant, endorsement, retained-memory tests and incumbent SEM-233 behavioral tests. |
-| Issue: accepted decision, exact limits, requirement/ADR amendments and migration | ADR-113, IFC-06–07, SEM-233/235 and ADR-101/108 amendments; actual profile rejection, ownership/scope and ADR pin checks. |
+| Issue: accepted decision, exact limits, requirement/ADR amendments and migration | ADR-114, IFC-06–07, SEM-233/235 and ADR-101/108 amendments; actual profile rejection, ownership/scope and ADR pin checks. |
 | SEM-233: independent coordinates, propagation, authority distinctions and final-sink contract | Incumbent adversarial-flow-control.md and its existing contract/runtime links remain authoritative; IFC-01–07 clarify expressibility and publication without changing those implementations. |
 | SEM-235: revisioned domains, joins, defaults, memory, release and finite composition | Incumbent MPC-01–MPC-15 remain; IFC-01–03/06 specialize publication limits and retain non-security domains. |
 | SEM-235: coverage, dependencies, advice, bounded support, atomic state and effects | CA-01–CA-09 remain; IFC-04–05 explicitly compose with them. Existing #1352 finite witnesses exercise those retained clauses; no runtime fulfillment upgrade. |

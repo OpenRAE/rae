@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(rae1350_bt_probe LANGUAGES CXX)
+find_package(behaviortree_cpp REQUIRED)
+add_executable(probe_bt probe_bt.cpp)
+target_compile_features(probe_bt PRIVATE cxx_std_17)
+target_link_libraries(probe_bt PRIVATE behaviortree_cpp::behaviortree_cpp)
