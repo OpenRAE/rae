@@ -97,12 +97,15 @@ def sink(confidentiality, integrity):
 def test_finite_owner_encoding_admits_only_evidenced_coverage():
     assert admit(REQUIREMENT, ENCODING, SUPPORT) == SUPPORT
     for missing in REQUIREMENT.coverage:
+        incomplete = replace(SUPPORT, coverage=SUPPORT.coverage - {missing})
         with pytest.raises(UnsupportedFlow, match="realization"):
-            admit(REQUIREMENT, ENCODING, replace(SUPPORT, coverage=SUPPORT.coverage - {missing}))
+            admit(REQUIREMENT, ENCODING, incomplete)
+    unresolved = replace(SUPPORT, resolved=False)
     with pytest.raises(UnsupportedFlow, match="realization"):
-        admit(REQUIREMENT, ENCODING, replace(SUPPORT, resolved=False))
+        admit(REQUIREMENT, ENCODING, unresolved)
+    no_guarantees = replace(SUPPORT, guarantees=frozenset())
     with pytest.raises(UnsupportedFlow, match="realization"):
-        admit(REQUIREMENT, ENCODING, replace(SUPPORT, guarantees=frozenset()))
+        admit(REQUIREMENT, ENCODING, no_guarantees)
 
 
 @pytest.mark.parametrize("coordinate,prefix", [("confidentiality", "conf"), ("integrity", "int")])
@@ -115,8 +118,9 @@ def test_independent_obligations_cannot_be_collapsed_or_invented(coordinate, pre
         "unresolved": (("A", f"{prefix}:A"), ("B", f"{prefix}:deny-unresolved")),
         "duplicate": (("A", f"{prefix}:A"), ("A", f"{prefix}:B"), ("B", f"{prefix}:B")),
     }
+    invalid_encoding = replace(ENCODING, **{coordinate: maps[bad_mapping]})
     with pytest.raises(UnsupportedFlow, match="expression"):
-        admit(REQUIREMENT, replace(ENCODING, **{coordinate: maps[bad_mapping]}), SUPPORT)
+        admit(REQUIREMENT, invalid_encoding, SUPPORT)
 
 
 def test_admitted_bounded_guarantee_is_distinct_from_unexpected_weakening():
@@ -141,10 +145,11 @@ def test_admitted_bounded_guarantee_is_distinct_from_unexpected_weakening():
     ],
 )
 def test_changed_or_unresolved_binding_requires_new_admission(change):
-    assert check_execution(SUPPORT, replace(SUPPORT, **change)) == "unsupported"
+    changed_support = replace(SUPPORT, **change)
+    assert check_execution(SUPPORT, changed_support) == "unsupported"
     if "profile_pin" in change:
         with pytest.raises(UnsupportedFlow, match="realization"):
-            admit(REQUIREMENT, ENCODING, replace(SUPPORT, **change))
+            admit(REQUIREMENT, ENCODING, changed_support)
 
 
 @pytest.mark.parametrize(
@@ -176,6 +181,7 @@ def test_selective_release_preserves_other_owner_coordinate_and_history():
     assert source.provenance_refs <= result.provenance_refs
     assert source.label.confidentiality == frozenset({"conf:A", "conf:B"})
     assert may_flow_at_sink(PROFILE, result, sink({"conf:B"}, {"int:A", "int:B"}), FlowGateState.allowing())
+    other_owner = frozenset({"conf:B"})
     with pytest.raises(UnsupportedFlow, match="authority"):
         release(
             PROFILE,
@@ -183,7 +189,7 @@ def test_selective_release_preserves_other_owner_coordinate_and_history():
             GRANT_A,
             result_ref="release:B",
             operation=FlowOperation.DECLASSIFICATION,
-            confidentiality=frozenset({"conf:B"}),
+            confidentiality=other_owner,
         )
 
 
@@ -203,6 +209,7 @@ def test_endorsement_is_owner_scoped_and_observation_does_not_clear_influence():
     assert not may_flow_at_sink(PROFILE, result, sink({"conf:A", "conf:B"}, set()), FlowGateState.allowing())
     assert may_flow_at_sink(PROFILE, result, sink({"conf:A", "conf:B"}, {"int:B"}), FlowGateState.allowing())
     assert result.label.integrity == frozenset({"int:B"})
+    other_influence = frozenset({"int:B"})
     with pytest.raises(UnsupportedFlow, match="authority"):
         release(
             PROFILE,
@@ -210,20 +217,23 @@ def test_endorsement_is_owner_scoped_and_observation_does_not_clear_influence():
             GRANT_A,
             result_ref="endorse:B",
             operation=FlowOperation.ENDORSEMENT,
-            integrity=frozenset({"int:B"}),
+            integrity=other_influence,
         )
 
 
 @pytest.mark.parametrize("changes", [{"cut": "cut:2"}, {"sink": "sink:other"}])
 def test_release_authority_is_bound_to_exact_sink_and_cut(changes):
+    source = combined()
+    changed_grant = replace(GRANT_A, **changes)
+    discharged = frozenset({"conf:A"})
     with pytest.raises(UnsupportedFlow, match="authority"):
         release(
             PROFILE,
-            combined(),
-            replace(GRANT_A, **changes),
+            source,
+            changed_grant,
             result_ref="release:new",
             operation=FlowOperation.DECLASSIFICATION,
-            confidentiality=frozenset({"conf:A"}),
+            confidentiality=discharged,
         )
 
 
@@ -235,6 +245,7 @@ def test_release_grant_cannot_be_reused_for_another_source_or_profile(changed):
     else:
         profile = replace(PROFILE, profile_id="different-profile")
         source = replace(source, label=replace(source.label, profile_id=profile.profile_id))
+    discharged = frozenset({"conf:A"})
     with pytest.raises(UnsupportedFlow, match="authority"):
         release(
             profile,
@@ -242,7 +253,7 @@ def test_release_grant_cannot_be_reused_for_another_source_or_profile(changed):
             GRANT_A,
             result_ref="release:new",
             operation=FlowOperation.DECLASSIFICATION,
-            confidentiality=frozenset({"conf:A"}),
+            confidentiality=discharged,
         )
 
 
