@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 4
 created_at: 2026-09-06T00:00:00Z
-updated_at: 2026-09-22T00:00:00Z
+updated_at: 2026-09-23T00:00:00Z
 ---
 
 # SEM-235 — Modular Participant Control and Extensible Dynamic IFC Semantics
@@ -38,6 +38,17 @@ constraints. Parent deny/withhold shall retain the same meaning in every phase;
 prerequisites and independent or success-dependent consequences shall have
 separate target, authority, outcome and ordering relations under CA-01–CA-09.
 
+Profile support shall distinguish authored obligations and admitted guarantees
+from published profile expressibility and backend realization. Independent
+owner-qualified confidentiality and integrity requirements shall retain every
+required propagation and selective-release distinction; trusted authority
+shall cover each discharged obligation. Unsupported expression or realization
+shall prevent the affected mandatory release, and unexpected loss of an
+admitted guarantee shall not silently weaken the effective binding. Governed
+finite publication and exact historical interpretation shall follow
+`ifc-profile-variability/rev1`; new syntax or executable extensibility requires
+separate justification and supported consumers.
+
 ## Rationale
 
 SEM-230 supplies participant-relative flow and SEM-233 supplies its security
@@ -65,7 +76,28 @@ model supplies bounded design evidence. Producers and historical readers must
 satisfy the [migration contract](../../migration/control-applicability-and-evaluation.md)
 before claiming the amended semantics.
 
+## IFC publication amendment and evidence boundary
+
+[ADR-114](../../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
+and [IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
+publish the #1354 semantic amendment, authoritative on merge. Existing ACTIVE
+status and implementation/test links retain their original fulfillment scope.
+The new finite witnesses are bounded design evidence, not new portable profile,
+owner-aware runtime, installed backend or revised support-negotiation adoption.
+The [migration obligations](../../migration/ifc-profile-variability.md) must be
+met before claiming those meanings across contracts, live state or history.
+
 ## Traceability
+
+- IMPLEMENTS → GITHUB_ISSUE `1354` (IFC variability semantic decision; no runtime adoption)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/ifc-profile-variability.md` (IFC-01–IFC-07 semantic publication)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-114-ifc-profile-variability-and-publication.md` (Accepted-on-merge publication decision)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1354-ifc-profile-variability-preflight.md` (Architecture constraints and current support limits)
+- DOCUMENTS → DOCUMENTATION `docs/research/ifc-profile-variability/cases.md` (Worked cases and bounded evidence)
+- IMPLEMENTS → DOCUMENTATION `docs/migration/ifc-profile-variability.md` (Interpretation, conversion and adoption obligations)
+- TESTS → TEST `implementations/python/tests/ifc_profile_variability_model.py` (Finite design interpretation; not runtime enforcement)
+- TESTS → TEST `implementations/python/tests/test_issue_1354_ifc_profile_variability.py` (Owner, support and publication witnesses)
+- TESTS → TEST `implementations/python/tests/test_issue_1354_governance.py` (Real requirement ownership and scope evaluator)
 
 - IMPLEMENTS → GITHUB_ISSUE `1352` (Applicability, dependency and effect semantic amendment)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/control-applicability-and-evaluation.md` (CA-01–CA-09 semantic contract; not runtime adoption)

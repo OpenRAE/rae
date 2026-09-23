@@ -28,6 +28,18 @@ effects. Its [worked cases](../../research/control-applicability/cases.md) and
 define the required interpretation and adoption checks. Existing schemas,
 provider/v1 and retained history keep their original meaning.
 
+## IFC variability amendment (#1354)
+
+[ADR-114](../../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
+and [IFC-01–IFC-07](../../../specs/formal/participant-semantics/ifc-profile-variability.md)
+define authored/profile/backend separation, per-obligation owner release and
+requirement-relative support. The exact present support table identifies the
+fixed security vocabulary, closed modular profile/fact union and current
+non-exact-support rejection. This amendment registers no profile and changes
+none of those consumers. Follow the
+[migration contract](../../migration/ifc-profile-variability.md) before claiming
+owner-aware interpretation or revised bounded-support adoption.
+
 ## Published boundaries
 
 | Contract | Meaning |

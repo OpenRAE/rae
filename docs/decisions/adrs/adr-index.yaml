@@ -566,11 +566,17 @@ adrs:
     pin: b7e17e58fc01e8f07a972ee5abc65e6a8470e2a6d51c2480334a3777df079e98
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
-    pin: 7d613beae8ae50e3232a07be1eedd5db422f252a728f34597d0c5dac65086164
+    pin: 7a579c1f66ee66285465e261f5e740414986c393fd57fbde3c490be3653711b9
     amendments:
       - date: 2026-09-06
         ref: "#1068"
         summary: "Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal."
+      - date: 2026-09-23
+        ref: "#1354"
+        summary: "Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-114."
+      - date: 2026-09-24
+        ref: "#1383"
+        summary: "Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged."
   - id: ADR-102
     path: docs/decisions/adrs/adr-102-mixed-cross-backend-participant-control.md
     pin: cfcb0f5b7291b47fe6ff6096bb18dd9063b83ee5d4f7f6a9cafbdd06f21bf716
@@ -622,11 +628,17 @@ adrs:
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
-    pin: 7df063f96f2732f10ba7a6129ea21ad40caa7fb5dfd2f3bbd9f9245cf05b3fff
+    pin: a104a1150d612fa04c10847d36390d54fd99ce821d96c044b88c32404f7471f5
     amendments:
       - date: 2026-09-22
         ref: "#1352"
         summary: "Clarify applicability, dependency invocation, support and phase-independent parent decisions through ADR-111."
+      - date: 2026-09-23
+        ref: "#1354"
+        summary: "Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-114."
+      - date: 2026-09-24
+        ref: "#1383"
+        summary: "Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged."
   - id: ADR-109
     path: docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md
     pin: 859172f6b8791577059a3215af639210e86267455c8a059f71168e621c0f9c61
@@ -646,3 +658,6 @@ adrs:
   - id: ADR-113
     path: docs/decisions/adrs/adr-113-reusable-execution-machinery.md
     pin: 6d904befc0d37d44b07ed083d297c7a0e3ba0d520d79f9ddce1999477c78e91d
+  - id: ADR-114
+    path: docs/decisions/adrs/adr-114-ifc-profile-variability-and-publication.md
+    pin: 432d75b65d0ef06e022b260240fa7b8f99513f568048796b2b3811a1aeefebcb

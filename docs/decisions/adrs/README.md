@@ -157,6 +157,7 @@ adr-110-reusable-mixed-control-policies-and-occurrences
 adr-111-control-applicability-and-effect-decisions
 adr-112-external-inject-triggering-and-execution
 adr-113-reusable-execution-machinery
+adr-114-ifc-profile-variability-and-publication
 ```
 
 | ADR | Title | Status | Date |
@@ -274,3 +275,4 @@ adr-113-reusable-execution-machinery
 | [111](adr-111-control-applicability-and-effect-decisions.md) | Control Applicability and Effect Decisions | accepted | 2026-09-22 |
 | [112](adr-112-external-inject-triggering-and-execution.md) | External Inject Triggering and Execution | accepted | 2026-09-22 |
 | [113](adr-113-reusable-execution-machinery.md) | Reusable Execution Machinery Under RAE Authority | accepted | 2026-09-23 |
+| [114](adr-114-ifc-profile-variability-and-publication.md) | IFC Profile Variability and Publication | accepted | 2026-09-23 |
