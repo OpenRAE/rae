@@ -30,3 +30,8 @@ distributed or highly available topology. Profile P3 (coordinated
 multi-process ownership) is recorded as a seam and an explicit nonclaim; no
 consistency, coordination, or recovery guarantee named in this set is
 claimable before its implementation issue lands with tests.
+
+The subsequent [execution architecture selection (#1350)](../execution-architecture/README.md)
+reuses Temporal/PostgreSQL for distributed execution while preserving local
+profiles, authored failure/retry policy and RAE's semantic responsibilities.
+It does not enable P3 or certify the distributed implementation.

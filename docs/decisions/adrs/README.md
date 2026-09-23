@@ -145,10 +145,18 @@ adr-098-portable-artifact-requirement-satisfaction
 adr-099-participant-relative-predicate-opacity
 adr-100-participant-crossing-bisimulation
 adr-101-adversarial-participant-flow-control
+adr-102-mixed-cross-backend-participant-control
+adr-103-branch-aware-python-coverage-policy
+adr-104-runtime-control-plane-architecture
 adr-105-recursive-partial-description-semantics
 adr-106-developer-package-and-artifact-management
 adr-107-artifact-promotion-and-release-admission
 adr-108-modular-participant-control-and-governed-effects
+adr-109-participant-identity-and-objective-assignment
+adr-110-reusable-mixed-control-policies-and-occurrences
+adr-111-control-applicability-and-effect-decisions
+adr-112-external-inject-triggering-and-execution
+adr-113-reusable-execution-machinery
 ```
 
 | ADR | Title | Status | Date |
@@ -265,3 +273,4 @@ adr-108-modular-participant-control-and-governed-effects
 | [110](adr-110-reusable-mixed-control-policies-and-occurrences.md) | Reusable Mixed-Control Policies and Occurrences | accepted | 2026-09-22 |
 | [111](adr-111-control-applicability-and-effect-decisions.md) | Control Applicability and Effect Decisions | accepted | 2026-09-22 |
 | [112](adr-112-external-inject-triggering-and-execution.md) | External Inject Triggering and Execution | accepted | 2026-09-22 |
+| [113](adr-113-reusable-execution-machinery.md) | Reusable Execution Machinery Under RAE Authority | accepted | 2026-09-23 |
