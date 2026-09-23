@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-22T00:00:00.000000Z
+updated_at: 2026-09-23T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -103,6 +103,13 @@ carrier exists. The [decision](../../decisions/issue-1348-operation-lifecycle.md
 identifies those implementation gaps and the retained canonical requirements.
 
 ## Traceability
+
+- DOCUMENTS → GITHUB_ISSUE `1350` (Execution architecture selection; no new executable profile claim)
+- DOCUMENTS → ADR `docs/decisions/adrs/adr-113-reusable-execution-machinery.md` (Reusable machinery, retained RAE authority and deployment boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/research/execution-architecture/execution-protocol.md` (Ledger/engine reconciliation, scoped worker authorization and conservative ownership recovery design)
+- DOCUMENTS → DOCUMENTATION `docs/research/execution-architecture/authored-retry-policy.md` (Contextual author failure/retry policy, scoped defaults and fresh-trial distinctions; public support requires implementation)
+- DOCUMENTS → DOCUMENTATION `docs/research/execution-architecture/experiment-report.md` (Bounded mechanism observations, not distributed conformance evidence)
+- TESTS → TEST `implementations/python/tests/test_issue_1350_fixture_secret_scan.py` (Design-evidence publication check: exact synthetic fixture exception preserves detection of other values, paths and rules; no runtime conformance claim)
 
 - DOCUMENTS → GITHUB_ISSUE `1348` (Operation supervision decision; no new executable profile claim)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1348-operation-lifecycle-preflight.md` (Supervision architecture guardrails)
