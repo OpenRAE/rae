@@ -195,6 +195,20 @@ tenants. Multitenancy, cross-target stores, cross-run scheduling, and shared
 authorization namespaces are P3 nonclaims requiring a future ADR and explicit
 coordination, fencing, cache-coherence, and tenant-isolation contracts.
 
+Participant clients use an organizational backend boundary, not P2 or the
+in-process/store interfaces directly. P2 read roles are privileged: an identity
+allowed to retrieve a governed participant projection can also read the full
+snapshot, so a participant/audience binding does not make that credential safe
+to delegate. The backend owns organizational authentication and entitlement,
+binds each request to its selected target/run, participant, exact episode and
+audience, and releases only a permitted participant projection after the
+API-423/RUN-319 crossing. Participant-facing deployments require a configured
+crossing resolver; the legacy projection path without one carries no such
+assurance. Service credentials and raw control-plane outputs remain inside the
+trusted backend. Authentication principals do not add SDL participants or
+roles. The accepted route, authority, and deployment matrix is the
+[issue #1356 trust-boundary decision](../issue-1356-control-plane-participant-access-preflight.md).
+
 ### 8. Disposition of the incumbent surfaces
 
 `RuntimeControlPlane`, the store protocol, the in-memory store, and the
@@ -334,3 +348,4 @@ demonstrated its lost-update and partial-state failures.
 | 2026-09-19 | #1186 | Permitted the operator CLI to call only the closed public P1 offline-maintenance interface while keeping runtime validation and publication ownership intact. |
 | 2026-09-20 | #1189 | Made profile declarations runtime-owned composition metadata, separated provider facts from guarantees, and fixed P2 and recovery-observation boundaries. |
 | 2026-09-22 | #1348 | Defined shared-runtime supervision, effect reservations, evidence-based settlement and authored recovery choices while preserving profile and implementation nonclaims. |
+| 2026-09-24 | #1356 | Bound participant clients to an organizational backend and kept privileged P2 credentials and raw control-plane outputs inside that boundary. |

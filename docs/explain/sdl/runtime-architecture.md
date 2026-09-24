@@ -660,6 +660,14 @@ and backup policy. Profile metadata is in-process discovery, not a health
 signal, HTTP discovery endpoint, availability promise, or tenant-multiplexing
 contract.
 
+Participant clients access an organizational backend rather than P2 directly.
+P2 read credentials are privileged even when they carry participant/audience
+bindings: they can also read the full snapshot. The backend keeps those
+credentials private and binds each participant request to one run, participant,
+episode and audience before releasing a governed API-408 view. The accepted
+[route and deployment boundary](../../decisions/issue-1356-control-plane-participant-access-preflight.md)
+also covers operation readback, histories, errors, caches and events.
+
 ## Current Scope
 
 The current runtime scope includes:

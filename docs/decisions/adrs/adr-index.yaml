@@ -585,7 +585,7 @@ adrs:
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: 51c31488ec6c704a371833c8ce8c468df5976bb2fc0ca0ff5fa3e6fde77bad1f
+    pin: 131d0c0923dd72ad51a9b621019b09494142b0636e7e6a5dc2d50f2f9d7766fb
     amendments:
       - date: 2026-09-03
         ref: "#1151"
@@ -599,6 +599,9 @@ adrs:
       - date: 2026-09-22
         ref: "#1348"
         summary: "Defined shared-runtime supervision, effect reservations, evidence-based settlement and authored recovery choices while preserving profile and implementation nonclaims."
+      - date: 2026-09-24
+        ref: "#1356"
+        summary: "Bound participant clients to an organizational backend and kept privileged P2 credentials and raw control-plane outputs inside that boundary."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
     pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e

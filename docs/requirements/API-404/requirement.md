@@ -56,6 +56,20 @@ selected P1 core. The corresponding runtime guarantee identifiers are
 `owner-serialized-mutation`, and `revision-carrying-reads`. Only P2
 authenticates transport callers; P0 and P1 rely on their trusted embedders.
 
+P2's authenticated control-plane principal is a privileged service identity,
+not a credential for a participant client. Read-role admission to an API-408
+participant projection also permits full snapshot and operational reads; the
+participant/audience binding used for governed projection is not a route-wide
+read restriction. Participant clients therefore use an organizational backend
+that binds its own principal/session to target/run, participant, exact episode,
+audience and permitted operation before every retrieval or mutation. A
+participant-facing view requires configured API-423/RUN-319 crossing mediation
+at the exact state cut; the legacy ungoverned projection path does not satisfy
+this deployment boundary. The backend retains organizational identity/policy
+and service credentials and must not disclose raw snapshot, operation,
+history, event, error or cached control-plane outputs as participant views.
+This interpretation adds no P2 profile guarantee or SDL participant role.
+
 ### API-404-C4 — Excluded stronger claims
 
 P0, P1, and P2 shall not imply high availability, multitenancy, multi-owner
@@ -103,6 +117,9 @@ carrier exists. The [decision](../../decisions/issue-1348-operation-lifecycle.md
 identifies those implementation gaps and the retained canonical requirements.
 
 ## Traceability
+
+- DOCUMENTS → GITHUB_ISSUE `1356` (Control-plane and participant-access trust boundary)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1356-control-plane-participant-access-preflight.md` (Accepted exposure model, route authority matrix, deployment and crossing guardrails)
 
 - DOCUMENTS → GITHUB_ISSUE `1350` (Execution architecture selection; no new executable profile claim)
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-113-reusable-execution-machinery.md` (Reusable machinery, retained RAE authority and deployment boundaries)
