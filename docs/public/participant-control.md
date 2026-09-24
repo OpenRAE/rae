@@ -182,6 +182,11 @@ Legacy API-408 status, context, and history retrieval remains available when
 no crossing resolver is set. That legacy mode is not governed egress. With a
 resolver, the HTTP adapter binds the audience before lookup. It resolves
 trusted evidence. It commits crossing facts before it writes the view.
+If the final flow-sink check refuses release, retrieval returns no view and
+the same atomic write records a failed operation and denied audit. Earlier
+crossing decisions remain in history as evidence of work performed; they do
+not mean the view was delivered. Retrying the same request returns the denied
+outcome, including after the local store is reopened.
 
 Use the
 [participant-control migration guide](https://github.com/OpenRAE/rae/blob/dev/docs/migration/participant-information-flow-control.md)

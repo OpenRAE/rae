@@ -37,6 +37,7 @@ from .participant_crossing_records import _expected_history_heads
 from .participant_flow_sink import (
     ParticipantFlowSinkDecision,
     flow_sink_audit_details,
+    flow_sink_denied_record,
     resolve_participant_flow_sink_decision,
 )
 
@@ -169,6 +170,8 @@ def _serialize_participant_view_authorized(
         if receipt.operation_id != prepared.record.receipt.operation_id:
             records = control_plane._store.load_records()
             incumbent = records.get(receipt.operation_id)
+            if incumbent is not None and incumbent.status.state is not OperationState.SUCCEEDED:
+                raise PermissionError(_PROJECTION_NOT_PERMITTED)
             if incumbent is None or incumbent.result_payload is None:
                 raise ValueError("idempotent participant projection is missing its governed result")
             return type(view).model_validate(incumbent.result_payload)
@@ -270,6 +273,7 @@ def _with_flow_sink_denied_audit(
         PreparedParticipantCrossing,
         replace(
             prepared,
+            record=flow_sink_denied_record(prepared),
             audit_event=replace(
                 prepared.audit_event,
                 allowed=False,
