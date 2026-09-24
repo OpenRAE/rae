@@ -24,6 +24,7 @@ from raes_contracts.contracts.participant_crossing_validation import (
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call, mutation_entry
+from .control_plane_store import ControlPlaneOperationRecord
 from .participant_control_orchestration import admit_participant_control
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import (
@@ -131,11 +132,7 @@ def _serialize_participant_view_authorized(
             incumbent_carrier=view,
         )
         if prepared.existing_receipt is not None:
-            if prepared.record.status.state is not OperationState.SUCCEEDED:
-                raise PermissionError(_PROJECTION_NOT_PERMITTED)
-            if prepared.record.result_payload is None:
-                raise ValueError("idempotent participant projection is missing its governed result")
-            return type(view).model_validate(prepared.record.result_payload)
+            return _replayed_projection_view(view, prepared.record)
         if not participant_crossing_permitted(prepared):
             prepared = _with_opacity_egress_observation(
                 control_plane,
@@ -169,13 +166,18 @@ def _serialize_participant_view_authorized(
         receipt = commit_prepared_crossing(control_plane, prepared)
         if receipt.operation_id != prepared.record.receipt.operation_id:
             records = control_plane._store.load_records()
-            incumbent = records.get(receipt.operation_id)
-            if incumbent is not None and incumbent.status.state is not OperationState.SUCCEEDED:
-                raise PermissionError(_PROJECTION_NOT_PERMITTED)
-            if incumbent is None or incumbent.result_payload is None:
-                raise ValueError("idempotent participant projection is missing its governed result")
-            return type(view).model_validate(incumbent.result_payload)
+            return _replayed_projection_view(view, records.get(receipt.operation_id))
         return governed
+
+
+def _replayed_projection_view(view: _ViewT, record: ControlPlaneOperationRecord | None) -> _ViewT:
+    """Read back only a successful incumbent's governed projection."""
+
+    if record is not None and record.status.state is not OperationState.SUCCEEDED:
+        raise PermissionError(_PROJECTION_NOT_PERMITTED)
+    if record is None or record.result_payload is None:
+        raise ValueError("idempotent participant projection is missing its governed result")
+    return type(view).model_validate(record.result_payload)
 
 
 def _governed_egress_view(
