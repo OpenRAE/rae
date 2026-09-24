@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 46.0.0, rejects unsupported future
+Current validation requires explicit release 47.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -448,8 +448,13 @@ their release numbers, paths, and corresponding digest joins were reconciled
 with the independently published issue #1338 capture. The combined capture
 uses the issue #1338 baseline and preserves the same bounded claim limits.
 
-Current release 46.0.0 replays the retained formal controls against the issue
+Release 46.0.0 replays the retained formal controls against the issue
 #1358 egress outcome implementation in [`execution-snapshot-v45.json`](execution-snapshot-v45.json)
 and [`analysis-v45.json`](analysis-v45.json). It retains the issue #1338 baseline
 and the same bounded claims. Final egress denial is verified by dedicated
 runtime regressions, not by this formal corpus.
+
+Current release 47.0.0 replays those controls after the governed projection
+replay refactor in [`execution-snapshot-v46.json`](execution-snapshot-v46.json)
+and [`analysis-v46.json`](analysis-v46.json). It retains the same baseline,
+bounded claims, and unsupported classes while binding the current source digest.

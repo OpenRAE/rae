@@ -21,8 +21,10 @@ Agent-assisted development can produce internally coherent code and documentatio
 
 ## Traceability
 
-- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1358-v45.json` (Current source-bound coverage replay with retained classifications)
-- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v45.json` (Current source-bound formal replay with retained bounded claims)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1358-v45.json` (Prior source-bound coverage replay with retained classifications)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v45.json` (Prior source-bound formal replay with retained bounded claims)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1358-v46.json` (Current source-bound coverage replay with retained classifications)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v46.json` (Current source-bound formal replay with retained bounded claims)
 - IMPLEMENTS → CODE_FILE `tools/formal_semantic_validation/_release_revisions.py` (Explicit supported historical and current retest revisions)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v25.json` (Fresh source-bound replay after participant relationships and merged augmentation scope, retaining outcomes and claim limits)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-214-v25.json` (Fresh source-bound replay retaining coverage classifications and denominator)
