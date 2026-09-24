@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 44.0.0 and rejects duplicate or unsupported
+Current validation requires release 45.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -376,10 +376,16 @@ refactoring in [`execution-snapshot-v43.json`](execution-snapshot-v43.json) and
 [`analysis-v43.json`](analysis-v43.json). Fresh replay retains the same bounded
 outcomes and claim limits; it does not add a new semantic claim.
 
-Current release 44.0.0 records the merged participant identity and local
+Release 44.0.0 records the merged participant identity and local
 outcome implementation in [`execution-snapshot-v44.json`](execution-snapshot-v44.json)
 and [`analysis-v44.json`](analysis-v44.json). The two pre-merge issue #218
 captures retain their observations and source identities in v42 and v43; only
 their release numbers, paths, and corresponding digest joins were reconciled
 with the independently published issue #1338 capture. The combined capture
 uses the issue #1338 baseline and preserves the same bounded claim limits.
+
+Current release 45.0.0 replays those retained controls against the issue #1358
+egress outcome implementation in [`execution-snapshot-v45.json`](execution-snapshot-v45.json)
+and [`analysis-v45.json`](analysis-v45.json). The source identity is current;
+classifications and claim limits remain unchanged. Egress denial itself is
+verified by the dedicated runtime tests, not this SDL corpus.
