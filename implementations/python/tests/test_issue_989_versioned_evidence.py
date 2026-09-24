@@ -230,7 +230,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "45.0.0"
+    assert release.manifest["revision"] == "46.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
