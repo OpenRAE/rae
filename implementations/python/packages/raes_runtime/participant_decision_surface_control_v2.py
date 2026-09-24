@@ -26,6 +26,7 @@ from .participant_control_diagnostics import (
     _participant_binding_address,
     _participant_binding_diagnostic,
 )
+from .participant_submission_options import ParticipantSubmissionOptions
 
 
 def _bind_participant_decision_surface_v2(
@@ -68,18 +69,23 @@ class ParticipantDecisionSurfaceV2ControlMixin:
         selection: ParticipantDecisionSurfaceSelectionV2Model,
         admission_request: ParticipantActionAdmissionRequest,
         resolvers: ParticipantDecisionSurfaceBindingResolversV2,
-        idempotency_key: str = "",
-        request_fingerprint: str = "",
+        **submission_options: object,
     ) -> OperationReceipt:
         """Re-resolve v2 state and delivery before ordinary action admission."""
 
+        options = ParticipantSubmissionOptions.from_fields(submission_options)
         receipt: OperationReceipt
         if self._target.participant_runtime is None:
             receipt = self._reject_submission(
                 domain=RuntimeDomain.PARTICIPANT,
                 message=_NO_PARTICIPANT_RUNTIME_MESSAGE,
-                idempotency_key=idempotency_key,
-                request_fingerprint=request_fingerprint,
+                idempotency_key=options.idempotency_key,
+                request_fingerprint=options.request_fingerprint,
+                identity=options.identity,
+                request={
+                    "operation": "participant-decision-surface-selection-v2",
+                    "participant_address": getattr(participant_behavior, "address", "unknown"),
+                },
             )
         else:
             request, diagnostic = _bind_participant_decision_surface_v2(
@@ -94,8 +100,13 @@ class ParticipantDecisionSurfaceV2ControlMixin:
                 receipt = self._reject_diagnostics(
                     domain=RuntimeDomain.PARTICIPANT,
                     diagnostics=[diagnostic],
-                    idempotency_key=idempotency_key,
-                    request_fingerprint=request_fingerprint,
+                    idempotency_key=options.idempotency_key,
+                    request_fingerprint=options.request_fingerprint,
+                    identity=options.identity,
+                    request={
+                        "operation": "participant-decision-surface-selection-v2",
+                        "participant_address": getattr(participant_behavior, "address", "unknown"),
+                    },
                 )
             else:
                 with control_plane_mutation(self, OperationKind.PARTICIPANT_ACTION):
@@ -111,16 +122,23 @@ class ParticipantDecisionSurfaceV2ControlMixin:
                         receipt = self._reject_diagnostics(
                             domain=RuntimeDomain.PARTICIPANT,
                             diagnostics=[diagnostic],
-                            idempotency_key=idempotency_key,
-                            request_fingerprint=request_fingerprint,
+                            idempotency_key=options.idempotency_key,
+                            request_fingerprint=options.request_fingerprint,
+                            identity=options.identity,
+                            request={
+                                "operation": "participant-decision-surface-selection-v2",
+                                "participant_address": getattr(participant_behavior, "address", "unknown"),
+                            },
                         )
                     else:
                         assert request is not None
                         receipt = self.admit_participant_action(
                             participant_behavior,
                             request,
-                            idempotency_key=idempotency_key,
-                            request_fingerprint=request_fingerprint,
+                            idempotency_key=options.idempotency_key,
+                            request_fingerprint=options.request_fingerprint,
+                            identity=options.identity,
+                            crossing_evidence=options.crossing_evidence,
                         )
         return receipt
 
