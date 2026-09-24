@@ -338,6 +338,7 @@ def test_v2_governed_admission_rejects_unauthorized_caller(unauthorized: str) ->
     else:
         caller = identity(participant_address="participant.behavior.other")
 
+    crossing_evidence = evidence()
     with pytest.raises(PermissionError):
         _admit_governed_selection(
             control,
@@ -345,7 +346,7 @@ def test_v2_governed_admission_rejects_unauthorized_caller(unauthorized: str) ->
             implementation_selection,
             delivery,
             identity=caller,
-            crossing_evidence=evidence(),
+            crossing_evidence=crossing_evidence,
         )
 
     assert control.get_snapshot().snapshot.participant_behavior_history.get(PARTICIPANT, []) == []
