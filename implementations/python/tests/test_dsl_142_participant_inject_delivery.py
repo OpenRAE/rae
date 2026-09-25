@@ -13,8 +13,8 @@ from raes._errors import SDLInstantiationError, SDLParseError, SDLValidationErro
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, parse_sdl_file
 from raes_contracts.contracts import schema_bundle
-from raes_processor.compiler.time_model import time_model_contract_model
 from raes_processor.compiler import compile_runtime_model
+from raes_processor.compiler.time_model import time_model_contract_model
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BINDING_REF = "behavior_specifications.red-briefing.participant_inject_deliveries.briefing"
