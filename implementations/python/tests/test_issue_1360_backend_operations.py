@@ -10,7 +10,6 @@ from jsonschema import Draft202012Validator
 from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from raes_contracts import contracts
-
 from tools.policy.requirement_governance import evaluate_requirement_governance
 
 ROOT = Path(__file__).resolve().parents[3]
