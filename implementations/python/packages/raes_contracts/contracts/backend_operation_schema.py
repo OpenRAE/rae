@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from .backend_operation import (
     BackendOperationCapabilitiesModel,
     BackendOperationControlModel,
@@ -11,7 +13,7 @@ from .backend_operation_response import BackendOperationResponseModel
 from .schema_invariants import _add_raes_invariant
 
 
-def backend_operation_schema_bundle():
+def backend_operation_schema_bundle() -> dict[str, dict[str, Any]]:
     models = {
         "backend-operation-request-v1": BackendOperationRequestModel,
         "backend-operation-capabilities-v1": BackendOperationCapabilitiesModel,

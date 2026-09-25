@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 46.0.0 and rejects duplicate or unsupported
+Current validation requires release 47.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -396,4 +396,9 @@ Earlier published captures retain their exact bytes.
 Release 46.0.0 binds the reference-backend opt-in correction to
 [`execution-snapshot-v46.json`](execution-snapshot-v46.json) and
 [`analysis-v46.json`](analysis-v46.json). The retained claims and
+classifications are unchanged.
+
+Release 47.0.0 binds the operation validator maintainability changes to
+[`execution-snapshot-v47.json`](execution-snapshot-v47.json) and
+[`analysis-v47.json`](analysis-v47.json). The retained claims and
 classifications are unchanged.

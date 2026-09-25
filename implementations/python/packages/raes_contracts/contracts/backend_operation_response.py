@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import Field, StrictBool, model_validator
 
@@ -37,7 +37,7 @@ class BackendOperationAdmissionModel(OperationContractModel):
     reason: OperationRefusalReason | None = None
 
     @model_validator(mode="after")
-    def _refusal_reason(self):
+    def _refusal_reason(self) -> Self:
         if (self.disposition == "refused") != (self.reason is not None):
             raise ValueError("only a refused admission requires a refusal reason")
         return self
@@ -49,7 +49,7 @@ class BackendOperationAcknowledgementModel(OperationContractModel):
     reason: OperationRefusalReason | None = None
 
     @model_validator(mode="after")
-    def _refusal_reason(self):
+    def _refusal_reason(self) -> Self:
         if (self.disposition == "refused") != (self.reason is not None):
             raise ValueError("only a refused acknowledgement requires a refusal reason")
         return self
@@ -79,9 +79,13 @@ class BackendOperationEffectsModel(OperationContractModel):
     external_fence: OperationArtifactReferenceModel | None = None
 
     @model_validator(mode="after")
-    def _evidence_boundary(self):
+    def _evidence_boundary(self) -> Self:
         if (self.effect != "unknown" or self.cessation_established or self.external_fence) and not self.evidence_refs:
             raise ValueError("known effects, cessation and external fencing require evidence")
+        self._validate_residual_state()
+        return self
+
+    def _validate_residual_state(self) -> None:
         if bool(self.residual_scope) != (self.residual_state is not None):
             raise ValueError("residual scope and state must be reported together")
         if self.effect == "partial" and self.residual_state is None:
@@ -90,7 +94,6 @@ class BackendOperationEffectsModel(OperationContractModel):
             raise ValueError("absent effects cannot carry residual changes")
         if self.residual_state and self.residual_state.contract_id != "runtime-snapshot-v1":
             raise ValueError("residual state must reference the native runtime snapshot contract")
-        return self
 
 
 class BackendOperationOutcomeModel(OperationContractModel):
@@ -107,20 +110,23 @@ class BackendOperationOutcomeModel(OperationContractModel):
     result: OperationArtifactReferenceModel | None = None
 
     @model_validator(mode="after")
-    def _honest_outcome(self):
+    def _honest_outcome(self) -> Self:
         known = self.effects.effect != "unknown" and self.effects.cessation_established
         if self.proposed_state != OperationState.INDETERMINATE and not known:
             raise ValueError("unknown effects or unproved cessation require indeterminate outcome")
         if self.proposed_state == OperationState.SUCCEEDED:
-            if self.satisfaction != "satisfied" or not self.release_gates_satisfied or self.result is None:
-                raise ValueError("success requires complete satisfaction, result and release gates")
-            if self.effects.effect == "partial":
-                raise ValueError("partial effects cannot establish success")
+            self._validate_success()
         if self.proposed_state == OperationState.FAILED and self.satisfaction != "unsatisfied":
             raise ValueError("known failure requires established non-satisfaction")
         if self.cancellation_established != (self.proposed_state == OperationState.CANCELLED):
             raise ValueError("only an established cancellation may propose cancelled")
         return self
+
+    def _validate_success(self) -> None:
+        if self.satisfaction != "satisfied" or not self.release_gates_satisfied or self.result is None:
+            raise ValueError("success requires complete satisfaction, result and release gates")
+        if self.effects.effect == "partial":
+            raise ValueError("partial effects cannot establish success")
 
 
 class BackendOperationReconciliationModel(OperationContractModel):

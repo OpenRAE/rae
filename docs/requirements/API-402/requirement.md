@@ -38,7 +38,6 @@ Current state: implemented. Portable live-execution contracts are required so in
 - IMPLEMENTS → GITHUB_ISSUE `1360` (Optional backend operation and supervision contract publication)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/__init__.py` (Portable operation carriers, contextual validation and publication boundary; no runtime supervision claim)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/operation_supervision.py` (Portable operation carriers, contextual validation and publication boundary; no runtime supervision claim)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/protocols.py` (Portable operation carriers, contextual validation and publication boundary; no runtime supervision claim)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py` (Portable operation carriers, contextual validation and publication boundary; no runtime supervision claim)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Portable operation carriers, contextual validation and publication boundary; no runtime supervision claim)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_version_exports.py` (Portable operation carriers, contextual validation and publication boundary; no runtime supervision claim)

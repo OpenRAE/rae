@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 
 from ..canonical import canonical_json_digest
 from .backend_operation import (
@@ -14,6 +15,7 @@ from .backend_operation_response import (
     BackendOperationAcknowledgementModel,
     BackendOperationAdmissionModel,
     BackendOperationControlDispositionModel,
+    BackendOperationMessage,
     BackendOperationOutcomeModel,
     BackendOperationReconciliationModel,
     BackendOperationResponseModel,
@@ -53,7 +55,11 @@ def validate_backend_operation_response(
             raise ValueError("residual effects exceed the admitted resource scope")
 
 
-def _validate_control(request, response, control):
+def _validate_control(
+    request: BackendOperationRequestModel,
+    response: BackendOperationResponseModel,
+    control: BackendOperationControlModel | None,
+) -> None:
     message = response.message
     if control is None or control.binding != request.binding:
         raise ValueError("control binding missing or mismatched")
@@ -98,39 +104,60 @@ def validate_backend_operation_history(
 
     if len(responses) > 1024 or len(controls) > 256:
         raise ValueError("backend operation transcript exceeds its bound")
-    by_control = {}
-    for control in controls:
-        if control.control_id in by_control and by_control[control.control_id] != control:
-            raise ValueError("duplicate control identity changed its commitment")
-        by_control[control.control_id] = control
-    seen = {}
-    previous = 0
-    terminal = False
-    acknowledged = False
+    by_control = _index_controls(controls)
+    history = _InvocationHistory()
     for response in responses:
         message = response.message
         control = by_control.get(message.control_id) if hasattr(message, "control_id") else None
         validate_backend_operation_response(request, response, control=control)
-        if response.sequence in seen:
-            if seen[response.sequence] != response:
+        history.accept(response)
+
+
+def _index_controls(controls: Sequence[BackendOperationControlModel]) -> dict[str, BackendOperationControlModel]:
+    by_control: dict[str, BackendOperationControlModel] = {}
+    for control in controls:
+        if control.control_id in by_control and by_control[control.control_id] != control:
+            raise ValueError("duplicate control identity changed its commitment")
+        by_control[control.control_id] = control
+    return by_control
+
+
+@dataclass
+class _InvocationHistory:
+    """Transient transcript validation state; never persisted runtime authority."""
+
+    seen: dict[int, BackendOperationResponseModel] = field(default_factory=dict)
+    previous: int = 0
+    terminal: bool = False
+    acknowledged: bool = False
+
+    def accept(self, response: BackendOperationResponseModel) -> None:
+        if response.sequence in self.seen:
+            if self.seen[response.sequence] != response:
                 raise ValueError("duplicate response sequence changed its content")
-            continue
-        if response.sequence <= previous:
+            return
+        if response.sequence <= self.previous:
             raise ValueError("response sequence is stale or unordered")
-        if terminal and message.kind not in {"control", "reconciliation"}:
+        self._advance(response.message)
+        self.seen[response.sequence] = response
+        self.previous = response.sequence
+
+    def _advance(self, message: BackendOperationMessage) -> None:
+        if self.terminal and message.kind not in {"control", "reconciliation"}:
             raise ValueError("terminal evidence cannot be rewritten")
         if isinstance(message, BackendOperationAdmissionModel):
-            if acknowledged:
+            if self.acknowledged:
                 raise ValueError("admission must precede invocation acknowledgement")
-            terminal = message.disposition == "refused"
+            self.terminal = message.disposition == "refused"
         if isinstance(message, BackendOperationAcknowledgementModel):
-            if acknowledged:
+            if self.acknowledged:
                 raise ValueError("invocation cannot be acknowledged twice")
-            acknowledged = message.disposition == "accepted"
-            terminal = not acknowledged
-        if message.kind in {"progress", "outcome"} and not acknowledged:
+            self.acknowledged = message.disposition == "accepted"
+            self.terminal = not self.acknowledged
+        self._execution_evidence(message)
+
+    def _execution_evidence(self, message: BackendOperationMessage) -> None:
+        if message.kind in {"progress", "outcome"} and not self.acknowledged:
             raise ValueError("execution evidence requires acknowledgement")
         if isinstance(message, BackendOperationOutcomeModel):
-            terminal = True
-        seen[response.sequence] = response
-        previous = response.sequence
+            self.terminal = True

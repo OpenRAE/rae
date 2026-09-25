@@ -10,6 +10,7 @@ from jsonschema import Draft202012Validator
 from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from raes_contracts import contracts
+
 from tools.policy.requirement_governance import evaluate_requirement_governance
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -142,13 +143,18 @@ def test_api_402_is_admitted_by_real_requirement_policy():
 
 def test_contextual_willingness_and_capability_are_both_required():
     contracts.require_backend_operation_admission(request(), capabilities(), admission())
+    operation_1 = request()
+    capability_report_2 = capabilities()
+    admission_report_3 = admission("refused")
     with pytest.raises(ValueError, match="refused"):
-        contracts.require_backend_operation_admission(request(), capabilities(), admission("refused"))
+        contracts.require_backend_operation_admission(operation_1, capability_report_2, admission_report_3)
     unsupported = capabilities().model_dump()
     unsupported["guarantees"] = []
     unsupported = contracts.BackendOperationCapabilitiesModel.model_validate(unsupported)
+    operation_4 = request()
+    admission_report_5 = admission()
     with pytest.raises(ValueError):
-        contracts.require_backend_operation_admission(request(), unsupported, admission())
+        contracts.require_backend_operation_admission(operation_4, unsupported, admission_report_5)
 
 
 @pytest.mark.parametrize(
@@ -169,8 +175,9 @@ def test_individually_valid_foreign_response_is_rejected(field, value):
     raw = response({"kind": "acknowledgement", "disposition": "accepted", "reason": None}).model_dump()
     raw["binding"][field] = value
     foreign = contracts.BackendOperationResponseModel.model_validate(raw)
+    operation_6 = request()
     with pytest.raises(ValueError, match="binding"):
-        contracts.validate_backend_operation_response(request(), foreign)
+        contracts.validate_backend_operation_response(operation_6, foreign)
 
 
 @pytest.mark.parametrize("field", ["actor_id", "target_scope", "run_scope", "request_commitment"])
@@ -178,8 +185,9 @@ def test_original_admission_context_cannot_be_rebound(field):
     raw = admission().model_dump()
     raw["binding"]["context"][field] = "sha256:" + "d" * 64 if field == "request_commitment" else "other"
     foreign = contracts.BackendOperationResponseModel.model_validate(raw)
+    operation_7 = request()
     with pytest.raises(ValueError, match="binding"):
-        contracts.validate_backend_operation_response(request(), foreign)
+        contracts.validate_backend_operation_response(operation_7, foreign)
 
 
 def test_request_commitment_includes_guarantees_budget_and_artifact():
@@ -195,15 +203,17 @@ def test_request_commitment_includes_guarantees_budget_and_artifact():
         assert contracts.backend_operation_request_digest(changed) != contracts.backend_operation_request_digest(
             original
         )
+        admission_report_15 = admission()
         with pytest.raises(ValueError, match="commitment"):
-            contracts.validate_backend_operation_response(changed, admission())
+            contracts.validate_backend_operation_response(changed, admission_report_15)
 
 
 @pytest.mark.parametrize("effect,ceased", [("unknown", False), ("unknown", True), ("absent", False)])
 @pytest.mark.parametrize("state", ["succeeded", "failed", "cancelled"])
 def test_unknown_effects_or_unproved_cessation_cannot_claim_known_terminal_outcome(effect, ceased, state):
+    outcome_payload_8 = outcome(state, effects=evidence(effect, ceased), cancellation_established=state == "cancelled")
     with pytest.raises(ValidationError):
-        response(outcome(state, effects=evidence(effect, ceased), cancellation_established=state == "cancelled"))
+        response(outcome_payload_8)
 
 
 def test_known_partial_cancellation_preserves_residual_state():
@@ -244,8 +254,9 @@ def test_duplicate_records_are_idempotent_but_changed_sequence_content_is_reject
     ack = response({"kind": "acknowledgement", "disposition": "accepted", "reason": None})
     contracts.validate_backend_operation_history(request(), [ack, ack])
     conflict = response({"kind": "acknowledgement", "disposition": "refused", "reason": "context-refused"})
+    operation_9 = request()
     with pytest.raises(ValueError, match="sequence"):
-        contracts.validate_backend_operation_history(request(), [ack, conflict])
+        contracts.validate_backend_operation_history(operation_9, [ack, conflict])
 
 
 def test_uncertain_completion_and_reconciliation_do_not_rewrite_parent_outcome():
@@ -271,8 +282,10 @@ def test_uncertain_completion_and_reconciliation_do_not_rewrite_parent_outcome()
         3,
     )
     contracts.validate_backend_operation_history(request(), [ack, uncertain, observed], controls=[ctl])
+    operation_10 = request()
+    reports_11 = [ack, uncertain, response(outcome(), 3)]
     with pytest.raises(ValueError, match="terminal"):
-        contracts.validate_backend_operation_history(request(), [ack, uncertain, response(outcome(), 3)])
+        contracts.validate_backend_operation_history(operation_10, reports_11)
 
 
 @pytest.mark.parametrize(
@@ -288,8 +301,9 @@ def test_budgets_reject_coercion_expiry_and_renewal(field, value):
 
 def test_closed_versioned_carriers_reject_unknown_fields_and_versions():
     for mutation in [{"schema_version": "backend-operation-request/v2"}, {"metadata": {"retry": True}}]:
+        payload_16 = {**request_payload(), **mutation}
         with pytest.raises(ValidationError):
-            contracts.BackendOperationRequestModel.model_validate({**request_payload(), **mutation})
+            contracts.BackendOperationRequestModel.model_validate(payload_16)
 
 
 def test_supervisor_identity_and_control_commitment_are_independent():
@@ -306,8 +320,9 @@ def test_supervisor_identity_and_control_commitment_are_independent():
             "disposition": "accepted",
         }
     )
+    operation_12 = request()
     with pytest.raises(ValueError, match="control"):
-        contracts.validate_backend_operation_response(request(), report, control=other)
+        contracts.validate_backend_operation_response(operation_12, report, control=other)
 
 
 def test_published_family_and_profile_are_consumable_without_runtime():
@@ -327,11 +342,14 @@ def test_published_family_and_profile_are_consumable_without_runtime():
         schema = json.loads((ROOT / f"contracts/schemas/control-plane/{name}.json").read_text())
         assert schema == bundle[name]
         Draft202012Validator(schema).validate(value.model_dump(mode="json"))
+        validator_17 = Draft202012Validator(schema)
+        payload_18 = {**value.model_dump(mode="json"), "metadata": {}}
         with pytest.raises(SchemaValidationError):
-            Draft202012Validator(schema).validate({**value.model_dump(mode="json"), "metadata": {}})
+            validator_17.validate(payload_18)
         assert schema["x-raes-semantic-profile"]["required"] is True
+    provider_13 = object()
     with pytest.raises(ValueError, match="installed"):
-        require_operation_provider(object(), profile.required_contracts)
+        require_operation_provider(provider_13, profile.required_contracts)
     assert BackendOperationProvider is not None
 
 
@@ -346,8 +364,9 @@ def test_published_family_and_profile_are_consumable_without_runtime():
     ],
 )
 def test_success_requires_full_validated_claim_not_just_observed_effects(changes):
+    outcome_payload_14 = outcome(**changes)
     with pytest.raises(ValidationError):
-        response(outcome(**changes))
+        response(outcome_payload_14)
 
 
 def test_example_corpus_exercises_every_message_and_required_scenario():

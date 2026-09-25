@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -30,7 +30,7 @@ class OperationContractModel(ContractModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     @model_validator(mode="after")
-    def _unique_collections(self):
+    def _unique_collections(self) -> Self:
         for name in type(self).model_fields:
             values = getattr(self, name)
             if isinstance(values, tuple) and len(values) != len(set(values)):
@@ -55,7 +55,7 @@ class OperationBudgetModel(OperationContractModel):
     remaining_ms: OperationPositive
 
     @model_validator(mode="after")
-    def _budget_bounds(self):
+    def _budget_bounds(self) -> Self:
         _parse_rfc3339_datetime("started_at", self.started_at)
         if self.remaining_ms > self.limit_ms:
             raise ValueError("remaining budget cannot exceed its original limit")
@@ -70,7 +70,7 @@ class OperationEffectScopeModel(OperationContractModel):
     independence: OperationArtifactReferenceModel | None = None
 
     @model_validator(mode="after")
-    def _scope_boundary(self):
+    def _scope_boundary(self) -> Self:
         if self.kind == "target-run" and (self.addresses or self.independence is not None):
             raise ValueError("target/run scope cannot carry a narrowed resource boundary")
         if self.kind == "resources" and (not self.addresses or self.independence is None):

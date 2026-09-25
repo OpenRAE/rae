@@ -21,16 +21,18 @@ from test_issue_1360_backend_operations import (
 def test_refused_admission_cannot_be_followed_by_dispatch():
     refused = admission("refused")
     ack = response({"kind": "acknowledgement", "disposition": "accepted"}, 2)
+    operation_1 = request()
     with pytest.raises(ValueError, match="terminal"):
-        contracts.validate_backend_operation_history(request(), [refused, ack])
+        contracts.validate_backend_operation_history(operation_1, [refused, ack])
 
 
 @pytest.mark.parametrize("disposition", ["willing", "refused"])
 def test_admission_cannot_reclassify_an_accepted_invocation(disposition):
     ack = response({"kind": "acknowledgement", "disposition": "accepted"})
     late_admission = response(admission(disposition).message, 2)
+    operation_2 = request()
     with pytest.raises(ValueError, match="admission must precede"):
-        contracts.validate_backend_operation_history(request(), [ack, late_admission])
+        contracts.validate_backend_operation_history(operation_2, [ack, late_admission])
 
 
 @pytest.mark.parametrize(
@@ -55,8 +57,9 @@ def test_budget_origin_is_a_bounded_real_calendar_instant(timestamp):
     ],
 )
 def test_effect_claims_reject_missing_contradictory_or_coerced_evidence(changes):
+    payload_3 = {**evidence(), **changes}
     with pytest.raises(ValidationError):
-        contracts.BackendOperationEffectsModel.model_validate({**evidence(), **changes})
+        contracts.BackendOperationEffectsModel.model_validate(payload_3)
 
 
 @pytest.mark.parametrize(
@@ -95,13 +98,18 @@ def test_wrong_capability_identity_kind_and_revision_prevent_admission(field, va
     raw = capabilities().model_dump()
     raw[field] = value
     foreign = contracts.BackendOperationCapabilitiesModel.model_validate(raw)
+    operation_4 = request()
+    admission_report_5 = admission()
     with pytest.raises(ValueError):
-        contracts.require_backend_operation_admission(request(), foreign, admission())
+        contracts.require_backend_operation_admission(operation_4, foreign, admission_report_5)
 
 
 def test_non_admission_message_cannot_supply_willingness():
+    operation_6 = request()
+    capability_report_7 = capabilities()
+    response_report_8 = response(outcome())
     with pytest.raises(ValueError, match="admission"):
-        contracts.require_backend_operation_admission(request(), capabilities(), response(outcome()))
+        contracts.require_backend_operation_admission(operation_6, capability_report_7, response_report_8)
 
 
 @pytest.mark.parametrize(
@@ -122,8 +130,9 @@ def test_refusal_reasons_are_required_only_on_refusal(kind, disposition, reason)
 
 
 def test_failure_requires_known_non_satisfaction():
+    outcome_payload_9 = outcome("failed")
     with pytest.raises(ValidationError, match="non-satisfaction"):
-        response(outcome("failed"))
+        response(outcome_payload_9)
     failed = response(outcome("failed", satisfaction="unsatisfied", release_gates_satisfied=False))
     contracts.validate_backend_operation_response(request(), failed)
 
@@ -138,15 +147,18 @@ def test_control_requires_original_binding_commitment_and_matching_action():
             "effects": evidence(),
         }
     )
+    operation_10 = request()
     with pytest.raises(ValueError, match="action"):
-        contracts.validate_backend_operation_response(request(), report, control=ctl)
+        contracts.validate_backend_operation_response(operation_10, report, control=ctl)
+    operation_11 = request()
     with pytest.raises(ValueError, match="control"):
-        contracts.validate_backend_operation_response(request(), report)
+        contracts.validate_backend_operation_response(operation_11, report)
     raw = ctl.model_dump()
     raw["request_digest"] = "sha256:" + "f" * 64
     other = contracts.BackendOperationControlModel.model_validate(raw)
+    operation_12 = request()
     with pytest.raises(ValueError, match="commitment"):
-        contracts.validate_backend_operation_response(request(), report, control=other)
+        contracts.validate_backend_operation_response(operation_12, report, control=other)
 
 
 def test_transcript_rejects_changed_control_and_unordered_or_unacknowledged_records():
@@ -154,24 +166,34 @@ def test_transcript_rejects_changed_control_and_unordered_or_unacknowledged_reco
     raw = ctl.model_dump()
     raw["budget"]["remaining_ms"] = 800
     changed = contracts.BackendOperationControlModel.model_validate(raw)
+    operation_13 = request()
     with pytest.raises(ValueError, match="control"):
-        contracts.validate_backend_operation_history(request(), [], controls=[ctl, changed])
+        contracts.validate_backend_operation_history(operation_13, [], controls=[ctl, changed])
+    operation_14 = request()
+    reports_15 = [response(outcome())]
     with pytest.raises(ValueError, match="acknowledgement"):
-        contracts.validate_backend_operation_history(request(), [response(outcome())])
+        contracts.validate_backend_operation_history(operation_14, reports_15)
     ack = response({"kind": "acknowledgement", "disposition": "accepted"}, 2)
+    operation_16 = request()
+    reports_17 = [ack, admission()]
     with pytest.raises(ValueError, match="unordered"):
-        contracts.validate_backend_operation_history(request(), [ack, admission()])
+        contracts.validate_backend_operation_history(operation_16, reports_17)
+    operation_18 = request()
+    reports_19 = [ack, response(ack.message, 3)]
     with pytest.raises(ValueError, match="twice"):
-        contracts.validate_backend_operation_history(request(), [ack, response(ack.message, 3)])
+        contracts.validate_backend_operation_history(operation_18, reports_19)
 
 
 @pytest.mark.parametrize("field", ["responses", "controls"])
 def test_transcript_size_is_bounded_before_traversal(field):
+    operation_20 = request()
+    reports_21 = [admission()] * (1025 if field == "responses" else 0)
+    reports_22 = [control()] * (257 if field == "controls" else 0)
     with pytest.raises(ValueError, match="bound"):
         contracts.validate_backend_operation_history(
-            request(),
-            [admission()] * (1025 if field == "responses" else 0),
-            controls=[control()] * (257 if field == "controls" else 0),
+            operation_20,
+            reports_21,
+            controls=reports_22,
         )
 
 
