@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:40:04.988670Z
-updated_at: 2026-09-24T00:00:00.000000Z
+updated_at: 2026-09-25T00:00:00.000000Z
 ---
 
 # API-402 — Plain-Data Execution, Result, And History Contracts
@@ -56,3 +56,4 @@ Current state: implemented. Portable live-execution contracts are required so in
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1360-backend-operation-contracts-preflight.md` (Contract publication guardrails)
 - IMPLEMENTS → CONFIG `tools/policy/requirement_order.yaml` (Existing live-contract requirement admitted through control-plane governance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_backend_operation_exports.py` (Public operation contract facade exports)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_stubs/manifest.py` (Keep operation supervision opt-in; legacy stub does not advertise an unimplemented provider)

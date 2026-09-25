@@ -375,3 +375,10 @@ def test_example_corpus_exercises_every_message_and_required_scenario():
             )
         contracts.validate_backend_operation_history(op, reports, controls=controls)
     assert kinds == {"admission", "acknowledgement", "progress", "control", "outcome", "reconciliation"}
+
+
+def test_existing_stub_does_not_advertise_operation_supervision():
+    from raes_backend_stubs.manifest import create_stub_manifest
+    from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
+
+    assert set(BACKEND_OPERATION_CONTRACT_IDS).isdisjoint(create_stub_manifest().supported_contract_versions)

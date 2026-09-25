@@ -47,6 +47,7 @@ from raes_contracts.apparatus import (
 from raes_contracts.corpus import REALIZATION_ENVELOPES, corpus_family_root
 from raes_contracts.manifest_authority import BACKEND_SUPPORTED_CONTRACT_IDS
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
+from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
 from raes_contracts.vocabulary import (
     ParticipantFeatureSupportLevel,
     RealizationSupportMode,
@@ -54,6 +55,7 @@ from raes_contracts.vocabulary import (
 )
 
 REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS = frozenset(BACKEND_SUPPORTED_CONTRACT_IDS) - {
+    *BACKEND_OPERATION_CONTRACT_IDS,
     "backend-materialization-attestation-v1",
     "backend-augmentation-scope-v1",
     "backend-realization-preparation-v1",

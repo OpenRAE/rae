@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 44.0.0 and rejects duplicate or unsupported
+Current validation requires release 45.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -383,3 +383,12 @@ captures retain their observations and source identities in v42 and v43; only
 their release numbers, paths, and corresponding digest joins were reconciled
 with the independently published issue #1338 capture. The combined capture
 uses the issue #1338 baseline and preserves the same bounded claim limits.
+
+## Backend operation contract source replay
+
+Release 45.0.0 binds issue #1360 to fresh source evidence in
+[`execution-snapshot-v45.json`](execution-snapshot-v45.json) and
+[`analysis-v45.json`](analysis-v45.json). The retained offline cases preserve
+their classifications and claim limits. Backend supervision contracts have
+dedicated contract tests; this capture makes no live backend recovery claim.
+Earlier published captures retain their exact bytes.
