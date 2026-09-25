@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 47.0.0, rejects unsupported future
+Current validation requires explicit release 48.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -448,13 +448,21 @@ their release numbers, paths, and corresponding digest joins were reconciled
 with the independently published issue #1338 capture. The combined capture
 uses the issue #1338 baseline and preserves the same bounded claim limits.
 
-Release 46.0.0 replays the retained formal controls against the issue
-#1358 egress outcome implementation in [`execution-snapshot-v45.json`](execution-snapshot-v45.json)
-and [`analysis-v45.json`](analysis-v45.json). It retains the issue #1338 baseline
-and the same bounded claims. Final egress denial is verified by dedicated
-runtime regressions, not by this formal corpus.
+Release 46.0.0 records issue #1357's governed v2 decision admission in
+[`execution-snapshot-v45.json`](execution-snapshot-v45.json) and
+[`analysis-v45.json`](analysis-v45.json). Its original bytes and source identity
+are retained. Crossing authorization is exercised by dedicated runtime tests,
+outside this formal corpus.
 
-Current release 47.0.0 replays those controls after the governed projection
-replay refactor in [`execution-snapshot-v46.json`](execution-snapshot-v46.json)
-and [`analysis-v46.json`](analysis-v46.json). It retains the same baseline,
-bounded claims, and unsupported classes while binding the current source digest.
+Release 47.0.0 records issue #1358's egress outcome implementation and governed
+projection replay refactor in [`execution-snapshot-v46.json`](execution-snapshot-v46.json)
+and [`analysis-v46.json`](analysis-v46.json). The earlier issue #1358 capture,
+which collided with the independently published release 46.0.0, remains in
+feature commit `c54060dd591f4c09dda49be7a5b04fde83efe02e` rather than the
+release index. Its observations are not relabeled as combined-source evidence.
+
+Current release 48.0.0 replays the retained controls against the merged source
+in [`execution-snapshot-v47.json`](execution-snapshot-v47.json) and
+[`analysis-v47.json`](analysis-v47.json). It retains the issue #1338 baseline,
+bounded claims, and unsupported classes. Final egress denial and governed
+admission are verified by dedicated runtime regressions.

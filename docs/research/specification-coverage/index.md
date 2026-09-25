@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 46.0.0 and rejects duplicate or unsupported
+Current validation requires release 47.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -384,13 +384,21 @@ their release numbers, paths, and corresponding digest joins were reconciled
 with the independently published issue #1338 capture. The combined capture
 uses the issue #1338 baseline and preserves the same bounded claim limits.
 
-Release 45.0.0 replays those retained controls against the issue #1358
-egress outcome implementation in [`execution-snapshot-v45.json`](execution-snapshot-v45.json)
-and [`analysis-v45.json`](analysis-v45.json). Its source identity is retained;
-classifications and claim limits remain unchanged. Egress denial itself is
-verified by the dedicated runtime tests, not this SDL corpus.
+Release 45.0.0 records issue #1357's governed v2 decision admission in
+[`execution-snapshot-v45.json`](execution-snapshot-v45.json) and
+[`analysis-v45.json`](analysis-v45.json). Its original bytes and source identity
+are retained. Participant crossing authorization is exercised by dedicated
+runtime tests, outside this offline specification corpus.
 
-Current release 46.0.0 replays the same controls after the governed projection
-replay refactor in [`execution-snapshot-v46.json`](execution-snapshot-v46.json)
-and [`analysis-v46.json`](analysis-v46.json). It binds the current source digest
-without changing the matrix classifications or claim limits.
+Release 46.0.0 records issue #1358's egress outcome implementation and governed
+projection replay refactor in [`execution-snapshot-v46.json`](execution-snapshot-v46.json)
+and [`analysis-v46.json`](analysis-v46.json). The earlier issue #1358 capture,
+which collided with the independently published release 45.0.0, remains in
+feature commit `c54060dd591f4c09dda49be7a5b04fde83efe02e` rather than the
+release index. Its observations are not relabeled as combined-source evidence.
+
+Current release 47.0.0 replays the same controls against the merged source in
+[`execution-snapshot-v47.json`](execution-snapshot-v47.json) and
+[`analysis-v47.json`](analysis-v47.json). Classifications and claim limits
+remain unchanged; egress denial and governed admission are verified by their
+dedicated runtime tests.

@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-24T01:33:03.875794+00:00",
+  "captured_at": "2026-09-25T04:28:12.014375+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -685,17 +685,17 @@
     "Issue #1016 mixed-runtime coordination is covered by its dedicated runtime suite. The retained language corpus does not execute mixed providers or establish backend-native realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
-    "This replay binds issue #1357 governed v2 decision admission and the integrated source state. The retained offline specification corpus does not exercise participant crossing authorization or assert new runtime behavior."
+    "Issue #1358 final-egress denial is verified by dedicated runtime regressions; this retained SDL corpus adds no egress assurance claim."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "3b7208b15f8dc29db8ad6d3b15bde792d79220b7",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1357-v45",
-  "snapshot_revision": "45.0.0",
+  "raes_revision": "5085fb9bdea27f87ea137d1af2c49adaa7f162ff",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1358-v47",
+  "snapshot_revision": "47.0.0",
   "source_state": {
-    "base_revision": "3b7208b15f8dc29db8ad6d3b15bde792d79220b7",
+    "base_revision": "5085fb9bdea27f87ea137d1af2c49adaa7f162ff",
     "checkout_state": "modified",
-    "implementation_digest": "a6c52cd21e5a4847632b60abdaf57cb6046687474a41cdcd7457748851232294",
+    "implementation_digest": "67f1ac1f9b1e6b7177f0cc2df3ed8b3b706de8f36f1dd567a71828ac49dc719d",
     "profile": "python-reference-source/v2"
   }
 }
