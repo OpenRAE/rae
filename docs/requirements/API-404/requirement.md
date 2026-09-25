@@ -34,6 +34,17 @@ discards operation state, idempotency records, and audit evidence held by the
 composition. P0 does not provide durability, restart recovery, or retained
 deduplication across process loss.
 
+For P0/P1 SDK use, the host application owns participant-facing caller
+authentication, entitlement and result release. Direct Python methods have no
+P2 transport authentication: `get_snapshot()` returns the full snapshot
+without a caller identity, and participant retrieval accepts optional identity
+context. The host keeps the control-plane object and store private, binds a
+participant request to its target/run, participant, exact episode, audience
+and operation, and releases only a permitted governed projection after a
+configured API-423/RUN-319 crossing. The current legacy no-resolver retrieval
+path can return a view without that crossing; the host must reject it for
+participant-facing use. Local hosts need no organizational account model.
+
 ### API-404-C2 — Durable local control
 
 P1 and P2 shall add crash-consistent authoritative state, retained idempotency
@@ -56,19 +67,21 @@ selected P1 core. The corresponding runtime guarantee identifiers are
 `owner-serialized-mutation`, and `revision-carrying-reads`. Only P2
 authenticates transport callers; P0 and P1 rely on their trusted embedders.
 
-P2's authenticated control-plane principal is a privileged service identity,
-not a credential for a participant client. Read-role admission to an API-408
-participant projection also permits full snapshot and operational reads; the
-participant/audience binding used for governed projection is not a route-wide
-read restriction. Participant clients therefore use an organizational backend
-that binds its own principal/session to target/run, participant, exact episode,
-audience and permitted operation before every retrieval or mutation. A
-participant-facing view requires configured API-423/RUN-319 crossing mediation
-at the exact state cut; the legacy ungoverned projection path does not satisfy
-this deployment boundary. The backend retains organizational identity/policy
-and service credentials and must not disclose raw snapshot, operation,
-history, event, error or cached control-plane outputs as participant views.
-This interpretation adds no P2 profile guarantee or SDL participant role.
+P2 identities are deployment-configured bearer tokens or verified proxy
+identities, not RAES-issued participant credentials. A host may use one as a
+service identity. Read-role admission to an API-408 participant projection
+also permits full snapshot and operational reads; the participant/audience
+binding used for governed projection is not a route-wide read restriction.
+The host keeps its P2 identity private, binds its participant-facing caller to
+target/run, participant, exact episode, audience and permitted operation, and
+checks the returned view before release. P2 checks the configured identity's
+target and role and, with a resolver, the governed crossing; it does not
+authorize the host's end user or reject the legacy no-resolver path solely
+because the result will be participant-facing. The host must not release raw
+snapshot, operation, history, event, error or cached control-plane outputs as
+participant views. Organizational identity and policy remain with an
+organizational host such as BigRAE. This interpretation adds no P2 profile
+guarantee or SDL participant role.
 
 ### API-404-C4 — Excluded stronger claims
 
