@@ -292,7 +292,18 @@ def validate_retest_bundle(
         }
         else "2.0.0"
     )
-    if release_revision in {"42.0.0", "45.0.0", "46.0.0", "47.0.0", "48.0.0", "49.0.0", "50.0.0", "51.0.0", "52.0.0", "53.0.0"}:
+    if release_revision in {
+        "42.0.0",
+        "45.0.0",
+        "46.0.0",
+        "47.0.0",
+        "48.0.0",
+        "49.0.0",
+        "50.0.0",
+        "51.0.0",
+        "52.0.0",
+        "53.0.0",
+    }:
         expected_corpus_revision = "4.0.0"
     if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
         failures.append(
