@@ -56,8 +56,7 @@
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
     "Participant-local outcome state is verified by the ACT-618 tests; this retained corpus makes no additional outcome-state claim.",
-    "Backend operation supervision contracts are covered by issue #1360 contract tests; this retained offline corpus establishes no live backend supervision or recovery guarantee.",
-    "This capture replays the merged issue #1360 and #1357 source; the protocol makes no live backend execution or supervision claim."
+    "Backend operation supervision contracts are covered by issue #1360 contract tests; this retained offline corpus establishes no live backend supervision or recovery guarantee."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -98,5 +97,5 @@
     }
   ],
   "snapshot_id": "issue-1360-specification-coverage-v49",
-  "snapshot_sha256": "2b49e9fa19fa1305ee9a0a2a75e6689f6ffdc1ccf64a622d5783ec2bcf1ffe85"
+  "snapshot_sha256": "ab2f5b2e0ac8e5a904e05e79ded97b727f384ccadd91283adfb727995c73e2a0"
 }

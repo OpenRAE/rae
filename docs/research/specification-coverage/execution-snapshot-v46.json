@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-25T02:26:58.817893+00:00",
+  "captured_at": "2026-09-24T02:37:14.078730+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "7531f0ffb125a928a8cd9c8b57443aa175c3dc7ea921f0b51eab6377f2443459",
+      "content_sha256": "945267796770238855d21a75e9da35f74791edbe1b0b72d544cdb94a12f01b12",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -684,17 +684,18 @@
     "Issue #1189 control-plane profile declarations are covered by their dedicated runtime suite, not promoted to new claims by the retained language corpus.",
     "Issue #1016 mixed-runtime coordination is covered by its dedicated runtime suite. The retained language corpus does not execute mixed providers or establish backend-native realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
-    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution."
+    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
+    "Issue #1358 final-egress denial is verified by dedicated runtime regressions; this retained SDL corpus adds no egress assurance claim."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "99f7667388056bd8b98bb553f270a6f954882f4b",
-  "snapshot_id": "issue-1360-specification-coverage-v46",
+  "raes_revision": "26e3e419158d5c6212060033a06174aa08ae501f",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1358-v46",
   "snapshot_revision": "46.0.0",
   "source_state": {
-    "base_revision": "99f7667388056bd8b98bb553f270a6f954882f4b",
+    "base_revision": "26e3e419158d5c6212060033a06174aa08ae501f",
     "checkout_state": "modified",
-    "implementation_digest": "2ad3010ff26ef5d14e206cc2b51573a17e684cd7fef661e062b0a9690da080fa",
+    "implementation_digest": "1d904064b9699c289c385439bac144708f2f7434051baab6e78ed5c9e66194e4",
     "profile": "python-reference-source/v2"
   }
 }

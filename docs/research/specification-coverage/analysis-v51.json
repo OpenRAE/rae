@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1358-v47",
+  "analysis_id": "issue-1360-specification-coverage-v51",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,8 +18,8 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v47.json",
-      "docs/research/specification-coverage/analysis-v47.json"
+      "docs/research/specification-coverage/execution-snapshot-v51.json",
+      "docs/research/specification-coverage/analysis-v51.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
     "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
@@ -56,8 +56,8 @@
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
     "Participant-local outcome state is verified by the ACT-618 tests; this retained corpus makes no additional outcome-state claim.",
-    "Issue #1358 final-egress denial remains covered by dedicated runtime tests, not by this retained SDL matrix.",
-    "The merged issue #1357 governed admission change is covered by dedicated v2 decision-surface tests; this retained SDL matrix makes no additional crossing-authority claim."
+    "Backend operation supervision contracts are covered by issue #1360 contract tests; this retained offline corpus establishes no live backend supervision or recovery guarantee.",
+    "This capture replays the merged issue #1360 and #1357 source; the protocol makes no live backend execution or supervision claim."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -97,6 +97,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1358-v47",
-  "snapshot_sha256": "3c652c1e515ae6fe991d9b09c3e684c4f6163940ac863eafaf2bf2fc71339a74"
+  "snapshot_id": "issue-1360-specification-coverage-v51",
+  "snapshot_sha256": "0aba45b10c71ea6c76cd585e50394015c9c5074705d1d963c8b4209ed6071595"
 }

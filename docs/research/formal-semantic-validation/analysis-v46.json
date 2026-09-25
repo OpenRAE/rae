@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1360-analysis-v46",
+  "analysis_id": "issue-1358-analysis-v46",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1360-execution-v46",
-  "generated_at": "2026-09-25",
+  "execution_id": "issue-1358-execution-v46",
+  "generated_at": "2026-09-24",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -147,8 +147,9 @@
     "Issue #1189 profile declarations and capability admission are covered by dedicated runtime tests; the retained formal corpus does not execute control-plane profile composition.",
     "Issue #1016 mixed-runtime coordination is covered by dedicated runtime tests; the retained formal corpus does not establish backend-native mixed realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
-    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution."
+    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
+    "Issue #1358 final-egress denial is covered by runtime tests; this formal semantic corpus makes no new egress claim."
   ],
-  "plain_language_outcome": "The retained controls replay against the backend operation contract publication. The original claim limits and unsupported classes remain unchanged; this offline corpus does not establish live backend supervision or recovery.",
+  "plain_language_outcome": "The retained controls replay with participant identity separated from organizational ownership and objective assignment. Historical evidence is preserved; the registered claim limits and unsupported classes are unchanged.",
   "protocol_revision": "2.0.0"
 }
