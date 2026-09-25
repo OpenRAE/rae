@@ -26,6 +26,8 @@ from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, Provision
 from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
+from .operation_supervision import BackendOperationProvider as BackendOperationProvider
+
 if TYPE_CHECKING:
     from raes_contracts.contracts.time_model import TimeModelDeclarationModel, TimeRuntimeStateModel
 

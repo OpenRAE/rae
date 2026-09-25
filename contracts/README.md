@@ -1,5 +1,11 @@
 # Contracts
 
+The optional [backend operation and supervision family](../specs/formal/runtime-contracts/backend-operation-supervision.md)
+publishes bounded requests, capability/willingness checks, correlated progress,
+cancellation dispositions and effect evidence. The
+[backend integration and migration guide](../docs/explain/reference/backend-operation-supervision.md)
+explains the `operation-supervision` profile and its evidence limits.
+
 `contracts/` contains the machine-readable contract side of the repository.
 
 The goal of this bucket is organizational clarity:

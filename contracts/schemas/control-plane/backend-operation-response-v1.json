@@ -1,0 +1,686 @@
+{
+  "$defs": {
+    "BackendOperationAcknowledgementModel": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "enum": [
+            "accepted",
+            "refused"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "kind": {
+          "const": "acknowledgement",
+          "default": "acknowledgement",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "unsupported-contract",
+                "unsupported-kind",
+                "unsupported-guarantee",
+                "context-refused",
+                "budget-exhausted",
+                "stale-binding",
+                "conflicting-effects",
+                "unavailable"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "disposition"
+      ],
+      "title": "BackendOperationAcknowledgementModel",
+      "type": "object"
+    },
+    "BackendOperationAdmissionModel": {
+      "additionalProperties": false,
+      "properties": {
+        "capability_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Capability Digest",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "willing",
+            "refused"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "kind": {
+          "const": "admission",
+          "default": "admission",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "unsupported-contract",
+                "unsupported-kind",
+                "unsupported-guarantee",
+                "context-refused",
+                "budget-exhausted",
+                "stale-binding",
+                "conflicting-effects",
+                "unavailable"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "disposition",
+        "capability_digest"
+      ],
+      "title": "BackendOperationAdmissionModel",
+      "type": "object"
+    },
+    "BackendOperationBindingModel": {
+      "additionalProperties": false,
+      "description": "Original context and invocation identity, including state-publication fences.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "backend_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Backend Id",
+          "type": "string"
+        },
+        "baseline_revision": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Baseline Revision",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/OperationAdmissionContext"
+        },
+        "deployment_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Deployment Id",
+          "type": "string"
+        },
+        "effect_scope": {
+          "$ref": "#/$defs/OperationEffectScopeModel"
+        },
+        "execution_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "invocation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Invocation Id",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "owner_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Owner Generation",
+          "type": "integer"
+        },
+        "worker_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Worker Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_id",
+        "invocation_id",
+        "attempt_id",
+        "worker_id",
+        "deployment_id",
+        "owner_generation",
+        "execution_generation",
+        "backend_id",
+        "baseline_revision",
+        "context"
+      ],
+      "title": "BackendOperationBindingModel",
+      "type": "object"
+    },
+    "BackendOperationControlDispositionModel": {
+      "additionalProperties": false,
+      "properties": {
+        "control_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Control Digest",
+          "type": "string"
+        },
+        "control_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Control Id",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "recorded",
+            "accepted",
+            "refused",
+            "unsupported",
+            "already-terminal"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "kind": {
+          "const": "control",
+          "default": "control",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "control_digest",
+        "disposition"
+      ],
+      "title": "BackendOperationControlDispositionModel",
+      "type": "object"
+    },
+    "BackendOperationEffectsModel": {
+      "additionalProperties": false,
+      "description": "Effect knowledge and cessation are independent, scoped backend assertions.",
+      "properties": {
+        "cessation_established": {
+          "title": "Cessation Established",
+          "type": "boolean"
+        },
+        "effect": {
+          "enum": [
+            "absent",
+            "complete",
+            "partial",
+            "unknown"
+          ],
+          "title": "Effect",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/OperationArtifactReferenceModel"
+          },
+          "maxItems": 32,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "external_fence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "residual_scope": {
+          "default": [],
+          "items": {
+            "maxLength": 2048,
+            "minLength": 3,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Residual Scope",
+          "type": "array"
+        },
+        "residual_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "effect",
+        "cessation_established"
+      ],
+      "title": "BackendOperationEffectsModel",
+      "type": "object"
+    },
+    "BackendOperationOutcomeModel": {
+      "additionalProperties": false,
+      "description": "Proposed outcome requiring RAE's native validation and atomic publication.",
+      "properties": {
+        "cancellation_established": {
+          "title": "Cancellation Established",
+          "type": "boolean"
+        },
+        "effects": {
+          "$ref": "#/$defs/BackendOperationEffectsModel"
+        },
+        "kind": {
+          "const": "outcome",
+          "default": "outcome",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposed_state": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "cancelled",
+            "indeterminate"
+          ],
+          "title": "Proposed State",
+          "type": "string"
+        },
+        "release_gates_satisfied": {
+          "title": "Release Gates Satisfied",
+          "type": "boolean"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "satisfaction": {
+          "enum": [
+            "satisfied",
+            "unsatisfied",
+            "unknown"
+          ],
+          "title": "Satisfaction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposed_state",
+        "effects",
+        "satisfaction",
+        "release_gates_satisfied",
+        "cancellation_established"
+      ],
+      "title": "BackendOperationOutcomeModel",
+      "type": "object"
+    },
+    "BackendOperationProgressModel": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/OperationArtifactReferenceModel"
+          },
+          "maxItems": 32,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "kind": {
+          "const": "progress",
+          "default": "progress",
+          "title": "Kind",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "queued",
+            "executing",
+            "settling"
+          ],
+          "title": "Phase",
+          "type": "string"
+        }
+      },
+      "required": [
+        "phase"
+      ],
+      "title": "BackendOperationProgressModel",
+      "type": "object"
+    },
+    "BackendOperationReconciliationModel": {
+      "additionalProperties": false,
+      "description": "Observation for separately authorized resolution, with no replay instruction.",
+      "properties": {
+        "control_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Control Digest",
+          "type": "string"
+        },
+        "control_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Control Id",
+          "type": "string"
+        },
+        "effects": {
+          "$ref": "#/$defs/BackendOperationEffectsModel"
+        },
+        "kind": {
+          "const": "reconciliation",
+          "default": "reconciliation",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "control_digest",
+        "effects"
+      ],
+      "title": "BackendOperationReconciliationModel",
+      "type": "object"
+    },
+    "OperationAdmissionContext": {
+      "additionalProperties": false,
+      "description": "Immutable, value-free authority and request context fixed at admission.",
+      "properties": {
+        "actor_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "authorization_scope": {
+          "items": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Authorization Scope",
+          "type": "array"
+        },
+        "operation_kind": {
+          "$ref": "#/$defs/OperationKind"
+        },
+        "parent_operation_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Operation Id"
+        },
+        "request_commitment": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Request Commitment",
+          "type": "string"
+        },
+        "run_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Run Scope",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Target Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor_id",
+        "authorization_scope",
+        "target_scope",
+        "run_scope",
+        "operation_kind",
+        "request_commitment"
+      ],
+      "title": "OperationAdmissionContext",
+      "type": "object"
+    },
+    "OperationArtifactReferenceModel": {
+      "additionalProperties": false,
+      "description": "Content-bound reference resolved through the owning admitted artifact authority.",
+      "properties": {
+        "artifact_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "contract_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[0-9]+$",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "artifact_id",
+        "digest"
+      ],
+      "title": "OperationArtifactReferenceModel",
+      "type": "object"
+    },
+    "OperationEffectScopeModel": {
+      "additionalProperties": false,
+      "description": "Target/run exclusion is the default; narrowing needs admitted independence.",
+      "properties": {
+        "addresses": {
+          "default": [],
+          "items": {
+            "maxLength": 2048,
+            "minLength": 3,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Addresses",
+          "type": "array"
+        },
+        "independence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationArtifactReferenceModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "default": "target-run",
+          "enum": [
+            "target-run",
+            "resources"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "OperationEffectScopeModel",
+      "type": "object"
+    },
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing",
+        "composition-phase",
+        "indeterminate-resolution"
+      ],
+      "title": "OperationKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/backend-operation-response-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "binding": {
+      "$ref": "#/$defs/BackendOperationBindingModel"
+    },
+    "message": {
+      "discriminator": {
+        "mapping": {
+          "acknowledgement": "#/$defs/BackendOperationAcknowledgementModel",
+          "admission": "#/$defs/BackendOperationAdmissionModel",
+          "control": "#/$defs/BackendOperationControlDispositionModel",
+          "outcome": "#/$defs/BackendOperationOutcomeModel",
+          "progress": "#/$defs/BackendOperationProgressModel",
+          "reconciliation": "#/$defs/BackendOperationReconciliationModel"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/BackendOperationAdmissionModel"
+        },
+        {
+          "$ref": "#/$defs/BackendOperationAcknowledgementModel"
+        },
+        {
+          "$ref": "#/$defs/BackendOperationProgressModel"
+        },
+        {
+          "$ref": "#/$defs/BackendOperationControlDispositionModel"
+        },
+        {
+          "$ref": "#/$defs/BackendOperationOutcomeModel"
+        },
+        {
+          "$ref": "#/$defs/BackendOperationReconciliationModel"
+        }
+      ],
+      "title": "Message"
+    },
+    "request_digest": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Request Digest",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "backend-operation-response/v1",
+      "default": "backend-operation-response/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sequence": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Sequence",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "binding",
+    "request_digest",
+    "sequence",
+    "message"
+  ],
+  "title": "BackendOperationResponseModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; structural validity does not prove backend truth or runtime authority.",
+      "id": "backend-operation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.BackendOperationResponseModel.model_validate"
+    },
+    {
+      "description": "Require exact request binding and commitment, scoped residuals and independently bound controls when present.",
+      "id": "backend-operation-response-binding",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.validate_backend_operation_response"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "backend-operation-response-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

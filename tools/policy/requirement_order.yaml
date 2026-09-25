@@ -15,6 +15,7 @@ phases:
       - ^DSL-
   - id: runtime-control-plane
     requirements:
+      - API-402
       - API-404
   - id: api400-core
     requirements:
