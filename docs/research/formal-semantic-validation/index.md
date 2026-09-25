@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 46.0.0, rejects unsupported future
+Current validation requires explicit release 47.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -456,3 +456,8 @@ Release 46.0.0 binds issue #1360 to fresh source evidence in
 their classifications and claim limits. Backend supervision contracts have
 dedicated contract tests; this capture makes no live backend recovery claim.
 Earlier published captures retain their exact bytes.
+
+Release 47.0.0 binds the reference-backend opt-in correction to
+[`execution-snapshot-v46.json`](execution-snapshot-v46.json) and
+[`analysis-v46.json`](analysis-v46.json). The retained claims and
+classifications are unchanged.
