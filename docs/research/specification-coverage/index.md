@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 47.0.0 and rejects duplicate or unsupported
+Current validation requires release 48.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -402,3 +402,8 @@ Current release 47.0.0 replays the same controls against the merged source in
 [`analysis-v47.json`](analysis-v47.json). Classifications and claim limits
 remain unchanged; egress denial and governed admission are verified by their
 dedicated runtime tests.
+
+Current release 48.0.0 replays the retained matrix after issue #1389 admitted
+the exact participant inject delivery address as a temporal subject. The
+classifications and claim limits remain unchanged; participant delivery timing
+is verified by its dedicated compiler tests.

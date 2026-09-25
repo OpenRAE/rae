@@ -466,3 +466,9 @@ in [`execution-snapshot-v47.json`](execution-snapshot-v47.json) and
 [`analysis-v47.json`](analysis-v47.json). It retains the issue #1338 baseline,
 bounded claims, and unsupported classes. Final egress denial and governed
 admission are verified by dedicated runtime regressions.
+
+Release 49.0.0 is recorded in
+[`execution-snapshot-v48.json`](execution-snapshot-v48.json) and
+[`analysis-v48.json`](analysis-v48.json). It replays the retained formal cases
+after issue #1389 admitted the exact participant inject delivery address as a
+temporal subject. Outcomes and bounded claim limits remain unchanged.
