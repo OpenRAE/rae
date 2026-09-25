@@ -13,6 +13,7 @@ from raes._errors import SDLInstantiationError, SDLParseError, SDLValidationErro
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, parse_sdl_file
 from raes_contracts.contracts import schema_bundle
+from raes_processor.compiler.time_model import time_model_contract_model
 from raes_processor.compiler import compile_runtime_model
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -163,6 +164,16 @@ def test_participant_inject_delivery_parses_and_compiles_typed_metadata() -> Non
     assert compiled.temporal_constraint_addresses == ("time.constraint.briefing-window",)
     assert compiled.evidence_requirement_addresses == ("sdl.evidence-requirements.briefing-delivery-evidence",)
     assert INJECT_ADDRESS in compiled.refresh_dependencies
+
+
+def test_participant_inject_delivery_is_a_valid_temporal_subject() -> None:
+    model = compile_runtime_model(parse_sdl(_scenario_yaml()))
+
+    declaration = time_model_contract_model(model.time_model)
+
+    assert declaration is not None
+    constraint = declaration.temporal_constraints["time.constraint.briefing-window"]
+    assert constraint.subject_addresses == [BINDING_ADDRESS]
 
 
 def test_compiler_preserves_inject_identity_without_copying_hidden_content() -> None:

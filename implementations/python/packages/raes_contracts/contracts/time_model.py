@@ -268,7 +268,8 @@ class TimeModelDeclarationModel(ContractModel):
             if constraint.clock_address not in self.clocks:
                 raise ValueError(f"temporal constraint {constraint.address!r} references an unknown clock")
             if any(
-                not subject.startswith("sdl.") and subject not in known_subjects
+                not _is_declared_resource_subject(subject)
+                and subject not in known_subjects
                 for subject in constraint.subject_addresses
             ):
                 raise ValueError(f"temporal constraint {constraint.address!r} references an unknown subject")
@@ -276,6 +277,26 @@ class TimeModelDeclarationModel(ContractModel):
     def canonical_digest(self) -> str:
         payload = json.dumps(self.model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()
         return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
+def _is_declared_resource_subject(address: str) -> bool:
+    """Admit compiler-owned resource addresses as temporal subjects.
+
+    Most authored resources compile under ``sdl``. Participant-directed inject
+    deliveries are the one current exception: the participant compiler owns
+    their canonical address because the delivery is a participant relation to
+    an orchestration occurrence. Keep that exception exact so an arbitrary
+    participant address cannot bypass the time-model reference check.
+    """
+
+    parts = address.split(".")
+    return address.startswith("sdl.") or (
+        len(parts) == 5
+        and all(parts)
+        and parts[0] == "participant"
+        and parts[1] == "behavior-specification"
+        and parts[3] == "inject-delivery"
+    )
 
 
 class ClockTransitionEventModel(ContractModel):
