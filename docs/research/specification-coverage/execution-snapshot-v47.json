@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-25T02:52:47.736460+00:00",
+  "captured_at": "2026-09-25T02:34:46.514076+00:00",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,7 +647,7 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "9f7edff3ddc324cec333556ce8044c137f87c978a8c38f20f92971259625c43e",
+      "content_sha256": "7531f0ffb125a928a8cd9c8b57443aa175c3dc7ea921f0b51eab6377f2443459",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
@@ -688,13 +688,13 @@
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "b827185b1efcfba324a57fd6fd84e801868b5177",
+  "raes_revision": "8a158cb1b1d3a5695409fcdfdf14d1a0607d597b",
   "snapshot_id": "issue-1360-specification-coverage-v47",
   "snapshot_revision": "47.0.0",
   "source_state": {
-    "base_revision": "b827185b1efcfba324a57fd6fd84e801868b5177",
+    "base_revision": "8a158cb1b1d3a5695409fcdfdf14d1a0607d597b",
     "checkout_state": "modified",
-    "implementation_digest": "ff02d6c5409926c36e99322264e7e3b99b57cab2bad7e29af883dbbcb4667fc0",
+    "implementation_digest": "1157e520ea06390072485a32ed4bd10c1e4a08ff56aaa80aa198b60343704072",
     "profile": "python-reference-source/v2"
   }
 }

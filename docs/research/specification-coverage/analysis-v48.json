@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1360-specification-coverage-v46",
+  "analysis_id": "issue-1360-specification-coverage-v48",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,8 +18,8 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v46.json",
-      "docs/research/specification-coverage/analysis-v46.json"
+      "docs/research/specification-coverage/execution-snapshot-v48.json",
+      "docs/research/specification-coverage/analysis-v48.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
     "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
@@ -96,6 +96,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "issue-1360-specification-coverage-v46",
-  "snapshot_sha256": "7e14753d178e8f9dff6baa252ab1f3205444ae0fc45fbdf87f1e76fe02dfde39"
+  "snapshot_id": "issue-1360-specification-coverage-v48",
+  "snapshot_sha256": "57fb2dfa3a682767bb51e358e63a30d12c49b3bc7768e52ab6cc59f55697c170"
 }

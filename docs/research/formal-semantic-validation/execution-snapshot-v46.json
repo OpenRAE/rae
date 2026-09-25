@@ -1,11 +1,11 @@
 {
   "baseline": {
-    "execution_id": "issue-1360-execution-v45",
-    "release_path": "docs/research/formal-semantic-validation/bundles/retest-v45.json",
-    "release_revision": "46.0.0",
-    "release_sha256": "d5cc880d58ad85468bb9b2a24c74bbb99b838a1a58476df9e9469d7b293aa871"
+    "execution_id": "issue-218-execution-v44",
+    "release_path": "docs/research/formal-semantic-validation/bundles/retest-v44.json",
+    "release_revision": "45.0.0",
+    "release_sha256": "64e562329eef767b3d75b5a0457aa0a36dd36da2d8eacec6880aa4dfdf1b9c3b"
   },
-  "captured_at": "2026-09-25T02:34:46.514076+00:00",
+  "captured_at": "2026-09-25T02:26:58.817893+00:00",
   "commands": [
     {
       "argv": [
@@ -636,11 +636,11 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "8a158cb1b1d3a5695409fcdfdf14d1a0607d597b",
+  "raes_revision": "99f7667388056bd8b98bb553f270a6f954882f4b",
   "source_state": {
-    "base_revision": "8a158cb1b1d3a5695409fcdfdf14d1a0607d597b",
+    "base_revision": "99f7667388056bd8b98bb553f270a6f954882f4b",
     "checkout_state": "modified",
-    "implementation_digest": "1157e520ea06390072485a32ed4bd10c1e4a08ff56aaa80aa198b60343704072",
+    "implementation_digest": "2ad3010ff26ef5d14e206cc2b51573a17e684cd7fef661e062b0a9690da080fa",
     "profile": "python-reference-source/v2"
   },
   "versions": {

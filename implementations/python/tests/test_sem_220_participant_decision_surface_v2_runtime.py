@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 import pytest
+from participant_crossing_fixtures import StaticCrossingResolver, evidence, identity, policy_capable_target
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts import (
     ParticipantDecisionSurfaceDeliveryV2Model,
@@ -26,6 +27,7 @@ from raes_processor.models import (
     resolve_participant_episode_readiness_anchor_v2,
 )
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.control_plane_security import ControlPlaneRole
 from test_sem_220_participant_decision_surface import (
     BEHAVIOR,
     BOUNDARY,
@@ -222,8 +224,8 @@ def _delivery(surface) -> ParticipantDecisionSurfaceDeliveryV2Model:
     )
 
 
-def _initial_surface():
-    control = RuntimeControlPlane(create_stub_target())
+def _initial_surface(control: RuntimeControlPlane | None = None):
+    control = control or RuntimeControlPlane(create_stub_target())
     control.initialize_participant_episode(PARTICIPANT, episode_id=EPISODE)
     snapshot = control.get_snapshot().snapshot
     anchor = resolve_participant_episode_readiness_anchor_v2(
@@ -257,6 +259,134 @@ def _selection_for(delivered) -> ParticipantDecisionSurfaceSelectionV2Model:
         proposal_ref=f"proposals.scan.v2.{delivered.participant_view.episode_id}",
         arguments={},
     )
+
+
+def _governed_selection_case():
+    resolver = StaticCrossingResolver()
+    control, projected, implementation_selection = _initial_surface(
+        RuntimeControlPlane(
+            policy_capable_target(),
+            crossing_policy_resolver=resolver,
+            enforce_final_sink_flow_control=False,
+        )
+    )
+    delivery = _delivery(projected)
+    delivered = deliver_participant_decision_surface_v2(
+        projected, delivery_ref=delivery.delivery_ref, resolver=lambda **_: delivery
+    )
+    return control, delivered, implementation_selection, delivery
+
+
+def _admit_governed_selection(control, delivered, implementation_selection, delivery, *, selection=None, **context):
+    return control.admit_participant_decision_surface_selection_v2(
+        replace(_compiled_participant_behavior(), authority_anchor_addresses=("authority:red-team",)),
+        surface=delivered,
+        selection=selection or _selection_for(delivered),
+        admission_request=replace(_admission_request(), implementation_selection=implementation_selection),
+        resolvers=ParticipantDecisionSurfaceBindingResolversV2(
+            argument_shape=_resolved_selection,
+            apparatus=lambda **_: implementation_selection,
+            delivery=lambda **_: delivery,
+        ),
+        **context,
+    )
+
+
+def test_v2_selection_forwards_authenticated_context_to_governed_admission() -> None:
+    control, delivered, implementation_selection, delivery = _governed_selection_case()
+    receipt = _admit_governed_selection(
+        control,
+        delivered,
+        implementation_selection,
+        delivery,
+        identity=identity(participant_address=PARTICIPANT),
+        crossing_evidence=evidence(),
+    )
+
+    assert receipt.accepted is True
+    crossing = control.get_snapshot().snapshot.participant_crossing_history[PARTICIPANT][0]
+    assert crossing["participant_address"] == PARTICIPANT
+    assert crossing["episode_id"] == EPISODE
+    assert crossing["occurrence"]["interaction_kind"] == "candidate-selection"
+    assert crossing["occurrence"]["action_or_projection_ref"] == SCAN
+    assert len(control.get_snapshot().snapshot.participant_behavior_history[PARTICIPANT]) == 3
+
+
+@pytest.mark.parametrize("missing", ("identity", "crossing_evidence"))
+def test_v2_governed_admission_requires_caller_context(missing: str) -> None:
+    control, delivered, implementation_selection, delivery = _governed_selection_case()
+    context = {
+        "identity": identity(participant_address=PARTICIPANT),
+        "crossing_evidence": evidence(),
+    }
+    context.pop(missing)
+
+    with pytest.raises((PermissionError, ValueError)):
+        _admit_governed_selection(control, delivered, implementation_selection, delivery, **context)
+
+    assert control.get_snapshot().snapshot.participant_behavior_history.get(PARTICIPANT, []) == []
+
+
+@pytest.mark.parametrize("unauthorized", ("wrong_target", "wrong_role", "wrong_participant"))
+def test_v2_governed_admission_rejects_unauthorized_caller(unauthorized: str) -> None:
+    control, delivered, implementation_selection, delivery = _governed_selection_case()
+    caller = identity(participant_address=PARTICIPANT)
+    if unauthorized == "wrong_target":
+        caller = replace(caller, target_name="another-target")
+    elif unauthorized == "wrong_role":
+        caller = replace(caller, roles=frozenset({ControlPlaneRole.AUDITOR}))
+    else:
+        caller = identity(participant_address="participant.behavior.other")
+
+    crossing_evidence = evidence()
+    with pytest.raises(PermissionError):
+        _admit_governed_selection(
+            control,
+            delivered,
+            implementation_selection,
+            delivery,
+            identity=caller,
+            crossing_evidence=crossing_evidence,
+        )
+
+    assert control.get_snapshot().snapshot.participant_behavior_history.get(PARTICIPANT, []) == []
+
+
+def test_v2_governed_admission_rejects_a_stale_episode_cut() -> None:
+    control, delivered, implementation_selection, delivery = _governed_selection_case()
+    control.reset_participant_episode(PARTICIPANT, episode_id=f"{EPISODE}-reset")
+
+    receipt = _admit_governed_selection(
+        control,
+        delivered,
+        implementation_selection,
+        delivery,
+        identity=identity(participant_address=PARTICIPANT),
+        crossing_evidence=evidence(),
+    )
+
+    assert receipt.accepted is False
+    assert control.get_snapshot().snapshot.participant_behavior_history.get(PARTICIPANT, []) == []
+
+
+def test_v2_governed_admission_rejects_mismatched_selected_action() -> None:
+    control, delivered, implementation_selection, delivery = _governed_selection_case()
+    selection = _selection_for(delivered).model_copy(
+        update={"action_contract_address": "participant.action-contract.other"}
+    )
+
+    receipt = _admit_governed_selection(
+        control,
+        delivered,
+        implementation_selection,
+        delivery,
+        selection=selection,
+        identity=identity(participant_address=PARTICIPANT),
+        crossing_evidence=evidence(),
+    )
+
+    assert receipt.accepted is False
+    assert control.get_snapshot().snapshot.participant_behavior_history.get(PARTICIPANT, []) == []
 
 
 def test_initial_epoch_projects_delivers_and_admits_only_the_exact_view() -> None:

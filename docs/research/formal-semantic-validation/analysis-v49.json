@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1357-analysis-v45",
+  "analysis_id": "issue-1360-analysis-v49",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -18,7 +18,7 @@
     "evidence_artifacts": [
       "docs/research/formal-semantic-validation/protocol-v2.json",
       "docs/research/formal-semantic-validation/corpus/manifest-v4.json",
-      "docs/research/formal-semantic-validation/execution-snapshot-v45.json",
+      "docs/research/formal-semantic-validation/execution-snapshot-v49.json",
       "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v4.json",
       "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v4.json",
       "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v4.json",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1357-execution-v45",
-  "generated_at": "2026-09-24",
+  "execution_id": "issue-1360-execution-v49",
+  "generated_at": "2026-09-25",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -147,9 +147,8 @@
     "Issue #1189 profile declarations and capability admission are covered by dedicated runtime tests; the retained formal corpus does not execute control-plane profile composition.",
     "Issue #1016 mixed-runtime coordination is covered by dedicated runtime tests; the retained formal corpus does not establish backend-native mixed realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
-    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
-    "This source replay includes issue #1357 governed v2 admission, which is tested by its dedicated runtime suite; this retained formal corpus makes no additional crossing-authorization claim."
+    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution."
   ],
-  "plain_language_outcome": "The retained formal semantic-validation corpus replays its existing obligations on the current implementation. Governed v2 decision admission is tested separately; this release adds no new authorization claim.",
+  "plain_language_outcome": "Retained controls replay against the merged backend-operation and governed v2-admission source. Prior claim limits and unsupported classes remain unchanged.",
   "protocol_revision": "2.0.0"
 }
