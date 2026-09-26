@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1389-analysis-v48",
+  "analysis_id": "issue-1360-analysis-v48",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,7 +123,7 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1389-execution-v48",
+  "execution_id": "issue-1360-execution-v48",
   "generated_at": "2026-09-25",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
@@ -147,11 +147,8 @@
     "Issue #1189 profile declarations and capability admission are covered by dedicated runtime tests; the retained formal corpus does not execute control-plane profile composition.",
     "Issue #1016 mixed-runtime coordination is covered by dedicated runtime tests; the retained formal corpus does not establish backend-native mixed realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
-    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
-    "Issue #1358 final-egress denial is covered by runtime tests; this formal semantic corpus makes no new egress claim.",
-    "Merged governed v2 decision admission is covered by dedicated runtime tests; this retained formal corpus makes no additional crossing-authority claim.",
-    "Issue #1389 temporal-subject admission is verified by dedicated compiler tests and adds no new formal-semantic claim to this retained corpus."
+    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution."
   ],
-  "plain_language_outcome": "The retained formal cases reproduce their prior outcomes against source that admits exact participant inject delivery temporal subjects. The bounded claims and unsupported classes are unchanged.",
+  "plain_language_outcome": "The retained controls replay against the backend operation contract publication. The original claim limits and unsupported classes remain unchanged; this offline corpus does not establish live backend supervision or recovery.",
   "protocol_revision": "2.0.0"
 }

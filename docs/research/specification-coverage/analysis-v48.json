@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1389-v48",
+  "analysis_id": "issue-1360-specification-coverage-v48",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -56,9 +56,7 @@
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
     "Participant-local outcome state is verified by the ACT-618 tests; this retained corpus makes no additional outcome-state claim.",
-    "Issue #1358 final-egress denial remains covered by dedicated runtime tests, not by this retained SDL matrix.",
-    "The merged issue #1357 governed admission change is covered by dedicated v2 decision-surface tests; this retained SDL matrix makes no additional crossing-authority claim.",
-    "Issue #1389 participant inject delivery temporal-subject admission is covered by dedicated compiler tests; this retained matrix makes no new timing or execution claim."
+    "Backend operation supervision contracts are covered by issue #1360 contract tests; this retained offline corpus establishes no live backend supervision or recovery guarantee."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -66,7 +64,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification matrix replays unchanged classifications and claim limits against source that admits exact participant inject delivery temporal subjects. Dedicated compiler tests, rather than this corpus, verify that delivery-timing behavior.",
+  "plain_language_outcome": "The retained specification matrix replays explicit participant affiliations, objective ownership, and assignment using abstract action contracts. Classification counts and untested concepts are unchanged; no execution authority or live backend behavior is inferred.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -98,6 +96,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1389-v48",
-  "snapshot_sha256": "1d9651ebaa7176137e6daa8731e21250045e6f95a797c3dd1162c4bd307a7340"
+  "snapshot_id": "issue-1360-specification-coverage-v48",
+  "snapshot_sha256": "2530721787df71394d468dc11985e77c4ceedddb3deb5c74db1faf23cb24070c"
 }

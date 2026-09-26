@@ -88,9 +88,14 @@ def load_bundle(
 
 def load_bundles(
     repo_root: Path = REPO_ROOT,
-) -> list[tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]]:
+) -> list[
+    tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]
+]:
     records = _load_bundle_index(repo_root)
-    return [_load_bundle_record(repo_root, manifest_path, manifest) for manifest_path, manifest in records]
+    return [
+        _load_bundle_record(repo_root, manifest_path, manifest)
+        for manifest_path, manifest in records
+    ]
 
 
 def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
@@ -102,7 +107,9 @@ def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
         max_bytes=_MAX_FILE_BYTES,
     )
     current_path = current_release_path(records)
-    if dict(records)[current_path].get("revision") != "48.0.0" or {record.get("revision") for _, record in records} != {
+    if dict(records)[current_path].get("revision") != "53.0.0" or {
+        record.get("revision") for _, record in records
+    } != {
         "1.0.0",
         "1.1.0",
         "2.0.0",
@@ -152,8 +159,15 @@ def _load_bundle_index(repo_root: Path) -> list[tuple[str, dict[str, object]]]:
         "46.0.0",
         "47.0.0",
         "48.0.0",
+        "49.0.0",
+        "50.0.0",
+        "51.0.0",
+        "52.0.0",
+        "53.0.0",
     }:
-        raise ValueError("coverage evidence requires the explicit current 48.0.0 release and supported history")
+        raise ValueError(
+            "coverage evidence requires the explicit current 53.0.0 release and supported history"
+        )
     return records
 
 
@@ -171,14 +185,22 @@ def _load_bundle_record(
     for label in ("protocol", "snapshot", "analysis"):
         path_value = manifest[f"{label}_path"]
         sha_value = manifest[f"{label}_sha256"]
-        resolved = safe_repo_path(repo_root, path_value) if isinstance(path_value, str) else None
+        resolved = (
+            safe_repo_path(repo_root, path_value)
+            if isinstance(path_value, str)
+            else None
+        )
         if resolved is None or not resolved.is_file():
-            raise ValueError(f"{manifest_path!r} contains unsafe or missing {label}_path")
+            raise ValueError(
+                f"{manifest_path!r} contains unsafe or missing {label}_path"
+            )
         if not isinstance(sha_value, str) or not _SHA256_RE.fullmatch(sha_value):
             raise ValueError(f"{manifest_path!r} contains invalid {label}_sha256")
         if _sha256(resolved) != sha_value:
             raise ValueError(f"{manifest_path!r} contains stale {label}_sha256")
-        loaded.append(load_bounded_json_object(repo_root, path_value, max_bytes=_MAX_FILE_BYTES))
+        loaded.append(
+            load_bounded_json_object(repo_root, path_value, max_bytes=_MAX_FILE_BYTES)
+        )
     return manifest, loaded[0], loaded[1], loaded[2]
 
 
@@ -191,10 +213,16 @@ def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
             for manifest_path, manifest in records
         ]
     except (OSError, ValueError) as exc:
-        return [_failure("specification-coverage-bundle-invalid", str(exc), MANIFEST_PATH)]
+        return [
+            _failure("specification-coverage-bundle-invalid", str(exc), MANIFEST_PATH)
+        ]
     failures: list[PolicyFailure] = []
     for manifest_path, (manifest, protocol, snapshot, analysis) in bundles:
-        validator = validate_bundle if manifest_path == current_path else validate_historical_bundle
+        validator = (
+            validate_bundle
+            if manifest_path == current_path
+            else validate_historical_bundle
+        )
         failures.extend(validator(repo_root, manifest, protocol, snapshot, analysis))
     return failures
 

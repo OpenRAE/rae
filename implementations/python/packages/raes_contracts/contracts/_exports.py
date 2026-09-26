@@ -1,10 +1,12 @@
 """Canonical public export manifest for the contracts facade."""
 
+from ._backend_operation_exports import BACKEND_OPERATION_EXPORTS
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 from ._mixed_composition_exports import MIXED_COMPOSITION_EXPORTS
 from ._participant_control_exports import PARTICIPANT_CONTROL_EXPORTS
 
 PUBLIC_EXPORTS = [
+    *BACKEND_OPERATION_EXPORTS,
     *PARTICIPANT_CONTROL_EXPORTS,
     *MIXED_COMPOSITION_EXPORTS,
     "MaterializationArchiveRecord",
@@ -234,9 +236,6 @@ PUBLIC_EXPORTS = [
     "EvaluatorCapabilitiesModel",
     "EventClassificationModel",
     "InstantiationRequestModel",
-    "OPERATION_SCHEMA_VERSION",
-    "OperationReceiptModel",
-    "OperationStatusModel",
     "ObservedOperatingSystemIdentityModel",
     "ObservationCaptureOfferModel",
     "ObservationCapabilitiesModel",

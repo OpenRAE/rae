@@ -1,0 +1,14 @@
+{
+  "schema_version": "backend-operation-capabilities/v1",
+  "backend_id": "backend-1",
+  "revision": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "supported_operation_kinds": [
+    "provisioning"
+  ],
+  "guarantees": [
+    "cessation-evidence",
+    "cancellation",
+    "effect-observation",
+    "partial-effects"
+  ]
+}
