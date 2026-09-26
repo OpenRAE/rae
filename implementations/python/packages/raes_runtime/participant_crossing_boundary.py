@@ -19,8 +19,8 @@ from .control_plane_security import ControlPlaneIdentity
 from .mixed_runtime_dispatch import (
     PreparedMixedActionDispatch,
     prepare_mixed_action_dispatch,
-    record_mixed_action_result,
 )
+from .mixed_runtime_result import mixed_action_terminal_state, record_mixed_action_result
 from .participant_control_intents import ParticipantControlIntent, ParticipantControlIntentBase
 from .participant_control_mediation import (
     bind_participant_control_request,
@@ -302,7 +302,7 @@ def _prepare_action_effect(
     return _PreparedActionEffect(
         crossing=crossing,
         request=governed,
-        mixed_dispatch=prepare_mixed_action_dispatch(control_plane, governed, crossing),
+        mixed_dispatch=prepare_mixed_action_dispatch(control_plane, governed, crossing, sink_decision),
         sink_decision=sink_decision,
     )
 
@@ -354,7 +354,7 @@ def _apply_action_effect(
 ) -> ApplyResult:
     mixed = prepared.mixed_dispatch
     with control_plane._mutation_authority.external_call():
-        return apply_authorized_participant_action(
+        result = apply_authorized_participant_action(
             method=mixed.method if mixed is not None else execution.method,
             request=prepared.request,
             snapshot=control_plane._snapshot,
@@ -365,6 +365,13 @@ def _apply_action_effect(
                 None,
             ),
         )
+        if mixed is not None and mixed.stage_readback is not None and result.success:
+            try:
+                mixed.stage_readback(result)
+            except Exception:
+                assert mixed.capture is not None
+                mixed.capture.stage_readback_failed = True
+        return result
 
 
 def _commit_action_effect(
@@ -385,14 +392,16 @@ def _commit_action_effect(
         next_snapshot,
         crossing,
         success=result.success,
+        capture=mixed_dispatch.capture if mixed_dispatch is not None else None,
     )
+    terminal_state = mixed_action_terminal_state(mixed_dispatch, result)
     result_history_heads = _expected_history_heads(next_snapshot, request.participant_address)
     if mixed_dispatch is not None:
         result_history_heads[f"mixed_composition_history:{control_plane._mixed_runtime.entry.run_id}"] = (
             next_snapshot.mixed_composition_states[control_plane._mixed_runtime.entry.run_id]["history_head"]
         )
     record = replace(
-        action_operation_record(crossing, result),
+        action_operation_record(crossing, result, terminal_state=terminal_state),
         decision_history_heads=authorization_expected_heads,
         result_history_heads=result_history_heads,
     )
@@ -400,8 +409,8 @@ def _commit_action_effect(
         crossing.audit_event,
         crossing,
         action="admit_participant_action",
-        allowed=result.success,
-        reason="accepted" if result.success else "backend-admission-failed",
+        allowed=terminal_state is OperationState.SUCCEEDED,
+        reason="accepted" if terminal_state is OperationState.SUCCEEDED else "backend-admission-unresolved",
     )
     if prepared.sink_decision is not None:
         audit = apply_flow_sink_details(audit, prepared.sink_decision)

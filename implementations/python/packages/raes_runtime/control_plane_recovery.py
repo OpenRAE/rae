@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import replace
-from enum import Enum
 from uuid import uuid4
 
 from raes_backend_protocols.recovery_observation import (
@@ -34,17 +33,13 @@ from .control_plane_operation_context import (
     legacy_operation_request_commitment,
     operation_admission_context,
 )
+from .control_plane_resolution_records import IndeterminateResolutionDisposition, is_valid_resolution_child
 from .control_plane_store import (
     ControlPlaneOperationRecord,
     NewClaimRejected,
     TerminalCommitMode,
 )
-
-
-class IndeterminateResolutionDisposition(str, Enum):
-    """Closed administrative acceptance of the currently stored state cut."""
-
-    ACCEPT_CURRENT_SNAPSHOT = "accept-current-snapshot"
+from .mixed_runtime_recovery import require_resolvable_mixed_action_cut, requires_mixed_stage_reconciliation
 
 
 class RuntimeRecoveryMixin:
@@ -174,6 +169,8 @@ def _observe_running_record(
     record: ControlPlaneOperationRecord,
 ) -> tuple[RecoveryEffectClassification, ApplyResult | None]:
     kind = record.status.context.operation_kind
+    if requires_mixed_stage_reconciliation(control_plane, record):
+        return RecoveryEffectClassification.INDETERMINATE, None
     if kind is OperationKind.COMPOSITION_PHASE:
         observation = (RecoveryEffectClassification.EFFECT_ABSENT, None)
     else:
@@ -333,7 +330,7 @@ def unresolved_indeterminate_operation_ids_from_records(
         for record in records.values()
         if (parent_id := record.status.context.parent_operation_id) is not None
         and (parent := records.get(parent_id)) is not None
-        and _is_valid_resolution_child(parent, record)
+        and is_valid_resolution_child(parent, record)
     }
     return tuple(
         sorted(
@@ -375,6 +372,7 @@ def resolve_indeterminate_operation(
         _authorize_resolution(control_plane, parent, context, identity)
         if parent.status.state is not OperationState.INDETERMINATE:
             raise ValueError("resolution parent must be indeterminate")
+        require_resolvable_mixed_action_cut(control_plane, parent)
         if not idempotency_key:
             raise ValueError("resolution requires an idempotency key")
         if idempotency_key == parent.idempotency_key:
@@ -463,26 +461,6 @@ def _authorize_resolution(
         reason="resolution-forbidden",
     )
     raise PermissionError("indeterminate resolution is forbidden")
-
-
-def _is_valid_resolution_child(
-    parent: ControlPlaneOperationRecord,
-    child: ControlPlaneOperationRecord,
-) -> bool:
-    context = child.status.context
-    return (
-        parent.status.state is OperationState.INDETERMINATE
-        and child.status.state is OperationState.SUCCEEDED
-        and context.operation_kind is OperationKind.INDETERMINATE_RESOLUTION
-        and context.parent_operation_id == parent.receipt.operation_id
-        and context.target_scope == parent.status.context.target_scope
-        and context.run_scope == parent.status.context.run_scope
-        and "role:operator" in context.authorization_scope
-        and bool(child.idempotency_key)
-        and child.idempotency_key != parent.idempotency_key
-        and child.result_payload
-        == {"resolution_disposition": IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT.value}
-    )
 
 
 __all__ = (

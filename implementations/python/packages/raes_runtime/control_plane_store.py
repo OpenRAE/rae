@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, runtime_checkable
 
@@ -40,6 +41,42 @@ IDEMPOTENCY_CLAIM_CONFLICT = "idempotency claim conflicts with the original requ
 IdempotencyClaimIdentity = tuple[str, OperationKind, str]
 NewClaimBlock = Literal["current-state", "indeterminate", "stale-base-snapshot"] | None
 _MAX_IDEMPOTENCY_KEY_LENGTH = 256
+_MIXED_CLAIM_KINDS = frozenset(
+    {OperationKind.COMPOSITION_PHASE, OperationKind.PARTICIPANT_ACTION, OperationKind.PARTICIPANT_CROSSING}
+)
+_ACTIVE_CLAIM_STATES = frozenset({OperationState.ACCEPTED, OperationState.RUNNING, OperationState.INDETERMINATE})
+
+
+def mixed_claim_conflicts(
+    new: ControlPlaneOperationRecord,
+    existing_records: Iterable[ControlPlaneOperationRecord],
+) -> bool:
+    """Serialize external mixed effects in one run at the store claim."""
+
+    context = new.status.context
+    if context.operation_kind not in _MIXED_CLAIM_KINDS:
+        return False
+    mixed_keys = {
+        key
+        for key in (*new.decision_history_heads, *new.result_history_heads)
+        if key.startswith("mixed_composition_history:")
+    }
+    if not mixed_keys:
+        return False
+    for existing in existing_records:
+        prior = existing.status.context
+        if (
+            prior.target_scope != context.target_scope
+            or prior.run_scope != context.run_scope
+            or prior.operation_kind not in _MIXED_CLAIM_KINDS
+            or existing.status.state not in _ACTIVE_CLAIM_STATES
+        ):
+            continue
+        prior_keys = set(existing.decision_history_heads) | set(existing.result_history_heads)
+        if not mixed_keys.intersection(prior_keys):
+            continue
+        return True
+    return False
 
 
 @dataclass(frozen=True)

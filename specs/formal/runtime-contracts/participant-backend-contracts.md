@@ -156,6 +156,30 @@ Rules:
   evidence discipline without claiming runtime enforcement, which the RUN-319
   final-sink boundary owns.
 
+### Effective mixed support (issue #1355)
+
+For a mixed participant action or staged transfer, a manifest strength entry
+is a declaration to be joined with the admitted provider-local feature and
+time capabilities, exact profile edge or transition, current authority and
+final-sink policy, and installed executable services. The bridge, mapper,
+time coordinator, and destination or participant readback must execute their
+named obligations under the owning operation. A support entry, service method,
+mapping reference, timestamp, or backend success flag alone cannot establish
+delivery, observation, governed order, or native handoff. Missing bindings or
+contradictory pre-effect support refuse before an external effect; missing
+post-effect readback leaves the operation indeterminate without claiming the
+unconfirmed stage.
+
+The existing four support levels and separate constraint, limitation,
+disclosure, and evidence references retain their meanings. A weaker admitted
+mapping records its authorized loss and evidence only after correlated
+execution; unknown or partial effects use the shared operation lifecycle,
+not a new manifest support level. Shared time capabilities govern the named
+clock mapping and comparison without requiring one physical clock or a
+physical-OT timing guarantee. Installed bindings are trusted runtime inputs
+against the sealed `sem-234/rev1` profile; this rule adds no manifest field,
+support vocabulary term, or published carrier revision.
+
 ### Adversarial-control apparatus and backend support (issue #1004)
 
 The following governed `participant-runtime-behavior-features` terms let a

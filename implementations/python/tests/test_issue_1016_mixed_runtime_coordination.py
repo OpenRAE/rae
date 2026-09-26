@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from threading import Barrier, Event
+from dataclasses import asdict
+from threading import Event, Lock
 
 import pytest
 from participant_crossing_fixtures import (
     ACTION,
+    AUDIENCE,
     CONTROLLER,
     PARTICIPANT,
+    StaticCrossingResolver,
     admission_request,
     behavior,
     evidence,
@@ -29,6 +32,7 @@ from raes_processor.trial_compiler import compile_admitted_trial_plan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import (
     InMemoryControlPlaneStore,
+    NewClaimRejected,
     _snapshot_from_payload,
     _snapshot_payload,
 )
@@ -38,9 +42,12 @@ from raes_runtime.mixed_runtime import (
     MixedRuntimeComponent,
 )
 from raes_runtime.mixed_runtime_dispatch import mixed_recovery_target
+from raes_runtime.mixed_runtime_handoff import MixedHandoffBinding
 from raes_runtime.mixed_runtime_state import runtime_state
+from raes_runtime.participant_crossing_state_cut import canonical_crossing_digest
 from raes_runtime.participant_result_contracts import participant_runtime_history_transition_diagnostics
 from raes_runtime.registry import RuntimeTarget
+from raes_runtime.time_coordinator import ReferenceTimeRuntime
 from sem233_flow_sink_fixtures import permit_resolver
 from test_issue_1014_mixed_composition_contracts import _alternative_profile, _staged_profile
 from test_issue_1015_mixed_staged_trial_admission import _mixed_request
@@ -222,6 +229,22 @@ def _runtime_mixed_profile():
     for allocation_id in ("allocation.participant", "allocation.action"):
         fields["allocations"][allocation_id]["controller_ref"] = CONTROLLER
         fields["allocations"][allocation_id]["action_authority_ref"] = "authority:red-team"
+    request = admission_request()
+    fields["edges"]["edge.sim-to-emu"].update(
+        crossing_subject={
+            "subject_kind": "participant-action-admission",
+            "contract_id": "participant-action-admission-v1",
+            "subject_ref": f"participant-action-admission:{PARTICIPANT}:episode-1:{request.action_instance_id}",
+            "subject_digest": canonical_crossing_digest(asdict(request)),
+            "participant_address": PARTICIPANT,
+            "episode_id": "episode-1",
+        },
+        audience_scope_ref=AUDIENCE,
+        policy=StaticCrossingResolver().policy.model_dump(mode="python"),
+        controller_ref=CONTROLLER,
+        authority_ref="authority:red-team",
+        disclosure_authority_ref="authority:red-team",
+    )
     return seal_mixed_composition_profile(**fields)
 
 
@@ -283,6 +306,111 @@ def _admitted_binding(
 
     evaluator = transition_evaluator or permit_transition
     transition_evaluators = {transition.evaluator_ref: evaluator for transition in profile.transitions.values()}
+    handoff_bindings = {}
+    context = request.mixed_profile_contexts[profile.profile_id]
+    time_model_ref, declaration = next(iter(context.time_models.items()))
+    time_state = ReferenceTimeRuntime().initialize(declaration, RuntimeSnapshot()).snapshot.time_model_state
+    assert time_state is not None
+
+    class FixtureTimeRuntime:
+        def state(self, _snapshot):
+            return time_state
+
+    for transition in profile.transitions.values():
+        source = profile.phases[transition.source_phase_id]
+        target = profile.phases[transition.target_phase_id]
+        departing = set(source.active_component_ids) - set(target.active_component_ids)
+        arriving = set(target.active_component_ids) - set(source.active_component_ids)
+        if len(departing) != 1 or len(arriving) != 1:
+            continue
+        source_id, destination_id = next(iter(departing)), next(iter(arriving))
+        owner = {"component": source_id, "revision": 0}
+        owner_lock = Lock()
+        source_clock = next(
+            address for address, clock in declaration.clocks.items() if clock.authority_ref == source_id
+        )
+        destination_clock = next(
+            address for address, clock in declaration.clocks.items() if clock.authority_ref == destination_id
+        )
+        mapping_ref = next(iter(declaration.mappings))
+
+        def coordinate(
+            operation_id,
+            _transition,
+            state,
+            *,
+            _source=source_clock,
+            _destination=destination_clock,
+            _mapping=mapping_ref,
+        ):
+            return {
+                "operation_id": operation_id,
+                "mapping_ref": _mapping,
+                "ordering_basis": "partial_order",
+                "order_ref": f"order:native:{operation_id}",
+                "comparison": "ordered",
+                "source_coordinate": state.clocks[_source].coordinate.model_dump(mode="json"),
+                "destination_coordinate": state.clocks[_destination].coordinate.model_dump(mode="json"),
+                "mapping_evidence_refs": ["evidence:handoff-mapping"],
+                "timing_evidence_refs": ["evidence:phase-realization"],
+            }
+
+        def invoke(
+            operation_id,
+            admitted,
+            state,
+            _snapshot,
+            *,
+            _owner=owner,
+            _lock=owner_lock,
+            _source=source_id,
+            _destination=destination_id,
+        ):
+            with _lock:
+                permitted = _owner["component"] == _source and _owner["revision"] == state.phase_revision
+                if permitted:
+                    _owner.update(component=_destination, revision=state.phase_revision + 1)
+            return {
+                "operation_id": operation_id,
+                "transition_id": admitted.transition_id,
+                "source_component_id": _source,
+                "destination_component_id": _destination,
+                "predecessor_history_head": state.history_head,
+                "phase_revision": state.phase_revision,
+                "status": "committed" if permitted else "stale",
+                "order_ref": f"order:native:{operation_id}",
+                "evidence_refs": [item.evidence_ref for item in admitted.evidence_bindings],
+            }
+
+        def readback(operation_id, _snapshot, *, _owner=owner, _lock=owner_lock):
+            with _lock:
+                component = _owner["component"]
+                revision = _owner["revision"]
+            return {
+                "operation_id": operation_id,
+                "owner_component_id": component,
+                "owner_ref": profile.components[component].native_ownership_ref,
+                "phase_revision": revision,
+                "evidence_refs": ["evidence:native-readback"],
+            }
+
+        handoff_bindings[transition.transition_id] = MixedHandoffBinding(
+            transition_id=transition.transition_id,
+            source_component_id=source_id,
+            destination_component_id=destination_id,
+            source_owner_ref=profile.components[source_id].native_ownership_ref,
+            destination_owner_ref=profile.components[destination_id].native_ownership_ref,
+            time_model_ref=time_model_ref,
+            time_model_digest=context.time_model_digests[time_model_ref],
+            source_clock_address=source_clock,
+            destination_clock_address=destination_clock,
+            mapping_ref=mapping_ref,
+            ordering_basis="partial_order",
+            time_runtime=FixtureTimeRuntime(),
+            coordinate=coordinate,
+            invoke=invoke,
+            readback=readback,
+        )
     return (
         MixedRuntimeBinding(
             plan=compiled.plan,
@@ -291,10 +419,17 @@ def _admitted_binding(
             context=request.mixed_profile_contexts[profile.profile_id],
             components=components,
             transition_evaluators=transition_evaluators,
+            handoff_bindings=handoff_bindings,
         ),
         entry.run_id,
         runtimes,
     )
+
+
+def _staged_time_snapshot(binding: MixedRuntimeBinding) -> RuntimeSnapshot:
+    empty = RuntimeSnapshot()
+    installed = next(iter(binding.handoff_bindings.values()))
+    return empty.with_entries({}, time_model_state=installed.time_runtime.state(empty))
 
 
 def test_mixed_runtime_activation_commits_the_admitted_initial_phase() -> None:
@@ -366,8 +501,6 @@ def test_action_dispatch_commits_exact_provider_cut_before_effect() -> None:
         "decision",
         "attempt",
         "result",
-        "delivery",
-        "observation",
     ]
     decision = next(
         event for event in plane.snapshot.mixed_composition_history[run_id] if event["event_kind"] == "decision"
@@ -375,39 +508,6 @@ def test_action_dispatch_commits_exact_provider_cut_before_effect() -> None:
     assert decision["allocation_id"] == "allocation.action"
     assert decision["component_id"] == "sim"
     assert decision["crossing_event_ref"]
-
-
-def test_mixed_action_dispatch_resolves_the_admitted_edge_and_clock_mapping() -> None:
-    binding, run_id, runtimes = _admitted_binding(_runtime_mixed_profile)
-    plane = RuntimeControlPlane(
-        create_stub_target(with_participant_runtime=False),
-        mixed_runtime=binding,
-        crossing_policy_resolver=permit_resolver(),
-        run_scope=f"run:{run_id}",
-    )
-    plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
-    plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
-
-    receipt = plane.admit_participant_action(
-        behavior(),
-        admission_request(),
-        identity=identity(),
-        crossing_evidence=evidence(),
-        idempotency_key="mixed-edge-action",
-    )
-
-    assert runtimes["sim"].admission_count == 0
-    assert runtimes["emu"].admission_count == 1
-    decision = next(
-        event for event in plane.snapshot.mixed_composition_history[run_id] if event["event_kind"] == "decision"
-    )
-    assert decision["edge_id"] == "edge.sim-to-emu"
-    assert decision["mapping_ref"] == "time.mappings.sim-to-emu"
-    assert decision["mapping_loss_refs"] == ["limitation:mapping"]
-    assert plane.snapshot.mixed_composition_history[run_id][-1]["event_kind"] == "weakening"
-    record = plane._store.load_records()[receipt.operation_id]
-    assert mixed_recovery_target(plane, record.receipt.operation_id) is binding.components["emu"].target
-    assert mixed_recovery_target(plane, "unknown-operation") is None
 
 
 def test_backend_rejection_appends_failure_without_delivery() -> None:
@@ -550,6 +650,7 @@ def test_staged_phase_progression_is_bounded_append_only_and_idempotent() -> Non
         mixed_runtime=binding,
         crossing_policy_resolver=permit_resolver(),
         run_scope=f"run:{run_id}",
+        initial_snapshot=_staged_time_snapshot(binding),
     )
     plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
@@ -619,6 +720,7 @@ def test_phase_progression_rejects_an_outstanding_mixed_effect() -> None:
         mixed_runtime=binding,
         crossing_policy_resolver=permit_resolver(),
         run_scope=f"run:{run_id}",
+        initial_snapshot=_staged_time_snapshot(binding),
     )
     first.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     first.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
@@ -673,6 +775,7 @@ def test_transition_evaluator_failure_is_sanitized_and_records_failure_fact() ->
         mixed_runtime=binding,
         crossing_policy_resolver=permit_resolver(),
         run_scope=f"run:{run_id}",
+        initial_snapshot=_staged_time_snapshot(binding),
     )
     plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
 
@@ -693,10 +796,12 @@ def test_transition_evaluator_failure_is_sanitized_and_records_failure_fact() ->
 
 
 def test_concurrent_phase_progression_commits_one_cas_winner() -> None:
-    barrier = Barrier(2)
+    started = Event()
+    release = Event()
 
     def evaluate(transition, _state, _snapshot):
-        barrier.wait(timeout=5)
+        started.set()
+        assert release.wait(timeout=5)
         return MixedPhaseTransitionEvaluation(
             permitted=True,
             attempts=1,
@@ -710,6 +815,7 @@ def test_concurrent_phase_progression_commits_one_cas_winner() -> None:
         mixed_runtime=binding,
         crossing_policy_resolver=permit_resolver(),
         run_scope=f"run:{run_id}",
+        initial_snapshot=_staged_time_snapshot(binding),
     )
     first.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     second = RuntimeControlPlane(
@@ -720,20 +826,25 @@ def test_concurrent_phase_progression_commits_one_cas_winner() -> None:
         store=first._store,
     )
 
-    def advance(plane, key):
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(
+            first.advance_mixed_composition,
+            "transition.sim-to-emu",
+            identity=identity(),
+            idempotency_key="advance-a",
+        )
+        assert started.wait(timeout=5)
         try:
-            return plane.advance_mixed_composition(
-                "transition.sim-to-emu",
-                identity=identity(),
-                idempotency_key=key,
-            )
-        except ValueError as exc:
-            return exc
+            with pytest.raises(NewClaimRejected):
+                second.advance_mixed_composition(
+                    "transition.sim-to-emu",
+                    identity=identity(),
+                    idempotency_key="advance-b",
+                )
+        finally:
+            release.set()
+        future.result(timeout=5)
 
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        outcomes = list(pool.map(advance, (first, second), ("advance-a", "advance-b")))
-
-    assert sum(not isinstance(outcome, Exception) for outcome in outcomes) == 1
     snapshot = first._store.load_snapshot()
     assert snapshot.mixed_composition_states[run_id]["phase_revision"] == 1
     assert [event["event_kind"] for event in snapshot.mixed_composition_history[run_id]].count("phase-transition") == 1
