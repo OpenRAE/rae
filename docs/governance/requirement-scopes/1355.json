@@ -28,6 +28,18 @@
     "docs/requirements/SEM-234/requirement.md": [
       "SEM-234"
     ],
+    "docs/research/formal-semantic-validation/index.md": [
+      "SEM-234"
+    ],
+    "docs/research/formal-semantic-validation/execution-snapshot-v53.json": [
+      "SEM-234"
+    ],
+    "docs/research/formal-semantic-validation/analysis-v53.json": [
+      "SEM-234"
+    ],
+    "docs/research/formal-semantic-validation/bundles/retest-v53.json": [
+      "SEM-234"
+    ],
     "docs/research/specification-coverage/index.md": [
       "SEM-234"
     ],
@@ -101,6 +113,9 @@
       "SEM-234",
       "API-407"
     ],
+    "implementations/python/tests/test_formal_semantic_validation.py": [
+      "SEM-234"
+    ],
     "implementations/python/tests/test_specification_coverage.py": [
       "SEM-234"
     ],
@@ -111,6 +126,21 @@
       "API-407"
     ],
     "tools/check_specification_coverage.py": [
+      "SEM-234"
+    ],
+    "tools/formal_semantic_validation/_baseline.py": [
+      "SEM-234"
+    ],
+    "tools/formal_semantic_validation/_loading.py": [
+      "SEM-234"
+    ],
+    "tools/formal_semantic_validation/_release_revisions.py": [
+      "SEM-234"
+    ],
+    "tools/formal_semantic_validation/_releases.py": [
+      "SEM-234"
+    ],
+    "tools/formal_semantic_validation/_retest.py": [
       "SEM-234"
     ],
     "tools/policy/requirement_order.yaml": [

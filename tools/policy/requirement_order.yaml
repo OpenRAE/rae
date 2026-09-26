@@ -855,6 +855,9 @@ ownership:
     - docs/research/formal-semantic-validation/analysis-v32.json
     - docs/research/formal-semantic-validation/bundles/retest-v32.json
     - docs/research/formal-semantic-validation/execution-snapshot-v32.json
+    - docs/research/formal-semantic-validation/analysis-v53.json
+    - docs/research/formal-semantic-validation/bundles/retest-v53.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v53.json
     - docs/research/specification-coverage/analysis-v31.json
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1183-v31.json
     - docs/research/specification-coverage/execution-snapshot-v31.json
@@ -913,6 +916,7 @@ ownership:
     - implementations/python/tests/test_issue_1015_mixed_staged_trial_admission.py
     - implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py
     - implementations/python/tests/test_specification_coverage.py
+    - implementations/python/tests/test_formal_semantic_validation.py
     - implementations/python/tests/test_issue_1355_mixed_mapping_time.py
     - implementations/python/packages/raes_runtime/__init__.py
     - implementations/python/packages/raes_runtime/backend_snapshot_contracts.py

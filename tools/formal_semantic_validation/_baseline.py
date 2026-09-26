@@ -82,6 +82,7 @@ _V2_REVISIONS = frozenset(
         "50.0.0",
         "51.0.0",
         "52.0.0",
+        "53.0.0",
     }
 )
 _V3_CORPUS_REVISIONS = frozenset(
@@ -230,7 +231,7 @@ def _selected_baseline_manifest(
         if baseline_revision in _V2_REVISIONS
         else "docs/research/formal-semantic-validation/protocol-v1.json"
     )
-    if baseline_revision in {"42.0.0", "45.0.0", "46.0.0", "47.0.0", "48.0.0", "49.0.0", "50.0.0", "51.0.0", "52.0.0"}:
+    if baseline_revision in {"42.0.0", "45.0.0", "46.0.0", "47.0.0", "48.0.0", "49.0.0", "50.0.0", "51.0.0", "52.0.0", "53.0.0"}:
         expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v4.json"
     elif baseline_revision in _V3_CORPUS_REVISIONS:
         expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v3.json"
