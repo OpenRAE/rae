@@ -28,6 +28,18 @@
     "docs/requirements/SEM-234/requirement.md": [
       "SEM-234"
     ],
+    "docs/research/specification-coverage/index.md": [
+      "SEM-234"
+    ],
+    "docs/research/specification-coverage/execution-snapshot-v53.json": [
+      "SEM-234"
+    ],
+    "docs/research/specification-coverage/analysis-v53.json": [
+      "SEM-234"
+    ],
+    "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1355-v53.json": [
+      "SEM-234"
+    ],
     "implementations/python/packages/raes_runtime/control_plane_store.py": [
       "SEM-234"
     ],
@@ -89,11 +101,17 @@
       "SEM-234",
       "API-407"
     ],
+    "implementations/python/tests/test_specification_coverage.py": [
+      "SEM-234"
+    ],
     "specs/formal/participant-semantics/cross-backend-participant-control.md": [
       "SEM-234"
     ],
     "specs/formal/runtime-contracts/participant-backend-contracts.md": [
       "API-407"
+    ],
+    "tools/check_specification_coverage.py": [
+      "SEM-234"
     ],
     "tools/policy/requirement_order.yaml": [
       "SEM-234"

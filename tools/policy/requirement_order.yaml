@@ -868,6 +868,9 @@ ownership:
     - docs/research/specification-coverage/analysis-v38.json
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1016-v38.json
     - docs/research/specification-coverage/execution-snapshot-v38.json
+    - docs/research/specification-coverage/analysis-v53.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1355-v53.json
+    - docs/research/specification-coverage/execution-snapshot-v53.json
     - tools/check_json_artifacts.py
     - tools/check_specification_coverage.py
     - tools/formal_semantic_validation/_baseline.py
@@ -909,6 +912,7 @@ ownership:
     - implementations/python/tests/test_issue_1014_mixed_composition_governance.py
     - implementations/python/tests/test_issue_1015_mixed_staged_trial_admission.py
     - implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py
+    - implementations/python/tests/test_specification_coverage.py
     - implementations/python/tests/test_issue_1355_mixed_mapping_time.py
     - implementations/python/packages/raes_runtime/__init__.py
     - implementations/python/packages/raes_runtime/backend_snapshot_contracts.py
