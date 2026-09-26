@@ -740,9 +740,79 @@ authentication service, nested-profile resolver, coordinator or conformance
 engine. Its symbolic attempts/results are not realization evidence.
 
 MCB-001–045 are definitions; the matrix states the narrower clauses exercised
-by executable witnesses. No portable schema, runtime enforcement, backend
-realization, general model-checking result, proof or ASR-537 demonstration
-is established. The profile keeps the edition-pinned prior-art dispositions
+by executable witnesses. The #1013 semantic publication alone established no
+portable schema or runtime enforcement. Subsequent #1014–#1016 and #1355 work
+adds the published profile, trial admission, and bounded reference runtime
+behavior described below; it does not establish a deployed backend
+realization, general model-checking result, proof, or ASR-537 demonstration.
+The profile keeps the edition-pinned prior-art dispositions
 from [the #813 source assessment](../../../docs/research/cross-backend-participant-control/prior-art-and-design-criteria.md).
 HLA ownership/time, co-simulation coupling and range transfer precedents remain
 design lineage, not wire or behavioral compatibility claims.
+
+## 17. Executable edge and handoff interpretation (#1355)
+
+For an admitted directed edge (e), the trusted runtime binding fixes an
+installed bridge version and digest, source and destination action subjects,
+the admitted loss, and a time service for the edge's named mapping. The mapper
+must preserve the already authorized compiled action address and its provider
+allocation; backend-native translation remains inside the pinned bridge. The
+control plane retains the operation id and exact provider; the bridge cannot
+select another provider or gain controller or disclosure authority. No binding,
+capability, current policy, or evidence means refusal before a provider call.
+The executable edge must join the exact governed crossing subject, audience,
+policy cut, controller, action and disclosure authority, and permitted final
+sink decision before bridge invocation.
+
+Let (A) be the durable decision/attempt, (X) the correlated provider result,
+(D) a destination receipt from independent readback, and (O) an authorized
+participant/audience readback. The executable ordering is:
+
+```text
+invoke(e)  only after committed A and an admitted, read-back time/order grant
+record X    only for the original operation and selected provider
+record D    only after X and a matching destination receipt
+record O    only after D and a matching participant/audience observation
+```
+
+The time grant cites the named source and destination clocks, mapping,
+comparable order, and evidence; typed pre/post runtime readback must match the
+admitted time model. A mapping declaration or pair of timestamps does not
+provide the grant. The bounded implementation supports proved comparisons
+within one segment. Incomparable or unsupported comparisons refuse; neither a
+shared physical clock nor physical-OT timing is inferred.
+At equal mapped ticks, source microstep must not exceed destination microstep.
+Successful execution, delivery, observation, and weakening facts require the
+incumbent backend result gate to accept the returned provider result. If a
+later readback interrupts the call, already confirmed stages remain tied to
+their original operation and the operation stays `INDETERMINATE`.
+
+For a staged transition that changes active components, the admitted evaluator
+and an installed transfer service are separate. The service must obtain its
+time grant, execute the exact native handoff under the operation id, and read
+back the destination owner at the next phase revision. Only then may the new
+phase and handoff fact commit. A failed or stale handoff with old-owner readback
+retains the prior phase. Pending, contradictory, or unknown transfer is
+`INDETERMINATE` and blocks dependent work. The store atomically excludes a
+competing phase or mixed-effect claim for that run while the transfer is active.
+Native ownership does not alter RUN-310 controller authority.
+
+The governed request and provider snapshot are fixed before a mapper runs;
+mapping, time, and bridge callbacks cannot mutate either carrier and still
+invoke the provider on an altered cut. Handoff
+time readbacks join the committed snapshot before the grant and after the
+transfer. On restart, an interrupted edge or native transfer has only its
+durable pre-effect cut. Provider-only recovery cannot establish the bridge,
+clock, delivery, audience, or native-owner stages. Such an operation remains
+`INDETERMINATE` and blocks dependent work until those stages are reconciled.
+Generic acceptance of the current snapshot cannot discharge an interrupted
+mixed edge or native handoff, even when its crossing history is valid. A
+stage-specific reconciliation must prove the missing external facts first.
+Startup still validates typed crossing records and every unaffected history;
+only the suffix of the interrupted crossing is withheld from contextual
+validation while its operation is quarantined.
+
+Historical `sem-234/rev1` edge references and success values retain their old
+reference-only meaning. They cannot be promoted to delivered, observed, or
+governed-time facts by a new reader. The executable service binding is local to
+the trusted runtime; no published profile schema changes in this amendment.

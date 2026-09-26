@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal
 
 from raes_contracts.contracts.mixed_composition import AllocationTargetKind, MixedCompositionAllocationModel
 from raes_contracts.contracts.mixed_runtime import (
@@ -12,15 +11,15 @@ from raes_contracts.contracts.mixed_runtime import (
     MixedCompositionRuntimeStateModel,
 )
 from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
-from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .control_plane_security import ControlPlaneIdentity
+from .mixed_runtime_edge import MixedEdgeExecutionCapture
+from .mixed_runtime_edge_execution import _mapped_edge_method, _stage_readback_method
 from .mixed_runtime_state import append_runtime_events, runtime_state
 from .participant_crossing_mediation import PreparedParticipantCrossing
+from .participant_flow_sink import ParticipantFlowSinkDecision
 from .registry import RuntimeTarget
-
-_EventKind = Literal["result", "delivery", "observation", "weakening", "failure"]
-_Disposition = Literal["committed", "succeeded", "failed"]
 
 
 @dataclass(frozen=True)
@@ -32,6 +31,8 @@ class PreparedMixedActionDispatch:
     snapshot: RuntimeSnapshot
     expected_history_heads: dict[str, str | None]
     committed_history_heads: dict[str, str | None]
+    capture: MixedEdgeExecutionCapture | None = None
+    stage_readback: Callable[[ApplyResult], None] | None = None
 
 
 @dataclass(frozen=True)
@@ -243,6 +244,7 @@ def prepare_mixed_action_dispatch(
     control_plane: object,
     request: ParticipantActionAdmissionRequest,
     crossing: PreparedParticipantCrossing,
+    sink_decision: ParticipantFlowSinkDecision | None,
 ) -> PreparedMixedActionDispatch | None:
     """Resolve and persist the exact provider decision before its effect call."""
 
@@ -254,11 +256,36 @@ def prepare_mixed_action_dispatch(
     allocation = _active_allocation(binding, state, "action-family", request.action_contract_address)
     _require_action_authority(participant, allocation, crossing, request, state)
     edge = _action_edge(binding, state, participant, allocation)
-    method = _action_method(binding, allocation)
     decision = crossing.decision
     if decision is None:
         raise ValueError("mixed action dispatch requires a committed crossing decision")
+    if edge is not None:
+        _require_edge_crossing_authority(edge, crossing, request, sink_decision)
+    if edge is not None and edge.edge_id not in binding.edge_bindings:
+        raise ValueError("mixed action dispatch requires an executable edge binding")
+    if edge is not None:
+        installed = binding.edge_bindings[edge.edge_id]
+        if (
+            installed.source_action_address != request.action_contract_address
+            or installed.destination_action_address != allocation.target_address
+        ):
+            raise ValueError("mixed destination action differs from admitted policy and provider allocation")
+    method = _action_method(binding, allocation)
     operation_id = crossing.record.receipt.operation_id
+    capture = None
+    stage_readback = None
+    if edge is not None:
+        capture = MixedEdgeExecutionCapture()
+        installed = binding.edge_bindings[edge.edge_id]
+        method = _mapped_edge_method(
+            binding,
+            edge,
+            installed,
+            method,
+            operation_id,
+            capture,
+        )
+        stage_readback = _stage_readback_method(binding, edge, installed, request, operation_id, capture)
     event_base = _runtime_event_fields(
         state,
         allocation_id=allocation.allocation_id,
@@ -296,7 +323,38 @@ def prepare_mixed_action_dispatch(
         snapshot=snapshot,
         expected_history_heads=expected,
         committed_history_heads=committed,
+        capture=capture,
+        stage_readback=stage_readback,
     )
+
+
+def _require_edge_crossing_authority(
+    edge: object,
+    crossing: PreparedParticipantCrossing,
+    request: ParticipantActionAdmissionRequest,
+    sink_decision: ParticipantFlowSinkDecision | None,
+) -> None:
+    """Join the admitted edge to the live crossing and final-sink cut."""
+
+    decision = crossing.decision
+    assert decision is not None
+    occurrence = decision.occurrence
+    if (
+        not isinstance(sink_decision, ParticipantFlowSinkDecision)
+        or not sink_decision.permitted
+        or not sink_decision.decision_id
+        or edge.crossing_subject != crossing.governed_subject
+        or edge.crossing_subject != occurrence.subject
+        or edge.audience_scope_ref != crossing.intent.audience_scope_ref
+        or edge.audience_scope_ref != occurrence.audience_scope_ref
+        or edge.policy != occurrence.policy
+        or edge.controller_ref != crossing.intent.controller_ref
+        or edge.controller_ref != occurrence.controller_ref
+        or edge.authority_ref not in occurrence.authority_basis_refs
+        or edge.disclosure_authority_ref not in occurrence.authority_basis_refs
+        or crossing.intent.action_or_projection_ref != request.action_contract_address
+    ):
+        raise ValueError("mixed edge differs from the authorized crossing or final-sink cut")
 
 
 def _require_action_authority(
@@ -352,59 +410,6 @@ def _action_method(binding: object, allocation: MixedCompositionAllocationModel)
     return method
 
 
-def record_mixed_action_result(
-    control_plane: object,
-    snapshot: RuntimeSnapshot,
-    crossing: PreparedParticipantCrossing,
-    *,
-    success: bool,
-) -> RuntimeSnapshot:
-    """Append the backend outcome without allowing it to rewrite the decision."""
-
-    binding = getattr(control_plane, "_mixed_runtime", None)
-    if binding is None:
-        return snapshot
-    state = runtime_state(binding, snapshot)
-    attempt = snapshot.mixed_composition_history[state.run_id][-1]
-    common = _runtime_event_fields(
-        state,
-        allocation_id=attempt.get("allocation_id"),
-        component_id=attempt.get("component_id"),
-        edge_id=attempt.get("edge_id"),
-        control_event_ref=attempt.get("control_event_ref"),
-        crossing_event_ref=attempt.get("crossing_event_ref"),
-        policy_decision_ref=attempt.get("policy_decision_ref"),
-        mapping_ref=attempt.get("mapping_ref"),
-        order_ref=str(attempt["order_ref"]),
-        mapping_loss_refs=list(attempt.get("mapping_loss_refs", [])),
-        evidence_refs=list(attempt.get("evidence_refs", [])),
-    )
-    operation_id = crossing.record.receipt.operation_id
-    events: list[MixedCompositionRuntimeEventModel] = []
-
-    def append(kind: _EventKind, disposition: _Disposition) -> None:
-        predecessor = state.history_head if not events else events[-1].event_id
-        events.append(
-            MixedCompositionRuntimeEventModel(
-                event_id=f"composition:{operation_id}:{kind}",
-                event_kind=kind,
-                disposition=disposition,
-                predecessor_event_id=predecessor,
-                **common,
-            )
-        )
-
-    append("result", "succeeded" if success else "failed")
-    if success:
-        append("delivery", "succeeded")
-        append("observation", "committed")
-        if common["mapping_loss_refs"]:
-            append("weakening", "committed")
-    else:
-        append("failure", "failed")
-    return append_runtime_events(binding, snapshot, state, events)
-
-
 def mixed_recovery_target(control_plane: object, operation_id: str) -> RuntimeTarget | None:
     """Recover the exact component from its durable pre-effect attempt fact."""
 
@@ -458,6 +463,5 @@ __all__ = (
     "mixed_policy_allocation",
     "prepare_mixed_action_dispatch",
     "prepare_mixed_lifecycle_dispatch",
-    "record_mixed_action_result",
     "record_mixed_lifecycle_result",
 )

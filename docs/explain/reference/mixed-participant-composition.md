@@ -80,7 +80,10 @@ Provider membership does not create a controller or disclosure permission.
 `RuntimeControlPlane` accepts an immutable `MixedRuntimeBinding` only when its
 plan entry, profile digest, trusted resolution context, component manifests,
 realization envelopes, runtime targets, run scope, and transition evaluators
-match exactly. Activation commits the admitted initial phase into typed
+match exactly. Executable mixed edges additionally bind a pinned bridge, exact
+source and destination action subjects, an installed time service, and
+independent destination and audience readback. Activation commits the admitted
+initial phase into typed
 `mixed_composition_states` and append-only `mixed_composition_history` fields
 in `runtime-snapshot-v1`. A second activation is either an exact idempotent
 replay or a refusal; it cannot replace the incumbent composition.
@@ -89,13 +92,27 @@ Participant action ingress still passes through the incumbent RUN-319/API-423
 crossing and final-sink policy decision. Under the same mutation cut, the
 coordinator resolves one active participant allocation, action allocation,
 authenticated controller and action authority. If the providers differ, it
-also requires the admitted directed edge and records its time mapping and
-declared mapping loss. The coordinator atomically commits `decision` and
-`attempt` facts before invoking the selected component. It then appends the
-result plus delivery and observation facts, an explicit weakening fact when
-mapping loss applies, or a failure fact when the provider refuses. An inactive,
-ambiguous, unmapped, unauthorized, stale, or unsupported cut invokes no
-component and discloses no backend result.
+also requires an executable binding for the admitted directed edge. That
+edge's subject, audience, policy cut, controller, disclosure authority, and
+permitted final-sink decision must match the live crossing before any bridge
+call. The binding preserves the governed compiled action address through the destination
+provider's admitted action allocation, verifies the two declared clocks and
+mapping against typed runtime readback, obtains a correlated order grant, and
+invokes the selected provider once through the bridge. The coordinator
+atomically commits `decision` and `attempt` before invocation. It appends a
+backend result from correlated execution evidence. It appends `delivery` only
+after destination receipt readback and `observation` only after participant and
+audience readback. An explicit weakening fact carries the declared mapping
+loss when the bridge reports it. A success boolean, mapping reference, or
+timestamp cannot create a later stage. A missing or stale binding, incompatible
+time readback, ambiguous mapping, unauthorized subject change, or failed
+pre-effect commit invokes no component. Partial execution, unknown effects,
+and unproved required delivery use the shared `INDETERMINATE` operation state
+until explicit reconciliation; replay never repeats the bridge call.
+Order checks include the microstep when mapped ticks are equal. A provider
+result rejected by the incumbent backend gate cannot publish successful
+execution, delivery, observation, or loss facts; a later readback failure
+retains only the stages already confirmed under the same operation.
 
 Participant episode initialize, reset, restart, and terminate calls resolve the
 active participant allocation and authenticated controller in the same way.
@@ -105,19 +122,44 @@ coordinator is never used as an unadmitted lifecycle fallback.
 
 Staged progression invokes only the evaluator bound to the admitted
 `evaluator_ref`, enforces its finite `progress_bound` and required evidence,
-and commits a monotone phase revision plus handoff fact. Evaluator exceptions
-become sanitized failure facts without changing phase membership. Snapshot
-history-head checks and store revision CAS prevent stale concurrent commits.
-The authoritative operation ledger also refuses progression while a mixed
-effect is accepted, running, or indeterminate, so provider responsibility
-cannot change around an outstanding effect. Restart recovery derives the exact
-component from the durable pre-effect
-attempt and never falls back to the logical target.
+and requires an executable native handoff when the active component set
+changes. That handoff obtains an admitted time grant and typed clock readback,
+invokes the pinned transfer service, then reads back the native owner and time
+state. Only a committed transfer with exact destination-owner readback commits
+the next phase and `handoff` fact. Failed or stale transfer retains the old
+phase; pending or unknown transfer is `INDETERMINATE` and blocks dependent
+work. The store serializes run-scoped phase claims with mixed actions before
+external calls, while snapshot history-head and revision CAS protect the
+terminal commit. Restart recovery derives the exact component from the durable
+pre-effect attempt and never falls back to the logical target. An interrupted
+mixed edge cannot be promoted from a provider-only recovery observation: its
+bridge, time, delivery, and audience stages remain unproved. An interrupted
+native handoff likewise retains the old phase with an `INDETERMINATE` operation
+until its owner and time cut are reconciled. A partial crossing history stays
+quarantined during restart and cannot be administratively accepted as a valid
+current snapshot. Generic current-snapshot acceptance cannot clear an interrupted
+mixed edge or native handoff; their external stages require specific reconciliation.
+Startup validates other crossing histories and the retained prefix before an
+interrupted crossing. Time and bridge callbacks receive isolated snapshot or
+time inputs, and a changed bridge snapshot is refused before the provider call.
 
 This is a single-control-plane reference realization. It does not claim
 backend-native federation, multi-controller consensus, leases, HLA ownership
 transfer, joint/fused action semantics, IFC/noninterference, equivalence,
 exactly-once external effects, or conformance of any production backend.
+
+The executable examples in
+[`test_issue_1355_mixed_mapping_time.py`](../../../implementations/python/tests/test_issue_1355_mixed_mapping_time.py)
+drive the control plane with an installed bridge and time service. They cover
+an evidenced mixed exchange, separated delivery and observation, missing
+bindings, stale clock readback, unauthorized mapping changes, partial/unknown
+outcomes and replay, and committed/failed/stale/pending staged handoffs. Run
+the focused examples with `uv run --project implementations/python --frozen
+pytest implementations/python/tests/test_issue_1355_mixed_mapping_time.py -q`
+from the repository root. The stub receipts and native owner are test services;
+they are not conformance evidence for a deployed apparatus. Linked inter-trial
+identity remains covered by the admitted-trial tests and never becomes a
+within-run fallback.
 
 ## Four worked realizations
 
@@ -207,7 +249,7 @@ fulfillment of the corresponding invariant family.
 | SEM-234(4), MCB-013–022 | Exact cut, policy/authority joins, existing SEM-230 projection; metadata, revocation and single-controller tests | No provider handshake, new RUN-310 protocol or noninterference proof |
 | SEM-234(5), MCB-027–034 | `advance` and `link_trials`; changed provider, immutable identity, stale/pending/commit and history tests | Synthetic result and trigger facts; no cleanup or derived-model realization |
 | SEM-234(6), MCB-035–037 | Cartesian axis cases and open-loop actuation refusal | Not description closure or a backend/product catalog |
-| SEM-234(7), MCB-023–026, 038–041 | Directed partial-order closure, fresh cuts, explicit loss, refusal and commit tests plus `test_issue_1016_mixed_runtime_coordination.py` | Reference final-sink coordination is bounded to one control plane; not a clock synchronizer or distributed transaction |
+| SEM-234(7–8), API-407, MCB-023–026, 038–041 | Directed partial-order closure, fresh cuts, explicit loss, refusal and commit tests plus `test_issue_1016_mixed_runtime_coordination.py` and `test_issue_1355_mixed_mapping_time.py` | Trusted installed bridge and time services are required; the stub witnesses are not deployed backend conformance or a physical clock guarantee |
 | MCB-042–045 / ASR-537 | Demonstration and separate-claim definitions; source/nonclaim policy checks | No executed apparatus demonstration, universal transfer, proof or backend conformance result |
 | SEM-230 | Existing `project_history`/crossing decisions plus `test_sem_230_information_flow_control.py` | Retains admission, output projection, release, transformation, hidden/visible labels, policy change and quantified claim boundary |
 | SCE-002 | `test_sce_002_trial_compiler.py` and immutable phase-plan tests | Incumbent composition/parameterization/randomization are reused; mixed compilation is not claimed |

@@ -70,11 +70,11 @@ from .control_plane_store_compatibility import adapt_control_plane_store
 from .control_plane_submission import control_plane_plan_diagnostics
 from .control_plane_workflow_control import WorkflowControlMixin
 from .mixed_runtime import MixedRuntimeMixin
+from .mixed_runtime_recovery import validate_restored_mixed_crossing_cut
 from .observation_execution import ObservationExecution
 from .observation_results import observation_execution_from_payload
 from .operational_apparatus import operational_apparatus_summary
 from .participant_control import ParticipantControlMixin
-from .participant_crossing_mediation import validate_persisted_crossing_history
 from .participant_information_state_validation import require_participant_information_state_snapshot
 from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
@@ -198,7 +198,7 @@ class RuntimeControlPlane(
         if self._snapshot.participant_crossing_history:
             if config.crossing_policy_resolver is None:
                 raise ValueError("persisted participant crossing history requires a policy resolver")
-            validate_persisted_crossing_history(self._snapshot, config.crossing_policy_resolver)
+            validate_restored_mixed_crossing_cut(self, config.crossing_policy_resolver)
 
     @property
     def _snapshot(self) -> RuntimeSnapshot:

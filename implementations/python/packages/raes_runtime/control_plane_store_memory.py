@@ -133,6 +133,8 @@ class InMemoryControlPlaneStore:
                     return existing
             if new_claim_blocked:
                 _store._raise_new_claim_block(new_claim_blocked)
+            if _store.mixed_claim_conflicts(record, self._records.values()):
+                _store._raise_new_claim_block("current-state")
             self._save_record(record)
             return record
 

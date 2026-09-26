@@ -6,18 +6,20 @@ type: FUNCTIONAL
 priority: MUST
 wave: 4
 created_at: 2026-07-31T02:14:06.833733Z
-updated_at: 2026-07-31T02:14:06.833733Z
+updated_at: 2026-09-24T01:59:47Z
 ---
 
 # SEM-234 — Mixed Cross-Backend Participant-Control Composition
 
 ## Statement
 
-RAES SHALL define a revisioned mixed cross-backend participant-control composition profile that: (1) supports both alternative realization of one authored scenario in simulation or emulation/operation and simultaneous composed realization across two or more admitted apparatus components; (2) allocates stable compiled participant, controlled-scope, action-family, observation-source, and crossing refs without adding backend choice to portable SDL meaning; (3) binds every composition edge to apparatus identities, authority, mapping, participant/audience policy, temporal coupling and governed order, mapping loss, failure behavior, and evidence; (4) keeps participant identity, acting controller, action admission, backend realization responsibility, HLA-style ownership, routing, and disclosure authority distinct; (5) represents linked inter-trial realization changes and only finite pre-admitted within-run membership/phase schedules without rewriting trial identity or history; (6) distinguishes open/closed control-loop posture, world assumption, and federation membership; and (7) rejects or explicitly weakens compositions with missing, stale, unsupported, contradictory, or unmapped authority, capability, policy, clock/order, or evidence.
+RAES SHALL define a revisioned mixed cross-backend participant-control composition profile that: (1) supports both alternative realization of one authored scenario in simulation or emulation/operation and simultaneous composed realization across two or more admitted apparatus components; (2) allocates stable compiled participant, controlled-scope, action-family, observation-source, and crossing refs without adding backend choice to portable SDL meaning; (3) binds every composition edge to apparatus identities, authority, mapping, participant/audience policy, temporal coupling and governed order, mapping loss, failure behavior, and evidence; (4) keeps participant identity, acting controller, action admission, backend realization responsibility, HLA-style ownership, routing, and disclosure authority distinct; (5) represents linked inter-trial realization changes and only finite pre-admitted within-run membership/phase schedules without rewriting trial identity or history; (6) distinguishes open/closed control-loop posture, world assumption, and federation membership; (7) rejects or explicitly weakens compositions with missing, stale, unsupported, contradictory, or unmapped authority, capability, policy, clock/order, or evidence; and (8) requires an admitted mixed edge or staged handoff to execute its subject mapping, bridge or transfer, time coordination, and readback under the owning operation, with distinct correlated execution, delivery, observation, partial/unknown, and handoff facts.
 
 ## Rationale
 
 Existing RAES authorities support backend-neutral participant semantics, one selected realization envelope, a single acting controller, crossings, time, capability, and evidence, but do not define simultaneous mixed simulation/emulation composition or staged cross-runtime realization. HLA, co-simulation, cyber-range, LVC, and digital-twin precedents show that routing, ownership, time, topology, and empirical transfer need separate, evidenced treatment.
+
+Executable realization must discharge the admitted edge and time obligations. A reference, timestamp, or backend success value cannot itself prove delivery, participant observation, or a native responsibility handoff.
 
 ## Traceability
 
@@ -34,6 +36,8 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane.py` (Single mixed-runtime mutation authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_configuration.py` (Run-matched fail-closed mixed-runtime configuration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_recovery.py` (Exact component recovery routing without logical-target fallback)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_resolution_records.py` (Mixed-stage-safe administrative resolution classification)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_recovery.py` (Interrupted mixed edge and native handoff stage quarantine on restart)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_history.py` (Composition history-head CAS support)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py` (Durable composition state and history codec)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime.py` (Exact admitted component binding and pre-effect provider decision)
@@ -99,3 +103,15 @@ Existing RAES authorities support backend-neutral participant semantics, one sel
 - DOCUMENTS → DOCUMENTATION `docs/research/cross-backend-participant-control/composition-architecture.md` (Mixed cross-backend participant-control composition architecture)
 - TESTS → TEST `implementations/python/tests/test_issue_813_cross_backend_participant_control_design.py` (Issue 813 structural acceptance gate)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#813` (Design cross-backend participant control against simulation and cyber-range precedents)
+- IMPLEMENTS → GITHUB_ISSUE `1355` (Executable mixed mapping, time, stage evidence, and handoff)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge.py` (Pinned executable edge, time grant, and independent stage-readback contracts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge_execution.py` (Mapped bridge call, time grant, and correlated readback enforcement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff.py` (Exact native-owner transfer and readback contracts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_result.py` (Separated action stages and shared operation settlement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_phase.py` (Evidenced staged handoff and prior-phase retention)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_boundary.py` (Mixed action outcome settlement under the owning crossing operation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_action.py` (Partial and unknown action states through the shared operation lifecycle)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store.py` (Run-scoped phase/effect claim exclusion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_memory.py` (Atomic in-memory mixed claim exclusion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_records.py` (Atomic durable mixed claim exclusion)
+- TESTS → TEST `implementations/python/tests/test_issue_1355_mixed_mapping_time.py` (Executed bridge, time, stage, uncertainty, and handoff witnesses)

@@ -6,14 +6,14 @@ type: INTERFACE
 priority: SHOULD
 wave: 2
 created_at: 2026-04-03T06:16:04.357369Z
-updated_at: 2026-06-21T02:21:42.017233Z
+updated_at: 2026-09-24T01:59:47Z
 ---
 
 # API-407 — Participant Feature Support And Constraint Declaration
 
 ## Statement
 
-Backend manifests shall declare unsupported, constrained, or partially supported participant features without ambiguity, distinct from general realization-support and disclosure declarations that apply across concern domains.
+Backend manifests shall declare unsupported, constrained, or partially supported participant features without ambiguity, distinct from general realization-support and disclosure declarations that apply across concern domains. For admitted mixed participant control, effective provider-local support and installed mapping, bridge, time-coordination, and readback services shall be checked in context; declaration or method presence alone does not establish executable support. Authorized weaker support shall retain its constraint, loss, disclosure, and evidence limits.
 
 ## Rationale
 
@@ -70,3 +70,11 @@ Requirement inventory expansion. Participant-feature boundaries need to be expli
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/compiler.py` (Fail-closed composition admission through provider-local contexts)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/realization_admission.py` (Provider-local contextual and apparatus admission orchestration)
 - TESTS → TEST `implementations/python/tests/test_issue_1015_mixed_staged_trial_admission.py` (Feature, envelope, mapping, context, and apparatus drift rejection coverage)
+- IMPLEMENTS → GITHUB_ISSUE `1355` (Provider-local executable mixed-edge and timing support)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime.py` (Installed bridge and time-binding admission against the exact profile and context)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge.py` (Executable mapping, bridge, time, and readback support boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge_execution.py` (Effective mapped bridge, time grant, and readback enforcement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_dispatch.py` (Contextual refusal and distinct supported stage evidence)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff.py` (Installed staged transfer and time-service support)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_result.py` (Evidence-bounded outcome settlement)
+- TESTS → TEST `implementations/python/tests/test_issue_1355_mixed_mapping_time.py` (Missing support, stale time, mapped execution, and evidenced stage witnesses)

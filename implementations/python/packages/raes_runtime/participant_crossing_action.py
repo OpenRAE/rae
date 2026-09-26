@@ -26,8 +26,10 @@ class ActionIngressExecution:
 def action_operation_record(
     crossing: PreparedParticipantCrossing,
     result: object,
+    *,
+    terminal_state: OperationState | None = None,
 ) -> ControlPlaneOperationRecord:
-    state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
+    state = terminal_state or (OperationState.SUCCEEDED if result.success else OperationState.FAILED)
     diagnostics = operation_terminal_diagnostics(state, list(result.diagnostics))
     receipt = crossing.record.receipt
     status = OperationStatus(
