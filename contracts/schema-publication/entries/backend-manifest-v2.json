@@ -1,9 +1,9 @@
 {
-  "content_hash": "fdd31f40e084699706b2ff0786f93318ed0ec418a230309744d5ca33d0929e85",
+  "content_hash": "67408de0a854ab63582c29bc4b1dfaa2efea2e61dff598a648ff03b2ad74755d",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "fdd31f40e084699706b2ff0786f93318ed0ec418a230309744d5ca33d0929e85"
+    "summary": "Publish optional backend operation and supervision contracts with contextual admission and bounded evidence (#1360).",
+    "content_hash": "67408de0a854ab63582c29bc4b1dfaa2efea2e61dff598a648ff03b2ad74755d"
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"

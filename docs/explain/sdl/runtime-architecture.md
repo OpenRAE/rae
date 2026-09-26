@@ -688,3 +688,13 @@ The current runtime scope includes:
 Real Docker/cloud/simulation backends are outside this repository's current
 implementation surface. Such backends would have to consume and satisfy these
 contracts.
+
+## Optional backend operation contracts
+
+The [operation-supervision family](../../../specs/formal/runtime-contracts/backend-operation-supervision.md)
+publishes the portable backend boundary for the accepted supervision design.
+It separates capability, willingness, acknowledgement, progress, control
+dispositions and scoped effect evidence. RAE retains native result validation
+and atomic terminal publication. The [migration guide](../reference/backend-operation-supervision.md)
+explains the additive profile and the limits of legacy conversions. These
+contracts do not enable a new RuntimeTarget provider or change P0–P3 guarantees.

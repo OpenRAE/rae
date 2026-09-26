@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from .versions import BACKEND_OPERATION_CONTRACT_IDS
+
 PROCESSOR_SUPPORTED_SDL_VERSION_IDS = ("sdl-authoring-input-v1",)
 
 # These are the published processor-facing and live-control-plane contracts a
@@ -37,6 +39,7 @@ PROCESSOR_SUPPORTED_CONTRACT_IDS = (
 # profiles, processor manifests, and authoring-side request artifacts are
 # separate authority surfaces and do not belong in this declaration field.
 BACKEND_SUPPORTED_CONTRACT_IDS = (
+    *BACKEND_OPERATION_CONTRACT_IDS,
     "backend-materialization-attestation-v1",
     "backend-augmentation-scope-v1",
     "plan-realization-profiles-v1",

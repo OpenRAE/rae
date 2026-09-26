@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 48.0.0, rejects unsupported future
+Current validation requires explicit release 53.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -461,8 +461,36 @@ which collided with the independently published release 46.0.0, remains in
 feature commit `c54060dd591f4c09dda49be7a5b04fde83efe02e` rather than the
 release index. Its observations are not relabeled as combined-source evidence.
 
-Current release 48.0.0 replays the retained controls against the merged source
+Release 48.0.0 replays the retained controls against the merged source
 in [`execution-snapshot-v47.json`](execution-snapshot-v47.json) and
 [`analysis-v47.json`](analysis-v47.json). It retains the issue #1338 baseline,
 bounded claims, and unsupported classes. Final egress denial and governed
 admission are verified by dedicated runtime regressions.
+
+## Backend operation contract source replay
+
+Release 49.0.0 binds issue #1360 to fresh source evidence in
+[`execution-snapshot-v48.json`](execution-snapshot-v48.json) and
+[`analysis-v48.json`](analysis-v48.json). The retained offline cases preserve
+their classifications and claim limits. Backend supervision contracts have
+dedicated contract tests; this capture makes no live backend recovery claim.
+Earlier published captures retain their exact bytes.
+
+Release 50.0.0 binds the reference-backend opt-in correction to
+[`execution-snapshot-v49.json`](execution-snapshot-v49.json) and
+[`analysis-v49.json`](analysis-v49.json). The retained claims and
+classifications are unchanged.
+
+Release 51.0.0 binds the operation validator maintainability changes to
+[`execution-snapshot-v50.json`](execution-snapshot-v50.json) and
+[`analysis-v50.json`](analysis-v50.json). The retained claims and
+classifications are unchanged.
+
+Release 52.0.0 replays the retained controls on the merged source in
+[`execution-snapshot-v51.json`](execution-snapshot-v51.json) and
+[`analysis-v51.json`](analysis-v51.json). Earlier captures retain their source identities.
+
+Release 53.0.0 replays the retained controls on the source combining issue
+#1360 backend-operation contracts with issue #1358 denied-egress handling in
+[`execution-snapshot-v52.json`](execution-snapshot-v52.json) and
+[`analysis-v52.json`](analysis-v52.json). Earlier captures retain their source identities.
