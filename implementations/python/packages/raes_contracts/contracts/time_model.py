@@ -8,7 +8,7 @@ from typing import Literal
 
 from pydantic import Field, StrictInt, model_validator
 
-from ..addressing import CompiledAddress
+from ..addressing import CompiledAddress, is_compiler_owned_temporal_subject_address
 from ..versions import (
     REALIZED_TIME_MODEL_SCHEMA_VERSION,
     TIME_MODEL_SCHEMA_VERSION,
@@ -268,7 +268,7 @@ class TimeModelDeclarationModel(ContractModel):
             if constraint.clock_address not in self.clocks:
                 raise ValueError(f"temporal constraint {constraint.address!r} references an unknown clock")
             if any(
-                not subject.startswith("sdl.") and subject not in known_subjects
+                not is_compiler_owned_temporal_subject_address(subject) and subject not in known_subjects
                 for subject in constraint.subject_addresses
             ):
                 raise ValueError(f"temporal constraint {constraint.address!r} references an unknown subject")

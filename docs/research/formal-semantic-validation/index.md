@@ -494,3 +494,9 @@ Release 53.0.0 replays the retained controls on the source combining issue
 #1360 backend-operation contracts with issue #1358 denied-egress handling in
 [`execution-snapshot-v52.json`](execution-snapshot-v52.json) and
 [`analysis-v52.json`](analysis-v52.json). Earlier captures retain their source identities.
+
+Release 54.0.0 is recorded in
+[`execution-snapshot-v53.json`](execution-snapshot-v53.json) and
+[`analysis-v53.json`](analysis-v53.json). It replays the retained formal cases
+after issue #1389 admitted the exact participant inject delivery address as a
+temporal subject. Outcomes and bounded claim limits remain unchanged.

@@ -120,7 +120,10 @@ observation boundary. Reuse the action, control, or inject carrier.
 - Use `participant_inject_deliveries` when an existing orchestration inject is
   addressed to a participant. Retain its inject identity. Retain its
   event/script/story identity. Bind an observation boundary. Name each needed
-  delivery, order, evidence, or control reference.
+  delivery, order, evidence, or control reference. A temporal constraint bound
+  to the delivery compiles to that delivery's `participant.*` address; it
+  constrains the authored occurrence and does not prove dispatch, delivery, or
+  observation.
 - Do not infer a participant addressee from an environment inject. Do not put
   policy text, hidden answers, credentials, or raw evidence in a participant
   carrier.

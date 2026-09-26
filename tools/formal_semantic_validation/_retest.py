@@ -37,7 +37,7 @@ from tools.formal_semantic_validation._types import (
 )
 from tools.policy.common import PolicyFailure
 
-_SOURCE_STATE_REVISIONS = frozenset(f"{revision}.0.0" for revision in range(4, 54))
+_SOURCE_STATE_REVISIONS = frozenset(f"{revision}.0.0" for revision in range(4, 55))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -66,7 +66,11 @@ def _validate_retest_snapshot(
     if not _closed_object(
         snapshot,
         _SNAPSHOT_V2_KEYS
-        | ({"source_state"} if release.manifest.get("revision") in _SOURCE_STATE_REVISIONS else set()),
+        | (
+            {"source_state"}
+            if release.manifest.get("revision") in _SOURCE_STATE_REVISIONS
+            else set()
+        ),
         rule_id="formal-validation-snapshot-shape",
         label="retest snapshot",
         failures=failures,
@@ -74,18 +78,28 @@ def _validate_retest_snapshot(
     ):
         return
     _validate_retest_header(protocol, corpus, snapshot, failures, path)
-    command_ids, commands_by_id = _validate_retest_commands(protocol, snapshot, failures, path)
+    command_ids, commands_by_id = _validate_retest_commands(
+        protocol, snapshot, failures, path
+    )
 
-    release_artifacts = [item for item in release.manifest.get("artifacts", []) if isinstance(item, Mapping)]
+    release_artifacts = [
+        item
+        for item in release.manifest.get("artifacts", [])
+        if isinstance(item, Mapping)
+    ]
     release_artifacts_by_path = {
-        item.get("path"): item for item in release_artifacts if isinstance(item.get("path"), str)
+        item.get("path"): item
+        for item in release_artifacts
+        if isinstance(item.get("path"), str)
     }
     expected_release_paths = _retest_observation_failures(
         scope, (release_artifacts_by_path, commands_by_id), failures, path
     )
     if release.manifest.get("revision") in _SOURCE_STATE_REVISIONS:
         expected_release_paths.update(_retained_fixture_paths(cases_by_id))
-    _validate_release_selection(scope, command_ids, expected_release_paths, failures, path)
+    _validate_release_selection(
+        scope, command_ids, expected_release_paths, failures, path
+    )
     _validate_retest_participant_observations(protocol, snapshot, failures, path)
 
 
@@ -112,7 +126,8 @@ def _validate_release_selection(
     selected_release_paths = {
         str(item.get("path"))
         for item in scope.release.manifest.get("artifacts", [])
-        if isinstance(item, Mapping) and item.get("kind") in {"corpus-input", "production-evidence"}
+        if isinstance(item, Mapping)
+        and item.get("kind") in {"corpus-input", "production-evidence"}
     }
     if selected_release_paths != expected_paths:
         failures.append(
@@ -193,7 +208,9 @@ def _validate_retest_commands(
     return command_ids, commands_by_id
 
 
-def _validate_retest_command(command: object, failures: list[PolicyFailure], path: str) -> None:
+def _validate_retest_command(
+    command: object, failures: list[PolicyFailure], path: str
+) -> None:
     if not _closed_object(
         command,
         _COMMAND_KEYS,
@@ -225,7 +242,10 @@ def _validate_retest_participant_command(
         "-q",
         *_participant_test_refs(protocol),
     ]
-    if not isinstance(participant_command, Mapping) or participant_command.get("argv") != expected_argv:
+    if (
+        not isinstance(participant_command, Mapping)
+        or participant_command.get("argv") != expected_argv
+    ):
         failures.append(
             _failure(
                 "formal-validation-participant-command",
@@ -266,11 +286,15 @@ def _validate_retest_observation(
             )
         )
     else:
-        _validate_retest_observation_metadata(scope.snapshot, case, observation, failures, path)
+        _validate_retest_observation_metadata(
+            scope.snapshot, case, observation, failures, path
+        )
         if case.get("replay_mode") in PRODUCTION_EVIDENCE_REPLAY_MODES:
             release_artifacts_by_path, commands_by_id = replay_context
             _validate_production_evidence_observation(
-                _ProductionObservationContext(scope.repo_root, release_artifacts_by_path, scope.replay_current),
+                _ProductionObservationContext(
+                    scope.repo_root, release_artifacts_by_path, scope.replay_current
+                ),
                 case,
                 observation,
                 commands_by_id.get(case_id),
@@ -305,9 +329,9 @@ def _validate_retest_observation_metadata(
     path: str,
 ) -> None:
     case_id = observation.get("case_id")
-    if observation.get("execution_id") != snapshot.get("execution_id") or observation.get(
-        "configuration_id"
-    ) != snapshot.get("configuration_id"):
+    if observation.get("execution_id") != snapshot.get(
+        "execution_id"
+    ) or observation.get("configuration_id") != snapshot.get("configuration_id"):
         failures.append(
             _failure(
                 "formal-validation-observation-join",
@@ -324,7 +348,9 @@ def _validate_retest_observation_metadata(
                 path,
             )
         )
-    if not _string_list(observation.get("evidence_refs")) or not _string_list(observation.get("limitations")):
+    if not _string_list(observation.get("evidence_refs")) or not _string_list(
+        observation.get("limitations")
+    ):
         failures.append(
             _failure(
                 "formal-validation-observation-evidence",
@@ -395,12 +421,17 @@ def _validate_retained_retest_observation(
             )
 
 
-def _historical_observation_matches(case: Mapping[str, object], observation: Mapping[str, object]) -> bool:
+def _historical_observation_matches(
+    case: Mapping[str, object], observation: Mapping[str, object]
+) -> bool:
     digest = observation.get("result_digest")
     diagnostic_kind = observation.get("diagnostic_kind")
     return (
         observation.get("actual_outcome") == case.get("expected_outcome")
-        and (digest is None or (isinstance(digest, str) and bool(_SHA256_RE.fullmatch(digest))))
+        and (
+            digest is None
+            or (isinstance(digest, str) and bool(_SHA256_RE.fullmatch(digest)))
+        )
         and (diagnostic_kind is None or isinstance(diagnostic_kind, str))
     )
 

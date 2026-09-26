@@ -51,10 +51,24 @@ def render_compiled_address(*parts: str) -> str:
     return require_compiled_address(address)
 
 
+def is_compiler_owned_temporal_subject_address(address: str) -> bool:
+    """Return whether a temporal subject is owned by an SDL compiler."""
+
+    parts = address.split(".")
+    return address.startswith("sdl.") or (
+        len(parts) == 5
+        and all(parts)
+        and parts[0] == "participant"
+        and parts[1] == "behavior-specification"
+        and parts[3] == "inject-delivery"
+    )
+
+
 __all__ = [
     "COMPILED_ADDRESS_JSON_SCHEMA",
     "COMPILED_ADDRESS_MAX_LENGTH",
     "CompiledAddress",
+    "is_compiler_owned_temporal_subject_address",
     "render_compiled_address",
     "require_compiled_address",
 ]

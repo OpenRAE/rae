@@ -21,6 +21,8 @@ Agent-assisted development can produce internally coherent code and documentatio
 
 ## Traceability
 
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1389-v53.json` (Current source-bound coverage replay after participant inject temporal-subject admission)
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v53.json` (Current source-bound formal replay after participant inject temporal-subject admission)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1358-v45.json` (Prior source-bound coverage replay with retained classifications)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v45.json` (Prior source-bound formal replay with retained bounded claims)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1358-v46.json` (Current source-bound coverage replay with retained classifications)
