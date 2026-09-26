@@ -44,8 +44,16 @@ _HISTORICAL_RETEST_REVISIONS = frozenset(
         "42.0.0",
         "43.0.0",
         "44.0.0",
+        "45.0.0",
+        "46.0.0",
+        "47.0.0",
+        "48.0.0",
+        "49.0.0",
+        "50.0.0",
+        "51.0.0",
+        "52.0.0",
     }
 )
 
-_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"45.0.0"}
+_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"53.0.0"}
 _SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}

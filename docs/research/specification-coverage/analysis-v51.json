@@ -1,0 +1,102 @@
+{
+  "analysis_id": "issue-1360-specification-coverage-v51",
+  "backend_leakage": [],
+  "claim": {
+    "allowed_evidence": [
+      "pinned source metadata and bounded paraphrases",
+      "production parser, semantic, instantiation, admission, compiler, contract, and profile results",
+      "exact artifact digests and typed pointers",
+      "documented missing-concept and backend-specific dispositions"
+    ],
+    "claim_id": "raes-standardized-configurable-specification-coverage",
+    "disallowed_evidence": [
+      "field-count or schema breadth alone",
+      "the existing scenario stress corpus as the representative request corpus",
+      "free-form metadata as typed coverage",
+      "backend-private interpretation",
+      "post-hoc removal or repair of falsifying concepts"
+    ],
+    "evidence_artifacts": [
+      "docs/research/specification-coverage/protocol-v1.json",
+      "docs/research/specification-coverage/execution-snapshot-v51.json",
+      "docs/research/specification-coverage/analysis-v51.json"
+    ],
+    "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
+    "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
+    "objective_pass_criteria": "Every load-bearing concept passes at every owning stage, backend-specific mechanics stay outside core SDL, and no requested concept is silently lost.",
+    "statement": "RAES provides a standardized configurable portable specification surface for the preregistered representative cyber-agent evaluation environment requirements without backend vocabulary in core SDL.",
+    "threats_to_validity": [
+      "The representative corpus contains four source strata and sixteen atomic concepts rather than every cyber-range requirement.",
+      "The reference processor and repository fixtures are not independent backend implementations.",
+      "No live range, simulator federation, or participant execution was part of this offline specification-coverage test."
+    ]
+  },
+  "classification_counts": {
+    "deliberately-backend-specific": 1,
+    "directly-expressible": 10,
+    "missing": 3,
+    "profile-or-manifest-constraint": 2
+  },
+  "evidence_status": "partial",
+  "execution_status": "complete",
+  "generated_at": "2026-09-25",
+  "limitations": [
+    "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
+    "The three missing concepts are evidence, not implementation tasks within this snapshot.",
+    "The retained protocol does not test recursive realization or plan-level profile semantics; this release only re-establishes its original bounded coverage result against the current implementation.",
+    "The retained protocol does not test evidence-requirement refinement lineage; the dedicated EXP-731 regression suite covers that production boundary.",
+    "Authoring-adapter transport behavior is outside this retained protocol.",
+    "Reviewed OCI mirror and pre-seed admission is covered by its own regression suites and the development artifact policy gate, not a new claim in this preregistered matrix.",
+    "Operational recovery observation and startup reconciliation are covered by their API-404 regression suite, not a new claim in this preregistered matrix.",
+    "Store ownership, immutable runtime scope, and provider shutdown ordering are covered by the API-404 CP-5 regression suite, not by this retained specification-coverage protocol.",
+    "Mixed/staged trial compilation and admission are covered by issue #1015 regression tests, not by this retained specification-coverage corpus; no live mixed-runtime result is claimed.",
+    "Issue #1186 control-plane recovery operations are covered by their runtime regression suite, not by this retained specification-coverage corpus.",
+    "Issue #1187 control-plane crash/profile conformance and HTTP security changes are covered by their dedicated regression suite, not promoted to new claims by this retained corpus.",
+    "Issue #1189 control-plane profile declarations are covered by their dedicated runtime suite, not promoted to new claims by the retained language corpus.",
+    "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
+    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
+    "Participant-local outcome state is verified by the ACT-618 tests; this retained corpus makes no additional outcome-state claim.",
+    "Backend operation supervision contracts are covered by issue #1360 contract tests; this retained offline corpus establishes no live backend supervision or recovery guarantee.",
+    "This capture replays the merged issue #1360 and #1357 source; the protocol makes no live backend execution or supervision claim."
+  ],
+  "load_bearing_results": {
+    "failed": 0,
+    "missing": 0,
+    "passed": 10,
+    "total": 10
+  },
+  "plain_language_outcome": "The retained specification matrix replays explicit participant affiliations, objective ownership, and assignment using abstract action contracts. Classification counts and untested concepts are unchanged; no execution authority or live backend behavior is inferred.",
+  "protocol_revision": "1.0.0",
+  "request_results": [
+    {
+      "concept_count": 6,
+      "failed_stage_count": 0,
+      "missing_count": 0,
+      "request_id": "survey-representative-range",
+      "status": "demonstrated"
+    },
+    {
+      "concept_count": 5,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "cyborg-participant-evaluation",
+      "status": "partial"
+    },
+    {
+      "concept_count": 3,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "vsdl-configurable-infrastructure",
+      "status": "partial"
+    },
+    {
+      "concept_count": 2,
+      "failed_stage_count": 1,
+      "missing_count": 1,
+      "request_id": "cyber-dem-federation",
+      "status": "partial"
+    }
+  ],
+  "snapshot_id": "issue-1360-specification-coverage-v51",
+  "snapshot_sha256": "0aba45b10c71ea6c76cd585e50394015c9c5074705d1d963c8b4209ed6071595"
+}

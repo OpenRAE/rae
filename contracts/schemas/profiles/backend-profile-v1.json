@@ -12,6 +12,10 @@
     "required_contracts": {
       "items": {
         "enum": [
+          "backend-operation-request-v1",
+          "backend-operation-capabilities-v1",
+          "backend-operation-control-v1",
+          "backend-operation-response-v1",
           "backend-materialization-attestation-v1",
           "backend-augmentation-scope-v1",
           "plan-realization-profiles-v1",

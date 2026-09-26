@@ -660,6 +660,19 @@ and backup policy. Profile metadata is in-process discovery, not a health
 signal, HTTP discovery endpoint, availability promise, or tenant-multiplexing
 contract.
 
+Participant clients access a trusted host application, which may embed P0/P1
+as an SDK or use the optional P2 HTTP adapter. The host keeps the SDK
+control-plane object or P2 identity private and binds each caller to one
+target/run, participant, exact episode, audience and operation before releasing
+a governed API-408 view. SDK calls have no HTTP role gate; a P2 identity with
+read access to participant views can also read the full snapshot. Neither
+path authenticates the host's end user or turns a legacy view without a
+configured crossing resolver into governed participant output. An
+organizational host owns organizational identity and policy; a local host
+applies its own caller boundary. The accepted
+[route and deployment boundary](../../decisions/issue-1356-control-plane-participant-access-preflight.md)
+also covers operation readback, histories, errors, caches and events.
+
 ## Current Scope
 
 The current runtime scope includes:
@@ -675,3 +688,13 @@ The current runtime scope includes:
 Real Docker/cloud/simulation backends are outside this repository's current
 implementation surface. Such backends would have to consume and satisfy these
 contracts.
+
+## Optional backend operation contracts
+
+The [operation-supervision family](../../../specs/formal/runtime-contracts/backend-operation-supervision.md)
+publishes the portable backend boundary for the accepted supervision design.
+It separates capability, willingness, acknowledgement, progress, control
+dispositions and scoped effect evidence. RAE retains native result validation
+and atomic terminal publication. The [migration guide](../reference/backend-operation-supervision.md)
+explains the additive profile and the limits of legacy conversions. These
+contracts do not enable a new RuntimeTarget provider or change P0–P3 guarantees.

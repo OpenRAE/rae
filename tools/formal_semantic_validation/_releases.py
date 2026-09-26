@@ -159,7 +159,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
                 release.corpus,
                 release.snapshot,
                 release.analysis,
-                replay_current=manifest.get("revision") == "45.0.0",
+                replay_current=manifest.get("revision") == "53.0.0",
             )
         )
     else:
@@ -222,40 +222,7 @@ def validate_release_bundle(repo_root: Path, release: EvidenceRelease) -> list[P
     return failures
 
 
-def validate_retest_bundle(
-    repo_root: Path,
-    release: EvidenceRelease,
-    protocol: dict[str, object],
-    corpus: dict[str, object],
-    snapshot: dict[str, object],
-    analysis: dict[str, object],
-    *,
-    replay_current: bool = True,
-) -> list[PolicyFailure]:
-    """Validate the integrated issue-828 evidence release."""
-
-    failures: list[PolicyFailure] = []
-    protocol_path = str(release.manifest.get("protocol_path"))
-    corpus_path = str(release.manifest.get("corpus_path"))
-    snapshot_path = str(release.manifest.get("snapshot_path"))
-    analysis_path = str(release.manifest.get("analysis_path"))
-    release_revision = release.manifest.get("revision")
-    if not replay_current and release_revision not in _HISTORICAL_RETEST_REVISIONS:
-        return [
-            _failure(
-                "formal-validation-current-replay-required",
-                "only releases 3.0.0 through 44.0.0 can use integrated historical validation",
-                snapshot_path,
-            )
-        ]
-    if release_revision not in _SUPPORTED_RETEST_REVISIONS:
-        failures.append(
-            _failure(
-                "formal-validation-retest-release",
-                "integrated retest requires an explicitly supported release revision",
-                release.manifest_path,
-            )
-        )
+def _expected_corpus_revision(release_revision: object) -> str:
     expected_corpus_revision = (
         "3.0.0"
         if release_revision
@@ -292,8 +259,57 @@ def validate_retest_bundle(
         }
         else "2.0.0"
     )
-    if release_revision in {"42.0.0", "45.0.0"}:
+    if release_revision in {
+        "42.0.0",
+        "45.0.0",
+        "46.0.0",
+        "47.0.0",
+        "48.0.0",
+        "49.0.0",
+        "50.0.0",
+        "51.0.0",
+        "52.0.0",
+        "53.0.0",
+    }:
         expected_corpus_revision = "4.0.0"
+    return expected_corpus_revision
+
+
+def validate_retest_bundle(
+    repo_root: Path,
+    release: EvidenceRelease,
+    protocol: dict[str, object],
+    corpus: dict[str, object],
+    snapshot: dict[str, object],
+    analysis: dict[str, object],
+    *,
+    replay_current: bool = True,
+) -> list[PolicyFailure]:
+    """Validate the integrated issue-828 evidence release."""
+
+    failures: list[PolicyFailure] = []
+    protocol_path = str(release.manifest.get("protocol_path"))
+    corpus_path = str(release.manifest.get("corpus_path"))
+    snapshot_path = str(release.manifest.get("snapshot_path"))
+    analysis_path = str(release.manifest.get("analysis_path"))
+    release_revision = release.manifest.get("revision")
+    if not replay_current and release_revision not in _HISTORICAL_RETEST_REVISIONS:
+        return [
+            _failure(
+                "formal-validation-current-replay-required",
+                "only releases 3.0.0 through 52.0.0 can use integrated historical validation",
+                snapshot_path,
+            )
+        ]
+    if release_revision not in _SUPPORTED_RETEST_REVISIONS:
+        failures.append(
+            _failure(
+                "formal-validation-retest-release",
+                "integrated retest requires an explicitly supported release revision",
+                release.manifest_path,
+            )
+        )
+    expected_corpus_revision = _expected_corpus_revision(release_revision)
     if protocol.get("revision") != "2.0.0" or corpus.get("revision") != expected_corpus_revision:
         failures.append(
             _failure(
@@ -399,6 +415,14 @@ def _current_retest_source_failures(
         "43.0.0": "41.0.0",
         "44.0.0": "43.0.0",
         "45.0.0": "42.0.0",
+        "46.0.0": "45.0.0",
+        "47.0.0": "42.0.0",
+        "48.0.0": "42.0.0",
+        "49.0.0": "45.0.0",
+        "50.0.0": "49.0.0",
+        "51.0.0": "50.0.0",
+        "52.0.0": "51.0.0",
+        "53.0.0": "52.0.0",
     }[release_revision]
     if not isinstance(baseline, Mapping) or baseline.get("release_revision") != expected_baseline:
         failures.append(

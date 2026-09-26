@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "OperationKind": {
+      "description": "Closed kinds of work admitted by the runtime control plane.",
+      "enum": [
+        "provisioning",
+        "orchestration",
+        "evaluation",
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+        "participant-action",
+        "participant-control",
+        "participant-crossing",
+        "composition-phase",
+        "indeterminate-resolution"
+      ],
+      "title": "OperationKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/backend-operation-capabilities-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Installed provider declaration; neither willingness nor a conformance proof.",
+  "properties": {
+    "backend_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Backend Id",
+      "type": "string"
+    },
+    "guarantees": {
+      "default": [],
+      "items": {
+        "enum": [
+          "cancellation",
+          "effect-observation",
+          "cessation-evidence",
+          "partial-effects",
+          "external-fencing"
+        ],
+        "type": "string"
+      },
+      "maxItems": 5,
+      "title": "Guarantees",
+      "type": "array"
+    },
+    "revision": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Revision",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "backend-operation-capabilities/v1",
+      "default": "backend-operation-capabilities/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "supported_operation_kinds": {
+      "items": {
+        "$ref": "#/$defs/OperationKind"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Supported Operation Kinds",
+      "type": "array"
+    }
+  },
+  "required": [
+    "backend_id",
+    "revision",
+    "supported_operation_kinds"
+  ],
+  "title": "BackendOperationCapabilitiesModel",
+  "type": "object",
+  "x-raes-invariants": [
+    {
+      "description": "Validate unique collections, calendar instants, budget bounds, scope and honest effect/outcome claims; structural validity does not prove backend truth or runtime authority.",
+      "id": "backend-operation-local-consistency",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.BackendOperationCapabilitiesModel.model_validate"
+    },
+    {
+      "description": "Before invocation require installed support, matching declaration and current exact-context willingness.",
+      "id": "backend-operation-contextual-admission",
+      "inputs": [
+        {
+          "contract_id": "backend-operation-request-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-capabilities-v1",
+          "instance_path": "#"
+        },
+        {
+          "contract_id": "backend-operation-response-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.require_backend_operation_admission"
+    }
+  ],
+  "x-raes-semantic-profile": {
+    "contract_id": "backend-operation-capabilities-v1",
+    "entry_schema_contract_id": "raes-semantic-invariants-v1",
+    "entry_schema_pointer": "#/$defs/RaesSemanticInvariantEntryModel",
+    "id": "raes-semantic-invariants-v1",
+    "keyword": "x-raes-invariants",
+    "required": true,
+    "uri": "https://openrae.github.io/rae/schemas/semantic-invariants/v1"
+  }
+}

@@ -22,6 +22,7 @@ from ..vocabulary import (
     WorkflowFeature,
     WorkflowStatePredicateFeature,
 )
+from ._backend_operation_exports import *
 from ._candidate_synthesis_facade import *
 from ._evidence_requirement_exports import *
 from ._exports import PUBLIC_EXPORTS as __all__
@@ -223,7 +224,6 @@ from .mixed_composition import (
 )
 from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .observation_capture import ObservationCaptureOfferModel
-from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
 from .participant_decision_surface import (
     ParticipantDecisionSurfaceActionEntryModel,
