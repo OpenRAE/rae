@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 53.0.0 and rejects duplicate or unsupported
+Current validation requires release 55.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -431,12 +431,25 @@ Release 52.0.0 replays the retained protocol on the source combining issue
 [`execution-snapshot-v52.json`](execution-snapshot-v52.json) and
 [`analysis-v52.json`](analysis-v52.json). Earlier captures retain their source identities.
 
+Release 53.0.0 replays the retained offline protocol against issue #1355's
+mixed mapping, time, and handoff implementation in
+[`execution-snapshot-v53.json`](execution-snapshot-v53.json) and
+[`analysis-v53.json`](analysis-v53.json). Mixed runtime effects and recovery
+remain covered by dedicated runtime tests, outside this language corpus.
+
+Release 54.0.0 replays the retained matrix after issue #1389 admitted the exact
+participant inject delivery address as a temporal subject. The classifications
+and claim limits remain unchanged; participant delivery timing is verified by
+its dedicated compiler tests in
+[`execution-snapshot-v54.json`](execution-snapshot-v54.json) and
+[`analysis-v54.json`](analysis-v54.json).
+
 ## Trial execution-authority admission source replay
 
-Release 53.0.0 replays the retained protocol on the source that adds issue
+Release 55.0.0 replays the retained protocol on the source that adds issue
 #1361 trial execution-authority admission, in
-[`execution-snapshot-v53.json`](execution-snapshot-v53.json) and
-[`analysis-v53.json`](analysis-v53.json). Classifications and claim limits are
+[`execution-snapshot-v55.json`](execution-snapshot-v55.json) and
+[`analysis-v55.json`](analysis-v55.json). Classifications and claim limits are
 unchanged. The derived backend guarantees and their admission have dedicated
 contract and compiler tests; this capture makes no live backend recovery claim.
 Earlier captures retain their source identities.
