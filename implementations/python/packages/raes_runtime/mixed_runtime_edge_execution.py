@@ -21,6 +21,8 @@ from .mixed_runtime_edge import (
     MixedTimeCoordinationEvidence,
 )
 
+_UNSUPPORTED_EDGE_TIME = "executable edge time mapping or governed order is unsupported"
+
 
 def _mapped_edge_method(
     binding: object,
@@ -42,16 +44,19 @@ def _mapped_edge_method(
     ):
         raise ValueError("executable edge clock domains differ from admission")
 
-    return partial(
-        _invoke_mapped_edge,
-        installed=installed,
-        edge=edge,
-        declaration=declaration,
-        mapping=mapping,
-        provider_method=provider_method,
-        operation_id=operation_id,
-        capture=capture,
-    )
+    context = _MappedEdgeContext(installed, edge, declaration, mapping, provider_method, operation_id, capture)
+    return partial(_invoke_mapped_edge, context=context)
+
+
+@dataclass(frozen=True)
+class _MappedEdgeContext:
+    installed: MixedEdgeExecutionBinding
+    edge: object
+    declaration: object
+    mapping: object
+    provider_method: Callable[..., object]
+    operation_id: str
+    capture: MixedEdgeExecutionCapture
 
 
 @dataclass
@@ -81,14 +86,15 @@ def _invoke_mapped_edge(
     request: ParticipantActionAdmissionRequest,
     snapshot: RuntimeSnapshot,
     *,
-    installed: MixedEdgeExecutionBinding,
-    edge: object,
-    declaration: object,
-    mapping: object,
-    provider_method: Callable[..., object],
-    operation_id: str,
-    capture: MixedEdgeExecutionCapture,
+    context: _MappedEdgeContext,
 ) -> ApplyResult:
+    installed = context.installed
+    edge = context.edge
+    declaration = context.declaration
+    mapping = context.mapping
+    provider_method = context.provider_method
+    operation_id = context.operation_id
+    capture = context.capture
     if request.action_contract_address != installed.source_action_address:
         raise ValueError("executable edge source action differs from admitted subject")
     baseline_snapshot = deepcopy(snapshot)
@@ -237,15 +243,15 @@ def _require_time_grant(
         "unknown",
         "unsupported",
     }:
-        raise ValueError("executable edge time mapping or governed order is unsupported")
+        raise ValueError(_UNSUPPORTED_EDGE_TIME)
     if (grant.source_coordinate, grant.destination_coordinate, source.segment) != (
         source,
         destination,
         destination.segment,
     ):
-        raise ValueError("executable edge time mapping or governed order is unsupported")
+        raise ValueError(_UNSUPPORTED_EDGE_TIME)
     if (mapped_tick, source.microstep) > (destination.tick, destination.microstep) or not required.issubset(provided):
-        raise ValueError("executable edge time mapping or governed order is unsupported")
+        raise ValueError(_UNSUPPORTED_EDGE_TIME)
 
 
 def _require_bridge_report(

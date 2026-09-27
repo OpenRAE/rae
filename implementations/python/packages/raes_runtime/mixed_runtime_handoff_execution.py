@@ -16,6 +16,8 @@ from .mixed_runtime import MixedRuntimeBinding
 from .mixed_runtime_edge import MixedTimeCoordinationEvidence
 from .mixed_runtime_handoff import MixedHandoffBinding, MixedHandoffEvidence, MixedHandoffReadback
 
+_UNSUPPORTED_HANDOFF_TIME = "handoff time coordination is unsupported"
+
 
 @dataclass(frozen=True)
 class _HandoffResolution:
@@ -31,6 +33,18 @@ class _HandoffProgress:
     correlated: bool = False
     evidence: MixedHandoffEvidence | None = None
     readback: MixedHandoffReadback | None = None
+
+
+@dataclass(frozen=True)
+class _HandoffInvocation:
+    installed: MixedHandoffBinding
+    declaration: object
+    transition: MixedCompositionTransitionModel
+    state: MixedCompositionRuntimeStateModel
+    operation_id: str
+    baseline_snapshot: RuntimeSnapshot
+    time_state: TimeRuntimeStateModel
+    grant: MixedTimeCoordinationEvidence
 
 
 def _perform_handoff(
@@ -69,18 +83,10 @@ def _resolve_required_handoff(
                 tuple(dict.fromkeys([*grant.mapping_evidence_refs, *grant.timing_evidence_refs]))
             )
             try:
-                _invoke_handoff_stage(
-                    control_plane,
-                    installed,
-                    declaration,
-                    transition,
-                    state,
-                    operation_id,
-                    baseline_snapshot,
-                    time_state,
-                    grant,
-                    progress,
+                invocation = _HandoffInvocation(
+                    installed, declaration, transition, state, operation_id, baseline_snapshot, time_state, grant
                 )
+                _invoke_handoff_stage(control_plane, invocation, progress)
             except Exception:
                 resolution = _HandoffResolution(OperationState.INDETERMINATE, grant.order_ref, progress.confirmed_refs)
             else:
@@ -112,16 +118,17 @@ def _request_handoff_grant(
 
 def _invoke_handoff_stage(
     control_plane: object,
-    installed: MixedHandoffBinding,
-    declaration: object,
-    transition: MixedCompositionTransitionModel,
-    state: MixedCompositionRuntimeStateModel,
-    operation_id: str,
-    baseline_snapshot: RuntimeSnapshot,
-    time_state: TimeRuntimeStateModel,
-    grant: MixedTimeCoordinationEvidence,
+    invocation: _HandoffInvocation,
     progress: _HandoffProgress,
 ) -> None:
+    installed = invocation.installed
+    declaration = invocation.declaration
+    transition = invocation.transition
+    state = invocation.state
+    operation_id = invocation.operation_id
+    baseline_snapshot = invocation.baseline_snapshot
+    time_state = invocation.time_state
+    grant = invocation.grant
     with external_control_plane_call(control_plane):
         evidence = MixedHandoffEvidence.model_validate(
             installed.invoke(operation_id, deepcopy(transition), deepcopy(state), deepcopy(baseline_snapshot))
@@ -260,8 +267,8 @@ def _require_handoff_time_grant(
         destination.segment,
     )
     if granted != expected:
-        raise ValueError("handoff time coordination is unsupported")
+        raise ValueError(_UNSUPPORTED_HANDOFF_TIME)
     if (mapped_tick, source.microstep) > (destination.tick, destination.microstep):
-        raise ValueError("handoff time coordination is unsupported")
+        raise ValueError(_UNSUPPORTED_HANDOFF_TIME)
     if not required.issubset(set(grant.mapping_evidence_refs) | set(grant.timing_evidence_refs)):
-        raise ValueError("handoff time coordination is unsupported")
+        raise ValueError(_UNSUPPORTED_HANDOFF_TIME)
