@@ -5,7 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from tools.evidence_bundle_index import load_index_records, revision_key
-from tools.formal_semantic_validation._release_revisions import _SUPPORTED_RETEST_REVISIONS
+from tools.formal_semantic_validation._release_revisions import (
+    _SUPPORTED_RETEST_REVISIONS,
+)
 from tools.formal_semantic_validation._types import (
     _MAX_FILE_BYTES,
     MANIFEST_PATH,
@@ -28,7 +30,12 @@ def load_release_bundles(repo_root: Path = REPO_ROOT) -> list[EvidenceRelease]:
         max_bytes=_MAX_FILE_BYTES,
     )
     current_release_path(records)
-    supported_revisions = _SUPPORTED_RETEST_REVISIONS | {"1.0.0", "1.1.0", "1.2.0", "2.0.0"}
+    supported_revisions = _SUPPORTED_RETEST_REVISIONS | {
+        "1.0.0",
+        "1.1.0",
+        "1.2.0",
+        "2.0.0",
+    }
     if {record.get("revision") for _, record in records} != supported_revisions:
         raise ValueError("formal evidence requires every supported historical and current release")
     releases: list[EvidenceRelease] = []
@@ -75,6 +82,6 @@ def load_retest_bundle(
     if not releases:
         raise ValueError("the formal semantic-validation index selects no v2 retest release")
     release = max(releases, key=lambda item: revision_key(item.manifest.get("revision")))
-    if release.manifest.get("revision") != "55.0.0" or release.protocol.get("revision") != "2.0.0":
-        raise ValueError("the current formal evidence release must be the explicit 55.0.0 retest")
+    if release.manifest.get("revision") != "56.0.0" or release.protocol.get("revision") != "2.0.0":
+        raise ValueError("the current formal evidence release must be the explicit 56.0.0 retest")
     return release, release.protocol, release.corpus, release.snapshot, release.analysis

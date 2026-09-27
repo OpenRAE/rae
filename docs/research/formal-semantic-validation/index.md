@@ -506,3 +506,8 @@ Release 55.0.0 is recorded in
 [`analysis-v54.json`](analysis-v54.json). It replays the retained formal cases
 after issue #1389 admitted the exact participant inject delivery address as a
 temporal subject. Outcomes and bounded claim limits remain unchanged.
+
+Release 56.0.0 replays the retained cases against issue #971’s crossing profile
+and opacity admission guards in [execution-snapshot-v56.json](execution-snapshot-v56.json)
+and [analysis-v56.json](analysis-v56.json). Outcomes and claim limits are
+unchanged; the crossing models remain construction evidence only.
