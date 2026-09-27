@@ -34,7 +34,9 @@ def test_export_readback_and_counts(tmp_path):
     for name, module in (("abstract", abstract), ("concrete", concrete)):
         initial, states, edges = export.parse_aut(bundle[f"{name}.aut"])
         graph = module.build()
-        assert initial == 0 and states == len(graph.states) and len(edges) == len(graph.edges)
+        assert initial == 0
+        assert states == len(graph.states)
+        assert len(edges) == len(graph.edges)
         assert manifest["models"][name]["states"] == states
         assert manifest["models"][name]["transitions"] == len(edges)
         assert manifest["models"][name]["initial_states"] == 1

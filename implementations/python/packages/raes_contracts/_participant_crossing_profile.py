@@ -1,10 +1,13 @@
 """Closed single-operation SEM-232 profile vocabulary and parameters."""
 
-from typing import Literal
+from typing import TYPE_CHECKING, Any, Literal, Self
 
 from pydantic import Field, StrictInt, model_validator
 
 from .contracts.base import ContractModel, PrefixedDigestString
+
+if TYPE_CHECKING:
+    from .behavioral_relation_profiles import BehavioralRelationProfileModel
 
 INPUT_CLASSES = ("plain", "transform", "declassify", "unsupported", "forbidden")
 VISIBLE = (
@@ -104,13 +107,13 @@ class ParticipantCrossingParametersModel(ContractModel):
     completion: Literal["per-crossing-visible-outcome"]
 
     @model_validator(mode="after")
-    def _independent_sources(self):
+    def _independent_sources(self) -> Self:
         if self.left.source_digest == self.right.source_digest:
             raise ValueError("crossing transition authorities must have independent source identities")
         return self
 
 
-def validate_crossing_profile_join(profile) -> None:
+def validate_crossing_profile_join(profile: "BehavioralRelationProfileModel") -> None:
     expected = {
         "profile_id": "participant-crossing-dpbb-finite-v1",
         "profile_revision": "rev2",
@@ -125,7 +128,7 @@ def validate_crossing_profile_join(profile) -> None:
         raise ValueError("crossing profile identity, projection or carrier does not match its parameters")
 
 
-def crossing_profile_schema_join() -> dict:
+def crossing_profile_schema_join() -> dict[str, Any]:
     """Publish the relation/variant join in the existing profile schema."""
     return {
         "if": {

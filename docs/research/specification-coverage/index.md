@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 55.0.0 and rejects duplicate or unsupported
+Current validation requires release 56.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -448,3 +448,7 @@ Release 55.0.0 replays the retained matrix against issue #971’s crossing profi
 and opacity admission guards in [execution-snapshot-v55.json](execution-snapshot-v55.json)
 and [analysis-v55.json](analysis-v55.json). Classifications and claim limits
 are unchanged; this is no participant-crossing equivalence result.
+
+Release 56.0.0 replays the same matrix after the #971 profile type annotations
+in [execution-snapshot-v56.json](execution-snapshot-v56.json) and
+[analysis-v56.json](analysis-v56.json), preserving all classifications.

@@ -511,3 +511,7 @@ Release 56.0.0 replays the retained cases against issue #971’s crossing profil
 and opacity admission guards in [execution-snapshot-v56.json](execution-snapshot-v56.json)
 and [analysis-v56.json](analysis-v56.json). Outcomes and claim limits are
 unchanged; the crossing models remain construction evidence only.
+
+Release 57.0.0 replays the same cases after the #971 profile type annotations
+in [execution-snapshot-v57.json](execution-snapshot-v57.json) and
+[analysis-v57.json](analysis-v57.json), preserving all outcomes and claim limits.

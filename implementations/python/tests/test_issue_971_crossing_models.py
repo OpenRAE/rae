@@ -85,10 +85,13 @@ def test_atomic_refusal_and_hidden_progress():
             assert concrete.internal_rank(before) > concrete.internal_rank(after)
         if before.head != after.head:
             assert label == "internal.atomic-commit"
-            assert before.head == "h0" and after.head == "h1"
-            assert before.last is None and after.last is not None
+            assert before.head == "h0"
+            assert after.head == "h1"
+            assert before.last is None
+            assert after.last is not None
         if before.phase == "preparing-record" and before.intent[3] == "fresh":
-            assert before.head == "h0" and before.last is None
+            assert before.head == "h0"
+            assert before.last is None
 
 
 @pytest.mark.parametrize("module", [abstract, concrete])

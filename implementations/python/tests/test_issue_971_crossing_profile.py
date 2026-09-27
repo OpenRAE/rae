@@ -139,10 +139,9 @@ def test_binary_binding_checks_both_carriers():
     binding = crossing_binding(profile)
     catalog = load_behavioral_relation_catalog_revision("rev8")
     validate_behavioral_claim_binding(binding, catalog=catalog, profile=profile)
+    wrong_binding = binding.model_copy(update={"right_carrier_ref": "wrong"})
     with pytest.raises(ValueError, match="right carrier"):
-        validate_behavioral_claim_binding(
-            binding.model_copy(update={"right_carrier_ref": "wrong"}), catalog=catalog, profile=profile
-        )
+        validate_behavioral_claim_binding(wrong_binding, catalog=catalog, profile=profile)
 
 
 def test_opacity_consumers_reject_binary_profile_before_accessing_parameters():
@@ -163,10 +162,11 @@ def test_opacity_consumers_reject_binary_profile_before_accessing_parameters():
     request.catalog_digest = canonical_json_digest(catalog.model_dump(mode="json"))
     with pytest.raises(ParticipantOpacityOperationalError, match="opacity parameter profile"):
         _model_check_admission.validate_admission(request, profile, catalog)
+    binding, support = _binding(), _support()
     with pytest.raises(ValueError, match="profile"):
         validate_participant_opacity_runtime_enforcement(
-            _binding(),
-            support=_support(),
+            binding,
+            support=support,
             participant_address="participant-0",
             audience_scope_ref="audience-0",
             profile=profile,
@@ -194,9 +194,9 @@ def test_opacity_rejects_crossing_profile_with_matching_claim_and_coordinates(co
         assumptions=None,
         declared_counts=None,
     )
-    with pytest.raises(ParticipantOpacityOperationalError, match="opacity parameter profile"):
-        if consumer == "analysis":
+    if consumer == "analysis":
+        with pytest.raises(ParticipantOpacityOperationalError, match="opacity parameter profile"):
             _service._validate_profile_admission(request, profile)
-            _service._validate_profile_domains(request, profile)
-        else:
+    else:
+        with pytest.raises(ParticipantOpacityOperationalError, match="opacity parameter profile"):
             _model_check_admission.validate_admission(request, profile, catalog)
