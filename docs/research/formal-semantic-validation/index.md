@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 56.0.0, rejects unsupported future
+Current validation requires explicit release 55.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -506,8 +506,3 @@ Release 55.0.0 is recorded in
 [`analysis-v54.json`](analysis-v54.json). It replays the retained formal cases
 after issue #1389 admitted the exact participant inject delivery address as a
 temporal subject. Outcomes and bounded claim limits remain unchanged.
-
-Release 56.0.0 replays the retained controls on the source that adds issue
-#1361 trial execution-authority admission, in
-[`execution-snapshot-v55.json`](execution-snapshot-v55.json) and
-[`analysis-v55.json`](analysis-v55.json). Earlier captures retain their source identities.

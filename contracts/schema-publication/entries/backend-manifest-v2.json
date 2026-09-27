@@ -1,9 +1,9 @@
 {
-  "content_hash": "2095ee14a9bb3c0080088851b615cab4df0168d667629bb9645c3089cea77fa4",
+  "content_hash": "67408de0a854ab63582c29bc4b1dfaa2efea2e61dff598a648ff03b2ad74755d",
   "contract_id": "backend-manifest-v2",
   "last_change": {
-    "summary": "Add an optional operation-supervision declaration of the backend operation guarantees a backend provides, requiring the backend operation contract family (#1361).",
-    "content_hash": "2095ee14a9bb3c0080088851b615cab4df0168d667629bb9645c3089cea77fa4"
+    "summary": "Publish optional backend operation and supervision contracts with contextual admission and bounded evidence (#1360).",
+    "content_hash": "67408de0a854ab63582c29bc4b1dfaa2efea2e61dff598a648ff03b2ad74755d"
   },
   "schema_path": "contracts/schemas/backend-manifest/backend-manifest-v2.json",
   "stability": "draft"
