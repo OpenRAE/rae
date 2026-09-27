@@ -579,7 +579,11 @@ adrs:
         summary: "Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged."
   - id: ADR-102
     path: docs/decisions/adrs/adr-102-mixed-cross-backend-participant-control.md
-    pin: cfcb0f5b7291b47fe6ff6096bb18dd9063b83ee5d4f7f6a9cafbdd06f21bf716
+    pin: e00772b8642d117da413cceb3767e865ebaf3cecd55d2d8f04d8d43205d79027
+    amendments:
+      - date: 2026-09-24
+        ref: "#1355"
+        summary: "Required executable mixed mappings, bridge and time coordination, independent stage readback, and native staged handoff while preserving historical reference-only meaning."
   - id: ADR-103
     path: docs/decisions/adrs/adr-103-branch-aware-python-coverage-policy.md
     pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
