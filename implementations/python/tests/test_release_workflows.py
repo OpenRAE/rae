@@ -439,7 +439,7 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "github.event.pull_request.base.sha" in canonical["with"]["base-rev"]
     assert canonical["with"]["requirement-branch"] == "${{ github.head_ref || github.ref_name }}"
     assert canonical["with"]["sonar-enabled"] is True
-    assert canonical["secrets"]["sonar_token"] == "${{ secrets.PERSONAL_SONAR_TOKEN }}"
+    assert canonical["secrets"]["sonar_token"] == "${{ secrets.SONAR_TOKEN }}"
 
     # dev/main branch protection requires the `verify` and `sonar` contexts. Both
     # are now decoupled joins over the reusable graph's outcomes (#935).
