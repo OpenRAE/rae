@@ -52,7 +52,9 @@ The concrete source inventory names API-423 occurrence/context validation and
 RUN-319 gate, mediation, record, commit, history-head, boundary, egress and store
 files. Their hashes detect changes requiring renewed mapping review. This
 model does not claim to include every live gate, transformed-ingress
-revalidation, crash state or backend interaction. #972 must establish the
+revalidation, crash state or backend interaction. The synchronized runtime's
+mixed-effect serialization and stage-readback failure states are also outside
+this single-operation model. #972 must establish the
 mapping for a selected runtime configuration. An exact retry returns the
 original runtime receipt without executing the action again; model outcome
 observations must not be interpreted as a second effect. Runtime history can
