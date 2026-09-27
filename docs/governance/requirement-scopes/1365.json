@@ -6,6 +6,9 @@
     "API-424"
   ],
   "bindings": {
+    "contracts/fixtures/backend-manifest/backend-manifest-v2/valid/stub.json": [
+      "API-424"
+    ],
     "contracts/fixtures/participant-runtime/participant-control-evaluation-v2/context-invalid/missing-obligation.json": [
       "API-424"
     ],
