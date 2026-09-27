@@ -12,21 +12,22 @@ nor effect dispatch. RUN-320 remains the orchestration owner.
 [ADR-111](../../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
 and [CA-01–CA-09](../../../specs/formal/participant-semantics/control-applicability-and-evaluation.md)
 define revised coverage, predecessor-input, state and parent/effect meaning.
-The v1 boundary documented below does not implement that amendment. In
+The v1 runtime boundary documented below does not implement that amendment. In
 particular, its whole-selection applicability check cannot express disjoint
 sink subsets of one apparatus; profile presence alone does not prove required
 slot coverage; provider/v1 carries no fresh predecessor results; optional
 failures can block composition; and phase handling can mark a subsequent
 parent-targeted denial eligible. The existing verification map is bounded
-legacy evidence, not proof that those gaps are repaired.
+legacy evidence, not proof that those gaps are repaired in the runtime.
 
 The amendment keeps the full admitted apparatus, records coverage at each cut,
 evaluates typed slot/stage dependencies, isolates genuinely optional failure,
 and separates unscheduled parent decisions from independently authorized
 effects. Its [worked cases](../../research/control-applicability/cases.md) and
 [migration contract](../../migration/control-applicability-and-evaluation.md)
-define the required interpretation and adoption checks. Existing schemas,
-provider/v1 and retained history keep their original meaning.
+define the required interpretation and adoption checks. Existing v1 schemas,
+provider/v1 and retained history keep their original meaning. Issue #1365
+publishes a separate v2 representation; see below.
 
 ## IFC variability amendment (#1354)
 
@@ -47,11 +48,13 @@ owner-aware interpretation or revised bounded-support adoption.
 | `participant-control-selection-v1` | Exact apparatus/profile/mechanism bindings, typed slots, applicability, acyclic dependencies and finite bounds |
 | `participant-control-evaluation-v1` | Immutable admitted context, all typed contributions, declared/effective support, composition and separate realization receipts |
 | `participant-control-teaching-profile-v1` | Closed wire projection of teaching-influence/rev1; two tokens, union propagation, retained memory and no release |
+| `participant-control-selection-v2` | Complete admitted apparatus and profile obligations with per-slot support pins under `participant-control-applicability/rev1` |
+| `participant-control-evaluation-v2` | Exact-cut coverage and applicable subset, slot/stage predecessor and state inputs, required support, unscheduled parent decisions, typed effect prerequisites and expected-head commit boundary |
 
 The normative schemas are in `contracts/schemas/participant-runtime/`, with
 per-contract publication records, fixtures and identical `schema_bundle()`
-output. Installed distributions include all three schemas and the teaching
-profile in the `raes_contracts` corpus. This is a participant-control profile,
+output. Installed distributions include all five schemas, including the teaching
+profile, in the `raes_contracts` corpus. This is a participant-control profile,
 not an SDL extension, interoperability profile or backend-allocation profile.
 
 `ParticipantControlProvider` lives in `raes_backend_protocols.protocols`.
@@ -61,6 +64,35 @@ imports, executables or configuration expressions. The protocol deliberately
 does not support runtime method-presence checks as evidence of capability.
 All nested request/result values are frozen, with detached immutable tuples.
 Proposed provider-state references are speculative, not committed state.
+
+`ParticipantControlProviderV2.resolve_stage(invocation)` is separately
+negotiated. Each invocation names one finite slot or stage, a content-bound
+typed predecessor set, an exact context digest, admitted state scope/version
+and disclosure projection. `ControlMechanismResultV2Model` binds the complete
+invocation digest. The provider receives no portable credential, executable
+selector, private state body or whole-apparatus authority through that DTO.
+An operator backend resolves the bounded references under its installed
+binding; a structural protocol match never establishes support.
+
+For v2, `ParticipantControlEvaluationV2Model` validates structural closure and
+`validate_participant_control_resolved_context_v2` requires independently
+supplied `ParticipantControlValidationContextV2`. Its resolver pins admitted
+coverage, installed bindings, exact results, effective API-407 support,
+safe-to-disclose references and authorized effects. Conformance reports
+`structural-context-required` without that resolver. The v2 composition and
+effect-plan models distinguish eligible evaluation from committed intent and
+owner realization; a prepared or rejected commit dispatches nothing.
+The resolver also binds each state proposal and its commit timing to an
+independent state-write authorization. For every realized effect it requires a
+retained full-payload claim, a prior committed and dispatchable evaluation at
+the originating cut, effect authority for that cut, and the applied owner
+receipt. Its origin plan proves the phase, parent and predecessor conditions.
+Lifecycle operations must follow overlapping live-target effects. Published
+fixtures show disjoint sinks, A → B → A, optional failure, missing coverage and
+denial with an independent audit. Their bounded structural evidence does not
+claim RUN-320 adoption or backend realization. The
+[migration contract](../../migration/control-applicability-and-evaluation.md)
+specifies exact reader/protocol negotiation and retained-history treatment.
 
 ## Validation and authority
 

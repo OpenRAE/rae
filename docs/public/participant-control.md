@@ -29,6 +29,17 @@ dispatches an admitted effect only through the RAES operation that already owns
 it. An effect acts for the principal whose operation admitted it, never for the
 caller that later requests its dispatch.
 
+API-424 now also publishes v2 selection/evaluation contracts and
+`ParticipantControlProviderV2` for per-crossing applicability and typed
+dependency inputs. Those contracts keep the complete admitted apparatus
+separate from the slots applicable at one state cut, require profile-owned
+coverage and explicit input support, and separate parent decisions from
+effect prerequisites. They require exact protocol/schema negotiation and a
+trusted operator resolver. The current reference runtime and retained v1
+history continue to use provider/v1; v2 publication alone does not activate
+v2 scheduling, state commit or effect dispatch. See the
+[migration rules](../migration/control-applicability-and-evaluation.md).
+
 | Plane | What it contains | What it does not imply |
 | --- | --- | --- |
 | World truth | Backend or environment state under its owning semantics | Participant visibility |

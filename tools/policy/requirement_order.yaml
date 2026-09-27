@@ -825,6 +825,25 @@ ownership:
     - implementations/python/tests/test_api_424_security_profile.py
     - implementations/python/tests/test_corpus_packaging.py
     - implementations/python/tests/test_json_ingress.py
+    # Issue #1365 publishes the applicability amendment as separately negotiated v2 contracts.
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/context-invalid/missing-obligation.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/invalid/unknown-field.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/dependency-chain.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/later-phase-denial.json
+    - contracts/fixtures/participant-runtime/participant-control-evaluation-v2/valid/optional-failure.json
+    - contracts/fixtures/participant-runtime/participant-control-selection-v2/valid/disjoint-sinks.json
+    - contracts/schema-publication/entries/participant-control-evaluation-v2.json
+    - contracts/schema-publication/entries/participant-control-selection-v2.json
+    - contracts/schemas/participant-runtime/participant-control-evaluation-v2.json
+    - contracts/schemas/participant-runtime/participant-control-selection-v2.json
+    - docs/decisions/issue-1365-applicable-provider-contracts-preflight.md
+    - docs/governance/requirement-scopes/1365.json
+    - implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_decisions_v2.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_evaluation_v2.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_support_v2.py
+    - implementations/python/tests/test_issue_1365_applicable_contracts.py
     - tools/generate_contract_schemas.py
     - tools/policy/requirement_order.yaml
   mixed-participant-composition:

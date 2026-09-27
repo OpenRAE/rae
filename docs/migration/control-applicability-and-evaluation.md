@@ -2,13 +2,18 @@
 
 This is the adoption contract for [ADR-111](../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
 and [CA-01–CA-09](../../specs/formal/participant-semantics/control-applicability-and-evaluation.md).
-It defines producer/reader obligations, not a working migrator or new schema.
+It defines producer/reader obligations, not a working migrator. Issue #1365
+publishes the v2 contract representation described below; runtime and history
+adoption remain separate.
 
 ## Explicit interpretation boundary
 
 `participant-control-applicability/rev1` identifies the amendment. It is distinct
 from `sem-235/rev1`, profile revisions, wire `participant-control-selection/v1`
 and `participant-control-evaluation/v1`, and `participant-control-provider/v1`.
+Issue #1365 publishes `participant-control-selection/v2`,
+`participant-control-evaluation/v2` and `participant-control-provider/v2` as
+separately negotiated contracts for the amendment.
 New invocation semantics must not be inferred from a `resolve` method or the
 presence/absence of optional fields. Retain separate semantic, profile,
 protocol, schema-content, implementation and storage pins.
@@ -18,8 +23,68 @@ Their publication process may permit recorded changes in place; that does not
 make old and new meanings interchangeable. Adoption must introduce an explicit
 interpretation discriminator or new contract lineage, and negotiate exact
 schema content and protocol support at apparatus admission. Stable breaking
-contracts require a new contract ID under ADR-061. No schema, protocol or
-deprecation/removal window is published by this design delivery.
+contracts require a new contract ID under ADR-061. The #1352 design delivery
+published no schema or protocol; #1365 uses new contract IDs and does not open
+a deprecation or removal window for v1.
+
+## Published v2 representation and negotiation (#1365)
+
+The v2 selection preserves the complete admitted apparatus, exact profile
+obligations, binding configuration/authority/provenance and slot support pins.
+An evaluation embeds that selection and records total obligation coverage and
+the applicable slot subset at its exact context cut. Coverage is independently
+resolved from the profile: an absent record, empty applicable discharge or
+provider-returned `None` cannot prove inapplicability. Required-input closure
+is explicit and a required advisory input must be available even though its
+opinion does not decide the parent. V2 invocations bind requested slots,
+content-bound predecessor results, an authorized projection and committed or
+declared tentative state inputs; result digests bind back to the complete
+invocation. Invalid optional output is reduced at that invocation boundary to
+a value-independent lost-advice record. The accepted parent decision is an
+unscheduled permit, deny or withhold. Effects have their own closed target,
+origin, phase and outcome prerequisite, and only an independently authorized
+consequence may follow denial or withhold. Decision-local runnable effects are
+provisional: `admitted_control_effect_ids_v2` joins them with mandatory
+composition before any intent or dispatch enters the commit envelope. Parent
+release receipts and release-conditioned state cannot survive failed required
+composition. The expected-head commit envelope binds
+coverage, results, decision, state proposals, effect intents and consumption;
+it is a contract for the incumbent store, not proof of a commit or dispatch.
+An explicit required decision to deny or withhold is a complete parent outcome;
+it does not count as a failed mandatory slot. Independent consequences may be
+admitted for that exact outcome only when no unrelated mandatory blocker
+remains. Duplicate effect IDs across provider results are rejected before
+effect planning, so result order cannot suppress a request.
+
+The selection/evaluation schemas, public `ParticipantControlProviderV2`
+protocol, corpus examples, publication entries and conformance registry are
+published. The v2 conformance entry reports `structural-context-required` and
+requires an operator supplied resolver for admitted coverage, installation,
+effective API-407 support, exact results, incumbent crossing and IFC fact
+owners, safe references and effect authority.
+Coverage must discharge an obligation through a slot whose binding selects
+that obligation's profile. Lifecycle effects require explicit ordering after
+overlapping live-target operations. A realized effect must match a retained
+full-payload claim and an operator-resolved earlier committed evaluation that
+authorized its phase, parent outcome and effect predecessors, plus its exact
+applied owner outcome. The resolver must also supply the authorized state
+proposal for each write, including its commit timing; `commit_on` in a provider
+record does not authorize itself.
+An exact/bounded compatibility claim still needs independently resolved
+constraint evidence; the wire relation alone is not proof. A backend's v1
+`participant_modular_control` declaration continues to require the original
+v1 contracts. The v2 IDs are available for exact contract declarations, but
+neither those declarations nor protocol method presence prove installed v2
+capability. Producers must negotiate the v2 IDs, their content hashes, the
+semantic interpretation and provider/v2 before emitting v2 records. Readers
+must route by the recorded contract ID; there is no global reducer switch.
+
+This publication does not change `RuntimeSnapshot`, the RUN-320 provider
+scheduler, store/history folds or effect dispatcher. A live apparatus must
+wait for coordinated consumer and backend evidence before adopting v2. No
+legacy selection, result, claim, budget or pending intent is converted by
+importing these models, and a v2 reader must not infer missing coverage from a
+v1 record.
 
 | Artifact | Legacy reader | Amendment-aware reader |
 | --- | --- | --- |

@@ -67,6 +67,17 @@ requires explicit coordinated producer/protocol/reader adoption and preserves
 legacy history without inventing new coverage or realization evidence.
 
 ## Traceability
+- IMPLEMENTS → GITHUB_ISSUE `1365` (Publish applicable-provider and dependency-evaluation contracts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py` (Complete admitted apparatus, profile obligations and exact-cut subset)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py` (Typed predecessor and scoped-state inputs with result binding)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_support_v2.py` (Requirement-relative support assessment)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_decisions_v2.py` (Unscheduled parent decisions and typed effect prerequisites)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_evaluation_v2.py` (Composition, state and atomic commit boundary)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-selection-v2.json` (Published v2 apparatus selection)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-control-evaluation-v2.json` (Published v2 exact-cut evaluation)
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-selection-v2.json` (Selection publication ledger)
+- IMPLEMENTS → CONFIG `contracts/schema-publication/entries/participant-control-evaluation-v2.json` (Evaluation publication ledger)
+- TESTS → TEST `implementations/python/tests/test_issue_1365_applicable_contracts.py` (Disjoint sinks, dependency chain, optional failure, support, effects, commit and publication)
 - IMPLEMENTS → GITHUB_ISSUE `1352` (Provider-input, applicability and effect contract decision)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/control-applicability-and-evaluation.md` (Required revised contract meaning; not new schema publication)
 - IMPLEMENTS → DOCUMENTATION `docs/migration/control-applicability-and-evaluation.md` (Producer/reader and retained-history contract)
