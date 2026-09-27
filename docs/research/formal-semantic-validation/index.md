@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 59.0.0, rejects unsupported future
+Current validation requires explicit release 60.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -526,3 +526,9 @@ Release 59.0.0 replays the retained cases against the merged issue #1361 and
 API-424 source in [`execution-snapshot-v58.json`](execution-snapshot-v58.json)
 and [`analysis-v58.json`](analysis-v58.json). Outcomes and bounded claims remain
 unchanged; provider installation and effect realization are outside this corpus.
+
+Release 60.0.0 replays the retained cases after issue #1400 reverted the trial
+execution-authority admission from #1361. It binds the post-revert API-424 source
+in [`execution-snapshot-v59.json`](execution-snapshot-v59.json) and
+[`analysis-v59.json`](analysis-v59.json). Earlier captures retain their source
+identities; this release makes no provider installation or realization claim.

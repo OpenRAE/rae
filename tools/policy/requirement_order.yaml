@@ -847,6 +847,14 @@ ownership:
     - docs/research/formal-semantic-validation/analysis-v58.json
     - docs/research/formal-semantic-validation/bundles/retest-v58.json
     - docs/research/formal-semantic-validation/execution-snapshot-v58.json
+    # Retain the pre-revert source capture because the API-424 release chain
+    # references it as an immutable historical baseline.
+    - docs/research/formal-semantic-validation/analysis-v55.json
+    - docs/research/formal-semantic-validation/bundles/retest-v55.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v55.json
+    - docs/research/formal-semantic-validation/analysis-v59.json
+    - docs/research/formal-semantic-validation/bundles/retest-v59.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v59.json
     - docs/research/specification-coverage/analysis-v56.json
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v56.json
     - docs/research/specification-coverage/execution-snapshot-v56.json
@@ -856,6 +864,12 @@ ownership:
     - docs/research/specification-coverage/analysis-v58.json
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v58.json
     - docs/research/specification-coverage/execution-snapshot-v58.json
+    - docs/research/specification-coverage/analysis-v55.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1361-v55.json
+    - docs/research/specification-coverage/execution-snapshot-v55.json
+    - docs/research/specification-coverage/analysis-v59.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v59.json
+    - docs/research/specification-coverage/execution-snapshot-v59.json
     - implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py
     - implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py
     - implementations/python/packages/raes_contracts/contracts/participant_control_decisions_v2.py

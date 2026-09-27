@@ -132,38 +132,6 @@ rejects a plan when the backend omits cleanup capability, lacks a required
 action or verification method, cannot support declared reusable state, or
 cannot disclose residual state for required cleanup.
 
-## Execution Choices At Backend Admission
-
-The authored timeout and retry choices also require backend operation
-guarantees (issue #1361). RAE derives them with
-`required_operation_guarantees()`; neither the author nor the backend supplies
-them:
-
-| Authored choice | Required operation guarantee |
-| --- | --- |
-| `on_timeout: cancel` | `cancellation` |
-| `retry_policy.max_attempts > 1` | `cessation-evidence`, because attempts are sequential and the previous attempt must be proven stopped |
-| the same, with `after_effect_policy: disallow` | also `effect-observation`, because absence of effects must be established |
-
-A single attempt that is not cancelled on timeout requires nothing.
-
-The admitted trial entry records the derived set in
-`execution_controls.required_guarantees`, which is omitted when empty. The
-plan rejects a set that differs from the one derived from the entry's controls
-and cleanup retry policy.
-
-Trial compilation calls `require_execution_authority_capability()` for every
-backend selected for an entry, including every mixed-composition backend. The
-helper applies `require_cleanup_plan_capability()` and requires every derived
-guarantee in the manifest's `capabilities.operation_supervision` declaration.
-An entry whose realization selects no backend, such as a processor-only mixed
-composition, has nothing that could honour these choices and is refused.
-Failure yields the input-free diagnostic
-`trial-compiler.execution-authority-unsupported`, and no plan is produced. An
-unsupported authored choice is refused, never downgraded to best effort. At
-dispatch, the runtime still rechecks the installed provider and its contextual
-willingness with the backend operation contracts.
-
 ## Scheduler Isolation
 
 `SchedulerIsolationProofModel.requested_parallelism` defaults to one. Serial

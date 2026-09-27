@@ -23,6 +23,7 @@ from .participant_resource_admission import (
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.time_model import TimeModelDeclarationModel
+    from raes_contracts.contracts.trial_cleanup import TrialCleanupPlanModel
 
     from .backend_manifest import BackendManifest
     from .capabilities import ParticipantRuntimeCapabilities, TimeCapabilities
@@ -438,6 +439,50 @@ def require_time_model_capability(
     gaps = time_model_capability_gaps(manifest, declaration)
     if gaps:
         raise ValueError("; ".join(gaps))
+
+
+def _required_cleanup_actions(plan: TrialCleanupPlanModel) -> set[str]:
+    return {
+        obligation.action_kind
+        for obligation in plan.cleanup_obligations.values()
+        if obligation.requirement == "required"
+    }
+
+
+def _required_cleanup_probe_methods(plan: TrialCleanupPlanModel) -> set[str]:
+    probe_refs = set(plan.clean_state.verification_probe_refs)
+    probe_refs.update(
+        probe_ref
+        for obligation in plan.cleanup_obligations.values()
+        if obligation.requirement == "required"
+        for probe_ref in obligation.verification_probe_refs
+    )
+    return {probe_ref.partition(":")[0] for probe_ref in probe_refs}
+
+
+def _require_supported_cleanup_values(label: str, required: set[str], supported: frozenset[str]) -> None:
+    unsupported = sorted(required - supported)
+    if unsupported:
+        raise ValueError(f"unsupported cleanup {label}: {', '.join(unsupported)}")
+
+
+def require_cleanup_plan_capability(manifest: BackendManifest, plan: TrialCleanupPlanModel) -> None:
+    """Fail admission when a backend cannot satisfy a portable cleanup plan."""
+
+    cleanup = manifest.cleanup
+    if cleanup is None:
+        raise ValueError("backend does not declare cleanup capabilities")
+
+    _require_supported_cleanup_values("action kinds", _required_cleanup_actions(plan), cleanup.supported_action_kinds)
+    _require_supported_cleanup_values(
+        "verification methods", _required_cleanup_probe_methods(plan), cleanup.supported_verification_methods
+    )
+
+    if plan.clean_state.mode == "declared-reusable" and not cleanup.supports_reusable_state:
+        raise ValueError("backend does not support declared reusable state")
+    required_cleanup = any(obligation.requirement == "required" for obligation in plan.cleanup_obligations.values())
+    if required_cleanup and not cleanup.supports_residual_state_disclosure:
+        raise ValueError("required cleanup needs backend residual-state disclosure")
 
 
 __all__ = [

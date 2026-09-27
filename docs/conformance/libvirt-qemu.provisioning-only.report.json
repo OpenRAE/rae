@@ -10,13 +10,6 @@
     {
       "contract_name": "backend-manifest-v2",
       "diagnostic_codes": [],
-      "name": "operation-supervision",
-      "passed": true,
-      "valid": true
-    },
-    {
-      "contract_name": "backend-manifest-v2",
-      "diagnostic_codes": [],
       "name": "stub",
       "passed": true,
       "valid": true
@@ -153,15 +146,6 @@
         "conformance.schema-invalid"
       ],
       "name": "non-processor-compatibility-surface",
-      "passed": true,
-      "valid": false
-    },
-    {
-      "contract_name": "backend-manifest-v2",
-      "diagnostic_codes": [
-        "conformance.schema-invalid"
-      ],
-      "name": "operation-supervision-without-contracts",
       "passed": true,
       "valid": false
     },

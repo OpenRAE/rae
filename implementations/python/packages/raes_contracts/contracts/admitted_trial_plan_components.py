@@ -16,7 +16,6 @@ from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, mod
 from raes.identifiers import PortableIdentifier
 
 from ..diagnostics import DiagnosticModel
-from .backend_operation import OperationGuarantee
 from .base import ContractModel, NonEmptyString, PositiveInteger, PrefixedDigestString
 from .experiment_bindings import ExperimentBindingDescriptorModel
 from .experiment_manifest_references import ExperimentManifestReferenceModel
@@ -268,31 +267,17 @@ class AdmittedExecutionControlModel(ContractModel):
     """Minimal schedule-independent attempt policy.
 
     Carries only whole-trial attempt timeout, the required cancellation/timeout
-    disposition, the cleanup-plan reference, and the backend guarantees those
-    choices require. The reset/compensation retry policy is owned by the
-    referenced ``TrialCleanupPlanModel.retry_policy`` and is not duplicated here;
-    ``required_guarantees`` is derived from it and ``on_timeout`` and is checked
-    against both by the plan, so a sealed plan cannot hold contradicting
-    requirements. It never carries worker, queue, placement, host, lease, or
-    mutable status data.
+    disposition, and the cleanup-plan reference. The reset/compensation retry
+    policy is owned by the referenced ``TrialCleanupPlanModel.retry_policy`` and
+    is not duplicated here, so a sealed plan cannot hold two contradicting retry
+    policies. It never carries worker, queue, placement, host, lease, or mutable
+    status data.
     """
 
     attempt_timeout_seconds: PositiveInteger
     on_timeout: Literal["cancel", "abort", "cleanup-and-fail"]
     on_cancellation: Literal["abort", "cleanup-and-fail"]
     cleanup_plan_ref: NonEmptyString
-    required_guarantees: tuple[OperationGuarantee, ...] = Field(
-        default=(),
-        max_length=5,
-        exclude_if=lambda value: not value,
-        json_schema_extra={"uniqueItems": True},
-    )
-
-    @model_validator(mode="after")
-    def _validate_required_guarantees(self) -> AdmittedExecutionControlModel:
-        if list(self.required_guarantees) != sorted(set(self.required_guarantees)):
-            raise ValueError("required_guarantees must be unique and sorted")
-        return self
 
 
 class AdmittedInstantiationProvenanceModel(ContractModel):

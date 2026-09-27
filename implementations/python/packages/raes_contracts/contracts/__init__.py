@@ -207,7 +207,6 @@ from .manifests import (
     BackendCapabilitiesV2Model,
     ConceptBindingEntryModel,
     ObservationCapabilitiesModel,
-    OperationSupervisionCapabilitiesModel,
     ParticipantFeatureSupportModel,
     ParticipantRuntimeCapabilitiesModel,
     ProcessorCapabilitiesV2Model,

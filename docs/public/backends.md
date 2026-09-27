@@ -28,9 +28,3 @@ cancellation and effect reports for backend authors. Read the
 [protocol and migration guide](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-operation-supervision.md).
 These contracts keep unknown effects explicit. Publishing them does not certify
 that a backend can interrupt work or recover after a failure.
-
-A backend that implements the protocol can list the guarantees it provides
-under `capabilities.operation_supervision` in its manifest. Trial compilation
-refuses a backend that lacks a guarantee the experiment's timeout or retry
-choices need. For example, `on_timeout: cancel` needs `cancellation`. A trial
-with a single attempt and no cancellation on timeout needs no declaration.

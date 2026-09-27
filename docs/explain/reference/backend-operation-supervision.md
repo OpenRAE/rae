@@ -43,20 +43,6 @@ contract corpus; use `raes_contracts.corpus` to locate them in an installed whee
    not schedule workflow retries, allocate new trials, rewrite an immutable
    terminal parent, or treat reconciliation as execution replay.
 
-To be selected for trials whose authored choices need supervision, also declare
-`capabilities.operation_supervision` in the manifest. It holds a `name` and the
-`guarantees` the provider can establish, and requires all four contract IDs.
-RAE derives the guarantees a trial needs from its authored choices:
-
-- `on_timeout: cancel` needs `cancellation`.
-- More than one attempt needs `cessation-evidence`.
-- More than one attempt with `after_effect_policy: disallow` also needs
-  `effect-observation`.
-
-Trial compilation refuses a backend whose declaration lacks one. The
-declaration is a static claim, not willingness. `check_operation` must still
-refuse a context in which a declared guarantee is unavailable.
-
 Each method returns one `BackendOperationResponseModel`, whose `message.kind`
 identifies the payload. `check_operation` returns `admission`; `start_operation`
 returns `acknowledgement`; `cancel_operation` returns `control`.
@@ -80,7 +66,6 @@ verifies the new path.
 | `RecoveryObservationResult` | Its absent/applied/indeterminate vocabulary has no general cessation or partial-effect witness. Conversion cannot invent one. Keep legacy reports on the old observer, or obtain fresh evidence before constructing a new report. |
 | P1/P2 stored operation records | No store migration in this publication. Existing strict codecs keep their existing shape. A later integration must explicitly version/persist the new facts and test lossless readback before it claims supervision across restart. |
 | Backend manifests/profiles | New draft schemas expand the backend contract-ID allowlist. Old manifests and profiles remain valid under the new reader; old closed readers can reject new IDs. Negotiate support before sending new messages. Never strip IDs or fields to disguise incompatibility. |
-| Trial execution choices (#1361) | Existing admitted plans keep their bytes: `required_guarantees` is omitted when a trial needs none. A trial that cancels on timeout or permits more than one attempt now compiles only against backends that declare the derived guarantees. It also now requires the cleanup capability its cleanup plan needs. Declare `capabilities.operation_supervision` truthfully, or change the choice. Never add guarantees a provider cannot establish just to pass admission. |
 | P0–P3 runtime profiles | Unchanged guarantees. This backend profile is a separate axis; schema availability cannot activate distributed operation, interruption, recovery, or P3. |
 
 Migration must preserve complete bindings, request/requirement commitments,
