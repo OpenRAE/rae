@@ -516,3 +516,8 @@ Release 57.0.0 replays those formal cases against the API-424 v2 contract
 refactor in [`execution-snapshot-v56.json`](execution-snapshot-v56.json) and
 [`analysis-v56.json`](analysis-v56.json). Outcomes and bounded claims remain
 unchanged; provider installation and effect realization are outside this corpus.
+
+Release 58.0.0 replays those formal cases against the API-424 contract
+quality-gate refactor in [`execution-snapshot-v57.json`](execution-snapshot-v57.json)
+and [`analysis-v57.json`](analysis-v57.json). Outcomes and bounded claims remain
+unchanged; provider installation and effect realization are outside this corpus.

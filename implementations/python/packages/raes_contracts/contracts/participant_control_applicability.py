@@ -181,12 +181,21 @@ def _validate_coverage(request: ParticipantControlRequestV2Model) -> None:
     applicable = set(applicability.applicable_slot_ids)
     for item in applicability.coverage:
         if item.status == "applies":
-            obligation = obligations[item.obligation_id]
-            for identity in item.slot_ids:
-                if identity not in applicable or slots[identity].kind != obligation.required_kind:
-                    raise ValueError("participant control coverage does not map to an applicable typed slot")
-                if obligation.profile not in bindings[slots[identity].instance_id].profiles:
-                    raise ValueError("participant control coverage slot does not select its owning profile")
+            _validate_applied_coverage(item, obligations[item.obligation_id], slots, bindings, applicable)
+
+
+def _validate_applied_coverage(
+    item: ControlObligationCoverageV2Model,
+    obligation: ControlProfileObligationV2Model,
+    slots: dict[str, ControlResultSlotV2Model],
+    bindings: dict[str, ControlMechanismBindingV2Model],
+    applicable: set[str],
+) -> None:
+    for identity in item.slot_ids:
+        if identity not in applicable or slots[identity].kind != obligation.required_kind:
+            raise ValueError("participant control coverage does not map to an applicable typed slot")
+        if obligation.profile not in bindings[slots[identity].instance_id].profiles:
+            raise ValueError("participant control coverage slot does not select its owning profile")
 
 
 def _coverage_roots(request: ParticipantControlRequestV2Model) -> set[str]:

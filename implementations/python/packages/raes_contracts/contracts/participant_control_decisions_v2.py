@@ -216,16 +216,18 @@ def _effect_is_runnable(
     parent_admission_receipt: ControlArtifactReferenceModel | None,
 ) -> bool:
     if item.effect_id in realized_effect_ids or not set(item.predecessor_effect_ids) <= set(realized_effect_ids):
-        return False
-    if item.phase == "required-predecessor":
-        return base == "permit"
-    if item.phase == "success-dependent":
-        return (
+        runnable = False
+    elif item.phase == "required-predecessor":
+        runnable = base == "permit"
+    elif item.phase == "success-dependent":
+        runnable = (
             base == "permit"
             and not pending
             and _success_dependent_ready(item, parent_applied, parent_admission_receipt)
         )
-    return item.phase == "independent" and final in item.allowed_parent_dispositions
+    else:
+        runnable = item.phase == "independent" and final in item.allowed_parent_dispositions
+    return runnable
 
 
 class ControlEffectPlanV2Model(ContractModel):

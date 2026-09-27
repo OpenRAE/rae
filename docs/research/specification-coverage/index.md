@@ -455,3 +455,9 @@ Release 56.0.0 replays that matrix against the API-424 v2 contract refactor in
 [`analysis-v56.json`](analysis-v56.json). Classifications and claim limits remain
 unchanged; provider installation and effect realization remain outside this
 offline matrix.
+
+Release 57.0.0 replays that matrix against the API-424 contract quality-gate
+refactor in [`execution-snapshot-v57.json`](execution-snapshot-v57.json) and
+[`analysis-v57.json`](analysis-v57.json). Classifications and claim limits remain
+unchanged; provider installation and effect realization remain outside this
+offline matrix.

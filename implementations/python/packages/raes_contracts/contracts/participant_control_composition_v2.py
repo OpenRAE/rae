@@ -194,12 +194,14 @@ def _support_causes(support: tuple[ControlSupportAssessmentV2Model, ...], blocke
 def _support_cause(item: ControlSupportAssessmentV2Model) -> str:
     observed = item.effective_support
     if observed.status in {"stale", "unsupported", "weakened"}:
-        return observed.status
-    if observed.effective_level == "unsupported":
-        return "unsupported"
-    if observed.status == "resolved":
-        return "weakened"
-    return "failed"
+        cause = observed.status
+    elif observed.effective_level == "unsupported":
+        cause = "unsupported"
+    elif observed.status == "resolved":
+        cause = "weakened"
+    else:
+        cause = "failed"
+    return cause
 
 
 def admitted_control_effect_ids_v2(
@@ -212,19 +214,22 @@ def admitted_control_effect_ids_v2(
     if set(composition.blockers) != {"parent:" + plan.parent_disposition}:
         return frozenset()
     base = base_parent_disposition_v2(plan.decisions, plan.incumbent_gate_disposition)
-    admitted: set[str] = set()
     if plan.parent_disposition == "withhold" and base == "permit":
-        admitted.update(
-            item.effect_id
-            for item in plan.effects
-            if item.phase == "required-predecessor" and item.effect_id in plan.runnable_effect_ids
-        )
-    if base in {"deny", "withhold"} and plan.parent_disposition == base:
-        admitted.update(
+        admitted = _runnable_effects_in_phase(plan, "required-predecessor")
+    elif base in {"deny", "withhold"} and plan.parent_disposition == base:
+        admitted = frozenset(
             item.effect_id
             for item in plan.effects
             if item.phase == "independent"
             and base in item.allowed_parent_dispositions
             and item.effect_id in plan.runnable_effect_ids
         )
-    return frozenset(admitted)
+    else:
+        admitted = frozenset()
+    return admitted
+
+
+def _runnable_effects_in_phase(plan: ControlEffectPlanV2Model, phase: str) -> frozenset[str]:
+    return frozenset(
+        item.effect_id for item in plan.effects if item.phase == phase and item.effect_id in plan.runnable_effect_ids
+    )

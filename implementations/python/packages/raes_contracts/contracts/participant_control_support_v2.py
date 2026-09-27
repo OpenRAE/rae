@@ -19,6 +19,12 @@ def _validate_positive_support(relation: str, observed: ControlEffectiveSupportM
 
 
 def _validate_strength_relation(relation: str, required_strength: str, observed_level: str) -> None:
+    _validate_observed_strength(relation, required_strength, observed_level)
+    if required_strength == "exact" and relation not in {"exact", "insufficient", "unresolved"}:
+        raise ValueError("exact requirement cannot accept weaker support")
+
+
+def _validate_observed_strength(relation: str, required_strength: str, observed_level: str) -> None:
     if relation == "exact" and observed_level != "exact":
         raise ValueError("exact support relation needs exact effective support")
     if relation == "bounded-compatible" and (required_strength == "exact" or observed_level != "bounded"):
@@ -27,8 +33,6 @@ def _validate_strength_relation(relation: str, required_strength: str, observed_
         required_strength != "disclosed_weak" or observed_level != "disclosed_weak"
     ):
         raise ValueError("disclosed weak support relation is incompatible")
-    if required_strength == "exact" and relation not in {"exact", "insufficient", "unresolved"}:
-        raise ValueError("exact requirement cannot accept weaker support")
 
 
 class ControlSupportAssessmentV2Model(ContractModel):

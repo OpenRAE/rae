@@ -56,6 +56,8 @@ from .participant_flow_control import ParticipantFlowControlRelationModel, Parti
 from .participant_flow_control_context import ParticipantFlowControlValidationContext
 from .participant_flow_control_validation import validate_participant_flow_control_context
 
+_COMMITTED_EFFECT_MISMATCH = "realized effect differs from its committed full intent, cut, or prerequisites"
+
 
 @dataclass(frozen=True)
 class ParticipantControlValidationContext:
@@ -443,7 +445,7 @@ def _validate_prior_effect(
         or prior.outcome != current_outcome
         or prior.outcome.disposition != "applied"
     ):
-        raise ValueError("realized effect differs from its committed full intent, cut, or prerequisites")
+        raise ValueError(_COMMITTED_EFFECT_MISMATCH)
     if isinstance(effect.target, ControlInjectEffectModel):
         _validate_inject(effect.target, origin.request.context, context)
 
@@ -462,7 +464,7 @@ def _validate_prior_identity(
         or origin.request.context.order > record.request.context.order
         or origin.request.context.effects_consumed >= record.request.context.effects_consumed
     ):
-        raise ValueError("realized effect differs from its committed full intent, cut, or prerequisites")
+        raise ValueError(_COMMITTED_EFFECT_MISMATCH)
 
 
 def _validate_prior_commit(origin: ParticipantControlEvaluationV2Model, effect_id: str) -> None:
@@ -473,7 +475,7 @@ def _validate_prior_commit(origin: ParticipantControlEvaluationV2Model, effect_i
         or effect_id not in origin.effect_plan.runnable_effect_ids
         or effect_id not in admitted_control_effect_ids_v2(origin.composition, origin.effect_plan)
     ):
-        raise ValueError("realized effect differs from its committed full intent, cut, or prerequisites")
+        raise ValueError(_COMMITTED_EFFECT_MISMATCH)
 
 
 def _validate_v2_receipts(

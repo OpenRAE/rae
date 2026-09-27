@@ -285,15 +285,21 @@ def _validate_call_results(
     for slot_id in call.requested_slot_ids:
         slot = slots[slot_id]
         result = result_by_slot[slot_id]
-        if (
-            slot.instance_id != call.instance_id
-            or result.instance_id != call.instance_id
-            or result.binding_digest != call.binding_digest
-            or result.context_digest != call.context_digest
-            or result.invocation_digest != control_digest(call)
-        ):
-            raise ValueError("participant control result differs from its exact invocation")
+        _validate_call_result_identity(call, slot, result)
         if result.rule_outcome == "not-triggered" and slot.kind != "effect-request":
             raise ValueError("not-triggered result requires a rule/effect slot")
         if result.payload is not None and result.payload.kind != slot.kind:
             raise ValueError("participant control result does not match its typed slot")
+
+
+def _validate_call_result_identity(
+    call: ControlInvocationV2Model, slot: ControlResultSlotV2Model, result: ControlMechanismResultV2Model
+) -> None:
+    if (
+        slot.instance_id != call.instance_id
+        or result.instance_id != call.instance_id
+        or result.binding_digest != call.binding_digest
+        or result.context_digest != call.context_digest
+        or result.invocation_digest != control_digest(call)
+    ):
+        raise ValueError("participant control result differs from its exact invocation")

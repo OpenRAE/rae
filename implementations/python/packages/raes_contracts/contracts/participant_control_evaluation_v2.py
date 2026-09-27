@@ -29,7 +29,7 @@ from .participant_control_coordinates import (
     require_kind,
     require_unique,
 )
-from .participant_control_decisions_v2 import ControlEffectPlanV2Model
+from .participant_control_decisions_v2 import ControlEffectPlanV2Model, ControlEffectRequestV2Model
 from .participant_control_effect_composition import (
     _effect_ancestors,
     _lifecycle_invalidates,
@@ -132,7 +132,9 @@ def validate_effect_budget_v2(
     _validate_effect_bounds(effects, new_keys, context, bounds)
 
 
-def _validate_lifecycle_order(effects: set, context: ParticipantControlContextModel) -> None:
+def _validate_lifecycle_order(
+    effects: set[ControlEffectRequestV2Model], context: ParticipantControlContextModel
+) -> None:
     ancestors = _effect_ancestors({effect.effect_id: {effect} for effect in effects})
     ordered = tuple(effects)
     for index, left in enumerate(ordered):
@@ -211,13 +213,7 @@ def _validate_parent_decisions(record: ParticipantControlEvaluationV2Model) -> N
     if record.effect_plan.parent_crossing != record.request.context.crossing:
         raise ValueError("parent decision uses a different crossing")
     decisions = {
-        item.result_id: item.payload
-        for item in record.results
-        if item.status == "resolved"
-        and item.payload is not None
-        and item.payload.kind == "decision"
-        and item.payload.disposition != "abstain"
-        and item.slot_id in record.request.applicability.required_slot_ids
+        item.result_id: item.payload for item in record.results if _is_required_parent_decision(item, record.request)
     }
     if {item.decision_id for item in record.effect_plan.decisions} != decisions.keys():
         raise ValueError("parent decisions do not preserve the typed result set")
@@ -225,6 +221,18 @@ def _validate_parent_decisions(record: ParticipantControlEvaluationV2Model) -> N
         payload = decisions[item.decision_id]
         if item.disposition != payload.disposition or item.rule != payload.rule:
             raise ValueError("parent decision differs from its provider result")
+
+
+def _is_required_parent_decision(
+    result: ControlMechanismResultV2Model, request: ParticipantControlRequestV2Model
+) -> bool:
+    return (
+        result.status == "resolved"
+        and result.payload is not None
+        and result.payload.kind == "decision"
+        and result.payload.disposition != "abstain"
+        and result.slot_id in request.applicability.required_slot_ids
+    )
 
 
 def _validate_requested_effects(record: ParticipantControlEvaluationV2Model) -> None:
