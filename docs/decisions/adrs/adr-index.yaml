@@ -563,7 +563,11 @@ adrs:
     pin: 61a5ea9d72a0afa1033d46131913f45b140286b6ddddcb59e0e1f6914b721cb9
   - id: ADR-100
     path: docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md
-    pin: b7e17e58fc01e8f07a972ee5abc65e6a8470e2a6d51c2480334a3777df079e98
+    pin: 8a406230189370e90c5fcab4e29459f3bcb7dc71321a7b4da007e7011bf6f4fb
+    amendments:
+      - date: 2026-09-27
+        ref: "#971"
+        summary: "Select executable rev2 and close single-operation retry, history, ordering, and completion semantics."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
     pin: 7a579c1f66ee66285465e261f5e740414986c393fd57fbde3c490be3653711b9

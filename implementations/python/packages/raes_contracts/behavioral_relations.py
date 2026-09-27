@@ -394,6 +394,12 @@ def _validate_binding_profile(
 ) -> None:
     """Join a required profile to the exact catalog and claim coordinates."""
 
+    from .behavioral_relation_profiles import ParticipantCrossingParametersModel
+
+    if isinstance(profile.parameters, ParticipantCrossingParametersModel):
+        if binding.right_carrier_ref != profile.parameters.right.model_id:
+            raise ValueError("behavioral claim binding right carrier does not match the resolved profile")
+
     expected = (
         (
             profile.profile_id,

@@ -1,20 +1,22 @@
 # Participant-Crossing Theorem And Profile Selection
 
-Date: 2026-07-29
+Date: 2026-07-29. Amended by #971 on 2026-09-27 under ADR-100.
 
 ## Selected Statement
 
 The downstream proof obligation is to establish, for the complete reachable carrier of
-`participant-crossing-dpbb-finite-v1@rev1`, the initial state of
-`sem-230-participant-crossing-abstract@rev1` and the initial state of
-`api-423-run-319-crossing-kernel@rev1` under
+`participant-crossing-dpbb-finite-v1@rev2`, the initial state of
+`sem-230-participant-crossing-abstract@rev2` and the initial state of
+`api-423-run-319-crossing-kernel@rev2` under
 `participant-crossing-projection@rev1` satisfy relation id
 `divergence-preserving-branching-bisimulation`. The evidence boundary is that
 exact complete finite profile; this design does not report the result.
 
-The normative state domains, transition schemas, policy table, label
-partition, relation clauses, and abstraction map are in
-[the formal specification](../../../specs/formal/participant-semantics/participant-crossing-bisimulation.md).
+The executable domains, transition schemas, and completion semantics are in
+[the rev2 model authority](../../../specs/formal/participant-semantics/participant-crossing-models.md).
+The [original specification](../../../specs/formal/participant-semantics/participant-crossing-bisimulation.md)
+retains the relation clauses and projection. Its candidate abstraction is
+historical design input, not an established witness for the executable models.
 
 ## Why This Is A Final Finite Target
 

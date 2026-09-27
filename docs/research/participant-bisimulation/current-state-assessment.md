@@ -1,5 +1,8 @@
 # Participant Bisimulation Current-State Assessment
 
+Historical #811 assessment. ADR-100’s #971 amendment selects the
+[executable rev2 target](theorem-selection.md) for downstream work.
+
 Date: 2026-07-29
 
 Parent issue: [#811](https://github.com/OpenRAE/rae/issues/811).
