@@ -49,8 +49,8 @@ def _sonar_boundary(path: str, name: str, job: Mapping[str, Any], workflows: Map
         and name == "canonical"
         and guarded
         and job.get("uses") == "./" + _CANONICAL
-        and job.get("secrets") == {"sonar_token": "${{ secrets.AUTARCHY_SONAR_TOKEN }}"}
-        and _secret_expressions(job) == {"${{ secrets.AUTARCHY_SONAR_TOKEN }}"}
+        and job.get("secrets") == {"sonar_token": "${{ secrets.SONAR_TOKEN }}"}
+        and _secret_expressions(job) == {"${{ secrets.SONAR_TOKEN }}"}
     )
 
 

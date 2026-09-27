@@ -43,7 +43,7 @@ jobs:
       # token below is never exposed to fork or Dependabot contexts.
       sonar-enabled: true
     secrets:
-      sonar_token: ${{ secrets.AUTARCHY_SONAR_TOKEN }}
+      sonar_token: ${{ secrets.SONAR_TOKEN }}
 
   # The repository's dev/main branch protections require the historical `verify`
   # and `sonar` check contexts. The reusable call is atomic to this caller, so it
