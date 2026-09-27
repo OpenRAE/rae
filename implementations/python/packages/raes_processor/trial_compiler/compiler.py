@@ -8,7 +8,7 @@ from raes import (
     ExpandedScenarioBindingTargetResolver,
     validate_experiment_selection_against_family,
 )
-from raes_backend_protocols.capabilities import ObservationCapabilities
+from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import (
@@ -27,6 +27,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationManifestModel,
     TrialCleanupPlanModel,
     TrialCoordinateModel,
+    required_operation_guarantees,
     seal_admitted_trial_entry,
     seal_admitted_trial_plan,
 )
@@ -39,8 +40,6 @@ from raes_contracts.experiment_bindings import (
 )
 
 from ..capture_admission import (
-    CaptureDemand,
-    capture_admission_diagnostics,
     compile_scoped_evidence_requirement_demands,
 )
 from . import models as compiler_models
@@ -48,6 +47,7 @@ from .apparatus import (
     validate_selected_apparatus,
     validate_selected_participant_manifests,
 )
+from .entry_admission import CaptureAdmissionFailure, require_capture_admission, require_execution_authority
 from .inputs import (
     canonical_input_refs,
     canonical_realization_binding,
@@ -68,12 +68,6 @@ _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
 _ENTRIES_ADDRESS = "/entries/"
 # Preserve the established monkeypatch seam used by compiler failure-path tests.
 _validate_selected_scenario = validate_selected_scenario
-
-
-class _CaptureAdmissionFailure(Exception):
-    def __init__(self, diagnostics: tuple[Diagnostic, ...]) -> None:
-        super().__init__("required capture is not supported by the admitted apparatus")
-        self.diagnostics = diagnostics
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -200,24 +194,13 @@ def _selection_records(row: CoordinateSelections) -> list[AdmittedSelectionRecor
     ]
 
 
-def _require_capture_admission(
-    demands: tuple[CaptureDemand, ...],
-    observations: tuple[ObservationCapabilities | None, ...],
-) -> None:
-    diagnostics = [
-        diagnostic for observation in observations for diagnostic in capture_admission_diagnostics(demands, observation)
-    ]
-    if diagnostics:
-        raise _CaptureAdmissionFailure(tuple(diagnostics))
-
-
 def _compile_entry(
     request: TrialCompilationRequest,
     plan_id: str,
     row: CoordinateSelections,
     coordinate: TrialCoordinateModel,
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
-    observations: tuple[ObservationCapabilities | None, ...],
+    backends: tuple[BackendManifest, ...],
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
     realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     selected = _validate_selected_scenario(request, row, coordinate)
@@ -227,14 +210,14 @@ def _compile_entry(
         *request.task.evidence_requirement_relations,
         *request.experiment.run_plan.evidence_requirement_relations,
     )
-    _require_capture_admission(
+    require_capture_admission(
         compile_scoped_evidence_requirement_demands(
             selected,
             tuple(request.capture_specs.values()),
             relations,
             relation_scenario=request.family,
         ),
-        observations,
+        tuple(backend.observation for backend in backends),
     )
     identity_projection = {
         "plan_id": plan_id,
@@ -258,6 +241,8 @@ def _compile_entry(
         plan_entry_id=entry_id,
         run_id=run_id,
     )
+    required_guarantees = required_operation_guarantees(request.execution_authority.on_timeout, cleanup.retry_policy)
+    require_execution_authority(backends, cleanup, required_guarantees)
     bindings = _entry_bindings(request, row, coordinate, descriptors)
     if len(row.draws) > request.limits.max_draws_per_entry:
         raise _fail(
@@ -278,6 +263,7 @@ def _compile_entry(
             on_timeout=request.execution_authority.on_timeout,
             on_cancellation=request.execution_authority.on_cancellation,
             cleanup_plan_ref=cleanup_id,
+            required_guarantees=required_guarantees,
         ),
         instantiation_provenance=AdmittedInstantiationProvenanceModel(
             plan_id=plan_id,
@@ -316,7 +302,7 @@ def _compile_coordinate(
         row,
         coordinate,
         descriptors,
-        authority.observations_by_profile[profile_id],
+        authority.backends_by_profile[profile_id],
     )
 
 
@@ -338,7 +324,7 @@ def _compile_entries(
         row = rows[coordinate_index]
         try:
             entry_id, entry, cleanup_id, cleanup = _compile_coordinate(request, plan_id, coordinate, row, authority)
-        except _CaptureAdmissionFailure as failure:
+        except CaptureAdmissionFailure as failure:
             capture_failures.update(
                 {
                     (diagnostic.address, diagnostic.code, diagnostic.message): diagnostic
@@ -363,7 +349,7 @@ def _compile_entries(
         if canonical_failure is None or _failure_key(candidate_failure) < _failure_key(canonical_failure):
             canonical_failure = candidate_failure
     if capture_failures:
-        raise _CaptureAdmissionFailure(tuple(capture_failures[key] for key in sorted(capture_failures)))
+        raise CaptureAdmissionFailure(tuple(capture_failures[key] for key in sorted(capture_failures)))
     if canonical_failure is not None:
         raise canonical_failure
     return entries, cleanup_plans, used_control_ids
@@ -389,12 +375,12 @@ def _compile(
         authority = validate_mixed_authority(request)
         apparatus_manifests_by_profile = authority.apparatus_manifests_by_root
         participant_manifests = authority.participant_manifests
-        observations_by_profile = {
+        backends_by_profile = {
             profile_id: tuple(
                 backend_manifest_from_v2_model_with_envelope(
                     manifest,
                     request.mixed_realization_envelopes[manifest.realization_envelope.envelope_id],
-                ).observation
+                )
                 for manifest in manifests
             )
             for profile_id, manifests in authority.backend_manifests_by_root.items()
@@ -403,9 +389,9 @@ def _compile(
         apparatus_manifests = validate_selected_apparatus(request)
         apparatus_manifests_by_profile = {"": apparatus_manifests}
         participant_manifests = validate_selected_participant_manifests(request)
-        observations_by_profile = {
+        backends_by_profile = {
             "": tuple(
-                backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope).observation
+                backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope)
                 for backend in sorted(
                     (
                         manifest
@@ -437,7 +423,7 @@ def _compile(
         traversal,
         compiler_models._EntryCompilationAuthority(
             descriptors=descriptors,
-            observations_by_profile=observations_by_profile,
+            backends_by_profile=backends_by_profile,
             apparatus_manifests_by_profile=apparatus_manifests_by_profile,
             participant_manifests=participant_manifests,
         ),
@@ -477,7 +463,7 @@ def compile_admitted_trial_plan(
 
     try:
         plan = _compile(request, coordinate_partitions)
-    except _CaptureAdmissionFailure as failure:
+    except CaptureAdmissionFailure as failure:
         result = TrialCompilationResult(plan=None, diagnostics=failure.diagnostics)
     except CompilationFailure as failure:
         result = TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))

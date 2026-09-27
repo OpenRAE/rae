@@ -2,7 +2,9 @@
 
 from collections.abc import Collection
 from dataclasses import dataclass, field
+from typing import get_args
 
+from raes_contracts.contracts.backend_operation import OperationGuarantee
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 from raes_contracts.manifest_authority import validate_backend_supported_contract_versions
 from raes_contracts.operation_lifecycle import OperationKind
@@ -32,6 +34,7 @@ ProvisionerCapabilities = _provisioner_capabilities.ProvisionerCapabilities
 TIME_CAPABILITY_REQUIRED_CONTRACTS = _time_capabilities.TIME_CAPABILITY_REQUIRED_CONTRACTS
 TimeCapabilities = _time_capabilities.TimeCapabilities
 
+OPERATION_GUARANTEES: frozenset[str] = frozenset(get_args(OperationGuarantee))
 OBSERVATION_CAPABILITY_CAPTURE_KIND_SCOPE = "capabilities.observation.supported_capture_kinds"
 OBSERVATION_CAPABILITY_CHANNEL_KIND_SCOPE = "capabilities.observation.supported_channel_kinds"
 OBSERVATION_CAPABILITY_SEALING_MODE_SCOPE = "capabilities.observation.supported_sealing_modes"
@@ -284,6 +287,23 @@ class RecoveryObservationCapabilities:
 
 
 @dataclass(frozen=True)
+class OperationSupervisionCapabilities:
+    """Declared backend operation guarantees; not willingness or evidence."""
+
+    name: str
+    guarantees: frozenset[str]
+
+    def __post_init__(self) -> None:
+        if not self.name.strip():
+            raise ValueError("OperationSupervisionCapabilities.name must be non-empty")
+        if not self.guarantees:
+            raise ValueError("OperationSupervisionCapabilities.guarantees must not be empty")
+        unknown = self.guarantees - OPERATION_GUARANTEES
+        if unknown:
+            raise ValueError("OperationSupervisionCapabilities.guarantees contains unknown guarantees")
+
+
+@dataclass(frozen=True)
 class BackendCapabilitySet:
     """Backend-specific nested capability blocks."""
 
@@ -295,6 +315,7 @@ class BackendCapabilitySet:
     cleanup: CleanupCapabilities | None = None
     time: TimeCapabilities | None = None
     recovery_observation: RecoveryObservationCapabilities | None = None
+    operation_supervision: OperationSupervisionCapabilities | None = None
 
 
 def __getattr__(name: str) -> object:
@@ -310,7 +331,6 @@ def __getattr__(name: str) -> object:
         "participant_feature_support_gaps",
         "participant_runtime_capability_contract_gaps",
         "resolve_participant_feature_support",
-        "require_cleanup_plan_capability",
         "require_time_model_capability",
         "time_capability_contract_gaps",
         "time_model_capability_gaps",
@@ -318,4 +338,8 @@ def __getattr__(name: str) -> object:
         from . import capability_admission
 
         return getattr(capability_admission, name)
+    if name in {"require_cleanup_plan_capability", "require_execution_authority_capability"}:
+        from . import cleanup_admission
+
+        return getattr(cleanup_admission, name)
     raise AttributeError(name)

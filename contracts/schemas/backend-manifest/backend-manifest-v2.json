@@ -194,6 +194,17 @@
           ],
           "default": null
         },
+        "operation_supervision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationSupervisionCapabilitiesModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "orchestrator": {
           "anyOf": [
             {
@@ -1559,6 +1570,40 @@
       ],
       "title": "OperationKind",
       "type": "string"
+    },
+    "OperationSupervisionCapabilitiesModel": {
+      "additionalProperties": false,
+      "description": "Static declaration of the backend operation guarantees a backend provides.\n\nPlanning compares authored execution choices with this declaration. It is\nneither contextual willingness nor evidence: runtime admission still checks\nthe installed provider's capabilities and willingness before each dispatch.",
+      "properties": {
+        "guarantees": {
+          "items": {
+            "enum": [
+              "cancellation",
+              "effect-observation",
+              "cessation-evidence",
+              "partial-effects",
+              "external-fencing"
+            ],
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Guarantees",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "guarantees"
+      ],
+      "title": "OperationSupervisionCapabilitiesModel",
+      "type": "object"
     },
     "OrchestratorCapabilitiesModel": {
       "additionalProperties": false,
@@ -3509,6 +3554,55 @@
           "capabilities": {
             "required": [
               "time"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "capabilities": {
+            "properties": {
+              "operation_supervision": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "operation_supervision"
+            ]
+          }
+        },
+        "required": [
+          "capabilities"
+        ]
+      },
+      "then": {
+        "properties": {
+          "supported_contract_versions": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "backend-operation-request-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-capabilities-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-control-v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "backend-operation-response-v1"
+                }
+              }
             ]
           }
         }

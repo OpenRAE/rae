@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 57.0.0, rejects unsupported future
+Current validation requires explicit release 59.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -507,10 +507,10 @@ Release 55.0.0 is recorded in
 after issue #1389 admitted the exact participant inject delivery address as a
 temporal subject. Outcomes and bounded claim limits remain unchanged.
 
-Release 56.0.0 replays those formal cases against the API-424 v2 contract
-publication source in [`execution-snapshot-v55.json`](execution-snapshot-v55.json)
-and [`analysis-v55.json`](analysis-v55.json). Outcomes and bounded claims are
-unchanged; provider installation and effect realization are outside this corpus.
+Release 56.0.0 replays the retained controls on the source that adds issue
+#1361 trial execution-authority admission, in
+[`execution-snapshot-v55.json`](execution-snapshot-v55.json) and
+[`analysis-v55.json`](analysis-v55.json). Earlier captures retain their source identities.
 
 Release 57.0.0 replays those formal cases against the API-424 v2 contract
 refactor in [`execution-snapshot-v56.json`](execution-snapshot-v56.json) and
@@ -520,4 +520,9 @@ unchanged; provider installation and effect realization are outside this corpus.
 Release 58.0.0 replays those formal cases against the API-424 contract
 quality-gate refactor in [`execution-snapshot-v57.json`](execution-snapshot-v57.json)
 and [`analysis-v57.json`](analysis-v57.json). Outcomes and bounded claims remain
+unchanged; provider installation and effect realization are outside this corpus.
+
+Release 59.0.0 replays the retained cases against the merged issue #1361 and
+API-424 source in [`execution-snapshot-v58.json`](execution-snapshot-v58.json)
+and [`analysis-v58.json`](analysis-v58.json). Outcomes and bounded claims remain
 unchanged; provider installation and effect realization are outside this corpus.

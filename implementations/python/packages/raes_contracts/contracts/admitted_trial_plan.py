@@ -56,6 +56,7 @@ from .admitted_trial_plan_components import (
     SelectionPolicyKind,
 )
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
+from .execution_requirements import required_operation_guarantees
 from .experiment_apparatus import ExperimentStochasticControlModel
 from .random_stream import RandomStreamDrawRecordModel, TrialCoordinateModel
 from .schema_invariants import _add_raes_invariant
@@ -320,6 +321,11 @@ class AdmittedTrialPlanModel(ContractModel):
                 raise ValueError(f"entry cleanup_plan_ref {cleanup_ref!r} does not resolve to a plan cleanup block")
             if cleanup_plan.plan_entry_id != entry.plan_entry_id or cleanup_plan.run_id != entry.run_id:
                 raise ValueError("referenced cleanup plan must bind the same plan_entry_id and run_id as the entry")
+            controls = entry.execution_controls
+            if controls.required_guarantees != required_operation_guarantees(
+                controls.on_timeout, cleanup_plan.retry_policy
+            ):
+                raise ValueError("entry required_guarantees must equal those derived from its execution controls")
             referenced_cleanup.add(cleanup_ref)
             self._validate_entry_draws(entry)
         orphan_cleanup = sorted(set(self.cleanup_plans) - referenced_cleanup)
@@ -368,7 +374,9 @@ class AdmittedTrialPlanModel(ContractModel):
             "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, "
             "gives every entry a unique logical coordinate and archival run_id, resolves cleanup and "
             "stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition "
-            "profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from "
+            "profile inputs, and isolation-proof entries within the sealed plan, requires each entry's required "
+            "backend guarantees to equal the canonical set derived from its execution controls and cleanup retry "
+            "policy, requires values duplicated from "
             "incumbent authorities (random-stream profile, "
             "binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches "
             "admission cardinality, and binds the complete plan with a recomputed plan_digest over the entry set.",

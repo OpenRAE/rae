@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1361-specification-coverage-v55",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1365-v58",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -18,8 +18,8 @@
     ],
     "evidence_artifacts": [
       "docs/research/specification-coverage/protocol-v1.json",
-      "docs/research/specification-coverage/execution-snapshot-v55.json",
-      "docs/research/specification-coverage/analysis-v55.json"
+      "docs/research/specification-coverage/execution-snapshot-v58.json",
+      "docs/research/specification-coverage/analysis-v58.json"
     ],
     "falsification_protocol": "docs/research/specification-coverage/protocol-v1.json",
     "objective_fail_criteria": "A load-bearing concept is missing or lossy, an applicable stage fails, or backend vocabulary is required in core SDL while the result claims success.",
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-26",
+  "generated_at": "2026-09-27",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -60,7 +60,7 @@
     "This capture replays the merged issue #1360 and #1357 source; the protocol makes no live backend execution or supervision claim.",
     "This capture replays the merged issue #1360 and #1358 source; the protocol makes no live backend execution or supervision claim.",
     "Issue #1389 participant inject delivery temporal-subject admission is covered by dedicated compiler tests; this retained matrix makes no new timing or execution claim.",
-    "Issue #1361 trial execution-authority admission is covered by dedicated contract and compiler tests; this retained matrix makes no live backend execution or supervision claim."
+    "API-424 v2 participant-control publication is verified by its dedicated contract tests, not promoted to a live provider or backend claim by this retained matrix."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -68,7 +68,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification matrix replays unchanged classifications and claim limits against source that admits exact participant inject delivery temporal subjects. Dedicated compiler tests, rather than this corpus, verify that delivery-timing behavior.",
+  "plain_language_outcome": "The retained specification matrix replays unchanged classifications and claim limits against source that publishes API-424 v2 participant-control contracts. It does not demonstrate runtime adoption.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -100,6 +100,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "issue-1361-specification-coverage-v55",
-  "snapshot_sha256": "5db372a8249fc923ba3d2a12bf7956ab59ddfc90fa3e22d3ca34beaf16ce1551"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1365-v58",
+  "snapshot_sha256": "82633fc7f2e84d64a65b0d9e47f8af7a2c4c64b1a8bdd65e2b67df3d8c46fd88"
 }
