@@ -23,18 +23,19 @@ def has_mixed_resolution_cut(record: ControlPlaneOperationRecord) -> bool:
 def requires_mixed_stage_reconciliation(control_plane: object, record: ControlPlaneOperationRecord) -> bool:
     """A provider observation cannot prove a bridge or native transfer finished."""
 
-    if not any(key.startswith("mixed_composition_history:") for key in record.decision_history_heads):
-        return False
     kind = record.status.context.operation_kind
+    has_mixed_history = any(key.startswith("mixed_composition_history:") for key in record.decision_history_heads)
+    if not has_mixed_history or kind not in {
+        OperationKind.COMPOSITION_PHASE,
+        OperationKind.PARTICIPANT_ACTION,
+        OperationKind.PARTICIPANT_CROSSING,
+    }:
+        return False
     if kind is OperationKind.COMPOSITION_PHASE:
         # A claimed phase can have invoked its native owner before the terminal commit.
         return True
-    if kind not in {OperationKind.PARTICIPANT_ACTION, OperationKind.PARTICIPANT_CROSSING}:
-        return False
     binding = getattr(control_plane, "_mixed_runtime", None)
-    if binding is None:
-        return True
-    attempt = _recovery_attempt(control_plane, binding, record.receipt.operation_id)
+    attempt = _recovery_attempt(control_plane, binding, record.receipt.operation_id) if binding is not None else None
     # Missing provenance or an edge means provider-only recovery cannot prove
     # the authorized time grant, bridge, delivery, and observation stages.
     return attempt is None or attempt.edge_id is not None
@@ -61,16 +62,22 @@ def validate_restored_mixed_crossing_cut(control_plane: object, resolver: object
     if not has_unresolved_mixed_action_cut(control_plane):
         validate_persisted_crossing_history(snapshot, resolver)
         return
+    prefix_lengths = _interrupted_crossing_prefixes(control_plane, snapshot)
+    for history in snapshot.participant_crossing_history.values():
+        for item in history:
+            ParticipantCrossingOccurrenceModel.model_validate(item)
+    retained = {
+        participant_address: list(history[: prefix_lengths.get(participant_address, len(history))])
+        for participant_address, history in snapshot.participant_crossing_history.items()
+    }
+    projection: RuntimeSnapshot = snapshot.with_entries(dict(snapshot.entries), participant_crossing_history=retained)
+    validate_persisted_crossing_history(projection, resolver)
+
+
+def _interrupted_crossing_prefixes(control_plane: object, snapshot: RuntimeSnapshot) -> dict[str, int]:
     prefix_lengths: dict[str, int] = {}
     for record in control_plane._operations.values():
-        if record.status.state not in {OperationState.RUNNING, OperationState.INDETERMINATE}:
-            continue
-        if record.status.context.operation_kind not in {
-            OperationKind.PARTICIPANT_ACTION,
-            OperationKind.PARTICIPANT_CROSSING,
-        }:
-            continue
-        if not requires_mixed_stage_reconciliation(control_plane, record):
+        if not _is_interrupted_mixed_action(control_plane, record):
             continue
         crossing_heads = {
             key.partition(":")[2]: head
@@ -82,26 +89,30 @@ def validate_restored_mixed_crossing_cut(control_plane: object, resolver: object
         for participant_address, head in crossing_heads.items():
             history = snapshot.participant_crossing_history.get(participant_address, [])
             key = f"participant_crossing_history:{participant_address}"
-            current_head = _crossing_head(history[-1]) if history else None
-            if current_head != record.result_history_heads.get(key):
-                raise ValueError("interrupted mixed action crossing result head differs from the stored cut")
-            matches = (
-                [index + 1 for index, item in enumerate(history) if _crossing_head(item) == head]
-                if head is not None
-                else [0]
-            )
-            if len(matches) != 1:
-                raise ValueError("interrupted mixed action crossing predecessor is missing or ambiguous")
-            prefix_lengths[participant_address] = min(prefix_lengths.get(participant_address, len(history)), matches[0])
-    for history in snapshot.participant_crossing_history.values():
-        for item in history:
-            ParticipantCrossingOccurrenceModel.model_validate(item)
-    retained = {
-        participant_address: list(history[: prefix_lengths.get(participant_address, len(history))])
-        for participant_address, history in snapshot.participant_crossing_history.items()
-    }
-    projection: RuntimeSnapshot = snapshot.with_entries(dict(snapshot.entries), participant_crossing_history=retained)
-    validate_persisted_crossing_history(projection, resolver)
+            cut = _crossing_prefix_length(history, head, record.result_history_heads.get(key))
+            prefix_lengths[participant_address] = min(prefix_lengths.get(participant_address, len(history)), cut)
+    return prefix_lengths
+
+
+def _is_interrupted_mixed_action(control_plane: object, record: ControlPlaneOperationRecord) -> bool:
+    return (
+        record.status.state in {OperationState.RUNNING, OperationState.INDETERMINATE}
+        and record.status.context.operation_kind
+        in {OperationKind.PARTICIPANT_ACTION, OperationKind.PARTICIPANT_CROSSING}
+        and requires_mixed_stage_reconciliation(control_plane, record)
+    )
+
+
+def _crossing_prefix_length(history: list[dict[str, object]], head: str | None, result_head: str | None) -> int:
+    current_head = _crossing_head(history[-1]) if history else None
+    if current_head != result_head:
+        raise ValueError("interrupted mixed action crossing result head differs from the stored cut")
+    matches = (
+        [index + 1 for index, item in enumerate(history) if _crossing_head(item) == head] if head is not None else [0]
+    )
+    if len(matches) != 1:
+        raise ValueError("interrupted mixed action crossing predecessor is missing or ambiguous")
+    return matches[0]
 
 
 def _crossing_head(item: dict[str, object]) -> str:

@@ -23,14 +23,17 @@ def is_valid_resolution_child(
     """Recognize a child only when it can safely discharge its parent."""
 
     context = child.status.context
+    same_scope = (context.target_scope, context.run_scope) == (
+        parent.status.context.target_scope,
+        parent.status.context.run_scope,
+    )
     return (
         not has_mixed_resolution_cut(parent)
         and parent.status.state is OperationState.INDETERMINATE
         and child.status.state is OperationState.SUCCEEDED
         and context.operation_kind is OperationKind.INDETERMINATE_RESOLUTION
         and context.parent_operation_id == parent.receipt.operation_id
-        and context.target_scope == parent.status.context.target_scope
-        and context.run_scope == parent.status.context.run_scope
+        and same_scope
         and "role:operator" in context.authorization_scope
         and bool(child.idempotency_key)
         and child.idempotency_key != parent.idempotency_key

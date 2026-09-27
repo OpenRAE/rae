@@ -110,7 +110,7 @@ class MixedEdgeExecutionBinding:
     observation_readback: Callable[..., object] | None = None
 
     def __post_init__(self) -> None:
-        if not self.edge_id or not self.bridge_ref or not self.bridge_version:
+        if not all((self.edge_id, self.bridge_ref, self.bridge_version)):
             raise ValueError("executable edge binding requires pinned bridge identity")
         if fullmatch(r"sha256:[a-f0-9]{64}", self.bridge_digest) is None:
             raise ValueError("executable edge binding requires a pinned bridge digest")
@@ -118,14 +118,18 @@ class MixedEdgeExecutionBinding:
             require_compiled_address(address)
         if not self.mapping_loss_ref:
             raise ValueError("executable edge binding requires a declared mapping loss")
-        if not all(callable(value) for value in (self.map_action, self.coordinate, self.bridge)):
-            raise TypeError("executable edge binding requires mapping, coordination and bridge callables")
-        if not callable(getattr(self.time_runtime, "state", None)):
-            raise TypeError("executable edge binding requires time-runtime readback")
-        for name in ("delivery_readback", "observation_readback"):
-            reader = getattr(self, name)
-            if reader is not None and not callable(reader):
-                raise TypeError(f"executable edge {name} must be callable")
+        _require_edge_callbacks(self)
+
+
+def _require_edge_callbacks(binding: MixedEdgeExecutionBinding) -> None:
+    if not all(callable(value) for value in (binding.map_action, binding.coordinate, binding.bridge)):
+        raise TypeError("executable edge binding requires mapping, coordination and bridge callables")
+    if not callable(getattr(binding.time_runtime, "state", None)):
+        raise TypeError("executable edge binding requires time-runtime readback")
+    for name in ("delivery_readback", "observation_readback"):
+        reader = getattr(binding, name)
+        if reader is not None and not callable(reader):
+            raise TypeError(f"executable edge {name} must be callable")
 
 
 __all__ = (

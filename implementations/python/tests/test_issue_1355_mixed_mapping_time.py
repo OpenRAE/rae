@@ -32,7 +32,7 @@ from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.mixed_runtime_dispatch import mixed_recovery_target
 from raes_runtime.mixed_runtime_edge import MixedEdgeExecutionBinding, MixedTimeCoordinationEvidence
 from raes_runtime.mixed_runtime_edge_execution import _require_time_grant
-from raes_runtime.mixed_runtime_phase import _require_handoff_time_grant
+from raes_runtime.mixed_runtime_handoff_execution import _require_handoff_time_grant
 from raes_runtime.participant_crossing_mediation import validate_persisted_crossing_history
 from raes_runtime.time_coordinator import ReferenceTimeRuntime
 from sem233_flow_sink_fixtures import permit_resolver
@@ -88,10 +88,12 @@ def test_phase_and_action_claims_exclude_each_other_at_the_store(tmp_path, store
         store.claim_record(action)
     store.save_record(replace(phase, status=replace(phase.status, state=OperationState.SUCCEEDED)))
     assert store.claim_record(action) == action
+    second_action = record("action-1355-b", OperationKind.PARTICIPANT_ACTION)
+    second_phase = record("phase-1355-b", OperationKind.COMPOSITION_PHASE)
     with pytest.raises(NewClaimRejected):
-        store.claim_record(record("action-1355-b", OperationKind.PARTICIPANT_ACTION))
+        store.claim_record(second_action)
     with pytest.raises(NewClaimRejected):
-        store.claim_record(record("phase-1355-b", OperationKind.COMPOSITION_PHASE))
+        store.claim_record(second_phase)
     store.save_record(replace(action, status=replace(action.status, state=OperationState.SUCCEEDED)))
     assert store.claim_record(record("action-1355-c", OperationKind.PARTICIPANT_ACTION)).receipt.operation_id == (
         "action-1355-c"
@@ -138,12 +140,13 @@ def test_unbound_mixed_edge_refuses_before_bridge_or_provider_call() -> None:
     plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
 
+    action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
     with pytest.raises(ValueError, match="executable edge binding"):
         plane.admit_participant_action(
-            behavior(),
-            admission_request(),
-            identity=identity(),
-            crossing_evidence=evidence(),
+            action,
+            admission,
+            identity=actor,
+            crossing_evidence=crossing,
             idempotency_key="unbound-edge",
         )
 
@@ -440,12 +443,13 @@ def test_edge_authority_must_match_the_authorized_crossing_before_effect(field, 
         return seal_mixed_composition_profile(**fields)
 
     plane, _, runtimes, calls, _ = _executable_edge_plane(profile_factory=changed_edge_profile)
+    action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
     with pytest.raises(ValueError, match="mixed edge differs from the authorized crossing"):
         plane.admit_participant_action(
-            behavior(),
-            admission_request(),
-            identity=identity(),
-            crossing_evidence=evidence(),
+            action,
+            admission,
+            identity=actor,
+            crossing_evidence=crossing,
             idempotency_key="wrong-audience",
         )
 
@@ -714,12 +718,13 @@ def test_interrupted_mixed_edge_cannot_recover_from_provider_observation_alone(m
         raise Interrupted
 
     plane._mixed_runtime = replace(binding, edge_bindings={edge.edge_id: replace(edge, bridge=interrupted_bridge)})
+    action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
     with pytest.raises(Interrupted):
         plane.admit_participant_action(
-            behavior(),
-            admission_request(),
-            identity=identity(),
-            crossing_evidence=evidence(),
+            action,
+            admission,
+            identity=actor,
+            crossing_evidence=crossing,
             idempotency_key="crashed-edge",
         )
     pending = next(
@@ -745,19 +750,22 @@ def test_interrupted_mixed_edge_cannot_recover_from_provider_observation_alone(m
     )
     assert restarted.snapshot.mixed_composition_history[run_id][-1]["event_kind"] == "attempt"
     assert control_plane_readiness(restarted).to_payload()["status"] == "unready"
+    actor = identity()
     with pytest.raises(ValueError, match="mixed stage reconciliation is required"):
         restarted.resolve_indeterminate_operation(
             pending.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
             idempotency_key="accept-partial-cut",
-            identity=identity(),
+            identity=actor,
         )
     plane._store.load_snapshot().participant_crossing_history["participant.behavior.unrelated"] = [{}]
+    target = create_stub_target(with_participant_runtime=False)
+    resolver = permit_resolver()
     with pytest.raises(ValueError):
         RuntimeControlPlane(
-            create_stub_target(with_participant_runtime=False),
+            target,
             mixed_runtime=plane._mixed_runtime,
-            crossing_policy_resolver=permit_resolver(),
+            crossing_policy_resolver=resolver,
             run_scope=f"run:{run_id}",
             store=plane._store,
         )
@@ -773,12 +781,13 @@ def test_valid_mixed_crossing_cannot_clear_missing_stages_by_generic_resolution(
     assert plane.snapshot.mixed_composition_history[run_id][-1]["event_kind"] == "weakening"
     validate_persisted_crossing_history(plane.snapshot, plane._crossing_policy_resolver)
 
+    actor = identity()
     with pytest.raises(ValueError, match="mixed stage reconciliation is required"):
         plane.resolve_indeterminate_operation(
             receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
             idempotency_key="accept-partial",
-            identity=identity(),
+            identity=actor,
         )
     assert control_plane_readiness(plane).to_payload()["status"] == "unready"
     parent = plane._store.load_records()[receipt.operation_id]
@@ -807,11 +816,13 @@ def test_valid_mixed_crossing_cannot_clear_missing_stages_by_generic_resolution(
     )
     history = plane._store.load_snapshot().participant_crossing_history[PARTICIPANT]
     history.append({**history[-1], "event_id": "crossing-occurrence.decided.unrelated"})
+    target = create_stub_target(with_participant_runtime=False)
+    resolver = permit_resolver()
     with pytest.raises(ValueError, match="crossing result head differs"):
         RuntimeControlPlane(
-            create_stub_target(with_participant_runtime=False),
+            target,
             mixed_runtime=plane._mixed_runtime,
-            crossing_policy_resolver=permit_resolver(),
+            crossing_policy_resolver=resolver,
             run_scope=f"run:{run_id}",
             store=plane._store,
         )
@@ -927,8 +938,9 @@ def test_interrupted_native_handoff_retains_uncertain_owner_on_restart() -> None
     plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
 
+    actor = identity()
     with pytest.raises(Interrupted):
-        plane.advance_mixed_composition("transition.sim-to-emu", identity=identity(), idempotency_key="crashed-handoff")
+        plane.advance_mixed_composition("transition.sim-to-emu", identity=actor, idempotency_key="crashed-handoff")
     pending = next(
         record for record in plane._store.load_records().values() if record.idempotency_key == "crashed-handoff"
     )
@@ -946,19 +958,21 @@ def test_interrupted_native_handoff_retains_uncertain_owner_on_restart() -> None
     )
     assert restarted.snapshot.mixed_composition_states[run_id]["phase_id"] == "phase.sim"
     assert control_plane_readiness(restarted).to_payload()["status"] == "unready"
+    actor = identity()
     with pytest.raises(ValueError, match="mixed stage reconciliation is required"):
         restarted.resolve_indeterminate_operation(
             pending.receipt.operation_id,
             disposition=IndeterminateResolutionDisposition.ACCEPT_CURRENT_SNAPSHOT,
             idempotency_key="accept-handoff",
-            identity=identity(),
+            identity=actor,
         )
+    action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
     with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
         restarted.admit_participant_action(
-            behavior(),
-            admission_request(),
-            identity=identity(),
-            crossing_evidence=evidence(),
+            action,
+            admission,
+            identity=actor,
+            crossing_evidence=crossing,
             idempotency_key="old-owner",
         )
     assert all(runtime.admission_count == 0 for runtime in runtimes.values())
@@ -1001,12 +1015,13 @@ def test_translated_action_outside_the_admitted_policy_cut_refuses_before_provid
         destination_action_address="participant.action-contract.unadmitted"
     )
 
+    action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
     with pytest.raises(ValueError, match="destination action differs from admitted policy"):
         plane.admit_participant_action(
-            behavior(),
-            admission_request(),
-            identity=identity(),
-            crossing_evidence=evidence(),
+            action,
+            admission,
+            identity=actor,
+            crossing_evidence=crossing,
             idempotency_key="unadmitted-translation",
         )
 
@@ -1169,12 +1184,13 @@ def test_uncommitted_handoff_retains_prior_phase_and_classifies_outcome(handoff_
         failure["evidence_refs"]
     )
     if terminal_state == "indeterminate":
+        action, admission, actor, crossing = behavior(), admission_request(), identity(), evidence()
         with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
             plane.admit_participant_action(
-                behavior(),
-                admission_request(),
-                identity=identity(),
-                crossing_evidence=evidence(),
+                action,
+                admission,
+                identity=actor,
+                crossing_evidence=crossing,
                 idempotency_key="after-pending",
             )
         assert all(runtime.admission_count == 0 for runtime in runtimes.values())

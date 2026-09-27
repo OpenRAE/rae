@@ -261,31 +261,14 @@ def prepare_mixed_action_dispatch(
         raise ValueError("mixed action dispatch requires a committed crossing decision")
     if edge is not None:
         _require_edge_crossing_authority(edge, crossing, request, sink_decision)
-    if edge is not None and edge.edge_id not in binding.edge_bindings:
-        raise ValueError("mixed action dispatch requires an executable edge binding")
-    if edge is not None:
-        installed = binding.edge_bindings[edge.edge_id]
-        if (
-            installed.source_action_address != request.action_contract_address
-            or installed.destination_action_address != allocation.target_address
-        ):
-            raise ValueError("mixed destination action differs from admitted policy and provider allocation")
     method = _action_method(binding, allocation)
     operation_id = crossing.record.receipt.operation_id
     capture = None
     stage_readback = None
     if edge is not None:
-        capture = MixedEdgeExecutionCapture()
-        installed = binding.edge_bindings[edge.edge_id]
-        method = _mapped_edge_method(
-            binding,
-            edge,
-            installed,
-            method,
-            operation_id,
-            capture,
+        method, capture, stage_readback = _edge_action_dispatch(
+            binding, edge, request, allocation, method, operation_id
         )
-        stage_readback = _stage_readback_method(binding, edge, installed, request, operation_id, capture)
     event_base = _runtime_event_fields(
         state,
         allocation_id=allocation.allocation_id,
@@ -328,6 +311,28 @@ def prepare_mixed_action_dispatch(
     )
 
 
+def _edge_action_dispatch(
+    binding: object,
+    edge: object,
+    request: ParticipantActionAdmissionRequest,
+    allocation: MixedCompositionAllocationModel,
+    method: Callable[..., object],
+    operation_id: str,
+) -> tuple[Callable[..., object], MixedEdgeExecutionCapture, Callable[[ApplyResult], None]]:
+    if edge.edge_id not in binding.edge_bindings:
+        raise ValueError("mixed action dispatch requires an executable edge binding")
+    installed = binding.edge_bindings[edge.edge_id]
+    if (installed.source_action_address, installed.destination_action_address) != (
+        request.action_contract_address,
+        allocation.target_address,
+    ):
+        raise ValueError("mixed destination action differs from admitted policy and provider allocation")
+    capture = MixedEdgeExecutionCapture()
+    mapped = _mapped_edge_method(binding, edge, installed, method, operation_id, capture)
+    readback = _stage_readback_method(binding, edge, installed, request, operation_id, capture)
+    return mapped, capture, readback
+
+
 def _require_edge_crossing_authority(
     edge: object,
     crossing: PreparedParticipantCrossing,
@@ -339,20 +344,33 @@ def _require_edge_crossing_authority(
     decision = crossing.decision
     assert decision is not None
     occurrence = decision.occurrence
+    expected_crossing = (
+        crossing.governed_subject,
+        occurrence.subject,
+        crossing.intent.audience_scope_ref,
+        occurrence.audience_scope_ref,
+        occurrence.policy,
+        crossing.intent.controller_ref,
+        occurrence.controller_ref,
+        request.action_contract_address,
+    )
+    admitted_crossing = (
+        edge.crossing_subject,
+        edge.crossing_subject,
+        edge.audience_scope_ref,
+        edge.audience_scope_ref,
+        edge.policy,
+        edge.controller_ref,
+        edge.controller_ref,
+        crossing.intent.action_or_projection_ref,
+    )
     if (
         not isinstance(sink_decision, ParticipantFlowSinkDecision)
         or not sink_decision.permitted
         or not sink_decision.decision_id
-        or edge.crossing_subject != crossing.governed_subject
-        or edge.crossing_subject != occurrence.subject
-        or edge.audience_scope_ref != crossing.intent.audience_scope_ref
-        or edge.audience_scope_ref != occurrence.audience_scope_ref
-        or edge.policy != occurrence.policy
-        or edge.controller_ref != crossing.intent.controller_ref
-        or edge.controller_ref != occurrence.controller_ref
+        or admitted_crossing != expected_crossing
         or edge.authority_ref not in occurrence.authority_basis_refs
         or edge.disclosure_authority_ref not in occurrence.authority_basis_refs
-        or crossing.intent.action_or_projection_ref != request.action_contract_address
     ):
         raise ValueError("mixed edge differs from the authorized crossing or final-sink cut")
 

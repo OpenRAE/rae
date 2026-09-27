@@ -8,7 +8,7 @@ from raes_contracts.contracts.mixed_runtime import MixedCompositionRuntimeEventM
 from raes_contracts.runtime_state import ApplyResult, OperationState, RuntimeSnapshot
 
 from .mixed_runtime_dispatch import PreparedMixedActionDispatch, _runtime_event_fields
-from .mixed_runtime_edge import MixedEdgeExecutionCapture
+from .mixed_runtime_edge import MixedBridgeExecutionEvidence, MixedEdgeExecutionCapture
 from .mixed_runtime_state import append_runtime_events, runtime_state
 from .participant_crossing_mediation import PreparedParticipantCrossing
 
@@ -45,70 +45,123 @@ def record_mixed_action_result(
         evidence_refs=list(attempt.get("evidence_refs", [])),
     )
     operation_id = crossing.record.receipt.operation_id
-    events: list[MixedCompositionRuntimeEventModel] = []
-
-    def append(kind: _EventKind, disposition: _Disposition) -> None:
-        predecessor = state.history_head if not events else events[-1].event_id
-        events.append(
-            MixedCompositionRuntimeEventModel(
-                event_id=f"composition:{operation_id}:{kind}",
-                event_kind=kind,
-                disposition=disposition,
-                predecessor_event_id=predecessor,
-                **common,
-            )
-        )
-
     report = capture.bridge if capture is not None else None
-    outcome = report.execution_status if report is not None else None
     rejected_result = capture is not None and capture.method_completed and not success
-    unconfirmed_success = (
-        outcome == "succeeded" and capture is not None and (capture.stage_readback_failed or not capture.time_confirmed)
-    )
-    if capture is not None and capture.provider_started and report is None:
+    disposition = _result_disposition(capture, report, success, rejected_result)
+    _augment_result_evidence(common, capture, report, rejected_result)
+    events = [_result_event(operation_id, "result", disposition, state.history_head, common)]
+    _append_confirmed_stages(events, operation_id, common, capture, report, rejected_result)
+    if disposition == "failed":
+        events.append(_result_event(operation_id, "failure", "failed", events[-1].event_id, common))
+    return append_runtime_events(binding, snapshot, state, events)
+
+
+def _result_disposition(
+    capture: MixedEdgeExecutionCapture | None,
+    report: MixedBridgeExecutionEvidence | None,
+    success: bool,
+    rejected_result: bool,
+) -> _Disposition:
+    if _unconfirmed_execution(capture, report, rejected_result):
         disposition: _Disposition = "indeterminate"
-    elif outcome in {"partial", "unknown"} or (outcome == "succeeded" and rejected_result) or unconfirmed_success:
-        disposition = "indeterminate"
-    elif outcome == "succeeded":
+    elif report is not None and report.execution_status == "succeeded":
         disposition = "succeeded"
     else:
         disposition = "succeeded" if success else "failed"
-    if report is not None and not rejected_result and capture is not None and capture.time_confirmed:
+    return disposition
+
+
+def _unconfirmed_execution(
+    capture: MixedEdgeExecutionCapture | None,
+    report: MixedBridgeExecutionEvidence | None,
+    rejected_result: bool,
+) -> bool:
+    if report is None:
+        unconfirmed = capture is not None and capture.provider_started
+    elif report.execution_status in {"partial", "unknown"}:
+        unconfirmed = True
+    elif report.execution_status == "succeeded":
+        unconfirmed = rejected_result or _unconfirmed_stages(capture)
+    else:
+        unconfirmed = False
+    return unconfirmed
+
+
+def _unconfirmed_stages(capture: MixedEdgeExecutionCapture | None) -> bool:
+    return capture is not None and (capture.stage_readback_failed or not capture.time_confirmed)
+
+
+def _augment_result_evidence(
+    common: dict[str, object],
+    capture: MixedEdgeExecutionCapture | None,
+    report: MixedBridgeExecutionEvidence | None,
+    rejected_result: bool,
+) -> None:
+    if capture is None:
+        return
+    if report is not None and not rejected_result and capture.time_confirmed:
         common["mapping_loss_refs"] = list(report.mapping_loss_refs)
-    if capture is not None and capture.time is not None and not rejected_result:
-        if capture.time_confirmed:
-            common["order_ref"] = capture.time.order_ref
-        common["evidence_refs"] = list(
-            dict.fromkeys(
-                [
-                    *common["evidence_refs"],
-                    *capture.time.mapping_evidence_refs,
-                    *capture.time.timing_evidence_refs,
-                    *(report.execution_evidence_refs if report is not None else ()),
-                ]
-            )
-        )
-    if report is not None and outcome == "failed" and capture is not None and capture.method_completed:
+    if capture.time is not None and not rejected_result:
+        _append_time_evidence(common, capture, report)
+    if report is not None and report.execution_status == "failed" and capture.method_completed:
         common["evidence_refs"] = list(dict.fromkeys([*common["evidence_refs"], *report.cessation_evidence_refs]))
-    append("result", disposition)
-    if not rejected_result and report is not None and capture is not None and capture.delivery_confirmed:
+
+
+def _append_time_evidence(
+    common: dict[str, object],
+    capture: MixedEdgeExecutionCapture,
+    report: MixedBridgeExecutionEvidence | None,
+) -> None:
+    assert capture.time is not None
+    if capture.time_confirmed:
+        common["order_ref"] = capture.time.order_ref
+    common["evidence_refs"] = list(
+        dict.fromkeys(
+            [
+                *common["evidence_refs"],
+                *capture.time.mapping_evidence_refs,
+                *capture.time.timing_evidence_refs,
+                *(report.execution_evidence_refs if report is not None else ()),
+            ]
+        )
+    )
+
+
+def _result_event(
+    operation_id: str,
+    kind: _EventKind,
+    disposition: _Disposition,
+    predecessor: str,
+    common: dict[str, object],
+) -> MixedCompositionRuntimeEventModel:
+    return MixedCompositionRuntimeEventModel(
+        event_id=f"composition:{operation_id}:{kind}",
+        event_kind=kind,
+        disposition=disposition,
+        predecessor_event_id=predecessor,
+        **common,
+    )
+
+
+def _append_confirmed_stages(
+    events: list[MixedCompositionRuntimeEventModel],
+    operation_id: str,
+    common: dict[str, object],
+    capture: MixedEdgeExecutionCapture | None,
+    report: MixedBridgeExecutionEvidence | None,
+    rejected_result: bool,
+) -> None:
+    if rejected_result or report is None or capture is None:
+        return
+    if capture.delivery_confirmed:
         common["evidence_refs"] = list(report.delivery_evidence_refs)
-        append("delivery", "succeeded")
-    if not rejected_result and report is not None and capture is not None and capture.observation_confirmed:
+        events.append(_result_event(operation_id, "delivery", "succeeded", events[-1].event_id, common))
+    if capture.observation_confirmed:
         common["evidence_refs"] = list(report.observation_evidence_refs)
-        append("observation", "committed")
-    if (
-        not rejected_result
-        and report is not None
-        and capture is not None
-        and capture.time_confirmed
-        and report.mapping_loss_refs
-    ):
+        events.append(_result_event(operation_id, "observation", "committed", events[-1].event_id, common))
+    if capture.time_confirmed and report.mapping_loss_refs:
         common["evidence_refs"] = list(capture.time.mapping_evidence_refs) if capture.time is not None else []
-        append("weakening", "committed")
-    if disposition == "failed":
-        append("failure", "failed")
-    return append_runtime_events(binding, snapshot, state, events)
+        events.append(_result_event(operation_id, "weakening", "committed", events[-1].event_id, common))
 
 
 def mixed_action_terminal_state(
@@ -118,23 +171,26 @@ def mixed_action_terminal_state(
     """Settle one mixed action from its correlated stages, not a success flag."""
 
     if dispatch is None or dispatch.capture is None:
-        return OperationState.SUCCEEDED if result.success else OperationState.FAILED
-    capture = dispatch.capture
+        state = OperationState.SUCCEEDED if result.success else OperationState.FAILED
+    else:
+        state = _captured_action_terminal_state(dispatch.capture, result)
+    return state
+
+
+def _captured_action_terminal_state(capture: MixedEdgeExecutionCapture, result: ApplyResult) -> OperationState:
     report = capture.bridge
     if report is None:
-        return OperationState.INDETERMINATE if capture.provider_started else OperationState.FAILED
-    if report.execution_status in {"partial", "unknown"}:
-        return OperationState.INDETERMINATE
-    if report.execution_status == "failed":
-        return OperationState.FAILED
-    if (
-        not result.success
-        or not capture.time_confirmed
-        or capture.stage_readback_failed
-        or not capture.delivery_confirmed
-    ):
-        return OperationState.INDETERMINATE
-    return OperationState.SUCCEEDED
+        state = OperationState.INDETERMINATE if capture.provider_started else OperationState.FAILED
+    elif report.execution_status in {"partial", "unknown"}:
+        state = OperationState.INDETERMINATE
+    elif report.execution_status == "failed":
+        state = OperationState.FAILED
+    else:
+        confirmed = all(
+            (result.success, capture.time_confirmed, not capture.stage_readback_failed, capture.delivery_confirmed)
+        )
+        state = OperationState.SUCCEEDED if confirmed else OperationState.INDETERMINATE
+    return state
 
 
 __all__ = ("mixed_action_terminal_state", "record_mixed_action_result")

@@ -63,20 +63,21 @@ def mixed_claim_conflicts(
     }
     if not mixed_keys:
         return False
-    for existing in existing_records:
-        prior = existing.status.context
-        if (
-            prior.target_scope != context.target_scope
-            or prior.run_scope != context.run_scope
-            or prior.operation_kind not in _MIXED_CLAIM_KINDS
-            or existing.status.state not in _ACTIVE_CLAIM_STATES
-        ):
-            continue
-        prior_keys = set(existing.decision_history_heads) | set(existing.result_history_heads)
-        if not mixed_keys.intersection(prior_keys):
-            continue
-        return True
-    return False
+    return any(_active_mixed_claim_overlaps(context, mixed_keys, existing) for existing in existing_records)
+
+
+def _active_mixed_claim_overlaps(
+    context: OperationAdmissionContext,
+    mixed_keys: set[str],
+    existing: ControlPlaneOperationRecord,
+) -> bool:
+    prior = existing.status.context
+    if (prior.target_scope, prior.run_scope) != (context.target_scope, context.run_scope):
+        return False
+    if prior.operation_kind not in _MIXED_CLAIM_KINDS or existing.status.state not in _ACTIVE_CLAIM_STATES:
+        return False
+    prior_keys = set(existing.decision_history_heads) | set(existing.result_history_heads)
+    return bool(mixed_keys.intersection(prior_keys))
 
 
 @dataclass(frozen=True)

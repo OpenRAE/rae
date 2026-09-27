@@ -92,54 +92,74 @@ class MixedRuntimeBinding:
         if set(self.handoff_bindings) - set(self.profile.transitions):
             raise ValueError("mixed runtime handoff bindings must name admitted transitions")
         for transition_id, handoff in self.handoff_bindings.items():
-            if not isinstance(handoff, MixedHandoffBinding):
-                raise TypeError("executable handoff must be a typed installed binding")
-            transition = self.profile.transitions[transition_id]
-            source = self.profile.phases[transition.source_phase_id]
-            target = self.profile.phases[transition.target_phase_id]
-            departing = set(source.active_component_ids) - set(target.active_component_ids)
-            arriving = set(target.active_component_ids) - set(source.active_component_ids)
-            if (
-                handoff.transition_id != transition_id
-                or departing != {handoff.source_component_id}
-                or arriving != {handoff.destination_component_id}
-                or self.profile.components[handoff.source_component_id].native_ownership_ref != handoff.source_owner_ref
-                or self.profile.components[handoff.destination_component_id].native_ownership_ref
-                != handoff.destination_owner_ref
-            ):
-                raise ValueError("executable handoff differs from admitted transition ownership")
-            time_model = self.context.time_models.get(handoff.time_model_ref)
-            if (
-                time_model is None
-                or self.context.time_model_digests.get(handoff.time_model_ref) != handoff.time_model_digest
-                or handoff.mapping_ref not in time_model.mappings
-                or handoff.source_clock_address not in time_model.clocks
-                or handoff.destination_clock_address not in time_model.clocks
-            ):
-                raise ValueError("executable handoff time binding is unresolved")
-            mapping = time_model.mappings[handoff.mapping_ref]
-            if (
-                mapping.source_domain_address != time_model.clocks[handoff.source_clock_address].time_domain_address
-                or mapping.target_domain_address
-                != time_model.clocks[handoff.destination_clock_address].time_domain_address
-            ):
-                raise ValueError("executable handoff clock mapping differs from admission")
+            self._require_handoff_binding(transition_id, handoff)
         for edge_id, installed in self.edge_bindings.items():
-            if not isinstance(installed, MixedEdgeExecutionBinding):
-                raise TypeError("executable edge binding must be a typed installed binding")
-            edge = self.profile.edges[edge_id]
-            if (
-                installed.edge_id != edge_id
-                or installed.bridge_ref != edge.routing_ref
-                or installed.mapping_ref != edge.time_binding.mapping_address
-                or installed.mapping_loss_ref != edge.mapping_loss.limitation_ref
-            ):
-                raise ValueError("executable edge binding differs from admitted edge")
+            self._require_edge_binding(edge_id, installed)
         object.__setattr__(self, "plan", plan)
         object.__setattr__(self, "components", MappingProxyType(dict(self.components)))
         object.__setattr__(self, "transition_evaluators", MappingProxyType(dict(self.transition_evaluators)))
         object.__setattr__(self, "edge_bindings", MappingProxyType(dict(self.edge_bindings)))
         object.__setattr__(self, "handoff_bindings", MappingProxyType(dict(self.handoff_bindings)))
+
+    def _require_handoff_binding(self, transition_id: str, handoff: MixedHandoffBinding) -> None:
+        if not isinstance(handoff, MixedHandoffBinding):
+            raise TypeError("executable handoff must be a typed installed binding")
+        transition = self.profile.transitions[transition_id]
+        source = self.profile.phases[transition.source_phase_id]
+        target = self.profile.phases[transition.target_phase_id]
+        if {handoff.source_component_id, handoff.destination_component_id} - self.profile.components.keys():
+            raise ValueError("executable handoff differs from admitted transition ownership")
+        ownership = (
+            handoff.transition_id,
+            {handoff.source_component_id},
+            {handoff.destination_component_id},
+            handoff.source_owner_ref,
+            handoff.destination_owner_ref,
+        )
+        admitted = (
+            transition_id,
+            set(source.active_component_ids) - set(target.active_component_ids),
+            set(target.active_component_ids) - set(source.active_component_ids),
+            self.profile.components[handoff.source_component_id].native_ownership_ref,
+            self.profile.components[handoff.destination_component_id].native_ownership_ref,
+        )
+        if ownership != admitted:
+            raise ValueError("executable handoff differs from admitted transition ownership")
+        time_model = self.context.time_models.get(handoff.time_model_ref)
+        if time_model is None:
+            raise ValueError("executable handoff time binding is unresolved")
+        if (
+            self.context.time_model_digests.get(handoff.time_model_ref) != handoff.time_model_digest
+            or handoff.mapping_ref not in time_model.mappings
+            or handoff.source_clock_address not in time_model.clocks
+            or handoff.destination_clock_address not in time_model.clocks
+        ):
+            raise ValueError("executable handoff time binding is unresolved")
+        mapping = time_model.mappings[handoff.mapping_ref]
+        domains = (mapping.source_domain_address, mapping.target_domain_address)
+        clock_domains = (
+            time_model.clocks[handoff.source_clock_address].time_domain_address,
+            time_model.clocks[handoff.destination_clock_address].time_domain_address,
+        )
+        if domains != clock_domains:
+            raise ValueError("executable handoff clock mapping differs from admission")
+
+    def _require_edge_binding(self, edge_id: str, installed: MixedEdgeExecutionBinding) -> None:
+        if not isinstance(installed, MixedEdgeExecutionBinding):
+            raise TypeError("executable edge binding must be a typed installed binding")
+        edge = self.profile.edges[edge_id]
+        if (
+            installed.edge_id,
+            installed.bridge_ref,
+            installed.mapping_ref,
+            installed.mapping_loss_ref,
+        ) != (
+            edge_id,
+            edge.routing_ref,
+            edge.time_binding.mapping_address,
+            edge.mapping_loss.limitation_ref,
+        ):
+            raise ValueError("executable edge binding differs from admitted edge")
 
     @property
     def entry(self) -> AdmittedTrialEntryModel:

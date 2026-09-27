@@ -835,10 +835,11 @@ def test_concurrent_phase_progression_commits_one_cas_winner() -> None:
         )
         assert started.wait(timeout=5)
         try:
+            actor = identity()
             with pytest.raises(NewClaimRejected):
                 second.advance_mixed_composition(
                     "transition.sim-to-emu",
-                    identity=identity(),
+                    identity=actor,
                     idempotency_key="advance-b",
                 )
         finally:
