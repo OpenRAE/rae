@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import partial
 
 from anyio import CapacityLimiter, to_thread
@@ -86,6 +86,52 @@ class NoStoreResponseMiddleware:
             await send(message)
 
         await self._app(scope, receive, send_uncacheable)
+
+
+async def refuse_unsealed_request(scope: Scope, receive: Receive, send: Send) -> None:
+    """Refuse one request or startup because the app composition is not the admitted one."""
+
+    _LOGGER.error("control-plane app composition changed after construction")
+    if scope["type"] == "lifespan":
+        # As Starlette's router does: report the failed startup, then raise so the
+        # server stops instead of waiting for a shutdown the app will not serve.
+        await receive()
+        await send({"type": "lifespan.startup.failed", "message": "control-plane app composition changed"})
+        raise RuntimeError("control-plane app composition changed after construction")
+    if scope["type"] == "websocket":
+        await send({"type": "websocket.close", "code": 1011})
+    elif scope["type"] == "http":
+        response = JSONResponse(
+            status_code=500,
+            content={"detail": "internal server error"},
+            headers={"cache-control": NO_STORE_CACHE_CONTROL},
+        )
+        await response(scope, receive, send)
+
+
+class AppCompositionSealMiddleware:
+    """Refuse every request once the served app differs from the admitted composition.
+
+    ``verify_app`` raises when the app's routes, middleware, exception handlers
+    or dependency overrides are not exactly those checked at construction
+    (issue #1359). The app also re-checks when it builds its middleware stack;
+    this per-request check covers what can still change afterwards, such as a
+    route or dependency override added to a running app. No route runs, not
+    even one that was admitted.
+    """
+
+    def __init__(self, app: ASGIApp, *, verify_app: Callable[[object], None]) -> None:
+        self._app = app
+        self._verify_app = verify_app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] in {"http", "websocket"}:
+            try:
+                self._verify_app(scope.get("app"))
+            except RuntimeError:
+                await refuse_unsealed_request(scope, receive, send)
+                return
+        await self._app(scope, receive, send)
 
 
 class RequestSizeLimitMiddleware:

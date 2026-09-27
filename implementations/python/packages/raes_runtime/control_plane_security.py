@@ -55,6 +55,21 @@ A read role admits full snapshots and operational reads as well as participant
 views (API-404-C3); an audience binding does not narrow it.
 """
 
+_MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+ROUTE_AUTHORITY_METHODS: Mapping[ControlPlaneRouteAuthority, frozenset[str]] = MappingProxyType(
+    {
+        ControlPlaneRouteAuthority.PUBLIC_PROBE: frozenset({"GET"}),
+        ControlPlaneRouteAuthority.ADMINISTRATIVE_READ: frozenset({"GET"}),
+        ControlPlaneRouteAuthority.ADMINISTRATIVE_MUTATION: _MUTATING_METHODS,
+        ControlPlaneRouteAuthority.OPERATOR_RESOLUTION: _MUTATING_METHODS,
+    }
+)
+"""HTTP methods each route authority may serve.
+
+Read authorities admit the auditor role, so they must never front a state change;
+mutating authorities must never be reachable by a safe method.
+"""
+
 
 def _require_binding_fields(participant_address: object, subject_ref: object, *, kind: str) -> None:
     """Require non-empty string binding fields that encode unambiguously as scopes.
@@ -157,8 +172,10 @@ def _require_principal_shape(principal: ControlPlaneIdentity) -> None:
 def _frozen_principals(principals: Mapping[str, ControlPlaneIdentity]) -> Mapping[str, ControlPlaneIdentity]:
     copied = dict(principals)
     for key, principal in copied.items():
-        if not isinstance(key, str) or not key.strip():
-            raise ValueError("configured credentials and principal names must be non-empty")
+        # Presented bearer tokens and header values arrive stripped, so a key with
+        # surrounding whitespace (a secret file's trailing newline) could never match.
+        if not isinstance(key, str) or not key.strip() or key != key.strip():
+            raise ValueError("configured credentials and principal names must be non-empty and unpadded")
         if (
             not isinstance(principal, ControlPlaneIdentity)
             or not isinstance(principal.identity, str)
@@ -189,10 +206,17 @@ class ControlPlaneSecurityConfig:
 
     def __post_init__(self) -> None:
         _require_identity_headers(self.verified_header, self.identity_header)
-        if self.max_pending_mutations <= 0:
-            raise ValueError("max_pending_mutations must be positive")
-        if self.max_pending_rejection_audits <= 0:
-            raise ValueError("max_pending_rejection_audits must be positive")
+        # A truthy non-bool (for example the string "false" read from env or YAML)
+        # must not silently enable header trust or disable verification.
+        for name in ("require_verified_identity", "trust_proxy_identity_headers"):
+            if type(getattr(self, name)) is not bool:
+                raise ValueError(f"{name} must be a bool")
+        for name in ("max_request_bytes", "max_pending_mutations", "max_pending_rejection_audits"):
+            value = getattr(self, name)
+            if type(value) is not int:
+                raise ValueError(f"{name} must be an int")
+            if value <= 0:
+                raise ValueError(f"{name} must be positive")
         # ``frozen=True`` only blocks rebinding the attributes; a caller (or a
         # later code path) could still mutate the underlying dicts and grant
         # principals or tokens after construction, defeating ``strict_defaults``.

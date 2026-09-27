@@ -30,8 +30,10 @@ from importlib.metadata import version as distribution_version
 
 from fastapi import FastAPI
 from starlette.concurrency import run_in_threadpool
+from starlette.types import ASGIApp
 
 from ..control_plane import RuntimeControlPlane
+from ..control_plane_api_guards import refuse_unsealed_request
 from ..control_plane_api_participant_retrieval import register_participant_retrieval_routes
 from ..control_plane_profiles import (
     ControlPlaneCapability,
@@ -41,7 +43,12 @@ from ..control_plane_profiles import (
 )
 from ..control_plane_security import ControlPlaneSecurityConfig
 from ..control_plane_store_lease import require_single_worker_configuration
-from ._auth import _ControlPlaneApiAuth, _require_route_transport_authority
+from ._auth import (
+    _ControlPlaneApiAuth,
+    _require_route_transport_authority,
+    _require_sealed_app_composition,
+    _seal_app_composition,
+)
 from ._health_routes import _register_health_routes
 from ._offload import _ControlPlaneCallExecutor
 from ._operation_routes import _install_request_guards, _register_operation_routes
@@ -79,6 +86,20 @@ def _control_plane_api_version() -> str:
         return "0.0.0+unknown"
 
 
+class _ControlPlaneFastAPI(FastAPI):
+    """FastAPI app that serves only the composition checked at construction."""
+
+    def build_middleware_stack(self) -> ASGIApp:
+        # Middleware and exception handlers are fixed when the stack is built, so
+        # this is the last point at which a post-construction addition can be
+        # refused; the stack then refuses lifespan startup and every request.
+        try:
+            _require_sealed_app_composition(self)
+        except RuntimeError:
+            return refuse_unsealed_request
+        return super().build_middleware_stack()
+
+
 def create_control_plane_app(
     control_plane: RuntimeControlPlane,
     *,
@@ -103,14 +124,15 @@ def create_control_plane_app(
     executor = _ControlPlaneCallExecutor(max_pending_mutations=security.max_pending_mutations)
 
     @asynccontextmanager
-    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    async def lifespan(served: FastAPI) -> AsyncIterator[None]:
         try:
+            _require_sealed_app_composition(served)
             yield
         finally:
             await executor.close()
             await run_in_threadpool(control_plane.close)
 
-    app = FastAPI(
+    app = _ControlPlaneFastAPI(
         title="RAES Runtime Control Plane",
         version=_control_plane_api_version(),
         description="Reference HTTP/JSON adapter over the repo-owned runtime control plane.",
@@ -128,4 +150,5 @@ def create_control_plane_app(
     _register_participant_execution_routes(app, control_plane)
     register_participant_retrieval_routes(app, control_plane)
     app.state.control_plane_route_authority = _require_route_transport_authority(app)
+    _seal_app_composition(app)
     return app

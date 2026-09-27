@@ -28,6 +28,7 @@ from raes_runtime import control_plane_api
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from raes_runtime.control_plane_api._auth import (
+    _administrative_read_dependency,
     _AdministrativeMutationIdentity,
     _AdministrativeReadIdentity,
     _PublicProbe,
@@ -273,6 +274,19 @@ def _shadowing_route(app: FastAPI) -> None:
         return {"state": "leaked"}
 
 
+def _read_authority_mutation_route(app: FastAPI) -> None:
+    # An auditor holds the read authority; it must never reach a state change.
+    @app.post("/operations/inject")
+    async def inject(reader: _AdministrativeReadIdentity) -> None:
+        del reader
+
+
+def _mutation_authority_safe_method_route(app: FastAPI) -> None:
+    @app.get("/operations/inject")
+    async def inject(writer: _AdministrativeMutationIdentity) -> None:
+        del writer
+
+
 def _mounted_route(app: FastAPI) -> None:
     app.router.routes.append(Mount("/export", routes=[]))
 
@@ -287,6 +301,8 @@ def _starlette_route(app: FastAPI) -> None:
         pytest.param(_unauthenticated_event_route, id="no-authority"),
         pytest.param(_double_authority_route, id="two-authorities"),
         pytest.param(_public_mutation_route, id="public-mutation"),
+        pytest.param(_read_authority_mutation_route, id="read-authority-mutation"),
+        pytest.param(_mutation_authority_safe_method_route, id="mutation-authority-get"),
         pytest.param(_shadowing_route, id="duplicate-route"),
         pytest.param(_mounted_route, id="mount"),
         pytest.param(_starlette_route, id="undeclared-framework-route"),
@@ -300,6 +316,79 @@ def test_app_construction_fails_closed_for_undeclared_route_authority(
 
     with pytest.raises(ValueError, match="transport authority"):
         create_control_plane_app(RuntimeControlPlane(create_stub_target()))
+
+
+def _late_route(app: FastAPI) -> None:
+    @app.get("/late")
+    async def late() -> dict[str, str]:
+        return {"state": "leaked"}
+
+
+def _late_middleware(app: FastAPI) -> None:
+    @app.middleware("http")
+    async def late(request: Any, call_next: Any) -> Any:
+        if request.url.path == "/late":
+            return PlainTextResponse("leaked")
+        return await call_next(request)
+
+
+def _late_exception_handler(app: FastAPI) -> None:
+    app.add_exception_handler(403, lambda _request, _exc: PlainTextResponse("leaked", status_code=200))
+
+
+def _late_dependency_override(app: FastAPI) -> None:
+    app.dependency_overrides[_administrative_read_dependency] = lambda: _TOKENS["auditor-token"]
+
+
+_LATE_COMPOSITION = [
+    pytest.param(_late_route, id="route"),
+    pytest.param(_late_middleware, id="middleware"),
+    pytest.param(_late_exception_handler, id="exception-handler"),
+    pytest.param(_late_dependency_override, id="dependency-override"),
+]
+
+
+@pytest.mark.parametrize("tamper", _LATE_COMPOSITION)
+def test_app_composition_changed_after_construction_is_never_served(tamper: Callable[[FastAPI], None]) -> None:
+    app, _control_plane = _stub_app()
+    tamper(app)
+    client = TestClient(app, raise_server_exceptions=False)
+
+    responses = [
+        client.get("/late"),
+        client.get("/snapshot"),
+        client.get("/snapshot", headers=_bearer("auditor-token")),
+    ]
+
+    for response in responses:
+        assert response.status_code == 500
+        assert response.json() == {"detail": "internal server error"}
+        assert response.headers["cache-control"] == _NO_STORE
+    assert ("GET", "/late") not in app.state.control_plane_route_authority
+
+
+@pytest.mark.parametrize("tamper", _LATE_COMPOSITION)
+def test_app_composition_changed_after_construction_fails_startup(tamper: Callable[[FastAPI], None]) -> None:
+    app, _control_plane = _stub_app()
+    tamper(app)
+
+    with pytest.raises(RuntimeError), TestClient(app):
+        pass
+
+
+@pytest.mark.parametrize("tamper", [_late_route, _late_dependency_override], ids=["route", "dependency-override"])
+def test_running_app_refuses_requests_after_its_composition_changes(tamper: Callable[[FastAPI], None]) -> None:
+    app, _control_plane = _stub_app()
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        assert client.get("/snapshot", headers=_bearer("auditor-token")).status_code == 200
+        tamper(app)
+        late = client.get("/late")
+        unauthenticated = client.get("/snapshot")
+
+    for response in (late, unauthenticated):
+        assert response.status_code == 500
+        assert response.headers["cache-control"] == _NO_STORE
 
 
 # --- transport admission on every authenticated route -----------------------
@@ -318,6 +407,47 @@ def test_authenticated_routes_reject_unauthenticated_callers(
     assert response.headers["cache-control"] == _NO_STORE
 
 
+@pytest.mark.parametrize(
+    "headers",
+    [
+        pytest.param(_bearer("revoked-token"), id="invalid-bearer"),
+        pytest.param({"x-raes-client-identity": "backend-token", "x-raes-client-verified": "true"}, id="proxy-headers"),
+        pytest.param({}, id="no-credential"),
+    ],
+)
+def test_unauthenticated_refusals_do_not_reveal_the_reason(headers: dict[str, str]) -> None:
+    app, control_plane = _stub_app()
+
+    with TestClient(app) as client:
+        response = client.get("/snapshot", headers=headers)
+        audited_reason = control_plane.audit_log()[-1].reason
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "unauthorized"}
+    assert audited_reason != "unauthorized"
+
+
+@pytest.mark.parametrize(("method", "template", "path", "body"), _route_requests(_MUTATE, _RESOLVE))
+def test_malformed_bodies_are_refused_by_admission_before_validation(
+    method: str, template: str, path: str, body: object
+) -> None:
+    del template, body
+    app, _control_plane = _stub_app()
+    malformed = {"content-type": "application/json"}
+
+    with TestClient(app) as client:
+        anonymous = client.request(method, path, content=b"{not-json", headers=malformed)
+        other_target = client.request(
+            method, path, content=b"{not-json", headers={**malformed, **_bearer("other-target-token")}
+        )
+
+    assert anonymous.status_code == 401
+    assert anonymous.json() == {"detail": "unauthorized"}
+    assert other_target.status_code == 403
+    assert other_target.json() == {"detail": "forbidden"}
+    assert anonymous.headers["cache-control"] == other_target.headers["cache-control"] == _NO_STORE
+
+
 @pytest.mark.parametrize(("method", "template", "path", "body"), _route_requests(_READ, _MUTATE, _RESOLVE))
 def test_authenticated_routes_reject_identities_bound_to_another_target(
     method: str, template: str, path: str, body: object
@@ -328,7 +458,7 @@ def test_authenticated_routes_reject_identities_bound_to_another_target(
         response = _send(client, method, path, body, _bearer("other-target-token"))
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "identity is not authorized for this target"}
+    assert response.json() == {"detail": "forbidden"}
 
 
 @pytest.mark.parametrize(("method", "template", "path", "body"), _route_requests(_READ, _MUTATE, _RESOLVE))
@@ -690,6 +820,29 @@ def test_security_config_rejects_malformed_principal_shapes(principal: str, mapp
         ControlPlaneSecurityConfig(**{mapping: {secret: _MALFORMED_PRINCIPALS[principal]()}})
 
     assert secret not in str(caught.value)
+
+
+@pytest.mark.parametrize("field", ["require_verified_identity", "trust_proxy_identity_headers"])
+@pytest.mark.parametrize("value", ["false", "true", 0, 1, None])
+def test_security_config_rejects_non_bool_trust_flags(field: str, value: object) -> None:
+    with pytest.raises(ValueError, match=f"{field} must be a bool"):
+        ControlPlaneSecurityConfig(**{field: value})
+
+
+@pytest.mark.parametrize("field", ["max_request_bytes", "max_pending_mutations", "max_pending_rejection_audits"])
+@pytest.mark.parametrize("value", ["64", 1.5, True])
+def test_security_config_rejects_non_int_limits(field: str, value: object) -> None:
+    with pytest.raises(ValueError, match=f"{field} must be an int"):
+        ControlPlaneSecurityConfig(**{field: value})
+
+
+@pytest.mark.parametrize("mapping", ["bearer_tokens", "trusted_identities"])
+@pytest.mark.parametrize("key", ["secret\n", " secret", "secret\t"])
+def test_security_config_rejects_padded_credentials(mapping: str, key: str) -> None:
+    with pytest.raises(ValueError, match="unpadded") as caught:
+        ControlPlaneSecurityConfig(**{mapping: {key: _identity("padded", ControlPlaneRole.AUDITOR)}})
+
+    assert "secret" not in str(caught.value)
 
 
 def test_principal_at_the_operation_context_bounds_is_admitted() -> None:

@@ -68,10 +68,15 @@ selected P1 core. The corresponding runtime guarantee identifiers are
 authenticates transport callers; P0 and P1 rely on their trusted embedders.
 
 Every served P2 route shall declare exactly one transport authority: a
-value-free GET-only public probe, administrative read, administrative mutation
-or operator resolution. P2 composition shall fail when any other route is
-registered. Every P2 response, including errors and idempotent readback, shall
-carry `Cache-Control: no-store`.
+value-free GET-only public probe, GET-only administrative read, or a
+state-changing-method administrative mutation or operator resolution. P2
+composition shall fail when any other route is registered, and a served app
+shall refuse startup and every request when its routes, middleware, exception
+handlers or dependency overrides differ from the composed set. Every
+P2 response, including errors and idempotent readback, shall carry
+`Cache-Control: no-store`. Transport-admission refusals shall not reveal why
+admission failed, and no refusal shall reveal whether an operation outside the
+caller's authority exists.
 
 P2 identities are deployment-configured bearer tokens or verified proxy
 identities, not RAES-issued participant credentials. A host may use one as a

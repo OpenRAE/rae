@@ -21,6 +21,7 @@ from starlette.routing import Route
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_security import (
+    ROUTE_AUTHORITY_METHODS,
     ROUTE_AUTHORITY_ROLES,
     ControlPlaneIdentity,
     ControlPlaneRole,
@@ -29,6 +30,17 @@ from ..control_plane_security import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+_UNAUTHORIZED_DETAIL = "unauthorized"
+_FORBIDDEN_DETAIL = "forbidden"
+
+
+class _AdmissionRejected(Exception):
+    """An admission refusal whose specific reason is audited, never returned."""
+
+    def __init__(self, status_code: int, reason: str) -> None:
+        super().__init__(reason)
+        self.status_code = status_code
+        self.reason = reason
 
 
 class _ControlPlaneApiAuth:
@@ -47,11 +59,15 @@ class _ControlPlaneApiAuth:
         return self._authorize(identity, roles=ROUTE_AUTHORITY_ROLES[authority], request=request)
 
     def _authenticated_identity(self, request: Request) -> ControlPlaneIdentity:
+        # Every refusal returns one stable body per status: the audited reason
+        # would otherwise tell an unauthenticated caller how proxy trust is
+        # configured, or confirm that a token is valid for another target.
         try:
             return self._authenticate_request(request)
-        except HTTPException as exc:
-            self._record_denial(request, str(exc.detail))
-            raise
+        except _AdmissionRejected as exc:
+            self._record_denial(request, exc.reason)
+            detail = _UNAUTHORIZED_DETAIL if exc.status_code == 401 else _FORBIDDEN_DETAIL
+            raise HTTPException(status_code=exc.status_code, detail=detail) from None
 
     def _authenticate_request(self, request: Request) -> ControlPlaneIdentity:
         authorization = request.headers.get("authorization", "")
@@ -63,17 +79,17 @@ class _ControlPlaneApiAuth:
             # working whenever header identities are trusted, and would leave the
             # rejected credential out of the audit log entirely.
             if identity is None:
-                raise HTTPException(status_code=401, detail="invalid bearer token")
+                raise _AdmissionRejected(401, "invalid bearer token")
             return self._require_target_binding(identity)
         if not self._security.trust_proxy_identity_headers:
-            raise HTTPException(status_code=401, detail="trusted proxy identity headers are not enabled")
+            raise _AdmissionRejected(401, "trusted proxy identity headers are not enabled")
         identity_name = request.headers.get(self._security.identity_header, "")
         verified = request.headers.get(self._security.verified_header, "").lower()
         if self._security.require_verified_identity and verified != "true":
-            raise HTTPException(status_code=401, detail="verified client identity required")
+            raise _AdmissionRejected(401, "verified client identity required")
         identity = self._security.trusted_identities.get(identity_name)
         if identity is None:
-            raise HTTPException(status_code=401, detail="unknown client identity")
+            raise _AdmissionRejected(401, "unknown client identity")
         return self._require_target_binding(identity)
 
     def _resolve_bearer_identity(self, token: str) -> ControlPlaneIdentity | None:
@@ -93,7 +109,7 @@ class _ControlPlaneApiAuth:
         """Require an identity scoped exactly to this control-plane target."""
 
         if identity.target_name != self._control_plane.target_name:
-            raise HTTPException(status_code=403, detail="identity is not authorized for this target")
+            raise _AdmissionRejected(403, "identity is not authorized for this target")
         return identity
 
     def _authorize(
@@ -111,7 +127,7 @@ class _ControlPlaneApiAuth:
             allowed=False,
             reason="forbidden",
         )
-        raise HTTPException(status_code=403, detail="forbidden")
+        raise HTTPException(status_code=403, detail=_FORBIDDEN_DETAIL)
 
     def _record_denial(self, request: Request, reason: str) -> None:
         self._record_audit_safely(
@@ -174,8 +190,10 @@ def _declared_route_authority(route: APIRoute) -> ControlPlaneRouteAuthority:
     if len(declared) != 1:
         raise ValueError(f"route {sorted(route.methods)} {route.path} must declare exactly one transport authority")
     authority = declared[0]
-    if authority is ControlPlaneRouteAuthority.PUBLIC_PROBE and route.methods != {"GET"}:
-        raise ValueError(f"public-probe transport authority is GET-only: {route.path}")
+    if not route.methods or not route.methods <= ROUTE_AUTHORITY_METHODS[authority]:
+        raise ValueError(
+            f"{authority.value} transport authority cannot serve {sorted(route.methods or ())} {route.path}"
+        )
     return authority
 
 
@@ -186,8 +204,10 @@ def _require_route_transport_authority(
 
     Only FastAPI's own API-description routes are exempt; they carry no runtime
     state. Any other route, mount or raw Starlette endpoint must enter through
-    the dependencies above, so a new operation, inject, event or export route
-    cannot silently bypass P2 admission.
+    the dependencies above, and each authority serves only its own HTTP methods,
+    so a new operation, inject, event or export route cannot silently bypass P2
+    admission. The checked route table is then sealed (see
+    :func:`_require_sealed_route_table`).
     """
 
     framework_paths = {app.openapi_url, app.docs_url, app.redoc_url, app.swagger_ui_oauth2_redirect_url} - {None}
@@ -202,3 +222,56 @@ def _require_route_transport_authority(
         elif not (type(route) is Route and route.path in framework_paths):
             raise ValueError(f"route {getattr(route, 'path', '?')} must declare exactly one transport authority")
     return MappingProxyType(inventory)
+
+
+def _app_composition(app: object) -> tuple[object, ...] | None:
+    """Identity of everything that decides whether and how a request is admitted."""
+
+    router = getattr(app, "router", None)
+    routes = getattr(router, "routes", None)
+    middleware = getattr(app, "user_middleware", None)
+    handlers = getattr(app, "exception_handlers", None)
+    overrides = getattr(app, "dependency_overrides", None)
+    if routes is None or middleware is None or handlers is None or overrides is None:
+        return None
+    return (
+        tuple(routes),
+        tuple(middleware),
+        tuple(handlers.items()),
+        tuple(overrides.items()),
+    )
+
+
+def _seal_app_composition(app: FastAPI) -> None:
+    """Record the exact routes, middleware, handlers and (no) overrides that were checked."""
+
+    app.state.control_plane_sealed_composition = _app_composition(app)
+
+
+def _require_sealed_app_composition(app: object) -> None:
+    """Fail closed when the served app differs from the composition that was checked.
+
+    The route inventory is checked once, at construction. A route, middleware,
+    exception handler or dependency override attached to the returned app
+    afterwards never passed that check: it could serve state before admission,
+    replace an admission dependency, or drop the no-store policy.
+    """
+
+    sealed = getattr(getattr(app, "state", None), "control_plane_sealed_composition", None)
+    current = _app_composition(app)
+    if (
+        sealed is None
+        or current is None
+        or len(current) != len(sealed)
+        or any(
+            len(now) != len(then) or any(_differs(a, b) for a, b in zip(now, then, strict=True))
+            for now, then in zip(current, sealed, strict=True)
+        )
+    ):
+        raise RuntimeError("control-plane app composition changed after construction")
+
+
+def _differs(current: object, sealed: object) -> bool:
+    if isinstance(current, tuple) and isinstance(sealed, tuple):
+        return len(current) != len(sealed) or any(a is not b and a != b for a, b in zip(current, sealed, strict=True))
+    return current is not sealed
