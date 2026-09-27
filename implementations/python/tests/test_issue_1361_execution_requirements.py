@@ -9,7 +9,7 @@ from paths import REPO_ROOT
 from pydantic import ValidationError
 from raes import canonical_instantiated_sdl_digest, select_scenario_family
 from raes_backend_protocols.capabilities import OperationSupervisionCapabilities
-from raes_backend_protocols.capability_admission import require_execution_authority_capability
+from raes_backend_protocols.cleanup_admission import require_execution_authority_capability
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model, backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
@@ -239,12 +239,11 @@ def test_sealed_plan_rejects_guarantees_that_contradict_its_choices() -> None:
 def test_required_guarantees_are_canonical() -> None:
     plan = compile_admitted_trial_plan(_request()).plan
     assert plan is not None
-    controls = next(iter(plan.entries.values())).execution_controls.model_dump(mode="json")
+    controls = next(iter(plan.entries.values())).execution_controls
+    unsorted = {**controls.model_dump(mode="json"), "required_guarantees": ["effect-observation", "cancellation"]}
 
     with pytest.raises(ValidationError, match="unique and sorted"):
-        type(next(iter(plan.entries.values())).execution_controls).model_validate(
-            {**controls, "required_guarantees": ["effect-observation", "cancellation"]}
-        )
+        type(controls).model_validate(unsorted)
 
 
 def test_manifest_declaration_requires_the_operation_contract_family() -> None:

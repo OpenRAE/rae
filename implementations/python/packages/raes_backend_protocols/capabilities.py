@@ -331,8 +331,6 @@ def __getattr__(name: str) -> object:
         "participant_feature_support_gaps",
         "participant_runtime_capability_contract_gaps",
         "resolve_participant_feature_support",
-        "require_cleanup_plan_capability",
-        "require_execution_authority_capability",
         "require_time_model_capability",
         "time_capability_contract_gaps",
         "time_model_capability_gaps",
@@ -340,4 +338,8 @@ def __getattr__(name: str) -> object:
         from . import capability_admission
 
         return getattr(capability_admission, name)
+    if name in {"require_cleanup_plan_capability", "require_execution_authority_capability"}:
+        from . import cleanup_admission
+
+        return getattr(cleanup_admission, name)
     raise AttributeError(name)

@@ -12,12 +12,6 @@ from .capabilities import (
     PARTICIPANT_RUNTIME_INTERACTION_FEATURE_SCOPE,
     PARTICIPANT_RUNTIME_ROLE_SCOPE,
 )
-from .cleanup_admission import (
-    require_cleanup_plan_capability as require_cleanup_plan_capability,
-)
-from .cleanup_admission import (
-    require_execution_authority_capability as require_execution_authority_capability,
-)
 from .participant_feature_admission import (
     participant_feature_support_gaps,
     resolve_participant_feature_support,
