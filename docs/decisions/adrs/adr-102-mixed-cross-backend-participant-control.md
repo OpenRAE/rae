@@ -284,6 +284,66 @@ distinct. No result is promoted between them silently.
 - #1018 executes ASR-537 after #1015, #1016, and #1017.
 - #1019 reconciles claims after #1016, #1017, and #1018.
 
+### 13. Executable mapping and time amendment (#1355, 2026-09-24)
+
+The DRAFT statuses in section 1 record the original #813 decision; SEM-234 is
+now ACTIVE. The published `sem-234/rev1` profile remains a sealed statement of
+intent. Its edge, time, loss, and evidence references are not executable
+services. An admitted mixed action now requires an installed, revision-pinned
+`MixedEdgeExecutionBinding` for its exact directed edge. The binding joins the
+admitted route and time mapping to one source action subject, one destination
+subject, an executable mapper, a time service, and a bridge. The current
+reference runtime requires both compiled action addresses to equal the
+governed request and the destination provider's admitted action allocation.
+The bridge may translate its pinned backend-native subject internally, but
+the mapper cannot alter the portable request's participant identity, action,
+authority, audience, terminal-outcome demand, or other governed fields. A
+missing or mismatched binding refuses before a provider call.
+
+The control plane retains operation ownership and commits the RUN-310/API-423
+decision and exact provider attempt before the bridge runs. The bridge receives
+the owning operation id and may call the selected provider once. The installed
+time service reads the admitted two-clock state, provides a correlated order
+grant, and reads back after execution. Mapping and timing evidence must satisfy
+the admitted edge obligations. The current executable profile admits a proved
+comparison within one clock segment; an incomparable or unproved relation
+refuses. This uses shared time semantics and does not imply a common physical
+clock, hard real-time synchronization, or physical-OT timing guarantees.
+
+Backend execution, destination delivery, and participant observation remain
+separate facts. A correlated bridge execution report requires backend readback;
+delivery additionally requires a destination receipt read through its own
+installed service; observation additionally requires exact participant and
+audience readback. The bridge result, a timestamp, an evidence reference, or
+`ApplyResult.success` alone cannot create either later fact. An authorized
+declared mapping loss appears only with the correlated execution report. A
+known partial result or unresolved delivery is `INDETERMINATE` under the shared
+operation lifecycle, retaining known evidence and blocking dependent work
+until explicit resolution. Idempotent replay returns the original operation;
+it never invokes the bridge again.
+
+A staged membership change requires an installed handoff binding with exact
+source and destination native owners. Its admitted clock mapping receives a
+correlated order grant and typed readback before transfer. A committed native
+transfer must be followed by destination-owner and time readback at the
+expected phase revision before the new phase and handoff fact commit. Failed
+or stale transfer with old-owner readback keeps the prior phase; pending or
+uncertain transfer is `INDETERMINATE` and blocks dependent effects. The store
+claims phase transitions and other mixed effects under one run-scoped
+conflict boundary before external calls. Native ownership remains distinct
+from the RUN-310 acting controller and disclosure authority.
+
+Compatibility is fail closed. Existing `sem-234/rev1` plans and historical
+reference-only records remain readable with their original meaning; their
+mapping refs, success booleans, and timestamps are not reinterpreted as
+executed delivery, observation, or handoff. Pure paths continue under their
+existing operation contract, but also make no unsupported delivery or
+observation claim. This amendment does not change a published schema; the
+executable services are trusted runtime bindings to the already admitted
+profile. Another bridge implementation can use the same binding seam after
+provider-local capability and conformance admission. It receives no authority
+from its name, installation, or manifest claim alone.
+
 ## Consequences
 
 RAES can represent both backend substitution and mixed composition without
@@ -321,3 +381,9 @@ problem and leaves a versioned seam for later work.
 - [Architecture preflight](../issue-813-cross-backend-participant-control-preflight.md)
 - [Research and implementation program](../../research/cross-backend-participant-control/)
 - [SEM-234 and ASR-537 formal design](../../../specs/formal/participant-semantics/cross-backend-participant-control.md)
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-09-24 | #1355 | Required executable mixed mappings, bridge and time coordination, independent stage readback, and native staged handoff while preserving historical reference-only meaning. |

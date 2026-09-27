@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 52.0.0 and rejects duplicate or unsupported
+Current validation requires release 53.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -430,3 +430,9 @@ Release 52.0.0 replays the retained protocol on the source combining issue
 #1360 backend-operation contracts with issue #1358 denied-egress handling in
 [`execution-snapshot-v52.json`](execution-snapshot-v52.json) and
 [`analysis-v52.json`](analysis-v52.json). Earlier captures retain their source identities.
+
+Release 53.0.0 replays the retained offline protocol against issue #1355's
+mixed mapping, time, and handoff implementation in
+[`execution-snapshot-v53.json`](execution-snapshot-v53.json) and
+[`analysis-v53.json`](analysis-v53.json). Mixed runtime effects and recovery
+remain covered by dedicated runtime tests, outside this language corpus.
