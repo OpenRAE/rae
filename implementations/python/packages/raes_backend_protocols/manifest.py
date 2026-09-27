@@ -15,6 +15,7 @@ from raes_contracts.contracts import (
     BackendCapabilitiesV2Model,
     BackendCompatibilityModel,
     BackendManifestV2Model,
+    CleanupCapabilitiesModel,
     ConceptBindingEntryModel,
     EvaluatorCapabilitiesModel,
     OrchestratorCapabilitiesModel,
@@ -22,6 +23,8 @@ from raes_contracts.contracts import (
     ParticipantRuntimeCapabilitiesModel,
     RealizationObservationCapabilityModel,
     RealizationSupportDeclarationModel,
+    RecoveryObservationCapabilitiesModel,
+    TimeCapabilitiesModel,
 )
 from raes_contracts.manifest_authority import BACKEND_SUPPORTED_CONTRACT_IDS
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
@@ -30,13 +33,15 @@ from .capabilities import (
     BackendCapabilitySet,
     BackendCompatibility,
     BackendManifest,
+    CleanupCapabilities,
     EvaluatorCapabilities,
     OrchestratorCapabilities,
     ParticipantFeatureSupport,
     ParticipantRuntimeCapabilities,
+    RecoveryObservationCapabilities,
+    TimeCapabilities,
 )
 from .observation_manifest import observation_capability_payload, observation_from_model
-from .operational_manifest import operational_capabilities_from_model, operational_capability_payloads
 from .participant_execution_manifest import (
     participant_execution_capability_kwargs,
     participant_execution_capability_payload,
@@ -199,7 +204,54 @@ def backend_manifest_v2_model(manifest: BackendManifest) -> BackendManifestV2Mod
                 else None
             ),
             "observation": observation_capability_payload(manifest.observation),
-            **operational_capability_payloads(manifest),
+            "cleanup": (
+                CleanupCapabilitiesModel(
+                    name=manifest.cleanup.name,
+                    supported_contract_versions=sorted(manifest.cleanup.supported_contract_versions),
+                    supported_action_kinds=sorted(manifest.cleanup.supported_action_kinds),
+                    supported_verification_methods=sorted(manifest.cleanup.supported_verification_methods),
+                    supports_reusable_state=manifest.cleanup.supports_reusable_state,
+                    supports_residual_state_disclosure=manifest.cleanup.supports_residual_state_disclosure,
+                ).model_dump(mode="json")
+                if manifest.cleanup is not None
+                else None
+            ),
+            "time": (
+                TimeCapabilitiesModel(
+                    name=manifest.time.name,
+                    supported_contract_versions=sorted(manifest.time.supported_contract_versions),
+                    supported_domain_kinds=sorted(manifest.time.supported_domain_kinds),
+                    supported_authority_kinds=sorted(manifest.time.supported_authority_kinds),
+                    supported_advancement_modes=sorted(manifest.time.supported_advancement_modes),
+                    supported_synchronization_modes=sorted(manifest.time.supported_synchronization_modes),
+                    supported_mapping_kinds=sorted(manifest.time.supported_mapping_kinds),
+                    supported_constraint_kinds=sorted(manifest.time.supported_constraint_kinds),
+                    supported_reset_behaviors=sorted(manifest.time.supported_reset_behaviors),
+                    supported_replay_behaviors=sorted(manifest.time.supported_replay_behaviors),
+                    max_time_domains=manifest.time.max_time_domains,
+                    max_clocks=manifest.time.max_clocks,
+                    supports_pause=manifest.time.supports_pause,
+                    supports_jump=manifest.time.supports_jump,
+                    supports_exact_rational_mappings=manifest.time.supports_exact_rational_mappings,
+                    supports_append_only_history=manifest.time.supports_append_only_history,
+                    supports_run_provenance=manifest.time.supports_run_provenance,
+                    supports_coordinated_participant_reset=(manifest.time.supports_coordinated_participant_reset),
+                    constraints=dict(manifest.time.constraints),
+                ).model_dump(mode="json")
+                if manifest.time is not None
+                else None
+            ),
+            "recovery_observation": (
+                RecoveryObservationCapabilitiesModel(
+                    name=manifest.recovery_observation.name,
+                    supported_operation_kinds=sorted(
+                        manifest.recovery_observation.supported_operation_kinds,
+                        key=lambda kind: kind.value,
+                    ),
+                ).model_dump(mode="json")
+                if manifest.recovery_observation is not None
+                else None
+            ),
         },
     )
 
@@ -312,6 +364,56 @@ def _participant_runtime_from_model(
     )
 
 
+def _cleanup_from_model(model: CleanupCapabilitiesModel | None) -> CleanupCapabilities | None:
+    if model is None:
+        return None
+    return CleanupCapabilities(
+        name=model.name,
+        supported_contract_versions=frozenset(model.supported_contract_versions),
+        supported_action_kinds=frozenset(model.supported_action_kinds),
+        supported_verification_methods=frozenset(model.supported_verification_methods),
+        supports_reusable_state=model.supports_reusable_state,
+        supports_residual_state_disclosure=model.supports_residual_state_disclosure,
+    )
+
+
+def _time_from_model(model: TimeCapabilitiesModel | None) -> TimeCapabilities | None:
+    if model is None:
+        return None
+    return TimeCapabilities(
+        name=model.name,
+        supported_contract_versions=frozenset(model.supported_contract_versions),
+        supported_domain_kinds=frozenset(model.supported_domain_kinds),
+        supported_authority_kinds=frozenset(model.supported_authority_kinds),
+        supported_advancement_modes=frozenset(model.supported_advancement_modes),
+        supported_synchronization_modes=frozenset(model.supported_synchronization_modes),
+        supported_mapping_kinds=frozenset(model.supported_mapping_kinds),
+        supported_constraint_kinds=frozenset(model.supported_constraint_kinds),
+        supported_reset_behaviors=frozenset(model.supported_reset_behaviors),
+        supported_replay_behaviors=frozenset(model.supported_replay_behaviors),
+        max_time_domains=model.max_time_domains,
+        max_clocks=model.max_clocks,
+        supports_pause=model.supports_pause,
+        supports_jump=model.supports_jump,
+        supports_exact_rational_mappings=model.supports_exact_rational_mappings,
+        supports_append_only_history=model.supports_append_only_history,
+        supports_run_provenance=model.supports_run_provenance,
+        supports_coordinated_participant_reset=model.supports_coordinated_participant_reset,
+        constraints=dict(model.constraints),
+    )
+
+
+def _recovery_observation_from_model(
+    model: RecoveryObservationCapabilitiesModel | None,
+) -> RecoveryObservationCapabilities | None:
+    if model is None:
+        return None
+    return RecoveryObservationCapabilities(
+        name=model.name,
+        supported_operation_kinds=frozenset(model.supported_operation_kinds),
+    )
+
+
 def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapabilitySet:
     return BackendCapabilitySet(
         provisioner=provisioner_from_model(model.provisioner),
@@ -319,7 +421,9 @@ def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapa
         evaluator=_evaluator_from_model(model.evaluator),
         participant_runtime=_participant_runtime_from_model(model.participant_runtime),
         observation=observation_from_model(model.observation),
-        **operational_capabilities_from_model(model),
+        cleanup=_cleanup_from_model(model.cleanup),
+        time=_time_from_model(model.time),
+        recovery_observation=_recovery_observation_from_model(model.recovery_observation),
     )
 
 
