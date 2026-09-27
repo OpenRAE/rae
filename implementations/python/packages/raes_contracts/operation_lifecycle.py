@@ -37,9 +37,7 @@ class OperationKind(str, Enum):
     INDETERMINATE_RESOLUTION = "indeterminate-resolution"
 
 
-OPERATION_CONTEXT_STRING_MAX_LENGTH = 256
-OPERATION_AUTHORIZATION_SCOPE_MAX_ENTRIES = 64
-_ContextString = Annotated[str, Field(min_length=1, max_length=OPERATION_CONTEXT_STRING_MAX_LENGTH)]
+_ContextString = Annotated[str, Field(min_length=1, max_length=256)]
 _RequestCommitment = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
 
 
@@ -49,10 +47,7 @@ class OperationAdmissionContext(ContractModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     actor_id: _ContextString
-    authorization_scope: tuple[_ContextString, ...] = Field(
-        min_length=1,
-        max_length=OPERATION_AUTHORIZATION_SCOPE_MAX_ENTRIES,
-    )
+    authorization_scope: tuple[_ContextString, ...] = Field(min_length=1, max_length=64)
     target_scope: _ContextString
     run_scope: _ContextString
     operation_kind: OperationKind
@@ -170,8 +165,6 @@ def require_operation_terminal_diagnostics(
 
 __all__ = (
     "LEGAL_OPERATION_TRANSITIONS",
-    "OPERATION_AUTHORIZATION_SCOPE_MAX_ENTRIES",
-    "OPERATION_CONTEXT_STRING_MAX_LENGTH",
     "OperationAdmissionContext",
     "OperationKind",
     "OperationState",

@@ -8,10 +8,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from types import MappingProxyType
 
-from raes_contracts.operation_lifecycle import (
-    OPERATION_AUTHORIZATION_SCOPE_MAX_ENTRIES,
-    OPERATION_CONTEXT_STRING_MAX_LENGTH,
-)
+from pydantic import TypeAdapter, ValidationError
+from raes_contracts.operation_lifecycle import OperationAdmissionContext
 
 from .control_plane_operation_context import operation_actor_scope
 
@@ -116,6 +114,13 @@ def _require_identity_headers(verified: str, identity: str) -> None:
         raise ValueError("identity headers must be distinct and must not alias Authorization")
 
 
+# The operation context owns these bounds; reuse its field constraints directly.
+_OPERATION_ACTOR = TypeAdapter(OperationAdmissionContext.model_fields["actor_id"].rebuild_annotation())
+_OPERATION_AUTHORIZATION_SCOPE = TypeAdapter(
+    OperationAdmissionContext.model_fields["authorization_scope"].rebuild_annotation()
+)
+
+
 def _require_principal_shape(principal: ControlPlaneIdentity) -> None:
     """Reject configured principals whose authority fields are mistyped or mutable.
 
@@ -139,12 +144,14 @@ def _require_principal_shape(principal: ControlPlaneIdentity) -> None:
     # Reuse the canonical actor/scope derivation so an over-bound principal
     # fails here rather than at its first admitted request or audit event.
     actor, authorization_scope = operation_actor_scope(principal)
-    if len(actor) > OPERATION_CONTEXT_STRING_MAX_LENGTH:
-        raise ValueError("configured principal identity exceeds the operation-context bound")
-    if len(authorization_scope) > OPERATION_AUTHORIZATION_SCOPE_MAX_ENTRIES or any(
-        len(entry) > OPERATION_CONTEXT_STRING_MAX_LENGTH for entry in authorization_scope
-    ):
-        raise ValueError("configured principal authorization scope exceeds the operation-context bound")
+    try:
+        _OPERATION_ACTOR.validate_python(actor)
+    except ValidationError:
+        raise ValueError("configured principal identity exceeds the operation-context bound") from None
+    try:
+        _OPERATION_AUTHORIZATION_SCOPE.validate_python(authorization_scope)
+    except ValidationError:
+        raise ValueError("configured principal authorization scope exceeds the operation-context bound") from None
 
 
 def _frozen_principals(principals: Mapping[str, ControlPlaneIdentity]) -> Mapping[str, ControlPlaneIdentity]:

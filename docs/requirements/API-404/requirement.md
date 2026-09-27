@@ -140,7 +140,6 @@ identifies those implementation gaps and the retained canonical requirements.
 - DOCUMENTS → GITHUB_ISSUE `1359` (Enforce the accepted runtime API trust boundary)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1359-runtime-api-trust-boundary-preflight.md` (Administrative-only P2 enforcement guardrails and route authority matrix)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_security.py` (Route transport-authority roles, unambiguous subject bindings and fail-closed configured-principal shape and bound validation)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/operation_lifecycle.py` (Operation-context bounds reused by configured-principal validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_auth.py` (One declared transport authority per served route and fail-closed route inventory)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/__init__.py` (Route-authority inventory enforced at app construction and exposed to the embedder)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_guards.py` (Application-wide `Cache-Control: no-store` boundary)
