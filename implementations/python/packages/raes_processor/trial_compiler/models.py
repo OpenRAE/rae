@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from raes.canonical import canonical_sdl_digest
 from raes.scenario import ExpandedScenario
-from raes_backend_protocols.capabilities import ObservationCapabilities
+from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedApparatusBindingModel,
@@ -41,7 +41,7 @@ class _EntryCompilationAuthority:
     """Per-entry authorities selected once for a compiler invocation."""
 
     descriptors: Mapping[str, ExperimentBindingDescriptorModel] | None
-    observations_by_profile: Mapping[str, tuple[ObservationCapabilities | None, ...]]
+    backends_by_profile: Mapping[str, tuple[BackendManifest, ...]]
     apparatus_manifests_by_profile: Mapping[str, Mapping[ApparatusManifestKey, ApparatusManifest]]
     participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel]
 

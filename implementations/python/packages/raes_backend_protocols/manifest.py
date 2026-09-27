@@ -18,6 +18,7 @@ from raes_contracts.contracts import (
     CleanupCapabilitiesModel,
     ConceptBindingEntryModel,
     EvaluatorCapabilitiesModel,
+    OperationSupervisionCapabilitiesModel,
     OrchestratorCapabilitiesModel,
     ParticipantFeatureSupportModel,
     ParticipantRuntimeCapabilitiesModel,
@@ -35,6 +36,7 @@ from .capabilities import (
     BackendManifest,
     CleanupCapabilities,
     EvaluatorCapabilities,
+    OperationSupervisionCapabilities,
     OrchestratorCapabilities,
     ParticipantFeatureSupport,
     ParticipantRuntimeCapabilities,
@@ -252,6 +254,14 @@ def backend_manifest_v2_model(manifest: BackendManifest) -> BackendManifestV2Mod
                 if manifest.recovery_observation is not None
                 else None
             ),
+            "operation_supervision": (
+                OperationSupervisionCapabilitiesModel(
+                    name=manifest.operation_supervision.name,
+                    guarantees=sorted(manifest.operation_supervision.guarantees),
+                ).model_dump(mode="json")
+                if manifest.operation_supervision is not None
+                else None
+            ),
         },
     )
 
@@ -414,6 +424,14 @@ def _recovery_observation_from_model(
     )
 
 
+def _operation_supervision_from_model(
+    model: OperationSupervisionCapabilitiesModel | None,
+) -> OperationSupervisionCapabilities | None:
+    if model is None:
+        return None
+    return OperationSupervisionCapabilities(name=model.name, guarantees=frozenset(model.guarantees))
+
+
 def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapabilitySet:
     return BackendCapabilitySet(
         provisioner=provisioner_from_model(model.provisioner),
@@ -424,6 +442,7 @@ def _capability_set_from_model(model: BackendCapabilitiesV2Model) -> BackendCapa
         cleanup=_cleanup_from_model(model.cleanup),
         time=_time_from_model(model.time),
         recovery_observation=_recovery_observation_from_model(model.recovery_observation),
+        operation_supervision=_operation_supervision_from_model(model.operation_supervision),
     )
 
 

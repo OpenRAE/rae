@@ -485,6 +485,30 @@ def require_cleanup_plan_capability(manifest: BackendManifest, plan: TrialCleanu
         raise ValueError("required cleanup needs backend residual-state disclosure")
 
 
+def require_execution_authority_capability(
+    manifest: BackendManifest,
+    *,
+    cleanup_plan: TrialCleanupPlanModel,
+    required_guarantees: Iterable[str],
+) -> None:
+    """Fail admission when a backend cannot honour a trial's authored execution choices.
+
+    The cleanup plan must be supported, and every operation guarantee derived
+    from the choices must be declared. A missing declaration is refusal, never
+    best effort. Runtime admission still rechecks the installed provider.
+    """
+
+    require_cleanup_plan_capability(manifest, cleanup_plan)
+    required = set(required_guarantees)
+    if not required:
+        return
+    supervision = manifest.operation_supervision
+    declared = supervision.guarantees if supervision is not None else frozenset()
+    missing = sorted(required - declared)
+    if missing:
+        raise ValueError(f"unsupported operation guarantees: {', '.join(missing)}")
+
+
 __all__ = [
     "participant_feature_support_gaps",
     "resolve_participant_feature_support",

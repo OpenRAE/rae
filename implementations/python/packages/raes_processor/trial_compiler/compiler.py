@@ -8,7 +8,9 @@ from raes import (
     ExpandedScenarioBindingTargetResolver,
     validate_experiment_selection_against_family,
 )
+from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.capabilities import ObservationCapabilities
+from raes_backend_protocols.capability_admission import require_execution_authority_capability
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import (
@@ -27,6 +29,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationManifestModel,
     TrialCleanupPlanModel,
     TrialCoordinateModel,
+    required_operation_guarantees,
     seal_admitted_trial_entry,
     seal_admitted_trial_plan,
 )
@@ -211,13 +214,43 @@ def _require_capture_admission(
         raise _CaptureAdmissionFailure(tuple(diagnostics))
 
 
+def _require_execution_authority(
+    backends: tuple[BackendManifest, ...],
+    cleanup: TrialCleanupPlanModel,
+    required_guarantees: tuple[str, ...],
+) -> None:
+    """Every selected backend must honour the authored timeout, cleanup and retry choices.
+
+    An entry that selects no backend has nothing that could honour them, so it is
+    refused rather than admitted vacuously.
+    """
+
+    if not backends:
+        raise _fail(
+            "execution-authority-unsupported",
+            "/execution_authority",
+            "a selected backend cannot honour the admitted execution authority",
+        )
+    for backend in backends:
+        try:
+            require_execution_authority_capability(
+                backend, cleanup_plan=cleanup, required_guarantees=required_guarantees
+            )
+        except ValueError as exc:
+            raise _fail(
+                "execution-authority-unsupported",
+                "/execution_authority",
+                "a selected backend cannot honour the admitted execution authority",
+            ) from exc
+
+
 def _compile_entry(
     request: TrialCompilationRequest,
     plan_id: str,
     row: CoordinateSelections,
     coordinate: TrialCoordinateModel,
     descriptors: Mapping[str, ExperimentBindingDescriptorModel],
-    observations: tuple[ObservationCapabilities | None, ...],
+    backends: tuple[BackendManifest, ...],
 ) -> tuple[str, AdmittedTrialEntryModel, str, TrialCleanupPlanModel]:
     realization = request.realization_assignments.get(realization_assignment_key(coordinate))
     selected = _validate_selected_scenario(request, row, coordinate)
@@ -234,7 +267,7 @@ def _compile_entry(
             relations,
             relation_scenario=request.family,
         ),
-        observations,
+        tuple(backend.observation for backend in backends),
     )
     identity_projection = {
         "plan_id": plan_id,
@@ -258,6 +291,8 @@ def _compile_entry(
         plan_entry_id=entry_id,
         run_id=run_id,
     )
+    required_guarantees = required_operation_guarantees(request.execution_authority.on_timeout, cleanup.retry_policy)
+    _require_execution_authority(backends, cleanup, required_guarantees)
     bindings = _entry_bindings(request, row, coordinate, descriptors)
     if len(row.draws) > request.limits.max_draws_per_entry:
         raise _fail(
@@ -278,6 +313,7 @@ def _compile_entry(
             on_timeout=request.execution_authority.on_timeout,
             on_cancellation=request.execution_authority.on_cancellation,
             cleanup_plan_ref=cleanup_id,
+            required_guarantees=required_guarantees,
         ),
         instantiation_provenance=AdmittedInstantiationProvenanceModel(
             plan_id=plan_id,
@@ -316,7 +352,7 @@ def _compile_coordinate(
         row,
         coordinate,
         descriptors,
-        authority.observations_by_profile[profile_id],
+        authority.backends_by_profile[profile_id],
     )
 
 
@@ -389,12 +425,12 @@ def _compile(
         authority = validate_mixed_authority(request)
         apparatus_manifests_by_profile = authority.apparatus_manifests_by_root
         participant_manifests = authority.participant_manifests
-        observations_by_profile = {
+        backends_by_profile = {
             profile_id: tuple(
                 backend_manifest_from_v2_model_with_envelope(
                     manifest,
                     request.mixed_realization_envelopes[manifest.realization_envelope.envelope_id],
-                ).observation
+                )
                 for manifest in manifests
             )
             for profile_id, manifests in authority.backend_manifests_by_root.items()
@@ -403,9 +439,9 @@ def _compile(
         apparatus_manifests = validate_selected_apparatus(request)
         apparatus_manifests_by_profile = {"": apparatus_manifests}
         participant_manifests = validate_selected_participant_manifests(request)
-        observations_by_profile = {
+        backends_by_profile = {
             "": tuple(
-                backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope).observation
+                backend_manifest_from_v2_model_with_envelope(backend, request.realization_envelope)
                 for backend in sorted(
                     (
                         manifest
@@ -437,7 +473,7 @@ def _compile(
         traversal,
         compiler_models._EntryCompilationAuthority(
             descriptors=descriptors,
-            observations_by_profile=observations_by_profile,
+            backends_by_profile=backends_by_profile,
             apparatus_manifests_by_profile=apparatus_manifests_by_profile,
             participant_manifests=participant_manifests,
         ),

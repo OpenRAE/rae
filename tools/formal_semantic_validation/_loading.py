@@ -83,6 +83,7 @@ def load_release_bundles(repo_root: Path = REPO_ROOT) -> list[EvidenceRelease]:
         "51.0.0",
         "52.0.0",
         "53.0.0",
+        "54.0.0",
     }:
         raise ValueError("formal evidence requires every supported historical and current release")
     releases: list[EvidenceRelease] = []
@@ -129,6 +130,6 @@ def load_retest_bundle(
     if not releases:
         raise ValueError("the formal semantic-validation index selects no v2 retest release")
     release = max(releases, key=lambda item: revision_key(item.manifest.get("revision")))
-    if release.manifest.get("revision") != "53.0.0" or release.protocol.get("revision") != "2.0.0":
-        raise ValueError("the current formal evidence release must be the explicit 53.0.0 retest")
+    if release.manifest.get("revision") != "54.0.0" or release.protocol.get("revision") != "2.0.0":
+        raise ValueError("the current formal evidence release must be the explicit 54.0.0 retest")
     return release, release.protocol, release.corpus, release.snapshot, release.analysis

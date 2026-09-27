@@ -20,6 +20,7 @@ from ..manifest_authority import (
 from ..operation_lifecycle import OperationKind
 from ..versions import PROCESSOR_MANIFEST_V2_SCHEMA_VERSION
 from ..vocabulary import ConceptFamilyId, ParticipantFeatureSupportLevel, ProcessorFeature
+from .backend_operation import OperationGuarantee
 from .base import _PROCESSOR_CONCEPT_BINDING_SCOPES, ContractModel, NonEmptyString
 from .capabilities import (
     ApparatusIdentityModel,
@@ -430,6 +431,23 @@ class RecoveryObservationCapabilitiesModel(ContractModel):
         return self
 
 
+class OperationSupervisionCapabilitiesModel(ContractModel):
+    """Static declaration of the backend operation guarantees a backend provides.
+
+    Planning compares authored execution choices with this declaration. It is
+    neither contextual willingness nor evidence: runtime admission still checks
+    the installed provider's capabilities and willingness before each dispatch.
+    """
+
+    name: NonEmptyString
+    guarantees: list[OperationGuarantee] = Field(min_length=1, max_length=5, json_schema_extra={"uniqueItems": True})
+
+    @model_validator(mode="after")
+    def _validate_guarantees(self) -> OperationSupervisionCapabilitiesModel:
+        _validate_unique_string_values("operation supervision guarantees", self.guarantees)
+        return self
+
+
 class BackendCapabilitiesV2Model(ContractModel):
     provisioner: ProvisionerCapabilitiesModel
     orchestrator: OrchestratorCapabilitiesModel | None = None
@@ -439,6 +457,10 @@ class BackendCapabilitiesV2Model(ContractModel):
     cleanup: CleanupCapabilitiesModel | None = None
     time: TimeCapabilitiesModel | None = None
     recovery_observation: RecoveryObservationCapabilitiesModel | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
+    operation_supervision: OperationSupervisionCapabilitiesModel | None = Field(
         default=None,
         exclude_if=lambda value: value is None,
     )

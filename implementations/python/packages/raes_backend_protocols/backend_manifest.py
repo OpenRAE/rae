@@ -9,12 +9,14 @@ from typing import TypedDict, TypeVar, Unpack
 from raes_contracts.apparatus import ApparatusIdentity, ConceptBinding, RealizationSupportDeclaration
 from raes_contracts.manifest_authority import validate_backend_supported_contract_versions
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
+from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
 
 from .capabilities import (
     BackendCapabilitySet,
     CleanupCapabilities,
     EvaluatorCapabilities,
     ObservationCapabilities,
+    OperationSupervisionCapabilities,
     OrchestratorCapabilities,
     ParticipantRuntimeCapabilities,
     ProvisionerCapabilities,
@@ -55,6 +57,7 @@ class _BackendManifestOptions(TypedDict, total=False):
     cleanup: CleanupCapabilities | None
     time: TimeCapabilities | None
     recovery_observation: RecoveryObservationCapabilities | None
+    operation_supervision: OperationSupervisionCapabilities | None
     realization_envelope: BackendRealizationEnvelopeModel | None
     domain_profile_context_digest: str | None
 
@@ -81,6 +84,7 @@ class BackendManifest:
         supported_contract_versions = _validate_supported_contract_versions(options)
         _validate_cleanup_capability_contracts(supported_contract_versions, capabilities.cleanup)
         _validate_time_capability_contracts(supported_contract_versions, capabilities.time)
+        _validate_operation_supervision_contracts(supported_contract_versions, capabilities.operation_supervision)
         _validate_coordinated_reset_capabilities(capabilities)
         realization_envelope = options.get("realization_envelope")
         _validate_realization_envelope_contract(supported_contract_versions, realization_envelope)
@@ -145,6 +149,10 @@ class BackendManifest:
     @property
     def recovery_observation(self) -> RecoveryObservationCapabilities | None:
         return self.capabilities.recovery_observation
+
+    @property
+    def operation_supervision(self) -> OperationSupervisionCapabilities | None:
+        return self.capabilities.operation_supervision
 
     @property
     def has_orchestrator(self) -> bool:
@@ -223,6 +231,7 @@ def _resolve_capabilities(options: _BackendManifestOptions) -> BackendCapability
         cleanup=options.get("cleanup"),
         time=options.get("time"),
         recovery_observation=options.get("recovery_observation"),
+        operation_supervision=options.get("operation_supervision"),
     )
 
 
@@ -245,6 +254,17 @@ def _validate_realization_envelope_contract(
         raise ValueError("realization_envelope requires realization-envelope-v1 support")
     if envelope_contract_declared and realization_envelope is None:
         raise ValueError("realization-envelope-v1 support requires realization_envelope")
+
+
+def _validate_operation_supervision_contracts(
+    supported_contract_versions: frozenset[str],
+    operation_supervision: OperationSupervisionCapabilities | None,
+) -> None:
+    if (
+        operation_supervision is not None
+        and not frozenset(BACKEND_OPERATION_CONTRACT_IDS) <= supported_contract_versions
+    ):
+        raise ValueError("operation supervision capabilities require the backend operation contract family")
 
 
 def _validate_cleanup_capability_contracts(

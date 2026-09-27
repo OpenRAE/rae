@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 53.0.0, rejects unsupported future
+Current validation requires explicit release 54.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -494,3 +494,8 @@ Release 53.0.0 replays the retained controls on the source combining issue
 #1360 backend-operation contracts with issue #1358 denied-egress handling in
 [`execution-snapshot-v52.json`](execution-snapshot-v52.json) and
 [`analysis-v52.json`](analysis-v52.json). Earlier captures retain their source identities.
+
+Release 54.0.0 replays the retained controls on the source that adds issue
+#1361 trial execution-authority admission, in
+[`execution-snapshot-v53.json`](execution-snapshot-v53.json) and
+[`analysis-v53.json`](analysis-v53.json). Earlier captures retain their source identities.
