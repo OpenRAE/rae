@@ -38,7 +38,7 @@ effect prerequisites. They require exact protocol/schema negotiation and a
 trusted operator resolver. The current reference runtime and retained v1
 history continue to use provider/v1; v2 publication alone does not activate
 v2 scheduling, state commit or effect dispatch. See the
-[migration rules](../migration/control-applicability-and-evaluation.md).
+[migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
 
 | Plane | What it contains | What it does not imply |
 | --- | --- | --- |
