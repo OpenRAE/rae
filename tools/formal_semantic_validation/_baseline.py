@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from tools.evidence_bundle_index import load_index_records
+from tools.formal_semantic_validation._release_revisions import _HISTORICAL_RETEST_REVISIONS
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
@@ -30,61 +31,7 @@ _ADDITIONAL_ARCHIVE_PINS_PATH = "docs/research/formal-semantic-validation/histor
 _ADDITIONAL_ARCHIVE_PINS_SHA256 = "04b4a1cdfa8c76ccbc536e87365e9343bec4fb8dcde712c15a6535c6e927352a"
 
 _DRIFT_COMPARISON_KEYS = ("actual_outcome", "diagnostic_kind", "result_digest")
-_V2_REVISIONS = frozenset(
-    {
-        "3.0.0",
-        "4.0.0",
-        "5.0.0",
-        "6.0.0",
-        "7.0.0",
-        "8.0.0",
-        "9.0.0",
-        "10.0.0",
-        "11.0.0",
-        "12.0.0",
-        "13.0.0",
-        "14.0.0",
-        "15.0.0",
-        "16.0.0",
-        "17.0.0",
-        "18.0.0",
-        "19.0.0",
-        "20.0.0",
-        "21.0.0",
-        "22.0.0",
-        "23.0.0",
-        "24.0.0",
-        "25.0.0",
-        "26.0.0",
-        "27.0.0",
-        "28.0.0",
-        "29.0.0",
-        "30.0.0",
-        "31.0.0",
-        "32.0.0",
-        "33.0.0",
-        "34.0.0",
-        "35.0.0",
-        "36.0.0",
-        "37.0.0",
-        "38.0.0",
-        "39.0.0",
-        "40.0.0",
-        "41.0.0",
-        "42.0.0",
-        "43.0.0",
-        "44.0.0",
-        "45.0.0",
-        "46.0.0",
-        "47.0.0",
-        "48.0.0",
-        "49.0.0",
-        "50.0.0",
-        "51.0.0",
-        "52.0.0",
-        "53.0.0",
-    }
-)
+_V2_REVISIONS = _HISTORICAL_RETEST_REVISIONS
 _V3_CORPUS_REVISIONS = frozenset(
     {
         "16.0.0",
@@ -242,6 +189,7 @@ def _selected_baseline_manifest(
         "51.0.0",
         "52.0.0",
         "53.0.0",
+        "54.0.0",
     }:
         expected_corpus_path = "docs/research/formal-semantic-validation/corpus/manifest-v4.json"
     elif baseline_revision in _V3_CORPUS_REVISIONS:

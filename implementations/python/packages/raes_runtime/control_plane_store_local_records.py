@@ -12,6 +12,7 @@ from .control_plane_store import (
     _raise_new_claim_block,
     _require_operation_record_transition,
     _require_same_idempotency_replay,
+    mixed_claim_conflicts,
     require_idempotency_key,
 )
 from .control_plane_store_local_codec import decode_payload as _decode_payload
@@ -73,6 +74,8 @@ class LocalOperationRecordStoreMixin:
                     return existing
             if new_claim_blocked:
                 _raise_new_claim_block(new_claim_blocked)
+            if mixed_claim_conflicts(record, self._load_records(connection).values()):
+                _raise_new_claim_block("current-state")
             existing = self._load_record(connection, record.receipt.operation_id)
             if _require_operation_record_transition(existing, record):
                 self._upsert_record(connection, record)

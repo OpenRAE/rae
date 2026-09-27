@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import replace
 from uuid import uuid4
 
@@ -13,7 +14,13 @@ from raes_contracts.contracts.mixed_runtime import (
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
-from raes_contracts.runtime_state import OperationKind, OperationReceipt, OperationState, OperationStatus
+from raes_contracts.runtime_state import (
+    OperationKind,
+    OperationReceipt,
+    OperationState,
+    OperationStatus,
+    operation_terminal_diagnostics,
+)
 
 from .control_plane_execution import _utc_now
 from .control_plane_mutation import external_control_plane_call
@@ -21,6 +28,7 @@ from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .mixed_runtime import MixedPhaseTransitionEvaluation, MixedRuntimeBinding
+from .mixed_runtime_handoff_execution import _HandoffResolution, _perform_handoff
 from .mixed_runtime_state import append_runtime_events, runtime_state
 
 _OUTSTANDING_STATES = {OperationState.ACCEPTED, OperationState.RUNNING, OperationState.INDETERMINATE}
@@ -34,7 +42,8 @@ def _mixed_runtime_is_quiescent(control_plane: object, run_id: str, history_key:
         context = record.status.context
         if (
             context.run_scope == run_scope
-            and context.operation_kind in {OperationKind.PARTICIPANT_ACTION, OperationKind.PARTICIPANT_CROSSING}
+            and context.operation_kind
+            in {OperationKind.PARTICIPANT_ACTION, OperationKind.PARTICIPANT_CROSSING, OperationKind.COMPOSITION_PHASE}
             and record.status.state in _OUTSTANDING_STATES
             and (history_key in record.decision_history_heads or history_key in record.result_history_heads)
         ):
@@ -47,7 +56,7 @@ def _evaluate(control_plane: object, transition: object, state: object) -> Mixed
     evaluator = binding.transition_evaluators[transition.evaluator_ref]
     try:
         with external_control_plane_call(control_plane):
-            evaluation = evaluator(transition, state, control_plane._snapshot)
+            evaluation = evaluator(deepcopy(transition), deepcopy(state), deepcopy(control_plane._snapshot))
     except Exception:
         evaluation = _failed_evaluation("order:evaluator-failed")
     if isinstance(evaluation, MixedPhaseTransitionEvaluation):
@@ -162,29 +171,15 @@ def _phase_outcome(
     state: MixedCompositionRuntimeStateModel,
     evaluation: MixedPhaseTransitionEvaluation,
     operation_id: str,
+    handoff: _HandoffResolution | None,
 ) -> tuple[list[MixedCompositionRuntimeEventModel], OperationState, Diagnostic | None]:
     common = _phase_event_fields(state, transition, evaluation)
-    if not evaluation.permitted:
-        failure = MixedCompositionRuntimeEventModel(
-            event_id=f"composition:{operation_id}:failure",
-            event_kind="failure",
-            disposition="denied",
-            predecessor_event_id=state.history_head,
-            phase_id=state.phase_id,
-            phase_revision=state.phase_revision,
-            active_component_ids=state.active_component_ids,
-            active_allocation_ids=state.active_allocation_ids,
-            active_edge_ids=state.active_edge_ids,
-            **common,
-        )
-        diagnostic = Diagnostic(
-            code="runtime.mixed-composition-transition-denied",
-            domain="runtime",
-            address=f"mixed-composition.{state.run_id}",
-            message="The admitted phase transition evaluator did not permit progression.",
-        )
-        return [failure], OperationState.FAILED, diagnostic
     target = binding.profile.phases[transition.target_phase_id]
+    needs_handoff = set(state.active_component_ids) != set(target.active_component_ids)
+    if not evaluation.permitted or (
+        needs_handoff and handoff is not None and handoff.state is not OperationState.SUCCEEDED
+    ):
+        return _denied_phase_outcome(state, evaluation, operation_id, handoff, common)
     phase = MixedCompositionRuntimeEventModel(
         event_id=f"composition:{operation_id}:phase",
         event_kind="phase-transition",
@@ -197,14 +192,52 @@ def _phase_outcome(
         active_edge_ids=target.active_edge_ids,
         **common,
     )
-    handoff = phase.model_copy(
+    if not needs_handoff:
+        return [phase], OperationState.SUCCEEDED, None
+    assert handoff is not None
+    event = phase.model_copy(
         update={
             "event_id": f"composition:{operation_id}:handoff",
             "event_kind": "handoff",
             "predecessor_event_id": phase.event_id,
+            "component_id": handoff.destination_component_id,
+            "order_ref": handoff.order_ref,
+            "evidence_refs": list(handoff.evidence_refs),
         }
     )
-    return [phase, handoff], OperationState.SUCCEEDED, None
+    return [phase, event], OperationState.SUCCEEDED, None
+
+
+def _denied_phase_outcome(
+    state: MixedCompositionRuntimeStateModel,
+    evaluation: MixedPhaseTransitionEvaluation,
+    operation_id: str,
+    handoff: _HandoffResolution | None,
+    common: dict[str, object],
+) -> tuple[list[MixedCompositionRuntimeEventModel], OperationState, Diagnostic]:
+    terminal_state = handoff.state if evaluation.permitted and handoff is not None else OperationState.FAILED
+    if evaluation.permitted and handoff is not None:
+        common["order_ref"] = handoff.order_ref
+        common["evidence_refs"] = list(dict.fromkeys([*evaluation.evidence_refs, *handoff.evidence_refs]))
+    failure = MixedCompositionRuntimeEventModel(
+        event_id=f"composition:{operation_id}:failure",
+        event_kind="failure",
+        disposition="indeterminate" if terminal_state is OperationState.INDETERMINATE else "denied",
+        predecessor_event_id=state.history_head,
+        phase_id=state.phase_id,
+        phase_revision=state.phase_revision,
+        active_component_ids=state.active_component_ids,
+        active_allocation_ids=state.active_allocation_ids,
+        active_edge_ids=state.active_edge_ids,
+        **common,
+    )
+    diagnostic = Diagnostic(
+        code="runtime.mixed-composition-transition-denied",
+        domain="runtime",
+        address=f"mixed-composition.{state.run_id}",
+        message="The admitted phase transition or required executable handoff did not permit progression.",
+    )
+    return [failure], terminal_state, diagnostic
 
 
 def advance_mixed_composition(
@@ -233,7 +266,10 @@ def advance_mixed_composition(
     if claimed.receipt.operation_id != operation_id:
         return claimed.receipt
     evaluation = _evaluate(control_plane, transition, state)
-    events, terminal_state, diagnostic = _phase_outcome(binding, transition, state, evaluation, operation_id)
+    handoff = (
+        _perform_handoff(control_plane, binding, transition, state, operation_id) if evaluation.permitted else None
+    )
+    events, terminal_state, diagnostic = _phase_outcome(binding, transition, state, evaluation, operation_id, handoff)
     snapshot = append_runtime_events(binding, control_plane._snapshot, state, events)
     terminal = replace(
         running,
@@ -241,7 +277,7 @@ def advance_mixed_composition(
             running.status,
             state=terminal_state,
             updated_at=_utc_now(),
-            diagnostics=[] if diagnostic is None else [diagnostic],
+            diagnostics=operation_terminal_diagnostics(terminal_state, [] if diagnostic is None else [diagnostic]),
         ),
         result_history_heads={history_key: events[-1].event_id},
     )
@@ -249,10 +285,10 @@ def advance_mixed_composition(
         timestamp=terminal.status.updated_at,
         action="advance_mixed_composition",
         identity=context.actor_id,
-        allowed=evaluation.permitted,
+        allowed=terminal_state is OperationState.SUCCEEDED,
         target=context.target_scope,
         operation_id=operation_id,
-        reason="committed" if evaluation.permitted else "transition-denied",
+        reason="committed" if terminal_state is OperationState.SUCCEEDED else "transition-denied",
     )
     control_plane._commit_participant_transition(
         expected_history_heads={history_key: state.history_head},

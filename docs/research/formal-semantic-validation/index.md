@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 54.0.0, rejects unsupported future
+Current validation requires explicit release 55.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -495,7 +495,14 @@ Release 53.0.0 replays the retained controls on the source combining issue
 [`execution-snapshot-v52.json`](execution-snapshot-v52.json) and
 [`analysis-v52.json`](analysis-v52.json). Earlier captures retain their source identities.
 
-Release 54.0.0 replays the retained controls on the source that adds issue #1359
-runtime API trust-boundary enforcement in
+Release 54.0.0 replays the retained formal controls against issue #1355's mixed
+mapping, time, and handoff implementation in
 [`execution-snapshot-v53.json`](execution-snapshot-v53.json) and
-[`analysis-v53.json`](analysis-v53.json). Earlier captures retain their source identities.
+[`analysis-v53.json`](analysis-v53.json). Mixed runtime effects and recovery
+remain covered by dedicated runtime tests, outside this formal corpus.
+
+Release 55.0.0 is recorded in
+[`execution-snapshot-v54.json`](execution-snapshot-v54.json) and
+[`analysis-v54.json`](analysis-v54.json). It replays the retained formal cases
+after issue #1389 admitted the exact participant inject delivery address as a
+temporal subject. Outcomes and bounded claim limits remain unchanged.

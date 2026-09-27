@@ -43,6 +43,8 @@ from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .mixed_runtime_edge import MixedEdgeExecutionBinding
+from .mixed_runtime_handoff import MixedHandoffBinding
 from .registry import RuntimeTarget
 
 
@@ -76,6 +78,8 @@ class MixedRuntimeBinding:
     context: MixedCompositionResolutionContext
     components: Mapping[str, MixedRuntimeComponent]
     transition_evaluators: Mapping[str, Callable[..., MixedPhaseTransitionEvaluation]] = field(default_factory=dict)
+    edge_bindings: Mapping[str, MixedEdgeExecutionBinding] = field(default_factory=dict)
+    handoff_bindings: Mapping[str, MixedHandoffBinding] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         plan = revalidate_admitted_trial_plan(self.plan)
@@ -83,9 +87,79 @@ class MixedRuntimeBinding:
         validate_mixed_composition_context(self.profile, self.context, require_trial_admission=True)
         _require_bound_components(self.profile, self.components)
         _require_transition_evaluators(self.profile, self.transition_evaluators)
+        if set(self.edge_bindings) - set(self.profile.edges):
+            raise ValueError("mixed runtime edge bindings must name admitted edges")
+        if set(self.handoff_bindings) - set(self.profile.transitions):
+            raise ValueError("mixed runtime handoff bindings must name admitted transitions")
+        for transition_id, handoff in self.handoff_bindings.items():
+            self._require_handoff_binding(transition_id, handoff)
+        for edge_id, installed in self.edge_bindings.items():
+            self._require_edge_binding(edge_id, installed)
         object.__setattr__(self, "plan", plan)
         object.__setattr__(self, "components", MappingProxyType(dict(self.components)))
         object.__setattr__(self, "transition_evaluators", MappingProxyType(dict(self.transition_evaluators)))
+        object.__setattr__(self, "edge_bindings", MappingProxyType(dict(self.edge_bindings)))
+        object.__setattr__(self, "handoff_bindings", MappingProxyType(dict(self.handoff_bindings)))
+
+    def _require_handoff_binding(self, transition_id: str, handoff: MixedHandoffBinding) -> None:
+        if not isinstance(handoff, MixedHandoffBinding):
+            raise TypeError("executable handoff must be a typed installed binding")
+        transition = self.profile.transitions[transition_id]
+        source = self.profile.phases[transition.source_phase_id]
+        target = self.profile.phases[transition.target_phase_id]
+        if {handoff.source_component_id, handoff.destination_component_id} - self.profile.components.keys():
+            raise ValueError("executable handoff differs from admitted transition ownership")
+        ownership = (
+            handoff.transition_id,
+            {handoff.source_component_id},
+            {handoff.destination_component_id},
+            handoff.source_owner_ref,
+            handoff.destination_owner_ref,
+        )
+        admitted = (
+            transition_id,
+            set(source.active_component_ids) - set(target.active_component_ids),
+            set(target.active_component_ids) - set(source.active_component_ids),
+            self.profile.components[handoff.source_component_id].native_ownership_ref,
+            self.profile.components[handoff.destination_component_id].native_ownership_ref,
+        )
+        if ownership != admitted:
+            raise ValueError("executable handoff differs from admitted transition ownership")
+        time_model = self.context.time_models.get(handoff.time_model_ref)
+        if time_model is None:
+            raise ValueError("executable handoff time binding is unresolved")
+        if (
+            self.context.time_model_digests.get(handoff.time_model_ref) != handoff.time_model_digest
+            or handoff.mapping_ref not in time_model.mappings
+            or handoff.source_clock_address not in time_model.clocks
+            or handoff.destination_clock_address not in time_model.clocks
+        ):
+            raise ValueError("executable handoff time binding is unresolved")
+        mapping = time_model.mappings[handoff.mapping_ref]
+        domains = (mapping.source_domain_address, mapping.target_domain_address)
+        clock_domains = (
+            time_model.clocks[handoff.source_clock_address].time_domain_address,
+            time_model.clocks[handoff.destination_clock_address].time_domain_address,
+        )
+        if domains != clock_domains:
+            raise ValueError("executable handoff clock mapping differs from admission")
+
+    def _require_edge_binding(self, edge_id: str, installed: MixedEdgeExecutionBinding) -> None:
+        if not isinstance(installed, MixedEdgeExecutionBinding):
+            raise TypeError("executable edge binding must be a typed installed binding")
+        edge = self.profile.edges[edge_id]
+        if (
+            installed.edge_id,
+            installed.bridge_ref,
+            installed.mapping_ref,
+            installed.mapping_loss_ref,
+        ) != (
+            edge_id,
+            edge.routing_ref,
+            edge.time_binding.mapping_address,
+            edge.mapping_loss.limitation_ref,
+        ):
+            raise ValueError("executable edge binding differs from admitted edge")
 
     @property
     def entry(self) -> AdmittedTrialEntryModel:
