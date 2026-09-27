@@ -3,7 +3,10 @@
 This package is a thin facade over cohesive route families:
 
 * :mod:`._responses` - shared response-code declarations and the receipt builder.
-* :mod:`._auth` - authentication, authorization, and identity dependencies.
+* :mod:`._auth` - authentication, per-route transport authority, and identity
+  dependencies. App construction fails unless every served route declares one
+  authority; the resulting ``(method, path)`` inventory is exposed as
+  ``app.state.control_plane_route_authority``.
 * :mod:`._operation_routes` - request guards and operation submission/read routes.
 * :mod:`._workflow_routes` - workflow cancellation and timeout reconciliation.
 * :mod:`._participant_routes` - participant execution, control, and episode routes.
@@ -38,7 +41,7 @@ from ..control_plane_profiles import (
 )
 from ..control_plane_security import ControlPlaneSecurityConfig
 from ..control_plane_store_lease import require_single_worker_configuration
-from ._auth import _ControlPlaneApiAuth
+from ._auth import _ControlPlaneApiAuth, _require_route_transport_authority
 from ._health_routes import _register_health_routes
 from ._offload import _ControlPlaneCallExecutor
 from ._operation_routes import _install_request_guards, _register_operation_routes
@@ -124,4 +127,5 @@ def create_control_plane_app(
     _register_participant_control_routes(app, control_plane)
     _register_participant_execution_routes(app, control_plane)
     register_participant_retrieval_routes(app, control_plane)
+    app.state.control_plane_route_authority = _require_route_transport_authority(app)
     return app

@@ -1,17 +1,30 @@
-"""Authentication, authorization, and FastAPI identity dependencies for the control plane."""
+"""Authentication, authorization, and FastAPI identity dependencies for the control plane.
+
+Every served route declares exactly one :class:`ControlPlaneRouteAuthority`
+through one of the dependencies below (issue #1359). P2 is administrative-only:
+the authenticated authorities admit privileged, target-bound service identities,
+never participant-limited credentials. Core operations apply any participant,
+audience, controller or operation-actor policy after this admission.
+"""
 
 from __future__ import annotations
 
 import hmac
 import logging
+from collections.abc import Callable, Mapping
+from types import MappingProxyType
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.routing import APIRoute
+from starlette.routing import Route
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_security import (
+    ROUTE_AUTHORITY_ROLES,
     ControlPlaneIdentity,
     ControlPlaneRole,
+    ControlPlaneRouteAuthority,
     ControlPlaneSecurityConfig,
 )
 
@@ -27,33 +40,11 @@ class _ControlPlaneApiAuth:
         self._control_plane = control_plane
         self._security = security
 
-    def mutating_identity(self, request: Request) -> ControlPlaneIdentity:
-        identity = self._authenticated_identity(request)
-        return self._authorize(
-            identity,
-            roles={ControlPlaneRole.BACKEND, ControlPlaneRole.OPERATOR},
-            request=request,
-        )
+    def admit(self, request: Request, authority: ControlPlaneRouteAuthority) -> ControlPlaneIdentity:
+        """Authenticate the caller and require a role admitted by ``authority``."""
 
-    def read_identity(self, request: Request) -> ControlPlaneIdentity:
         identity = self._authenticated_identity(request)
-        return self._authorize(
-            identity,
-            roles={
-                ControlPlaneRole.BACKEND,
-                ControlPlaneRole.OPERATOR,
-                ControlPlaneRole.AUDITOR,
-            },
-            request=request,
-        )
-
-    def resolution_identity(self, request: Request) -> ControlPlaneIdentity:
-        identity = self._authenticated_identity(request)
-        return self._authorize(
-            identity,
-            roles={ControlPlaneRole.OPERATOR},
-            request=request,
-        )
+        return self._authorize(identity, roles=ROUTE_AUTHORITY_ROLES[authority], request=request)
 
     def _authenticated_identity(self, request: Request) -> ControlPlaneIdentity:
         try:
@@ -109,7 +100,7 @@ class _ControlPlaneApiAuth:
         self,
         identity: ControlPlaneIdentity,
         *,
-        roles: set[ControlPlaneRole],
+        roles: frozenset[ControlPlaneRole],
         request: Request,
     ) -> ControlPlaneIdentity:
         if not identity.roles.isdisjoint(roles):
@@ -140,18 +131,74 @@ class _ControlPlaneApiAuth:
             _LOGGER.error("control-plane-auth-audit-failed")
 
 
-def _mutating_identity_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.mutating_identity(request)
+def _public_probe_dependency() -> None:
+    """Declare a value-free public probe; it admits no identity."""
 
 
-def _read_identity_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.read_identity(request)
+def _administrative_read_dependency(request: Request) -> ControlPlaneIdentity:
+    return request.app.state.control_plane_api_auth.admit(request, ControlPlaneRouteAuthority.ADMINISTRATIVE_READ)
 
 
-def _resolution_identity_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.resolution_identity(request)
+def _administrative_mutation_dependency(request: Request) -> ControlPlaneIdentity:
+    return request.app.state.control_plane_api_auth.admit(
+        request,
+        ControlPlaneRouteAuthority.ADMINISTRATIVE_MUTATION,
+    )
 
 
-_MutatingIdentity = Annotated[ControlPlaneIdentity, Depends(_mutating_identity_dependency)]
-_ReadIdentity = Annotated[ControlPlaneIdentity, Depends(_read_identity_dependency)]
-_ResolutionIdentity = Annotated[ControlPlaneIdentity, Depends(_resolution_identity_dependency)]
+def _operator_resolution_dependency(request: Request) -> ControlPlaneIdentity:
+    return request.app.state.control_plane_api_auth.admit(request, ControlPlaneRouteAuthority.OPERATOR_RESOLUTION)
+
+
+_PublicProbe = Depends(_public_probe_dependency)
+_AdministrativeReadIdentity = Annotated[ControlPlaneIdentity, Depends(_administrative_read_dependency)]
+_AdministrativeMutationIdentity = Annotated[ControlPlaneIdentity, Depends(_administrative_mutation_dependency)]
+_OperatorResolutionIdentity = Annotated[ControlPlaneIdentity, Depends(_operator_resolution_dependency)]
+
+_DEPENDENCY_AUTHORITY: Mapping[Callable[..., object], ControlPlaneRouteAuthority] = MappingProxyType(
+    {
+        _public_probe_dependency: ControlPlaneRouteAuthority.PUBLIC_PROBE,
+        _administrative_read_dependency: ControlPlaneRouteAuthority.ADMINISTRATIVE_READ,
+        _administrative_mutation_dependency: ControlPlaneRouteAuthority.ADMINISTRATIVE_MUTATION,
+        _operator_resolution_dependency: ControlPlaneRouteAuthority.OPERATOR_RESOLUTION,
+    }
+)
+
+
+def _declared_route_authority(route: APIRoute) -> ControlPlaneRouteAuthority:
+    declared = [
+        _DEPENDENCY_AUTHORITY[dependency.call]
+        for dependency in route.dependant.dependencies
+        if dependency.call in _DEPENDENCY_AUTHORITY
+    ]
+    if len(declared) != 1:
+        raise ValueError(f"route {sorted(route.methods)} {route.path} must declare exactly one transport authority")
+    authority = declared[0]
+    if authority is ControlPlaneRouteAuthority.PUBLIC_PROBE and route.methods != {"GET"}:
+        raise ValueError(f"public-probe transport authority is GET-only: {route.path}")
+    return authority
+
+
+def _require_route_transport_authority(
+    app: FastAPI,
+) -> Mapping[tuple[str, str], ControlPlaneRouteAuthority]:
+    """Fail app construction unless every served route declares one transport authority.
+
+    Only FastAPI's own API-description routes are exempt; they carry no runtime
+    state. Any other route, mount or raw Starlette endpoint must enter through
+    the dependencies above, so a new operation, inject, event or export route
+    cannot silently bypass P2 admission.
+    """
+
+    framework_paths = {app.openapi_url, app.docs_url, app.redoc_url, app.swagger_ui_oauth2_redirect_url} - {None}
+    inventory: dict[tuple[str, str], ControlPlaneRouteAuthority] = {}
+    for route in app.router.routes:
+        if isinstance(route, APIRoute):
+            authority = _declared_route_authority(route)
+            for method in route.methods:
+                if (method, route.path) in inventory:
+                    raise ValueError(f"route {method} {route.path} registers a second transport authority")
+                inventory[(method, route.path)] = authority
+        elif not (type(route) is Route and route.path in framework_paths):
+            raise ValueError(f"route {getattr(route, 'path', '?')} must declare exactly one transport authority")
+    return MappingProxyType(inventory)

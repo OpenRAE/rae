@@ -7,14 +7,15 @@ from fastapi.responses import JSONResponse
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_health import control_plane_liveness, control_plane_readiness
+from ._auth import _PublicProbe
 
 
 def _register_health_routes(app: FastAPI, control_plane: RuntimeControlPlane) -> None:
-    @app.get("/health/live")
+    @app.get("/health/live", dependencies=[_PublicProbe])
     async def liveness() -> JSONResponse:
         return JSONResponse(content=control_plane_liveness().to_payload())
 
-    @app.get("/health/ready")
+    @app.get("/health/ready", dependencies=[_PublicProbe])
     async def readiness() -> JSONResponse:
         health = control_plane_readiness(control_plane)
         return JSONResponse(

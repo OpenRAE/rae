@@ -55,6 +55,7 @@ from raes_runtime.control_plane_api._offload import _control_plane_calls, _Contr
 from raes_runtime.control_plane_security import (
     ControlPlaneIdentity,
     ControlPlaneRole,
+    ControlPlaneRouteAuthority,
     ControlPlaneSecurityConfig,
 )
 from raes_runtime.control_plane_store import (
@@ -1721,7 +1722,7 @@ def test_control_plane_auth_rejects_non_ascii_bearer_token_as_unauthorized():
     )
 
     with pytest.raises(HTTPException) as excinfo:
-        auth.read_identity(request)
+        auth.admit(request, ControlPlaneRouteAuthority.ADMINISTRATIVE_READ)
 
     assert excinfo.value.status_code == 401
     assert excinfo.value.detail == "invalid bearer token"

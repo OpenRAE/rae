@@ -12,6 +12,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .control_plane import RuntimeControlPlane
 
+NO_STORE_CACHE_CONTROL = "no-store"
 _REQUEST_TOO_LARGE_DETAIL = "request too large"
 _INVALID_CONTENT_LENGTH_DETAIL = "invalid content-length"
 _LOGGER = logging.getLogger(__name__)
@@ -54,6 +55,37 @@ class RejectionAuditExecutor:
         finally:
             self._pending -= 1
         return True
+
+
+class NoStoreResponseMiddleware:
+    """Mark every control-plane HTTP response uncacheable.
+
+    Snapshots, operation readback, governed views, idempotent replays and error
+    envelopes are all authorization-bound outputs (issue #1359). A shared proxy
+    or browser cache keyed by URL could re-release them without admission or a
+    governed crossing, so the policy is applied once at the application boundary
+    instead of per route. Starlette's server-error layer sits outside user
+    middleware, so the redacted 500 handler sets the same header itself.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self._app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self._app(scope, receive, send)
+            return
+
+        async def send_uncacheable(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = [
+                    (name, value) for name, value in message.get("headers", ()) if name.lower() != b"cache-control"
+                ]
+                headers.append((b"cache-control", NO_STORE_CACHE_CONTROL.encode("ascii")))
+                message = {**message, "headers": headers}
+            await send(message)
+
+        await self._app(scope, receive, send_uncacheable)
 
 
 class RequestSizeLimitMiddleware:

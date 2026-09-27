@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-23T00:00:00.000000Z
+updated_at: 2026-09-26T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -66,6 +66,12 @@ selected P1 core. The corresponding runtime guarantee identifiers are
 `authenticated-transport`, `actor-bound-disclosure`,
 `owner-serialized-mutation`, and `revision-carrying-reads`. Only P2
 authenticates transport callers; P0 and P1 rely on their trusted embedders.
+
+Every served P2 route shall declare exactly one transport authority: a
+value-free GET-only public probe, administrative read, administrative mutation
+or operator resolution. P2 composition shall fail when any other route is
+registered. Every P2 response, including errors and idempotent readback, shall
+carry `Cache-Control: no-store`.
 
 P2 identities are deployment-configured bearer tokens or verified proxy
 identities, not RAES-issued participant credentials. A host may use one as a
@@ -130,6 +136,18 @@ carrier exists. The [decision](../../decisions/issue-1348-operation-lifecycle.md
 identifies those implementation gaps and the retained canonical requirements.
 
 ## Traceability
+
+- DOCUMENTS → GITHUB_ISSUE `1359` (Enforce the accepted runtime API trust boundary)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1359-runtime-api-trust-boundary-preflight.md` (Administrative-only P2 enforcement guardrails and route authority matrix)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_security.py` (Route transport-authority roles, unambiguous subject bindings and fail-closed configured-principal shape and bound validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/operation_lifecycle.py` (Operation-context bounds reused by configured-principal validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_auth.py` (One declared transport authority per served route and fail-closed route inventory)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/__init__.py` (Route-authority inventory enforced at app construction and exposed to the embedder)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_guards.py` (Application-wide `Cache-Control: no-store` boundary)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_operation_routes.py` (No-store installation and uncacheable redacted 500 envelope)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_participant_retrieval.py` (Participant views admitted through the shared administrative-read authority)
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/control-plane.md` (P2 deployment guidance and host responsibilities)
+- TESTS → TEST `implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py` (ASGI-boundary route inventory, per-route admission, governed and legacy views, replay scope, no-store and principal-shape checks)
 
 - DOCUMENTS → GITHUB_ISSUE `1356` (Control-plane and participant-access trust boundary)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1356-control-plane-participant-access-preflight.md` (Accepted exposure model, route authority matrix, deployment and crossing guardrails)
