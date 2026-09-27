@@ -6,8 +6,9 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-import tools.check_specification_coverage as coverage_gate
 from evidence_test_fixtures import copy_bundle
+
+import tools.check_specification_coverage as coverage_gate
 from tools.check_specification_coverage import (
     EXPECTED_CLASSIFICATIONS,
     EXPECTED_STRATA,
@@ -53,7 +54,7 @@ def test_immutable_bundle_index_preserves_concurrent_captures() -> None:
     bundles = copy_bundle(load_bundles, REPO_ROOT)
     assert {manifest["revision"] for manifest, *_rest in bundles} >= {"1.0.0", "1.1.0", "19.0.0"}
     manifest, *_rest = copy_bundle(load_bundle, REPO_ROOT)
-    assert manifest["revision"] == "53.0.0"
+    assert manifest["revision"] == "54.0.0"
 
 
 def test_historical_failures_name_the_revision_specific_documents() -> None:

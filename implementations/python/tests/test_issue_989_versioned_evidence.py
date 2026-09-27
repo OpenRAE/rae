@@ -16,6 +16,7 @@ def test_historical_evidence_rejects_malformed_shapes_even_with_rebound_digest(c
     import json
 
     from raes_contracts.canonical import canonical_json_digest
+
     from tools.formal_semantic_validation._production import _historical_production_replay
 
     payload = json.loads((ROOT / f"docs/research/formal-semantic-validation/evidence/{case_name}-v3.json").read_text())
@@ -97,6 +98,7 @@ def test_historical_computed_joins_reject_rebound_evidence(family, field):
     import json
 
     from raes_contracts.canonical import canonical_json_digest
+
     from tools.formal_semantic_validation._production import _historical_production_replay
 
     payload = json.loads((ROOT / f"docs/research/formal-semantic-validation/evidence/{family}-v3.json").read_text())
@@ -122,6 +124,7 @@ def test_historical_integrity_checks_reject_shape_valid_substitutions(version, m
     import json
 
     from raes_contracts.canonical import canonical_json_digest
+
     from tools.formal_semantic_validation._production import _historical_production_replay
 
     satisfiability = mutation in {"source", "authored"}
@@ -159,6 +162,7 @@ def test_current_compile_replay_hashes_complete_capture_dimension():
 
     from raes import instantiate_scenario, parse_sdl_file
     from raes_processor.compiler import compile_runtime_model
+
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._replay import _compiled_case_digest, _migration_policy_for_case
     from tools.formal_semantic_validation._shape import _digest
@@ -208,6 +212,7 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
     from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
     from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
+
     from tools.formal_semantic_validation import _production, _releases, _retest
     from tools.formal_semantic_validation._loading import load_release_bundles
 
@@ -230,7 +235,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "54.0.0"
+    assert release.manifest["revision"] == "55.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -260,6 +265,7 @@ def test_current_release_requires_truthful_implementation_provenance():
 @pytest.mark.integration
 def test_current_production_evidence_replay_failure_is_not_hidden(monkeypatch):
     from raes_processor import satisfiability
+
     from tools.formal_semantic_validation._loading import load_retest_bundle
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
@@ -283,7 +289,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "53.0.0"
+    assert manifest["revision"] == "54.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
     artifact["sha256"] = old_digest
@@ -372,6 +378,7 @@ def test_source_state_malformed_values_fail_closed(state):
 
 def test_historical_supplement_never_runs_current_analyzer(monkeypatch):
     from raes_processor import satisfiability
+
     from tools.formal_semantic_validation._loading import load_release_bundles
     from tools.formal_semantic_validation._releases import validate_release_bundle
 
@@ -506,6 +513,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "52.0.0",
             "53.0.0",
             "54.0.0",
+            "55.0.0",
         ]
         if family == "formal"
         else [
@@ -563,6 +571,7 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "51.0.0",
             "52.0.0",
             "53.0.0",
+            "54.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)
@@ -634,6 +643,7 @@ def test_classification_retirement_has_a_recorded_adr_001_amendment():
     import hashlib
 
     import yaml
+
     from tools.check_adr_immutability import amendment_refs, canonical_content
 
     path = ROOT / "docs/decisions/adrs/adr-001-scenario-description-language.md"
