@@ -69,15 +69,14 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
     for contract_id, model in roots.items():
         schema = model.model_json_schema()
         _add_raes_plane(schema, contract_id)
-        validator = (
-            "raes_contracts.contracts.validate_participant_control_resolved_context_v2"
-            if contract_id == "participant-control-evaluation-v2"
-            else "raes_contracts.contracts.validate_participant_control_resolved_context"
-            if "evaluation" in contract_id
-            else "raes_contracts.contracts.ParticipantControlSelectionV2Model.model_validate"
-            if contract_id.endswith("selection-v2")
-            else "raes_contracts.contracts.ParticipantControlSelectionModel.model_validate"
-        )
+        if contract_id == "participant-control-evaluation-v2":
+            validator = "raes_contracts.contracts.validate_participant_control_resolved_context_v2"
+        elif "evaluation" in contract_id:
+            validator = "raes_contracts.contracts.validate_participant_control_resolved_context"
+        elif contract_id.endswith("selection-v2"):
+            validator = "raes_contracts.contracts.ParticipantControlSelectionV2Model.model_validate"
+        else:
+            validator = "raes_contracts.contracts.ParticipantControlSelectionModel.model_validate"
         _add_raes_invariant(
             schema,
             "participant-control-resolved-context"

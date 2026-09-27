@@ -8,6 +8,8 @@ from pydantic import ConfigDict, Field, model_validator
 
 from .base import ContractModel, PrefixedDigestString
 from .participant_control_applicability import (
+    ControlMechanismBindingV2Model,
+    ControlResultSlotV2Model,
     ControlStateScopeV2Model,
     ParticipantControlRequestV2Model,
     control_digest,
@@ -196,61 +198,102 @@ def validate_control_invocations_v2(
     if by_slot.keys() != expected or {item.slot_id for item in outputs} != expected:
         raise ValueError("participant control invocation or result coverage is incomplete")
     result_by_slot = {result.slot_id: result for result in outputs}
-    states = {state.instance_id: state.state for state in request.context.provider_states}
     cut_digest = control_digest(request.context)
     for call in calls:
-        binding = bindings.get(call.instance_id)
-        if binding is None or call.binding_digest != control_digest(binding) or call.context_digest != cut_digest:
-            raise ValueError("participant control invocation differs from the admitted binding or cut")
-        if call.state_input.scope != binding.state_scope:
-            raise ValueError("participant control invocation state scope differs")
-        if call.state_input.source == "committed":
-            if call.state_input.state != states.get(call.instance_id):
-                raise ValueError("participant control invocation state version differs")
-        else:
-            predecessor = next(
-                (item for item in calls if item.invocation_id == call.state_input.predecessor_invocation_id), None
-            )
-            if predecessor is None or predecessor.instance_id != call.instance_id:
-                raise ValueError("participant control tentative state predecessor is absent")
-            proposals = {
-                result.next_provider_state
-                for result in outputs
-                if result.slot_id in predecessor.requested_slot_ids and result.next_provider_state is not None
-            }
-            if proposals != {call.state_input.state}:
-                raise ValueError("participant control tentative state does not bind a predecessor proposal")
-        declared = {dep.slot_id: dep.kind for slot_id in call.requested_slot_ids for dep in slots[slot_id].dependencies}
-        if declared.keys() & set(call.requested_slot_ids):
-            raise ValueError("participant control predecessor cannot be produced in the same invocation")
-        supplied = {item.slot_id: item for item in call.predecessor_inputs}
-        if supplied.keys() != declared.keys():
-            raise ValueError("participant control predecessor input coverage is incomplete")
-        for slot_id, item in supplied.items():
-            predecessor = result_by_slot.get(slot_id)
-            if (
-                predecessor is None
-                or item.kind != declared[slot_id]
-                or predecessor.result_id != item.result_id
-                or control_digest(predecessor) != item.result_digest
-            ):
-                raise ValueError("participant control predecessor result identity or type differs")
-            if not _satisfied(predecessor) and any(
-                result_by_slot[slot_id].status == "resolved" for slot_id in call.requested_slot_ids
-            ):
-                raise ValueError("participant control unsatisfied predecessor cannot feed a resolved result")
-        for slot_id in call.requested_slot_ids:
-            slot = slots[slot_id]
-            result = result_by_slot[slot_id]
-            if (
-                slot.instance_id != call.instance_id
-                or result.instance_id != call.instance_id
-                or result.binding_digest != call.binding_digest
-                or result.context_digest != call.context_digest
-                or result.invocation_digest != control_digest(call)
-            ):
-                raise ValueError("participant control result differs from its exact invocation")
-            if result.rule_outcome == "not-triggered" and slot.kind != "effect-request":
-                raise ValueError("not-triggered result requires a rule/effect slot")
-            if result.payload is not None and result.payload.kind != slot.kind:
-                raise ValueError("participant control result does not match its typed slot")
+        binding = _validate_call_identity(call, bindings.get(call.instance_id), cut_digest)
+        _validate_call_state(call, binding, request, calls, outputs)
+        _validate_call_predecessors(call, slots, result_by_slot)
+        _validate_call_results(call, slots, result_by_slot)
+
+
+def _validate_call_identity(
+    call: ControlInvocationV2Model, binding: ControlMechanismBindingV2Model | None, cut_digest: str
+) -> ControlMechanismBindingV2Model:
+    if binding is None or call.binding_digest != control_digest(binding) or call.context_digest != cut_digest:
+        raise ValueError("participant control invocation differs from the admitted binding or cut")
+    if call.state_input.scope != binding.state_scope:
+        raise ValueError("participant control invocation state scope differs")
+    return binding
+
+
+def _validate_call_state(
+    call: ControlInvocationV2Model,
+    binding: ControlMechanismBindingV2Model,
+    request: ParticipantControlRequestV2Model,
+    calls: tuple[ControlInvocationV2Model, ...],
+    outputs: tuple[ControlMechanismResultV2Model, ...],
+) -> None:
+    if call.state_input.source == "committed":
+        states = {state.instance_id: state.state for state in request.context.provider_states}
+        if call.state_input.state != states.get(call.instance_id):
+            raise ValueError("participant control invocation state version differs")
+        return
+    predecessor = next(
+        (item for item in calls if item.invocation_id == call.state_input.predecessor_invocation_id), None
+    )
+    if predecessor is None or predecessor.instance_id != binding.instance_id:
+        raise ValueError("participant control tentative state predecessor is absent")
+    proposals = {
+        result.next_provider_state
+        for result in outputs
+        if result.slot_id in predecessor.requested_slot_ids and result.next_provider_state is not None
+    }
+    if proposals != {call.state_input.state}:
+        raise ValueError("participant control tentative state does not bind a predecessor proposal")
+
+
+def _validate_call_predecessors(
+    call: ControlInvocationV2Model,
+    slots: dict[str, ControlResultSlotV2Model],
+    result_by_slot: dict[str, ControlMechanismResultV2Model],
+) -> None:
+    declared = {dep.slot_id: dep.kind for slot_id in call.requested_slot_ids for dep in slots[slot_id].dependencies}
+    if declared.keys() & set(call.requested_slot_ids):
+        raise ValueError("participant control predecessor cannot be produced in the same invocation")
+    supplied = {item.slot_id: item for item in call.predecessor_inputs}
+    if supplied.keys() != declared.keys():
+        raise ValueError("participant control predecessor input coverage is incomplete")
+    for slot_id, item in supplied.items():
+        _validate_predecessor_input(call, item, declared[slot_id], result_by_slot)
+
+
+def _validate_predecessor_input(
+    call: ControlInvocationV2Model,
+    item: ControlPredecessorInputV2Model,
+    declared_kind: str,
+    result_by_slot: dict[str, ControlMechanismResultV2Model],
+) -> None:
+    predecessor = result_by_slot.get(item.slot_id)
+    if (
+        predecessor is None
+        or item.kind != declared_kind
+        or predecessor.result_id != item.result_id
+        or control_digest(predecessor) != item.result_digest
+    ):
+        raise ValueError("participant control predecessor result identity or type differs")
+    if not _satisfied(predecessor) and any(
+        result_by_slot[slot_id].status == "resolved" for slot_id in call.requested_slot_ids
+    ):
+        raise ValueError("participant control unsatisfied predecessor cannot feed a resolved result")
+
+
+def _validate_call_results(
+    call: ControlInvocationV2Model,
+    slots: dict[str, ControlResultSlotV2Model],
+    result_by_slot: dict[str, ControlMechanismResultV2Model],
+) -> None:
+    for slot_id in call.requested_slot_ids:
+        slot = slots[slot_id]
+        result = result_by_slot[slot_id]
+        if (
+            slot.instance_id != call.instance_id
+            or result.instance_id != call.instance_id
+            or result.binding_digest != call.binding_digest
+            or result.context_digest != call.context_digest
+            or result.invocation_digest != control_digest(call)
+        ):
+            raise ValueError("participant control result differs from its exact invocation")
+        if result.rule_outcome == "not-triggered" and slot.kind != "effect-request":
+            raise ValueError("not-triggered result requires a rule/effect slot")
+        if result.payload is not None and result.payload.kind != slot.kind:
+            raise ValueError("participant control result does not match its typed slot")

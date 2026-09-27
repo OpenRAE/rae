@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 55.0.0 and rejects duplicate or unsupported
+Current validation requires release 56.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -448,4 +448,10 @@ Release 55.0.0 replays the retained matrix against the API-424 v2 contract
 publication source in [`execution-snapshot-v55.json`](execution-snapshot-v55.json)
 and [`analysis-v55.json`](analysis-v55.json). Classifications and claim limits
 are unchanged; provider installation and effect realization remain outside this
+offline matrix.
+
+Release 56.0.0 replays that matrix against the API-424 v2 contract refactor in
+[`execution-snapshot-v56.json`](execution-snapshot-v56.json) and
+[`analysis-v56.json`](analysis-v56.json). Classifications and claim limits remain
+unchanged; provider installation and effect realization remain outside this
 offline matrix.

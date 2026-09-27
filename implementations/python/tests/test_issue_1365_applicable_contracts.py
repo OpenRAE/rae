@@ -407,9 +407,10 @@ def test_required_predecessor_cannot_wait_for_own_parent_application():
         originating_principal_ref="teacher",
         trigger=ref("trigger-1", "trigger"),
     )
+    parent_crossing = ref("crossing-1", "crossing")
     with pytest.raises(ValueError, match="cycle|predecessor"):
         derive_control_effect_plan_v2(
-            parent_crossing=ref("crossing-1", "crossing"),
+            parent_crossing=parent_crossing,
             decisions=[],
             effects=[effect],
             incumbent_gate_disposition="permit",
@@ -429,9 +430,10 @@ def test_later_effect_requires_exact_parent_owner_receipt():
         originating_principal_ref="teacher",
         trigger=ref("trigger-1", "trigger"),
     )
+    parent_crossing = ref("crossing-1", "crossing")
     with pytest.raises(ValueError, match="receipt"):
         derive_control_effect_plan_v2(
-            parent_crossing=ref("crossing-1", "crossing"),
+            parent_crossing=parent_crossing,
             decisions=[],
             effects=[effect],
             incumbent_gate_disposition="permit",
@@ -468,9 +470,10 @@ def test_conflicting_routes_cannot_be_admitted_by_array_order():
         )
         effect["key"]["slot"] = "route-" + str(index)
         effects.append(effect)
+    parent_crossing = ref("crossing-1", "crossing")
     with pytest.raises(ValueError, match="conflict"):
         derive_control_effect_plan_v2(
-            parent_crossing=ref("crossing-1", "crossing"),
+            parent_crossing=parent_crossing,
             decisions=[],
             effects=effects,
             incumbent_gate_disposition="permit",
@@ -526,16 +529,20 @@ def test_optional_malformed_result_is_normalized_without_private_error_text():
     result, loss = normalize_optional_result_failure_v2(
         request, invocation, raw, result_id="result-monitor", evidence=ref("optional-loss")
     )
-    assert result.status == "failed" and result.payload is None and result.next_provider_state is None
+    assert result.status == "failed"
+    assert result.payload is None
+    assert result.next_provider_state is None
     assert loss.slot_id == "monitor"
     assert "private-token" not in repr(result) + repr(loss)
+    mandatory_invocation = invocation.model_copy(update={"requested_slot_ids": ("fact",)})
+    mandatory_evidence = ref("mandatory-loss")
     with pytest.raises(ValueError, match="mandatory"):
         normalize_optional_result_failure_v2(
             request,
-            invocation.model_copy(update={"requested_slot_ids": ("fact",)}),
+            mandatory_invocation,
             raw,
             result_id="result-fact",
-            evidence=ref("mandatory-loss"),
+            evidence=mandatory_evidence,
         )
 
 
@@ -546,6 +553,7 @@ def test_required_support_is_compared_to_admitted_strength():
     observed["declared_level"] = "bounded"
     observed["effective_level"] = "bounded"
     observed["constraints"] = [ref("one-unit", "constraint")]
+    support_evidence = (ref("support-relation"),)
     with pytest.raises(ValueError, match="exact"):
         ControlSupportAssessmentV2Model(
             obligation_id="teaching-here",
@@ -554,7 +562,7 @@ def test_required_support_is_compared_to_admitted_strength():
             required_constraints=(),
             effective_support=observed,
             relation="bounded-compatible",
-            evidence=(ref("support-relation"),),
+            evidence=support_evidence,
         )
     assessment = ControlSupportAssessmentV2Model(
         obligation_id="teaching-here",
@@ -563,7 +571,7 @@ def test_required_support_is_compared_to_admitted_strength():
         required_constraints=(ref("two-units", "constraint"),),
         effective_support=observed,
         relation="bounded-compatible",
-        evidence=(ref("support-relation"),),
+        evidence=support_evidence,
     )
     assert assessment.satisfied
 
@@ -585,13 +593,14 @@ def test_required_input_support_cannot_downgrade_its_admitted_slot_pin():
         ParticipantControlSelectionV2Model.model_validate(selection)
     )
     request = ParticipantControlRequestV2Model.model_validate(record["request"])
+    plan = ControlEffectPlanV2Model.model_validate(record["effect_plan"])
     with pytest.raises(ValueError, match="support"):
         derive_control_composition_v2(
             request,
             record["results"],
             record["support"],
             [],
-            ControlEffectPlanV2Model.model_validate(record["effect_plan"]),
+            plan,
         )
 
 
@@ -604,7 +613,8 @@ def test_false_trigger_is_distinct_from_missing_rule_result():
     record["rule_outcome"] = "not-triggered"
     record["evaluated_basis"] = [ref("false-trigger-basis")]
     result = ControlMechanismResultV2Model.model_validate(record)
-    assert result.status == "resolved" and result.rule_outcome == "not-triggered"
+    assert result.status == "resolved"
+    assert result.rule_outcome == "not-triggered"
     record["status"] = "missing"
     with pytest.raises(ValueError, match="trigger|resolved"):
         ControlMechanismResultV2Model.model_validate(record)
@@ -983,8 +993,9 @@ def test_required_result_status_retains_its_composition_disposition(status, expe
 def test_v1_history_cannot_be_parsed_as_amended_evaluation():
     from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 
+    payload = evaluation_payload()
     with pytest.raises(ValueError):
-        ParticipantControlEvaluationV2Model.model_validate(evaluation_payload())
+        ParticipantControlEvaluationV2Model.model_validate(payload)
 
 
 def test_v2_bounded_json_ingress_preserves_abstention_and_rejects_duplicate_members():
@@ -1604,7 +1615,8 @@ def test_failed_required_composition_cannot_dispatch_independent_effect():
         realized_effect_ids=(),
         parent_applied=False,
     )
-    assert plan.parent_disposition == "permit" and plan.runnable_effect_ids == (effect["effect_id"],)
+    assert plan.parent_disposition == "permit"
+    assert plan.runnable_effect_ids == (effect["effect_id"],)
     payload["effect_plan"] = plan.model_dump(mode="json")
     payload["composition"] = derive_control_composition_v2(
         request, payload["results"], payload["support"], payload["lost_advice"], plan

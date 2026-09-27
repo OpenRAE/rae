@@ -11,6 +11,26 @@ from .participant_control_coordinates import Artifacts, ControlRef, Evidence, re
 from .participant_control_results import ControlEffectiveSupportModel
 
 
+def _validate_positive_support(relation: str, observed: ControlEffectiveSupportModel) -> None:
+    if relation in {"exact", "bounded-compatible", "disclosed-weak-compatible"} and (
+        observed.status != "resolved" or observed.installation is None
+    ):
+        raise ValueError("positive support relation needs resolved installed support")
+
+
+def _validate_strength_relation(relation: str, required_strength: str, observed_level: str) -> None:
+    if relation == "exact" and observed_level != "exact":
+        raise ValueError("exact support relation needs exact effective support")
+    if relation == "bounded-compatible" and (required_strength == "exact" or observed_level != "bounded"):
+        raise ValueError("bounded support does not satisfy exact or mismatched strength")
+    if relation == "disclosed-weak-compatible" and (
+        required_strength != "disclosed_weak" or observed_level != "disclosed_weak"
+    ):
+        raise ValueError("disclosed weak support relation is incompatible")
+    if required_strength == "exact" and relation not in {"exact", "insufficient", "unresolved"}:
+        raise ValueError("exact requirement cannot accept weaker support")
+
+
 class ControlSupportAssessmentV2Model(ContractModel):
     """A recorded requirement-relative relation, subject to trusted resolution."""
 
@@ -32,21 +52,8 @@ class ControlSupportAssessmentV2Model(ContractModel):
         observed = self.effective_support
         if observed.instance_id != self.instance_id:
             raise ValueError("support assessment has a different instance")
-        if self.relation in {"exact", "bounded-compatible", "disclosed-weak-compatible"}:
-            if observed.status != "resolved" or observed.installation is None:
-                raise ValueError("positive support relation needs resolved installed support")
-        if self.relation == "exact" and observed.effective_level != "exact":
-            raise ValueError("exact support relation needs exact effective support")
-        if self.relation == "bounded-compatible" and (
-            self.required_strength == "exact" or observed.effective_level != "bounded"
-        ):
-            raise ValueError("bounded support does not satisfy exact or mismatched strength")
-        if self.relation == "disclosed-weak-compatible" and (
-            self.required_strength != "disclosed_weak" or observed.effective_level != "disclosed_weak"
-        ):
-            raise ValueError("disclosed weak support relation is incompatible")
-        if self.required_strength == "exact" and self.relation not in {"exact", "insufficient", "unresolved"}:
-            raise ValueError("exact requirement cannot accept weaker support")
+        _validate_positive_support(self.relation, observed)
+        _validate_strength_relation(self.relation, self.required_strength, observed.effective_level)
         return self
 
     @property

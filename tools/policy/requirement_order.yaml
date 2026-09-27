@@ -841,10 +841,17 @@ ownership:
     - docs/research/formal-semantic-validation/analysis-v55.json
     - docs/research/formal-semantic-validation/bundles/retest-v55.json
     - docs/research/formal-semantic-validation/execution-snapshot-v55.json
+    - docs/research/formal-semantic-validation/analysis-v56.json
+    - docs/research/formal-semantic-validation/bundles/retest-v56.json
+    - docs/research/formal-semantic-validation/execution-snapshot-v56.json
     - docs/research/specification-coverage/analysis-v55.json
     - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v55.json
     - docs/research/specification-coverage/execution-snapshot-v55.json
+    - docs/research/specification-coverage/analysis-v56.json
+    - docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1365-v56.json
+    - docs/research/specification-coverage/execution-snapshot-v56.json
     - implementations/python/packages/raes_contracts/contracts/participant_control_applicability.py
+    - implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py
     - implementations/python/packages/raes_contracts/contracts/participant_control_decisions_v2.py
     - implementations/python/packages/raes_contracts/contracts/participant_control_evaluation_v2.py
     - implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py

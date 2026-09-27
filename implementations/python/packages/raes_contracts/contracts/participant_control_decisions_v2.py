@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from graphlib import CycleError, TopologicalSorter
-from typing import Annotated, Literal, Self
+from typing import Annotated, Literal, NotRequired, Self, TypedDict, Unpack
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -40,6 +40,16 @@ ControlExecutableEffectTargetV2 = Annotated[
     Field(discriminator="kind"),
 ]
 
+_PARENT_ADMITTED = "@parent-admitted"
+
+
+class _EffectPlanOptions(TypedDict):
+    parent_admission_receipt: NotRequired[ControlArtifactReferenceModel | dict | None]
+    parent_application_receipt: NotRequired[ControlArtifactReferenceModel | dict | None]
+    effect_outcomes: NotRequired[
+        tuple[ControlRealizationBindingModel, ...] | list[ControlRealizationBindingModel | dict]
+    ]
+
 
 class ControlParentDecisionV2Model(ContractModel):
     """A decision about the exact parent, never a scheduled operation."""
@@ -72,13 +82,19 @@ class ControlEffectRequestV2Model(ControlEffectRequestModel):
         require_unique(self.allowed_parent_dispositions)
         if any(item not in {"permit", "deny", "withhold"} for item in self.allowed_parent_dispositions):
             raise ValueError("independent consequence has an unknown parent disposition")
-        if self.phase == "required-predecessor" and (self.parent_outcome != "none" or self.allowed_parent_dispositions):
-            raise ValueError("required predecessor cannot await its own parent outcome")
-        if self.phase == "success-dependent" and (self.parent_outcome == "none" or self.allowed_parent_dispositions):
-            raise ValueError("success-dependent consequence needs an exact parent outcome")
-        if self.phase == "independent" and (self.parent_outcome != "none" or not self.allowed_parent_dispositions):
-            raise ValueError("independent consequence needs allowed parent dispositions")
+        _validate_effect_phase(self)
         return self
+
+
+def _validate_effect_phase(effect: ControlEffectRequestV2Model) -> None:
+    if effect.phase == "required-predecessor" and (
+        effect.parent_outcome != "none" or effect.allowed_parent_dispositions
+    ):
+        raise ValueError("required predecessor cannot await its own parent outcome")
+    if effect.phase == "success-dependent" and (effect.parent_outcome == "none" or effect.allowed_parent_dispositions):
+        raise ValueError("success-dependent consequence needs an exact parent outcome")
+    if effect.phase == "independent" and (effect.parent_outcome != "none" or not effect.allowed_parent_dispositions):
+        raise ValueError("independent consequence needs allowed parent dispositions")
 
 
 def base_parent_disposition_v2(
@@ -107,6 +123,30 @@ def _decision_and_runnable(
     require_unique(tuple(item.effect_id for item in effects))
     require_unique(tuple(item.key for item in effects))
     require_unique(realized_effect_ids)
+    _validate_parent_receipts(parent_applied, parent_admission_receipt, parent_application_receipt)
+    _validate_realized_effects(effects, realized_effect_ids)
+    graph = _effect_graph(effects)
+    _validate_effect_conflicts(effects)
+    base = base_parent_disposition_v2(decisions, incumbent_gate_disposition)
+    pending = graph[_PARENT_ADMITTED] - set(realized_effect_ids)
+    final = "withhold" if base == "permit" and pending else base
+    runnable = tuple(
+        sorted(
+            item.effect_id
+            for item in effects
+            if _effect_is_runnable(
+                item, realized_effect_ids, base, final, pending, parent_applied, parent_admission_receipt
+            )
+        )
+    )
+    return final, runnable
+
+
+def _validate_parent_receipts(
+    parent_applied: bool,
+    parent_admission_receipt: ControlArtifactReferenceModel | None,
+    parent_application_receipt: ControlArtifactReferenceModel | None,
+) -> None:
     if parent_applied and parent_application_receipt is None:
         raise ValueError("applied parent requires an exact owner receipt")
     if parent_applied and parent_admission_receipt is None:
@@ -116,6 +156,11 @@ def _decision_and_runnable(
     for receipt in (parent_admission_receipt, parent_application_receipt):
         if receipt is not None:
             require_kind(receipt, "receipt")
+
+
+def _validate_realized_effects(
+    effects: tuple[ControlEffectRequestV2Model, ...], realized_effect_ids: tuple[str, ...]
+) -> None:
     by_id = {item.effect_id: item for item in effects}
     if not set(realized_effect_ids) <= by_id.keys():
         raise ValueError("realized effect is absent from the plan")
@@ -124,9 +169,12 @@ def _decision_and_runnable(
         for effect_id in realized_effect_ids
     ):
         raise ValueError("realized effect lacks an applied predecessor")
+
+
+def _effect_graph(effects: tuple[ControlEffectRequestV2Model, ...]) -> dict[str, set[str]]:
     graph: dict[str, set[str]] = {item.effect_id: set(item.predecessor_effect_ids) for item in effects}
-    graph["@parent-admitted"] = {item.effect_id for item in effects if item.phase == "required-predecessor"}
-    graph["@parent-applied"] = {"@parent-admitted"}
+    graph[_PARENT_ADMITTED] = {item.effect_id for item in effects if item.phase == "required-predecessor"}
+    graph["@parent-applied"] = {_PARENT_ADMITTED}
     for item in effects:
         if item.phase == "success-dependent":
             graph[item.effect_id].add("@parent-" + item.parent_outcome)
@@ -136,29 +184,48 @@ def _decision_and_runnable(
         tuple(TopologicalSorter(graph).static_order())
     except CycleError:
         raise ValueError("combined parent/effect prerequisite cycle") from None
+    return graph
+
+
+def _validate_effect_conflicts(effects: tuple[ControlEffectRequestV2Model, ...]) -> None:
     for index, left in enumerate(effects):
         for right in effects[index + 1 :]:
             if _effect_subject(left.target) != _effect_subject(right.target):
                 continue
             if _same_subject_conflicts(left.target, right.target):
                 raise ValueError("effect target conflict cannot be repaired by ordering")
-    base = base_parent_disposition_v2(decisions, incumbent_gate_disposition)
-    pending = graph["@parent-admitted"] - set(realized_effect_ids)
-    final = "withhold" if base == "permit" and pending else base
-    runnable = []
-    for item in effects:
-        if item.effect_id in realized_effect_ids or not set(item.predecessor_effect_ids) <= set(realized_effect_ids):
-            continue
-        if item.phase == "required-predecessor" and base == "permit":
-            runnable.append(item.effect_id)
-        elif item.phase == "success-dependent" and base == "permit" and not pending:
-            if (item.parent_outcome == "admitted" and parent_admission_receipt is not None) or (
-                item.parent_outcome == "applied" and parent_applied
-            ):
-                runnable.append(item.effect_id)
-        elif item.phase == "independent" and final in item.allowed_parent_dispositions:
-            runnable.append(item.effect_id)
-    return final, tuple(sorted(runnable))
+
+
+def _success_dependent_ready(
+    item: ControlEffectRequestV2Model,
+    parent_applied: bool,
+    parent_admission_receipt: ControlArtifactReferenceModel | None,
+) -> bool:
+    return (item.parent_outcome == "admitted" and parent_admission_receipt is not None) or (
+        item.parent_outcome == "applied" and parent_applied
+    )
+
+
+def _effect_is_runnable(
+    item: ControlEffectRequestV2Model,
+    realized_effect_ids: tuple[str, ...],
+    base: str,
+    final: str,
+    pending: set[str],
+    parent_applied: bool,
+    parent_admission_receipt: ControlArtifactReferenceModel | None,
+) -> bool:
+    if item.effect_id in realized_effect_ids or not set(item.predecessor_effect_ids) <= set(realized_effect_ids):
+        return False
+    if item.phase == "required-predecessor":
+        return base == "permit"
+    if item.phase == "success-dependent":
+        return (
+            base == "permit"
+            and not pending
+            and _success_dependent_ready(item, parent_applied, parent_admission_receipt)
+        )
+    return item.phase == "independent" and final in item.allowed_parent_dispositions
 
 
 class ControlEffectPlanV2Model(ContractModel):
@@ -207,25 +274,23 @@ def derive_control_effect_plan_v2(
     incumbent_gate_disposition: str,
     realized_effect_ids: tuple[str, ...],
     parent_applied: bool,
-    parent_admission_receipt: ControlArtifactReferenceModel | dict | None = None,
-    parent_application_receipt: ControlArtifactReferenceModel | dict | None = None,
-    effect_outcomes: tuple[ControlRealizationBindingModel, ...] | list[ControlRealizationBindingModel | dict] = (),
+    **options: Unpack[_EffectPlanOptions],
 ) -> ControlEffectPlanV2Model:
     """Derive the recorded plan without dispatching or claiming realization."""
 
     decisions = tuple(ControlParentDecisionV2Model.model_validate(item) for item in decisions)
     effects = tuple(ControlEffectRequestV2Model.model_validate(item) for item in effects)
+    admission_receipt = options.get("parent_admission_receipt")
+    application_receipt = options.get("parent_application_receipt")
     parent_admission_receipt = (
-        ControlArtifactReferenceModel.model_validate(parent_admission_receipt)
-        if parent_admission_receipt is not None
-        else None
+        ControlArtifactReferenceModel.model_validate(admission_receipt) if admission_receipt is not None else None
     )
     parent_application_receipt = (
-        ControlArtifactReferenceModel.model_validate(parent_application_receipt)
-        if parent_application_receipt is not None
-        else None
+        ControlArtifactReferenceModel.model_validate(application_receipt) if application_receipt is not None else None
     )
-    effect_outcomes = tuple(ControlRealizationBindingModel.model_validate(item) for item in effect_outcomes)
+    effect_outcomes = tuple(
+        ControlRealizationBindingModel.model_validate(item) for item in options.get("effect_outcomes", ())
+    )
     final, runnable = _decision_and_runnable(
         decisions,
         effects,
