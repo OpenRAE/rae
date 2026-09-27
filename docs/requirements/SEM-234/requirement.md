@@ -107,6 +107,7 @@ Executable realization must discharge the admitted edge and time obligations. A 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge.py` (Pinned executable edge, time grant, and independent stage-readback contracts)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_edge_execution.py` (Mapped bridge call, time grant, and correlated readback enforcement)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff.py` (Exact native-owner transfer and readback contracts)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_handoff_execution.py` (Correlated native handoff execution and time-readback enforcement)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_result.py` (Separated action stages and shared operation settlement)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_runtime_phase.py` (Evidenced staged handoff and prior-phase retention)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_crossing_boundary.py` (Mixed action outcome settlement under the owning crossing operation)
