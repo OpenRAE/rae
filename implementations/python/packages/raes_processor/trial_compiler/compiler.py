@@ -9,8 +9,6 @@ from raes import (
     validate_experiment_selection_against_family,
 )
 from raes_backend_protocols.backend_manifest import BackendManifest
-from raes_backend_protocols.capabilities import ObservationCapabilities
-from raes_backend_protocols.capability_admission import require_execution_authority_capability
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import (
@@ -42,8 +40,6 @@ from raes_contracts.experiment_bindings import (
 )
 
 from ..capture_admission import (
-    CaptureDemand,
-    capture_admission_diagnostics,
     compile_scoped_evidence_requirement_demands,
 )
 from . import models as compiler_models
@@ -51,6 +47,7 @@ from .apparatus import (
     validate_selected_apparatus,
     validate_selected_participant_manifests,
 )
+from .entry_admission import CaptureAdmissionFailure, require_capture_admission, require_execution_authority
 from .inputs import (
     canonical_input_refs,
     canonical_realization_binding,
@@ -71,12 +68,6 @@ _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
 _ENTRIES_ADDRESS = "/entries/"
 # Preserve the established monkeypatch seam used by compiler failure-path tests.
 _validate_selected_scenario = validate_selected_scenario
-
-
-class _CaptureAdmissionFailure(Exception):
-    def __init__(self, diagnostics: tuple[Diagnostic, ...]) -> None:
-        super().__init__("required capture is not supported by the admitted apparatus")
-        self.diagnostics = diagnostics
 
 
 def _fail(code: str, address: str, message: str) -> CompilationFailure:
@@ -203,47 +194,6 @@ def _selection_records(row: CoordinateSelections) -> list[AdmittedSelectionRecor
     ]
 
 
-def _require_capture_admission(
-    demands: tuple[CaptureDemand, ...],
-    observations: tuple[ObservationCapabilities | None, ...],
-) -> None:
-    diagnostics = [
-        diagnostic for observation in observations for diagnostic in capture_admission_diagnostics(demands, observation)
-    ]
-    if diagnostics:
-        raise _CaptureAdmissionFailure(tuple(diagnostics))
-
-
-def _require_execution_authority(
-    backends: tuple[BackendManifest, ...],
-    cleanup: TrialCleanupPlanModel,
-    required_guarantees: tuple[str, ...],
-) -> None:
-    """Every selected backend must honour the authored timeout, cleanup and retry choices.
-
-    An entry that selects no backend has nothing that could honour them, so it is
-    refused rather than admitted vacuously.
-    """
-
-    if not backends:
-        raise _fail(
-            "execution-authority-unsupported",
-            "/execution_authority",
-            "a selected backend cannot honour the admitted execution authority",
-        )
-    for backend in backends:
-        try:
-            require_execution_authority_capability(
-                backend, cleanup_plan=cleanup, required_guarantees=required_guarantees
-            )
-        except ValueError as exc:
-            raise _fail(
-                "execution-authority-unsupported",
-                "/execution_authority",
-                "a selected backend cannot honour the admitted execution authority",
-            ) from exc
-
-
 def _compile_entry(
     request: TrialCompilationRequest,
     plan_id: str,
@@ -260,7 +210,7 @@ def _compile_entry(
         *request.task.evidence_requirement_relations,
         *request.experiment.run_plan.evidence_requirement_relations,
     )
-    _require_capture_admission(
+    require_capture_admission(
         compile_scoped_evidence_requirement_demands(
             selected,
             tuple(request.capture_specs.values()),
@@ -292,7 +242,7 @@ def _compile_entry(
         run_id=run_id,
     )
     required_guarantees = required_operation_guarantees(request.execution_authority.on_timeout, cleanup.retry_policy)
-    _require_execution_authority(backends, cleanup, required_guarantees)
+    require_execution_authority(backends, cleanup, required_guarantees)
     bindings = _entry_bindings(request, row, coordinate, descriptors)
     if len(row.draws) > request.limits.max_draws_per_entry:
         raise _fail(
@@ -374,7 +324,7 @@ def _compile_entries(
         row = rows[coordinate_index]
         try:
             entry_id, entry, cleanup_id, cleanup = _compile_coordinate(request, plan_id, coordinate, row, authority)
-        except _CaptureAdmissionFailure as failure:
+        except CaptureAdmissionFailure as failure:
             capture_failures.update(
                 {
                     (diagnostic.address, diagnostic.code, diagnostic.message): diagnostic
@@ -399,7 +349,7 @@ def _compile_entries(
         if canonical_failure is None or _failure_key(candidate_failure) < _failure_key(canonical_failure):
             canonical_failure = candidate_failure
     if capture_failures:
-        raise _CaptureAdmissionFailure(tuple(capture_failures[key] for key in sorted(capture_failures)))
+        raise CaptureAdmissionFailure(tuple(capture_failures[key] for key in sorted(capture_failures)))
     if canonical_failure is not None:
         raise canonical_failure
     return entries, cleanup_plans, used_control_ids
@@ -513,7 +463,7 @@ def compile_admitted_trial_plan(
 
     try:
         plan = _compile(request, coordinate_partitions)
-    except _CaptureAdmissionFailure as failure:
+    except CaptureAdmissionFailure as failure:
         result = TrialCompilationResult(plan=None, diagnostics=failure.diagnostics)
     except CompilationFailure as failure:
         result = TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))
