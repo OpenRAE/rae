@@ -13,6 +13,7 @@ from raes_backend_protocols.cleanup_admission import require_execution_authority
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model, backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
+    AdmittedExecutionControlModel,
     AdmittedMixedCompositionBindingModel,
     BackendManifestV2Model,
     ExecutionRetryPolicyModel,
@@ -243,7 +244,7 @@ def test_required_guarantees_are_canonical() -> None:
     unsorted = {**controls.model_dump(mode="json"), "required_guarantees": ["effect-observation", "cancellation"]}
 
     with pytest.raises(ValidationError, match="unique and sorted"):
-        type(controls).model_validate(unsorted)
+        AdmittedExecutionControlModel.model_validate(unsorted)
 
 
 def test_manifest_declaration_requires_the_operation_contract_family() -> None:
