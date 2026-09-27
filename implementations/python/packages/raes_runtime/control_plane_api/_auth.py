@@ -190,7 +190,7 @@ def _declared_route_authority(route: APIRoute) -> ControlPlaneRouteAuthority:
     if len(declared) != 1:
         raise ValueError(f"route {sorted(route.methods)} {route.path} must declare exactly one transport authority")
     authority = declared[0]
-    if not route.methods or not route.methods <= ROUTE_AUTHORITY_METHODS[authority]:
+    if not route.methods or not route.methods.issubset(ROUTE_AUTHORITY_METHODS[authority]):
         raise ValueError(
             f"{authority.value} transport authority cannot serve {sorted(route.methods or ())} {route.path}"
         )

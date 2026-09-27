@@ -313,9 +313,10 @@ def test_app_construction_fails_closed_for_undeclared_route_authority(
     register: Callable[[FastAPI], None],
 ) -> None:
     monkeypatch.setattr(control_plane_api, "_register_workflow_routes", _with_extra_route(register))
+    control_plane = RuntimeControlPlane(create_stub_target())
 
     with pytest.raises(ValueError, match="transport authority"):
-        create_control_plane_app(RuntimeControlPlane(create_stub_target()))
+        create_control_plane_app(control_plane)
 
 
 def _late_route(app: FastAPI) -> None:
@@ -371,8 +372,9 @@ def test_app_composition_changed_after_construction_is_never_served(tamper: Call
 def test_app_composition_changed_after_construction_fails_startup(tamper: Callable[[FastAPI], None]) -> None:
     app, _control_plane = _stub_app()
     tamper(app)
+    client = TestClient(app)
 
-    with pytest.raises(RuntimeError), TestClient(app):
+    with pytest.raises(RuntimeError), client:
         pass
 
 
@@ -815,9 +817,10 @@ _MALFORMED_PRINCIPALS: dict[str, Callable[[], ControlPlaneIdentity]] = {
 @pytest.mark.parametrize("mapping", ["bearer_tokens", "trusted_identities"])
 def test_security_config_rejects_malformed_principal_shapes(principal: str, mapping: str) -> None:
     secret = "credential-value-1359"
+    principals = {mapping: {secret: _MALFORMED_PRINCIPALS[principal]()}}
 
     with pytest.raises(ValueError, match="configured principal") as caught:
-        ControlPlaneSecurityConfig(**{mapping: {secret: _MALFORMED_PRINCIPALS[principal]()}})
+        ControlPlaneSecurityConfig(**principals)
 
     assert secret not in str(caught.value)
 
@@ -839,8 +842,10 @@ def test_security_config_rejects_non_int_limits(field: str, value: object) -> No
 @pytest.mark.parametrize("mapping", ["bearer_tokens", "trusted_identities"])
 @pytest.mark.parametrize("key", ["secret\n", " secret", "secret\t"])
 def test_security_config_rejects_padded_credentials(mapping: str, key: str) -> None:
+    principals = {mapping: {key: _identity("padded", ControlPlaneRole.AUDITOR)}}
+
     with pytest.raises(ValueError, match="unpadded") as caught:
-        ControlPlaneSecurityConfig(**{mapping: {key: _identity("padded", ControlPlaneRole.AUDITOR)}})
+        ControlPlaneSecurityConfig(**principals)
 
     assert "secret" not in str(caught.value)
 
