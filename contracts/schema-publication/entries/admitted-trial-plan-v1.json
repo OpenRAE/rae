@@ -1,9 +1,9 @@
 {
-  "content_hash": "a7196c336041aba73cbb7cbad3895d086d39b0a9445e6389d58756d2844df6f2",
+  "content_hash": "eddfed3f5c7b27cbe7512157b89a860242b55ad905c610dca8a45849cd76c5fa",
   "contract_id": "admitted-trial-plan-v1",
   "last_change": {
-    "content_hash": "a7196c336041aba73cbb7cbad3895d086d39b0a9445e6389d58756d2844df6f2",
-    "summary": "Add exact mixed-composition profile, participant-manifest authority, and immediate-source bindings to admitted trial entries while preserving legacy single-realizer serialization (#1015)."
+    "content_hash": "eddfed3f5c7b27cbe7512157b89a860242b55ad905c610dca8a45849cd76c5fa",
+    "summary": "Record the backend operation guarantees derived from each entry's authored timeout and retry choices, omitted when none are required and checked against those choices by the plan (#1361)."
   },
   "schema_path": "contracts/schemas/plans/admitted-trial-plan-v1.json",
   "stability": "draft"

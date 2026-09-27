@@ -35,6 +35,7 @@ from .backend_operation_validation import (
     validate_backend_operation_history,
     validate_backend_operation_response,
 )
+from .execution_requirements import required_operation_guarantees
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 
 __all__ = [
@@ -59,6 +60,7 @@ __all__ = [
     "require_backend_operation_admission",
     "validate_backend_operation_history",
     "validate_backend_operation_response",
+    "required_operation_guarantees",
     "BACKEND_OPERATION_REQUEST_SCHEMA_VERSION",
     "BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION",
     "BACKEND_OPERATION_CONTROL_SCHEMA_VERSION",

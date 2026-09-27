@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:40:04.988670Z
-updated_at: 2026-09-25T00:00:00.000000Z
+updated_at: 2026-09-27T00:00:00.000000Z
 ---
 
 # API-402 — Plain-Data Execution, Result, And History Contracts
@@ -57,3 +57,25 @@ Current state: implemented. Portable live-execution contracts are required so in
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_backend_operation_exports.py` (Public operation contract facade exports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_stubs/manifest.py` (Keep operation supervision opt-in; legacy stub does not advertise an unimplemented provider)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py` (Keep operation supervision opt-in for reference emulation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/execution_requirements.py` (Backend operation guarantees derived from authored trial timeout and retry choices)
+- IMPLEMENTS → SPEC `contracts/schemas/plans/admitted-trial-plan-v1.json` (Admitted trial entries record their derived required operation guarantees)
+- IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json` (Optional operation-supervision guarantee declaration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/cleanup_admission.py` (Execution-authority admission against cleanup capability and declared guarantees)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/entry_admission.py` (Trial compilation refuses backends that cannot honour authored execution choices)
+- TESTS → TEST `implementations/python/tests/test_issue_1361_execution_requirements.py` (Derivation, plan consistency, manifest declaration and trial-compilation refusal)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1361-sdl-execution-recovery-preflight.md` (Execution choices at backend admission; owner scope resolution)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/backend_manifest.py` (Internal manifest carries and validates the operation-supervision declaration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/capabilities.py` (Internal operation-supervision capability declaration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/capability_admission.py` (Re-export execution-authority admission from the capability admission facade)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/manifest.py` (Manifest v2 adapter delegates operational capability conversion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/operational_manifest.py` (Operational capability payloads and conversion, including operation supervision)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/admitted_trial_plan.py` (Admitted plan checks each entry's required guarantees against its controls)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/admitted_trial_plan_components.py` (Admitted execution controls record the required operation guarantees)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/manifests.py` (Backend capabilities v2 include the operation-supervision declaration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/operational_manifest_capabilities.py` (Operation-supervision guarantee declaration model)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_manifests.py` (Manifest requires the operation contract family for an operation-supervision declaration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/compiler.py` (Trial compilation derives and records required guarantees per entry)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/models.py` (Per-entry compilation authority carries the selected backend manifests)
+- TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Current coverage capture binds the issue #1361 source)
+- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Current retest release binds the issue #1361 source)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (Versioned evidence history includes the issue #1361 captures)

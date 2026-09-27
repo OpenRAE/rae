@@ -20,6 +20,7 @@ from ..manifest_authority import (
 )
 from ..versions import (
     BACKEND_MANIFEST_V2_SCHEMA_VERSION,
+    BACKEND_OPERATION_CONTRACT_IDS,
     PARTICIPANT_IMPLEMENTATION_MANIFEST_V1_SCHEMA_VERSION,
     PARTICIPANT_IMPLEMENTATION_PROVENANCE_V1_SCHEMA_VERSION,
 )
@@ -70,6 +71,7 @@ class BackendManifestV2Model(ContractModel):
         self._validate_realization_envelope_contract()
         self._validate_cleanup_contracts()
         self._validate_time_contracts()
+        self._validate_operation_supervision_contracts()
         self._validate_observation_capture_offers()
         self._validate_participant_policy_contracts()
         self._validate_concept_bindings()
@@ -123,6 +125,12 @@ class BackendManifestV2Model(ContractModel):
             )
         if declared_cleanup_contracts and self.capabilities.cleanup is None:
             raise ValueError("cleanup contract support requires capabilities.cleanup")
+
+    def _validate_operation_supervision_contracts(self) -> None:
+        if self.capabilities.operation_supervision is not None and not set(BACKEND_OPERATION_CONTRACT_IDS) <= set(
+            self.supported_contract_versions
+        ):
+            raise ValueError("operation supervision capabilities require the backend operation contract family")
 
     def _validate_time_contracts(self) -> None:
         time_contracts = {
@@ -211,6 +219,27 @@ class BackendManifestV2Model(ContractModel):
                     },
                     "then": {
                         "properties": {"capabilities": {"required": ["time"]}},
+                    },
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "capabilities": {
+                                "properties": {"operation_supervision": {"not": {"type": "null"}}},
+                                "required": ["operation_supervision"],
+                            }
+                        },
+                        "required": ["capabilities"],
+                    },
+                    "then": {
+                        "properties": {
+                            "supported_contract_versions": {
+                                "allOf": [
+                                    {"contains": {"const": contract_id}}
+                                    for contract_id in BACKEND_OPERATION_CONTRACT_IDS
+                                ]
+                            }
+                        }
                     },
                 },
             ]
