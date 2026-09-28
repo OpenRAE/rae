@@ -61,6 +61,8 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-control-occurrence-v1",
             "participant-control-selection-v1",
             "participant-control-evaluation-v1",
+            "participant-control-selection-v2",
+            "participant-control-evaluation-v2",
             "participant-control-teaching-profile-v1",
             "participant-crossing-occurrence-v1",
             "participant-flow-control-relation-v1",

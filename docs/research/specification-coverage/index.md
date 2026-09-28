@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 54.0.0 and rejects duplicate or unsupported
+Current validation requires release 59.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -443,3 +443,34 @@ and claim limits remain unchanged; participant delivery timing is verified by
 its dedicated compiler tests in
 [`execution-snapshot-v54.json`](execution-snapshot-v54.json) and
 [`analysis-v54.json`](analysis-v54.json).
+
+Release 55.0.0 replays the retained protocol on the source that adds issue
+#1361 trial execution-authority admission, in
+[`execution-snapshot-v55.json`](execution-snapshot-v55.json) and
+[`analysis-v55.json`](analysis-v55.json). Classifications and claim limits are
+unchanged. The derived backend guarantees and their admission have dedicated
+contract and compiler tests; this capture makes no live backend recovery claim.
+
+Release 56.0.0 replays that matrix against the API-424 v2 contract refactor in
+[`execution-snapshot-v56.json`](execution-snapshot-v56.json) and
+[`analysis-v56.json`](analysis-v56.json). Classifications and claim limits remain
+unchanged; provider installation and effect realization remain outside this
+offline matrix.
+
+Release 57.0.0 replays that matrix against the API-424 contract quality-gate
+refactor in [`execution-snapshot-v57.json`](execution-snapshot-v57.json) and
+[`analysis-v57.json`](analysis-v57.json). Classifications and claim limits remain
+unchanged; provider installation and effect realization remain outside this
+offline matrix.
+
+Release 58.0.0 replays the merged issue #1361 and API-424 source in
+[`execution-snapshot-v58.json`](execution-snapshot-v58.json) and
+[`analysis-v58.json`](analysis-v58.json). Classifications and claim limits remain
+unchanged; provider installation and effect realization remain outside this
+offline matrix.
+
+Release 59.0.0 replays the retained matrix after issue #1400 reverted the trial
+execution-authority admission from #1361. It binds the post-revert API-424 source
+in [`execution-snapshot-v59.json`](execution-snapshot-v59.json) and
+[`analysis-v59.json`](analysis-v59.json). Classifications and claim limits remain
+unchanged; the earlier source captures remain historical.

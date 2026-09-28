@@ -11,7 +11,9 @@ from .experiment_bindings import ParticipantConfigurationResultModel
 from .operation_carriers import OperationReceiptModel, OperationStatusModel
 from .participant_context import ParticipantContextViewModel
 from .participant_control import ParticipantControlOccurrenceModel
+from .participant_control_applicability import ParticipantControlSelectionV2Model
 from .participant_control_composition import ParticipantControlEvaluationModel
+from .participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from .participant_control_profiles import ParticipantControlTeachingProfileModel
 from .participant_control_selection import ParticipantControlSelectionModel
 from .participant_crossing import ParticipantCrossingOccurrenceModel
@@ -60,11 +62,21 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
     roots = {
         "participant-control-selection-v1": ParticipantControlSelectionModel,
         "participant-control-evaluation-v1": ParticipantControlEvaluationModel,
+        "participant-control-selection-v2": ParticipantControlSelectionV2Model,
+        "participant-control-evaluation-v2": ParticipantControlEvaluationV2Model,
     }
     schemas = {}
     for contract_id, model in roots.items():
         schema = model.model_json_schema()
         _add_raes_plane(schema, contract_id)
+        if contract_id == "participant-control-evaluation-v2":
+            validator = "raes_contracts.contracts.validate_participant_control_resolved_context_v2"
+        elif "evaluation" in contract_id:
+            validator = "raes_contracts.contracts.validate_participant_control_resolved_context"
+        elif contract_id.endswith("selection-v2"):
+            validator = "raes_contracts.contracts.ParticipantControlSelectionV2Model.model_validate"
+        else:
+            validator = "raes_contracts.contracts.ParticipantControlSelectionModel.model_validate"
         _add_raes_invariant(
             schema,
             "participant-control-resolved-context"
@@ -72,9 +84,7 @@ def _participant_control_schema_bundle() -> dict[str, dict[str, Any]]:
             else "participant-control-selection-graph",
             "Validate closed selection dependencies and exact trusted evaluation context; "
             "structural validity is not execution authority.",
-            validator="raes_contracts.contracts.validate_participant_control_resolved_context"
-            if "evaluation" in contract_id
-            else "raes_contracts.contracts.ParticipantControlSelectionModel.model_validate",
+            validator=validator,
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
         schemas[contract_id] = schema
