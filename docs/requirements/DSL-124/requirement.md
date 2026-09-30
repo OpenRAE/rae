@@ -37,3 +37,4 @@ Scenario authors may need to require that particular data be captured from parti
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/capture_dimensions.py` (Shared authored capture dimension projection)
 - TESTS → TEST `implementations/python/tests/test_issue_1237_capture_dimensions.py` (Independent authored demand projection and admission parity)
 - TESTS → TEST `implementations/python/tests/test_issue_1112_capture_admission.py` (Authored evidence demand admission and non-demand boundaries)
+- TESTS → TEST `implementations/python/tests/test_issue_1401_media_type_coherence.py` (Authored required media types reject unprovable encodings)

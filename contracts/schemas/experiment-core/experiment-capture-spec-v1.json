@@ -1407,6 +1407,18 @@
       ],
       "level": "error",
       "validator": "raes_contracts.contracts.ExperimentCaptureSpecModel._validate_capture_spec"
+    },
+    {
+      "description": "Every required media type must have a registered content-proof path and be supported by its declared output_contract.",
+      "id": "capture-media-type-provable",
+      "inputs": [
+        {
+          "contract_id": "experiment-capture-spec-v1",
+          "instance_path": "#/capture_requirements"
+        }
+      ],
+      "level": "error",
+      "validator": "raes_contracts.contracts.ExperimentCaptureRequirementModel._validate_capture_requirement"
     }
   ],
   "x-raes-plane": "authored_evidence_requirement",

@@ -27416,6 +27416,18 @@
   "x-raes-document-phase": "normalized-authoring-object",
   "x-raes-invariants": [
     {
+      "description": "Every declared required evidence media type must have a registered content-proof path; an explicit output_contract must support every declared type.",
+      "id": "required-evidence-media-type-provable",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/evidence_requirements"
+        }
+      ],
+      "level": "error",
+      "validator": "raes.evidence_requirements.EvidenceRequirement._validate_capture_intent"
+    },
+    {
       "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",
       "id": "stateful-generated-artifact-semantics",
       "inputs": [

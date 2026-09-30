@@ -42,3 +42,4 @@ Requirement inventory expansion. Observation support must be declared explicitly
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/target_manifest_probe.py` (Fail-closed capture-offer manifest conformance validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/capture_admission.py` (Conjunctive required-capture capability admission)
 - TESTS → TEST `implementations/python/tests/test_issue_1112_capture_admission.py` (Capture-offer manifest and admission failure coverage)
+- TESTS → TEST `implementations/python/tests/test_issue_1401_media_type_coherence.py` (Every eligible media declaration can be represented by a valid capture offer)
