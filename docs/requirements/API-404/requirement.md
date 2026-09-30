@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:55:58.825305Z
-updated_at: 2026-09-23T00:00:00.000000Z
+updated_at: 2026-09-26T00:00:00.000000Z
 ---
 
 # API-404 — Secure, Durable, And Idempotent Control-Plane Semantics
@@ -66,6 +66,17 @@ selected P1 core. The corresponding runtime guarantee identifiers are
 `authenticated-transport`, `actor-bound-disclosure`,
 `owner-serialized-mutation`, and `revision-carrying-reads`. Only P2
 authenticates transport callers; P0 and P1 rely on their trusted embedders.
+
+Every served P2 route shall declare exactly one transport authority: a
+value-free GET-only public probe, GET-only administrative read, or a
+state-changing-method administrative mutation or operator resolution. P2
+composition shall fail when any other route is registered, and a served app
+shall refuse startup and every request when its routes, middleware, exception
+handlers or dependency overrides differ from the composed set. Every
+P2 response, including errors and idempotent readback, shall carry
+`Cache-Control: no-store`. Transport-admission refusals shall not reveal why
+admission failed, and no refusal shall reveal whether an operation outside the
+caller's authority exists.
 
 P2 identities are deployment-configured bearer tokens or verified proxy
 identities, not RAES-issued participant credentials. A host may use one as a
@@ -130,6 +141,18 @@ carrier exists. The [decision](../../decisions/issue-1348-operation-lifecycle.md
 identifies those implementation gaps and the retained canonical requirements.
 
 ## Traceability
+
+- DOCUMENTS → GITHUB_ISSUE `1359` (Enforce the accepted runtime API trust boundary)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1359-runtime-api-trust-boundary-preflight.md` (Administrative-only P2 enforcement guardrails and route authority matrix)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_security.py` (Route transport-authority roles and HTTP methods, unambiguous subject bindings, and fail-closed principal, credential, trust-flag and limit validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_auth.py` (One declared method-bound transport authority per served route, fail-closed route inventory, sealed app composition, and non-revealing refusals)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/__init__.py` (Route-authority inventory and composition seal enforced at app construction and middleware-stack build, and exposed to the embedder)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_guards.py` (Application-wide `Cache-Control: no-store` boundary and per-request sealed-composition refusal)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_operation_routes.py` (No-store and seal installation, uncacheable redacted 500 envelope, admission before request-validation errors, and resolution refusal indistinguishable from an unknown operation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_participant_retrieval.py` (Participant views admitted through the shared administrative-read authority)
+- DOCUMENTS → DOCUMENTATION `docs/public/guides/control-plane.md` (P2 deployment guidance and host responsibilities)
+- TESTS → TEST `implementations/python/tests/test_issue_1359_runtime_api_trust_boundary.py` (ASGI-boundary route inventory, method binding, composition seal, per-route admission, non-revealing refusals, governed and legacy views, replay scope, no-store and configuration checks)
+- TESTS → TEST `implementations/python/tests/test_issue_1179_startup_reconciliation.py` (HTTP resolution refusal indistinguishable from an unknown operation)
 
 - DOCUMENTS → GITHUB_ISSUE `1356` (Control-plane and participant-access trust boundary)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1356-control-plane-participant-access-preflight.md` (Accepted exposure model, route authority matrix, deployment and crossing guardrails)

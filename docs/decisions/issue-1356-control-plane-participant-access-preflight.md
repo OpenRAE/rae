@@ -80,7 +80,11 @@ are never participant-view fallbacks.
 
 This table inventories the optional reference P2 HTTP app. `read` is the
 existing `_ReadIdentity` role check, `mutate` is `_MutatingIdentity`, and
-`resolve` is `_ResolutionIdentity`. All authenticated P2 identities require
+`resolve` is `_ResolutionIdentity`. Issue #1359 renamed these dependencies to
+`_AdministrativeReadIdentity`, `_AdministrativeMutationIdentity`, and
+`_OperatorResolutionIdentity`, the `administrative-read`,
+`administrative-mutation`, and `operator-resolution` transport authorities, with
+unchanged role sets. All authenticated P2 identities require
 the exact target binding. These checks authenticate the host's P2 caller;
 they do not authenticate the host's participant-facing user. The host applies
 its own caller and participant checks before releasing any result.

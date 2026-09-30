@@ -19,7 +19,7 @@ from ..control_plane_api_models import (
     _ParticipantTerminateBody,
 )
 from ..participant_control_intents import ParticipantControlIntent
-from ._auth import _MutatingIdentity, _ReadIdentity
+from ._auth import _AdministrativeMutationIdentity, _AdministrativeReadIdentity
 from ._offload import _control_plane_calls
 from ._responses import (
     _BAD_REQUEST_CONFLICT_RESPONSES,
@@ -42,7 +42,7 @@ def _register_participant_execution_routes(
     async def control_participant_execution(
         execution_scope_ref: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantExecutionControlBody,
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
@@ -71,7 +71,7 @@ def _register_participant_execution_routes(
         execution_scope_ref: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> ParticipantExecutionServiceStateModel:
         calls = _control_plane_calls(request)
         try:
@@ -112,7 +112,7 @@ def _register_participant_control_routes(
         participant_address: str,
         request: Request,
         body: ParticipantControlIntent,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
         try:
@@ -152,7 +152,7 @@ def _register_participant_episode_start_routes(
     async def initialize_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantInitializeBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantInitializeBody()
@@ -176,7 +176,7 @@ def _register_participant_episode_start_routes(
     async def reset_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantResetBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantResetBody()
@@ -206,7 +206,7 @@ def _register_participant_episode_end_routes(
     async def restart_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantRestartBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantRestartBody()
@@ -231,7 +231,7 @@ def _register_participant_episode_end_routes(
     async def terminate_participant_episode(
         participant_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         body: _ParticipantTerminateBody | None = None,
     ) -> OperationReceiptModel:
         payload = body or _ParticipantTerminateBody()

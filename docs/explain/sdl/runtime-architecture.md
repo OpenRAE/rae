@@ -673,6 +673,15 @@ applies its own caller boundary. The accepted
 [route and deployment boundary](../../decisions/issue-1356-control-plane-participant-access-preflight.md)
 also covers operation readback, histories, errors, caches and events.
 
+Every served P2 route declares exactly one transport authority: public probe,
+administrative read, administrative mutation or operator resolution.
+`create_control_plane_app()` refuses a route with none or several, and exposes
+the `(method, path)` inventory as `app.state.control_plane_route_authority`.
+Participant, audience, controller and operation-actor checks follow in the
+core. Every response carries `Cache-Control: no-store`. The
+[deployment guide](../../public/guides/control-plane.md) covers the host's
+duties.
+
 ## Current Scope
 
 The current runtime scope includes:

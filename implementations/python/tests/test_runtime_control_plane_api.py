@@ -55,6 +55,7 @@ from raes_runtime.control_plane_api._offload import _control_plane_calls, _Contr
 from raes_runtime.control_plane_security import (
     ControlPlaneIdentity,
     ControlPlaneRole,
+    ControlPlaneRouteAuthority,
     ControlPlaneSecurityConfig,
 )
 from raes_runtime.control_plane_store import (
@@ -1694,7 +1695,7 @@ def test_control_plane_api_rejects_invalid_bearer_token_instead_of_trusting_head
         audits = control_plane.audit_log()
 
     assert response.status_code == 401
-    assert response.json() == {"detail": "invalid bearer token"}
+    assert response.json() == {"detail": "unauthorized"}
     assert audits[-1].reason == "invalid bearer token"
     assert audits[-1].allowed is False
 
@@ -1721,10 +1722,10 @@ def test_control_plane_auth_rejects_non_ascii_bearer_token_as_unauthorized():
     )
 
     with pytest.raises(HTTPException) as excinfo:
-        auth.read_identity(request)
+        auth.admit(request, ControlPlaneRouteAuthority.ADMINISTRATIVE_READ)
 
     assert excinfo.value.status_code == 401
-    assert excinfo.value.detail == "invalid bearer token"
+    assert excinfo.value.detail == "unauthorized"
 
 
 def test_control_plane_api_rejects_bearer_token_bound_to_another_target():
@@ -1754,7 +1755,7 @@ def test_control_plane_api_rejects_bearer_token_bound_to_another_target():
         )
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "identity is not authorized for this target"}
+    assert response.json() == {"detail": "forbidden"}
 
 
 @pytest.mark.parametrize("authentication_path", ["bearer", "verified-proxy"])
@@ -1783,7 +1784,7 @@ def test_control_plane_api_rejects_identity_without_target_binding(authenticatio
         response = client.get("/snapshot", headers=headers)
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "identity is not authorized for this target"}
+    assert response.json() == {"detail": "forbidden"}
 
 
 def test_control_plane_security_config_mappings_cannot_be_mutated_after_construction():

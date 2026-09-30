@@ -16,7 +16,8 @@ about five minutes and uses the Python package.
 - **Controlling participant input or output?** Use the
   [participant-control guide](participant-control.md).
 - **Integrating RAES?** Choose the [Python API](guides/python.md) or
-  [command-line interface](guides/cli.md).
+  [command-line interface](guides/cli.md). To serve the runtime over HTTP, read
+  [serve the runtime control plane](guides/control-plane.md).
 - **Building a backend?** Read the [backend and conformance guide](backends.md).
 - **Evaluating the research?** Start with the [research context](research.md),
   [current limits](limitations.md), and [citation](citation.md).
@@ -35,6 +36,7 @@ sdl/index
 participant-control
 guides/python
 guides/cli
+guides/control-plane
 backends
 research
 limitations

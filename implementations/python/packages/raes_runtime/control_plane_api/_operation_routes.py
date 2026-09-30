@@ -16,9 +16,15 @@ from raes_contracts.contracts import (
     ProvisioningPlanModel,
     RuntimeSnapshotEnvelopeModel,
 )
+from starlette.concurrency import run_in_threadpool
 
 from ..control_plane import RuntimeControlPlane
-from ..control_plane_api_guards import RequestSizeLimitMiddleware
+from ..control_plane_api_guards import (
+    NO_STORE_CACHE_CONTROL,
+    AppCompositionSealMiddleware,
+    NoStoreResponseMiddleware,
+    RequestSizeLimitMiddleware,
+)
 from ..control_plane_api_models import (
     _evaluation_plan,
     _operation_status_model,
@@ -27,8 +33,13 @@ from ..control_plane_api_models import (
     _snapshot_model,
 )
 from ..control_plane_recovery import IndeterminateResolutionDisposition
-from ..control_plane_security import ControlPlaneSecurityConfig
-from ._auth import _MutatingIdentity, _ReadIdentity, _ResolutionIdentity
+from ..control_plane_security import ControlPlaneRouteAuthority, ControlPlaneSecurityConfig
+from ._auth import (
+    _AdministrativeMutationIdentity,
+    _AdministrativeReadIdentity,
+    _OperatorResolutionIdentity,
+    _require_sealed_app_composition,
+)
 from ._offload import _control_plane_calls
 from ._responses import (
     _CONFLICT_RESPONSES,
@@ -83,12 +94,16 @@ def _install_request_guards(
     control_plane: RuntimeControlPlane,
     security: ControlPlaneSecurityConfig,
 ) -> None:
+    # Innermost guard: an unadmitted app composition refuses before any route runs.
+    app.add_middleware(AppCompositionSealMiddleware, verify_app=_require_sealed_app_composition)
     app.add_middleware(
         RequestSizeLimitMiddleware,
         control_plane=control_plane,
         max_request_bytes=security.max_request_bytes,
         max_pending_rejection_audits=security.max_pending_rejection_audits,
     )
+    # Added last so it wraps the size guard's own rejections as well.
+    app.add_middleware(NoStoreResponseMiddleware)
 
     @app.exception_handler(Exception)
     async def _redacted_errors(request: Request, exc: Exception) -> JSONResponse:
@@ -96,15 +111,38 @@ def _install_request_guards(
         await _record_admission_denial_best_effort(
             request, control_plane, action="http-internal-error", reason="internal-error"
         )
-        return JSONResponse(status_code=500, content={"detail": "internal server error"})
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "internal server error"},
+            headers={"cache-control": NO_STORE_CACHE_CONTROL},
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _redacted_request_validation_errors(request: Request, exc: RequestValidationError) -> JSONResponse:
         del exc
+        # FastAPI decodes a JSON body before it resolves route dependencies, so a
+        # malformed body would otherwise be reported to a caller that was never
+        # admitted. Admission decides first; only an admitted caller sees a 422.
+        refused = await _refuse_unadmitted_caller(request)
+        if refused is not None:
+            return refused
         await _record_admission_denial_best_effort(
             request, control_plane, action="http-request-validation-failed", reason="request-validation-failed"
         )
         return JSONResponse(status_code=422, content={"detail": "request validation failed"})
+
+
+async def _refuse_unadmitted_caller(request: Request) -> JSONResponse | None:
+    route = request.scope.get("route")
+    inventory = getattr(request.app.state, "control_plane_route_authority", {})
+    authority = inventory.get((request.method, getattr(route, "path", None)))
+    if authority is None or authority is ControlPlaneRouteAuthority.PUBLIC_PROBE:
+        return None
+    try:
+        await run_in_threadpool(request.app.state.control_plane_api_auth.admit, request, authority)
+    except HTTPException as refusal:
+        return JSONResponse(status_code=refusal.status_code, content={"detail": refusal.detail})
+    return None
 
 
 def _register_operation_routes(
@@ -134,7 +172,7 @@ def _register_indeterminate_resolution_route(
         operation_id: str,
         request: Request,
         resolution: _IndeterminateResolutionRequest,
-        identity: _ResolutionIdentity,
+        identity: _OperatorResolutionIdentity,
     ) -> OperationReceiptModel:
         try:
             receipt = await _control_plane_calls(request).mutate(
@@ -144,10 +182,10 @@ def _register_indeterminate_resolution_route(
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,
             )
-        except KeyError as exc:
+        except (KeyError, PermissionError) as exc:
+            # The core audits a forbidden resolution; the response matches an unknown
+            # operation so an operator cannot probe which operation ids exist.
             raise HTTPException(status_code=404, detail="indeterminate operation not found") from exc
-        except PermissionError as exc:
-            raise HTTPException(status_code=403, detail="indeterminate resolution forbidden") from exc
         except (TypeError, ValueError, RuntimeError) as exc:
             raise HTTPException(status_code=409, detail="indeterminate resolution conflict") from exc
         return _receipt_response(receipt)
@@ -161,7 +199,7 @@ def _register_provisioning_submission_route(
     async def submit_provisioning(
         request: Request,
         plan: ProvisioningPlanModel,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         submitted_plan = _provisioning_plan(plan)
         calls = _control_plane_calls(request)
@@ -198,7 +236,7 @@ def _register_orchestration_submission_route(
     async def submit_orchestration(
         request: Request,
         plan: OrchestrationPlanModel,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         submitted_plan = _orchestration_plan(plan)
         calls = _control_plane_calls(request)
@@ -234,7 +272,7 @@ def _register_evaluation_submission_route(
     async def submit_evaluation(
         request: Request,
         plan: EvaluationPlanModel,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         submitted_plan = _evaluation_plan(plan)
         calls = _control_plane_calls(request)
@@ -270,7 +308,7 @@ def _register_operation_read_routes(
     async def get_operation(
         operation_id: str,
         request: Request,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> OperationStatusModel:
         calls = _control_plane_calls(request)
         status = await calls.run(control_plane.get_operation, operation_id, identity=identity)
@@ -290,7 +328,7 @@ def _register_operation_read_routes(
     async def get_snapshot(
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> RuntimeSnapshotEnvelopeModel:
         calls = _control_plane_calls(request)
         await calls.run(
@@ -311,7 +349,7 @@ def _register_operation_read_routes(
     async def get_operational_apparatus_summary(
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> dict[str, object]:
         calls = _control_plane_calls(request)
         await calls.run(
