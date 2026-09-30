@@ -532,3 +532,23 @@ execution-authority admission from #1361. It binds the post-revert API-424 sourc
 in [`execution-snapshot-v59.json`](execution-snapshot-v59.json) and
 [`analysis-v59.json`](analysis-v59.json). Earlier captures retain their source
 identities; this release makes no provider installation or realization claim.
+
+Releases 61.0.0 and 62.0.0 preserve the two issue #971 captures previously
+numbered 56.0.0 and 57.0.0 on its feature branch. Their source identities,
+execution identifiers, observations, and claim limits are retained in
+[execution-snapshot-v61.json](execution-snapshot-v61.json) and
+[execution-snapshot-v62.json](execution-snapshot-v62.json). The second capture's
+baseline now points to the relocated first capture. The integrated releases
+56.0.0–60.0.0 retain their original artifacts.
+
+Release 63.0.0 replays the retained cases against the merged issue #971 crossing
+models and API-424 control contracts in
+[execution-snapshot-v63.json](execution-snapshot-v63.json) and
+[analysis-v63.json](analysis-v63.json). Outcomes and bounded claim limits remain
+unchanged. This is construction evidence, with no participant-crossing
+equivalence or runtime-realization claim.
+
+Release 64.0.0 repeats the retained cases after the locked PyJWT dependency
+upgrade to 2.14.0 in [execution-snapshot-v64.json](execution-snapshot-v64.json)
+and [analysis-v64.json](analysis-v64.json). Outcomes and claim limits remain
+unchanged.

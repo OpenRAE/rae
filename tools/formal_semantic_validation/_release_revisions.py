@@ -53,9 +53,9 @@ _HISTORICAL_RETEST_REVISIONS = frozenset(
         "51.0.0",
         "52.0.0",
     }
-) | {"53.0.0", "54.0.0", "55.0.0", "56.0.0", "57.0.0", "58.0.0", "59.0.0"}
+) | {"53.0.0", "54.0.0", "55.0.0", "56.0.0", "57.0.0", "58.0.0", "59.0.0", "60.0.0", "61.0.0", "62.0.0", "63.0.0"}
 
-_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"60.0.0"}
+_SUPPORTED_RETEST_REVISIONS = _HISTORICAL_RETEST_REVISIONS | {"64.0.0"}
 _SOURCE_BOUND_RETEST_REVISIONS = _SUPPORTED_RETEST_REVISIONS - {"3.0.0"}
 
 _RETEST_BASELINE_REVISIONS = {
@@ -117,4 +117,9 @@ _RETEST_BASELINE_REVISIONS = {
     "58.0.0": "57.0.0",
     "59.0.0": "58.0.0",
     "60.0.0": "59.0.0",
+    # Issue-971 captures retain their original pre-merge baseline lineage.
+    "61.0.0": "55.0.0",
+    "62.0.0": "61.0.0",
+    "63.0.0": "62.0.0",
+    "64.0.0": "63.0.0",
 }

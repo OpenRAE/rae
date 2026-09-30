@@ -21,6 +21,14 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_models.py` (Complete single-operation transition, retry and atomicity construction tests)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/concrete.py` (Issue #971 single-operation formal model construction only; no equivalence or runtime-realization result)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Bind mixed-runtime dispatch to exact participant crossing facts)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_result_contracts.py` (Append-only composition evidence validation across backend results)
 - TESTS → TEST `implementations/python/tests/test_issue_1016_mixed_runtime_coordination.py` (Crossing, policy, delivery, observation, weakening, and failure evidence witnesses)

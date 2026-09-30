@@ -10,6 +10,7 @@ from raes_contracts.behavioral_relation_profiles import (
     ActiveOpacityStrategyModel,
     BehavioralRelationProfileModel,
     CoalitionOpacityObserverModel,
+    ParticipantPredicateOpacityParametersModel,
     load_behavioral_relation_profile_revision,
 )
 from raes_contracts.behavioral_relations import (
@@ -72,6 +73,8 @@ def _validate_profile_admission(
 ) -> None:
     if request.analysis_profile != ANALYSIS_PROFILE:
         raise ParticipantOpacityOperationalError("unknown opacity analysis profile")
+    if not isinstance(profile.parameters, ParticipantPredicateOpacityParametersModel):
+        raise ParticipantOpacityOperationalError("expected an opacity parameter profile")
     if (
         request.profile_id != profile.profile_id
         or request.profile_revision != profile.profile_revision

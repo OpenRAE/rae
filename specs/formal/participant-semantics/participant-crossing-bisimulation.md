@@ -5,13 +5,19 @@ Requirement: SEM-232.
 Decision:
 [ADR-100](../../../docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md).
 
-Profile: `participant-crossing-dpbb-finite-v1@rev1`.
+Historical profile sketch: `participant-crossing-dpbb-finite-v1@rev1`.
 
 Relation catalog: `raes-behavioral-relations@rev8`,
 `divergence-preserving-branching-bisimulation`.
 
-Status: normative design. No model, model-check, proof, runtime-realization, or
-backend-conformance result is claimed by this specification.
+Status: historical rev1 state/transition sketch. The relation clauses and
+projection remain applicable. ADR-100's #971 amendment selects executable
+profile/model rev2 as the downstream target. No equivalence, proof,
+runtime-realization, or backend-conformance result is claimed here.
+
+The [executable rev2 refinement](participant-crossing-models.md) records #971's
+approved single-operation interpretation and independently generated models.
+The rev1 design below remains the historical theorem sketch.
 
 ## Theorem Target
 
