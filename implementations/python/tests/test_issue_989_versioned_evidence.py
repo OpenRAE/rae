@@ -223,6 +223,58 @@ def test_historical_integrated_release_does_not_execute_current_code(monkeypatch
     assert _releases.validate_release_bundle(ROOT, release) == []
 
 
+def _stub_release(revision: str, *, protocol_revision: str = "2.0.0"):
+    from tools.formal_semantic_validation._types import EvidenceRelease
+
+    return EvidenceRelease(
+        manifest_path=f"docs/research/formal-semantic-validation/bundles/retest-{revision}.json",
+        manifest={"revision": revision},
+        protocol={"revision": protocol_revision},
+        corpus={},
+        snapshot={},
+        analysis={},
+    )
+
+
+@pytest.mark.parametrize(
+    ("releases", "message"),
+    [
+        pytest.param([], "selects no v2 retest release", id="no-release"),
+        pytest.param(
+            [_stub_release("64.0.0"), _stub_release("65.0.0")],
+            "must be the explicit 66.0.0 retest",
+            id="stale-current",
+        ),
+        pytest.param(
+            [_stub_release("65.0.0"), _stub_release("67.0.0")],
+            "must be the explicit 66.0.0 retest",
+            id="unsupported-future",
+        ),
+        pytest.param(
+            [_stub_release("66.0.0", protocol_revision="1.0.0")],
+            "must be the explicit 66.0.0 retest",
+            id="wrong-protocol",
+        ),
+    ],
+)
+def test_current_formal_release_selection_is_explicit(monkeypatch, releases, message):
+    from tools.formal_semantic_validation import _loading
+
+    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: releases)
+
+    with pytest.raises(ValueError, match=message):
+        _loading.load_retest_bundle(ROOT)
+
+
+def test_current_formal_release_selection_returns_the_explicit_retest(monkeypatch):
+    from tools.formal_semantic_validation import _loading
+
+    current = _stub_release("66.0.0")
+    monkeypatch.setattr(_loading, "load_release_bundles", lambda _root: [_stub_release("65.0.0"), current])
+
+    assert _loading.load_retest_bundle(ROOT)[0] is current
+
+
 @pytest.mark.integration
 def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation import _retest
@@ -230,7 +282,7 @@ def test_latest_current_release_is_versioned_and_strict(monkeypatch):
     from tools.formal_semantic_validation._releases import validate_retest_bundle
 
     release, protocol, corpus, snapshot, analysis = copy_bundle(load_retest_bundle, ROOT)
-    assert release.manifest["revision"] == "64.0.0"
+    assert release.manifest["revision"] == "66.0.0"
     original = _retest.replay_case
 
     def changed_result(root, case):
@@ -283,7 +335,7 @@ def test_specification_current_capture_does_not_accept_old_artifact_digest(artif
     from tools.check_specification_coverage import load_bundle, validate_bundle
 
     manifest, protocol, snapshot, analysis = copy_bundle(load_bundle, ROOT)
-    assert manifest["revision"] == "63.0.0"
+    assert manifest["revision"] == "65.0.0"
     snapshot = deepcopy(snapshot)
     artifact = next(a for a in snapshot["artifacts"] if a["artifact_id"] == artifact_id)
     artifact["sha256"] = old_digest
@@ -516,6 +568,8 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "62.0.0",
             "63.0.0",
             "64.0.0",
+            "65.0.0",
+            "66.0.0",
         ]
         if family == "formal"
         else [
@@ -583,6 +637,8 @@ def test_no_capture_can_be_silently_dropped(monkeypatch, family, removed):
             "61.0.0",
             "62.0.0",
             "63.0.0",
+            "64.0.0",
+            "65.0.0",
         ]
     )
     revisions.pop(-1 if removed == "current" else 0)

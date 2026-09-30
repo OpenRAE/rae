@@ -580,3 +580,29 @@ def test_http_resolution_is_operator_only_and_returns_stable_errors() -> None:
     )
     assert accepted.status_code == 200
     assert accepted.json()["context"]["parent_operation_id"] == parent.receipt.operation_id
+
+
+def test_http_resolution_refusal_is_indistinguishable_from_an_unknown_operation() -> None:
+    scope = "participant-control:participant.alpha:controller.alpha"
+    parent = _record("hidden-parent-1179", subject_scope=scope)
+    store = _store_with(parent)
+    control_plane = RuntimeControlPlane(_target(), store=store)
+    security = ControlPlaneSecurityConfig(bearer_tokens={"operator-token": _operator()})
+    body = {"disposition": "accept-current-snapshot"}
+
+    with TestClient(create_control_plane_app(control_plane, security=security)) as client:
+        forbidden = client.post(
+            f"/operations/{parent.receipt.operation_id}/resolution",
+            json=body,
+            headers={"authorization": "Bearer operator-token", "idempotency-key": "hidden-child"},
+        )
+        unknown = client.post(
+            "/operations/op-unknown/resolution",
+            json=body,
+            headers={"authorization": "Bearer operator-token", "idempotency-key": "unknown-child"},
+        )
+
+    assert forbidden.status_code == unknown.status_code == 404
+    assert forbidden.json() == unknown.json()
+    assert store.find_by_idempotency("hidden-child") is None
+    assert store.read_audit()[-1].reason == "resolution-forbidden"

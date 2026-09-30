@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Request
 from raes_contracts.contracts import OperationReceiptModel, WorkflowCancellationRequestModel
 
 from ..control_plane import RuntimeControlPlane
-from ._auth import _MutatingIdentity
+from ._auth import _AdministrativeMutationIdentity
 from ._offload import _control_plane_calls
 from ._responses import _CONFLICT_RESPONSES, _conflict_detail, _receipt_response
 
@@ -19,7 +19,7 @@ def _register_workflow_routes(
     async def cancel_workflow(
         workflow_address: str,
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
         cancellation: WorkflowCancellationRequestModel | None = None,
     ) -> OperationReceiptModel:
         payload = cancellation or WorkflowCancellationRequestModel()
@@ -40,7 +40,7 @@ def _register_workflow_routes(
     @app.post("/workflows/reconcile-timeouts", responses=_CONFLICT_RESPONSES)
     async def reconcile_timeouts(
         request: Request,
-        identity: _MutatingIdentity,
+        identity: _AdministrativeMutationIdentity,
     ) -> OperationReceiptModel:
         calls = _control_plane_calls(request)
         try:

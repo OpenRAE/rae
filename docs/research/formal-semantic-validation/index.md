@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 60.0.0, rejects unsupported future
+Current validation requires explicit release 66.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -551,4 +551,16 @@ equivalence or runtime-realization claim.
 Release 64.0.0 repeats the retained cases after the locked PyJWT dependency
 upgrade to 2.14.0 in [execution-snapshot-v64.json](execution-snapshot-v64.json)
 and [analysis-v64.json](analysis-v64.json). Outcomes and claim limits remain
+unchanged.
+
+Release 65.0.0 is recorded in
+[`execution-snapshot-v65.json`](execution-snapshot-v65.json) and
+[`analysis-v65.json`](analysis-v65.json). It replays the retained formal cases
+after issue #1359 enforced the administrative-only runtime control-plane
+boundary. Outcomes and bounded claim limits remain unchanged.
+
+Release 66.0.0 repeats the retained cases after the locked PyJWT dependency
+upgrade to 2.15.1 and the urllib3 upgrade to 2.8.0 in
+[`execution-snapshot-v66.json`](execution-snapshot-v66.json) and
+[`analysis-v66.json`](analysis-v66.json). Outcomes and claim limits remain
 unchanged.

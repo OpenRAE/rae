@@ -1,4 +1,11 @@
-"""HTTP routes for API-408 participant retrieval views."""
+"""HTTP routes for API-408 participant retrieval views.
+
+These are administrative reads (issue #1356/#1359): the host's service identity
+is admitted by the shared read authority. With a crossing resolver, a view also
+requires one exact participant/audience binding and a committed API-423
+crossing. Without a resolver, the legacy view is an administrative projection
+that a host must not release to a participant.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +22,7 @@ from raes_contracts.contracts import (
 from raes_contracts.runtime_state import OperationKind
 
 from .control_plane import RuntimeControlPlane
+from .control_plane_api._auth import _AdministrativeReadIdentity
 from .control_plane_api._offload import _control_plane_calls
 from .control_plane_api._responses import _set_snapshot_revision_header
 from .control_plane_security import ControlPlaneIdentity, ParticipantAudienceSubjectBinding
@@ -26,13 +34,6 @@ _GOVERNED_VIEW_RESPONSES = {
     409: {"description": "Participant projection conflict"},
 }
 _ViewT = TypeVar("_ViewT")
-
-
-def _read_identity_dependency(request: Request) -> ControlPlaneIdentity:
-    return request.app.state.control_plane_api_auth.read_identity(request)
-
-
-_ReadIdentity = Annotated[ControlPlaneIdentity, Depends(_read_identity_dependency)]
 
 
 @dataclass(frozen=True)
@@ -124,7 +125,7 @@ def register_participant_retrieval_routes(
         participant_address: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> ParticipantStatusViewModel:
         return await _resolved_governed_view(
             control_plane,
@@ -153,7 +154,7 @@ def register_participant_retrieval_routes(
         episode_id: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
     ) -> ParticipantHistoryViewModel:
         return await _resolved_governed_view(
             control_plane,
@@ -182,7 +183,7 @@ def register_participant_retrieval_routes(
         participant_address: str,
         request: Request,
         response: Response,
-        identity: _ReadIdentity,
+        identity: _AdministrativeReadIdentity,
         query: _ContextQuery,
     ) -> ParticipantContextViewModel:
         return await _resolved_governed_view(
