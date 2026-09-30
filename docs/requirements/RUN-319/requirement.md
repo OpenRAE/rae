@@ -21,6 +21,14 @@ Current admission, retrieval, lifecycle, and persistence surfaces do not yet for
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_models.py` (Complete single-operation transition, retry and atomicity construction tests)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/concrete.py` (Issue #971 single-operation formal model construction only; no equivalence or runtime-realization result)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1016` (Coordinate mixed participant runtimes behind the incumbent crossing decision)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py` (Protect runtime-owned composition state from provider mutation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control.py` (Admit mixed participant actions without a logical provider fallback)

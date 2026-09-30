@@ -51,8 +51,8 @@
     },
     {
       "id": "abstract-crossing-vs-concrete-crossing-kernel",
-      "left_carrier": "Complete reachable finite sem-230-participant-crossing-abstract@rev1 LTS.",
-      "right_carrier": "Independently derived complete reachable finite api-423-run-319-crossing-kernel@rev1 LTS.",
+      "left_carrier": "Complete reachable finite sem-230-participant-crossing-abstract@rev2 LTS.",
+      "right_carrier": "Independently derived complete reachable finite api-423-run-319-crossing-kernel@rev2 LTS.",
       "state_space": "Closed singleton participant, audience, controller, episode, and request domains; two policy cuts; five input classes; finite decision, delivery, history, replay, and stage coordinates.",
       "initial_relation": "The profile idle p0 states are related; the candidate witness family is induced by the concrete-to-abstract semantic abstraction.",
       "transitions_and_enabledness": "Closed request, policy decision, transform/declassify, delivery/observation, cut-advance, and replay schemas plus finite concrete mediation stages.",
@@ -94,7 +94,7 @@
   ],
   "theorem_profile": {
     "profile_id": "participant-crossing-dpbb-finite-v1",
-    "profile_revision": "rev1",
+    "profile_revision": "rev2",
     "relation_id": "divergence-preserving-branching-bisimulation",
     "taxonomy_ref": "raes-behavioral-relations@rev8",
     "projection_ref": "participant-crossing-projection@rev1",
@@ -115,8 +115,8 @@
     },
     "left_model": {
       "model_id": "sem-230-participant-crossing-abstract",
-      "revision": "rev1",
-      "authority": "specs/formal/participant-semantics/participant-crossing-bisimulation.md#abstract-states",
+      "revision": "rev2",
+      "authority": "specs/formal/participant-semantics/participant-crossing-models.md#abstract-rules",
       "transition_source": "SEM-230 abstract crossing transition schemas",
       "independent_construction": true,
       "state_coordinates": ["phase", "policy_cut", "pending_request", "decision", "delivery", "last_result"],
@@ -126,8 +126,8 @@
     },
     "right_model": {
       "model_id": "api-423-run-319-crossing-kernel",
-      "revision": "rev1",
-      "authority": "specs/formal/participant-semantics/participant-crossing-bisimulation.md#concrete-states",
+      "revision": "rev2",
+      "authority": "specs/formal/participant-semantics/participant-crossing-models.md#concrete-rules",
       "transition_source": "independently reviewed API-423/RUN-319 crossing-stage transition schemas",
       "independent_construction": true,
       "state_coordinates": ["phase", "policy_cut", "intent", "gate", "capability", "decision", "delivery", "history_head", "last_result"],
