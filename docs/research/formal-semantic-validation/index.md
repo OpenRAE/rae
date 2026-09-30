@@ -336,7 +336,7 @@ outcomes and claim limits, recording the positive successor's changed result
 digest; the dangling-reference diagnostic remains identical.
 It establishes no autonomy threshold, authority grant, or realized attribution.
 
-Current validation requires explicit release 60.0.0, rejects unsupported future
+Current validation requires explicit release 61.0.0, rejects unsupported future
 or duplicate revisions, and never accepts an old/new output-digest pair as a
 substitute for replay. Historical releases (including the issue-826 supplement)
 undergo pin, shape, control, and internal-join checks without executing current
@@ -532,3 +532,9 @@ execution-authority admission from #1361. It binds the post-revert API-424 sourc
 in [`execution-snapshot-v59.json`](execution-snapshot-v59.json) and
 [`analysis-v59.json`](analysis-v59.json). Earlier captures retain their source
 identities; this release makes no provider installation or realization claim.
+
+Release 61.0.0 is recorded in
+[`execution-snapshot-v60.json`](execution-snapshot-v60.json) and
+[`analysis-v60.json`](analysis-v60.json). It replays the retained formal cases
+after issue #1359 enforced the administrative-only runtime control-plane
+boundary. Outcomes and bounded claim limits remain unchanged.
