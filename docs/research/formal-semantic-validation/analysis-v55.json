@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1359-analysis-v55",
+  "analysis_id": "issue-1361-analysis-v55",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1359-execution-v55",
-  "generated_at": "2026-09-27T21:38:57.468381+00:00",
+  "execution_id": "issue-1361-execution-v55",
+  "generated_at": "2026-09-26",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -148,9 +148,8 @@
     "Issue #1016 mixed-runtime coordination is covered by dedicated runtime tests; the retained formal corpus does not establish backend-native mixed realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
-    "Issue #1389 temporal-subject admission is verified by dedicated compiler tests and adds no new formal-semantic claim to this retained corpus.",
-    "Issue #1359 control-plane route authority, participant-view scoping, and no-store HTTP boundary are verified by their dedicated HTTP-boundary suite and add no new formal-semantic claim to this retained corpus."
+    "Issue #1389 temporal-subject admission is verified by dedicated compiler tests and adds no new formal-semantic claim to this retained corpus."
   ],
-  "plain_language_outcome": "The retained formal cases reproduce their prior outcomes against source that enforces the administrative-only runtime control-plane boundary. The bounded claims and unsupported classes are unchanged.",
+  "plain_language_outcome": "Retained controls replay against the merged backend-operation source and the issue #1361 execution-authority admission. Prior claim limits and unsupported classes remain unchanged.",
   "protocol_revision": "2.0.0"
 }

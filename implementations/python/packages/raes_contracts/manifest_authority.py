@@ -72,6 +72,8 @@ BACKEND_SUPPORTED_CONTRACT_IDS = (
     "participant-control-occurrence-v1",
     "participant-control-selection-v1",
     "participant-control-evaluation-v1",
+    "participant-control-selection-v2",
+    "participant-control-evaluation-v2",
     "participant-crossing-occurrence-v1",
     "participant-flow-control-relation-v1",
     "participant-lifecycle-event-v1",
