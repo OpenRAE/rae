@@ -79,8 +79,9 @@ def test_dsl_124_accepts_authored_evidence_requirement_independent_of_objectives
 
 
 def test_dsl_124_rejects_unprovable_pcap_declaration() -> None:
+    payload = _scenario_yaml().replace("application/json", "application/vnd.tcpdump.pcap")
     with pytest.raises(SDLParseError, match="unsupported required evidence media type"):
-        parse_sdl(_scenario_yaml().replace("application/json", "application/vnd.tcpdump.pcap"))
+        parse_sdl(payload)
 
 
 def test_dsl_124_evidence_requirements_are_not_objective_targets() -> None:

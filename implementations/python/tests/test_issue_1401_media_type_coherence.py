@@ -23,8 +23,9 @@ def test_sdl_rejects_unprovable_required_media_type(media_type: str) -> None:
     scenario = _capture_scenario()
     payload = scenario.evidence_requirements["attacker-action-log"].model_dump(mode="json")
     payload["media_types"] = ["application/json", media_type]
+    requirement_model = type(scenario.evidence_requirements["attacker-action-log"])
     with pytest.raises(ValidationError, match="unsupported.*media type"):
-        type(scenario.evidence_requirements["attacker-action-log"]).model_validate(payload)
+        requirement_model.model_validate(payload)
 
 
 @pytest.mark.parametrize("media_type", ["text/plain", "application/x-ndjson", "application/vnd.tcpdump.pcap"])
@@ -74,13 +75,15 @@ def test_unknown_sdl_output_contract_is_rejected_at_authoring() -> None:
     scenario = _capture_scenario()
     payload = scenario.evidence_requirements["attacker-action-log"].model_dump(mode="json")
     payload["output_contract"] = "unknown-output-contract-v1"
+    requirement_model = type(scenario.evidence_requirements["attacker-action-log"])
     with pytest.raises(ValidationError, match="output_contract"):
-        type(scenario.evidence_requirements["attacker-action-log"]).model_validate(payload)
+        requirement_model.model_validate(payload)
 
 
 def test_sdl_object_contract_rejects_json_lines_at_authoring() -> None:
     scenario = _capture_scenario(output_contract="experiment-evidence-record-v1")
     payload = scenario.evidence_requirements["attacker-action-log"].model_dump(mode="json")
     payload["media_types"] = ["application/jsonl"]
+    requirement_model = type(scenario.evidence_requirements["attacker-action-log"])
     with pytest.raises(ValidationError, match="media.*output_contract"):
-        type(scenario.evidence_requirements["attacker-action-log"]).model_validate(payload)
+        requirement_model.model_validate(payload)
