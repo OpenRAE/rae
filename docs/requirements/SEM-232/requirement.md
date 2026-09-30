@@ -21,6 +21,20 @@ SEM-230 defines participant information-flow labels and projection, API-423 and 
 
 ## Traceability
 
+- DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Model multiple operations and interleaved retries)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_profile.py` (Closed carrier and binary profile validation tests)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_export.py` (Complete export, drift and safe publication tests)
+
+- DOCUMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_participant_crossing_profile.py` (Closed construction profile; theorem remains unestablished)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_models.py` (Complete single-operation transition, retry and atomicity construction tests)
+
+- DOCUMENTS → CODE_FILE `implementations/formal/participant_crossing/export.py` (Issue #971 single-operation formal model construction only; no equivalence or runtime-realization result)
+
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Implement independent participant-crossing proof models)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#972` (Map the reference runtime to the participant-crossing proof model)
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#973` (Build the participant-crossing bisimulation counterexample corpus)

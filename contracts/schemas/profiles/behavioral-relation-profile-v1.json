@@ -1,5 +1,46 @@
 {
   "$defs": {
+    "AbstractCrossingCarrierModel": {
+      "additionalProperties": false,
+      "properties": {
+        "initial_state_ordinal": {
+          "maximum": 0,
+          "minimum": 0,
+          "title": "Initial State Ordinal",
+          "type": "integer"
+        },
+        "model_id": {
+          "const": "sem-230-participant-crossing-abstract",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "revision": {
+          "const": "rev2",
+          "title": "Revision",
+          "type": "string"
+        },
+        "source_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_path": {
+          "const": "implementations/formal/participant_crossing/abstract.py",
+          "title": "Source Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_id",
+        "revision",
+        "source_path",
+        "source_digest",
+        "initial_state_ordinal"
+      ],
+      "title": "AbstractCrossingCarrierModel",
+      "type": "object"
+    },
     "AbstractOpacityCarrierModel": {
       "additionalProperties": false,
       "description": "An abstract carrier whose proof obligations are discharged by a theorem session.",
@@ -156,6 +197,271 @@
         "fusion_rule_revision"
       ],
       "title": "CoalitionOpacityObserverModel",
+      "type": "object"
+    },
+    "ConcreteCrossingCarrierModel": {
+      "additionalProperties": false,
+      "properties": {
+        "initial_state_ordinal": {
+          "maximum": 0,
+          "minimum": 0,
+          "title": "Initial State Ordinal",
+          "type": "integer"
+        },
+        "model_id": {
+          "const": "api-423-run-319-crossing-kernel",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "revision": {
+          "const": "rev2",
+          "title": "Revision",
+          "type": "string"
+        },
+        "source_digest": {
+          "minLength": 1,
+          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_path": {
+          "const": "implementations/formal/participant_crossing/concrete.py",
+          "title": "Source Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_id",
+        "revision",
+        "source_path",
+        "source_digest",
+        "initial_state_ordinal"
+      ],
+      "title": "ConcreteCrossingCarrierModel",
+      "type": "object"
+    },
+    "CrossingDomainsModel": {
+      "additionalProperties": false,
+      "properties": {
+        "audience": {
+          "maxItems": 1,
+          "minItems": 1,
+          "prefixItems": [
+            {
+              "const": "audience-0",
+              "type": "string"
+            }
+          ],
+          "title": "Audience",
+          "type": "array"
+        },
+        "controller": {
+          "maxItems": 1,
+          "minItems": 1,
+          "prefixItems": [
+            {
+              "const": "controller-0",
+              "type": "string"
+            }
+          ],
+          "title": "Controller",
+          "type": "array"
+        },
+        "decision": {
+          "maxItems": 6,
+          "minItems": 6,
+          "prefixItems": [
+            {
+              "const": "none",
+              "type": "string"
+            },
+            {
+              "const": "permit",
+              "type": "string"
+            },
+            {
+              "const": "deny",
+              "type": "string"
+            },
+            {
+              "const": "unsupported",
+              "type": "string"
+            },
+            {
+              "const": "transform",
+              "type": "string"
+            },
+            {
+              "const": "declassify",
+              "type": "string"
+            }
+          ],
+          "title": "Decision",
+          "type": "array"
+        },
+        "delivery": {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "const": "none",
+              "type": "string"
+            },
+            {
+              "const": "pending",
+              "type": "string"
+            },
+            {
+              "const": "delivered",
+              "type": "string"
+            },
+            {
+              "const": "withheld",
+              "type": "string"
+            }
+          ],
+          "title": "Delivery",
+          "type": "array"
+        },
+        "episode": {
+          "maxItems": 1,
+          "minItems": 1,
+          "prefixItems": [
+            {
+              "const": "episode-0",
+              "type": "string"
+            }
+          ],
+          "title": "Episode",
+          "type": "array"
+        },
+        "history_head": {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "const": "h0",
+              "type": "string"
+            },
+            {
+              "const": "h1",
+              "type": "string"
+            },
+            {
+              "const": "h2",
+              "type": "string"
+            },
+            {
+              "const": "h3",
+              "type": "string"
+            }
+          ],
+          "title": "History Head",
+          "type": "array"
+        },
+        "input_class": {
+          "maxItems": 5,
+          "minItems": 5,
+          "prefixItems": [
+            {
+              "const": "plain",
+              "type": "string"
+            },
+            {
+              "const": "transform",
+              "type": "string"
+            },
+            {
+              "const": "declassify",
+              "type": "string"
+            },
+            {
+              "const": "unsupported",
+              "type": "string"
+            },
+            {
+              "const": "forbidden",
+              "type": "string"
+            }
+          ],
+          "title": "Input Class",
+          "type": "array"
+        },
+        "participant": {
+          "maxItems": 1,
+          "minItems": 1,
+          "prefixItems": [
+            {
+              "const": "participant-0",
+              "type": "string"
+            }
+          ],
+          "title": "Participant",
+          "type": "array"
+        },
+        "policy_cut": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "const": "p0",
+              "type": "string"
+            },
+            {
+              "const": "p1",
+              "type": "string"
+            }
+          ],
+          "title": "Policy Cut",
+          "type": "array"
+        },
+        "replay": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "const": "fresh",
+              "type": "string"
+            },
+            {
+              "const": "same-cut",
+              "type": "string"
+            },
+            {
+              "const": "later-cut",
+              "type": "string"
+            }
+          ],
+          "title": "Replay",
+          "type": "array"
+        },
+        "request_id": {
+          "maxItems": 1,
+          "minItems": 1,
+          "prefixItems": [
+            {
+              "const": "request-0",
+              "type": "string"
+            }
+          ],
+          "title": "Request Id",
+          "type": "array"
+        }
+      },
+      "required": [
+        "participant",
+        "audience",
+        "controller",
+        "episode",
+        "request_id",
+        "policy_cut",
+        "input_class",
+        "decision",
+        "replay",
+        "delivery",
+        "history_head"
+      ],
+      "title": "CrossingDomainsModel",
       "type": "object"
     },
     "FiniteOpacityCarrierModel": {
@@ -606,6 +912,177 @@
       "title": "OpacityTimeModel",
       "type": "object"
     },
+    "ParticipantCrossingParametersModel": {
+      "additionalProperties": false,
+      "properties": {
+        "checker_tau": {
+          "const": "internal",
+          "title": "Checker Tau",
+          "type": "string"
+        },
+        "complete_carrier": {
+          "const": true,
+          "title": "Complete Carrier",
+          "type": "boolean"
+        },
+        "completion": {
+          "const": "per-crossing-visible-outcome",
+          "title": "Completion",
+          "type": "string"
+        },
+        "concurrency": {
+          "const": "excluded",
+          "title": "Concurrency",
+          "type": "string"
+        },
+        "controller_handoff": {
+          "const": "excluded",
+          "title": "Controller Handoff",
+          "type": "string"
+        },
+        "depth_or_sample_bound": {
+          "title": "Depth Or Sample Bound",
+          "type": "null"
+        },
+        "domains": {
+          "$ref": "#/$defs/CrossingDomainsModel"
+        },
+        "fresh_operations": {
+          "maximum": 1,
+          "minimum": 1,
+          "title": "Fresh Operations",
+          "type": "integer"
+        },
+        "hidden_labels": {
+          "maxItems": 5,
+          "minItems": 5,
+          "prefixItems": [
+            {
+              "const": "internal.validate",
+              "type": "string"
+            },
+            {
+              "const": "internal.resolve-policy-cut",
+              "type": "string"
+            },
+            {
+              "const": "internal.resolve-capability",
+              "type": "string"
+            },
+            {
+              "const": "internal.prepare-record",
+              "type": "string"
+            },
+            {
+              "const": "internal.atomic-commit",
+              "type": "string"
+            }
+          ],
+          "title": "Hidden Labels",
+          "type": "array"
+        },
+        "identity_reuse": {
+          "const": "excluded",
+          "title": "Identity Reuse",
+          "type": "string"
+        },
+        "kind": {
+          "const": "participant-crossing-dpbb/v1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "left": {
+          "$ref": "#/$defs/AbstractCrossingCarrierModel"
+        },
+        "order": {
+          "const": "sequential-total-order",
+          "title": "Order",
+          "type": "string"
+        },
+        "probability": {
+          "const": "excluded",
+          "title": "Probability",
+          "type": "string"
+        },
+        "right": {
+          "$ref": "#/$defs/ConcreteCrossingCarrierModel"
+        },
+        "time": {
+          "const": "untimed",
+          "title": "Time",
+          "type": "string"
+        },
+        "visible_labels": {
+          "maxItems": 10,
+          "minItems": 10,
+          "prefixItems": [
+            {
+              "const": "crossing.request",
+              "type": "string"
+            },
+            {
+              "const": "crossing.decision.permit",
+              "type": "string"
+            },
+            {
+              "const": "crossing.decision.deny",
+              "type": "string"
+            },
+            {
+              "const": "crossing.decision.unsupported",
+              "type": "string"
+            },
+            {
+              "const": "crossing.transform",
+              "type": "string"
+            },
+            {
+              "const": "crossing.declassify",
+              "type": "string"
+            },
+            {
+              "const": "crossing.delivery",
+              "type": "string"
+            },
+            {
+              "const": "crossing.observation",
+              "type": "string"
+            },
+            {
+              "const": "crossing.replay.reject",
+              "type": "string"
+            },
+            {
+              "const": "policy.cut.advance",
+              "type": "string"
+            }
+          ],
+          "title": "Visible Labels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "domains",
+        "left",
+        "right",
+        "visible_labels",
+        "hidden_labels",
+        "checker_tau",
+        "complete_carrier",
+        "depth_or_sample_bound",
+        "fresh_operations",
+        "identity_reuse",
+        "order",
+        "time",
+        "probability",
+        "concurrency",
+        "controller_handoff",
+        "completion"
+      ],
+      "title": "ParticipantCrossingParametersModel",
+      "type": "object"
+    },
     "ParticipantPredicateOpacityParametersModel": {
       "additionalProperties": false,
       "allOf": [
@@ -836,6 +1313,60 @@
   "additionalProperties": false,
   "allOf": [
     {
+      "else": {
+        "properties": {
+          "relation_id": {
+            "const": "participant-predicate-opacity"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "parameters": {
+            "properties": {
+              "kind": {
+                "const": "participant-crossing-dpbb/v1"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "required": [
+          "parameters"
+        ]
+      },
+      "then": {
+        "properties": {
+          "finite_analysis_scope": {
+            "const": "declared-complete-finite-carrier"
+          },
+          "left_carrier_ref": {
+            "const": "sem-230-participant-crossing-abstract"
+          },
+          "observation_projection_ref": {
+            "const": "participant-crossing-projection"
+          },
+          "observation_projection_revision": {
+            "const": "rev1"
+          },
+          "profile_id": {
+            "const": "participant-crossing-dpbb-finite-v1"
+          },
+          "profile_revision": {
+            "const": "rev2"
+          },
+          "relation_id": {
+            "const": "divergence-preserving-branching-bisimulation"
+          },
+          "taxonomy_revision": {
+            "const": "rev8"
+          }
+        }
+      }
+    },
+    {
       "if": {
         "properties": {
           "parameters": {
@@ -951,7 +1482,22 @@
       "type": "string"
     },
     "parameters": {
-      "$ref": "#/$defs/ParticipantPredicateOpacityParametersModel"
+      "discriminator": {
+        "mapping": {
+          "participant-crossing-dpbb/v1": "#/$defs/ParticipantCrossingParametersModel",
+          "participant-predicate-opacity/v1": "#/$defs/ParticipantPredicateOpacityParametersModel"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ParticipantPredicateOpacityParametersModel"
+        },
+        {
+          "$ref": "#/$defs/ParticipantCrossingParametersModel"
+        }
+      ],
+      "title": "Parameters"
     },
     "profile_id": {
       "maxLength": 64,
@@ -966,7 +1512,10 @@
       "type": "string"
     },
     "relation_id": {
-      "const": "participant-predicate-opacity",
+      "enum": [
+        "participant-predicate-opacity",
+        "divergence-preserving-branching-bisimulation"
+      ],
       "title": "Relation Id",
       "type": "string"
     },

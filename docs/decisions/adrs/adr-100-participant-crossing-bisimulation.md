@@ -54,16 +54,22 @@ runtime mapping authorities.
 The first target is the complete finite abstract SEM-230 participant-crossing
 LTS versus an independently derived formal concrete API-423/RUN-319
 crossing-kernel LTS. The exact theorem profile is
-`participant-crossing-dpbb-finite-v1@rev1`.
+`participant-crossing-dpbb-finite-v1@rev2`.
 
 The theorem to be machine-checked by downstream work is:
 
 > The declared initial states of
-> `sem-230-participant-crossing-abstract@rev1` and
-> `api-423-run-319-crossing-kernel@rev1` are
+> `sem-230-participant-crossing-abstract@rev2` and
+> `api-423-run-319-crossing-kernel@rev2` are
 > divergence-preserving branching bisimilar under
 > `participant-crossing-projection@rev1`, over the complete reachable carrier
-> of `participant-crossing-dpbb-finite-v1@rev1`.
+> of `participant-crossing-dpbb-finite-v1@rev2`.
+
+The #971 refinement closes request reuse, history advancement, event order,
+and crossing completion in the [executable model authority](../../../specs/formal/participant-semantics/participant-crossing-models.md).
+Rev1 remains the historical design sketch; downstream #972–#976 use rev2 of
+both models and the profile, retaining projection rev1 and taxonomy rev8.
+No rev1 executable bundle or equivalence result was published.
 
 This is a theorem about two formal systems. A separate runtime-realization
 claim must show that the live reference runtime maps to the concrete formal
@@ -101,6 +107,17 @@ Controller handoff is excluded by fixing controller `c0`. Time, probability,
 fairness, true concurrency, and partial order are excluded. The carrier is the
 complete reachable fixed point of the declared finite transition schemas, not
 a depth limit or sample.
+
+One fresh operation uses the sole request identity once and retains its input.
+Same-cut retries repeat the formal outcome protocol without another logical
+commit; later-cut retries reject. One atomic result advances history h0 to h1;
+h2/h3 are declared but unreachable. No identity recycling or head saturation
+is admitted. Multiple fresh operations require the separate #1395 profile.
+Transformation and declassification emit permit, change, delivery, then
+observation. Refusal completes on its visible abstract decision. Terminal
+means completion of one crossing, with retry/cut actions still enabled, rather
+than global LTS termination. These are offline model semantics: no runtime
+retry change, mandatory author proof work, or request-time checker is added.
 
 The visible alphabet includes request, permit, deny, unsupported,
 transformation, declassification, delivery, observation, later-cut replay
@@ -234,3 +251,9 @@ program publishes its evidence.
 - R. van Glabbeek, B. Luttik, and N. Trčka, “Branching Bisimilarity
   with Explicit Divergence,” *Fundamenta Informaticae* 93(4), 2009,
   [doi:10.3233/FI-2009-109](https://doi.org/10.3233/FI-2009-109).
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-09-27 | #971 | Select executable profile/model rev2 and close the approved single-operation retry, history, ordering, and completion semantics; retain projection rev1 and separate runtime mapping. |

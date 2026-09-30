@@ -21,6 +21,14 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
+
+- DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
+
+- TESTS → TEST `implementations/python/tests/test_issue_971_crossing_models.py` (Complete single-operation transition, retry and atomicity construction tests)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/abstract.py` (Issue #971 single-operation formal model construction only; no equivalence or runtime-realization result)
+
 - DOCUMENTS → GITHUB_ISSUE `OpenRAE/rae#1013` (Compose the existing SEM-230 authority in SEM-234 without changing its runtime contract)
 - DOCUMENTS → SPEC `specs/formal/participant-semantics/cross-backend-participant-control.md` (Revisioned mixed-composition compatibility boundary)
 - TESTS → TEST `implementations/python/tests/test_sem_234_mixed_composition.py` (Bounded composition with incumbent SEM-230 authority)

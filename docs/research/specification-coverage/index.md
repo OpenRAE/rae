@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 60.0.0 and rejects duplicate or unsupported
+Current validation requires release 63.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -475,9 +475,22 @@ in [`execution-snapshot-v59.json`](execution-snapshot-v59.json) and
 [`analysis-v59.json`](analysis-v59.json). Classifications and claim limits remain
 unchanged; the earlier source captures remain historical.
 
-Release 60.0.0 replays the retained matrix after issue #1359 enforced the
-administrative-only runtime control-plane boundary. The classifications and
-claim limits remain unchanged; route authority, participant-view scoping, and
-the no-store HTTP boundary are verified by their dedicated suite in
-[`execution-snapshot-v60.json`](execution-snapshot-v60.json) and
-[`analysis-v60.json`](analysis-v60.json).
+Releases 60.0.0 and 61.0.0 preserve the two issue #971 captures previously
+numbered 55.0.0 and 56.0.0 on its feature branch. Their source identities,
+snapshot identifiers, classifications, and claim limits are retained in
+[execution-snapshot-v60.json](execution-snapshot-v60.json) and
+[execution-snapshot-v61.json](execution-snapshot-v61.json). Only release
+coordinates and the corresponding artifact joins changed. Integrated releases
+55.0.0–59.0.0 retain their original artifacts.
+
+Release 62.0.0 replays the retained matrix against the merged issue #971
+crossing models and API-424 control contracts in
+[execution-snapshot-v62.json](execution-snapshot-v62.json) and
+[analysis-v62.json](analysis-v62.json). Classifications and claim limits remain
+unchanged; this is no participant-crossing equivalence or runtime-realization
+result.
+
+Release 63.0.0 repeats the retained matrix after the locked PyJWT dependency
+upgrade to 2.14.0 in [execution-snapshot-v63.json](execution-snapshot-v63.json)
+and [analysis-v63.json](analysis-v63.json). Classifications and claim limits
+remain unchanged.

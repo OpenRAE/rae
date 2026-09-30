@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-1359-v60",
+  "analysis_id": "raes-standardized-specification-coverage-issue-971-v55",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-30T04:33:15.753826+00:00",
+  "generated_at": "2026-09-27",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -60,9 +60,7 @@
     "This capture replays the merged issue #1360 and #1357 source; the protocol makes no live backend execution or supervision claim.",
     "This capture replays the merged issue #1360 and #1358 source; the protocol makes no live backend execution or supervision claim.",
     "Issue #1389 participant inject delivery temporal-subject admission is covered by dedicated compiler tests; this retained matrix makes no new timing or execution claim.",
-    "API-424 v2 participant-control publication is verified by its dedicated contract tests, not promoted to a live provider or backend claim by this retained matrix.",
-    "Issue #1400 reverted backend trial execution-authority admission; this replay makes no claim that those guarantees remain published.",
-    "Issue #1359 control-plane route authority, participant-view scoping, and no-store HTTP boundary are covered by their dedicated HTTP-boundary suite; this retained matrix makes no new exposure or execution claim."
+    "Issue #971 adds offline crossing model construction; this retained protocol establishes no crossing equivalence or runtime-realization claim."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -70,7 +68,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification-coverage matrix reproduces its prior classifications against source that enforces the administrative-only runtime control-plane boundary. Route authority, participant-view scoping, and the no-store HTTP boundary are verified by their dedicated suite; the classifications and claim limits are unchanged.",
+  "plain_language_outcome": "The retained specification matrix replays with unchanged classifications against the source containing the crossing profile and opacity admission guards.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -102,6 +100,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1359-v60",
-  "snapshot_sha256": "c1feb1923e1b13a1c50f473040877101ec4b75a5360541871292d4ace029b80e"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-971-v55",
+  "snapshot_sha256": "5b8bd21d784e9ee101e3a6f670b9cc57ac1da097f4ac1508d12fae8d9aa478f7"
 }

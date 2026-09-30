@@ -47,7 +47,7 @@
     "release_revision": "1.1.0",
     "release_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
   },
-  "captured_at": "2026-09-30T04:33:15.753826+00:00",
+  "captured_at": "2026-09-27",
   "concept_results": [
     {
       "backend_support": "not-evaluated",
@@ -647,17 +647,17 @@
   "execution_status": "complete",
   "implementation_surfaces": [
     {
-      "content_sha256": "46039a013e3d4f2377396fa57d4838b2fa984eb44be1dc0e9a9a166db58203bd",
+      "content_sha256": "2818046a74bf8be2ede16398454d52da070fff8e9b230527d2e566959fd37655",
       "path": "implementations/python/packages/raes_contracts",
       "surface_id": "contract-models"
     },
     {
-      "content_sha256": "4999b8adf294f364a758bc9cf78816d5da9eae1c263ae678eabe4d0e2c82dec6",
+      "content_sha256": "27cf5d5bac07ef4b79d922e7c924832c89f13f12ab7e3a441b1a97557dba2b14",
       "path": "implementations/python/packages/raes_processor",
       "surface_id": "processor-pipeline"
     },
     {
-      "content_sha256": "7de8bf15504fd996b11c7b9f15d0743b452d1c438b37174124097ff2f2a11028",
+      "content_sha256": "9ecd780448b054693503bab246120a1a2bb49a43016d0b9c27c5284ba609833f",
       "path": "implementations/python/packages/raes",
       "surface_id": "sdl-pipeline"
     }
@@ -684,19 +684,17 @@
     "Issue #1189 control-plane profile declarations are covered by their dedicated runtime suite, not promoted to new claims by the retained language corpus.",
     "Issue #1016 mixed-runtime coordination is covered by its dedicated runtime suite. The retained language corpus does not execute mixed providers or establish backend-native realization, multi-controller coordination, IFC, or equivalence.",
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
-    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
-    "API-424 v2 participant-control contracts are checked by their dedicated contract suite; this retained offline matrix does not establish provider installation, scheduling, or effect realization.",
-    "Issue #1400 reverted backend trial execution-authority admission; this capture reflects the post-revert source and does not claim those guarantees."
+    "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution."
   ],
   "protocol_revision": "1.0.0",
   "protocol_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125",
-  "raes_revision": "dc63de02ceffd87affd460283b26389250b0ec82",
-  "snapshot_id": "raes-standardized-specification-coverage-issue-1359-v60",
+  "raes_revision": "49b5567e6b9c340ca6402424af774686ce02220a",
+  "snapshot_id": "raes-standardized-specification-coverage-issue-971-v55",
   "snapshot_revision": "60.0.0",
   "source_state": {
-    "base_revision": "dc63de02ceffd87affd460283b26389250b0ec82",
+    "base_revision": "49b5567e6b9c340ca6402424af774686ce02220a",
     "checkout_state": "modified",
-    "implementation_digest": "1166e4c4b6f8bd93a58f20d27b46559f4e0fe1f59f620fc06b5c2f4b3b2c88d0",
+    "implementation_digest": "be811200bbac80134856404f1d88b4868f8c0d82b0212f5bdbd784a5fd5be285",
     "profile": "python-reference-source/v2"
   }
 }

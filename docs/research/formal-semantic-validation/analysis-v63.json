@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-1359-analysis-v60",
+  "analysis_id": "issue-971-merged-analysis-v63",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -18,7 +18,7 @@
     "evidence_artifacts": [
       "docs/research/formal-semantic-validation/protocol-v2.json",
       "docs/research/formal-semantic-validation/corpus/manifest-v4.json",
-      "docs/research/formal-semantic-validation/execution-snapshot-v60.json",
+      "docs/research/formal-semantic-validation/execution-snapshot-v63.json",
       "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v4.json",
       "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v4.json",
       "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v4.json",
@@ -123,8 +123,8 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-1359-execution-v60",
-  "generated_at": "2026-09-30T04:33:15.753826+00:00",
+  "execution_id": "issue-971-merged-execution-v63",
+  "generated_at": "2026-09-30",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
     "The subset-minimal unsatisfiable core is not a universal proof certificate.",
@@ -149,9 +149,8 @@
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
     "Issue #1389 temporal-subject admission is verified by dedicated compiler tests and adds no new formal-semantic claim to this retained corpus.",
-    "API-424 v2 participant-control contracts are checked by their dedicated contract suite; this retained formal corpus does not install a provider or establish live effect realization.",
-    "Issue #1359 control-plane route authority, participant-view scoping, and no-store HTTP boundary are verified by their dedicated HTTP-boundary suite and add no new formal-semantic claim to this retained corpus."
+    "Issue #971 model construction is verified by its own tests; this retained corpus establishes no participant-crossing equivalence or runtime-realization claim."
   ],
-  "plain_language_outcome": "The retained formal cases reproduce their prior outcomes against source that enforces the administrative-only runtime control-plane boundary. The bounded claims and unsupported classes are unchanged.",
+  "plain_language_outcome": "The retained cases replay against the merged participant-crossing models and API-424 control contracts; outcomes and bounded claim limits are unchanged.",
   "protocol_revision": "2.0.0"
 }
