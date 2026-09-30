@@ -547,3 +547,8 @@ models and API-424 control contracts in
 [analysis-v63.json](analysis-v63.json). Outcomes and bounded claim limits remain
 unchanged. This is construction evidence, with no participant-crossing
 equivalence or runtime-realization claim.
+
+Release 64.0.0 repeats the retained cases after the locked PyJWT dependency
+upgrade to 2.14.0 in [execution-snapshot-v64.json](execution-snapshot-v64.json)
+and [analysis-v64.json](analysis-v64.json). Outcomes and claim limits remain
+unchanged.

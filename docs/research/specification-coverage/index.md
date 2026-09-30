@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 62.0.0 and rejects duplicate or unsupported
+Current validation requires release 63.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -489,3 +489,8 @@ crossing models and API-424 control contracts in
 [analysis-v62.json](analysis-v62.json). Classifications and claim limits remain
 unchanged; this is no participant-crossing equivalence or runtime-realization
 result.
+
+Release 63.0.0 repeats the retained matrix after the locked PyJWT dependency
+upgrade to 2.14.0 in [execution-snapshot-v63.json](execution-snapshot-v63.json)
+and [analysis-v63.json](analysis-v63.json). Classifications and claim limits
+remain unchanged.
