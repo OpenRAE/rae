@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-971-v56",
+  "analysis_id": "raes-standardized-specification-coverage-issue-1365-v56",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -32,10 +32,10 @@
     ]
   },
   "classification_counts": {
-    "deliberately-backend-specific": 1,
     "directly-expressible": 10,
-    "missing": 3,
-    "profile-or-manifest-constraint": 2
+    "profile-or-manifest-constraint": 2,
+    "deliberately-backend-specific": 1,
+    "missing": 3
   },
   "evidence_status": "partial",
   "execution_status": "complete",
@@ -60,46 +60,46 @@
     "This capture replays the merged issue #1360 and #1357 source; the protocol makes no live backend execution or supervision claim.",
     "This capture replays the merged issue #1360 and #1358 source; the protocol makes no live backend execution or supervision claim.",
     "Issue #1389 participant inject delivery temporal-subject admission is covered by dedicated compiler tests; this retained matrix makes no new timing or execution claim.",
-    "Issue #971 adds offline crossing model construction; this retained protocol establishes no crossing equivalence or runtime-realization claim."
+    "API-424 v2 participant-control publication is verified by its dedicated contract tests, not promoted to a live provider or backend claim by this retained matrix."
   ],
   "load_bearing_results": {
-    "failed": 0,
-    "missing": 0,
+    "total": 10,
     "passed": 10,
-    "total": 10
+    "failed": 0,
+    "missing": 0
   },
-  "plain_language_outcome": "The retained matrix replays unchanged classifications after adding type annotations to the crossing profile.",
+  "plain_language_outcome": "The retained specification matrix replays unchanged classifications and claim limits against source that publishes API-424 v2 participant-control contracts. It does not demonstrate runtime adoption.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
-      "concept_count": 6,
-      "failed_stage_count": 0,
-      "missing_count": 0,
       "request_id": "survey-representative-range",
-      "status": "demonstrated"
+      "status": "demonstrated",
+      "concept_count": 6,
+      "missing_count": 0,
+      "failed_stage_count": 0
     },
     {
-      "concept_count": 5,
-      "failed_stage_count": 1,
-      "missing_count": 1,
       "request_id": "cyborg-participant-evaluation",
-      "status": "partial"
+      "status": "partial",
+      "concept_count": 5,
+      "missing_count": 1,
+      "failed_stage_count": 1
     },
     {
-      "concept_count": 3,
-      "failed_stage_count": 1,
-      "missing_count": 1,
       "request_id": "vsdl-configurable-infrastructure",
-      "status": "partial"
+      "status": "partial",
+      "concept_count": 3,
+      "missing_count": 1,
+      "failed_stage_count": 1
     },
     {
-      "concept_count": 2,
-      "failed_stage_count": 1,
-      "missing_count": 1,
       "request_id": "cyber-dem-federation",
-      "status": "partial"
+      "status": "partial",
+      "concept_count": 2,
+      "missing_count": 1,
+      "failed_stage_count": 1
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-971-v56",
-  "snapshot_sha256": "1374220797ea167547909575816297e08178bf1e64829761b5836acb92bfc22a"
+  "snapshot_id": "raes-standardized-specification-coverage-issue-1365-v56",
+  "snapshot_sha256": "8eae117dd7b506342ac927517aae8bba6fb7096d5280b5648bbfb07de8d89691"
 }

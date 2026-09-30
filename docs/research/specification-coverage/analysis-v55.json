@@ -1,5 +1,5 @@
 {
-  "analysis_id": "raes-standardized-specification-coverage-issue-971-v55",
+  "analysis_id": "issue-1361-specification-coverage-v55",
   "backend_leakage": [],
   "claim": {
     "allowed_evidence": [
@@ -39,7 +39,7 @@
   },
   "evidence_status": "partial",
   "execution_status": "complete",
-  "generated_at": "2026-09-27",
+  "generated_at": "2026-09-26",
   "limitations": [
     "This result demonstrates bounded specification coverage, not universal cyber-range coverage, usability, adoption, backend substitution, or behavioral equivalence.",
     "The three missing concepts are evidence, not implementation tasks within this snapshot.",
@@ -60,7 +60,7 @@
     "This capture replays the merged issue #1360 and #1357 source; the protocol makes no live backend execution or supervision claim.",
     "This capture replays the merged issue #1360 and #1358 source; the protocol makes no live backend execution or supervision claim.",
     "Issue #1389 participant inject delivery temporal-subject admission is covered by dedicated compiler tests; this retained matrix makes no new timing or execution claim.",
-    "Issue #971 adds offline crossing model construction; this retained protocol establishes no crossing equivalence or runtime-realization claim."
+    "Issue #1361 trial execution-authority admission is covered by dedicated contract and compiler tests; this retained matrix makes no live backend execution or supervision claim."
   ],
   "load_bearing_results": {
     "failed": 0,
@@ -68,7 +68,7 @@
     "passed": 10,
     "total": 10
   },
-  "plain_language_outcome": "The retained specification matrix replays with unchanged classifications against the source containing the crossing profile and opacity admission guards.",
+  "plain_language_outcome": "The retained specification matrix replays unchanged classifications and claim limits against source that admits exact participant inject delivery temporal subjects. Dedicated compiler tests, rather than this corpus, verify that delivery-timing behavior.",
   "protocol_revision": "1.0.0",
   "request_results": [
     {
@@ -100,6 +100,6 @@
       "status": "partial"
     }
   ],
-  "snapshot_id": "raes-standardized-specification-coverage-issue-971-v55",
-  "snapshot_sha256": "973db4507f6bc2ae0c77345f2c85393c42c9411f0e4891f031108ee898774f76"
+  "snapshot_id": "issue-1361-specification-coverage-v55",
+  "snapshot_sha256": "5db372a8249fc923ba3d2a12bf7956ab59ddfc90fa3e22d3ca34beaf16ce1551"
 }

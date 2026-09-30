@@ -1,5 +1,5 @@
 {
-  "analysis_id": "issue-971-analysis-v57",
+  "analysis_id": "issue-1365-analysis-v57",
   "claim": {
     "allowed_evidence": [
       "production parser and semantic-validator results",
@@ -123,7 +123,7 @@
   ],
   "corpus_revision": "4.0.0",
   "evidence_status": "partial",
-  "execution_id": "issue-971-execution-v57",
+  "execution_id": "issue-1365-execution-v57",
   "generated_at": "2026-09-27",
   "limitations": [
     "Satisfiability is limited to raes-finite-domain-satisfiability-v1 and its exact translation, theory, and Z3 configuration.",
@@ -149,8 +149,8 @@
     "Issue #610's reconciliation demonstration harness is covered by its dedicated processor and CLI suite, not promoted to new claims by the retained language corpus.",
     "Participant identity, organization ownership, and participant assignment are separated by issue #1338. This retained offline corpus does not establish participant autonomy, execution authority, live backend fidelity, or causal attribution.",
     "Issue #1389 temporal-subject admission is verified by dedicated compiler tests and adds no new formal-semantic claim to this retained corpus.",
-    "Issue #971 model construction is verified by its own tests; this retained corpus establishes no participant-crossing equivalence or runtime-realization claim."
+    "API-424 v2 participant-control contracts are checked by their dedicated contract suite; this retained formal corpus does not install a provider or establish live effect realization."
   ],
-  "plain_language_outcome": "The retained formal cases replay unchanged outcomes after adding type annotations to the crossing profile.",
+  "plain_language_outcome": "The retained formal cases reproduce their prior outcomes against the API-424 contract publication source. Bounded claims and unsupported classes are unchanged.",
   "protocol_revision": "2.0.0"
 }
