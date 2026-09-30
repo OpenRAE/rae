@@ -292,7 +292,7 @@ the port scenario. Historical captures and archived example bytes are retained.
 The matrix classifications and untested concepts are unchanged; no execution
 authority, successful action, or live backend fidelity is inferred.
 
-Current validation requires release 65.0.0 and rejects duplicate or unsupported
+Current validation requires release 66.0.0 and rejects duplicate or unsupported
 future revisions. It executes current artifacts, requires exact source and
 package hashes, and checks all passing stage pointers. `source_state` discloses
 the base Git commit, modified checkout state, and exact implementation digest;
@@ -507,3 +507,10 @@ upgrade to 2.15.1 and the urllib3 upgrade to 2.8.0 in
 [`execution-snapshot-v65.json`](execution-snapshot-v65.json) and
 [`analysis-v65.json`](analysis-v65.json). Classifications and claim limits
 remain unchanged.
+
+Release 66.0.0 replays the retained matrix after issue #1401 began rejecting
+required evidence whose declared media type the output registry cannot prove.
+Classifications and claim limits remain unchanged; media-type coherence is
+verified by its dedicated suite in
+[`execution-snapshot-v66.json`](execution-snapshot-v66.json) and
+[`analysis-v66.json`](analysis-v66.json).
