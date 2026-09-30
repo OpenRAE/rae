@@ -75,6 +75,6 @@ def load_retest_bundle(
     if not releases:
         raise ValueError("the formal semantic-validation index selects no v2 retest release")
     release = max(releases, key=lambda item: revision_key(item.manifest.get("revision")))
-    if release.manifest.get("revision") != "65.0.0" or release.protocol.get("revision") != "2.0.0":
-        raise ValueError("the current formal evidence release must be the explicit 65.0.0 retest")
+    if release.manifest.get("revision") != "66.0.0" or release.protocol.get("revision") != "2.0.0":
+        raise ValueError("the current formal evidence release must be the explicit 66.0.0 retest")
     return release, release.protocol, release.corpus, release.snapshot, release.analysis
