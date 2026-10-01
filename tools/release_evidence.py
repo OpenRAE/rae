@@ -159,7 +159,7 @@ def generate(
 
     wheel, sdist, derived = _distribution_paths(distribution_dir)
     identity = release_identity(environment)
-    profile = load_python_closure_profile(profile_id)
+    profile = load_python_closure_profile(repo_root, profile_id)
     markers = target_environment(
         profile.python_version,
         profile.platform,

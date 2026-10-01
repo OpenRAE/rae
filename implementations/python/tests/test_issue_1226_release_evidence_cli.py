@@ -283,3 +283,37 @@ def test_the_evidence_index_is_itself_verified_as_an_attested_subject(tmp_path: 
         runner=_recording_runner(seen),
     )
     assert "release-evidence-index.json" in {Path(command[3]).name for command in seen}
+
+
+def test_generate_loads_the_closure_profile_from_the_admitted_repository(tmp_path: Path, monkeypatch) -> None:
+    from tools.python_closure_profiles import load_python_closure_profile
+
+    class _StopAfterProfile(Exception):
+        pass
+
+    selected: list[tuple[str, str]] = []
+
+    def stop_at_target_environment(python_version: str, platform: str, *, full_version: str) -> None:
+        selected.append((python_version, platform))
+        raise _StopAfterProfile
+
+    monkeypatch.setattr(
+        release_evidence,
+        "_distribution_paths",
+        lambda _directory: (tmp_path / "raes.whl", tmp_path / "raes.tar.gz", tmp_path / "derived.whl"),
+    )
+    monkeypatch.setattr(release_evidence, "target_environment", stop_at_target_environment)
+    paths = release_evidence.GeneratePaths(
+        repo_root=REPO_ROOT,
+        distribution_dir=tmp_path,
+        evidence_dir=tmp_path / "evidence",
+        environment_dir=tmp_path,
+        sdist_environment_dir=tmp_path,
+    )
+    profile_id = "public-linux-x86_64-cp312-all-extras"
+
+    with pytest.raises(_StopAfterProfile):
+        release_evidence.generate(paths=paths, profile_id=profile_id, release_tag="v0.0.0", environment=_ENVIRONMENT)
+
+    profile = load_python_closure_profile(REPO_ROOT, profile_id)
+    assert selected == [(profile.python_version, profile.platform)]
