@@ -65,10 +65,9 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         raise pytest.UsageError("--shard-count and --shard-index must be supplied together")
     index, count = validate_shard_index(shard_index, shard_count)
 
-    owned: list[pytest.Item] = []
-    deselected: list[pytest.Item] = []
-    for item in items:
-        (owned if shard_for_nodeid(item.nodeid, count) == index else deselected).append(item)
+    assignments = [(item, shard_for_nodeid(item.nodeid, count) == index) for item in items]
+    owned = [item for item, is_owned in assignments if is_owned]
+    deselected = [item for item, is_owned in assignments if not is_owned]
     if deselected:
         config.hook.pytest_deselected(items=deselected)
     items[:] = owned
