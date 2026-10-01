@@ -12,6 +12,7 @@ from raes import canonical_sdl_digest
 from raes.parser import parse_sdl
 from raes.scenario import ExpandedScenario
 from raes.validator import SemanticValidator
+from raes_contracts._evidence_content_validation import _json_pointer_resolves, _parse_contract_document
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     ExperimentCaptureSpecModel,
@@ -65,9 +66,9 @@ def _scenario():
             integrity: checksum
             retention: run_lifetime
             loss_disclosure: best_effort
-            output_contract: event-stream-v1
+            output_contract: participant-behavior-history-event-stream-v1
             field_selectors:
-              - /events
+              - /0
         """
     )
 
@@ -158,8 +159,8 @@ def _capture_spec(
                     "window_refs": ["run-window"],
                     "expected_media_types": ["application/json"],
                     "required_artifact_roles": artifact_roles or ["event-log"],
-                    "output_contract": "event-stream-v1",
-                    "field_selectors": ["/events", "/events/0"],
+                    "output_contract": "participant-behavior-history-event-stream-v1",
+                    "field_selectors": ["/0", "/0/action_contract_address"],
                     "sensitivity": "internal",
                     "integrity_requirements": integrity or ["checksum", "sha256-digest"],
                     "loss_disclosure_required": True,
@@ -220,6 +221,23 @@ def test_refinement_resolves_exact_lineage_and_preserves_the_authored_scenario()
 
     assert validated == (relation,)
     assert scenario.model_dump(mode="json") == before
+
+
+def test_refinement_selectors_resolve_against_registered_stream_content() -> None:
+    scenario = _scenario()
+    capture_spec = _capture_spec(_authority_ref("task", _fixture("experiment-task-v1")))
+    requirement = capture_spec.capture_requirements["event-log-detail"]
+    payload = (
+        REPO_ROOT
+        / "contracts/fixtures/control-plane/participant-behavior-history-event-stream-v1/valid/terminal-observation.json"
+    ).read_bytes()
+    document = _parse_contract_document(
+        payload,
+        media_type="application/json",
+        output_contract=requirement.output_contract,
+    )
+    selectors = scenario.evidence_requirements["event-log"].field_selectors + requirement.field_selectors
+    assert all(_json_pointer_resolves(document, selector) for selector in selectors)
 
 
 def test_refinement_fails_closed_when_a_declared_dimension_is_not_monotone() -> None:

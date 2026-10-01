@@ -258,6 +258,22 @@ def _schema_bundle_template() -> dict[str, dict[str, Any]]:  # NOSONAR
 
     bundle = _raw_schema_bundle()
     _add_raes_invariant(
+        bundle["sdl-authoring-input-v1"],
+        "required-evidence-media-type-provable",
+        "Every declared required evidence media type must have a registered content-proof path; an explicit "
+        "output_contract must support every declared type.",
+        validator="raes.evidence_requirements.EvidenceRequirement._validate_capture_intent",
+        inputs=[{"contract_id": "sdl-authoring-input-v1", "instance_path": "#/evidence_requirements"}],
+    )
+    _add_raes_invariant(
+        bundle["experiment-capture-spec-v1"],
+        "capture-media-type-provable",
+        "Every required media type must have a registered content-proof path and be supported by its "
+        "declared output_contract.",
+        validator="raes_contracts.contracts.ExperimentCaptureRequirementModel._validate_capture_requirement",
+        inputs=[{"contract_id": "experiment-capture-spec-v1", "instance_path": "#/capture_requirements"}],
+    )
+    _add_raes_invariant(
         bundle["behavioral-relations-v1"],
         "behavioral-relations-reference-resolution",
         "Relation map keys, bibliography references, claim-surface relation references, and worked-example keys "

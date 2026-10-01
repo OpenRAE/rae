@@ -23,7 +23,10 @@ def _validation_call(ingress, payload, bundle, **offer_updates):
 @pytest.mark.parametrize("ingress", ["protocol", "model", "content"])
 def test_missing_output_owner_is_rejected_at_every_boundary(contract: str, ingress: str) -> None:
     payload = {**_offer().to_payload(), "output_contract": contract}
-    bundle = _evidence_bundle(output_contract=contract)
+    bundle = _evidence_bundle()
+    if ingress == "content":
+        bundle[2].capture_requirements["auth-log-evidence"].output_contract = contract
+        bundle[3].output_contract = contract
     validate = _validation_call(ingress, payload, bundle, output_contract=contract)
     with pytest.raises(ValueError, match="output_contract"):
         validate()

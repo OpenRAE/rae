@@ -54,3 +54,4 @@ Requirement inventory expansion. Raw captured evidence must be modeled explicitl
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_conditions.py` (Condition matching excludes unsupported evidence-id claims)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/evidence_satisfaction.py` (Content-backed emitted evidence satisfaction validation)
 - TESTS → TEST `implementations/python/tests/test_issue_1112_capture_admission.py` (Evidence record, artifact byte, digest, and field proof coverage)
+- TESTS → TEST `implementations/python/tests/test_issue_1401_media_type_coherence.py` (Registered media declarations reach content-backed evidence proof)

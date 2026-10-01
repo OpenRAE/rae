@@ -492,9 +492,8 @@ def test_output_contract_shape_and_registry_are_enforced_before_selectors() -> N
     with pytest.raises(ValueError, match="output_contract"):
         _validate_evidence_bundle(*invalid)
 
-    unknown = _evidence_bundle(output_contract="unknown-output-contract-v1")
     with pytest.raises(ValueError, match="authoritative contract registry"):
-        _validate_evidence_bundle(*unknown)
+        _evidence_bundle(output_contract="unknown-output-contract-v1")
 
 
 def test_output_contract_semantic_invariants_are_enforced() -> None:

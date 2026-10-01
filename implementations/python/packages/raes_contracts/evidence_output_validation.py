@@ -109,10 +109,29 @@ def validate_evidence_output_offer(output_contract: str, media_types: Collection
         raise ValueError("capture offer media types cannot be validated against its output_contract")
 
 
+def validate_evidence_media_declaration(output_contract: str, media_types: Collection[str]) -> None:
+    """Reject required encodings with no registered content-proof path."""
+
+    declared = set(media_types)
+    if not declared and not output_contract:
+        return
+    supported = set().union(
+        *(resolve_evidence_output_contract(contract_id).media_types for contract_id in evidence_output_registrations())
+    )
+    unsupported = sorted(declared - supported)
+    if unsupported:
+        raise ValueError("unsupported required evidence media type(s): " + ", ".join(unsupported))
+    if output_contract:
+        contract = resolve_evidence_output_contract(output_contract)
+        if not declared.issubset(contract.media_types):
+            raise ValueError("required evidence media types cannot be validated against its output_contract")
+
+
 __all__ = [
     "EvidenceOutputContract",
     "evidence_output_registrations",
     "resolve_evidence_output_contract",
     "validate_evidence_output_contract",
     "validate_evidence_output_offer",
+    "validate_evidence_media_declaration",
 ]

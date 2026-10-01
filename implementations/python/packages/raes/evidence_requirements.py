@@ -10,6 +10,7 @@ import re
 from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.evidence_output_validation import validate_evidence_media_declaration
 from raes_contracts.observation_demand import ObservationDemandRule
 
 from ._base import SDLModel, parse_enum_or_var
@@ -215,6 +216,7 @@ def _validate_capture_contract(requirement: EvidenceRequirement) -> None:
         raise ValueError("capture_spec_ref and capture_requirement_ref must be declared together")
     if any(re.fullmatch(r"(?:/(?:[^~/]|~[01])*)*", selector) is None for selector in requirement.field_selectors):
         raise ValueError("field_selectors must be canonical RFC 6901 JSON Pointers")
+    validate_evidence_media_declaration(requirement.output_contract, requirement.media_types)
 
 
 __all__ = [

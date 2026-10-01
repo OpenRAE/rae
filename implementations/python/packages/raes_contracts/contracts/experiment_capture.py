@@ -9,6 +9,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..evidence_output_validation import validate_evidence_media_declaration
 from ..observation_demand import ObservationDemandRule
 from ..versions import EXPERIMENT_CAPTURE_SPEC_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
@@ -122,6 +123,7 @@ class ExperimentCaptureRequirementModel(ContractModel):
         _validate_unique_string_values("field_selectors", self.field_selectors)
         if any(re.fullmatch(r"(?:/(?:[^~/]|~[01])*)*", selector) is None for selector in self.field_selectors):
             raise ValueError("field_selectors must be canonical RFC 6901 JSON Pointers")
+        validate_evidence_media_declaration(self.output_contract, self.expected_media_types)
         if self.sensitivity == "redacted" and self.redaction_policy is None:
             raise ValueError("redacted capture requirements must declare redaction_policy")
         return self

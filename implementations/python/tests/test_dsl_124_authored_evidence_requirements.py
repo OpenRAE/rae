@@ -54,7 +54,7 @@ def _scenario_yaml(*, source_ref: str = OBSERVABILITY_REF, trigger: str | None =
 {trigger_line}        channel: packet_capture
         artifact_role: network_trace
         media_types:
-          - application/vnd.tcpdump.pcap
+          - application/json
         sensitivity: plain
         redaction: none
         integrity: checksum
@@ -76,6 +76,12 @@ def test_dsl_124_accepts_authored_evidence_requirement_independent_of_objectives
         ObservabilityEvidencePlane.AUTHORED_EVIDENCE_REQUIREMENT
     )
     assert OBSERVABILITY_REF in collect_scenario_native_observability_refs(scenario)
+
+
+def test_dsl_124_rejects_unprovable_pcap_declaration() -> None:
+    payload = _scenario_yaml().replace("application/json", "application/vnd.tcpdump.pcap")
+    with pytest.raises(SDLParseError, match="unsupported required evidence media type"):
+        parse_sdl(payload)
 
 
 def test_dsl_124_evidence_requirements_are_not_objective_targets() -> None:
