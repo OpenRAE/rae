@@ -8,6 +8,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 PRs do **not** edit this file directly. release-please maintains it from the
 Conventional Commit history on `main` (#684).
 
+## [6.0.0](https://github.com/OpenRAE/rae/compare/v5.0.0...v6.0.0) (2026-10-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* separate participant identity and objective assignment ([#1345](https://github.com/OpenRAE/rae/issues/1345))
+
+### Features
+
+* add authoring adapter conformance vectors ([#1302](https://github.com/OpenRAE/rae/issues/1302)) ([08c363f](https://github.com/OpenRAE/rae/commit/08c363f699a81e1755d1afc258620f5bd00975b5))
+* admit mixed and staged trial realizations ([#1322](https://github.com/OpenRAE/rae/issues/1322)) ([fe3b318](https://github.com/OpenRAE/rae/commit/fe3b31860e2a9172d381c04441d3ff86cf3517ee))
+* **contracts:** gate published-schema fixture and formal coverage ([#1335](https://github.com/OpenRAE/rae/issues/1335)) ([4d4b712](https://github.com/OpenRAE/rae/commit/4d4b712f5c6e79c69897caad64bcebdd480ff3c8))
+* **contracts:** publish mixed composition profile ([#1315](https://github.com/OpenRAE/rae/issues/1315)) ([803257b](https://github.com/OpenRAE/rae/commit/803257b2d9d3a4808295f47dd6fecd697aa9e558))
+* define mixed participant composition semantics ([#1307](https://github.com/OpenRAE/rae/issues/1307)) ([6ac01be](https://github.com/OpenRAE/rae/commit/6ac01beaa92f17a9ce1738e98ffd53122089f358))
+* enforce bounded participant temporal guarantees ([#1349](https://github.com/OpenRAE/rae/issues/1349)) ([eb75e1a](https://github.com/OpenRAE/rae/commit/eb75e1ae55ede3cdf9afbd7d39f7eb39278d27d7))
+* enforce the administrative-only runtime API trust boundary ([#1394](https://github.com/OpenRAE/rae/issues/1394)) ([3eec4bc](https://github.com/OpenRAE/rae/commit/3eec4bc89132a03dea2837d1572934bb7a7296fd))
+* execute mixed-backend mapping and time contracts ([#1391](https://github.com/OpenRAE/rae/issues/1391)) ([a6382af](https://github.com/OpenRAE/rae/commit/a6382af1a15c1239aab2fe9440b2699fa343e584))
+* **experiment:** validate scoped evidence refinements ([#1294](https://github.com/OpenRAE/rae/issues/1294)) ([950b73e](https://github.com/OpenRAE/rae/commit/950b73e88af710a2b9ea5c14da281598e4717072))
+* **formal:** add independent participant crossing models ([#1397](https://github.com/OpenRAE/rae/issues/1397)) ([79c50a9](https://github.com/OpenRAE/rae/commit/79c50a957063948d459dcdcf806f57ddea1976b5))
+* **processor:** add reconciliation demonstration harness ([#1333](https://github.com/OpenRAE/rae/issues/1333)) ([e4136a6](https://github.com/OpenRAE/rae/commit/e4136a6e1f2fadc0fa174421532b91360aee0f73))
+* publish applicable participant-control contracts ([#1399](https://github.com/OpenRAE/rae/issues/1399)) ([dc63de0](https://github.com/OpenRAE/rae/commit/dc63de02ceffd87affd460283b26389250b0ec82))
+* publish backend operation and supervision contracts ([#1388](https://github.com/OpenRAE/rae/issues/1388)) ([023ff5b](https://github.com/OpenRAE/rae/commit/023ff5b28f68105cd85bdeebc75427ad85f22227))
+* publish participant-control provider and profile contracts ([#1334](https://github.com/OpenRAE/rae/issues/1334)) ([f784be2](https://github.com/OpenRAE/rae/commit/f784be2d1dd8714afd9ad60b56b8100c850f8e3e))
+* require backends to honour authored trial timeout and retry choices ([#1398](https://github.com/OpenRAE/rae/issues/1398)) ([c4d90a3](https://github.com/OpenRAE/rae/commit/c4d90a39b0f116ecb4f2dd355e3ebfb4ef432c81))
+* **runtime:** add control-plane recovery operations ([#1324](https://github.com/OpenRAE/rae/issues/1324)) ([f40b98d](https://github.com/OpenRAE/rae/commit/f40b98d347a4a39585ec638b9b46d45dcb45cce9))
+* **runtime:** coordinate mixed participant runtimes fail closed ([#1336](https://github.com/OpenRAE/rae/issues/1336)) ([24e6652](https://github.com/OpenRAE/rae/commit/24e66529bd23b74ec6bfb833a8bb424337325267))
+* **runtime:** declare control-plane profiles and capabilities ([#1329](https://github.com/OpenRAE/rae/issues/1329)) ([7128f0c](https://github.com/OpenRAE/rae/commit/7128f0cc25d44a37264a660a1b3854e4b9348678))
+* **runtime:** enforce store ownership leases ([#1316](https://github.com/OpenRAE/rae/issues/1316)) ([87c0fd5](https://github.com/OpenRAE/rae/commit/87c0fd56011060cbe33a2213ec484d6975cac558))
+* **runtime:** orchestrate modular participant control and governed effects ([#1346](https://github.com/OpenRAE/rae/issues/1346)) ([6bfdb7e](https://github.com/OpenRAE/rae/commit/6bfdb7efdabbf5efe22fa023a16316830cf25380))
+* **runtime:** reconcile interrupted control-plane operations ([#1311](https://github.com/OpenRAE/rae/issues/1311)) ([12025b4](https://github.com/OpenRAE/rae/commit/12025b48e06d3e907b77078c82037f28929fbf58))
+* **sdl:** add explicit participant relationships ([#1303](https://github.com/OpenRAE/rae/issues/1303)) ([fb75e57](https://github.com/OpenRAE/rae/commit/fb75e5764a6395c3a0e6f1860b52fc800c999ea9))
+* **sdl:** add post-materialization attestations ([#1292](https://github.com/OpenRAE/rae/issues/1292)) ([22b5755](https://github.com/OpenRAE/rae/commit/22b5755e3f75fd3d415b837023c7f5c56bac8618))
+* **sdl:** enforce open-by-default scenario augmentation scope ([#1304](https://github.com/OpenRAE/rae/issues/1304)) ([d4fea22](https://github.com/OpenRAE/rae/commit/d4fea224f8eb7cbcfb2be833ed3f90c157428f6c))
+* **semantics:** publish modular participant-control semantics ([#1328](https://github.com/OpenRAE/rae/issues/1328)) ([65ca8e4](https://github.com/OpenRAE/rae/commit/65ca8e416557a384a70a41478ce7c40522f43193))
+* separate participant identity and objective assignment ([#1345](https://github.com/OpenRAE/rae/issues/1345)) ([f92f3a2](https://github.com/OpenRAE/rae/commit/f92f3a297408f54a409e0220136a2d1790786c23))
+* support participant-local outcome categories and state ([#1347](https://github.com/OpenRAE/rae/issues/1347)) ([c22ae7f](https://github.com/OpenRAE/rae/commit/c22ae7f94f2e3269dbebc0d05c32f3808c6a4577))
+
+
+### Bug Fixes
+
+* admit participant delivery temporal subjects ([#1390](https://github.com/OpenRAE/rae/issues/1390)) ([f02a6ee](https://github.com/OpenRAE/rae/commit/f02a6ee215e0300481d12b7ecb138c36c065c82c))
+* bind evidence provenance to the run apparatus ([#1293](https://github.com/OpenRAE/rae/issues/1293)) ([b8442f1](https://github.com/OpenRAE/rae/commit/b8442f182a94ee4c605d5371cd14673fd78a12b8))
+* **deps:** upgrade pyjwt to 2.15.1 and urllib3 to 2.8.0 for published advisories ([#1405](https://github.com/OpenRAE/rae/issues/1405)) ([c6eff0b](https://github.com/OpenRAE/rae/commit/c6eff0b27832123b863f47d21ff331f99495587e))
+* **evidence:** centralize capture admission and governance authority ([#1296](https://github.com/OpenRAE/rae/issues/1296)) ([2ed2d97](https://github.com/OpenRAE/rae/commit/2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e))
+* forward governed context in v2 decision admission ([#1384](https://github.com/OpenRAE/rae/issues/1384)) ([fa99098](https://github.com/OpenRAE/rae/commit/fa99098cd46ee57aab3f5e292cfe7383bcf0495b))
+* partition shard items with comprehensions for the SonarCloud gate ([#1406](https://github.com/OpenRAE/rae/issues/1406)) ([f51a2d1](https://github.com/OpenRAE/rae/commit/f51a2d16573a7b3683c123e8652d0da9fbbd310f))
+* record denied terminal egress outcome ([#1385](https://github.com/OpenRAE/rae/issues/1385)) ([5a9d74b](https://github.com/OpenRAE/rae/commit/5a9d74bab4531060adf5fc9fd4585310f176e381))
+* reject unprovable required evidence media types ([#1403](https://github.com/OpenRAE/rae/issues/1403)) ([2a5b0f4](https://github.com/OpenRAE/rae/commit/2a5b0f46d4b48ed3eaa40c76f763e8dc05ed643f))
+* republish research evidence for the merged control-plane boundary source ([#1404](https://github.com/OpenRAE/rae/issues/1404)) ([44a0fd9](https://github.com/OpenRAE/rae/commit/44a0fd9f722cae5653151723a7abfc6a7fe133cc))
+* **runtime:** align the served control-plane profile ([#1323](https://github.com/OpenRAE/rae/issues/1323)) ([a2aed61](https://github.com/OpenRAE/rae/commit/a2aed61be1aea53a87504db79d6350c7b0045bef))
+* **runtime:** harden control-plane profile conformance ([#1327](https://github.com/OpenRAE/rae/issues/1327)) ([a4972ca](https://github.com/OpenRAE/rae/commit/a4972cabf0b02fad7e8a18ecc6d56c403c926f8c))
+* **runtime:** make idempotency claims atomic and scoped ([#1321](https://github.com/OpenRAE/rae/issues/1321)) ([aa02b04](https://github.com/OpenRAE/rae/commit/aa02b0496eba716d030200a298ef0a6ed259d030))
+* **sdl:** admit partial listener descriptions ([#1306](https://github.com/OpenRAE/rae/issues/1306)) ([2a33497](https://github.com/OpenRAE/rae/commit/2a33497459ce8b8810d08dc679589821f8a7859c))
+* **sdl:** preserve extensible HTTP method identity ([#1314](https://github.com/OpenRAE/rae/issues/1314)) ([926a595](https://github.com/OpenRAE/rae/commit/926a59580ca6b403fd82fb0eec71e512346fdd22))
+* **sdl:** separate native service-manager contracts ([#1308](https://github.com/OpenRAE/rae/issues/1308)) ([7785b44](https://github.com/OpenRAE/rae/commit/7785b441c78c872190425850da6bb3f00da29fb8))
+
 ## [5.0.0](https://github.com/OpenRAE/rae/compare/v4.1.0...v5.0.0) (2026-09-15)
 
 
